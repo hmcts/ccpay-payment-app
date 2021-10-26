@@ -57,7 +57,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     @Value("${case-payment-orders.api.url}")
     private  String callBackUrl;
 
-    @Value("${sb-cpo-primary-connection-string}")
+    @Value("${azure.servicebus.connection-string}")
     private String connectionString;
 
     private static final String topic = "ccpay-cpo-topic";
@@ -141,25 +141,26 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     @Override
     public OnlineCardPaymentResponse create(OnlineCardPaymentRequest onlineCardPaymentRequest, String serviceRequestReference, String returnURL, String serviceCallbackURL) throws CheckDigitException {
         //find service request
-        PaymentFeeLink serviceRequestOrder = paymentFeeLinkRepository.findByPaymentReference(serviceRequestReference).orElseThrow(() -> new ServiceRequestReferenceNotFoundException("Order reference doesn't exist"));
+        PaymentFeeLink serviceRequest = paymentFeeLinkRepository.findByPaymentReference(serviceRequestReference).orElseThrow(() -> new ServiceRequestReferenceNotFoundException("Order reference doesn't exist"));
 
         //General business validation
-        businessValidationForOnlinePaymentServiceRequestOrder(serviceRequestOrder, onlineCardPaymentRequest);
+        businessValidationForOnlinePaymentServiceRequestOrder(serviceRequest, onlineCardPaymentRequest);
 
         //If exist, will cancel existing payment channel session with gov pay
-        checkOnlinePaymentAlreadyExistWithCreatedState(serviceRequestOrder);
+        checkOnlinePaymentAlreadyExistWithCreatedState(serviceRequest);
 
         //Payment - Boundary Object
         ServiceRequestOnlinePaymentBo requestOnlinePaymentBo = serviceRequestDtoDomainMapper.toDomain(onlineCardPaymentRequest, returnURL, serviceCallbackURL);
 
         // GovPay - Request and creation
         CreatePaymentRequest createGovPayRequest = serviceRequestDtoDomainMapper.createGovPayRequest(requestOnlinePaymentBo);
-        GovPayPayment govPayPayment = delegateGovPay.create(createGovPayRequest);
+        LOG.info("Reaching card payment");
+        GovPayPayment govPayPayment = delegateGovPay.create(createGovPayRequest, serviceRequest.getEnterpriseServiceName());
 
         //Payment - Entity creation
         Payment paymentEntity = serviceRequestDomainDataEntityMapper.toPaymentEntity(requestOnlinePaymentBo, govPayPayment);
-        paymentEntity.setPaymentLink(serviceRequestOrder);
-        serviceRequestOrder.getPayments().add(paymentEntity);
+        paymentEntity.setPaymentLink(serviceRequest);
+        serviceRequest.getPayments().add(paymentEntity);
         paymentRepository.save(paymentEntity);
 
         // Trigger Apportion based on the launch darkly feature flag
@@ -308,7 +309,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
             .findFirst();
 
         if (!existedPayment.isEmpty()) {
-            delegatingPaymentService.cancel(existedPayment.get(), paymentFeeLink.getCcdCaseNumber());
+            delegatingPaymentService.cancel(existedPayment.get(), paymentFeeLink.getCcdCaseNumber(),paymentFeeLink.getEnterpriseServiceName());
         }
     }
 
@@ -363,6 +364,8 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
             msg.setLabel("Service Callback Message");
             msg.setProperties(Collections.singletonMap("serviceCallbackUrl",
                 callBackUrl+"/case-payment-orders"));
+
+            LOG.info("Connection String: ", connectionString);
 
             TopicClientProxy topicClientCPO = new TopicClientProxy(connectionString, topic);
             topicClientCPO.send(msg);

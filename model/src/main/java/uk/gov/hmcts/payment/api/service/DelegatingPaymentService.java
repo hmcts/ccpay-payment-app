@@ -13,9 +13,11 @@ public interface DelegatingPaymentService<T, ID> {
 
     T create(PaymentServiceRequest paymentServiceRequest) throws CheckDigitException;
 
-    T create(CreatePaymentRequest createPaymentRequest);
+    T create(CreatePaymentRequest createPaymentRequest, String serviceName);
 
     void cancel(Payment payment, String ccdCaseNumber);
+
+    void cancel(Payment payment, String ccdCaseNumber, String serviceName);
 
     T update(PaymentServiceRequest paymentServiceRequest) throws CheckDigitException, MethodNotSupportedException;
 
@@ -29,7 +31,9 @@ public interface DelegatingPaymentService<T, ID> {
 
     List<T> search(PaymentSearchCriteria searchCriteria);
 
-    void cancel(String paymentReference);
+    void cancel(String cancelUrl);
+
+    void cancel(String cancelUrl, String serviceName);
 
     List<Payment> searchByCriteria(PaymentSearchCriteria searchCriteria);
 
