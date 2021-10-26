@@ -71,7 +71,7 @@ public class ServiceRequestFunctionalTests {
     }
 
     @Test
-    @Ignore("Test Build")
+    //@Ignore("Test Build")
     public void positive_create_service_request_for_payments_user_hmcts() {
 
         ServiceRequestDto serviceRequestDto
@@ -87,7 +87,7 @@ public class ServiceRequestFunctionalTests {
     }
 
     @Test
-    @Ignore("Test Build")
+    //@Ignore("Test Build")
     public void positive_create_service_request_for_cmc_solicitor_user_professional() {
 
         ServiceRequestDto serviceRequestDto
@@ -103,7 +103,7 @@ public class ServiceRequestFunctionalTests {
     }
 
     @Test
-    @Ignore("Test Build")
+    //@Ignore("Test Build")
     public void positive_create_service_request_citizen_user() {
 
         ServiceRequestDto serviceRequestDto
@@ -117,7 +117,7 @@ public class ServiceRequestFunctionalTests {
     }
 
     @Test
-    @Ignore("Test Build")
+    @Ignore("TODO - Should Fail for and Errorneous HMCTS Org ID")
     public void negative_create_service_request_service_not_found() {
 
         ServiceRequestDto serviceRequestDto
@@ -130,7 +130,7 @@ public class ServiceRequestFunctionalTests {
     }
 
     @Test
-    @Ignore("Test Build")
+    //@Ignore("Test Build")
     public void positive_multiple_create_service_request_for_cmc_solicitor_user_professional() {
 
         final String ccd_case_number =  ServiceRequestFixture.generateUniqueCCDCaseReferenceNumber();
@@ -159,7 +159,7 @@ public class ServiceRequestFunctionalTests {
     }
 
     @Test
-    @Ignore("Test Build")
+    //@Ignore("Test Build")
     public void positive_multiple_fees_for_a_create_service_request() {
         ServiceRequestDto serviceRequestDto
             = ServiceRequestFixture.buildServiceRequestDTOWithMultipleFees("ABA6", null);
@@ -173,7 +173,7 @@ public class ServiceRequestFunctionalTests {
     }
 
     @Test
-    @Ignore("Test Build")
+    //@Ignore("Test Build")
     public void negative_duplicate_fees_for_a_create_service_request() {
         ServiceRequestDto serviceRequestDto
             = ServiceRequestFixture.buildServiceRequestDTOWithDuplicateFees("ABA6", null);
@@ -186,7 +186,7 @@ public class ServiceRequestFunctionalTests {
     }
 
     @Test
-    @Ignore("Test Build")
+    //@Ignore("Test Build")
     public void positive_create_service_request_and_a_full_pba_payment_user_hmcts() {
 
         final ServiceRequestDto serviceRequestDto
@@ -214,7 +214,7 @@ public class ServiceRequestFunctionalTests {
     }
 
     @Test
-    @Ignore("Test Build")
+    //@Ignore("Test Build")
     //@Ignore("TODO - The Response Body is not of a proper MIME Type....")
     public void negative_create_service_request_and_an_overpayment_pba_payment_user_hmcts() {
 
@@ -244,7 +244,7 @@ public class ServiceRequestFunctionalTests {
     }
 
     @Test
-    @Ignore("Test Build")
+    //@Ignore("Test Build")
     //@Ignore("TODO - The Response Body is not of a proper MIME Type....")
     public void negative_create_service_request_and_an_underpayment_pba_payment_user_hmcts() {
         final ServiceRequestDto serviceRequestDto
@@ -273,7 +273,7 @@ public class ServiceRequestFunctionalTests {
     }
 
     @Test
-    @Ignore("Test Build")
+    //@Ignore("Test Build")
     public void positive_create_service_request_and_a_pba_payment_and_a_duplicate_payment_for_same_idempotent_key() {
 
         final ServiceRequestDto serviceRequestDto
@@ -316,7 +316,7 @@ public class ServiceRequestFunctionalTests {
         assertThat(paymentReference).isEqualTo(paymentReferenceAgain);
     }
     @Test
-    @Ignore("Test Build")
+    //@Ignore("Test Build")
     public void positive_create_service_request_and_a_pba_payment_and_a_duplicate_payment_for_a_different_idempotent_Key() {
 
         final ServiceRequestDto serviceRequestDto
@@ -357,8 +357,8 @@ public class ServiceRequestFunctionalTests {
     }
 
     @Test
-    @Ignore("Test Build")
-    public void positive_create_service_request_and_a_duplicate_service_request_post_failed_payment() {
+    //@Ignore("Test Build")
+    public void positive_create_service_request_and_a_duplicate_service_request_post_failed_payment_account_deleted() {
 
         final ServiceRequestDto serviceRequestDto
             = ServiceRequestFixture.buildServiceRequestDTO("ABA6", null);
@@ -401,6 +401,99 @@ public class ServiceRequestFunctionalTests {
         assertThat(serviceRequestReferenceAgain).isNotEqualTo(serviceRequestReference);
 
     }
+
+    @Test
+    ////@Ignore("Test Build")
+    public void positive_create_service_request_and_a_duplicate_service_request_post_failed_payment_account_on_hold() {
+
+        final ServiceRequestDto serviceRequestDto
+            = ServiceRequestFixture.buildServiceRequestDTO("ABA6", null);
+
+        final Response createServiceRequestResponse
+            = serviceRequestTestService.createServiceRequest(USER_TOKEN_PAYMENT, SERVICE_TOKEN,
+            serviceRequestDto);
+        createServiceRequestResponse.getBody().prettyPrint();
+        assertThat(createServiceRequestResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
+        final ServiceRequestResponseDto responseDTO = createServiceRequestResponse.getBody().as(ServiceRequestResponseDto.class);
+        final String serviceRequestReference = responseDTO.getServiceRequestReference();
+        assertThat(serviceRequestReference).matches(SERVICE_REQUEST_REGEX_PATTERN);
+
+        final String idempotentKey = ServiceRequestFixture.generateUniqueCCDCaseReferenceNumber();
+
+        final ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
+            .paymentDtoWith().accountNumber("PBAFUNC12355")
+            .amount(BigDecimal.valueOf(100.00))
+            .currency("GBP")
+            .customerReference("123245677").
+                build();
+
+        final Response pbaPaymentServiceRequestResponse
+            = serviceRequestTestService.createPBAPaymentForAServiceRequest(USER_TOKEN_PAYMENT,
+            SERVICE_TOKEN, idempotentKey,
+            serviceRequestReference, serviceRequestPaymentDto);
+        assertThat(pbaPaymentServiceRequestResponse.getStatusCode()).isEqualTo(HttpStatus.PAYMENT_REQUIRED.value());
+        ServiceRequestPaymentBo serviceRequestPaymentBo = pbaPaymentServiceRequestResponse.getBody().as(ServiceRequestPaymentBo.class);
+        final String paymentReference = serviceRequestPaymentBo.getPaymentReference();
+        assertThat(paymentReference).matches(PAYMENTS_REGEX_PATTERN);
+
+        final Response createServiceRequestResponseAgain
+            = serviceRequestTestService.createServiceRequest(USER_TOKEN_PAYMENT, SERVICE_TOKEN,
+            serviceRequestDto);
+        createServiceRequestResponseAgain.getBody().prettyPrint();
+        assertThat(createServiceRequestResponseAgain.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
+        final ServiceRequestResponseDto responseDTOAgain = createServiceRequestResponseAgain.getBody().as(ServiceRequestResponseDto.class);
+        final String serviceRequestReferenceAgain = responseDTOAgain.getServiceRequestReference();
+        assertThat(serviceRequestReferenceAgain).matches(SERVICE_REQUEST_REGEX_PATTERN);
+        assertThat(serviceRequestReferenceAgain).isNotEqualTo(serviceRequestReference);
+
+    }
+
+    @Test
+    //@Ignore("Test Build")
+    public void positive_create_service_request_and_a_duplicate_service_request_post_failed_payment_account_over_limit() {
+
+        final ServiceRequestDto serviceRequestDto
+            = ServiceRequestFixture.buildServiceRequestDTOWithFees35000("ABA6", null);
+
+        final Response createServiceRequestResponse
+            = serviceRequestTestService.createServiceRequest(USER_TOKEN_PAYMENT, SERVICE_TOKEN,
+            serviceRequestDto);
+        createServiceRequestResponse.getBody().prettyPrint();
+        assertThat(createServiceRequestResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
+        final ServiceRequestResponseDto responseDTO = createServiceRequestResponse.getBody().as(ServiceRequestResponseDto.class);
+        final String serviceRequestReference = responseDTO.getServiceRequestReference();
+        assertThat(serviceRequestReference).matches(SERVICE_REQUEST_REGEX_PATTERN);
+
+        final String idempotentKey = ServiceRequestFixture.generateUniqueCCDCaseReferenceNumber();
+
+        final ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
+            .paymentDtoWith().accountNumber("PBAFUNC12345")
+            .amount(BigDecimal.valueOf(35000.00))
+            .currency("GBP")
+            .customerReference("123245677").
+                build();
+
+        final Response pbaPaymentServiceRequestResponse
+            = serviceRequestTestService.createPBAPaymentForAServiceRequest(USER_TOKEN_PAYMENT,
+            SERVICE_TOKEN, idempotentKey,
+            serviceRequestReference, serviceRequestPaymentDto);
+        assertThat(pbaPaymentServiceRequestResponse.getStatusCode()).isEqualTo(HttpStatus.PAYMENT_REQUIRED.value());
+        ServiceRequestPaymentBo serviceRequestPaymentBo = pbaPaymentServiceRequestResponse.getBody().as(ServiceRequestPaymentBo.class);
+        final String paymentReference = serviceRequestPaymentBo.getPaymentReference();
+        assertThat(paymentReference).matches(PAYMENTS_REGEX_PATTERN);
+
+        final Response createServiceRequestResponseAgain
+            = serviceRequestTestService.createServiceRequest(USER_TOKEN_PAYMENT, SERVICE_TOKEN,
+            serviceRequestDto);
+        createServiceRequestResponseAgain.getBody().prettyPrint();
+        assertThat(createServiceRequestResponseAgain.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
+        final ServiceRequestResponseDto responseDTOAgain = createServiceRequestResponseAgain.getBody().as(ServiceRequestResponseDto.class);
+        final String serviceRequestReferenceAgain = responseDTOAgain.getServiceRequestReference();
+        assertThat(serviceRequestReferenceAgain).matches(SERVICE_REQUEST_REGEX_PATTERN);
+        assertThat(serviceRequestReferenceAgain).isNotEqualTo(serviceRequestReference);
+
+    }
+
 
     @Test
     @Ignore ("Online Card Payment Failing with a HTTP Status 500 Error....")
