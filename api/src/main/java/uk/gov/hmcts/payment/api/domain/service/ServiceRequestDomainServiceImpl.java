@@ -60,8 +60,8 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     @Value("${azure.servicebus.connection-string}")
     private String connectionString;
 
-    //@Value("${ccpay-payment-status-connection-string}")
-    private String connectionStringCardPBA = "Endpoint=sb://ccpay-servicebus-demo.servicebus.windows.net/;SharedAccessKeyName=SendAndListenSharedAccessKey;SharedAccessKey=lNbSEgOkXclTu7r75z+Y1a2qeSX4SBmTCLW4v6k7Ue0=;EntityPath=ccpay-payment-status-topic";
+    @Value("${azure.servicebus.connection-string}")
+    private String connectionStringCardPBA;
 
     private static final String topic = "ccpay-cpo-topic";
 
@@ -393,15 +393,14 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
                 topicClientCPO = new TopicClientProxy(connectionString, topic);
             }
 
-            if(msg!=null){
+            if(msg!=null && topicClientCPO!=null){
                 msg.setContentType("application/json");
                 msg.setLabel("Service Callback Message");
                 msg.setProperties(Collections.singletonMap("serviceCallbackUrl",
                     callBackUrl+"/case-payment-orders"));
+                topicClientCPO.send(msg);
+                topicClientCPO.close();
             }
-
-            topicClientCPO.send(msg);
-            topicClientCPO.close();
         } catch (Exception e) {
             Thread.currentThread().interrupt();
         }
