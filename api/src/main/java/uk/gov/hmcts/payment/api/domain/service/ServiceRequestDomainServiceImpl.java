@@ -57,7 +57,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     @Value("${case-payment-orders.api.url}")
     private  String callBackUrl;
 
-    @Value("${sb-cpo-primary-connection-string}")
+    @Value("${azure.servicebus.connection-string}")
     private String connectionString;
 
     //@Value("${ccpay-payment-status-connection-string}")
@@ -167,6 +167,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
 
         // GovPay - Request and creation
         CreatePaymentRequest createGovPayRequest = serviceRequestDtoDomainMapper.createGovPayRequest(requestOnlinePaymentBo);
+        LOG.info("Reaching card payment");
         GovPayPayment govPayPayment = delegateGovPay.create(createGovPayRequest, serviceRequest.getEnterpriseServiceName());
 
         //Payment - Entity creation
@@ -325,7 +326,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
             .findFirst();
 
         if (!existedPayment.isEmpty()) {
-            delegatingPaymentService.cancel(existedPayment.get(), paymentFeeLink.getCcdCaseNumber());
+            delegatingPaymentService.cancel(existedPayment.get(), paymentFeeLink.getCcdCaseNumber(),paymentFeeLink.getEnterpriseServiceName());
         }
     }
 
@@ -391,6 +392,9 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
             msg.setProperties(Collections.singletonMap("serviceCallbackUrl",
                 callBackUrl+"/case-payment-orders"));
 
+            LOG.info("Connection String: ", connectionString);
+
+            TopicClientProxy topicClientCPO = new TopicClientProxy(connectionString, topic);
             topicClientCPO.send(msg);
             topicClientCPO.close();
         } catch (Exception e) {
