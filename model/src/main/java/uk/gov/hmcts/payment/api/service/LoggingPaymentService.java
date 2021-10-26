@@ -56,13 +56,17 @@ public class LoggingPaymentService implements DelegatingPaymentService<PaymentFe
     }
 
     @Override
-    public PaymentFeeLink create(CreatePaymentRequest createPaymentRequest) {
+    public PaymentFeeLink create(CreatePaymentRequest createPaymentRequest, String serviceName ) {
         return null;
     }
 
     @Override
     public void cancel(Payment payment, String ccdCaseNumber) {
 
+    }
+
+    @Override
+    public void cancel(Payment payment, String ccdCaseNumber, String serviceName) {
     }
 
     @Override
@@ -116,5 +120,10 @@ public class LoggingPaymentService implements DelegatingPaymentService<PaymentFe
     @Override
     public void cancel(String paymentReference) {
         LOG.info("Cancel payment for supplied payment reference : {}", paymentReference);
+    }
+
+    @Override
+    public void cancel(String cancelUrl, String serviceName) {
+
     }
 }

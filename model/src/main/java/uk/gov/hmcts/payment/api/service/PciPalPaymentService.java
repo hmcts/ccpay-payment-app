@@ -224,7 +224,7 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
     }
 
     @Override
-    public PciPalPayment create(CreatePaymentRequest createPaymentRequest) {
+    public PciPalPayment create(CreatePaymentRequest createPaymentRequest, String serviceName) {
         return null;
     }
 
@@ -254,6 +254,15 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
 
     @Override
     public void cancel(String paymentReference) {
+    }
+
+    @Override
+    public void cancel(String cancelUrl, String serviceName) {
+
+    }
+
+    @Override
+    public void cancel(Payment payment, String ccdCaseNumber, String serviceName) {
     }
 
     @Override
