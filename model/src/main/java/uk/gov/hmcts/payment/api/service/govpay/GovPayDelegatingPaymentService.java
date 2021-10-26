@@ -61,6 +61,8 @@ public class GovPayDelegatingPaymentService implements DelegatingPaymentService<
 
     @Override
     public GovPayPayment create(CreatePaymentRequest createPaymentRequest, String serviceName) {
+        LOG.info("Gov Pay Delegating service ---");
+        LOG.info("Gov Pay Delegating service ---"+serviceName);
         String key = getServiceKeyWithServiceName(serviceName);
         LOG.info("Key value: {}",key);
         LOG.info("Language value in GovPayDelegatingPaymentService - CreatePaymentRequest: {}", createPaymentRequest.getLanguage());
@@ -69,6 +71,10 @@ public class GovPayDelegatingPaymentService implements DelegatingPaymentService<
 
     @Override
     public void cancel(Payment payment, String ccdCaseNumber) {
+    }
+
+    @Override
+    public void cancel(Payment payment, String ccdCaseNumber, String serviceName) {
     }
 
     @Override
@@ -97,6 +103,12 @@ public class GovPayDelegatingPaymentService implements DelegatingPaymentService<
     }
 
     @Override
+    public void cancel(String cancelUrl, String serviceName) {
+        LOG.info("NEW cancel in gov pay delegating service");
+        govPayClient.cancelPayment(getServiceKeyWithServiceName(serviceName), cancelUrl);
+    }
+
+    @Override
     public List<Payment> searchByCriteria(PaymentSearchCriteria searchCriteria) {
         return null;
     }
@@ -110,10 +122,12 @@ public class GovPayDelegatingPaymentService implements DelegatingPaymentService<
     }
 
     private String keyForService(String service) {
+        LOG.info("KEY FOR SERVICE: "+service);
         return govPayAuthUtil.getServiceToken(service);
     }
 
     private String keyForService() {
+        LOG.info("keyForService ----");
         return govPayKeyRepository.getKey(serviceIdSupplier.get());
     }
 
