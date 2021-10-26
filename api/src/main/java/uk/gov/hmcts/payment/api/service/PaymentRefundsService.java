@@ -4,6 +4,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
 import uk.gov.hmcts.payment.api.dto.RefundResponse;
+import uk.gov.hmcts.payment.api.dto.ResubmitRefundRemissionRequest;
 
 import java.math.BigDecimal;
 
@@ -13,6 +14,6 @@ public interface PaymentRefundsService {
 
     ResponseEntity<RefundResponse> createAndValidateRetroSpectiveRemissionRequest(String remissionReference, MultiValueMap<String, String> headers);
 
-    ResponseEntity updateTheRemissionAmount(String paymentReference, BigDecimal amount, String refundReason);
+    ResponseEntity updateTheRemissionAmount(String paymentReference, ResubmitRefundRemissionRequest request);
 
 }
