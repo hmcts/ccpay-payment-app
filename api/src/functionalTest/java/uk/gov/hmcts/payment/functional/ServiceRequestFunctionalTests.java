@@ -270,9 +270,6 @@ public class ServiceRequestFunctionalTests {
             serviceRequestReference, serviceRequestPaymentDto);
         assertThat(pbaPaymentServiceRequestResponse.getStatusCode()).isEqualTo(HttpStatus.EXPECTATION_FAILED.value());
         assertThat(pbaPaymentServiceRequestResponse.getBody().asString()).isEqualTo("The amount should be equal to serviceRequest balance");
-        /*final ServiceRequestPaymentBo serviceRequestPaymentBo = pbaPaymentServiceRequestResponse.getBody().as(ServiceRequestPaymentBo.class);
-        assertThat(serviceRequestPaymentBo.getPaymentReference()).matches(PAYMENTS_REGEX_PATTERN);
-        assertThat(serviceRequestPaymentBo.getStatus()).matches("Failed");*/
     }
 
     @Test
@@ -485,5 +482,4 @@ public class ServiceRequestFunctionalTests {
         OnlineCardPaymentResponse onlineCardPaymentResponse = createOnlineCardPaymentResponse.getBody().as(OnlineCardPaymentResponse.class);
         assertThat(onlineCardPaymentResponse.getPaymentReference()).matches(PAYMENTS_REGEX_PATTERN);
     }
-    //TODO - Add One more scenario that is to add a Failed Card Payment and Create A Duplicate Service Request...
 }
