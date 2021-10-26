@@ -393,10 +393,12 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
                 topicClientCPO = new TopicClientProxy(connectionString, topic);
             }
 
-            msg.setContentType("application/json");
-            msg.setLabel("Service Callback Message");
-            msg.setProperties(Collections.singletonMap("serviceCallbackUrl",
-                callBackUrl+"/case-payment-orders"));
+            if(msg!=null){
+                msg.setContentType("application/json");
+                msg.setLabel("Service Callback Message");
+                msg.setProperties(Collections.singletonMap("serviceCallbackUrl",
+                    callBackUrl+"/case-payment-orders"));
+            }
 
             topicClientCPO.send(msg);
             topicClientCPO.close();
