@@ -63,7 +63,7 @@ public class ServiceRequestFixture {
             .hmctsOrgId(hmctsOrgId)
             .caseReference("123245677")
             .ccdCaseNumber(ccdCaseNumber != null ? ccdCaseNumber : generateUniqueCCDCaseReferenceNumber())
-            .fees(getMultipleFees()).build();
+            .fees(getDuplicateFees()).build();
         return serviceRequestDto;
     }
 
