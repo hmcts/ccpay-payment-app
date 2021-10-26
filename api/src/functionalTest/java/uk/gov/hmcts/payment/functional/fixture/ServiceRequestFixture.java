@@ -29,9 +29,51 @@ public class ServiceRequestFixture {
         return serviceRequestDto;
     }
 
+    public static final ServiceRequestDto buildServiceRequestDTOWithMultipleFees(final String hmctsOrgId,
+                                                                 final String ccdCaseNumber) {
+
+        CasePaymentRequest casePaymentRequest = CasePaymentRequest
+            .casePaymentRequestWith()
+            .responsibleParty("Party 1")
+            .action("Action 1").build();
+
+        ServiceRequestDto serviceRequestDto = ServiceRequestDto
+            .serviceRequestDtoWith()
+            .casePaymentRequest(casePaymentRequest)
+            .callBackUrl("http://callback.hmcts.net")
+            .hmctsOrgId(hmctsOrgId)
+            .caseReference("123245677")
+            .ccdCaseNumber(ccdCaseNumber != null ? ccdCaseNumber : generateUniqueCCDCaseReferenceNumber())
+            .fees(getMultipleFees()).build();
+        return serviceRequestDto;
+    }
+
+    public static final ServiceRequestDto buildServiceRequestDTOWithDuplicateFees(final String hmctsOrgId,
+                                                                                 final String ccdCaseNumber) {
+
+        CasePaymentRequest casePaymentRequest = CasePaymentRequest
+            .casePaymentRequestWith()
+            .responsibleParty("Party 1")
+            .action("Action 1").build();
+
+        ServiceRequestDto serviceRequestDto = ServiceRequestDto
+            .serviceRequestDtoWith()
+            .casePaymentRequest(casePaymentRequest)
+            .callBackUrl("http://callback.hmcts.net")
+            .hmctsOrgId(hmctsOrgId)
+            .caseReference("123245677")
+            .ccdCaseNumber(ccdCaseNumber != null ? ccdCaseNumber : generateUniqueCCDCaseReferenceNumber())
+            .fees(getMultipleFees()).build();
+        return serviceRequestDto;
+    }
+
+
+
+
+
     private static final ServiceRequestFeeDto getFee() {
         return ServiceRequestFeeDto.feeDtoWith()
-            .calculatedAmount(new BigDecimal("92.19"))
+            .calculatedAmount(new BigDecimal("100.00"))
             .code("FEE312")
             .version("1")
             .volume(2)
@@ -49,6 +91,25 @@ public class ServiceRequestFixture {
         ServiceRequestFeeDto fee2 = ServiceRequestFeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("200"))
             .code("FEE102")
+            .version("1")
+            .volume(1)
+            .build();
+
+        return List.of(fee1, fee2);
+    }
+
+    private static final List<ServiceRequestFeeDto> getDuplicateFees() {
+
+        ServiceRequestFeeDto fee1 = ServiceRequestFeeDto.feeDtoWith()
+            .calculatedAmount(new BigDecimal("100"))
+            .code("FEE100")
+            .version("1")
+            .volume(1)
+            .build();
+
+        ServiceRequestFeeDto fee2 = ServiceRequestFeeDto.feeDtoWith()
+            .calculatedAmount(new BigDecimal("100"))
+            .code("FEE100")
             .version("1")
             .volume(1)
             .build();
