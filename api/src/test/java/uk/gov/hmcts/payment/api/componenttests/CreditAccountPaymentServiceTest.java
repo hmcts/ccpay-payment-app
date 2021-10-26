@@ -1,8 +1,10 @@
 package uk.gov.hmcts.payment.api.componenttests;
 
 import org.joda.time.MutableDateTime;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.test.annotation.DirtiesContext;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.v1.componenttests.TestUtil;
@@ -12,10 +14,9 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-
+@DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
 public class CreditAccountPaymentServiceTest extends TestUtil {
     private PaymentsDataUtil paymentsDataUtil;
-
     @Before
     public void setUp() {
         paymentsDataUtil = new PaymentsDataUtil();
@@ -33,6 +34,10 @@ public class CreditAccountPaymentServiceTest extends TestUtil {
             .fees(paymentsDataUtil.getFeesData()).build());
     }
 
+    @After
+    public void tearDown() {
+        paymentsDataUtil = null;
+    }
     @Test
     public void retireveCreditAccountPayments_forBetweenDates_WhereProviderIsMiddleOfficeTest() throws Exception {
         Date fromDate = new Date();

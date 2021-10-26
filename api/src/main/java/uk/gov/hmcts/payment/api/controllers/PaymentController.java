@@ -122,6 +122,15 @@ public class PaymentController {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
+    @RequestMapping(value = "/payments/ccd_case_reference/{ccd_case_number}", method = PATCH)
+    @Transactional
+    public ResponseEntity
+        updatePaymentsForCCDCaseNumberByCertainDays(@PathVariable("ccd_case_number")
+                                                        String ccd_case_number) {
+        paymentService.updatePaymentsForCCDCaseNumberByCertainDays(ccd_case_number);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
     @ApiOperation(value = "Get payments for between dates", notes = "Get list of payments. You can optionally provide start date and end dates which can include times as well. Following are the supported date/time formats. These are yyyy-MM-dd, dd-MM-yyyy," +
         "yyyy-MM-dd HH:mm:ss, dd-MM-yyyy HH:mm:ss, yyyy-MM-dd'T'HH:mm:ss, dd-MM-yyyy'T'HH:mm:ss")
     @ApiResponses(value = {

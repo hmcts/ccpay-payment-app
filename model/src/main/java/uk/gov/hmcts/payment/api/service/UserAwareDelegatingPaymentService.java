@@ -256,7 +256,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
     }
 
     @Override
-    public PaymentFeeLink create(CreatePaymentRequest createPaymentRequest) {
+    public PaymentFeeLink create(CreatePaymentRequest createPaymentRequest, String serviceName) {
         return null;
     }
 
@@ -411,8 +411,26 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
     }
 
     @Override
+    public void cancel(String cancelUrl, String serviceName) {
+
+    }
+
+    @Override
     public void cancel(Payment payment, String ccdCaseNumber) {
         delegateGovPay.cancel(govpayUrl + "/" + payment.getExternalReference() + "/cancel");
+        Map<String, String> properties = new ImmutableMap.Builder<String, String>()
+            .put("paymentReference", payment.getReference())
+            .put("amount", payment.getAmount().toString())
+            .put("CcdCaseNumber", ccdCaseNumber)
+            .put("ExternalReference", payment.getExternalReference())
+            .build();
+        auditRepository.trackEvent("CANCEL_CARD_PAYMENT", properties);
+    }
+
+    @Override
+    public void cancel(Payment payment, String ccdCaseNumber, String serviceName) {
+        LOG.info("NEW cancel received");
+        delegateGovPay.cancel(govpayUrl + "/" + payment.getExternalReference() + "/cancel",serviceName);
         Map<String, String> properties = new ImmutableMap.Builder<String, String>()
             .put("paymentReference", payment.getReference())
             .put("amount", payment.getAmount().toString())
