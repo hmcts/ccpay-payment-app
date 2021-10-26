@@ -11,6 +11,7 @@ import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentResponse;
 import uk.gov.hmcts.payment.api.dto.ServiceRequestResponseDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
+import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 
 import java.util.List;
@@ -34,5 +35,5 @@ public interface ServiceRequestDomainService {
 
     Boolean isDuplicate(String serviceRequestReference);
 
-    void sendMessageTopicCPO(ServiceRequestDto serviceRequestDto);
+    void sendMessageTopicCPO(ServiceRequestDto serviceRequestDto, Payment payment);
 }
