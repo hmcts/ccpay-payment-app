@@ -54,6 +54,7 @@ public class AccountFunctionalTest {
             .then().getAccount();
 
         assertNotNull(existingAccountDto);
+        //
     }
 
     @Test
