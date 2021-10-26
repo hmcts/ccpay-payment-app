@@ -372,11 +372,17 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
             ObjectMapper objectMapper = new ObjectMapper();
 
             if(serviceRequestDto==null && payment!=null){
+
+                LOG.info("Connection String CardPBA: ", connectionStringCardPBA);
+
                 msg = new Message(objectMapper.writeValueAsString(payment));
                 topicClientCPO = new TopicClientProxy(connectionStringCardPBA, topicCardPBA);
             }
 
             else if(payment==null && serviceRequestDto!=null){
+
+                LOG.info("Connection String: ", connectionString);
+
                 ServiceRequestCpoDto serviceRequestCpoDto = ServiceRequestCpoDto.serviceRequestCpoDtoWith()
                     .action(serviceRequestDto.getCasePaymentRequest().getAction())
                     .case_id(serviceRequestDto.getCcdCaseNumber())
@@ -392,9 +398,6 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
             msg.setProperties(Collections.singletonMap("serviceCallbackUrl",
                 callBackUrl+"/case-payment-orders"));
 
-            LOG.info("Connection String: ", connectionString);
-
-            TopicClientProxy topicClientCPO = new TopicClientProxy(connectionString, topic);
             topicClientCPO.send(msg);
             topicClientCPO.close();
         } catch (Exception e) {
