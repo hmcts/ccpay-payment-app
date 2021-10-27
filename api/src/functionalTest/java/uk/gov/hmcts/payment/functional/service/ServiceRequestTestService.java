@@ -5,14 +5,11 @@ import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
-import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
+import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
-import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestFeeDto;
+import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
 
-import java.math.BigDecimal;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import javax.inject.Named;
 
@@ -32,6 +29,31 @@ public class ServiceRequestTestService {
             .body(serviceRequestDto)
             .when()
             .post("/service-request");
+    }
+
+    public Response createPBAPaymentForAServiceRequest(final String userToken,
+                                                       final String serviceToken,
+                                                       final String idempotencyKey,
+                                                       final String serviceRequestReference,
+                                                       final ServiceRequestPaymentDto serviceRequestPaymentDto) {
+        return givenWithAuthHeaders(userToken, serviceToken)
+            .header("idempotency_key", idempotencyKey)
+            .contentType(ContentType.JSON)
+            .body(serviceRequestPaymentDto)
+            .when()
+            .post("/service-request/{serviceRequestReference}/pba-payments", serviceRequestReference);
+    }
+
+    public Response createAnOnlineCardPaymentForAServiceRequest(final String userToken,
+                                                                final String serviceToken,
+                                                                final String serviceRequestReference,
+                                                                final OnlineCardPaymentRequest onlineCardPaymentRequest) {
+        return givenWithAuthHeaders(userToken, serviceToken)
+            .header("return-url", "http://localhost.hmcts.net")
+            .contentType(ContentType.JSON)
+            .body(onlineCardPaymentRequest)
+            .when()
+            .post("/service-request/{service-request-reference}/card-payments", serviceRequestReference);
     }
 
     public RequestSpecification givenWithAuthHeaders(String userToken, String serviceToken) {

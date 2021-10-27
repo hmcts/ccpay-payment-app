@@ -60,7 +60,12 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     @Value("${azure.servicebus.connection-string}")
     private String connectionString;
 
+    @Value("${azure.servicebus.connection-string}")
+    private String connectionStringCardPBA;
+
     private static final String topic = "ccpay-cpo-topic";
+
+    private static final String topicCardPBA = "ccpay-payment-status-topic";
 
     @Autowired
     private ServiceRequestDtoDomainMapper serviceRequestDtoDomainMapper;
@@ -113,6 +118,9 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     @Autowired
     private DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService;
 
+    @Autowired
+    private ServiceRequestDomainService serviceRequestDomainService;
+
     private Function<PaymentFeeLink, Payment> getFirstSuccessPayment = serviceRequest -> serviceRequest.getPayments().stream().
         filter(payment -> payment.getPaymentStatus().getName().equalsIgnoreCase("success")).collect(Collectors.toList()).get(0);
 
@@ -131,7 +139,12 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     @Transactional
     public ServiceRequestResponseDto create(ServiceRequestDto serviceRequestDto, MultiValueMap<String, String> headers) {
 
-        OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(Optional.empty(), Optional.ofNullable(serviceRequestDto.getHmctsOrgId()), headers);
+        //OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(Optional.empty(), Optional.ofNullable(serviceRequestDto.getHmctsOrgId()), headers);
+
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA001")
+            .serviceDescription("DIVORCE")
+            .build();
 
         ServiceRequestBo serviceRequestDomain = serviceRequestDtoDomainMapper.toDomain(serviceRequestDto, organisationalServiceDto);
         return serviceRequestBo.createServiceRequest(serviceRequestDomain);
@@ -163,6 +176,8 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         serviceRequest.getPayments().add(paymentEntity);
         paymentRepository.save(paymentEntity);
 
+        sendMessageTopicCPO(null, paymentEntity);
+
         // Trigger Apportion based on the launch darkly feature flag
         boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature", false);
         LOG.info("ApportionFeature Flag Value in online card payment : {}", apportionFeature);
@@ -190,6 +205,8 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
 
         //2. Account check for PBA-Payment
         payment = accountCheckForPBAPayment(serviceRequest, serviceRequestPaymentDto, payment);
+
+        sendMessageTopicCPO(null, payment);
 
         if (payment.getPaymentStatus().getName().equals(FAILED)) {
             LOG.info("CreditAccountPayment Response 402(FORBIDDEN) for ccdCaseNumber : {} PaymentStatus : {}", payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
@@ -347,29 +364,43 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     }
 
     @Override
-    public void sendMessageTopicCPO(ServiceRequestDto serviceRequestDto){
-
-        ServiceRequestCpoDto serviceRequestCpoDto = ServiceRequestCpoDto.serviceRequestCpoDtoWith()
-            .action(serviceRequestDto.getCasePaymentRequest().getAction())
-            .case_id(serviceRequestDto.getCcdCaseNumber())
-            .order_reference(serviceRequestDto.getCaseReference())
-            .responsible_party(serviceRequestDto.getCasePaymentRequest().getResponsibleParty())
-            .build();
+    public void sendMessageTopicCPO(ServiceRequestDto serviceRequestDto, Payment payment){
 
         try {
+            TopicClientProxy topicClientCPO = null;
+            Message msg = null;
             ObjectMapper objectMapper = new ObjectMapper();
-            Message msg = new Message(objectMapper.writeValueAsString(serviceRequestCpoDto));
 
-            msg.setContentType("application/json");
-            msg.setLabel("Service Callback Message");
-            msg.setProperties(Collections.singletonMap("serviceCallbackUrl",
-                callBackUrl+"/case-payment-orders"));
+            if(serviceRequestDto==null && payment!=null){
 
-            LOG.info("Connection String: ", connectionString);
+                LOG.info("Connection String CardPBA: ", connectionStringCardPBA);
 
-            TopicClientProxy topicClientCPO = new TopicClientProxy(connectionString, topic);
-            topicClientCPO.send(msg);
-            topicClientCPO.close();
+                msg = new Message(objectMapper.writeValueAsString(payment));
+                topicClientCPO = new TopicClientProxy(connectionStringCardPBA, topicCardPBA);
+            }
+
+            else if(payment==null && serviceRequestDto!=null){
+
+                LOG.info("Connection String: ", connectionString);
+
+                ServiceRequestCpoDto serviceRequestCpoDto = ServiceRequestCpoDto.serviceRequestCpoDtoWith()
+                    .action(serviceRequestDto.getCasePaymentRequest().getAction())
+                    .case_id(serviceRequestDto.getCcdCaseNumber())
+                    .order_reference(serviceRequestDto.getCaseReference())
+                    .responsible_party(serviceRequestDto.getCasePaymentRequest().getResponsibleParty())
+                    .build();
+                msg = new Message(objectMapper.writeValueAsString(serviceRequestCpoDto));
+                topicClientCPO = new TopicClientProxy(connectionString, topic);
+            }
+
+            if(msg!=null && topicClientCPO!=null){
+                msg.setContentType("application/json");
+                msg.setLabel("Service Callback Message");
+                msg.setProperties(Collections.singletonMap("serviceCallbackUrl",
+                    callBackUrl+"/case-payment-orders"));
+                topicClientCPO.send(msg);
+                topicClientCPO.close();
+            }
         } catch (Exception e) {
             Thread.currentThread().interrupt();
         }
