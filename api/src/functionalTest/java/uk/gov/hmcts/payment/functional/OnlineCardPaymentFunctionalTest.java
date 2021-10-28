@@ -103,7 +103,7 @@ public class OnlineCardPaymentFunctionalTest {
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .returnUrl("https://www.moneyclaims.service.gov.uk")
-            .when().createCardPayment(PaymentFixture.cardPaymentRequestIAC("215.00", "IAC"))
+            .when().createCardPayment(PaymentFixture.cardPaymentRequestIAC("215.55", "IAC"))
             .then().created(paymentDto -> {
             assertNotNull(paymentDto.getReference());
             assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
@@ -174,7 +174,7 @@ public class OnlineCardPaymentFunctionalTest {
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .returnUrl("https://www.moneyclaims.service.gov.uk")
-            .when().createCardPayment(PaymentFixture.cardPaymentRequestIAC("215.00", "IAC"))
+            .when().createCardPayment(PaymentFixture.cardPaymentRequestIAC("215.55", "IAC"))
             .then().created(savedPayment -> {
             reference[0] = savedPayment.getReference();
 
@@ -190,14 +190,14 @@ public class OnlineCardPaymentFunctionalTest {
             .then().get();
 
         assertNotNull(paymentDto);
-        assertEquals(paymentDto.getAmount(), new BigDecimal("215.00"));
+        assertEquals(paymentDto.getAmount(), new BigDecimal("215.55"));
         assertEquals(paymentDto.getReference(), reference[0]);
         assertEquals(paymentDto.getExternalProvider(), "gov pay");
         assertEquals(paymentDto.getServiceName(), "Immigration and Asylum Appeals");
         assertEquals(paymentDto.getStatus(), "Initiated");
         paymentDto.getFees().stream().forEach(f -> {
             assertEquals(f.getVersion(), "1");
-            assertEquals(f.getCalculatedAmount(), new BigDecimal("215.00"));
+            assertEquals(f.getCalculatedAmount(), new BigDecimal("215.55"));
         });
 
     }
