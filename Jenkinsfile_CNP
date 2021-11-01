@@ -51,6 +51,30 @@ withPipeline(type, product, app) {
     overrideVaultEnvironments(vaultOverrides)
     loadVaultSecrets(secrets)
     enableDbMigration('ccpay') // for liquibase update
+    after('functionalTest:aat') {
+        publishHTML target: [
+            reportDir            : "target/site/serenity/",
+            reportFiles          : "index.html",
+            reportName           : "AAT Functional Tests",
+            alwaysLinkToLastBuild: true
+        ]
+        steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
+    }
+
+    after('functionalTest:preview') {
+        publishHTML target: [
+            reportDir            : "target/site/serenity/",
+            allowMissing         : true,
+            alwaysLinkToLastBuild: true,
+            keepAll              : true,
+            reportDir            : "build/reports/tests/functional",
+            reportFiles          : "index.html",
+            reportName           : "Preview Functional Tests",
+            alwaysLinkToLastBuild: true,
+            reportName           : "CCPAY Payment App API Functional Test Report"
+        ]
+        steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
+    }
     //enableDockerBuild()
     //installCharts()
     enableSlackNotifications('#cc-payments-tech')
