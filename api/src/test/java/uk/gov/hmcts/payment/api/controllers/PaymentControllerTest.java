@@ -424,7 +424,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             assertThat(p.getAmount()).isEqualTo(new BigDecimal("99.99"));
             assertThat(p.getChannel()).isEqualTo("online");
             assertThat(p.getMethod()).isEqualTo("card");
-            assertThat(p.getStatus()).isEqualTo("initiated");
+            assertThat(p.getStatus()).isEqualTo("success");
             assertThat(p.getSiteId()).isEqualTo("AA02");
             assertThat(p.getDateCreated()).isNotNull();
             assertThat(p.getDateUpdated()).isNotNull();
@@ -766,7 +766,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             assertThat(p.getAmount()).isEqualTo(new BigDecimal("99.99"));
             assertThat(p.getChannel()).isEqualTo("online");
             assertThat(p.getMethod()).isEqualTo("card");
-            assertThat(p.getStatus()).isEqualTo("initiated");
+            assertThat(p.getStatus()).isEqualTo("success");
             assertThat(p.getSiteId()).isEqualTo("AA02");
             assertThat(p.getDateCreated()).isNotNull();
             assertThat(p.getDateUpdated()).isNotNull();
