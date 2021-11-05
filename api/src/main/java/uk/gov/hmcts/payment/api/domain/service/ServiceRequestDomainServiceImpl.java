@@ -60,9 +60,6 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     @Value("${azure.servicebus.connection-string}")
     private String connectionString;
 
-    @Value("${azure.servicebus.connection-string}")
-    private String connectionStringCardPBA;
-
     private static final String topic = "ccpay-cpo-topic";
 
     private static final String topicCardPBA = "ccpay-payment-status-topic";
@@ -373,10 +370,10 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
 
             if(serviceRequestDto==null && payment!=null){
 
-                LOG.info("Connection String CardPBA: ", connectionStringCardPBA);
+                LOG.info("Connection String CardPBA: ", connectionString);
 
                 msg = new Message(objectMapper.writeValueAsString(payment));
-                topicClientCPO = new TopicClientProxy(connectionStringCardPBA, topicCardPBA);
+                topicClientCPO = new TopicClientProxy(connectionString, topicCardPBA);
             }
 
             else if(payment==null && serviceRequestDto!=null){
