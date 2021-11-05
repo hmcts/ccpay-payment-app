@@ -51,6 +51,7 @@ withPipeline(type, product, app) {
     overrideVaultEnvironments(vaultOverrides)
     loadVaultSecrets(secrets)
     enableDbMigration('ccpay') // for liquibase update
+    
     after('functionalTest:aat') {
         publishHTML target: [
             reportDir            : "target/site/serenity/",
