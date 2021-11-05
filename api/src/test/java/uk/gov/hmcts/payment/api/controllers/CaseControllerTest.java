@@ -77,6 +77,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 public class CaseControllerTest extends PaymentsDataUtil {
 
     private static final String USER_ID = UserResolverBackdoor.CASEWORKER_ID;
+    private static final String FINANCE_MANAGER_USER_ID = UserResolverBackdoor.FINANCE_MANAGER_ID;
     @ClassRule
     public static WireMockClassRule wireMockRule = new WireMockClassRule(9190);
     static FeeDto feeRequest = FeeDto.feeDtoWith()
@@ -152,6 +153,35 @@ public class CaseControllerTest extends PaymentsDataUtil {
         when(siteServiceMock.getAllSites()).thenReturn(serviceReturn);
     }
 
+    public void setupForFinanceManagerUser() {
+        MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
+        this.restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
+
+        restActions
+            .withAuthorizedService("divorce")
+            .withAuthorizedUser(FINANCE_MANAGER_USER_ID)
+            .withUserId(FINANCE_MANAGER_USER_ID)
+            .withReturnUrl("https://www.moneyclaims.service.gov.uk");
+
+        List<Site> serviceReturn = Arrays.asList(Site.siteWith()
+                .sopReference("sop")
+                .siteId("AA99")
+                .name("name")
+                .service("service")
+                .id(1)
+                .build(),
+            Site.siteWith()
+                .sopReference("sop")
+                .siteId("AA001")
+                .name("name")
+                .service("service")
+                .id(1)
+                .build()
+        );
+
+        when(siteServiceMock.getAllSites()).thenReturn(serviceReturn);
+    }
+
     @After
     public void tearDown() {
         this.restActions=null;
@@ -184,7 +214,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
         assertThat(payment.getDateCreated()).isNotNull();
         assertThat(payment.getCustomerReference()).isNotBlank();
 
-        Assert.assertThat(payment.getStatusHistories(), hasItem(hasProperty("status", is("Initiated"))));
+        Assert.assertThat(payment.getStatusHistories(), hasItem(hasProperty("status", is("Success"))));
         Assert.assertThat(payment.getStatusHistories(), hasItem(hasProperty("errorCode", nullValue())));
     }
 
@@ -281,6 +311,67 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .get("/cases/ccdCaseNumber2/payments")
             .andExpect(status().isNotFound())
             .andReturn()).isNotNull();
+    }
+
+    @Test
+    @Transactional
+    public void searchAllPaymentGroupsWithUserWithoutPaymentsRole() throws Exception {
+
+        setupForFinanceManagerUser();
+        populateCardPaymentToDbWithPaymentWithCreatedstatus("1");
+
+        MvcResult result = restActions
+            .withAuthorizedUser(UserResolverBackdoor.FINANCE_MANAGER_ID)
+            .withUserId(UserResolverBackdoor.FINANCE_MANAGER_ID)
+            .get("/cases/ccdCaseNumber1/paymentgroups")
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentGroupResponse paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentGroupResponse>(){});
+
+
+        assertThat(paymentGroups.getPaymentGroups().size()).isEqualTo(1);
+        assertThat(paymentGroups.getPaymentGroups().get(0).getPayments()).isNull();
+        assertThat(paymentGroups.getPaymentGroups().get(0).getRemissions()).isNull();
+    }
+
+    @Test
+    @Transactional
+    public void searchAllPaymentGroupsWithUnsuccessulPaymentStatus() throws Exception {
+
+        populateCardPaymentToDbWithPaymentWithCreatedstatus("1");
+
+        MvcResult result = restActions
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
+            .get("/cases/ccdCaseNumber1/paymentgroups")
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentGroupResponse paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentGroupResponse>(){});
+
+        assertThat(paymentGroups.getPaymentGroups().size()).isEqualTo(1);
+        assertThat(paymentGroups.getPaymentGroups().get(0).getServiceRequestStatus()).isEqualTo("Not paid");
+
+    }
+    @Test
+    @Transactional
+    public void searchAllPaymentGroupsWithUnderPaidFees() throws Exception {
+
+        populateCardPaymentToDbWithPartiallyPaidPayment("1");
+
+        MvcResult result = restActions
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
+            .get("/cases/ccdCaseNumber1/paymentgroups")
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentGroupResponse paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentGroupResponse>(){});
+
+        assertThat(paymentGroups.getPaymentGroups().size()).isEqualTo(1);
+        assertThat(paymentGroups.getPaymentGroups().get(0).getServiceRequestStatus()).isEqualTo("Partially paid");
+
     }
 
     @Test
