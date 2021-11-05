@@ -23,6 +23,10 @@ public class SpringSecurityConfiguration {
 
     private static final String CITIZEN_ROLE = "citizen";
     private static final String PAYMENTS_ROLE = "payments";
+    private static final String USER_MANAGER_ROLE = "pui-user-manager";
+    private static final String ORGANISATION_MANAGER_ROLE = "pui-organisation-manager";
+    private static final String FINANCE_MANAGER_ROLE = "pui-finance-manager";
+    private static final String CASE_MANAGER_ROLE = "pui-case-manager";
     private static final String AUTHORISED_REFUNDS_ROLE = "payments-refund";
     private static final String AUTHORISED_REFUNDS_APPROVER_ROLE = "payments-refund-approver";
 
@@ -98,7 +102,8 @@ public class SpringSecurityConfiguration {
                 .formLogin().disable()
                 .logout().disable()
                 .authorizeRequests()
-                .antMatchers(HttpMethod.GET, "/cases/**").hasAuthority(PAYMENTS_ROLE)
+                .antMatchers(HttpMethod.GET, "/cases/{ccdcasenumber}/paymentgroups").hasAnyAuthority(PAYMENTS_ROLE, CASE_MANAGER_ROLE, FINANCE_MANAGER_ROLE, ORGANISATION_MANAGER_ROLE, USER_MANAGER_ROLE)
+                .antMatchers(HttpMethod.GET, "/cases/{case}/payments").hasAuthority(PAYMENTS_ROLE)
                 .antMatchers(HttpMethod.DELETE, "/fees/**").hasAuthority(PAYMENTS_ROLE)
                 .antMatchers(HttpMethod.POST, "/card-payments").hasAnyAuthority(PAYMENTS_ROLE, CITIZEN_ROLE)
                 .antMatchers(HttpMethod.POST, "/card-payments/*/cancel").hasAnyAuthority(PAYMENTS_ROLE, CITIZEN_ROLE)
