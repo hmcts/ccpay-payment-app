@@ -58,7 +58,6 @@ public class PaymentGroupDtoMapper {
                 break;
             }
         }
-        authentication.getAuthorities().iterator().next().toString();
 
 
         PaymentGroupDto paymentGroupDto;
