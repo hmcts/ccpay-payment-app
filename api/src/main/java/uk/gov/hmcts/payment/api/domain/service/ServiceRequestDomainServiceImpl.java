@@ -60,7 +60,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     @Value("${azure.servicebus.connection-string}")
     private String connectionString;
 
-    private static final String topic = "ccpay-cpo-topic";
+    private static final String topic = "ccpay-service-request-cpo-update-topic";
 
     private static final String topicCardPBA = "ccpay-payment-status-topic";
 
