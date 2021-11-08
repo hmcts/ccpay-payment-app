@@ -62,7 +62,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
 
     private static final String topic = "ccpay-service-request-cpo-update-topic";
 
-    private static final String topicCardPBA = "ccpay-payment-status-topic";
+    private static final String topicCardPBA = "servicecallbacktopic";
 
     @Autowired
     private ServiceRequestDtoDomainMapper serviceRequestDtoDomainMapper;
