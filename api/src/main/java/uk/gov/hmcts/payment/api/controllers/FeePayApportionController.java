@@ -82,7 +82,6 @@ public class FeePayApportionController {
                 for (FeePayApportion feePayApportion : feePayApportionList)
                 {
                     LOG.info("Inside FeePayApportion section in FeePayApportionController");
-                    //  Optional<PaymentFee> apportionedFee = paymentFeeRepository.findById(feePayApportion.getFeeId());
                     Optional<PaymentFee> apportionedFee = Optional.ofNullable(paymentFeeList.stream().filter(e->e.getId().equals(feePayApportion.getFeeId())).collect(Collectors.toList()).get(0));
                     if(apportionedFee.isPresent())
                     {
