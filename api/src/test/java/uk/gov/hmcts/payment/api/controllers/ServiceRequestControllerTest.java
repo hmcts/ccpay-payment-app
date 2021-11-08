@@ -777,6 +777,22 @@ public class ServiceRequestControllerTest {
     }
 
     @Test
+    public void createSuccessOnlinePaymentAndValidateShouldThrowException() throws Exception {
+
+        Payment payment = Payment.paymentWith().internalReference("abc")
+            .id(1)
+            .reference("RC-1632-3254-9172-5888").paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
+            .build();
+
+        when(paymentService.findPayment(anyString())).thenReturn(payment);
+        when(paymentService.findByPaymentId(anyInt())).thenReturn(Collections.EMPTY_LIST);
+        MvcResult result1 = restActions
+            .get("/card-payments/" + payment.getInternalReference() + "/status")
+            .andExpect(status().isBadRequest())
+            .andReturn();
+    }
+
+    @Test
     public void createSuccessOnlinePaymentAndValidateFailureStatus() throws Exception {
 
         Payment payment = Payment.paymentWith().internalReference("abc")
