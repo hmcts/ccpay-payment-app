@@ -45,6 +45,7 @@ import uk.gov.hmcts.payment.api.model.FeePayApportion;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentFeeRepository;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
@@ -118,7 +119,9 @@ public class ServiceRequestControllerTest {
     private GovPayClient govPayClient;
 
     @MockBean
-    private FeesService feesService;
+    private PaymentFeeRepository paymentFeeRepository;
+
+
 
     @Before
     @Transactional
@@ -762,7 +765,7 @@ public class ServiceRequestControllerTest {
         when(paymentService.findByPaymentId(anyInt())).thenReturn(Arrays.asList(FeePayApportion.feePayApportionWith()
             .feeId(1)
             .build()));
-        when(feesService.getPaymentFee(anyInt())).thenReturn(Optional.of(PaymentFee.feeWith().paymentLink(paymentFeeLink).build()));
+        when(paymentFeeRepository.findById(anyInt())).thenReturn(Optional.of(PaymentFee.feeWith().paymentLink(paymentFeeLink).build()));
         when(delegatingPaymentService.retrieve(any(PaymentFeeLink.class) ,anyString())).thenReturn(paymentFeeLink);
         MvcResult result1 = restActions
             .get("/card-payments/" + payment.getInternalReference() + "/status")
