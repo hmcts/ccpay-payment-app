@@ -41,11 +41,14 @@ import uk.gov.hmcts.payment.api.external.client.GovPayClient;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
 import uk.gov.hmcts.payment.api.external.client.dto.State;
+import uk.gov.hmcts.payment.api.model.FeePayApportion;
 import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
+import uk.gov.hmcts.payment.api.service.FeesService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.util.AccountStatus;
@@ -61,6 +64,7 @@ import java.util.*;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
@@ -112,6 +116,9 @@ public class ServiceRequestControllerTest {
 
     @MockBean
     private GovPayClient govPayClient;
+
+    @MockBean
+    private FeesService feesService;
 
     @Before
     @Transactional
@@ -739,6 +746,7 @@ public class ServiceRequestControllerTest {
     public void createSuccessOnlinePaymentAndValidateSuccessStatus() throws Exception {
 
         Payment payment = Payment.paymentWith().internalReference("abc")
+            .id(1)
             .reference("RC-1632-3254-9172-5888").paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
             .build();
 
@@ -746,11 +754,16 @@ public class ServiceRequestControllerTest {
         paymentList.add(payment);
 
         PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith().ccdCaseNumber("1234")
+            .enterpriseServiceName("divorce")
             .payments(paymentList)
             .build();
 
         when(paymentService.findPayment(anyString())).thenReturn(payment);
-        when(delegatingPaymentService.retrieve(anyString())).thenReturn(paymentFeeLink);
+        when(paymentService.findByPaymentId(anyInt())).thenReturn(Arrays.asList(FeePayApportion.feePayApportionWith()
+            .feeId(1)
+            .build()));
+        when(feesService.getPaymentFee(anyInt())).thenReturn(Optional.of(PaymentFee.feeWith().paymentLink(paymentFeeLink).build()));
+        when(delegatingPaymentService.retrieve(any(PaymentFeeLink.class) ,anyString())).thenReturn(paymentFeeLink);
         MvcResult result1 = restActions
             .get("/card-payments/" + payment.getInternalReference() + "/status")
             .andExpect(status().isOk())
