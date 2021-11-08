@@ -32,7 +32,7 @@ public class ServiceRequestUtil {
         //Calculate the payment total in a payment group
         if(paymentGroupDto.getPayments() != null) {
             for (int i = 0; i < paymentGroupDto.getPayments().size(); i++) {
-                if (paymentGroupDto.getPayments().get(i).getStatus() == "Success" && paymentGroupDto.getPayments().get(i).getAmount() !=null) {
+                if (paymentGroupDto.getPayments().get(i).getStatus().equals("Success") && paymentGroupDto.getPayments().get(i).getAmount() !=null) {
                     orderPaymentTotal = orderPaymentTotal.add(paymentGroupDto.getPayments().get(i).getAmount());
                 }
             }
