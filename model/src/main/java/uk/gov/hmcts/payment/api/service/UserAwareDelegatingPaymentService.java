@@ -22,6 +22,7 @@ import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayPaymentNotFoundException;
 import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.service.govpay.ServiceToTokenMap;
 import uk.gov.hmcts.payment.api.util.ServiceRequestCaseUtil;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
@@ -68,7 +69,13 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
 
     private final ServiceRequestCaseUtil serviceRequestCaseUtil;
 
+    @Autowired
+    private ServiceToTokenMap serviceToTokenMap;
+
+
     @Value("${gov.pay.url}") String govpayUrl;
+
+
 
     @Autowired
     public UserAwareDelegatingPaymentService(UserIdSupplier userIdSupplier,
@@ -89,7 +96,8 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
                                              PaymentFeeRepository paymentFeeRepository,
                                              FeePayApportionService feePayApportionService,
                                              LaunchDarklyFeatureToggler featureToggler,
-                                             ServiceRequestCaseUtil serviceRequestCaseUtil) {
+                                             ServiceRequestCaseUtil serviceRequestCaseUtil
+                                             ) {
         this.userIdSupplier = userIdSupplier;
         this.paymentFeeLinkRepository = paymentFeeLinkRepository;
         this.delegateGovPay = delegateGovPay;
@@ -314,7 +322,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
             .build();
     }
 
-    private PaymentFeeLink retrieve(String paymentReference, boolean shouldCallBack) {
+    private PaymentFeeLink retrieve(String paymentReference, boolean shouldCallBack, String serviceName ) {
 
         final Payment payment = findSavedPayment(paymentReference);
 
@@ -325,8 +333,11 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
         if (null == paymentService || paymentService.trim().equals("")) {
             LOG.error("Unable to determine the payment service which created this payment-Ref: {}", paymentReference);
         }
-
-        paymentService = govPayAuthUtil.getServiceName(serviceIdSupplier.get(), paymentService);
+        if(serviceName == null) {
+            paymentService = govPayAuthUtil.getServiceName(serviceIdSupplier.get(), paymentService);
+        } else {
+            paymentService = serviceToTokenMap.getServiceKeyVaultName(serviceName);
+        }
 
         try {
             GovPayPayment govPayPayment = delegateGovPay.retrieve(payment.getExternalReference(), paymentService);
@@ -372,18 +383,18 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
     @Override
     @Transactional
     public PaymentFeeLink retrieve(String paymentReference) {
-        return retrieve(paymentReference, false);
+        return retrieve(paymentReference, false,null);
     }
 
     @Override
-    public PaymentFeeLink retrieve(PaymentFeeLink paymentFeeLink, String s) {
-        return null;
+    public PaymentFeeLink retrieve(PaymentFeeLink paymentFeeLink, String paymentReference) {
+        return retrieve(paymentReference, false,paymentFeeLink.getEnterpriseServiceName());
     }
 
     @Override
     @Transactional
     public PaymentFeeLink retrieveWithCallBack(String paymentReference) {
-        return retrieve(paymentReference, true);
+        return retrieve(paymentReference, true,null);
 
     }
 
