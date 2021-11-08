@@ -88,6 +88,11 @@ public class GovPayDelegatingPaymentService implements DelegatingPaymentService<
     }
 
     @Override
+    public GovPayPayment retrieve(PaymentFeeLink paymentFeeLink, String paymentReference) {
+        return govPayClient.retrievePayment(getServiceKeyWithServiceName(paymentFeeLink.getEnterpriseServiceName()), paymentReference);
+    }
+
+    @Override
     public GovPayPayment retrieve(@NonNull String id, @NonNull String service) {
         return govPayClient.retrievePayment(keyForService(service), id);
     }

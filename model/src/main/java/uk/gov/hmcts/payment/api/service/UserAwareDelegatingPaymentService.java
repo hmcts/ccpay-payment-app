@@ -376,6 +376,11 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
     }
 
     @Override
+    public PaymentFeeLink retrieve(PaymentFeeLink paymentFeeLink, String s) {
+        return null;
+    }
+
+    @Override
     @Transactional
     public PaymentFeeLink retrieveWithCallBack(String paymentReference) {
         return retrieve(paymentReference, true);
