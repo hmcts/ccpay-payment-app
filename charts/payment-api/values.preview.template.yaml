@@ -27,6 +27,7 @@ java:
         - gov-pay-keys-cmc
         - launch-darkly-sdk-key
         - payment-s2s-secret
+        - gov-pay-keys-iac
         - pci-pal-antenna-tenant-name
         - pci-pal-antenna-user-name
         - pci-pal-antenna-client-id
