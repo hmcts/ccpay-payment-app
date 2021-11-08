@@ -88,7 +88,6 @@ java:
       secrets:
         - api-POSTGRES-PASS
         - sb-primary-connection-string
-        - cpo-topic-primary-send-listen-shared-access-key
         - pci-pal-account-id-cmc
         - pci-pal-account-id-probate
         - pci-pal-account-id-divorce
