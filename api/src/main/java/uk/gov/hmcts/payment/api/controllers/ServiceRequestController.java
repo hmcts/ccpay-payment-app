@@ -208,6 +208,8 @@ public class ServiceRequestController {
         List<PaymentFee> fees = feePayApportionList.stream().map(feePayApportion ->feeService.getPaymentFee(feePayApportion.getFeeId()).get())
             .collect(Collectors.toSet()).stream().collect(Collectors.toList());
         PaymentFeeLink paymentFeeLink = fees.get(0).getPaymentLink();
+        LOG.info(" paymentFeeLink getEnterpriseServiceName {}",paymentFeeLink.getEnterpriseServiceName());
+        LOG.info(" paymentFeeLink getCcdCaseNumber {}",paymentFeeLink.getCcdCaseNumber());
         return paymentDtoMapper.toRetrieveCardPaymentResponseDtoWithoutExtReference(delegatingPaymentService.retrieve(paymentFeeLink, payment.getReference()));
     }
 }
