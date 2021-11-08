@@ -32,17 +32,13 @@ public class GovPayDelegatingPaymentService implements DelegatingPaymentService<
     private final GovPayClient govPayClient;
     private final ServiceIdSupplier serviceIdSupplier;
     private final GovPayAuthUtil govPayAuthUtil;
-    private static final Map<String, String> servicesMap = new HashMap<>();
-
-    static {
-        servicesMap.put("Divorce", "divorce_frontend");
-        servicesMap.put("Probate", "probate_frontend");
-        servicesMap.put("Civil Money Claims", "cmc");
-        servicesMap.put("Specified Money Claims", "cmc");
-    }
 
     @Autowired
-    public GovPayDelegatingPaymentService(GovPayKeyRepository govPayKeyRepository, GovPayClient govPayClient, ServiceIdSupplier serviceIdSupplier, GovPayAuthUtil govPayAuthUtil) {
+    private ServiceToTokenMap serviceToTokenMap;
+
+    @Autowired
+    public GovPayDelegatingPaymentService(GovPayKeyRepository govPayKeyRepository, GovPayClient govPayClient, ServiceIdSupplier serviceIdSupplier, GovPayAuthUtil govPayAuthUtil
+    ) {
         this.govPayKeyRepository = govPayKeyRepository;
         this.govPayClient = govPayClient;
         this.serviceIdSupplier = serviceIdSupplier;
@@ -89,7 +85,7 @@ public class GovPayDelegatingPaymentService implements DelegatingPaymentService<
 
     @Override
     public GovPayPayment retrieve(PaymentFeeLink paymentFeeLink, String paymentReference) {
-        return govPayClient.retrievePayment(getServiceKeyWithServiceName(paymentFeeLink.getEnterpriseServiceName()), paymentReference);
+        return null;
     }
 
     @Override
@@ -138,7 +134,7 @@ public class GovPayDelegatingPaymentService implements DelegatingPaymentService<
 
     private String getServiceKeyWithServiceName(String serviceName) {
         LOG.info("service name {}",serviceName);
-        LOG.info("servicesMap {}",servicesMap.get(serviceName));
-        return govPayKeyRepository.getKey(servicesMap.get(serviceName));
+        LOG.info("servicesMap {}", serviceToTokenMap.getServiceKeyVaultName(serviceName));
+        return govPayKeyRepository.getKey(serviceToTokenMap.getServiceKeyVaultName(serviceName));
     }
 }
