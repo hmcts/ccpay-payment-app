@@ -62,7 +62,8 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
 
     private static final String topic = "ccpay-service-request-cpo-update-topic";
 
-    private static final String topicCardPBA = "servicecallbacktopic";
+    @Value("${azure.servicebus.topic-name}")
+    private String topicCardPBA;
 
     @Autowired
     private ServiceRequestDtoDomainMapper serviceRequestDtoDomainMapper;
