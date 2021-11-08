@@ -202,12 +202,12 @@ public class ServiceRequestController {
     public PaymentDto retrieveStatusByInternalReference(@PathVariable("internal-reference") String internalReference) {
         Payment payment = paymentService.findPayment(internalReference);
         List<FeePayApportion> feePayApportionList = paymentService.findByPaymentId(payment.getId());
-        if(feePayApportionList.size()>0){
-            List<PaymentFee> fees = feePayApportionList.stream().map(feePayApportion ->feeService.getPaymentFee(feePayApportion.getFeeId()).get())
-                .collect(Collectors.toSet()).stream().collect(Collectors.toList());
-            PaymentFeeLink paymentFeeLink = fees.get(0).getPaymentLink();
-            return paymentDtoMapper.toRetrieveCardPaymentResponseDtoWithoutExtReference(delegatingPaymentService.retrieve(paymentFeeLink, payment.getReference()));
+        if(feePayApportionList.isEmpty()){
+            throw new PaymentNotSuccessException("Payment is not successful");
         }
-        throw new PaymentNotSuccessException("Payment is not successful");
+        List<PaymentFee> fees = feePayApportionList.stream().map(feePayApportion ->feeService.getPaymentFee(feePayApportion.getFeeId()).get())
+            .collect(Collectors.toSet()).stream().collect(Collectors.toList());
+        PaymentFeeLink paymentFeeLink = fees.get(0).getPaymentLink();
+        return paymentDtoMapper.toRetrieveCardPaymentResponseDtoWithoutExtReference(delegatingPaymentService.retrieve(paymentFeeLink, payment.getReference()));
     }
 }

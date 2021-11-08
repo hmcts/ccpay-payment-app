@@ -11,6 +11,7 @@ import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.State;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.govpay.GovPayAuthUtil;
 import uk.gov.hmcts.payment.api.v1.model.govpay.GovPayKeyRepository;
@@ -90,6 +91,26 @@ public class GovPayDelegatingPaymentServiceTest {
             .build());
 
         GovPayPayment govPayPayment = govPayCardPaymentService.retrieve("RC-1518-9479-8089-4415");
+        assertNotNull(govPayPayment);
+        assertEquals(govPayPayment.getPaymentId(), "ia2mv22nl5o880rct0vqfa7k76");
+        assertEquals(govPayPayment.getReference(), "RC-1518-9479-8089-4415");
+    }
+
+    @Test
+    public void retrieveGovPaymentWithPaymentFeeLinkServiceNameTest() throws Exception {
+        String key = govPayKeyRepository.getKey("divorce_frontend");
+
+        when(govPayClient.retrievePayment(key, "RC-1518-9479-8089-4415")).thenReturn(GovPayPayment.govPaymentWith()
+            .amount(11199)
+            .state(new State("Success", true, "payment expired", "P0020"))
+            .description("description")
+            .reference("RC-1518-9479-8089-4415")
+            .paymentId("ia2mv22nl5o880rct0vqfa7k76")
+            .returnUrl("https://www.moneyclaims.service.gov.uk")
+            .build());
+        PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith().enterpriseServiceName("Divorce").build();
+
+        GovPayPayment govPayPayment = govPayCardPaymentService.retrieve(paymentFeeLink,"RC-1518-9479-8089-4415");
         assertNotNull(govPayPayment);
         assertEquals(govPayPayment.getPaymentId(), "ia2mv22nl5o880rct0vqfa7k76");
         assertEquals(govPayPayment.getReference(), "RC-1518-9479-8089-4415");
