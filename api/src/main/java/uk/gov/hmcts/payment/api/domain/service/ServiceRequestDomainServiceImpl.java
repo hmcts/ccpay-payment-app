@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
+import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestDomainDataEntityMapper;
 import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestDtoDomainMapper;
 import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestPaymentDomainDataEntityMapper;
@@ -26,6 +27,7 @@ import uk.gov.hmcts.payment.api.domain.model.ServiceRequestBo;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestOnlinePaymentBo;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
 import uk.gov.hmcts.payment.api.dto.*;
+import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.dto.order.ServiceRequestCpoDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
@@ -62,8 +64,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
 
     private static final String topic = "ccpay-service-request-cpo-update-topic";
 
-    @Value("${azure.servicebus.topic-name}")
-    private String topicCardPBA;
+    private String topicCardPBA = "serviceCallbackTopic";
 
     @Autowired
     private ServiceRequestDtoDomainMapper serviceRequestDtoDomainMapper;
@@ -119,6 +120,9 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     @Autowired
     private ServiceRequestDomainService serviceRequestDomainService;
 
+    @Autowired
+    PaymentDtoMapper paymentDtoMapper;
+
     private Function<PaymentFeeLink, Payment> getFirstSuccessPayment = serviceRequest -> serviceRequest.getPayments().stream().
         filter(payment -> payment.getPaymentStatus().getName().equalsIgnoreCase("success")).collect(Collectors.toList()).get(0);
 
@@ -169,7 +173,9 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         serviceRequest.getPayments().add(paymentEntity);
         paymentRepository.save(paymentEntity);
 
-        sendMessageTopicCPO(null, paymentEntity);
+        PaymentDto paymentDto = paymentDtoMapper.toResponseDto(serviceRequest, paymentEntity);
+
+        sendMessageTopicCPO(null, paymentDto);
 
         // Trigger Apportion based on the launch darkly feature flag
         boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature", false);
@@ -199,7 +205,10 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         //2. Account check for PBA-Payment
         payment = accountCheckForPBAPayment(serviceRequest, serviceRequestPaymentDto, payment);
 
-        sendMessageTopicCPO(null, payment);
+        PaymentDto paymentDto = paymentDtoMapper.toResponseDto(serviceRequest, payment);
+
+
+        sendMessageTopicCPO(null, paymentDto);
 
         if (payment.getPaymentStatus().getName().equals(FAILED)) {
             LOG.info("CreditAccountPayment Response 402(FORBIDDEN) for ccdCaseNumber : {} PaymentStatus : {}", payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
@@ -357,7 +366,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     }
 
     @Override
-    public void sendMessageTopicCPO(ServiceRequestDto serviceRequestDto, Payment payment){
+    public void sendMessageTopicCPO(ServiceRequestDto serviceRequestDto, PaymentDto payment){
 
         try {
             TopicClientProxy topicClientCPO = null;
