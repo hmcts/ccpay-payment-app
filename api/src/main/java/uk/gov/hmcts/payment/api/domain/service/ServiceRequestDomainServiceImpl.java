@@ -3,7 +3,9 @@ package uk.gov.hmcts.payment.api.domain.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
-import com.microsoft.azure.servicebus.Message;
+import com.microsoft.azure.servicebus.*;
+import com.microsoft.azure.servicebus.primitives.ConnectionStringBuilder;
+import com.microsoft.azure.servicebus.primitives.ServiceBusException;
 import com.netflix.hystrix.exception.HystrixRuntimeException;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
@@ -29,6 +31,7 @@ import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
 import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.dto.order.ServiceRequestCpoDto;
+import uk.gov.hmcts.payment.api.dto.servicerequest.DeadLetterDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
@@ -41,10 +44,12 @@ import uk.gov.hmcts.payment.api.mapper.PBAStatusErrorMapper;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.*;
 import uk.gov.hmcts.payment.api.servicebus.TopicClientProxy;
+import uk.gov.hmcts.payment.api.servicebus.TopicClientService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentGroupNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoAmountDue;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoMatchingAmount;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.function.Function;
@@ -119,6 +124,9 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
 
     @Autowired
     private ServiceRequestDomainService serviceRequestDomainService;
+
+    @Autowired
+    private TopicClientService topicClientService;
 
     @Autowired
     PaymentDtoMapper paymentDtoMapper;
@@ -364,6 +372,54 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     public Boolean isDuplicate(String serviceRequestReference) {
         return Optional.of(find(serviceRequestReference)).isPresent();
     }
+
+    @Override
+
+    public IMessageReceiver createDLQConnection() throws ServiceBusException, InterruptedException {
+
+        String subName = "defaultServiceCallbackSubscription";
+        String topic = "ccpay-service-request-cpo-update-topic";
+        IMessageReceiver subscriptionClient = ClientFactory.createMessageReceiverFromConnectionStringBuilder(new ConnectionStringBuilder(connectionString, topic+"/subscriptions/" + subName+"/$deadletterqueue"), ReceiveMode.RECEIVEANDDELETE);
+        return subscriptionClient;
+    }
+
+
+    @Override
+
+    public void deadLetterprocess(IMessageReceiver subscriptionClient) throws ServiceBusException, InterruptedException, IOException {
+
+
+        int receivedMessages =0;
+        while (true)
+        {
+            IMessage receivedMessage = subscriptionClient.receive();
+            System.out.printf("receivedMessage\n", receivedMessage);
+
+            if (receivedMessage != null)
+            {
+                byte[] body = receivedMessage.getBody();
+                ObjectMapper objectMapper = new ObjectMapper();
+                DeadLetterDto deadLetterDto = objectMapper.readValue(body,DeadLetterDto.class);
+                ObjectMapper objectMapper1 = new ObjectMapper();
+                Message msg = new Message(objectMapper1.writeValueAsString(deadLetterDto));
+                msg.setContentType("application/json");
+                TopicClientProxy topicClientCPO = topicClientService.getTopicClientProxy();
+                System.out.println("topicClientCPO : " + topicClientCPO );
+                topicClientCPO.send(msg);
+                topicClientCPO.close();
+            }
+            else
+            {
+                subscriptionClient.close();
+                break;
+            }
+        }
+
+        System.out.printf("Received %s messages from subscription.\n", receivedMessages);
+
+
+    }
+
 
     @Override
     public void sendMessageTopicCPO(ServiceRequestDto serviceRequestDto, PaymentDto payment){
