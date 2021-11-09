@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
+import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
 import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentResponse;
@@ -35,5 +36,5 @@ public interface ServiceRequestDomainService {
 
     Boolean isDuplicate(String serviceRequestReference);
 
-    void sendMessageTopicCPO(ServiceRequestDto serviceRequestDto, Payment payment);
+    void sendMessageTopicCPO(ServiceRequestDto serviceRequestDto, PaymentDto payment);
 }
