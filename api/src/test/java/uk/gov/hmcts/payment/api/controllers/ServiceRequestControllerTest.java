@@ -3,6 +3,9 @@ package uk.gov.hmcts.payment.api.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
+import com.microsoft.azure.servicebus.IMessage;
+import com.microsoft.azure.servicebus.IMessageReceiver;
+import com.microsoft.azure.servicebus.primitives.ServiceBusException;
 import com.netflix.hystrix.HystrixCommand;
 import com.netflix.hystrix.exception.HystrixRuntimeException;
 import org.junit.Before;
@@ -48,6 +51,8 @@ import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
+import uk.gov.hmcts.payment.api.servicebus.TopicClientProxy;
+import uk.gov.hmcts.payment.api.servicebus.TopicClientService;
 import uk.gov.hmcts.payment.api.util.AccountStatus;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
@@ -56,6 +61,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.GatewayTimeoutException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
 
@@ -64,6 +70,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -112,6 +120,13 @@ public class ServiceRequestControllerTest {
 
     @MockBean
     private GovPayClient govPayClient;
+
+    @MockBean
+    private TopicClientService topicClientService;
+
+    @MockBean
+    private TopicClientProxy topicClientProxy;
+
 
     @Before
     @Transactional
@@ -759,6 +774,35 @@ public class ServiceRequestControllerTest {
         assertEquals("Success",paymentDto.getStatus());
 
     }
+
+    @Test
+    public void deadLetterTest() throws ServiceBusException, InterruptedException, IOException {
+
+        IMessage msg = mock(IMessage.class);
+        IMessageReceiver subscriptionClient = mock(IMessageReceiver.class);
+        //TopicClientService topicClientService = mock(TopicClientService.class);
+        TopicClientProxy topicClientProxy = mock(TopicClientProxy.class);
+        ObjectMapper mapper = new ObjectMapper();
+        Map<String, String> data = new HashMap<>();
+
+        data.put("action", "action");
+        data.put("case_id", "caseId");
+        data.put("order_reference", "orderReference");
+        data.put("responsible_party", "responsibleParty");
+
+        byte[] dataInBytes = mapper.writeValueAsBytes(data);
+
+        when(subscriptionClient.receive()).thenReturn(msg,null);
+        when(msg.getBody()).thenReturn(dataInBytes);
+        when(topicClientService.getTopicClientProxy()).thenReturn(topicClientProxy);
+        doNothing().when(topicClientProxy).send(any(IMessage.class));
+        doNothing().when(topicClientProxy).close();
+        serviceRequestDomainService.deadLetterprocess(subscriptionClient);
+        verify(topicClientProxy, times(0)).close();
+
+
+    }
+
 
     @Test
     public void createSuccessOnlinePaymentAndValidateFailureStatus() throws Exception {
