@@ -2,6 +2,8 @@ package uk.gov.hmcts.payment.api.domain.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.microsoft.azure.servicebus.IMessageReceiver;
+import com.microsoft.azure.servicebus.primitives.ServiceBusException;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
@@ -15,6 +17,7 @@ import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 
+import java.io.IOException;
 import java.util.List;
 
 public interface ServiceRequestDomainService {
@@ -37,4 +40,8 @@ public interface ServiceRequestDomainService {
     Boolean isDuplicate(String serviceRequestReference);
 
     void sendMessageTopicCPO(ServiceRequestDto serviceRequestDto, PaymentDto payment);
+
+    void deadLetterprocess(IMessageReceiver subscriptionClient) throws ServiceBusException, InterruptedException, IOException;
+
+    IMessageReceiver createDLQConnection() throws ServiceBusException, InterruptedException;
 }
