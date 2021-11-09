@@ -27,6 +27,7 @@ java:
         - gov-pay-keys-cmc
         - launch-darkly-sdk-key
         - payment-s2s-secret
+        - gov-pay-keys-iac
         - pci-pal-antenna-tenant-name
         - pci-pal-antenna-user-name
         - pci-pal-antenna-client-id
@@ -40,5 +41,8 @@ java:
         - pci-pal-antenna-divorce-flow-id
         - pci-pal-antenna-financial-remedy-flow-id
         - spring-mail-password
+        - gov-pay-keys-cmc-claim-store
+        - gov-pay-keys-divorce
+        - gov-pay-keys-probate
   postgresql:
     enabled: true
