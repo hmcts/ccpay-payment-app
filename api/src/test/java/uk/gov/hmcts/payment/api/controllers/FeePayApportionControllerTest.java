@@ -22,6 +22,7 @@ import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.componenttests.PaymentDbBackdoor;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
+import uk.gov.hmcts.payment.api.controllers.FeePayApportionController;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.controllers.FeePayApportionController;
 import uk.gov.hmcts.payment.api.domain.service.FeeDomainService;
@@ -214,7 +215,6 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil{
         assertNotNull(paymentGroupDto);
         assertThat(paymentGroupDto.getPayments().get(0).getReference()).isEqualTo(payment.getReference());
     }
-
 
     @Test
     public void testRetrieveApportionDetailsForOrders() throws Exception {

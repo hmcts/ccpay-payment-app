@@ -14,6 +14,9 @@ def product = "payment"
 
 def app = "api"
 
+// Configure branches to sync with master branch
+def branchesToSync = ['demo', 'ithc', 'perftest']
+
 def vaultOverrides = [
     'preview': 'aat',
     'hmctsdemo': 'aat',
@@ -26,7 +29,8 @@ def secrets = [
         secret('citizen-oauth-client-secret', 'OAUTH2_CLIENT_SECRET'),
         secret('freg-idam-generated-user-email-pattern', 'GENERATED_USER_EMAIL_PATTERN'),
         secret('freg-idam-test-user-password', 'TEST_USER_PASSWORD'),
-        secret('gov-pay-keys-cmc', 'GOV_PAY_AUTH_KEY_CMC')
+        secret('gov-pay-keys-cmc', 'GOV_PAY_AUTH_KEY_CMC'),
+        secret('pci-pal-antenna-client-secret', 'PCI_PAL_ANTENNA_CLIENT_SECRET')
     ]
 ]
 
@@ -50,7 +54,6 @@ withPipeline(type, product, app) {
     //installCharts()
     enableSlackNotifications('#cc-payments-tech')
     disableLegacyDeployment()
-
     onMaster() {
         enablePactAs([
                 AppPipelineDsl.PactRoles.CONSUMER,
@@ -63,4 +66,7 @@ withPipeline(type, product, app) {
                 AppPipelineDsl.PactRoles.PROVIDER
         ])
     }
+
+    //Sync demo,ithc and perftest with master branch
+    syncBranchesWithMaster(branchesToSync)
 }
