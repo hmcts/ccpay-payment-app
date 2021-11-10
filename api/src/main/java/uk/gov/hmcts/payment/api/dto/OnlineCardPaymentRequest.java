@@ -13,6 +13,7 @@ import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 
 import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.Digits;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import java.math.BigDecimal;
@@ -39,5 +40,6 @@ public class OnlineCardPaymentRequest {
     private CurrencyCode currency;
 
     @NotNull(message = "language can't be Blank")
+    @NotEmpty(message = "language can't be Empty")
     private String language;
 }
