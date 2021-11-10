@@ -32,6 +32,7 @@ import uk.gov.hmcts.payment.api.service.LoggingCreditAccountPaymentService;
 import uk.gov.hmcts.payment.api.service.PaymentServiceImpl;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.service.UserAwareDelegatingCreditAccountPaymentService;
+import uk.gov.hmcts.payment.api.service.govpay.ServiceToTokenMap;
 import uk.gov.hmcts.payment.api.util.ServiceRequestCaseUtil;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
@@ -157,6 +158,11 @@ public class CreditAccountPaymentProviderTestConfiguration {
     CreditAccountPaymentRequestMapper requestMapper() {
         return new CreditAccountPaymentRequestMapper();
     }
+
+
+    @Bean
+    @Primary
+    ServiceToTokenMap serviceToTokenMap() { return new ServiceToTokenMap(); }
 
 
 }
