@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.api.service.govpay;
 
 import org.springframework.stereotype.Component;
+import uk.gov.hmcts.payment.api.exceptions.PaymentServiceNotFoundException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -17,6 +18,10 @@ public class ServiceToTokenMap {
     }
 
     public String getServiceKeyVaultName(String serviceName) {
-        return servicesMap.get(serviceName);
+        if(servicesMap.get(serviceName) != null) {
+            return servicesMap.get(serviceName);
+        } else {
+            throw new PaymentServiceNotFoundException(serviceName + " service not found in map");
+        }
     }
 }
