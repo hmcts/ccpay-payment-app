@@ -86,7 +86,7 @@ public class ServiceRequestDtoDomainMapper {
         return new CreatePaymentRequest(requestOnlinePaymentBo.getAmount().movePointRight(2).intValue(),
             requestOnlinePaymentBo.getPaymentReference(), requestOnlinePaymentBo.getDescription(),
             requestOnlinePaymentBo.getReturnUrl(),
-         requestOnlinePaymentBo.getLanguage().toLowerCase()
+         null
         );
     }
 }
