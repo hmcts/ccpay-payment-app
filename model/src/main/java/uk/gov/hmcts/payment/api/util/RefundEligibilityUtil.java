@@ -20,16 +20,6 @@ public class RefundEligibilityUtil {
     @Value("${pba.lagdays}")
     private  Integer pbaLagDays;
 
-   // @Autowired
-   /* public RefundEligibilityUtil(Integer cardLagDays, Integer cashLagDays,
-        Integer postalOrderLagDays, Integer chequesLagDays, Integer pbaLagDays) {
-        this.cardLagDays = cardLagDays;
-        this.cashLagDays = cashLagDays;
-        this.postalOrderLagDays = postalOrderLagDays;
-        this.chequesLagDays = chequesLagDays;
-        this.pbaLagDays = pbaLagDays;
-    }*/
-
     public Date getRefundEligiblityStatus(Payment payment) {
 
         String paymentMethod = payment.getPaymentMethod().getName();
