@@ -33,17 +33,16 @@ public class GovPayDelegatingPaymentService implements DelegatingPaymentService<
     private final ServiceIdSupplier serviceIdSupplier;
     private final GovPayAuthUtil govPayAuthUtil;
 
-    @Autowired
-    private ServiceToTokenMap serviceToTokenMap;
+    private final ServiceToTokenMap serviceToTokenMap;
 
     @Autowired
-    public GovPayDelegatingPaymentService(GovPayKeyRepository govPayKeyRepository, GovPayClient govPayClient, ServiceIdSupplier serviceIdSupplier, GovPayAuthUtil govPayAuthUtil
-    ) {
+    public GovPayDelegatingPaymentService(GovPayKeyRepository govPayKeyRepository, GovPayClient govPayClient, ServiceIdSupplier serviceIdSupplier, GovPayAuthUtil govPayAuthUtil,
+    ServiceToTokenMap serviceToTokenMap) {
         this.govPayKeyRepository = govPayKeyRepository;
         this.govPayClient = govPayClient;
         this.serviceIdSupplier = serviceIdSupplier;
         this.govPayAuthUtil = govPayAuthUtil;
-
+        this.serviceToTokenMap = serviceToTokenMap;
     }
 
     @Override
