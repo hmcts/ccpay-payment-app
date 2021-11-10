@@ -3,6 +3,7 @@ package uk.gov.hmcts.payment.api.dto.mapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.fees2.register.api.contract.FeeVersionDto;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
@@ -20,11 +21,16 @@ import uk.gov.hmcts.payment.api.model.PaymentFeeRepository;
 import uk.gov.hmcts.payment.api.model.Remission;
 import uk.gov.hmcts.payment.api.reports.FeesService;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
+import uk.gov.hmcts.payment.api.util.PaymentMethodType;
+import uk.gov.hmcts.payment.api.util.RefundEligibilityUtil;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @Component
@@ -38,7 +44,13 @@ public class PaymentGroupDtoMapper {
     private LaunchDarklyFeatureToggler featureToggler;
 
     @Autowired
+    private RefundEligibilityUtil refundEligibilityUtil;
+
+   @Autowired
     private PaymentFeeRepository paymentFeeRepository;
+
+
+
 
     public PaymentGroupDto toPaymentGroupDto(PaymentFeeLink paymentFeeLink) {
         return PaymentGroupDto.paymentGroupDtoWith()
@@ -78,6 +90,7 @@ public class PaymentGroupDtoMapper {
             .documentControlNumber(payment.getDocumentControlNumber())
             .bankedDate(payment.getBankedDate())
             .payerName(payment.getPayerName())
+           .refundEnable(payment.getDateCreated() != null ? toRefundEligible(payment):null)
             .paymentAllocation(payment.getPaymentAllocation() !=null ? toPaymentAllocationDtos(payment.getPaymentAllocation()) : null)
             .build();
     }
@@ -157,6 +170,16 @@ public class PaymentGroupDtoMapper {
             .reference(feeDto.getReference())
             .dateCreated(apportionFeature ? timestamp: null)
             .build();
+    }
+
+    private Boolean toRefundEligible(Payment payment) {
+        Date refundEligibleDate= refundEligibilityUtil.getRefundEligiblityStatus(payment);
+        if (refundEligibleDate.before(new Date())) {
+            return false;
+        }
+        else{
+            return true;
+        }
     }
 
 }

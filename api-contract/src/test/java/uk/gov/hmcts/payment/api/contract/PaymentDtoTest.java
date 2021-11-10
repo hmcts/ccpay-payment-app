@@ -62,6 +62,7 @@ public class PaymentDtoTest {
     private BigDecimal apportionedPayment;
     private Date dateReceiptProcessed;
     private Date dateApportioned;
+    private Boolean refundEnable;
 
     public PaymentDtoTest() {
         feeWithVolumeCode = "X0001";
@@ -130,12 +131,13 @@ public class PaymentDtoTest {
         documentControlNumber = "12345";
         bankedDate = new Date();
         payerName = "test";
+        refundEnable = true;
 
 
         testDto = new PaymentDto(id, amount, description, reference, dateCreated, dateUpdated,
             gbp, ccdNumber, caseReference, paymentReference, channel, method, externalProvider,
             status, externalReference, siteId, serviceName, customerReference, accountNumber,
-            organisationName, paymentGroupReference, reportedDateOffline,documentControlNumber,bankedDate,payerName,
+            organisationName, paymentGroupReference, reportedDateOffline,documentControlNumber,bankedDate,payerName,refundEnable,
             null, statusHistories, paymentAllocations,giroSlipNo, links);
     }
 
