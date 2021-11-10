@@ -1,6 +1,8 @@
 package uk.gov.hmcts.payment.api.componenttests;
 
 
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,6 +41,8 @@ import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.model.Remission;
 import uk.gov.hmcts.payment.api.model.RemissionRepository;
 import uk.gov.hmcts.payment.api.service.PaymentRefundsService;
+import uk.gov.hmcts.payment.api.util.DateUtil;
+import uk.gov.hmcts.payment.api.util.RefundEligibilityUtil;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotSuccessException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.RemissionNotFoundException;
@@ -73,6 +77,14 @@ public class PaymentRefundsServiceTest {
         .build();
     RetroSpectiveRemissionRequest retroSpectiveRemissionRequest = RetroSpectiveRemissionRequest.retroSpectiveRemissionRequestWith()
         .remissionReference("qwerty").build();
+
+    Date refundDate= Date.from(
+        new Date().toInstant().plus(1, ChronoUnit.DAYS));
+    Payment payment = Payment.paymentWith()
+        .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
+        .dateCreated(new Date())
+        .build();
+
     @MockBean
     private Payment2Repository paymentRepository;
 
@@ -91,6 +103,9 @@ public class PaymentRefundsServiceTest {
     @Autowired
     private PaymentRefundsService paymentRefundsService;
 
+    @MockBean
+    private RefundEligibilityUtil refundEligibilityUtil;
+
     @Before
     public void setup() {
         header.put("Authorization", Collections.singletonList("Bearer 131313"));
@@ -105,7 +120,7 @@ public class PaymentRefundsServiceTest {
     public void createSuccessfulRefund() throws Exception {
 
         Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentSuccess));
-
+        Mockito.when(refundEligibilityUtil.getRefundEligiblityStatus(payment)).thenReturn(refundDate);
         InternalRefundResponse mockRefundResponse = InternalRefundResponse.InternalRefundResponseWith().refundReference("RF-4321-4321-4321-4321").build();
 
 
@@ -142,7 +157,7 @@ public class PaymentRefundsServiceTest {
     public void createRefundWithClientException() throws Exception {
 
         Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentSuccess));
-
+        Mockito.when(refundEligibilityUtil.getRefundEligiblityStatus(payment)).thenReturn(refundDate);
 
         when(authTokenGenerator.generate()).thenReturn("test-token");
 
@@ -158,7 +173,7 @@ public class PaymentRefundsServiceTest {
     public void createRefundWithServerException() throws Exception {
 
         Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentSuccess));
-
+        Mockito.when(refundEligibilityUtil.getRefundEligiblityStatus(payment)).thenReturn(refundDate);
         when(authTokenGenerator.generate()).thenReturn("test-token");
 
         when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
@@ -216,7 +231,7 @@ public class PaymentRefundsServiceTest {
             .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
             .build();
         Mockito.when(remissionRepository.findByRemissionReference(any())).thenReturn(Optional.ofNullable(remission));
-
+        Mockito.when(refundEligibilityUtil.getRefundEligiblityStatus(payment)).thenReturn(refundDate);
         Mockito.when(feePayApportionRepository.findByFeeId(any())).thenReturn(Optional.ofNullable(feePayApportion));
 
         Mockito.when(paymentRepository.findById(any())).thenReturn(Optional.ofNullable(payment));
