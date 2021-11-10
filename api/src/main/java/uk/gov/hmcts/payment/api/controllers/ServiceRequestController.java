@@ -2,6 +2,9 @@ package uk.gov.hmcts.payment.api.controllers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.microsoft.azure.servicebus.IMessageReceiver;
+import com.microsoft.azure.servicebus.TopicClient;
+import com.microsoft.azure.servicebus.primitives.ServiceBusException;
 import io.swagger.annotations.*;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
@@ -31,6 +34,7 @@ import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 
 import javax.validation.Valid;
+import java.io.IOException;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -150,6 +154,20 @@ public class ServiceRequestController {
         //Create Idempotency Record
         return serviceRequestDomainService.createIdempotencyRecord(objectMapper, idempotencyKey, serviceRequestReference, responseJson, responseEntity, serviceRequestPaymentDto);
     }
+
+    private TopicClient topicClient;
+    @ApiOperation(value = "Process Dead Letter Queue Messages", notes = "Receive the dead letter queue message from topic and re-process")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Dead letter queue processed")
+    })
+    @PatchMapping(value = "/jobs/dead-letter-queue-process")
+    @Transactional
+    public void receiveDeadLetterQueueMessage() throws ServiceBusException, InterruptedException, IOException {
+
+        IMessageReceiver subscriptionClient = serviceRequestDomainService.createDLQConnection();
+        serviceRequestDomainService.deadLetterprocess(subscriptionClient);
+    }
+
 
     @ApiOperation(value = "Create online card payment", notes = "Create online card payment")
     @ApiResponses(value = {

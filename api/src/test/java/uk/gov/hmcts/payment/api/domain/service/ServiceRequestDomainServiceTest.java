@@ -22,6 +22,7 @@ import uk.gov.hmcts.payment.api.domain.model.ServiceRequestBo;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestOnlinePaymentBo;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
 import uk.gov.hmcts.payment.api.dto.*;
+import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestFeeDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
@@ -100,6 +101,9 @@ public class ServiceRequestDomainServiceTest {
 
     @Mock
     IdempotencyKeysRepository idempotencyKeysRepository;
+
+    @Spy
+    PaymentDtoMapper paymentDtoMapper;
 
     @Before
     public void setup() {
@@ -227,11 +231,13 @@ public class ServiceRequestDomainServiceTest {
 
          Payment payment = Payment.paymentWith()
                  .paymentLink(getPaymentFeeLink())
+                 .currency("GBP")
                  .paymentStatus(PaymentStatus.SUCCESS)
                      .build();
 
          Payment paymentFailed = Payment.paymentWith()
              .paymentLink(getPaymentFeeLink())
+             .currency("GBP")
              .paymentStatus(PaymentStatus.FAILED)
              .build();
 
@@ -275,6 +281,7 @@ public class ServiceRequestDomainServiceTest {
 
         Payment payment = Payment.paymentWith()
                 .paymentLink(getPaymentFeeLink())
+                .currency("GBP")
                 .paymentStatus(PaymentStatus.CREATED)
                     .build();
 
