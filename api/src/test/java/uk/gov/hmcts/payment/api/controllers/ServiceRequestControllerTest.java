@@ -3,9 +3,6 @@ package uk.gov.hmcts.payment.api.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
-import com.microsoft.azure.servicebus.IMessage;
-import com.microsoft.azure.servicebus.IMessageReceiver;
-import com.microsoft.azure.servicebus.primitives.ServiceBusException;
 import com.netflix.hystrix.HystrixCommand;
 import com.netflix.hystrix.exception.HystrixRuntimeException;
 import org.junit.Before;
@@ -88,14 +85,19 @@ public class ServiceRequestControllerTest {
     private static final String USER_ID = UserResolverBackdoor.CITIZEN_ID;
     @Autowired
     PaymentDbBackdoor paymentDbBackdoor;
+
     @Autowired
     private WebApplicationContext webApplicationContext;
+
     @MockBean
     private ReferenceDataService referenceDataService;
+
     @MockBean
     private AuthTokenGenerator authTokenGenerator;
+
     @Autowired
     private IdempotencyService idempotencyService;
+
     @Autowired
     private AccountService<AccountDto, String> accountService;
     private RestActions restActions;
@@ -126,7 +128,6 @@ public class ServiceRequestControllerTest {
 
     @MockBean
     private TopicClientProxy topicClientProxy;
-
 
     @Before
     @Transactional
@@ -774,35 +775,6 @@ public class ServiceRequestControllerTest {
         assertEquals("Success",paymentDto.getStatus());
 
     }
-
-    @Test
-    public void deadLetterTest() throws ServiceBusException, InterruptedException, IOException {
-
-        IMessage msg = mock(IMessage.class);
-        IMessageReceiver subscriptionClient = mock(IMessageReceiver.class);
-        //TopicClientService topicClientService = mock(TopicClientService.class);
-        TopicClientProxy topicClientProxy = mock(TopicClientProxy.class);
-        ObjectMapper mapper = new ObjectMapper();
-        Map<String, String> data = new HashMap<>();
-
-        data.put("action", "action");
-        data.put("case_id", "caseId");
-        data.put("order_reference", "orderReference");
-        data.put("responsible_party", "responsibleParty");
-
-        byte[] dataInBytes = mapper.writeValueAsBytes(data);
-
-        when(subscriptionClient.receive()).thenReturn(msg,null);
-        when(msg.getBody()).thenReturn(dataInBytes);
-        when(topicClientService.getTopicClientProxy()).thenReturn(topicClientProxy);
-        doNothing().when(topicClientProxy).send(any(IMessage.class));
-        doNothing().when(topicClientProxy).close();
-        serviceRequestDomainService.deadLetterprocess(subscriptionClient);
-        verify(topicClientProxy, times(0)).close();
-
-
-    }
-
 
     @Test
     public void createSuccessOnlinePaymentAndValidateFailureStatus() throws Exception {
