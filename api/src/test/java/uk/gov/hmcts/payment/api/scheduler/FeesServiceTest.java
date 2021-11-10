@@ -89,6 +89,5 @@ public class FeesServiceTest {
 
         // then
         assertThat(feeVersion).isEqualTo(Optional.empty());
-    }
-    
+    }   
 }
