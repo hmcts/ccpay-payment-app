@@ -3,7 +3,9 @@ package uk.gov.hmcts.payment.api.domain.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
-import com.microsoft.azure.servicebus.Message;
+import com.microsoft.azure.servicebus.*;
+import com.microsoft.azure.servicebus.primitives.ConnectionStringBuilder;
+import com.microsoft.azure.servicebus.primitives.ServiceBusException;
 import com.netflix.hystrix.exception.HystrixRuntimeException;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
@@ -18,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
+import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestDomainDataEntityMapper;
 import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestDtoDomainMapper;
 import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestPaymentDomainDataEntityMapper;
@@ -26,7 +29,9 @@ import uk.gov.hmcts.payment.api.domain.model.ServiceRequestBo;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestOnlinePaymentBo;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
 import uk.gov.hmcts.payment.api.dto.*;
+import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.dto.order.ServiceRequestCpoDto;
+import uk.gov.hmcts.payment.api.dto.servicerequest.DeadLetterDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
@@ -39,10 +44,12 @@ import uk.gov.hmcts.payment.api.mapper.PBAStatusErrorMapper;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.*;
 import uk.gov.hmcts.payment.api.servicebus.TopicClientProxy;
+import uk.gov.hmcts.payment.api.servicebus.TopicClientService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentGroupNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoAmountDue;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoMatchingAmount;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.function.Function;
@@ -60,9 +67,9 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     @Value("${azure.servicebus.connection-string}")
     private String connectionString;
 
-    private static final String topic = "ccpay-cpo-topic";
+    private static final String topic = "ccpay-service-request-cpo-update-topic";
 
-    private static final String topicCardPBA = "ccpay-payment-status-topic";
+    private String topicCardPBA = "serviceCallbackTopic";
 
     @Autowired
     private ServiceRequestDtoDomainMapper serviceRequestDtoDomainMapper;
@@ -118,6 +125,12 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     @Autowired
     private ServiceRequestDomainService serviceRequestDomainService;
 
+    @Autowired
+    private TopicClientService topicClientService;
+
+    @Autowired
+    PaymentDtoMapper paymentDtoMapper;
+
     private Function<PaymentFeeLink, Payment> getFirstSuccessPayment = serviceRequest -> serviceRequest.getPayments().stream().
         filter(payment -> payment.getPaymentStatus().getName().equalsIgnoreCase("success")).collect(Collectors.toList()).get(0);
 
@@ -136,12 +149,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     @Transactional
     public ServiceRequestResponseDto create(ServiceRequestDto serviceRequestDto, MultiValueMap<String, String> headers) {
 
-        //OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(Optional.empty(), Optional.ofNullable(serviceRequestDto.getHmctsOrgId()), headers);
-
-        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
-            .serviceCode("AA001")
-            .serviceDescription("DIVORCE")
-            .build();
+        OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(Optional.empty(), Optional.ofNullable(serviceRequestDto.getHmctsOrgId()), headers);
 
         ServiceRequestBo serviceRequestDomain = serviceRequestDtoDomainMapper.toDomain(serviceRequestDto, organisationalServiceDto);
         return serviceRequestBo.createServiceRequest(serviceRequestDomain);
@@ -173,7 +181,9 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         serviceRequest.getPayments().add(paymentEntity);
         paymentRepository.save(paymentEntity);
 
-        sendMessageTopicCPO(null, paymentEntity);
+        PaymentDto paymentDto = paymentDtoMapper.toResponseDto(serviceRequest, paymentEntity);
+
+        sendMessageTopicCPO(null, paymentDto);
 
         // Trigger Apportion based on the launch darkly feature flag
         boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature", false);
@@ -203,7 +213,10 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         //2. Account check for PBA-Payment
         payment = accountCheckForPBAPayment(serviceRequest, serviceRequestPaymentDto, payment);
 
-        sendMessageTopicCPO(null, payment);
+        PaymentDto paymentDto = paymentDtoMapper.toResponseDto(serviceRequest, payment);
+
+
+        sendMessageTopicCPO(null, paymentDto);
 
         if (payment.getPaymentStatus().getName().equals(FAILED)) {
             LOG.info("CreditAccountPayment Response 402(FORBIDDEN) for ccdCaseNumber : {} PaymentStatus : {}", payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
@@ -361,7 +374,55 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     }
 
     @Override
-    public void sendMessageTopicCPO(ServiceRequestDto serviceRequestDto, Payment payment){
+
+    public IMessageReceiver createDLQConnection() throws ServiceBusException, InterruptedException {
+
+        String subName = "defaultServiceCallbackSubscription";
+        String topic = "ccpay-service-request-cpo-update-topic";
+        IMessageReceiver subscriptionClient = ClientFactory.createMessageReceiverFromConnectionStringBuilder(new ConnectionStringBuilder(connectionString, topic+"/subscriptions/" + subName+"/$deadletterqueue"), ReceiveMode.RECEIVEANDDELETE);
+        return subscriptionClient;
+    }
+
+
+    @Override
+
+    public void deadLetterprocess(IMessageReceiver subscriptionClient) throws ServiceBusException, InterruptedException, IOException {
+
+
+        int receivedMessages =0;
+        while (true)
+        {
+            IMessage receivedMessage = subscriptionClient.receive();
+            System.out.printf("receivedMessage\n", receivedMessage);
+
+            if (receivedMessage != null)
+            {
+                byte[] body = receivedMessage.getBody();
+                ObjectMapper objectMapper = new ObjectMapper();
+                DeadLetterDto deadLetterDto = objectMapper.readValue(body,DeadLetterDto.class);
+                ObjectMapper objectMapper1 = new ObjectMapper();
+                Message msg = new Message(objectMapper1.writeValueAsString(deadLetterDto));
+                msg.setContentType("application/json");
+                TopicClientProxy topicClientCPO = topicClientService.getTopicClientProxy();
+                System.out.println("topicClientCPO : " + topicClientCPO );
+                topicClientCPO.send(msg);
+                topicClientCPO.close();
+            }
+            else
+            {
+                subscriptionClient.close();
+                break;
+            }
+        }
+
+        System.out.printf("Received %s messages from subscription.\n", receivedMessages);
+
+
+    }
+
+
+    @Override
+    public void sendMessageTopicCPO(ServiceRequestDto serviceRequestDto, PaymentDto payment){
 
         try {
             TopicClientProxy topicClientCPO = null;

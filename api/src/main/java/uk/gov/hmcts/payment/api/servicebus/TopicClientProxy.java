@@ -43,7 +43,7 @@ public class TopicClientProxy {
     public synchronized void send(IMessage message) throws InterruptedException, ServiceBusException {
 
         if (!keepClientAlive) { /* One use client */
-
+            LOG.info("Connection String Alive: ", connectionString);
             TopicClient client = newTopicClient();
             send(client, message);
             client.close();
@@ -53,6 +53,7 @@ public class TopicClientProxy {
         /* Batch mode */
 
         if (topicClient == null) {
+            LOG.info("Connection String Not Alive: ", connectionString);
             topicClient = newTopicClient();
         }
 
