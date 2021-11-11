@@ -34,10 +34,10 @@ public class CreditAccountPaymentServiceTest extends TestUtil {
             .fees(paymentsDataUtil.getFeesData()).build());
     }
 
-    @After
-    public void tearDown() {
-        paymentsDataUtil = null;
-    }
+//    @After
+//    public void tearDown() {
+//        paymentsDataUtil = null;
+//    }
     @Test
     public void retireveCreditAccountPayments_forBetweenDates_WhereProviderIsMiddleOfficeTest() throws Exception {
         Date fromDate = new Date();
