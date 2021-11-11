@@ -41,11 +41,15 @@ import uk.gov.hmcts.payment.api.external.client.GovPayClient;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
 import uk.gov.hmcts.payment.api.external.client.dto.State;
+import uk.gov.hmcts.payment.api.model.FeePayApportion;
 import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentFeeRepository;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
+import uk.gov.hmcts.payment.api.service.FeesService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.servicebus.TopicClientProxy;
@@ -64,6 +68,7 @@ import java.util.*;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
@@ -122,6 +127,9 @@ public class ServiceRequestControllerTest {
 
     @MockBean
     private GovPayClient govPayClient;
+
+    @MockBean
+    private PaymentFeeRepository paymentFeeRepository;
 
     @MockBean
     private TopicClientService topicClientService;
@@ -317,6 +325,9 @@ public class ServiceRequestControllerTest {
             contains("Unable to retrieve account information due to timeout"));
     }
 
+
+
+
     @Test
     public void createPBAPaymentLiberataAccountFirstFailSuccessTest() throws Exception {
         AccountDto accountOnHoldResponse = AccountDto.accountDtoWith()
@@ -408,6 +419,214 @@ public class ServiceRequestControllerTest {
         assertNotEquals(paymentReference, serviceRequestPaymentBo2.getPaymentReference());
         assertEquals("success", serviceRequestPaymentBo2.getStatus());
     }
+
+    @Test
+    public void createPBAPaymentWithAccountOnHoldShouldReturn412() throws Exception {
+        AccountDto accountOnHoldResponse = AccountDto.accountDtoWith()
+            .accountNumber("PBA12347")
+            .accountName("CAERPHILLY COUNTY BOROUGH COUNCIL - Account on Hold")
+            .creditLimit(BigDecimal.valueOf(28879))
+            .availableBalance(BigDecimal.valueOf(30000))
+            .status(AccountStatus.ON_HOLD)
+            .build();
+
+
+        when(accountService.retrieve("PBA12347")).thenReturn(accountOnHoldResponse);
+
+        String serviceRequestReference = getServiceRequestReference();
+
+        //ServiceRequest Payment DTO
+        ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
+            .paymentDtoWith().accountNumber("PBA12347")
+            .amount(BigDecimal.valueOf(300))
+            .currency("GBP")
+            .customerReference("testCustReference").
+                build();
+
+        Error error = new Error();
+        error.setErrorCode("CA-E0003");
+        error.setErrorMessage("Your account is on hold");
+
+        ServiceRequestPaymentBo serviceRequestPaymentBo = ServiceRequestPaymentBo.serviceRequestPaymentBoWith().
+            paymentReference("RC-reference").
+            dateCreated("20-09-2021").
+            error(error).
+            status("failed").
+            build();
+
+        ServiceRequestPaymentBo serviceRequestPaymentBo2 = ServiceRequestPaymentBo.serviceRequestPaymentBoWith().
+            paymentReference("RC-reference2").
+            status("success").
+            build();
+
+        ResponseEntity<ServiceRequestPaymentBo> responseEntity =
+            new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.PRECONDITION_FAILED);
+
+        ResponseEntity<ServiceRequestPaymentBo> responseEntity2 =
+            new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.CREATED);
+
+        when(serviceRequestDomainService.addPayments(any(),any())).thenReturn(serviceRequestPaymentBo,serviceRequestPaymentBo2);
+
+        when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any())).thenReturn(responseEntity,responseEntity2);
+
+        //ServiceRequest reference creation
+        String idempotencyKey = UUID.randomUUID().toString();
+
+        MvcResult accountOnHoldResult = restActions
+            .withHeaderIfpresent("idempotency_key", idempotencyKey)
+            .post("/service-request/" + serviceRequestReference + "/pba-payments", serviceRequestPaymentDto)
+            .andExpect(status().isPreconditionFailed())
+            .andReturn();
+
+
+        // 1. Account deleted assertions
+        String paymentReference = serviceRequestPaymentBo.getPaymentReference();
+        assertTrue(paymentReference.startsWith("RC-"));
+        assertEquals("failed", serviceRequestPaymentBo.getStatus());
+        assertNotNull(serviceRequestPaymentBo.getDateCreated());
+        assertEquals("CA-E0003", serviceRequestPaymentBo.getError().getErrorCode());
+        assertEquals("Your account is on hold", serviceRequestPaymentBo.getError().getErrorMessage());
+
+    }
+
+    @Test
+    public void createPBAPaymentWithDeletedAccountShouldReturn410() throws Exception {
+        AccountDto accountDeletedResponse = AccountDto.accountDtoWith()
+            .accountNumber("PBA12347")
+            .accountName("CAERPHILLY COUNTY BOROUGH COUNCIL - Account Deleted")
+            .creditLimit(BigDecimal.valueOf(28879))
+            .availableBalance(BigDecimal.valueOf(30000))
+            .status(AccountStatus.DELETED)
+            .build();
+
+
+        when(accountService.retrieve("PBA12347")).thenReturn(accountDeletedResponse);
+
+        String serviceRequestReference = getServiceRequestReference();
+
+        //ServiceRequest Payment DTO
+        ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
+            .paymentDtoWith().accountNumber("PBA12347")
+            .amount(BigDecimal.valueOf(300))
+            .currency("GBP")
+            .customerReference("testCustReference").
+                build();
+
+        Error error = new Error();
+        error.setErrorCode("CA-E0004");
+        error.setErrorMessage("Your account is deleted");
+
+        ServiceRequestPaymentBo serviceRequestPaymentBo = ServiceRequestPaymentBo.serviceRequestPaymentBoWith().
+            paymentReference("RC-reference").
+            dateCreated("20-09-2021").
+            error(error).
+            status("failed").
+            build();
+
+        ServiceRequestPaymentBo serviceRequestPaymentBo2 = ServiceRequestPaymentBo.serviceRequestPaymentBoWith().
+            paymentReference("RC-reference2").
+            status("success").
+            build();
+
+        ResponseEntity<ServiceRequestPaymentBo> responseEntity =
+            new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.GONE);
+
+        ResponseEntity<ServiceRequestPaymentBo> responseEntity2 =
+            new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.CREATED);
+
+        when(serviceRequestDomainService.addPayments(any(),any())).thenReturn(serviceRequestPaymentBo,serviceRequestPaymentBo2);
+
+        when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any())).thenReturn(responseEntity,responseEntity2);
+
+        //ServiceRequest reference creation
+        String idempotencyKey = UUID.randomUUID().toString();
+
+        MvcResult accountDeletedResult = restActions
+            .withHeaderIfpresent("idempotency_key", idempotencyKey)
+            .post("/service-request/" + serviceRequestReference + "/pba-payments", serviceRequestPaymentDto)
+            .andExpect(status().isGone())
+            .andReturn();
+
+
+        // 1. Account deleted assertions
+        String paymentReference = serviceRequestPaymentBo.getPaymentReference();
+        assertTrue(paymentReference.startsWith("RC-"));
+        assertEquals("failed", serviceRequestPaymentBo.getStatus());
+        assertNotNull(serviceRequestPaymentBo.getDateCreated());
+        assertEquals("CA-E0004", serviceRequestPaymentBo.getError().getErrorCode());
+        assertEquals("Your account is deleted", serviceRequestPaymentBo.getError().getErrorMessage());
+
+    }
+
+    @Test
+    public void createPBAPaymentWithInsufficientFundsShouldReturn402() throws Exception {
+        AccountDto accountOnHoldResponse = AccountDto.accountDtoWith()
+            .accountNumber("PBA12347")
+            .accountName("CAERPHILLY COUNTY BOROUGH COUNCIL - Insufficient funds")
+            .creditLimit(BigDecimal.valueOf(28879))
+            .availableBalance(BigDecimal.valueOf(30000))
+            .status(AccountStatus.ON_HOLD)
+            .build();
+
+
+        when(accountService.retrieve("PBA12347")).thenReturn(accountOnHoldResponse);
+
+        String serviceRequestReference = getServiceRequestReference();
+
+        //ServiceRequest Payment DTO
+        ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
+            .paymentDtoWith().accountNumber("PBA12347")
+            .amount(BigDecimal.valueOf(300))
+            .currency("GBP")
+            .customerReference("testCustReference").
+                build();
+
+        Error error = new Error();
+        error.setErrorCode("CA-E0001");
+        error.setErrorMessage("Payment request failed. PBA account have insufficient funds available");
+
+        ServiceRequestPaymentBo serviceRequestPaymentBo = ServiceRequestPaymentBo.serviceRequestPaymentBoWith().
+            paymentReference("RC-reference").
+            dateCreated("20-09-2021").
+            error(error).
+            status("failed").
+            build();
+
+        ServiceRequestPaymentBo serviceRequestPaymentBo2 = ServiceRequestPaymentBo.serviceRequestPaymentBoWith().
+            paymentReference("RC-reference2").
+            status("success").
+            build();
+
+        ResponseEntity<ServiceRequestPaymentBo> responseEntity =
+            new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.PAYMENT_REQUIRED);
+
+        ResponseEntity<ServiceRequestPaymentBo> responseEntity2 =
+            new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.CREATED);
+
+        when(serviceRequestDomainService.addPayments(any(),any())).thenReturn(serviceRequestPaymentBo,serviceRequestPaymentBo2);
+
+        when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any())).thenReturn(responseEntity,responseEntity2);
+
+        //ServiceRequest reference creation
+        String idempotencyKey = UUID.randomUUID().toString();
+
+        MvcResult accountOnHoldResult = restActions
+            .withHeaderIfpresent("idempotency_key", idempotencyKey)
+            .post("/service-request/" + serviceRequestReference + "/pba-payments", serviceRequestPaymentDto)
+            .andExpect(status().isPaymentRequired())
+            .andReturn();
+
+
+        // 1. Account deleted assertions
+        String paymentReference = serviceRequestPaymentBo.getPaymentReference();
+        assertTrue(paymentReference.startsWith("RC-"));
+        assertEquals("failed", serviceRequestPaymentBo.getStatus());
+        assertNotNull(serviceRequestPaymentBo.getDateCreated());
+        assertEquals("CA-E0001", serviceRequestPaymentBo.getError().getErrorCode());
+        assertEquals("Payment request failed. PBA account have insufficient funds available", serviceRequestPaymentBo.getError().getErrorMessage());
+
+    }
+
 
     @Test
     public void createPBALiberataFailureAndAccountNotFoundScenarioTest() throws Exception {
@@ -755,6 +974,7 @@ public class ServiceRequestControllerTest {
     public void createSuccessOnlinePaymentAndValidateSuccessStatus() throws Exception {
 
         Payment payment = Payment.paymentWith().internalReference("abc")
+            .id(1)
             .reference("RC-1632-3254-9172-5888").paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
             .build();
 
@@ -762,11 +982,16 @@ public class ServiceRequestControllerTest {
         paymentList.add(payment);
 
         PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith().ccdCaseNumber("1234")
+            .enterpriseServiceName("divorce")
             .payments(paymentList)
             .build();
 
         when(paymentService.findPayment(anyString())).thenReturn(payment);
-        when(delegatingPaymentService.retrieve(anyString())).thenReturn(paymentFeeLink);
+        when(paymentService.findByPaymentId(anyInt())).thenReturn(Arrays.asList(FeePayApportion.feePayApportionWith()
+            .feeId(1)
+            .build()));
+        when(paymentFeeRepository.findById(anyInt())).thenReturn(Optional.of(PaymentFee.feeWith().paymentLink(paymentFeeLink).build()));
+        when(delegatingPaymentService.retrieve(any(PaymentFeeLink.class) ,anyString())).thenReturn(paymentFeeLink);
         MvcResult result1 = restActions
             .get("/card-payments/" + payment.getInternalReference() + "/status")
             .andExpect(status().isOk())
@@ -774,6 +999,22 @@ public class ServiceRequestControllerTest {
         PaymentDto paymentDto =  objectMapper.readValue(result1.getResponse().getContentAsByteArray(),PaymentDto.class);
         assertEquals("Success",paymentDto.getStatus());
 
+    }
+
+    @Test
+    public void createSuccessOnlinePaymentAndValidateShouldThrowException() throws Exception {
+
+        Payment payment = Payment.paymentWith().internalReference("abc")
+            .id(1)
+            .reference("RC-1632-3254-9172-5888").paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
+            .build();
+
+        when(paymentService.findPayment(anyString())).thenReturn(payment);
+        when(paymentService.findByPaymentId(anyInt())).thenReturn(Collections.EMPTY_LIST);
+        MvcResult result1 = restActions
+            .get("/card-payments/" + payment.getInternalReference() + "/status")
+            .andExpect(status().isBadRequest())
+            .andReturn();
     }
 
     @Test

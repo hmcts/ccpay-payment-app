@@ -187,6 +187,7 @@ public class PaymentDtoMapper {
     }
 
     public PaymentDto toRetrieveCardPaymentResponseDtoWithoutExtReference(PaymentFeeLink paymentFeeLink) {
+        LOG.info("paymentFeeLink.getPayments() {}",paymentFeeLink.getPayments());
         Payment payment = paymentFeeLink.getPayments().get(0);
         return PaymentDto.payment2DtoWith()
             .reference(payment.getReference())

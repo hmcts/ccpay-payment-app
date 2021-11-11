@@ -151,6 +151,11 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
 
         OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(Optional.empty(), Optional.ofNullable(serviceRequestDto.getHmctsOrgId()), headers);
 
+//        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+//            .serviceCode("AA001")
+//            .serviceDescription("DIVORCE")
+//            .build();
+
         ServiceRequestBo serviceRequestDomain = serviceRequestDtoDomainMapper.toDomain(serviceRequestDto, organisationalServiceDto);
         return serviceRequestBo.createServiceRequest(serviceRequestDomain);
 
@@ -377,7 +382,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
 
     public IMessageReceiver createDLQConnection() throws ServiceBusException, InterruptedException {
 
-        String subName = "defaultServiceCallbackSubscription";
+        String subName = "serviceRequestCpoUpdateSubscription";
         String topic = "ccpay-service-request-cpo-update-topic";
         IMessageReceiver subscriptionClient = ClientFactory.createMessageReceiverFromConnectionStringBuilder(new ConnectionStringBuilder(connectionString, topic+"/subscriptions/" + subName+"/$deadletterqueue"), ReceiveMode.RECEIVEANDDELETE);
         return subscriptionClient;

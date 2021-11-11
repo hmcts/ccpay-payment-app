@@ -27,16 +27,25 @@ import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
 import uk.gov.hmcts.payment.api.exception.LiberataServiceTimeoutException;
+import uk.gov.hmcts.payment.api.exceptions.PaymentServiceNotFoundException;
+import uk.gov.hmcts.payment.api.model.FeePayApportion;
 import uk.gov.hmcts.payment.api.model.IdempotencyKeys;
 import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
+import uk.gov.hmcts.payment.api.service.FeePayApportionService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
+import uk.gov.hmcts.payment.api.service.FeesService;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotSuccessException;
 
 import javax.validation.Valid;
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @RestController
 @Api(tags = {"service-request"})
@@ -63,6 +72,14 @@ public class ServiceRequestController {
 
     @Autowired
     private DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService;
+
+    @Autowired
+    private FeePayApportionService feePayApportionService;
+
+    @Autowired
+    private FeesService feeService;
+
+
 
     @ApiOperation(value = "Create Service Request", notes = "Create Service Request")
     @ApiResponses(value = {
@@ -143,7 +160,17 @@ public class ServiceRequestController {
         String responseJson;
         try {
             serviceRequestPaymentBo = serviceRequestDomainService.addPayments(serviceRequest, serviceRequestPaymentDto);
-            HttpStatus httpStatus = serviceRequestPaymentBo.getStatus().equalsIgnoreCase(FAILED) ? HttpStatus.PAYMENT_REQUIRED : HttpStatus.CREATED; //402 for failed Payment scenarios
+            HttpStatus httpStatus;
+            if(serviceRequestPaymentBo.getError() != null && serviceRequestPaymentBo.getError().getErrorCode().equals("CA-E0004")) {
+                httpStatus = HttpStatus.GONE; //410 for deleted pba accounts
+            }else if(serviceRequestPaymentBo.getError() != null && serviceRequestPaymentBo.getError().getErrorCode().equals("CA-E0003")){
+                httpStatus = HttpStatus.PRECONDITION_FAILED; //412 for pba account on hold
+            }else if(serviceRequestPaymentBo.getError() != null && serviceRequestPaymentBo.getError().getErrorCode().equals("CA-E0001")){
+                httpStatus = HttpStatus.PAYMENT_REQUIRED; //402 for pba insufficient funds
+            }else{
+                httpStatus = HttpStatus.CREATED;
+            }
+
             responseEntity = new ResponseEntity<>(serviceRequestPaymentBo, httpStatus);
             responseJson = objectMapper.writeValueAsString(serviceRequestPaymentBo);
         } catch (LiberataServiceTimeoutException liberataServiceTimeoutException) {
@@ -204,7 +231,30 @@ public class ServiceRequestController {
     @GetMapping(value = "/card-payments/{internal-reference}/status")
     public PaymentDto retrieveStatusByInternalReference(@PathVariable("internal-reference") String internalReference) {
         Payment payment = paymentService.findPayment(internalReference);
-        return paymentDtoMapper.toRetrieveCardPaymentResponseDtoWithoutExtReference(delegatingPaymentService.retrieve(payment.getReference()));
+        List<FeePayApportion> feePayApportionList = paymentService.findByPaymentId(payment.getId());
+        if(feePayApportionList.isEmpty()){
+            throw new PaymentNotSuccessException("Payment is not successful");
+        }
+        List<PaymentFee> fees = feePayApportionList.stream().map(feePayApportion ->feeService.getPaymentFee(feePayApportion.getFeeId()).get())
+            .collect(Collectors.toSet()).stream().collect(Collectors.toList());
+        PaymentFeeLink paymentFeeLink = fees.get(0).getPaymentLink();
+        LOG.info(" paymentFeeLink getEnterpriseServiceName {}",paymentFeeLink.getEnterpriseServiceName());
+        LOG.info(" paymentFeeLink getCcdCaseNumber {}",paymentFeeLink.getCcdCaseNumber());
+        return paymentDtoMapper.toRetrieveCardPaymentResponseDtoWithoutExtReference(delegatingPaymentService.retrieve(paymentFeeLink, payment.getReference()));
+    }
+
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(PaymentNotSuccessException.class)
+    public String paymentNotSuccess(PaymentNotSuccessException ex) {
+        return ex.getMessage();
+    }
+
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(PaymentServiceNotFoundException.class)
+    public String paymentNotSuccess(PaymentServiceNotFoundException ex) {
+        return ex.getMessage();
     }
 
 }

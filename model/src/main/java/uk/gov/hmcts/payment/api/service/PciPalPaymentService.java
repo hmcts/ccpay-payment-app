@@ -28,6 +28,7 @@ import uk.gov.hmcts.payment.api.external.client.dto.State;
 import uk.gov.hmcts.payment.api.external.client.dto.TelephonyProviderAuthorisationResponse;
 import uk.gov.hmcts.payment.api.external.client.dto.TelephonyProviderLinkIdRequest;
 import uk.gov.hmcts.payment.api.external.client.dto.TelephonyProviderLinkIdResponse;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.model.Payment;
 
@@ -239,6 +240,11 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
 
     @Override
     public PciPalPayment retrieve(String s) {
+        return null;
+    }
+
+    @Override
+    public PciPalPayment retrieve(PaymentFeeLink paymentFeeLink, String s) {
         return null;
     }
 
