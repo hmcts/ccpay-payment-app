@@ -41,13 +41,19 @@ import uk.gov.hmcts.payment.api.external.client.GovPayClient;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
 import uk.gov.hmcts.payment.api.external.client.dto.State;
+import uk.gov.hmcts.payment.api.model.FeePayApportion;
 import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentFeeRepository;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
+import uk.gov.hmcts.payment.api.service.FeesService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
+import uk.gov.hmcts.payment.api.servicebus.TopicClientProxy;
+import uk.gov.hmcts.payment.api.servicebus.TopicClientService;
 import uk.gov.hmcts.payment.api.util.AccountStatus;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
@@ -56,14 +62,18 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.GatewayTimeoutException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -80,14 +90,19 @@ public class ServiceRequestControllerTest {
     private static final String USER_ID = UserResolverBackdoor.CITIZEN_ID;
     @Autowired
     PaymentDbBackdoor paymentDbBackdoor;
+
     @Autowired
     private WebApplicationContext webApplicationContext;
+
     @MockBean
     private ReferenceDataService referenceDataService;
+
     @MockBean
     private AuthTokenGenerator authTokenGenerator;
+
     @Autowired
     private IdempotencyService idempotencyService;
+
     @Autowired
     private AccountService<AccountDto, String> accountService;
     private RestActions restActions;
@@ -112,6 +127,15 @@ public class ServiceRequestControllerTest {
 
     @MockBean
     private GovPayClient govPayClient;
+
+    @MockBean
+    private PaymentFeeRepository paymentFeeRepository;
+
+    @MockBean
+    private TopicClientService topicClientService;
+
+    @MockBean
+    private TopicClientProxy topicClientProxy;
 
     @Before
     @Transactional
@@ -857,7 +881,7 @@ public class ServiceRequestControllerTest {
 
         when(serviceRequestDomainService.create(any(),any())).thenThrow(new GatewayTimeoutException("Test Error"));
 
-        doNothing().when(serviceRequestDomainService).sendMessageTopicCPO(any(ServiceRequestDto.class),any(Payment.class));
+        doNothing().when(serviceRequestDomainService).sendMessageTopicCPO(any(ServiceRequestDto.class),any(PaymentDto.class));
 
         restActions
             .post("/service-request", serviceRequestDto)
@@ -950,6 +974,7 @@ public class ServiceRequestControllerTest {
     public void createSuccessOnlinePaymentAndValidateSuccessStatus() throws Exception {
 
         Payment payment = Payment.paymentWith().internalReference("abc")
+            .id(1)
             .reference("RC-1632-3254-9172-5888").paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
             .build();
 
@@ -957,11 +982,16 @@ public class ServiceRequestControllerTest {
         paymentList.add(payment);
 
         PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith().ccdCaseNumber("1234")
+            .enterpriseServiceName("divorce")
             .payments(paymentList)
             .build();
 
         when(paymentService.findPayment(anyString())).thenReturn(payment);
-        when(delegatingPaymentService.retrieve(anyString())).thenReturn(paymentFeeLink);
+        when(paymentService.findByPaymentId(anyInt())).thenReturn(Arrays.asList(FeePayApportion.feePayApportionWith()
+            .feeId(1)
+            .build()));
+        when(paymentFeeRepository.findById(anyInt())).thenReturn(Optional.of(PaymentFee.feeWith().paymentLink(paymentFeeLink).build()));
+        when(delegatingPaymentService.retrieve(any(PaymentFeeLink.class) ,anyString())).thenReturn(paymentFeeLink);
         MvcResult result1 = restActions
             .get("/card-payments/" + payment.getInternalReference() + "/status")
             .andExpect(status().isOk())
@@ -969,6 +999,22 @@ public class ServiceRequestControllerTest {
         PaymentDto paymentDto =  objectMapper.readValue(result1.getResponse().getContentAsByteArray(),PaymentDto.class);
         assertEquals("Success",paymentDto.getStatus());
 
+    }
+
+    @Test
+    public void createSuccessOnlinePaymentAndValidateShouldThrowException() throws Exception {
+
+        Payment payment = Payment.paymentWith().internalReference("abc")
+            .id(1)
+            .reference("RC-1632-3254-9172-5888").paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
+            .build();
+
+        when(paymentService.findPayment(anyString())).thenReturn(payment);
+        when(paymentService.findByPaymentId(anyInt())).thenReturn(Collections.EMPTY_LIST);
+        MvcResult result1 = restActions
+            .get("/card-payments/" + payment.getInternalReference() + "/status")
+            .andExpect(status().isBadRequest())
+            .andReturn();
     }
 
     @Test
@@ -1045,7 +1091,7 @@ public class ServiceRequestControllerTest {
 
         when(serviceRequestDomainService.create(any(),any())).thenReturn(serviceRequestResponseDtoSample);
 
-        doNothing().when(serviceRequestDomainService).sendMessageTopicCPO(any(ServiceRequestDto.class), any(Payment.class));
+        doNothing().when(serviceRequestDomainService).sendMessageTopicCPO(any(ServiceRequestDto.class), any(PaymentDto.class));
 
         MvcResult result = restActions
             .post("/service-request", serviceRequestDto)

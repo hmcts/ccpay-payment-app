@@ -32,6 +32,7 @@ import uk.gov.hmcts.payment.api.service.PciPalPaymentService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.service.UserAwareDelegatingPaymentService;
 import uk.gov.hmcts.payment.api.service.govpay.GovPayDelegatingPaymentService;
+import uk.gov.hmcts.payment.api.service.govpay.ServiceToTokenMap;
 import uk.gov.hmcts.payment.api.util.DateUtil;
 import uk.gov.hmcts.payment.api.util.ServiceRequestCaseUtil;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
@@ -55,6 +56,7 @@ public class CardPaymentProviderTestConfiguration {
 
     @MockBean
     private ReferenceDataService referenceDataServiceImp;
+
 
     @Bean
     @Primary
@@ -101,8 +103,14 @@ public class CardPaymentProviderTestConfiguration {
 
     @Bean
     @Primary
+    public ServiceToTokenMap serviceToTokenMap(){
+        return new ServiceToTokenMap();
+    }
+
+    @Bean
+    @Primary
     public GovPayDelegatingPaymentService delegateGovPay() {
-        return new GovPayDelegatingPaymentService(govPayKeyRepository, govPayClient, serviceIdSupplier(), govPayAuthUtil);
+        return new GovPayDelegatingPaymentService(govPayKeyRepository, govPayClient, serviceIdSupplier(), govPayAuthUtil, serviceToTokenMap());
     }
 
     @Bean
