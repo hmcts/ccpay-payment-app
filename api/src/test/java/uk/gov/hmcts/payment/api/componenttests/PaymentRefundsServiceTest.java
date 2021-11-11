@@ -41,7 +41,6 @@ import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.model.Remission;
 import uk.gov.hmcts.payment.api.model.RemissionRepository;
 import uk.gov.hmcts.payment.api.service.PaymentRefundsService;
-import uk.gov.hmcts.payment.api.util.DateUtil;
 import uk.gov.hmcts.payment.api.util.RefundEligibilityUtil;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotSuccessException;
@@ -79,7 +78,7 @@ public class PaymentRefundsServiceTest {
         .remissionReference("qwerty").build();
 
     Date refundDate= Date.from(
-        new Date().toInstant().plus(1, ChronoUnit.DAYS));
+        new Date().toInstant().minus(1, ChronoUnit.DAYS));
     Payment payment = Payment.paymentWith()
         .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
         .dateCreated(new Date())

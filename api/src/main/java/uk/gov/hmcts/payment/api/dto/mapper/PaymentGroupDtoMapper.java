@@ -174,7 +174,7 @@ public class PaymentGroupDtoMapper {
 
     private Boolean toRefundEligible(Payment payment) {
         Date refundEligibleDate= refundEligibilityUtil.getRefundEligiblityStatus(payment);
-        if (refundEligibleDate.before(new Date())) {
+        if (new Date().before(refundEligibleDate)) {
             return false;
         }
         else{

@@ -187,7 +187,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
         Date refundEligibleDate =refundEligibilityUtil.getRefundEligiblityStatus(payment);
 
-        if (refundEligibleDate.before(new Date())) {
+        if (new Date().before(refundEligibleDate)) {
                  throw new InvalidRefundRequestException("Refund can be raised after the payment lag days");
              }
 
@@ -214,8 +214,8 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
     private HttpEntity<RefundRequestDto> createEntity(MultiValueMap<String, String> headers, RefundRequestDto refundRequest) {
         MultiValueMap<String, String> headerMultiValueMap = new LinkedMultiValueMap<String, String>();
-//        String serviceAuthorisation = " authTokenGenerator.generate()";
-        String serviceAuthorisation = authTokenGenerator.generate();
+        //String serviceAuthorisation = " authTokenGenerator.generate()";
+       String serviceAuthorisation = authTokenGenerator.generate();
         headerMultiValueMap.put("Content-Type", headers.get("content-type"));
         String userAuthorization = headers.get("authorization") != null ? headers.get("authorization").get(0) : headers.get("Authorization").get(0);
         headerMultiValueMap.put("Authorization", Collections.singletonList(userAuthorization.startsWith("Bearer ")
