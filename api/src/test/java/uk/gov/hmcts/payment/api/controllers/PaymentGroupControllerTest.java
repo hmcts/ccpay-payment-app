@@ -91,6 +91,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @Transactional
 public class PaymentGroupControllerTest {
 
+    private static final String USER_ID_PAYMENT_ROLE = UserResolverBackdoor.CASEWORKER_ID;
     private static final String USER_ID = UserResolverBackdoor.CITIZEN_ID;
     private final static String PAYMENT_REFERENCE_REGEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
     @Autowired
@@ -162,6 +163,35 @@ public class PaymentGroupControllerTest {
 
     }
 
+    public void setupForPaymentRoleUser() {
+        MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
+        this.restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
+
+        restActions
+            .withAuthorizedService("divorce")
+            .withAuthorizedUser(USER_ID_PAYMENT_ROLE)
+            .withUserId(USER_ID_PAYMENT_ROLE)
+            .withReturnUrl("https://www.moneyclaims.service.gov.uk");
+
+        List<Site> serviceReturn = Arrays.asList(Site.siteWith()
+                .sopReference("sop")
+                .siteId("AA99")
+                .name("name")
+                .service("service")
+                .id(1)
+                .build(),
+            Site.siteWith()
+                .sopReference("sop")
+                .siteId("AA001")
+                .name("name")
+                .service("service")
+                .id(1)
+                .build()
+        );
+
+        when(siteServiceMock.getAllSites()).thenReturn(serviceReturn);
+    }
+
     @After
     public void tearDown() {
         this.restActions = null;
@@ -172,6 +202,7 @@ public class PaymentGroupControllerTest {
     @Test
     @Transactional
     public void retrievePaymentsRemissionsAndFeeByGroupReferenceTest() throws Exception {
+        setupForPaymentRoleUser();
         CardPaymentRequest cardPaymentRequest = getCardPaymentRequest();
 
         when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
@@ -224,6 +255,7 @@ public class PaymentGroupControllerTest {
 
     @Test
     public void retrievePaymentsAndFeesByPaymentGroupReferenceTest() throws Exception {
+        setupForPaymentRoleUser();
         CardPaymentRequest cardPaymentRequest = getCardPaymentRequest();
 
         when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
@@ -254,6 +286,7 @@ public class PaymentGroupControllerTest {
 
     @Test
     public void retrievePaymentsAndFeesByPaymentGroupReferenceWithApportionmentDetails() throws Exception {
+        setupForPaymentRoleUser();
         CardPaymentRequest cardPaymentRequest = getCardPaymentRequest();
 
         when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
@@ -561,6 +594,7 @@ public class PaymentGroupControllerTest {
     @Test
     public void retrievePaymentsAndFeesByPaymentGroupReferenceAfterFeeAdditionTest() throws Exception {
 
+        setupForPaymentRoleUser();
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("AAD7")
             .serviceDescription("Divorce")

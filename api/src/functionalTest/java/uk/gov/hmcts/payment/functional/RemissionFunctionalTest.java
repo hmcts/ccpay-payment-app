@@ -85,6 +85,7 @@ public class RemissionFunctionalTest {
                 .code("feeCode")
                 .version("1")
                 .calculatedAmount(new BigDecimal("100.1"))
+                .feeAmount(new BigDecimal("100.1"))
                 .build()))
             .channel("telephony")
             .provider("pci pal")

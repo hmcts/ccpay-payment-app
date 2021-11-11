@@ -32,6 +32,11 @@ import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
+import uk.gov.hmcts.payment.referencedata.model.Site;
+import uk.gov.hmcts.payment.referencedata.service.SiteService;
+
+import java.util.Arrays;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -49,6 +54,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @Transactional
 public class FeePayApportionControllerTest extends PaymentsDataUtil {
     private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;
+    private static final String USER_ID_PAYMENT_ROLE = UserResolverBackdoor.CASEWORKER_ID;
     @ClassRule
     public static WireMockClassRule wireMockRule = new WireMockClassRule(9190);
     @Rule
@@ -63,6 +69,8 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil {
     @MockBean
     ReferenceDataService referenceDataService;
     MockMvc mvc;
+    @Autowired
+    private SiteService<Site, String> siteServiceMock;
     @Autowired
     private ConfigurableListableBeanFactory configurableListableBeanFactory;
     @Autowired
@@ -92,6 +100,35 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil {
             .withReturnUrl("https://www.gooooogle.com");
     }
 
+    public void setupForPaymentRoleUser() {
+        MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
+        this.restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
+
+        restActions
+            .withAuthorizedService("divorce")
+            .withAuthorizedUser(USER_ID_PAYMENT_ROLE)
+            .withUserId(USER_ID_PAYMENT_ROLE)
+            .withReturnUrl("https://www.moneyclaims.service.gov.uk");
+
+        List<Site> serviceReturn = Arrays.asList(Site.siteWith()
+                .sopReference("sop")
+                .siteId("AA99")
+                .name("name")
+                .service("service")
+                .id(1)
+                .build(),
+            Site.siteWith()
+                .sopReference("sop")
+                .siteId("AA001")
+                .name("name")
+                .service("service")
+                .id(1)
+                .build()
+        );
+
+        when(siteServiceMock.getAllSites()).thenReturn(serviceReturn);
+    }
+
     @After
     public void tearDown() {
         this.restActions=null;
@@ -101,6 +138,7 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil {
     @Test
     @Transactional
     public void retrieveApportionDetailsWithReferenceForCardPayments() throws Exception {
+        setupForPaymentRoleUser();
         Payment payment = populateCardPaymentToDb("1");
         populateApportionDetails(payment);
         when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
@@ -116,6 +154,7 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil {
 
     @Test
     public void retrieveApportionDetailsWithReferenceNumber() throws Exception {
+        setupForPaymentRoleUser();
         Payment payment = populateCardPaymentToDb("1");
         populateApportionDetails(payment);
         when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
@@ -131,6 +170,7 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil {
 
     @Test
     public void retrieveApportionDetailsWithReferenceWhenFeeIdIsDifferent() throws Exception {
+        setupForPaymentRoleUser();
         Payment payment = populateCardPaymentToDb("1");
         populateApportionDetails(payment);
         when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
@@ -146,6 +186,7 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil {
 
     @Test
     public void retrieveApportionDetailsWithReferenceWhenFeeIdIsSame() throws Exception {
+        setupForPaymentRoleUser();
         Payment payment = populateCardPaymentToDb("1");
         populateApportionDetails(payment);
         when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(false);
@@ -179,6 +220,7 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil {
 
     @Test
     public void retrieveApportionDetailsWithReference() throws Exception {
+        setupForPaymentRoleUser();
         Payment payment = populateCardPaymentToDb("1");
         populateApportionDetails(payment);
         when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
