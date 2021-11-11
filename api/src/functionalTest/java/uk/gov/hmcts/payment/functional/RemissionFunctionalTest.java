@@ -37,6 +37,7 @@ public class RemissionFunctionalTest {
     private static final String PAYMENT_REFERENCE_REGEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
     private static final String REMISSION_REFERENCE_REGEX = "^[RM-]{3}(\\w{4}-){3}(\\w{4})";
     private static String USER_TOKEN;
+    private static String USER_TOKEN_PAYMENT;
     private static String SERVICE_TOKEN;
     private static boolean TOKENS_INITIALIZED = false;
     @Autowired
@@ -52,6 +53,7 @@ public class RemissionFunctionalTest {
     public void setUp() throws Exception {
         if (!TOKENS_INITIALIZED) {
             USER_TOKEN = idamService.createUserWith(CMC_CITIZEN_GROUP, "citizen").getAuthorisationToken();
+            USER_TOKEN_PAYMENT = idamService.createUserWith(CMC_CITIZEN_GROUP, "payments").getAuthorisationToken();
             SERVICE_TOKEN = s2sTokenService.getS2sToken(testProps.s2sServiceName, testProps.s2sServiceSecret);
            TOKENS_INITIALIZED = true;
         }
@@ -128,7 +130,7 @@ public class RemissionFunctionalTest {
             });
 
             // TEST retrieve payments, remissions and fees by payment-group-reference
-            dsl.given().userToken(USER_TOKEN)
+            dsl.given().userToken(USER_TOKEN_PAYMENT)
                 .s2sToken(SERVICE_TOKEN)
                 .when().getRemissions(paymentGroupReference)
                 .then().got(PaymentGroupDto.class, paymentGroupDto -> {
