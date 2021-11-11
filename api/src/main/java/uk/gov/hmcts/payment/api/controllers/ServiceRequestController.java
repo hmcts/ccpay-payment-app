@@ -27,16 +27,25 @@ import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
 import uk.gov.hmcts.payment.api.exception.LiberataServiceTimeoutException;
+import uk.gov.hmcts.payment.api.exceptions.PaymentServiceNotFoundException;
+import uk.gov.hmcts.payment.api.model.FeePayApportion;
 import uk.gov.hmcts.payment.api.model.IdempotencyKeys;
 import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
+import uk.gov.hmcts.payment.api.service.FeePayApportionService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
+import uk.gov.hmcts.payment.api.service.FeesService;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotSuccessException;
 
 import javax.validation.Valid;
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @RestController
 @Api(tags = {"service-request"})
@@ -63,6 +72,14 @@ public class ServiceRequestController {
 
     @Autowired
     private DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService;
+
+    @Autowired
+    private FeePayApportionService feePayApportionService;
+
+    @Autowired
+    private FeesService feeService;
+
+
 
     @ApiOperation(value = "Create Service Request", notes = "Create Service Request")
     @ApiResponses(value = {
@@ -204,7 +221,30 @@ public class ServiceRequestController {
     @GetMapping(value = "/card-payments/{internal-reference}/status")
     public PaymentDto retrieveStatusByInternalReference(@PathVariable("internal-reference") String internalReference) {
         Payment payment = paymentService.findPayment(internalReference);
-        return paymentDtoMapper.toRetrieveCardPaymentResponseDtoWithoutExtReference(delegatingPaymentService.retrieve(payment.getReference()));
+        List<FeePayApportion> feePayApportionList = paymentService.findByPaymentId(payment.getId());
+        if(feePayApportionList.isEmpty()){
+            throw new PaymentNotSuccessException("Payment is not successful");
+        }
+        List<PaymentFee> fees = feePayApportionList.stream().map(feePayApportion ->feeService.getPaymentFee(feePayApportion.getFeeId()).get())
+            .collect(Collectors.toSet()).stream().collect(Collectors.toList());
+        PaymentFeeLink paymentFeeLink = fees.get(0).getPaymentLink();
+        LOG.info(" paymentFeeLink getEnterpriseServiceName {}",paymentFeeLink.getEnterpriseServiceName());
+        LOG.info(" paymentFeeLink getCcdCaseNumber {}",paymentFeeLink.getCcdCaseNumber());
+        return paymentDtoMapper.toRetrieveCardPaymentResponseDtoWithoutExtReference(delegatingPaymentService.retrieve(paymentFeeLink, payment.getReference()));
+    }
+
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(PaymentNotSuccessException.class)
+    public String paymentNotSuccess(PaymentNotSuccessException ex) {
+        return ex.getMessage();
+    }
+
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(PaymentServiceNotFoundException.class)
+    public String paymentNotSuccess(PaymentServiceNotFoundException ex) {
+        return ex.getMessage();
     }
 
 }
