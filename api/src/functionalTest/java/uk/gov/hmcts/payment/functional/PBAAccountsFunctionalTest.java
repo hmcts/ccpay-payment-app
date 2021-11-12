@@ -18,6 +18,8 @@ import uk.gov.hmcts.payment.functional.idam.models.User;
 import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
 import uk.gov.hmcts.payment.functional.service.PBAAccountsTestService;
 
+import java.util.concurrent.TimeUnit;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CASE_WORKER_GROUP;
 import static uk.gov.hmcts.payment.functional.service.RefDataTestService.approveOrganisation;
@@ -52,6 +54,7 @@ public class PBAAccountsFunctionalTest {
     @Ignore("As we need support from Raj to Cover this test....")
     public void perform_pba_accounts_lookup() throws Exception {
         final String userPUIFinanceManagerToken = this.getFinanceManagerTokenForOrganisation();
+        Thread.sleep(TimeUnit.SECONDS.toMillis(10)); //Sleep the Thread so that the newly created credentials are available after sometime...
         Response getPBAAccountsResponse = PBAAccountsTestService.getPBAAccounts(userPUIFinanceManagerToken, SERVICE_TOKEN);
         assertThat(getPBAAccountsResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         PBAResponse pbaResponseDTO = getPBAAccountsResponse.getBody().as(PBAResponse.class);
