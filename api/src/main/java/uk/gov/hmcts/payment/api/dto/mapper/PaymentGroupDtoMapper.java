@@ -28,6 +28,7 @@ import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -44,12 +45,11 @@ public class PaymentGroupDtoMapper {
     private LaunchDarklyFeatureToggler featureToggler;
 
     @Autowired
+
     private RefundEligibilityUtil refundEligibilityUtil;
 
    @Autowired
     private PaymentFeeRepository paymentFeeRepository;
-
-
 
 
     public PaymentGroupDto toPaymentGroupDto(PaymentFeeLink paymentFeeLink) {
@@ -172,6 +172,7 @@ public class PaymentGroupDtoMapper {
             .build();
     }
 
+
     private Boolean toRefundEligible(Payment payment) {
         Date refundEligibleDate= refundEligibilityUtil.getRefundEligiblityStatus(payment);
         if (new Date().before(refundEligibleDate)) {
@@ -181,5 +182,6 @@ public class PaymentGroupDtoMapper {
             return true;
         }
     }
+
 
 }

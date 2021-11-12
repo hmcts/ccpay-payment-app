@@ -20,12 +20,13 @@ import uk.gov.hmcts.payment.api.dto.RefundResponse;
 import uk.gov.hmcts.payment.api.dto.ResubmitRefundRemissionRequest;
 import uk.gov.hmcts.payment.api.exception.InvalidRefundRequestException;
 import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.util.PaymentMethodType;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.NonPBAPaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotSuccessException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.RemissionNotFoundException;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.payment.api.util.RefundEligibilityUtil;
-
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.function.Predicate;
@@ -39,6 +40,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
     final Predicate<Payment> paymentSuccessCheck =
         payment -> payment.getPaymentStatus().getName().equals(PaymentStatus.SUCCESS.getName());
+
     @Autowired
     RemissionRepository remissionRepository;
 
@@ -49,15 +51,16 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
     private Payment2Repository paymentRepository;
     @Autowired
     private AuthTokenGenerator authTokenGenerator;
+
     @Autowired
     private RefundEligibilityUtil refundEligibilityUtil;
+
 
     @Autowired()
     @Qualifier("restTemplateRefundsGroup")
     private RestTemplate restTemplateRefundsGroup;
     @Value("${refund.api.url}")
     private String refundApiUrl;
-
 
     public ResponseEntity<RefundResponse> createRefund(PaymentRefundRequest paymentRefundRequest, MultiValueMap<String, String> headers) {
 
@@ -180,16 +183,21 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
     private void validateThePaymentBeforeInitiatingRefund(Payment payment) {
 
+
         //payment success check
         if (!paymentSuccessCheck.test(payment)) {
             throw new PaymentNotSuccessException("Refund can be possible if payment is successful");
         }
+
 
         Date refundEligibleDate =refundEligibilityUtil.getRefundEligiblityStatus(payment);
 
         if (new Date().before(refundEligibleDate)) {
                  throw new InvalidRefundRequestException("Refund can be raised after the payment lag days");
              }
+
+
+
 
     }
 

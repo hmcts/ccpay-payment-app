@@ -64,6 +64,7 @@ public class PaymentDtoTest {
     private Date dateApportioned;
     private Boolean refundEnable;
 
+
     public PaymentDtoTest() {
         feeWithVolumeCode = "X0001";
         feeVersion = "3";
