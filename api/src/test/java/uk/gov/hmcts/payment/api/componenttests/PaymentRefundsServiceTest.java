@@ -81,7 +81,7 @@ public class PaymentRefundsServiceTest {
         new Date().toInstant().minus(1, ChronoUnit.DAYS));
     Payment payment = Payment.paymentWith()
         .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
-        .dateCreated(new Date())
+        .dateUpdated(new Date())
         .build();
 
     @MockBean

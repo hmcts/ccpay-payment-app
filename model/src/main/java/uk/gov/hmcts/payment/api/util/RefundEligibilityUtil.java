@@ -28,23 +28,23 @@ public class RefundEligibilityUtil {
         switch (paymentMethod) {
             case "card":
                  refundEligibleDate = Date.from(
-                    payment.getDateCreated().toInstant().plus(cardLagDays, ChronoUnit.DAYS));
+                    payment.getDateUpdated().toInstant().plus(cardLagDays, ChronoUnit.DAYS));
             break;
             case "cash":
                  refundEligibleDate = Date.from(
-                    payment.getDateCreated().toInstant().plus(cashLagDays, ChronoUnit.DAYS));
+                    payment.getDateUpdated().toInstant().plus(cashLagDays, ChronoUnit.DAYS));
             break;
             case "cheque":
                  refundEligibleDate = Date.from(
-                    payment.getDateCreated().toInstant().plus(chequesLagDays, ChronoUnit.DAYS));
+                    payment.getDateUpdated().toInstant().plus(chequesLagDays, ChronoUnit.DAYS));
             break;
             case "postal order":
                  refundEligibleDate = Date.from(
-                    payment.getDateCreated().toInstant().plus(postalOrderLagDays, ChronoUnit.DAYS));
+                    payment.getDateUpdated().toInstant().plus(postalOrderLagDays, ChronoUnit.DAYS));
             break;
             case "payment by account":
                  refundEligibleDate = Date.from(
-                    payment.getDateCreated().toInstant().plus(pbaLagDays, ChronoUnit.DAYS));
+                    payment.getDateUpdated().toInstant().plus(pbaLagDays, ChronoUnit.DAYS));
             break;
         }
         return refundEligibleDate;
