@@ -37,6 +37,7 @@ public class IdamService {
     public static final String GRANT_TYPE = "password";
     public static final String SCOPES = "openid profile roles";
     public static final String SCOPES_SEARCH_USER = "openid profile roles search-user";
+    public static final String SCOPES_CREATE_USER = "openid profile roles openid roles profile create-user manage-user";
     private final IdamApi idamApi;
     private final TestConfigProperties testConfig;
 
@@ -79,6 +80,35 @@ public class IdamService {
         return new ValidUser(email, accessToken);
     }
 
+    public ValidUser createUserWithCreateScope(String userGroup, String... roles) {
+        String email = nextUserEmail();
+        CreateUserRequest userRequest = userRequest(email, userGroup, roles);
+        LOG.info("idamApi : " + idamApi.toString());
+        LOG.info("userRequest : " + userRequest);
+        try {
+            idamApi.createUser(userRequest);
+        } catch (Exception ex) {
+            LOG.info(ex.getMessage());
+        }
+
+        String accessToken = authenticateUserWithCreateScope(email, testConfig.getTestUserPassword());
+
+        return new ValidUser(email, accessToken);
+    }
+
+    public User createUserWithRefDataEmailFormat(String userGroup, String... roles) {
+        String email = nextUserEmailForRefData();
+        CreateUserRequest userRequest = userRequest(email, userGroup, roles);
+        idamApi.createUser(userRequest);
+
+        String accessToken = authenticateUser(email, testConfig.getTestUserPassword());
+
+        return User.userWith()
+            .authorisationToken(accessToken)
+            .email(email)
+            .build();
+    }
+
 
     public String authenticateUser(String username, String password) {
         String authorisation = username + ":" + password;
@@ -116,8 +146,34 @@ public class IdamService {
                 password,
                 SCOPES_SEARCH_USER,
                 GRANT_TYPE,
-                "paybubble",
-                "***REMOVED***",
+                testConfig.getIdamPayBubbleClientID(),
+                testConfig.getIdamPayBubbleClientSecret(),
+                testConfig.getOauth2().getRedirectUrl());
+
+            return BEARER + tokenExchangeResponse.getAccessToken();
+        } catch (Exception ex) {
+            LOG.info(ex.getMessage());
+        }
+        return null;
+    }
+
+    public String authenticateUserWithCreateScope(String username, String password) {
+        String authorisation = username + ":" + password;
+        String base64Authorisation = Base64.getEncoder().encodeToString(authorisation.getBytes());
+
+        LOG.info("username : " + username);
+        LOG.info("password : " + password);
+        LOG.info("base64Authorisation : " + base64Authorisation);
+        LOG.info("testConfig.getOauth2().getClientId() : " + testConfig.getOauth2().getClientId());
+        LOG.info("testConfig.getOauth2().getRedirectUrl() : " + testConfig.getOauth2().getRedirectUrl());
+
+        try {
+            TokenExchangeResponse tokenExchangeResponse = idamApi.exchangeCode(username,
+                password,
+                SCOPES_CREATE_USER,
+                GRANT_TYPE,
+                testConfig.getIdamRefDataApiClientId(),
+                testConfig.getIdamRefDataApiClientSecret(),
                 testConfig.getOauth2().getRedirectUrl());
 
             return BEARER + tokenExchangeResponse.getAccessToken();
@@ -141,5 +197,11 @@ public class IdamService {
 
     private String nextUserEmail() {
         return String.format(testConfig.getGeneratedUserEmailPattern(), UUID.randomUUID().toString());
+    }
+
+    private String nextUserEmailForRefData() {
+        LOG.info("The value of the Ref Data Email Id "+testConfig.getGeneratedUserEmailPatternForRefData());
+        LOG.info("The value of the Formatted Ref Data Email Id "+String.format(testConfig.getGeneratedUserEmailPatternForRefData(), RandomStringUtils.random(6, true, true)));
+        return String.format(testConfig.getGeneratedUserEmailPatternForRefData(), RandomStringUtils.random(6, true, true));
     }
 }

@@ -523,11 +523,11 @@ public class ServiceRequestFunctionalTests {
     }
 
     @Test
-    @Ignore ("Online Card Payment Failing with a HTTP Status 500 Error....")
+    //@Ignore ("Online Card Payment Failing with a HTTP Status 500 Error....")
     public void positive_create_service_request_and_an_underpayment_full_card_payment_user_hmcts() {
 
         ServiceRequestDto serviceRequestDto
-            = ServiceRequestFixture.buildServiceRequestDTO("ABA6", null);
+            = ServiceRequestFixture.buildServiceRequestDTO("AAA6", null);
         Response createServiceRequestResponse
             = serviceRequestTestService.createServiceRequest(USER_TOKEN_PAYMENT, SERVICE_TOKEN,
             serviceRequestDto);
@@ -550,11 +550,11 @@ public class ServiceRequestFunctionalTests {
     }
 
     @Test
-    @Ignore ("Online Card Payment Failing with a HTTP Status 500 Error....")
+    //@Ignore ("Online Card Payment Failing with a HTTP Status 500 Error....")
     public void positive_create_service_request_and_an_overpayment_full_card_payment_user_hmcts() {
 
         ServiceRequestDto serviceRequestDto
-            = ServiceRequestFixture.buildServiceRequestDTO("ABA6", null);
+            = ServiceRequestFixture.buildServiceRequestDTO("AAA6", null);
         Response createServiceRequestResponse
             = serviceRequestTestService.createServiceRequest(USER_TOKEN_PAYMENT, SERVICE_TOKEN,
             serviceRequestDto);
