@@ -59,6 +59,9 @@ public class ServiceRequestFunctionalTests {
         Pattern.compile("^(" + LocalDate.now().getYear() + ")-([0-9]{13})$");
     private static final Pattern PAYMENTS_REGEX_PATTERN =
         Pattern.compile("^(RC)-([0-9]{4})-([0-9-]{4})-([0-9-]{4})-([0-9-]{4})$");
+    private static final String PAID = "Paid";
+    private static final String NOT_PAID = "Not Paid";
+    private static final String PARTIALLY_PAID = "Partially Paid";
 
     @Before
     public void setUp() throws Exception {
@@ -87,17 +90,12 @@ public class ServiceRequestFunctionalTests {
         ServiceRequestResponseDto responseDTO = createServiceRequestResponse.getBody().as(ServiceRequestResponseDto.class);
         assertThat(responseDTO.getServiceRequestReference()).matches(SERVICE_REQUEST_REGEX_PATTERN);
 
-        Response getPaymentGroupResponse = serviceRequestTestService.getPaymentGroups(USER_TOKEN_PAYMENT, SERVICE_TOKEN, serviceRequestDto.getCcdCaseNumber());
-        assertThat(createServiceRequestResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
+        Response getPaymentGroupResponse =
+            serviceRequestTestService.getPaymentGroups(USER_TOKEN_PAYMENT, SERVICE_TOKEN, serviceRequestDto.getCcdCaseNumber());
+        assertThat(getPaymentGroupResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         PaymentGroupResponse paymentGroupResponse = getPaymentGroupResponse.getBody().as(PaymentGroupResponse.class);
-        verifyThePaymentGroupResponse(paymentGroupResponse);
-        System.out.println("The value of the Status : "+paymentGroupResponse.getPaymentGroups().get(0).getServiceRequestStatus());
-
+        verifyThePaymentGroupResponse(serviceRequestDto, paymentGroupResponse);
         //TODO - Check that the Service Request's Message is Working on the Topic
-    }
-
-    private void verifyThePaymentGroupResponse(PaymentGroupResponse paymentGroupResponse) {
-        //verifyThePaymentGroupResponse(paymentGroupResponse);
     }
 
     @Test
@@ -604,5 +602,34 @@ public class ServiceRequestFunctionalTests {
             serviceRequestTestService.createAnOnlineCardPaymentForAServiceRequest(USER_TOKEN_PAYMENT,
                 SERVICE_TOKEN, serviceRequestReference, onlineCardPaymentRequest);
         assertThat(createOnlineCardPaymentResponse.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY.value());
+    }
+
+    /*@Test
+    //@Ignore("Test Build")
+    public void negative_get_service_request_for_invalid_ccd_case_number() {
+        ServiceRequestDto serviceRequestDto
+            = ServiceRequestFixture.buildServiceRequestDTO("ABA6", null);
+
+        Response getPaymentGroupResponse =
+            serviceRequestTestService.getPaymentGroups(USER_TOKEN_PAYMENT, SERVICE_TOKEN, serviceRequestDto.getCcdCaseNumber());
+        assertThat(createServiceRequestResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
+        PaymentGroupResponse paymentGroupResponse = getPaymentGroupResponse.getBody().as(PaymentGroupResponse.class);
+        verifyThePaymentGroupResponse(serviceRequestDto, paymentGroupResponse);
+
+        //TODO - Check that the Service Request's Message is Working on the Topic
+    }*/
+
+    private void verifyThePaymentGroupResponse(final ServiceRequestDto serviceRequestDto,
+                                               final PaymentGroupResponse paymentGroupResponse) {
+        paymentGroupResponse.getPaymentGroups().stream().forEach(paymentGroupDto -> {
+            assertThat(paymentGroupDto.getPayments()).isNull();
+            assertThat(paymentGroupDto.getRemissions().size()).isEqualTo(0);
+            System.out
+                .println("The value of the Status : " + paymentGroupResponse.getPaymentGroups().get(0).getServiceRequestStatus());
+
+            assertThat(paymentGroupDto.getPaymentGroupReference()).matches(SERVICE_REQUEST_REGEX_PATTERN);
+            assertThat(paymentGroupDto.getFees().get(0).getCode().equals(serviceRequestDto.getFees().get(0).getCode())).isTrue();
+            assertThat(paymentGroupDto.getServiceRequestStatus().equals(NOT_PAID)).isTrue();
+        });
     }
 }
