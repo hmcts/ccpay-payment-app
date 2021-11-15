@@ -31,6 +31,16 @@ public class ServiceRequestTestService {
             .post("/service-request");
     }
 
+    public Response getPaymentGroups(String userToken,
+                                     String serviceToken,
+                                     final String ccdCaseNumber) {
+        return givenWithAuthHeaders(userToken, serviceToken)
+            .header("return-url", "http://localhost.hmcts.net")
+            .contentType(ContentType.JSON)
+            .when()
+            .get("/cases/{ccdcasenumber}/paymentgroups", ccdCaseNumber);
+    }
+
     public Response createPBAPaymentForAServiceRequest(final String userToken,
                                                        final String serviceToken,
                                                        final String idempotencyKey,
