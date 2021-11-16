@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.api.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -13,12 +14,17 @@ import java.math.BigDecimal;
 
 @Service
 @Profile("liberataMock")
+
+
 public class MockAccountServiceImpl implements AccountService<AccountDto, String> {
+    @Value("${liberata.api.account.url}")
+    private String baseUrl;
 
     private static final Logger LOG = LoggerFactory.getLogger(MockAccountServiceImpl.class);
 
     @Override
     public AccountDto retrieve(String pbaCode) {
+        LOG.info("New base URL: {}", baseUrl);
         LOG.info("Called mock liberata account service");
         if ("PBAFUNC12345".equalsIgnoreCase(pbaCode)) {
             return AccountDto.accountDtoWith()
