@@ -97,7 +97,7 @@ withPipeline(type, product, app) {
             allowMissing         : true,
             alwaysLinkToLastBuild: true,
             keepAll              : true,
-            reportDir            : "build/reports/tests/smoke",
+            reportDir            : "build/reports/tests/smokeTest",
             reportFiles          : "index.html",
             reportName           : "CCPAY Payment App PREVIEW Smoke Test Report"
         ]
@@ -108,7 +108,7 @@ withPipeline(type, product, app) {
             allowMissing         : true,
             alwaysLinkToLastBuild: true,
             keepAll              : true,
-            reportDir            : "build/reports/tests/smoke",
+            reportDir            : "build/reports/tests/smokeTest",
             reportFiles          : "index.html",
             reportName           : "CCPAY Payment App AAT Smoke Test Report"
         ]
@@ -116,7 +116,7 @@ withPipeline(type, product, app) {
 
     after('functionalTest:preview') {
         publishHTML target: [
-            reportDir            : "build/reports/tests/functional",
+            reportDir            : "build/reports/tests/functionalTest",
             allowMissing         : true,
             alwaysLinkToLastBuild: true,
             keepAll              : true,
@@ -125,10 +125,30 @@ withPipeline(type, product, app) {
             alwaysLinkToLastBuild: true,
             reportName           : "CCPAY Payment App PREVIEW API Functional Test Report"
         ]
+
+        publishHTML target: [
+            reportDir            : "target/site/serenity/",
+            reportFiles          : "index.html",
+            reportName           : "CCPAY Payment App AAT Functional Tests",
+            alwaysLinkToLastBuild: true
+        ]
+
         steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
     }
 
     after('functionalTest:aat') {
+
+        publishHTML target: [
+            reportDir            : "build/reports/tests/functionalTest",
+            allowMissing         : true,
+            alwaysLinkToLastBuild: true,
+            keepAll              : true,
+            reportFiles          : "index.html",
+            reportName           : "Preview Functional Tests",
+            alwaysLinkToLastBuild: true,
+            reportName           : "CCPAY Payment App AAT API Functional Test Report"
+        ]
+
         publishHTML target: [
             reportDir            : "target/site/serenity/",
             reportFiles          : "index.html",
