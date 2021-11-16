@@ -40,7 +40,7 @@ public class AccountServiceImpl implements AccountService<AccountDto, String> {
                 .status(AccountStatus.ACTIVE)
                 .build();
         }
-        LOG.warn("New base URL: {}", baseUrl);
+        LOG.info("New base URL: {}", baseUrl);
         return restTemplate.getForObject(baseUrl + "/" + pbaCode, AccountDto.class);
     }
 
