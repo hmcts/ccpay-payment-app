@@ -285,7 +285,7 @@ public class ServiceRequestDomainServiceTest {
                 .paymentStatus(PaymentStatus.CREATED)
                     .build();
 
-        when(serviceRequestDomainDataEntityMapper.toPaymentEntity(any(),any())).thenReturn(payment);
+        when(serviceRequestDomainDataEntityMapper.toPaymentEntity(any(),any(), any())).thenReturn(payment);
 
         when(paymentRepository.save(any())).thenReturn(payment);
 

@@ -179,9 +179,21 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         CreatePaymentRequest createGovPayRequest = serviceRequestDtoDomainMapper.createGovPayRequest(requestOnlinePaymentBo);
         LOG.info("Reaching card payment");
         GovPayPayment govPayPayment = delegateGovPay.create(createGovPayRequest, serviceRequest.getEnterpriseServiceName());
+//        GovPayPayment govPayPayment = new GovPayPayment();
+//        govPayPayment.setPaymentId("1");
+//        govPayPayment.setAmount(1);
+//        govPayPayment.setPaymentProvider("rand provider");
+//        govPayPayment.setCardBrand("");
+//        govPayPayment.setCreatedDate("");
+//        govPayPayment.setDescription("");
+//        govPayPayment.setCardDetails(CardDetails.cardDetailsWith().build());
+//        govPayPayment.setReturnUrl("");
+//        govPayPayment.setState(State.stateWith().status("success").finished(true).build());
+//        Link nxt = new Link();
+//        govPayPayment.setLinks(GovPayPayment.Links.linksWith().nextUrl(nxt).cancel(nxt).refunds(nxt).build());
 
         //Payment - Entity creation
-        Payment paymentEntity = serviceRequestDomainDataEntityMapper.toPaymentEntity(requestOnlinePaymentBo, govPayPayment);
+        Payment paymentEntity = serviceRequestDomainDataEntityMapper.toPaymentEntity(requestOnlinePaymentBo, govPayPayment, serviceRequest);
         paymentEntity.setPaymentLink(serviceRequest);
         serviceRequest.getPayments().add(paymentEntity);
         paymentRepository.save(paymentEntity);
