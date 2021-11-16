@@ -9,12 +9,15 @@ import org.springframework.security.oauth2.client.OAuth2RestOperations;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.util.AccountStatus;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.math.BigDecimal;
 
 @Service
 @Profile("!liberataMock")
 public class AccountServiceImpl implements AccountService<AccountDto, String> {
+
+    private static final Logger LOG = LoggerFactory.getLogger(AccountServiceImpl.class);
 
     @Autowired
     private OAuth2RestOperations restTemplate;
@@ -37,6 +40,7 @@ public class AccountServiceImpl implements AccountService<AccountDto, String> {
                 .status(AccountStatus.ACTIVE)
                 .build();
         }
+        LOG.warn("New base URL: {}", baseUrl);
         return restTemplate.getForObject(baseUrl + "/" + pbaCode, AccountDto.class);
     }
 
