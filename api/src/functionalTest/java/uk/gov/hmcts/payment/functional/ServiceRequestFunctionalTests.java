@@ -2,7 +2,6 @@ package uk.gov.hmcts.payment.functional;
 
 import io.restassured.response.Response;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,11 +24,15 @@ import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
 import uk.gov.hmcts.payment.functional.service.ServiceRequestTestService;
 
 import java.math.BigDecimal;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.util.Date;
 import java.util.regex.Pattern;
 import javax.inject.Inject;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CASE_WORKER_GROUP;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
 
@@ -78,7 +81,7 @@ public class ServiceRequestFunctionalTests {
 
     @Test
     //@Ignore("Test Build")
-    public void positive_create_service_request_for_payments_user_hmcts() {
+    public void positive_create_service_request_for_payments_user_hmcts() throws Exception {
 
         ServiceRequestDto serviceRequestDto
             = ServiceRequestFixture.buildServiceRequestDTO("ABA6", null);
@@ -94,13 +97,13 @@ public class ServiceRequestFunctionalTests {
             serviceRequestTestService.getPaymentGroups(USER_TOKEN_PAYMENT, SERVICE_TOKEN, serviceRequestDto.getCcdCaseNumber());
         assertThat(getPaymentGroupResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         PaymentGroupResponse paymentGroupResponse = getPaymentGroupResponse.getBody().as(PaymentGroupResponse.class);
-        verifyThePaymentGroupResponse(serviceRequestDto, paymentGroupResponse);
+        verifyThePaymentGroupResponseForNoPaymentsOrRemisssions(serviceRequestDto, paymentGroupResponse);
         //TODO - Check that the Service Request's Message is Working on the Topic
     }
 
     @Test
-    @Ignore("Test Build")
-    public void positive_create_service_request_for_cmc_solicitor_user_professional() {
+    //@Ignore("Test Build")
+    public void positive_create_service_request_for_cmc_solicitor_user_professional() throws Exception {
 
         ServiceRequestDto serviceRequestDto
             = ServiceRequestFixture.buildServiceRequestDTO("ABA6", null);
@@ -112,11 +115,17 @@ public class ServiceRequestFunctionalTests {
         ServiceRequestResponseDto responseDTO = createServiceRequestResponse.getBody().as(ServiceRequestResponseDto.class);
         assertThat(responseDTO.getServiceRequestReference()).matches(SERVICE_REQUEST_REGEX_PATTERN);
         //TODO - Check that the Service Request's Message is Working on the Topic
+
+        Response getPaymentGroupResponse =
+            serviceRequestTestService.getPaymentGroups(USER_TOKEN_PAYMENT, SERVICE_TOKEN, serviceRequestDto.getCcdCaseNumber());
+        assertThat(getPaymentGroupResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+        PaymentGroupResponse paymentGroupResponse = getPaymentGroupResponse.getBody().as(PaymentGroupResponse.class);
+        verifyThePaymentGroupResponseForNoPaymentsOrRemisssions(serviceRequestDto, paymentGroupResponse);
     }
 
     @Test
-    @Ignore("Test Build")
-    public void positive_create_service_request_citizen_user() {
+    //@Ignore("Test Build")
+    public void positive_create_service_request_citizen_user() throws Exception {
 
         ServiceRequestDto serviceRequestDto
             = ServiceRequestFixture.buildServiceRequestDTO("ABA6", null);
@@ -126,11 +135,15 @@ public class ServiceRequestFunctionalTests {
         assertThat(createServiceRequestResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
         ServiceRequestResponseDto responseDTO = createServiceRequestResponse.getBody().as(ServiceRequestResponseDto.class);
         assertThat(responseDTO.getServiceRequestReference()).matches(SERVICE_REQUEST_REGEX_PATTERN);
+
+        Response getPaymentGroupResponse =
+            serviceRequestTestService.getPaymentGroups(USER_TOKEN_PAYMENT, SERVICE_TOKEN, serviceRequestDto.getCcdCaseNumber());
+        assertThat(getPaymentGroupResponse.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN.value());
+
     }
 
     @Test
-    @Ignore("TODO - Should Fail for and Errorneous HMCTS Org ID")
-    public void negative_create_service_request_service_not_found() {
+    public void negative_create_service_request_service_not_found() throws Exception {
 
         ServiceRequestDto serviceRequestDto
             = ServiceRequestFixture.buildServiceRequestDTO("Test", null);
@@ -143,8 +156,8 @@ public class ServiceRequestFunctionalTests {
     }
 
     @Test
-    @Ignore("Test Build")
-    public void positive_multiple_create_service_request_for_cmc_solicitor_user_professional() {
+    //@Ignore("Test Build")
+    public void positive_multiple_create_service_request_for_cmc_solicitor_user_professional() throws Exception {
 
         final String ccd_case_number = ServiceRequestFixture.generateUniqueCCDCaseReferenceNumber();
         //Creating the Service request for the First Time.
@@ -171,11 +184,19 @@ public class ServiceRequestFunctionalTests {
         final String secondServiceRequestReference = responseDTOForADuplicate.getServiceRequestReference();
         assertThat(secondServiceRequestReference).matches(SERVICE_REQUEST_REGEX_PATTERN);
         assertThat(firstServiceRequestReference).isNotEqualTo(secondServiceRequestReference);
+
+        Response getPaymentGroupResponse =
+            serviceRequestTestService
+                .getPaymentGroups(USER_TOKEN_CMC_SOLICITOR, SERVICE_TOKEN, serviceRequestDto.getCcdCaseNumber());
+        //TODO - A Solocitor without Payments Roles should be having Access....A 403 should not be thrown
+        assertThat(getPaymentGroupResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+        PaymentGroupResponse paymentGroupResponse = getPaymentGroupResponse.getBody().as(PaymentGroupResponse.class);
+        verifyThePaymentGroupResponseForNoPaymentsOrRemisssions(serviceRequestDto, paymentGroupResponse);
     }
 
     @Test
-    @Ignore("Test Build")
-    public void positive_multiple_fees_for_a_create_service_request() {
+    //@Ignore("Test Build")
+    public void positive_multiple_fees_for_a_create_service_request() throws Exception {
         ServiceRequestDto serviceRequestDto
             = ServiceRequestFixture.buildServiceRequestDTOWithMultipleFees("ABA6", null);
         Response createServiceRequestResponse
@@ -188,8 +209,8 @@ public class ServiceRequestFunctionalTests {
     }
 
     @Test
-    @Ignore("Test Build")
-    public void negative_duplicate_fees_for_a_create_service_request() {
+    //@Ignore("Test Build")
+    public void negative_duplicate_fees_for_a_create_service_request() throws Exception {
         ServiceRequestDto serviceRequestDto
             = ServiceRequestFixture.buildServiceRequestDTOWithDuplicateFees("ABA6", null);
         Response createServiceRequestResponse
@@ -201,8 +222,8 @@ public class ServiceRequestFunctionalTests {
     }
 
     @Test
-    @Ignore("Test Build")
-    public void positive_create_service_request_and_a_full_pba_payment_user_hmcts() {
+    //@Ignore("Test Build")
+    public void positive_create_service_request_and_a_full_pba_payment_user_hmcts() throws Exception {
 
         final ServiceRequestDto serviceRequestDto
             = ServiceRequestFixture.buildServiceRequestDTO("ABA6", null);
@@ -226,12 +247,27 @@ public class ServiceRequestFunctionalTests {
             SERVICE_TOKEN, ServiceRequestFixture.generateUniqueCCDCaseReferenceNumber(),
             serviceRequestReference, serviceRequestPaymentDto);
         assertThat(pbaPaymentServiceRequestResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
+
+        Response getPaymentGroupResponseForPaymentUser =
+            serviceRequestTestService.getPaymentGroups(USER_TOKEN_PAYMENT, SERVICE_TOKEN, serviceRequestDto.getCcdCaseNumber());
+        assertThat(getPaymentGroupResponseForPaymentUser.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+        PaymentGroupResponse paymentGroupResponseForAPaymentUser =
+            getPaymentGroupResponseForPaymentUser.getBody().as(PaymentGroupResponse.class);
+        verifyThePaymentGroupResponseForPayments(serviceRequestDto, paymentGroupResponseForAPaymentUser);
+
+        Response getPaymentGroupResponseForSolicitorUser =
+            serviceRequestTestService
+                .getPaymentGroups(USER_TOKEN_CMC_SOLICITOR, SERVICE_TOKEN, serviceRequestDto.getCcdCaseNumber());
+        assertThat(getPaymentGroupResponseForSolicitorUser.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+        PaymentGroupResponse paymentGroupResponseForASolicitorUser =
+            getPaymentGroupResponseForSolicitorUser.getBody().as(PaymentGroupResponse.class);
+        verifyThePaymentGroupResponseForNoPaymentsOrRemisssions(serviceRequestDto, paymentGroupResponseForASolicitorUser);
     }
 
     @Test
-    @Ignore("Test Build")
+    //@Ignore("Test Build")
     //@Ignore("TODO - The Response Body is not of a proper MIME Type....")
-    public void negative_create_service_request_and_an_overpayment_pba_payment_user_hmcts() {
+    public void negative_create_service_request_and_an_overpayment_pba_payment_user_hmcts() throws Exception {
 
         final ServiceRequestDto serviceRequestDto
             = ServiceRequestFixture.buildServiceRequestDTO("ABA6", null);
@@ -260,9 +296,9 @@ public class ServiceRequestFunctionalTests {
     }
 
     @Test
-    @Ignore("Test Build")
+    // @Ignore("Test Build")
     //@Ignore("TODO - The Response Body is not of a proper MIME Type....")
-    public void negative_create_service_request_and_an_underpayment_pba_payment_user_hmcts() {
+    public void negative_create_service_request_and_an_underpayment_pba_payment_user_hmcts() throws Exception {
         final ServiceRequestDto serviceRequestDto
             = ServiceRequestFixture.buildServiceRequestDTO("ABA6", null);
         final Response createServiceRequestResponse
@@ -290,8 +326,9 @@ public class ServiceRequestFunctionalTests {
     }
 
     @Test
-    @Ignore("Test Build")
-    public void positive_create_service_request_and_a_pba_payment_and_a_duplicate_payment_for_same_idempotent_key() {
+    // @Ignore("Test Build")
+    public void positive_create_service_request_and_a_pba_payment_and_a_duplicate_payment_for_same_idempotent_key()
+        throws Exception {
 
         final ServiceRequestDto serviceRequestDto
             = ServiceRequestFixture.buildServiceRequestDTO("ABA6", null);
@@ -336,8 +373,9 @@ public class ServiceRequestFunctionalTests {
     }
 
     @Test
-    @Ignore("Test Build")
-    public void positive_create_service_request_and_a_pba_payment_and_a_duplicate_payment_for_a_different_idempotent_Key() {
+    // @Ignore("Test Build")
+    public void positive_create_service_request_and_a_pba_payment_and_a_duplicate_payment_for_a_different_idempotent_Key()
+        throws Exception {
 
         final ServiceRequestDto serviceRequestDto
             = ServiceRequestFixture.buildServiceRequestDTO("ABA6", null);
@@ -379,8 +417,9 @@ public class ServiceRequestFunctionalTests {
     }
 
     @Test
-    @Ignore("Test Build")
-    public void positive_create_service_request_and_a_duplicate_service_request_post_failed_payment_account_deleted() {
+    // @Ignore("Test Build")
+    public void positive_create_service_request_and_a_duplicate_service_request_post_failed_payment_account_deleted()
+        throws Exception {
 
         final ServiceRequestDto serviceRequestDto
             = ServiceRequestFixture.buildServiceRequestDTO("ABA6", null);
@@ -427,8 +466,9 @@ public class ServiceRequestFunctionalTests {
     }
 
     @Test
-    @Ignore("Test Build")
-    public void positive_create_service_request_and_a_duplicate_service_request_post_failed_payment_account_on_hold() {
+    // @Ignore("Test Build")
+    public void positive_create_service_request_and_a_duplicate_service_request_post_failed_payment_account_on_hold()
+        throws Exception {
 
         final ServiceRequestDto serviceRequestDto
             = ServiceRequestFixture.buildServiceRequestDTO("ABA6", null);
@@ -475,8 +515,9 @@ public class ServiceRequestFunctionalTests {
     }
 
     @Test
-    @Ignore("Test Build")
-    public void positive_create_service_request_and_a_duplicate_service_request_post_failed_payment_account_over_limit() {
+    // @Ignore("Test Build")
+    public void positive_create_service_request_and_a_duplicate_service_request_post_failed_payment_account_over_limit()
+        throws Exception {
 
         final ServiceRequestDto serviceRequestDto
             = ServiceRequestFixture.buildServiceRequestDTOWithFees35000("ABA6", null);
@@ -524,8 +565,8 @@ public class ServiceRequestFunctionalTests {
 
 
     @Test
-    @Ignore("Test Build")
-    public void positive_create_service_request_and_a_full_card_payment_user_hmcts() {
+    // @Ignore("Test Build")
+    public void positive_create_service_request_and_a_full_card_payment_user_hmcts() throws Exception {
 
         ServiceRequestDto serviceRequestDto
             = ServiceRequestFixture.buildServiceRequestDTO("ABA6", null);
@@ -550,11 +591,26 @@ public class ServiceRequestFunctionalTests {
         OnlineCardPaymentResponse onlineCardPaymentResponse =
             createOnlineCardPaymentResponse.getBody().as(OnlineCardPaymentResponse.class);
         assertThat(onlineCardPaymentResponse.getPaymentReference()).matches(PAYMENTS_REGEX_PATTERN);
+
+        Response getPaymentGroupResponseForPaymentUser =
+            serviceRequestTestService.getPaymentGroups(USER_TOKEN_PAYMENT, SERVICE_TOKEN, serviceRequestDto.getCcdCaseNumber());
+        assertThat(getPaymentGroupResponseForPaymentUser.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+        PaymentGroupResponse paymentGroupResponseForAPaymentUser =
+            getPaymentGroupResponseForPaymentUser.getBody().as(PaymentGroupResponse.class);
+        verifyThePaymentGroupResponseForPayments(serviceRequestDto, paymentGroupResponseForAPaymentUser);
+
+        Response getPaymentGroupResponseForSolicitorUser =
+            serviceRequestTestService
+                .getPaymentGroups(USER_TOKEN_CMC_SOLICITOR, SERVICE_TOKEN, serviceRequestDto.getCcdCaseNumber());
+        assertThat(getPaymentGroupResponseForSolicitorUser.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+        PaymentGroupResponse paymentGroupResponseForASolicitorUser =
+            getPaymentGroupResponseForSolicitorUser.getBody().as(PaymentGroupResponse.class);
+        verifyThePaymentGroupResponseForNoPaymentsOrRemisssions(serviceRequestDto, paymentGroupResponseForASolicitorUser);
     }
 
     @Test
-    @Ignore("Test Build")
-    public void positive_create_service_request_and_an_underpayment_full_card_payment_user_hmcts() {
+    //@Ignore("Test Build")
+    public void positive_create_service_request_and_an_underpayment_full_card_payment_user_hmcts() throws Exception {
 
         ServiceRequestDto serviceRequestDto
             = ServiceRequestFixture.buildServiceRequestDTO("AAA6", null);
@@ -579,8 +635,8 @@ public class ServiceRequestFunctionalTests {
     }
 
     @Test
-    @Ignore("Test Build")
-    public void positive_create_service_request_and_an_overpayment_full_card_payment_user_hmcts() {
+    //@Ignore("Test Build")
+    public void positive_create_service_request_and_an_overpayment_full_card_payment_user_hmcts() throws Exception {
 
         ServiceRequestDto serviceRequestDto
             = ServiceRequestFixture.buildServiceRequestDTO("AAA6", null);
@@ -604,32 +660,63 @@ public class ServiceRequestFunctionalTests {
         assertThat(createOnlineCardPaymentResponse.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY.value());
     }
 
-    /*@Test
+    @Test
     //@Ignore("Test Build")
-    public void negative_get_service_request_for_invalid_ccd_case_number() {
+    public void negative_get_service_request_for_invalid_ccd_case_number() throws Exception {
         ServiceRequestDto serviceRequestDto
             = ServiceRequestFixture.buildServiceRequestDTO("ABA6", null);
 
         Response getPaymentGroupResponse =
             serviceRequestTestService.getPaymentGroups(USER_TOKEN_PAYMENT, SERVICE_TOKEN, serviceRequestDto.getCcdCaseNumber());
-        assertThat(createServiceRequestResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
-        PaymentGroupResponse paymentGroupResponse = getPaymentGroupResponse.getBody().as(PaymentGroupResponse.class);
-        verifyThePaymentGroupResponse(serviceRequestDto, paymentGroupResponse);
+        assertThat(getPaymentGroupResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND.value());
+    }
 
-        //TODO - Check that the Service Request's Message is Working on the Topic
-    }*/
-
-    private void verifyThePaymentGroupResponse(final ServiceRequestDto serviceRequestDto,
-                                               final PaymentGroupResponse paymentGroupResponse) {
+    private void verifyThePaymentGroupResponseForNoPaymentsOrRemisssions(final ServiceRequestDto serviceRequestDto,
+                                                                         final PaymentGroupResponse paymentGroupResponse)
+        throws Exception {
         paymentGroupResponse.getPaymentGroups().stream().forEach(paymentGroupDto -> {
             assertThat(paymentGroupDto.getPayments()).isNull();
             assertThat(paymentGroupDto.getRemissions().size()).isEqualTo(0);
             System.out
                 .println("The value of the Status : " + paymentGroupResponse.getPaymentGroups().get(0).getServiceRequestStatus());
-
             assertThat(paymentGroupDto.getPaymentGroupReference()).matches(SERVICE_REQUEST_REGEX_PATTERN);
             assertThat(paymentGroupDto.getFees().get(0).getCode().equals(serviceRequestDto.getFees().get(0).getCode())).isTrue();
             assertThat(paymentGroupDto.getServiceRequestStatus().equals(NOT_PAID)).isTrue();
+            System.out.println("The value of the Date Created" + paymentGroupDto.getDateCreated());
+            try {
+                verifyDate(paymentGroupDto.getDateCreated());
+                verifyDate(paymentGroupDto.getDateUpdated());
+            } catch (ParseException e) {
+                e.printStackTrace();
+                fail("The Date Check has failed....");
+            }
         });
+    }
+
+    private static void verifyThePaymentGroupResponseForPayments(final ServiceRequestDto serviceRequestDto,
+                                                                 final PaymentGroupResponse paymentGroupResponse)
+        throws Exception {
+        paymentGroupResponse.getPaymentGroups().stream().forEach(paymentGroupDto -> {
+            assertThat(paymentGroupDto.getPayments()).isNotNull();
+            assertThat(paymentGroupDto.getPayments().get(0).getAmount())
+                .isEqualTo(serviceRequestDto.getFees().get(0).getCalculatedAmount());
+            assertThat(paymentGroupDto.getPayments().get(0).getCcdCaseNumber()).isEqualTo(serviceRequestDto.getCcdCaseNumber());
+            assertThat(paymentGroupDto.getRemissions().size()).isEqualTo(0);
+            assertThat(paymentGroupDto.getPaymentGroupReference()).matches(SERVICE_REQUEST_REGEX_PATTERN);
+            assertThat(paymentGroupDto.getFees().get(0).getCode().equals(serviceRequestDto.getFees().get(0).getCode())).isTrue();
+            assertThat(paymentGroupDto.getServiceRequestStatus().equals(PAID)).isTrue();
+        });
+    }
+
+    private static void verifyDate(Date date) throws ParseException {
+        long millisInDay = 60 * 60 * 24 * 1000;
+        long createdTime = date.getTime();
+        long createdDateOnly = (createdTime / millisInDay) * millisInDay;
+        Date createdDateCleared = new Date(createdDateOnly);
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        Date dateWithoutTime = sdf.parse(sdf.format(new Date()));
+
+        assertThat(createdDateCleared).isEqualTo(dateWithoutTime);
     }
 }
