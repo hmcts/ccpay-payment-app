@@ -31,6 +31,7 @@ public class AccountServiceImpl implements AccountService<AccountDto, String> {
         @HystrixProperty(name = "fallback.enabled", value = "false")
     })
     public AccountDto retrieve(String pbaCode) {
+        LOG.info("New base URL: {}", baseUrl);
         if(pbaCode.equalsIgnoreCase("PBAFUNC12345")){
             return AccountDto.accountDtoWith()
                 .accountNumber("PBAFUNC12345")
