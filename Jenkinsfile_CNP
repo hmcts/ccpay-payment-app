@@ -53,30 +53,91 @@ withPipeline(type, product, app) {
     loadVaultSecrets(secrets)
     enableDbMigration('ccpay') // for liquibase update
 
+    after('test') {
+        publishHTML target: [
+            allowMissing         : true,
+            alwaysLinkToLastBuild: true,
+            keepAll              : true,
+            reportDir            : "build/reports/checkstyle",
+            reportFiles          : "main.html",
+            reportName           : "CCPAY Payment App PREVIEW Application Checkstyle Main Report"
+        ]
+
+        publishHTML target: [
+            allowMissing         : true,
+            alwaysLinkToLastBuild: true,
+            keepAll              : true,
+            reportDir            : "build/reports/checkstyle",
+            reportFiles          : "test.html",
+            reportName           : "CCPAY Payment App PREVIEW Application Checkstyle Test Report"
+        ]
+
+        publishHTML target: [
+            allowMissing         : true,
+            alwaysLinkToLastBuild: true,
+            keepAll              : true,
+            reportDir            : "build/reports/checkstyle",
+            reportFiles          : "aat.html",
+            reportName           : "CCPAY Payment App PREVIEW Application Checkstyle AAT Report"
+        ]
+
+        publishHTML target: [
+            allowMissing         : true,
+            alwaysLinkToLastBuild: true,
+            keepAll              : true,
+            reportDir            : "build/reports/tests/test",
+            reportFiles          : "index.html",
+            reportName           : "CCPAY Payment App PREVIEW Unit Tests Report"
+        ]
+
+    }
+
+    after('smoketest:preview') {
+        publishHTML target: [
+            allowMissing         : true,
+            alwaysLinkToLastBuild: true,
+            keepAll              : true,
+            reportDir            : "build/reports/tests/smoke",
+            reportFiles          : "index.html",
+            reportName           : "CCPAY Payment App PREVIEW Smoke Test Report"
+        ]
+    }
+
+    after('smoketest:aat') {
+        publishHTML target: [
+            allowMissing         : true,
+            alwaysLinkToLastBuild: true,
+            keepAll              : true,
+            reportDir            : "build/reports/tests/smoke",
+            reportFiles          : "index.html",
+            reportName           : "CCPAY Payment App AAT Smoke Test Report"
+        ]
+    }
+
+    after('functionalTest:preview') {
+        publishHTML target: [
+            reportDir            : "build/reports/tests/functional",
+            allowMissing         : true,
+            alwaysLinkToLastBuild: true,
+            keepAll              : true,
+            reportFiles          : "index.html",
+            reportName           : "Preview Functional Tests",
+            alwaysLinkToLastBuild: true,
+            reportName           : "CCPAY Payment App PREVIEW API Functional Test Report"
+        ]
+        steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
+    }
+
     after('functionalTest:aat') {
         publishHTML target: [
             reportDir            : "target/site/serenity/",
             reportFiles          : "index.html",
-            reportName           : "AAT Functional Tests",
+            reportName           : "CCPAY Payment App AAT Functional Tests",
             alwaysLinkToLastBuild: true
         ]
         steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
     }
 
-    after('functionalTest:preview') {
-        publishHTML target: [
-            reportDir            : "target/site/serenity/",
-            allowMissing         : true,
-            alwaysLinkToLastBuild: true,
-            keepAll              : true,
-            reportDir            : "build/reports/tests/functional",
-            reportFiles          : "index.html",
-            reportName           : "Preview Functional Tests",
-            alwaysLinkToLastBuild: true,
-            reportName           : "CCPAY Payment App API Functional Test Report"
-        ]
-        steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
-    }
     //enableDockerBuild()
     //installCharts()
     enableSlackNotifications('#cc-payments-tech')
