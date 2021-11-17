@@ -4,9 +4,11 @@ import au.com.dius.pact.provider.junit5.PactVerificationContext;
 import au.com.dius.pact.provider.junit5.PactVerificationInvocationContextProvider;
 import au.com.dius.pact.provider.junitsupport.IgnoreNoPactsToVerify;
 import au.com.dius.pact.provider.junitsupport.Provider;
+import au.com.dius.pact.provider.junitsupport.State;
 import au.com.dius.pact.provider.junitsupport.loader.PactBroker;
 import au.com.dius.pact.provider.junitsupport.loader.VersionSelector;
 import au.com.dius.pact.provider.spring.junit5.MockMvcTestTarget;
+import org.json.JSONException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,10 +16,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import uk.gov.hmcts.payment.api.controllers.AccountController;
+import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.payment.api.controllers.ServiceRequestController;
+import uk.gov.hmcts.payment.api.domain.model.ServiceRequestBo;
 import uk.gov.hmcts.payment.api.domain.service.ServiceRequestDomainService;
-import uk.gov.hmcts.payment.api.service.AccountService;
+import uk.gov.hmcts.payment.api.dto.AccountDto;
+import uk.gov.hmcts.payment.api.dto.ServiceRequestResponseDto;
+import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
+import uk.gov.hmcts.payment.api.util.AccountStatus;
+
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.util.Date;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
 @Provider("payment_accounts")
@@ -45,9 +58,18 @@ public class ServiceRequestProviderTest {
     void before(PactVerificationContext context) {
         MockMvcTestTarget testTarget = new MockMvcTestTarget();
         testTarget.setControllers(
-            new ServiceRequestController());
+            new ServiceRequestController(serviceRequestDomainServiceMock));
         if (context != null) {
             context.setTarget(testTarget);
         }
+    }
+
+    @State({"A Service Request Can be Created for a valid Payload"})
+    public void toReturnAccountDetails() throws IOException, JSONException {
+
+        ServiceRequestResponseDto serviceRequestResponseDto
+            = ServiceRequestResponseDto.serviceRequestResponseDtoWith().serviceRequestReference("2020-1234567890123").build();
+        when(serviceRequestDomainServiceMock.create(any(ServiceRequestDto.class), any(MultiValueMap.class))).thenReturn(serviceRequestResponseDto);
+
     }
 }

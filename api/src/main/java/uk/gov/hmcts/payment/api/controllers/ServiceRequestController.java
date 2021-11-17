@@ -55,8 +55,7 @@ public class ServiceRequestController {
     private static final Logger LOG = LoggerFactory.getLogger(ServiceRequestController.class);
     private static final String FAILED = "failed";
 
-    @Autowired
-    private ServiceRequestDomainService serviceRequestDomainService;
+    private final ServiceRequestDomainService serviceRequestDomainService;
 
     @Autowired
     private IdempotencyService idempotencyService;
@@ -79,7 +78,11 @@ public class ServiceRequestController {
     @Autowired
     private FeesService feeService;
 
-
+    @Autowired
+    public ServiceRequestController(
+        ServiceRequestDomainService serviceRequestDomainService) {
+        this.serviceRequestDomainService = serviceRequestDomainService;
+    }
 
     @ApiOperation(value = "Create Service Request", notes = "Create Service Request")
     @ApiResponses(value = {
