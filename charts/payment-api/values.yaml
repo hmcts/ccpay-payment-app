@@ -20,7 +20,7 @@ java:
     OIDC_CLIENT_ID: "paybubble"
     OIDC_ISSUER: "https://forgerock-am.service.core-compute-idam-{{ .Values.global.environment }}.internal:8443/openam/oauth2/hmcts"
     OIDC_S2S_MICROSERVICE_NAME: ccpay_bubble
-    OIDC_AUDIENCE_LIST: paybubble,cmc_citizen,probate,divorce,xuiwebapp,xuimowebapp,xuiaowebapp,fees_admin_frontend,finrem,bar_frontend,fpl_case_service,ccd_gateway
+    OIDC_AUDIENCE_LIST: paybubble,cmc_citizen,probate,divorce,xuiwebapp,xuimowebapp,xuiaowebapp,fees_admin_frontend,finrem,bar_frontend,fpl_case_service,ccd_gateway,paymentoutcome_web
     LAUNCH_DARKLY_USER_NAME_PREFIX: '{{ .Values.global.environment }}'
 
     AUTH_PROVIDER_SERVICE_CLIENT_BASEURL: http://rpe-service-auth-provider-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal
@@ -35,7 +35,7 @@ java:
     CALLBACK_PAYMENTS_CUTOFF_TIME_IN_MINUTES: 2
 
     GOV_PAY_URL: "https://publicapi.payments.service.gov.uk/v1/payments"
-    GOV_PAY_OPERATIONAL_SERVICES: "ccd_gw,api_gw,xui_webapp"
+    GOV_PAY_OPERATIONAL_SERVICES: "ccd_gw,api_gw,xui_webapp,paymentoutcome_web"
     PCI_PAL_CALLBACK_URL: https://core-api-mgmt-{{ .Values.global.environment }}.azure-api.net/telephony-api/telephony/callback
 
     TRUSTED_S2S_SERVICE_NAMES: "refunds_api,cmc,cmc_claim_store,probate_frontend,divorce_frontend,ccd_gw,bar_api,api_gw,finrem_payment_service,ccpay_bubble,jui_webapp,xui_webapp,fpl_case_service,civil_service,iac,paymentoutcome_web"
