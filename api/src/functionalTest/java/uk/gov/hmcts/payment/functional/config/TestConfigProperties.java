@@ -71,4 +71,10 @@ public class TestConfigProperties {
     @Value("${idam.rd.professional.client.secret}")
     public String idamRefDataApiClientSecret;
 
+    @Value("${service.request.cpo.update.service.s2s.secret}")
+    public String serviceRequestCpoUpdateServices2sSecret;
+
+    @Value("${service.request.cpo.update.service.s2s.topic.name}")
+    public String serviceRequestCpoUpdateServices2sTopicName;
+
 }

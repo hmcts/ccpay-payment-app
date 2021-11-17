@@ -1,5 +1,10 @@
 package uk.gov.hmcts.payment.functional;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.microsoft.azure.servicebus.IMessage;
+import com.microsoft.azure.servicebus.Message;
+import com.microsoft.azure.servicebus.TopicClient;
+import com.microsoft.azure.servicebus.primitives.ConnectionStringBuilder;
 import io.restassured.response.Response;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -18,6 +23,8 @@ import uk.gov.hmcts.payment.api.dto.PaymentGroupResponse;
 import uk.gov.hmcts.payment.api.dto.ServiceRequestResponseDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
+import uk.gov.hmcts.payment.api.servicebus.TopicClientProxy;
+import uk.gov.hmcts.payment.api.servicebus.TopicClientService;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
 import uk.gov.hmcts.payment.functional.fixture.ServiceRequestFixture;
 import uk.gov.hmcts.payment.functional.idam.IdamService;
@@ -66,6 +73,9 @@ public class ServiceRequestFunctionalTests {
     private static final String PAID = "Paid";
     private static final String NOT_PAID = "Not Paid";
     private static final String PARTIALLY_PAID = "Partially Paid";
+
+    @Autowired
+    private TopicClientService topicClientService;
 
     @Before
     public void setUp() throws Exception {
@@ -725,5 +735,15 @@ public class ServiceRequestFunctionalTests {
         Date dateWithoutTime = sdf.parse(sdf.format(new Date()));
 
         assertThat(createdDateCleared).isEqualTo(dateWithoutTime);
+    }
+
+    private void verifyMessageOnTheTopic(final ServiceRequestDto serviceRequestDto) throws Exception {
+
+        final String serviceConnectionString = testProps.getServiceRequestCpoUpdateServices2sSecret();
+        final String topicName = testProps.getServiceRequestCpoUpdateServices2sTopicName();
+        ConnectionStringBuilder connectionStringBuilder = new ConnectionStringBuilder(serviceConnectionString, topicName);
+        TopicClient client = new TopicClient(connectionStringBuilder);
+        IMessage message = client.peek();
+        System.out.println("The body of the message : " + message.getBody().toString());
     }
 }
