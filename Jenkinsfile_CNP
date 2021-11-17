@@ -54,11 +54,12 @@ withPipeline(type, product, app) {
     enableDbMigration('ccpay') // for liquibase update
 
     after('test') {
+
         publishHTML target: [
             allowMissing         : true,
             alwaysLinkToLastBuild: true,
             keepAll              : true,
-            reportDir            : "build/reports/checkstyle",
+            reportDir            : "api/build/reports/checkstyle",
             reportFiles          : "main.html",
             reportName           : "CCPAY Payment App PREVIEW Application Checkstyle Main Report"
         ]
@@ -67,7 +68,7 @@ withPipeline(type, product, app) {
             allowMissing         : true,
             alwaysLinkToLastBuild: true,
             keepAll              : true,
-            reportDir            : "build/reports/checkstyle",
+            reportDir            : "api/build/reports/checkstyle",
             reportFiles          : "test.html",
             reportName           : "CCPAY Payment App PREVIEW Application Checkstyle Test Report"
         ]
@@ -76,7 +77,7 @@ withPipeline(type, product, app) {
             allowMissing         : true,
             alwaysLinkToLastBuild: true,
             keepAll              : true,
-            reportDir            : "build/reports/checkstyle",
+            reportDir            : "api/build/reports/checkstyle",
             reportFiles          : "aat.html",
             reportName           : "CCPAY Payment App PREVIEW Application Checkstyle AAT Report"
         ]
@@ -85,36 +86,38 @@ withPipeline(type, product, app) {
             allowMissing         : true,
             alwaysLinkToLastBuild: true,
             keepAll              : true,
-            reportDir            : "build/reports/tests/test",
+            reportDir            : "api/build/reports/tests/test",
             reportFiles          : "index.html",
             reportName           : "CCPAY Payment App PREVIEW Unit Tests Report"
         ]
 
     }
 
-    after('smoketest:preview') {
+    after('smokeTest:preview') {
+
         publishHTML target: [
             allowMissing         : true,
             alwaysLinkToLastBuild: true,
             keepAll              : true,
-            reportDir            : "build/reports/tests/smokeTest",
+            reportDir            : "api/build/reports/tests/smokeTest",
             reportFiles          : "index.html",
             reportName           : "CCPAY Payment App PREVIEW Smoke Test Report"
         ]
     }
 
-    after('smoketest:aat') {
+    after('smokeTest:aat') {
         publishHTML target: [
             allowMissing         : true,
             alwaysLinkToLastBuild: true,
             keepAll              : true,
-            reportDir            : "build/reports/tests/smokeTest",
+            reportDir            : "api/build/reports/tests/smokeTest",
             reportFiles          : "index.html",
             reportName           : "CCPAY Payment App AAT Smoke Test Report"
         ]
     }
 
     after('functionalTest:preview') {
+
         publishHTML target: [
             reportDir            : "api/build/reports/tests/functionalTest",
             allowMissing         : true,
