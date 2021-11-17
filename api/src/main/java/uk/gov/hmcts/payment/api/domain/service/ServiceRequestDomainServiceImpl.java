@@ -166,6 +166,8 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         //find service request
         PaymentFeeLink serviceRequest = paymentFeeLinkRepository.findByPaymentReference(serviceRequestReference).orElseThrow(() -> new ServiceRequestReferenceNotFoundException("Order reference doesn't exist"));
 
+        LOG.info("returnURL {}",returnURL);
+
         //General business validation
         businessValidationForOnlinePaymentServiceRequestOrder(serviceRequest, onlineCardPaymentRequest);
 
