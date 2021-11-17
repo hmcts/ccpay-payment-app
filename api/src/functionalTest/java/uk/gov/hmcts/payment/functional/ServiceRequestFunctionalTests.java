@@ -1,8 +1,6 @@
 package uk.gov.hmcts.payment.functional;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.servicebus.IMessage;
-import com.microsoft.azure.servicebus.Message;
 import com.microsoft.azure.servicebus.TopicClient;
 import com.microsoft.azure.servicebus.primitives.ConnectionStringBuilder;
 import io.restassured.response.Response;
@@ -23,8 +21,6 @@ import uk.gov.hmcts.payment.api.dto.PaymentGroupResponse;
 import uk.gov.hmcts.payment.api.dto.ServiceRequestResponseDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
-import uk.gov.hmcts.payment.api.servicebus.TopicClientProxy;
-import uk.gov.hmcts.payment.api.servicebus.TopicClientService;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
 import uk.gov.hmcts.payment.functional.fixture.ServiceRequestFixture;
 import uk.gov.hmcts.payment.functional.idam.IdamService;
@@ -73,9 +69,6 @@ public class ServiceRequestFunctionalTests {
     private static final String PAID = "Paid";
     private static final String NOT_PAID = "Not Paid";
     private static final String PARTIALLY_PAID = "Partially Paid";
-
-    @Autowired
-    private TopicClientService topicClientService;
 
     @Before
     public void setUp() throws Exception {
