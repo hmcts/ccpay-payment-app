@@ -183,7 +183,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         GovPayPayment govPayPayment = delegateGovPay.create(createGovPayRequest, serviceRequest.getEnterpriseServiceName());
 
         //Payment - Entity creation
-        Payment paymentEntity = serviceRequestDomainDataEntityMapper.toPaymentEntity(requestOnlinePaymentBo, govPayPayment);
+        Payment paymentEntity = serviceRequestDomainDataEntityMapper.toPaymentEntity(requestOnlinePaymentBo, govPayPayment, serviceRequest);
         paymentEntity.setPaymentLink(serviceRequest);
         serviceRequest.getPayments().add(paymentEntity);
         paymentRepository.save(paymentEntity);
