@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.oauth2.client.OAuth2RestOperations;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.util.AccountStatus;
 import org.slf4j.Logger;
@@ -20,7 +21,8 @@ public class AccountServiceImpl implements AccountService<AccountDto, String> {
     private static final Logger LOG = LoggerFactory.getLogger(AccountServiceImpl.class);
 
     @Autowired
-    private OAuth2RestOperations restTemplate;
+    private RestTemplate restTemplate;
+
 
     @Value("${liberata.api.account.url}")
     private String baseUrl;
