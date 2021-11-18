@@ -70,7 +70,7 @@ withPipeline(type, product, app) {
             keepAll              : true,
             reportDir            : "api/build/reports/checkstyle",
             reportFiles          : "test.html",
-            reportName           : "CCPAY Payment App PREVIEW Application Checkstyle Test Report"
+            reportName           : "CCPAY Payment App PREVIEW Test Checkstyle Test Report"
         ]
 
         publishHTML target: [
@@ -79,7 +79,7 @@ withPipeline(type, product, app) {
             keepAll              : true,
             reportDir            : "api/build/reports/checkstyle",
             reportFiles          : "aat.html",
-            reportName           : "CCPAY Payment App PREVIEW Application Checkstyle AAT Report"
+            reportName           : "CCPAY Payment App AAT Application Checkstyle AAT Report"
         ]
 
         publishHTML target: [
