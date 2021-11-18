@@ -3,6 +3,7 @@ package uk.gov.hmcts.payment.api.service;
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.oauth2.client.OAuth2RestOperations;
@@ -21,8 +22,9 @@ public class AccountServiceImpl implements AccountService<AccountDto, String> {
     private static final Logger LOG = LoggerFactory.getLogger(AccountServiceImpl.class);
 
     @Autowired
+    //private OAuth2RestOperations restTemplate;
+    @Qualifier("restTemplateLib")
     private RestTemplate restTemplate;
-
 
     @Value("${liberata.api.account.url}")
     private String baseUrl;

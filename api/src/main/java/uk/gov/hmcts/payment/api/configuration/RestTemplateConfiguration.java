@@ -47,7 +47,7 @@ public class RestTemplateConfiguration {
         factory.setReadTimeout((Integer.parseInt(iacReadTimeout)));
         return new RestTemplate(factory);
     }
-    @Bean
+    @Bean(value = "restTemplateLib")
     public RestTemplate restTemplate(RestTemplateBuilder builder) throws NoSuchAlgorithmException, KeyManagementException {
 
         TrustManager[] trustAllCerts = new TrustManager[] {
