@@ -8,6 +8,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -23,6 +24,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.componenttests.PaymentDbBackdoor;
+import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.domain.model.OrderPaymentBo;
 import uk.gov.hmcts.payment.api.domain.service.IdempotencyService;
 import uk.gov.hmcts.payment.api.domain.service.OrderDomainService;
@@ -51,6 +53,10 @@ import java.util.*;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -99,6 +105,10 @@ public class OrderControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @MockBean
+    private LaunchDarklyFeatureToggler launchDarklyFeatureToggler;
+
+
     @Before
     @Transactional
     public void setup() {
@@ -123,6 +133,7 @@ public class OrderControllerTest {
 
     @Test
     public void createPBAPaymentWithOrderSuccessTest() throws Exception {
+        when(launchDarklyFeatureToggler.getBooleanValue(Mockito.eq("apportion-feature"),anyBoolean())).thenReturn(true);
 
         //Creation of Order-reference
         String orderReferenceResult = getOrderReference();
