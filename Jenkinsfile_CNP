@@ -93,7 +93,7 @@ withPipeline(type, product, app) {
 
     }
 
-    after('smokeTest:preview') {
+    after('smoketest:preview') {
 
         publishHTML target: [
             allowMissing         : true,
@@ -105,7 +105,7 @@ withPipeline(type, product, app) {
         ]
     }
 
-    after('smokeTest:aat') {
+    after('smoketest:aat') {
         publishHTML target: [
             allowMissing         : true,
             alwaysLinkToLastBuild: true,
