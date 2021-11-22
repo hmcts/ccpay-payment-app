@@ -119,4 +119,141 @@ public class IACsupplementaryDetailsConsumerTest {
 //        assertThat(organisationalDetail.getCcdCaseTypes().get(0), equalTo("Divorce"));
 //        assertThat(organisationalDetail.getServiceDescription(), equalTo("DIVORCE"));
     }
+
+
+
+
+
+
+    @Pact(provider = "ia_caseAccessApi", consumer = "payment_App")
+    RequestResponsePact retrieveSupplementaryDetailsForMultipleExistingCases(PactDslWithProvider builder) {
+        // @formatter:off
+        return builder
+            .given("Supplementary details are requested for multiple, existing cases")
+            .uponReceiving("A request for Supplementary Details for a multiple existing cases")
+            .path("/supplementary-details")
+            .method("POST")
+            .body("{ccd_case_numbers: [6666661111111111, 6666662222222222]")
+            .headers(HttpHeaders.AUTHORIZATION, SOME_AUTHORIZATION_TOKEN, SERVICE_AUTHORIZATION,
+                SOME_SERVICE_AUTHORIZATION_TOKEN)
+            .matchHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+            .willRespondWith()
+            .matchHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+            .status(200)
+            .toPact();
+    }
+
+    @Test
+    @PactTestFor(pactMethod = "retrieveSupplementaryDetailsForMultipleExistingCases")
+    public void verifyRetrieveOrganisationDetailsForMultipleCases() throws JSONException {
+
+        MultiValueMap<String, String> header = new LinkedMultiValueMap<>();
+        header.put("Authorization", Collections.singletonList(SOME_AUTHORIZATION_TOKEN));
+        header.put("ServiceAuthorization", Collections.singletonList(SOME_SERVICE_AUTHORIZATION_TOKEN));
+        header.put("content-type", Collections.singletonList(MediaType.APPLICATION_JSON_VALUE));
+        given(authTokenGenerator.generate()).willReturn(SOME_SERVICE_AUTHORIZATION_TOKEN);
+        PaymentDto paymentDto = new PaymentDto();
+        List<PaymentDto> paymentDtos = new ArrayList<>();
+        paymentDto.setCcdCaseNumber("6666661111111111");
+        paymentDtos.add(0, paymentDto);
+        paymentDto.setCcdCaseNumber("6666662222222222");
+        paymentDtos.add(1, paymentDto);
+        ResponseEntity<SupplementaryPaymentDto> supplementaryInfoResponse = iacService.getIacSupplementaryInfo(paymentDtos, "IAC");
+        assertOrganisationalDetailsForMultipleCases(supplementaryInfoResponse);
+
+    }
+
+    private void assertOrganisationalDetailsForMultipleCases( ResponseEntity<SupplementaryPaymentDto> supplementaryInfoResponse) {
+        assertThat(supplementaryInfoResponse.getStatusCode(), equalTo("200"));
+    }
+
+
+
+
+    @Pact(provider = "ia_caseAccessApi", consumer = "payment_App")
+    RequestResponsePact retrieveSupplementaryDetailsForMultipleCasesIncludingAMisssingCase(PactDslWithProvider builder) {
+        // @formatter:off
+        return builder
+            .given("Supplementary details are requested for multiple cases, including a missing case")
+            .uponReceiving("A request for Supplementary Details for a multiple existing cases along with one missing case")
+            .path("/supplementary-details")
+            .method("POST")
+            .body("{ccd_case_numbers: [6666661111111111, 6666660000000000]")
+            .headers(HttpHeaders.AUTHORIZATION, SOME_AUTHORIZATION_TOKEN, SERVICE_AUTHORIZATION,
+                SOME_SERVICE_AUTHORIZATION_TOKEN)
+            .matchHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+            .willRespondWith()
+            .matchHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+            .status(200)
+            .toPact();
+    }
+
+    @Test
+    @PactTestFor(pactMethod = "retrieveSupplementaryDetailsForMultipleCasesIncludingAMisssingCase")
+    public void verifyRetrieveOrganisationDetailsForMultipleCasesIncludingAMissingCase() throws JSONException {
+
+        MultiValueMap<String, String> header = new LinkedMultiValueMap<>();
+        header.put("Authorization", Collections.singletonList(SOME_AUTHORIZATION_TOKEN));
+        header.put("ServiceAuthorization", Collections.singletonList(SOME_SERVICE_AUTHORIZATION_TOKEN));
+        header.put("content-type", Collections.singletonList(MediaType.APPLICATION_JSON_VALUE));
+        given(authTokenGenerator.generate()).willReturn(SOME_SERVICE_AUTHORIZATION_TOKEN);
+        PaymentDto paymentDto = new PaymentDto();
+        List<PaymentDto> paymentDtos = new ArrayList<>();
+        paymentDto.setCcdCaseNumber("6666661111111111");
+        paymentDtos.add(0, paymentDto);
+        paymentDto.setCcdCaseNumber("6666660000000000");
+        paymentDtos.add(1, paymentDto);
+        ResponseEntity<SupplementaryPaymentDto> supplementaryInfoResponse = iacService.getIacSupplementaryInfo(paymentDtos, "IAC");
+        assertOrganisationalDetailsForMultipleCasesIncludingAMissingCase(supplementaryInfoResponse);
+
+    }
+
+    private void assertOrganisationalDetailsForMultipleCasesIncludingAMissingCase( ResponseEntity<SupplementaryPaymentDto> supplementaryInfoResponse) {
+        assertThat(supplementaryInfoResponse.getStatusCode(), equalTo("200"));
+    }
+
+
+
+
+
+
+    @Pact(provider = "ia_caseAccessApi", consumer = "payment_App")
+    RequestResponsePact retrieveSupplementaryDetailsForAnUnknownCase(PactDslWithProvider builder) {
+        // @formatter:off
+        return builder
+            .given("Supplementary details are requested for an unknown case")
+            .uponReceiving("A request for Supplementary Details for an unknown case")
+            .path("/supplementary-details")
+            .method("POST")
+            .body("{ccd_case_numbers: [6666660000000000]")
+            .headers(HttpHeaders.AUTHORIZATION, SOME_AUTHORIZATION_TOKEN, SERVICE_AUTHORIZATION,
+                SOME_SERVICE_AUTHORIZATION_TOKEN)
+            .matchHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+            .willRespondWith()
+            .matchHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+            .status(200)
+            .toPact();
+    }
+
+    @Test
+    @PactTestFor(pactMethod = "retrieveSupplementaryDetailsForAnUnknownCase")
+    public void verifyRetrieveOrganisationDetailsForAnUnknownCase() throws JSONException {
+
+        MultiValueMap<String, String> header = new LinkedMultiValueMap<>();
+        header.put("Authorization", Collections.singletonList(SOME_AUTHORIZATION_TOKEN));
+        header.put("ServiceAuthorization", Collections.singletonList(SOME_SERVICE_AUTHORIZATION_TOKEN));
+        header.put("content-type", Collections.singletonList(MediaType.APPLICATION_JSON_VALUE));
+        given(authTokenGenerator.generate()).willReturn(SOME_SERVICE_AUTHORIZATION_TOKEN);
+        PaymentDto paymentDto = new PaymentDto();
+        List<PaymentDto> paymentDtos = new ArrayList<>();
+        paymentDto.setCcdCaseNumber("6666660000000000");
+        paymentDtos.add(0, paymentDto);
+        ResponseEntity<SupplementaryPaymentDto> supplementaryInfoResponse = iacService.getIacSupplementaryInfo(paymentDtos, "IAC");
+        assertOrganisationalDetailsForAnUnknownCase(supplementaryInfoResponse);
+
+    }
+
+    private void assertOrganisationalDetailsForAnUnknownCase( ResponseEntity<SupplementaryPaymentDto> supplementaryInfoResponse) {
+        assertThat(supplementaryInfoResponse.getStatusCode(), equalTo("200"));
+    }
 }
