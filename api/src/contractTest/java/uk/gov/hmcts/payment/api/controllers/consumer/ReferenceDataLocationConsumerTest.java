@@ -58,7 +58,7 @@ public class ReferenceDataLocationConsumerTest {
     @MockBean
     AuthTokenGenerator authTokenGenerator;
 
-    @Pact(provider = "ia_caseAccessApi", consumer = "payment_App")
+    @Pact(provider = "referenceData_location", consumer = "payment_App")
     RequestResponsePact retrieveOrganisationDetails(PactDslWithProvider builder) {
         // @formatter:off
         return builder
