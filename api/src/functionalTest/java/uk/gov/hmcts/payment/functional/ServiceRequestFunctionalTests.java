@@ -85,7 +85,7 @@ public class ServiceRequestFunctionalTests {
 
     @Test
     //@Ignore("Test Build")
-    @Ignore("DEFECT - expected:<[tru]e> but was:<[fals]e> - The Status of the Service Request should not be Paid......")
+//    @Ignore("DEFECT - expected:<[tru]e> but was:<[fals]e> - The Status of the Service Request should not be Paid......")
     public void positive_create_service_request_for_payments_user_hmcts() throws Exception {
 
         ServiceRequestDto serviceRequestDto
