@@ -13,6 +13,7 @@ import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentProvider;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.model.StatusHistory;
+import uk.gov.hmcts.payment.api.model.PaymentMethod;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 
 import java.math.BigDecimal;
@@ -52,8 +53,13 @@ public class ServiceRequestDomainDataEntityMapper {
             .build();
     }
 
-    public Payment toPaymentEntity(ServiceRequestOnlinePaymentBo requestOnlinePaymentBo, GovPayPayment govPayPayment) {
+    public Payment toPaymentEntity(ServiceRequestOnlinePaymentBo requestOnlinePaymentBo, GovPayPayment govPayPayment, PaymentFeeLink serviceRequest) {
         return Payment.paymentWith()
+            .ccdCaseNumber(serviceRequest.getCcdCaseNumber())
+            .siteId(serviceRequest.getOrgId())
+            .caseReference(serviceRequest.getCaseReference())
+            .serviceType(serviceRequest.getEnterpriseServiceName())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
             .internalReference(requestOnlinePaymentBo.getInternalReference())
             .currency(requestOnlinePaymentBo.getCurrency())
             .userId(requestOnlinePaymentBo.getUserId())

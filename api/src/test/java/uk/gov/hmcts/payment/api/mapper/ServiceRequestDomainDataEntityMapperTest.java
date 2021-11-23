@@ -11,6 +11,8 @@ import uk.gov.hmcts.payment.api.domain.model.ServiceRequestOnlinePaymentBo;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
 import uk.gov.hmcts.payment.api.external.client.dto.State;
+import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 
 import java.math.BigDecimal;
 import java.util.Collections;
@@ -45,8 +47,9 @@ public class ServiceRequestDomainDataEntityMapperTest {
             .state(State.stateWith().status("created").build())
             .links(GovPayPayment.Links.linksWith().nextUrl(new Link()).build())
             .build();
+        PaymentFeeLink serviceRequest= PaymentFeeLink.paymentFeeLinkWith().build();
 
-        serviceRequestDomainDataEntityMapper.toPaymentEntity(serviceRequestOnlinePaymentBo,govPayPayment);
+        serviceRequestDomainDataEntityMapper.toPaymentEntity(serviceRequestOnlinePaymentBo,govPayPayment, serviceRequest);
     }
 
     private ServiceRequestFeeBo getServiceRequestFee() {
