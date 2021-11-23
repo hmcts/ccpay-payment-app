@@ -47,7 +47,7 @@ public class ServiceRequestUtil {
         //Calculate the pending amount for a payment group
         BigDecimal orderPendingTotal = (orderFeeTotal.subtract(orderRemissionTotal)).subtract(orderPaymentTotal);
 
-        if(orderPendingTotal.compareTo(BigDecimal.ZERO) <= 0){
+        if(orderPendingTotal.compareTo(BigDecimal.ZERO) <= 0 && orderPendingTotal.compareTo(BigDecimal.ZERO) > 0){
             return "Paid";
         }
         else if(orderFeeTotal.compareTo(BigDecimal.ZERO) > 0 && (orderPaymentTotal.compareTo(BigDecimal.ZERO) > 0
