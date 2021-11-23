@@ -11,10 +11,10 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
 import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentResponse;
+import uk.gov.hmcts.payment.api.dto.PaymentStatusDto;
 import uk.gov.hmcts.payment.api.dto.ServiceRequestResponseDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
-import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 
 import java.io.IOException;
@@ -40,6 +40,8 @@ public interface ServiceRequestDomainService {
     Boolean isDuplicate(String serviceRequestReference);
 
     void sendMessageTopicCPO(ServiceRequestDto serviceRequestDto, PaymentDto payment);
+
+    void sendMessageToTopic(PaymentStatusDto payment);
 
     void deadLetterprocess(IMessageReceiver subscriptionClient) throws ServiceBusException, InterruptedException, IOException;
 
