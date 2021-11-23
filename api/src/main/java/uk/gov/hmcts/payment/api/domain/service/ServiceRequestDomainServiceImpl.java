@@ -397,12 +397,18 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
 
 
         int receivedMessages =0;
+
+        TopicClientProxy topicClientCPO = topicClientService.getTopicClientProxy();
+        LOG.info("topicClientCPO : " + topicClientCPO );
         while (true)
         {
             IMessage receivedMessage = subscriptionClient.receive();
-            System.out.printf("receivedMessage\n", receivedMessage);
+            LOG.info("receivedMessage\n", receivedMessage);
+            String  msgProperties = receivedMessage.getProperties().toString();
+            boolean isFound500 =  msgProperties.indexOf("500") !=-1? true: false;
 
-            if (receivedMessage != null)
+
+            if (receivedMessage != null && isFound500 )
             {
                 byte[] body = receivedMessage.getBody();
                 ObjectMapper objectMapper = new ObjectMapper();
@@ -410,19 +416,18 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
                 ObjectMapper objectMapper1 = new ObjectMapper();
                 Message msg = new Message(objectMapper1.writeValueAsString(deadLetterDto));
                 msg.setContentType("application/json");
-                TopicClientProxy topicClientCPO = topicClientService.getTopicClientProxy();
-                System.out.println("topicClientCPO : " + topicClientCPO );
                 topicClientCPO.send(msg);
-                topicClientCPO.close();
+
             }
             else
             {
+                topicClientCPO.close();
                 subscriptionClient.close();
                 break;
             }
         }
 
-        System.out.printf("Received %s messages from subscription.\n", receivedMessages);
+        LOG.info("Received %s messages from subscription.\n", receivedMessages);
 
 
     }
