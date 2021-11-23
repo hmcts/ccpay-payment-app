@@ -48,6 +48,7 @@ public class AccountController {
     @GetMapping(value = "/accounts/{accountNumber}")
     public AccountDto getAccounts(@PathVariable("accountNumber") String accountNumber) {
         try {
+            //
             return accountService.retrieve(accountNumber);
         } catch (HttpClientErrorException ex) {
             LOG.error("Error while calling account", ex);
