@@ -13,35 +13,29 @@ public class ServiceRequestUtil {
 
         //Calculate the fee total in a payment group
         if(paymentGroupDto.getFees() != null) {
-            if (!paymentGroupDto.getFees().isEmpty()) {
             for (int i = 0; i < paymentGroupDto.getFees().size(); i++) {
                 if (paymentGroupDto.getFees().get(i).getFeeAmount() != null) {
                     orderFeeTotal = orderFeeTotal.add(paymentGroupDto.getFees().get(i).getFeeAmount());
                     }
                 }
-            }
         }
 
         //Calculate remission total in a payment group
         if(paymentGroupDto.getRemissions() != null){
-            if (!paymentGroupDto.getRemissions().isEmpty()) {
                 for (int i = 0; i < paymentGroupDto.getRemissions().size(); i++) {
                     if (paymentGroupDto.getRemissions().get(i).getHwfAmount() != null) {
                         orderRemissionTotal = orderRemissionTotal.add(paymentGroupDto.getRemissions().get(i).getHwfAmount());
                     }
                 }
-            }
         }
 
         //Calculate the payment total in a payment group
         if(paymentGroupDto.getPayments() != null) {
-            if (!paymentGroupDto.getPayments().isEmpty()) {
                 for (int i = 0; i < paymentGroupDto.getPayments().size(); i++) {
                     if (paymentGroupDto.getPayments().get(i).getStatus().equals("Success") && paymentGroupDto.getPayments().get(i).getAmount() != null) {
                         orderPaymentTotal = orderPaymentTotal.add(paymentGroupDto.getPayments().get(i).getAmount());
                     }
                 }
-            }
         }
 
         //Calculate the pending amount for a payment group
