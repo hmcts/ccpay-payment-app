@@ -61,6 +61,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     private static final Logger LOG = LoggerFactory.getLogger(ServiceRequestDomainServiceImpl.class);
     private static final String FAILED = "failed";
     private static final String SUCCESS = "success";
+    private static final String msgContentType = "application/json";
     @Value("${case-payment-orders.api.url}")
     private  String callBackUrl;
 
@@ -221,12 +222,9 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         //2. Account check for PBA-Payment
         payment = accountCheckForPBAPayment(serviceRequest, serviceRequestPaymentDto, payment);
 
-        //PaymentDto paymentDto = paymentDtoMapper.toResponseDto(serviceRequest, payment);
         PaymentStatusDto paymentStatusDto = paymentDtoMapper.toPaymentStatusDto(serviceRequestReference,
             serviceRequestPaymentBo.getAccountNumber(), payment);
         sendMessageToTopic(paymentStatusDto);
-
-        //sendMessageTopicCPO(null, paymentDto);
 
         if (payment.getPaymentStatus().getName().equals(FAILED)) {
             LOG.info("CreditAccountPayment Response 402(FORBIDDEN) for ccdCaseNumber : {} PaymentStatus : {}", payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
@@ -418,7 +416,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
                 DeadLetterDto deadLetterDto = objectMapper.readValue(body,DeadLetterDto.class);
                 ObjectMapper objectMapper1 = new ObjectMapper();
                 Message msg = new Message(objectMapper1.writeValueAsString(deadLetterDto));
-                msg.setContentType("application/json");
+                msg.setContentType(msgContentType);
                 topicClientCPO.send(msg);
 
             }
@@ -429,10 +427,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
                 break;
             }
         }
-
         LOG.info("Received %s messages from subscription.\n", receivedMessages);
-
-
     }
 
 
@@ -467,7 +462,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
             }
 
             if(msg!=null && topicClientCPO!=null){
-                msg.setContentType("application/json");
+                msg.setContentType(msgContentType);
                 msg.setLabel("Service Callback Message");
                 msg.setProperties(Collections.singletonMap("serviceCallbackUrl",
                     callBackUrl+"/case-payment-orders"));
@@ -488,12 +483,12 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
             ObjectMapper objectMapper = new ObjectMapper();
 
             if(payment!=null){
-                LOG.info("Connection String CardPBA: ", connectionString);
+                LOG.info("Connection String CardPBA: {}", connectionString);
                 msg = new Message(objectMapper.writeValueAsString(payment));
                 topicClientCPO = new TopicClientProxy(connectionString, topicCardPBA);
             }
             if(msg!=null && topicClientCPO!=null){
-                msg.setContentType("application/json");
+                msg.setContentType(msgContentType);
                 msg.setLabel("Service Callback Message");
                 msg.setProperties(Collections.singletonMap("serviceCallbackUrl",
                     callBackUrl+"/case-payment-orders"));
