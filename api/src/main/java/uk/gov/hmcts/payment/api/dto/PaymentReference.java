@@ -14,7 +14,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
 @JsonNaming(SnakeCaseStrategy.class)
 @JsonInclude(NON_NULL)
-@Builder(builderMethodName = "paymentStatusDto")
+@Builder(builderMethodName = "paymentReference")
 @AllArgsConstructor
 @NoArgsConstructor
 public class PaymentReference {

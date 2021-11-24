@@ -210,7 +210,8 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     }
 
     @Override
-    public ServiceRequestPaymentBo addPayments(PaymentFeeLink serviceRequest, ServiceRequestPaymentDto serviceRequestPaymentDto) throws CheckDigitException {
+    public ServiceRequestPaymentBo addPayments(PaymentFeeLink serviceRequest, String serviceRequestReference,
+                                               ServiceRequestPaymentDto serviceRequestPaymentDto) throws CheckDigitException {
 
         ServiceRequestPaymentBo serviceRequestPaymentBo = serviceRequestPaymentDtoDomainMapper.toDomain(serviceRequestPaymentDto);
         serviceRequestPaymentBo.setStatus(PaymentStatus.CREATED.getName());
@@ -220,10 +221,12 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         //2. Account check for PBA-Payment
         payment = accountCheckForPBAPayment(serviceRequest, serviceRequestPaymentDto, payment);
 
-        PaymentDto paymentDto = paymentDtoMapper.toResponseDto(serviceRequest, payment);
+        //PaymentDto paymentDto = paymentDtoMapper.toResponseDto(serviceRequest, payment);
+        PaymentStatusDto paymentStatusDto = paymentDtoMapper.toPaymentStatusDto(serviceRequestReference,
+            serviceRequestPaymentBo.getAccountNumber(), payment);
+        sendMessageToTopic(paymentStatusDto);
 
-
-        sendMessageTopicCPO(null, paymentDto);
+        //sendMessageTopicCPO(null, paymentDto);
 
         if (payment.getPaymentStatus().getName().equals(FAILED)) {
             LOG.info("CreditAccountPayment Response 402(FORBIDDEN) for ccdCaseNumber : {} PaymentStatus : {}", payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());

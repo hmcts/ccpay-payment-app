@@ -17,6 +17,7 @@ import uk.gov.hmcts.payment.api.contract.StatusHistoryDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.controllers.CardPaymentController;
 import uk.gov.hmcts.payment.api.dto.PaymentStatusDto;
+import uk.gov.hmcts.payment.api.dto.PaymentReference;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.reports.FeesService;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
@@ -153,36 +154,15 @@ public class PaymentDtoMapper {
             .build();
     }
 
-    public PaymentStatusDto toPaymentStatusDto(PaymentFeeLink paymentFeeLink, Payment payment) {
-        List<PaymentFee> fees = paymentFeeLink.getFees();
-        /*PaymentStatusDto.paymentStatusDto()
-            .serviceRequestReference("")
-            .ccdCaseNumber(paymentFeeLink.getCcdCaseNumber())
+    public PaymentStatusDto toPaymentStatusDto(String serviceRequestReference, String accountNumber,
+                                               Payment payment) {
+        return PaymentStatusDto.paymentStatusDto()
+            .serviceRequestReference(serviceRequestReference)
+            .ccdCaseNumber(payment.getCcdCaseNumber())
             .serviceRequestAmount(payment.getAmount())
             .serviceRequestStatus(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus())
-            .*/
-        return null;
-        /*return PaymentDto.payment2DtoWith()
-            .reference(payment.getReference())
-            .amount(payment.getAmount())
-            .currency(CurrencyCode.valueOf(payment.getCurrency()))
-            .caseReference(payment.getCaseReference())
-            .ccdCaseNumber(payment.getCcdCaseNumber())
-            .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus())
-            .serviceName(payment.getServiceType())
-            .siteId(payment.getSiteId())
-            .description(payment.getDescription())
-            .channel(payment.getPaymentChannel() != null ? payment.getPaymentChannel().getName() : null)
-            .method(payment.getPaymentMethod() != null ? payment.getPaymentMethod().getName() : null)
-            .externalReference(payment.getExternalReference())
-            .paymentGroupReference(paymentFeeLink.getPaymentReference())
-            .externalProvider(payment.getPaymentProvider() != null ? payment.getPaymentProvider().getName() : null)
-            .fees(toFeeDtos(fees))
-            .links(payment.getReference() != null ? new PaymentDto.LinksDto(null,
-                retrieveCardPaymentLink(payment.getReference()),
-                null
-            ) : null)
-            .build();*/
+            .payment(toPaymentReference(accountNumber, payment))
+            .build();
     }
 
     public PaymentDto toRetrieveCardPaymentResponseDto(PaymentFeeLink paymentFeeLink) {
@@ -425,6 +405,17 @@ public class PaymentDtoMapper {
         return feeDtos.stream().map(this::toFee).collect(Collectors.toList());
     }
 
+    private PaymentReference toPaymentReference(String accountNumber,
+                                               Payment payment) {
+        return PaymentReference.paymentReference()
+            .paymentAmount(payment.getAmount())
+            .paymentReference(payment.getReference())
+            .paymentMethod(payment.getPaymentMethod().getName())
+            .caseReference(payment.getCaseReference())
+            .accountNumber(accountNumber)
+            .build();
+    }
+
     public PaymentFee toFee(FeeDto feeDto) {
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
         boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
@@ -439,6 +430,8 @@ public class PaymentDtoMapper {
             .dateCreated(apportionFeature ? timestamp: null)
             .build();
     }
+
+
 
 
     private FeeDto toFeeDto(PaymentFee fee) {

@@ -162,7 +162,7 @@ public class ServiceRequestController {
         ResponseEntity responseEntity;
         String responseJson;
         try {
-            serviceRequestPaymentBo = serviceRequestDomainService.addPayments(serviceRequest, serviceRequestPaymentDto);
+            serviceRequestPaymentBo = serviceRequestDomainService.addPayments(serviceRequest, serviceRequestReference, serviceRequestPaymentDto);
             HttpStatus httpStatus;
             if(serviceRequestPaymentBo.getError() != null && serviceRequestPaymentBo.getError().getErrorCode().equals("CA-E0004")) {
                 httpStatus = HttpStatus.GONE; //410 for deleted pba accounts
