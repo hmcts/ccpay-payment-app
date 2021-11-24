@@ -61,7 +61,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     private static final Logger LOG = LoggerFactory.getLogger(ServiceRequestDomainServiceImpl.class);
     private static final String FAILED = "failed";
     private static final String SUCCESS = "success";
-    private static final String msgContentType = "application/json";
+    private static final String MSGCONTENTTYPE = "application/json";
     @Value("${case-payment-orders.api.url}")
     private  String callBackUrl;
 
@@ -416,7 +416,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
                 DeadLetterDto deadLetterDto = objectMapper.readValue(body,DeadLetterDto.class);
                 ObjectMapper objectMapper1 = new ObjectMapper();
                 Message msg = new Message(objectMapper1.writeValueAsString(deadLetterDto));
-                msg.setContentType(msgContentType);
+                msg.setContentType(MSGCONTENTTYPE);
                 topicClientCPO.send(msg);
 
             }
@@ -462,7 +462,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
             }
 
             if(msg!=null && topicClientCPO!=null){
-                msg.setContentType(msgContentType);
+                msg.setContentType(MSGCONTENTTYPE);
                 msg.setLabel("Service Callback Message");
                 msg.setProperties(Collections.singletonMap("serviceCallbackUrl",
                     callBackUrl+"/case-payment-orders"));
@@ -487,8 +487,8 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
                 msg = new Message(objectMapper.writeValueAsString(payment));
                 topicClientCPO = new TopicClientProxy(connectionString, topicCardPBA);
             }
-            if(msg!=null && topicClientCPO!=null){
-                msg.setContentType(msgContentType);
+            if((msg != null) && (topicClientCPO != null)){
+                msg.setContentType(MSGCONTENTTYPE);
                 msg.setLabel("Service Callback Message");
                 msg.setProperties(Collections.singletonMap("serviceCallbackUrl",
                     callBackUrl+"/case-payment-orders"));
