@@ -232,12 +232,14 @@ public class ServiceRequestDomainServiceTest {
          Payment payment = Payment.paymentWith()
                  .paymentLink(getPaymentFeeLink())
                  .currency("GBP")
+                .paymentMethod(PaymentMethod.paymentMethodWith().name("Online").build())
                  .paymentStatus(PaymentStatus.SUCCESS)
                      .build();
 
          Payment paymentFailed = Payment.paymentWith()
              .paymentLink(getPaymentFeeLink())
              .currency("GBP")
+             .paymentMethod(PaymentMethod.paymentMethodWith().name("Online").build())
              .paymentStatus(PaymentStatus.FAILED)
              .build();
 
