@@ -486,8 +486,6 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
                 LOG.info("Connection String CardPBA: {}", connectionString);
                 msg = new Message(objectMapper.writeValueAsString(payment));
                 topicClientCPO = new TopicClientProxy(connectionString, topicCardPBA);
-            }
-            if((msg != null) && (topicClientCPO != null)){
                 msg.setContentType(MSGCONTENTTYPE);
                 msg.setLabel("Service Callback Message");
                 msg.setProperties(Collections.singletonMap("serviceCallbackUrl",
