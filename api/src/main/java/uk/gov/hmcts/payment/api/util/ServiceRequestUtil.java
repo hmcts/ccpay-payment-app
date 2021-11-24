@@ -36,8 +36,8 @@ public class ServiceRequestUtil {
         //Calculate the fee total in a payment group
         if(paymentGroupDto.getFees() != null) {
             for (int i = 0; i < paymentGroupDto.getFees().size(); i++) {
-                if (paymentGroupDto.getFees().get(i).getFeeAmount() != null) {
-                    orderFeeTotal = orderFeeTotal.add(paymentGroupDto.getFees().get(i).getFeeAmount());
+                if (paymentGroupDto.getFees().get(i).getCalculatedAmount() != null) {
+                    orderFeeTotal = orderFeeTotal.add(paymentGroupDto.getFees().get(i).getCalculatedAmount());
                 }
             }
         }

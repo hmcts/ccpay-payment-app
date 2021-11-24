@@ -67,8 +67,8 @@ public class ServiceRequestFunctionalTests {
     private static final Pattern PAYMENTS_REGEX_PATTERN =
         Pattern.compile("^(RC)-([0-9]{4})-([0-9-]{4})-([0-9-]{4})-([0-9-]{4})$");
     private static final String PAID = "Paid";
-    private static final String NOT_PAID = "Not Paid";
-    private static final String PARTIALLY_PAID = "Partially Paid";
+    private static final String NOT_PAID = "Not paid";
+    private static final String PARTIALLY_PAID = "Partially paid";
 
     @Before
     public void setUp() throws Exception {
