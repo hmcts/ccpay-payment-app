@@ -575,7 +575,7 @@ public class ServiceRequestFunctionalTests {
 
     @Test
     // @Ignore("Test Build")
-    @Ignore("DEFECT - Payment Equality is failing - expected:<100[].00> but was:<100[00].00>")
+//    @Ignore("DEFECT - Payment Equality is failing - expected:<100[].00> but was:<100[00].00>")
     public void positive_create_service_request_and_a_full_card_payment_user_hmcts() throws Exception {
 
         ServiceRequestDto serviceRequestDto
