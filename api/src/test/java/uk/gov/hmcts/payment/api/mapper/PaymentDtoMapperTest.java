@@ -7,7 +7,6 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import uk.gov.hmcts.fees2.register.data.model.Fee;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.PaymentAllocationDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
@@ -152,6 +151,13 @@ public class PaymentDtoMapperTest {
         assertEquals("group-reference",paymentDto.getPaymentGroupReference());
         assertEquals("service-type",paymentDto.getServiceName());
     }
+
+    /*@Test
+    public void testToPaymentStatusDto(){
+        PaymentStatusDto paymentStatusDto = paymentDtoMapper.toPaymentStatusDto("ABC123", "100", payment1);
+        assertEquals("service-request-reference",paymentStatusDto.getServiceRequestReference());
+        assertEquals("ccd_case_number",paymentStatusDto.getCcdCaseNumber());
+    }*/
 
     @Test
     public void testToRetrieveCardPaymentResponseDto(){

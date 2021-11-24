@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategies.SnakeCaseStrategy
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
@@ -17,6 +18,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @Builder(builderMethodName = "paymentStatusDto")
 @AllArgsConstructor
 @NoArgsConstructor
+@Data
 public class PaymentStatusDto {
 
     @JsonProperty("service_request_reference")

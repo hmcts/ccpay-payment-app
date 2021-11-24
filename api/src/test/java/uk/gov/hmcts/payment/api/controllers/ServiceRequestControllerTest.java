@@ -41,15 +41,9 @@ import uk.gov.hmcts.payment.api.external.client.GovPayClient;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
 import uk.gov.hmcts.payment.api.external.client.dto.State;
-import uk.gov.hmcts.payment.api.model.FeePayApportion;
-import uk.gov.hmcts.payment.api.model.Payment;
-import uk.gov.hmcts.payment.api.model.PaymentFee;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.model.PaymentFeeRepository;
-import uk.gov.hmcts.payment.api.model.PaymentStatus;
+import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
-import uk.gov.hmcts.payment.api.service.FeesService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.servicebus.TopicClientProxy;
@@ -62,18 +56,13 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.GatewayTimeoutException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
 
 import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -203,7 +192,7 @@ public class ServiceRequestControllerTest {
         ResponseEntity<ServiceRequestPaymentBo> responseEntity3 =
                             new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.PRECONDITION_FAILED);
 
-        when(serviceRequestDomainService.addPayments(any(),any())).thenReturn(serviceRequestPaymentBo);
+        when(serviceRequestDomainService.addPayments(any(),any(),any())).thenReturn(serviceRequestPaymentBo);
 
         when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any())).
             thenReturn(responseEntity, responseEntity, responseEntity2,responseEntity3);
@@ -291,7 +280,7 @@ public class ServiceRequestControllerTest {
         ResponseEntity<ServiceRequestPaymentBo> responseEntity =
             new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.GATEWAY_TIMEOUT);
 
-        when(serviceRequestDomainService.addPayments(any(),any())).thenReturn(serviceRequestPaymentBoSample);
+        when(serviceRequestDomainService.addPayments(any(),any(),any())).thenReturn(serviceRequestPaymentBoSample);
 
         when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any())).thenReturn(responseEntity);
 
@@ -382,7 +371,7 @@ public class ServiceRequestControllerTest {
         ResponseEntity<ServiceRequestPaymentBo> responseEntity2 =
             new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.CREATED);
 
-        when(serviceRequestDomainService.addPayments(any(),any())).thenReturn(serviceRequestPaymentBo,serviceRequestPaymentBo2);
+        when(serviceRequestDomainService.addPayments(any(),any(),any())).thenReturn(serviceRequestPaymentBo,serviceRequestPaymentBo2);
 
         when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any())).thenReturn(responseEntity,responseEntity2);
 
@@ -465,7 +454,7 @@ public class ServiceRequestControllerTest {
         ResponseEntity<ServiceRequestPaymentBo> responseEntity2 =
             new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.CREATED);
 
-        when(serviceRequestDomainService.addPayments(any(),any())).thenReturn(serviceRequestPaymentBo,serviceRequestPaymentBo2);
+        when(serviceRequestDomainService.addPayments(any(),any(),any())).thenReturn(serviceRequestPaymentBo,serviceRequestPaymentBo2);
 
         when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any())).thenReturn(responseEntity,responseEntity2);
 
@@ -534,7 +523,7 @@ public class ServiceRequestControllerTest {
         ResponseEntity<ServiceRequestPaymentBo> responseEntity2 =
             new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.CREATED);
 
-        when(serviceRequestDomainService.addPayments(any(),any())).thenReturn(serviceRequestPaymentBo,serviceRequestPaymentBo2);
+        when(serviceRequestDomainService.addPayments(any(),any(),any())).thenReturn(serviceRequestPaymentBo,serviceRequestPaymentBo2);
 
         when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any())).thenReturn(responseEntity,responseEntity2);
 
@@ -603,7 +592,7 @@ public class ServiceRequestControllerTest {
         ResponseEntity<ServiceRequestPaymentBo> responseEntity2 =
             new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.CREATED);
 
-        when(serviceRequestDomainService.addPayments(any(),any())).thenReturn(serviceRequestPaymentBo,serviceRequestPaymentBo2);
+        when(serviceRequestDomainService.addPayments(any(),any(),any())).thenReturn(serviceRequestPaymentBo,serviceRequestPaymentBo2);
 
         when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any())).thenReturn(responseEntity,responseEntity2);
 
@@ -649,7 +638,7 @@ public class ServiceRequestControllerTest {
             status("failed").
             build();
 
-        when(serviceRequestDomainService.addPayments(any(),any())).thenReturn(serviceRequestPaymentBoSample);
+        when(serviceRequestDomainService.addPayments(any(),any(),any())).thenReturn(serviceRequestPaymentBoSample);
 
         ResponseEntity<ServiceRequestPaymentBo> responseEntity =
             new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.NOT_FOUND);
@@ -701,7 +690,7 @@ public class ServiceRequestControllerTest {
             status("failed").
             build();
 
-        when(serviceRequestDomainService.addPayments(any(),any())).thenReturn(serviceRequestPaymentBoSample);
+        when(serviceRequestDomainService.addPayments(any(),any(),any())).thenReturn(serviceRequestPaymentBoSample);
 
         ResponseEntity<ServiceRequestPaymentBo> responseEntity =
             new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.NOT_FOUND);
@@ -784,7 +773,7 @@ public class ServiceRequestControllerTest {
         ResponseEntity<ServiceRequestPaymentBo> responseEntity =
             new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.EXPECTATION_FAILED);
 
-        when(serviceRequestDomainService.addPayments(any(),any())).thenReturn(serviceRequestPaymentBoSample);
+        when(serviceRequestDomainService.addPayments(any(),any(),any())).thenReturn(serviceRequestPaymentBoSample);
 
         when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any())).thenReturn(responseEntity);
 

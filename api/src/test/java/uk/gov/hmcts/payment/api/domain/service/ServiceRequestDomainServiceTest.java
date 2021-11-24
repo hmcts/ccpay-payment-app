@@ -251,9 +251,9 @@ public class ServiceRequestDomainServiceTest {
 
          when(accountService.retrieve(any())).thenReturn(accountDto);
 
-         serviceRequestDomainService.addPayments(getPaymentFeeLink(),serviceRequestPaymentDto);
+         serviceRequestDomainService.addPayments(getPaymentFeeLink(),"123",serviceRequestPaymentDto);
 
-         serviceRequestDomainService.addPayments(getPaymentFeeLink(),serviceRequestPaymentDto);
+         serviceRequestDomainService.addPayments(getPaymentFeeLink(),"123", serviceRequestPaymentDto);
 
      }
 
