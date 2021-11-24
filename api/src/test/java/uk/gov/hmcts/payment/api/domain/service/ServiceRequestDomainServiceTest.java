@@ -102,7 +102,7 @@ public class ServiceRequestDomainServiceTest {
     @Mock
     IdempotencyKeysRepository idempotencyKeysRepository;
 
-    @Spy
+    @Mock
     PaymentDtoMapper paymentDtoMapper;
 
     @Before
@@ -243,9 +243,27 @@ public class ServiceRequestDomainServiceTest {
              .paymentStatus(PaymentStatus.FAILED)
              .build();
 
+         PaymentReference paymentReference = PaymentReference.paymentReference()
+             .caseReference("1234")
+             .paymentAmount(BigDecimal.valueOf(24244.60))
+             .accountNumber("12344")
+             .paymentReference("ABC")
+             .paymentMethod("ONLINE")
+             .build();
+
+        PaymentStatusDto paymentStatusDto = PaymentStatusDto.paymentStatusDto()
+            .serviceRequestReference("ABC123")
+            .ccdCaseNumber("12345")
+            .serviceRequestAmount(BigDecimal.valueOf(12300.00))
+            .serviceRequestStatus("PAID")
+            .payment(paymentReference)
+            .build();
+
          when(serviceRequestPaymentDtoDomainMapper.toDomain(any())).thenReturn(serviceRequestPaymentBo);
 
          when(serviceRequestPaymentDomainDataEntityMapper.toEntity(any(),any())).thenReturn(payment,paymentFailed);
+
+         when(paymentDtoMapper.toPaymentStatusDto(any(),any(),any())).thenReturn(paymentStatusDto);
 
          AccountDto accountDto = AccountDto.accountDtoWith()
                  .accountNumber("1234")

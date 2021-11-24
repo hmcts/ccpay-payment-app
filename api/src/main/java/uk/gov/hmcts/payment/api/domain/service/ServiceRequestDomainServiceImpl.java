@@ -476,7 +476,6 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
 
     @Override
     public void sendMessageToTopic(PaymentStatusDto payment){
-
         try {
             TopicClientProxy topicClientCPO = null;
             Message msg = null;
