@@ -29,7 +29,6 @@ public class PaymentRecordComponentTest {
 
     private final static String PAYMENT_REFERENCE_REFEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
 
-
     @Test
     public void recordCashPaymentTest() throws Exception {
         String paymentGroupRef = "2018-1234567890";
