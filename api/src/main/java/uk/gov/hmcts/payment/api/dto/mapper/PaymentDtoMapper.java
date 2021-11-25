@@ -257,8 +257,40 @@ public class PaymentDtoMapper {
         return enrichWithFeeData(paymentDto);
     }
 
-    public PaymentDto toReconciliationResponseDtoForLibereta(final Payment payment, final String paymentReference, final List<PaymentFee> fees, final FF4j ff4j,boolean isPaymentAfterApportionment) {
-        boolean isBulkScanPayment = payment.getPaymentChannel() !=null && payment.getPaymentChannel().getName().equals("bulk scan");
+
+
+    public PaymentDto toPaymentDto(Payment payment, PaymentFeeLink paymentFeeLink) {
+        PaymentDto paymentDto = PaymentDto.payment2DtoWith()
+            .paymentReference(payment.getReference())
+            .paymentGroupReference(paymentFeeLink.getPaymentReference())
+            .serviceName(payment.getServiceType())
+            .siteId(payment.getSiteId())
+            .amount(payment.getAmount())
+            .caseReference(payment.getCaseReference())
+            .ccdCaseNumber(payment.getCcdCaseNumber())
+            .accountNumber(payment.getPbaNumber())
+            .organisationName(payment.getOrganisationName())
+            .customerReference(payment.getCustomerReference())
+            .channel(payment.getPaymentChannel().getName())
+            .currency(CurrencyCode.valueOf(payment.getCurrency()))
+            .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus())
+            .statusHistories(payment.getStatusHistories() != null ? toStatusHistoryDtos(payment.getStatusHistories()) : null)
+            .dateCreated(payment.getDateCreated())
+            .dateUpdated(payment.getDateUpdated())
+            .method(payment.getPaymentMethod().getName())
+            .giroSlipNo(payment.getGiroSlipNo())
+            .externalProvider(payment.getPaymentProvider() != null ? payment.getPaymentProvider().getName() : null)
+            .externalReference(payment.getExternalReference())
+            .reportedDateOffline(payment.getReportedDateOffline())
+            .fees(toFeeDtos(paymentFeeLink.getFees()))
+            .build();
+        return enrichWithFeeData(paymentDto);
+    }
+
+
+    public PaymentDto toReconciliationResponseDtoForLibereta(final Payment payment, final String paymentReference,
+                                                             final List<PaymentFee> fees, final FF4j ff4j,boolean isPaymentAfterApportionment) {
+        boolean isBulkScanPayment = payment.getPaymentChannel() != null && payment.getPaymentChannel().getName().equals("bulk scan");
         boolean bulkScanCheck = ff4j.check("bulk-scan-check");
         boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
         boolean apportionCheck = apportionFeature && isPaymentAfterApportionment;

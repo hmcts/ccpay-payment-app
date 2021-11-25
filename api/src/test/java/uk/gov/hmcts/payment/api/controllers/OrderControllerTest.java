@@ -160,7 +160,8 @@ public class OrderControllerTest {
             .andExpect(status().isCreated())
             .andReturn();
 
-        OrderPaymentBo oldOrderPaymentBA = objectMapper.readValue(duplicatePBAPaymentResult.getResponse().getContentAsByteArray(), OrderPaymentBo.class);
+        OrderPaymentBo oldOrderPaymentBA = objectMapper.readValue(duplicatePBAPaymentResult.getResponse().getContentAsByteArray(),
+            OrderPaymentBo.class);
 
         //Get old payment details from idempotency table
         assertEquals(orderPaymentBo.getPaymentReference(), oldOrderPaymentBA.getPaymentReference());
@@ -199,7 +200,8 @@ public class OrderControllerTest {
     @Test
     public void createPBAPaymentWithOrderTimeOutTest() throws Exception {
         when(accountService.retrieve("PBA12346")).thenThrow(
-            new HystrixRuntimeException(HystrixRuntimeException.FailureType.TIMEOUT, HystrixCommand.class, "Unable to retrieve account information", null, null));
+            new HystrixRuntimeException(HystrixRuntimeException.FailureType.TIMEOUT, HystrixCommand.class,
+                "Unable to retrieve account information", null, null));
 
         String orderReference = getOrderReference();
 
@@ -299,7 +301,8 @@ public class OrderControllerTest {
             .andExpect(status().isCreated())
             .andReturn();
 
-        OrderPaymentBo duplicateRequestOrderPaymentBO = objectMapper.readValue(accountSuccessResult.getResponse().getContentAsByteArray(), OrderPaymentBo.class);
+        OrderPaymentBo duplicateRequestOrderPaymentBO = objectMapper.readValue(accountSuccessResult.getResponse().getContentAsByteArray(),
+            OrderPaymentBo.class);
 
         //Response should be success this time
         assertNotEquals(paymentReference, duplicateRequestOrderPaymentBO.getPaymentReference());
@@ -328,7 +331,8 @@ public class OrderControllerTest {
             .post("/order/" + orderReference + "/credit-account-payment", orderPaymentDto)
             .andExpect(status().isNotFound())
             .andExpect(orderException -> assertTrue(orderException.getResolvedException() instanceof AccountNotFoundException))
-            .andExpect(orderException -> assertTrue(orderException.getResolvedException().getMessage().contains("Account information could not be found")))
+            .andExpect(orderException -> assertTrue(orderException.getResolvedException().getMessage()
+                .contains("Account information could not be found")))
             .andReturn();
 
         //AccountServiceUnAvailableException
@@ -339,7 +343,8 @@ public class OrderControllerTest {
             .post("/order/" + orderReference + "/credit-account-payment", orderPaymentDto)
             .andExpect(status().isGatewayTimeout())
             .andExpect(orderException -> assertTrue(orderException.getResolvedException() instanceof AccountServiceUnavailableException))
-            .andExpect(orderException -> assertTrue(orderException.getResolvedException().getMessage().contains("Unable to retrieve account information, please try again later")))
+            .andExpect(orderException -> assertTrue(orderException.getResolvedException().getMessage()
+                .contains("Unable to retrieve account information, please try again later")))
             .andReturn();
     }
 
@@ -427,7 +432,8 @@ public class OrderControllerTest {
             .post("/order/" + orderReference + "/credit-account-payment", orderPaymentDto)
             .andExpect(status().isExpectationFailed())
             .andExpect(orderException -> assertTrue(orderException.getResolvedException() instanceof OrderExceptionForNoMatchingAmount))
-            .andExpect(orderException -> assertEquals("The order amount should be equal to order balance", orderException.getResolvedException().getMessage()))
+            .andExpect(orderException -> assertEquals("The order amount should be equal to order balance",
+                orderException.getResolvedException().getMessage()))
             .andReturn();
 
     }

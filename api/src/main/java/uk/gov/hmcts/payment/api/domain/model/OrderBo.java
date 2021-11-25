@@ -18,9 +18,7 @@ import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
 
 import java.math.BigDecimal;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 

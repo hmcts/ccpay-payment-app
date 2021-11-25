@@ -125,7 +125,7 @@ public class ReplayCreditAccountPaymentControllerTest extends PaymentsDataUtil {
         try {
             //create test csv file
             paymentsToReplayCSV = newFile("src/test/resources/paymentsToReplay.csv");
-//
+            //
             Map<String, CreditAccountPaymentRequest> csvParseMap = new HashMap<>();
 
             //Create 10 PBA payments
@@ -207,7 +207,7 @@ public class ReplayCreditAccountPaymentControllerTest extends PaymentsDataUtil {
             createCreditAccountPayments(csvParseMap, 5);
 
             //Create CSV
-            replayCreditAccountPaymentUtils.createCSV(csvParseMap,"paymentsToFailed.csv");
+            createCSV(csvParseMap,"paymentsToFailed.csv");
 
             //Invoke replay-credit-account-payment
             MockMultipartFile csvFile = new MockMultipartFile("csvFile", "paymentsToFailed.csv", "text/csv",
@@ -311,19 +311,17 @@ public class ReplayCreditAccountPaymentControllerTest extends PaymentsDataUtil {
         }
     }
 
-    private void createCSV(Map<String, CreditAccountPaymentRequest> csvParseMap , String fileName) throws IOException {
-        String csvFile = "src/test/resources/" +fileName;
+    private void createCSV(Map<String, CreditAccountPaymentRequest> csvParseMap, String fileName) throws IOException {
+        String csvFile = "src/test/resources/" + fileName;
         FileWriter writer = new FileWriter(csvFile);
 
         //for header
-        CSVUtil.writeLine
-            (writer, Arrays.asList("index_col", "impacted.payment.reference", "payment.amount", "payment.ccd_case_number",
+        CSVUtil.writeLine(writer, Arrays.asList("index_col", "impacted.payment.reference", "payment.amount", "payment.ccd_case_number",
                 "payment.pba_number", "payment.description", "payment.case_reference", "payment.service",
                 "payment.currency", "payment.customer_reference", "payment.organisation_name", "payment.site_id",
                 "fee.code", "fee.calculated_amount", "fee.version"));
 
-        csvParseMap.entrySet().stream().forEach(paymentRequestEntry ->
-            {
+        csvParseMap.entrySet().stream().forEach(paymentRequestEntry -> {
                 CreditAccountPaymentRequest request = paymentRequestEntry.getValue();
                 List<String> list = new ArrayList<>();
                 list.add("");

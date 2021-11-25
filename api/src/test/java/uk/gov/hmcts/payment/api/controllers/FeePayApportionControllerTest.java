@@ -45,7 +45,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @ActiveProfiles({"local", "componenttest"})
 @SpringBootTest(webEnvironment = MOCK)
 @Transactional
-public class FeePayApportionControllerTest extends PaymentsDataUtil{
+public class FeePayApportionControllerTest extends PaymentsDataUtil {
     @ClassRule
     public static WireMockClassRule wireMockRule = new WireMockClassRule(9190);
 

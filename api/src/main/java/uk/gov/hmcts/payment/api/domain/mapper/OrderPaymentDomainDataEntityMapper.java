@@ -1,6 +1,5 @@
 package uk.gov.hmcts.payment.api.domain.mapper;
 
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.domain.model.Error;
@@ -9,16 +8,15 @@ import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
 
-import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Component
 public class OrderPaymentDomainDataEntityMapper {
 
-    private final static String PAYMENT_CHANNEL_ONLINE = "online";
+    private  static final String PAYMENT_CHANNEL_ONLINE = "online";
 
-    private final static String PAYMENT_METHOD_BY_ACCOUNT = "payment by account";
+    private  static final String PAYMENT_METHOD_BY_ACCOUNT = "payment by account";
 
     @Autowired
     private PaymentFeeLinkRepository paymentFeeLinkRepository;

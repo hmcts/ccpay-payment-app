@@ -7,7 +7,6 @@ import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,7 +27,6 @@ import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.*;
 
 import javax.validation.Valid;
-import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -63,7 +61,8 @@ public class OrderController {
     @PostMapping(value = "/order")
     @Transactional
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<OrderResponseDto> create(@Valid @RequestBody OrderDto orderDto, @RequestHeader(required = false) MultiValueMap<String, String> headers) {
+    public ResponseEntity<OrderResponseDto> create(@Valid @RequestBody OrderDto orderDto, @RequestHeader(required = false)
+        MultiValueMap<String, String> headers) {
         return new ResponseEntity<>(orderDomainService.create(orderDto, headers), HttpStatus.CREATED);
     }
 
@@ -84,17 +83,20 @@ public class OrderController {
     @Transactional
     public ResponseEntity<OrderPaymentBo> createCreditAccountPayment(@RequestHeader(value = "idempotency_key") String idempotencyKey,
                                                                      @PathVariable("order-reference") String orderReference,
-                                                                     @Valid @RequestBody OrderPaymentDto orderPaymentDto) throws CheckDigitException, JsonProcessingException {
+                                                                     @Valid @RequestBody OrderPaymentDto orderPaymentDto)
+        throws CheckDigitException, JsonProcessingException {
 
         ObjectMapper objectMapper = new ObjectMapper();
-        Function<String, Optional<IdempotencyKeys>> getIdempotencyKey = idempotencyKeyToCheck -> idempotencyService.findTheRecordByIdempotencyKey(idempotencyKeyToCheck);
+        Function<String, Optional<IdempotencyKeys>> getIdempotencyKey =
+            idempotencyKeyToCheck -> idempotencyService.findTheRecordByIdempotencyKey(idempotencyKeyToCheck);
 
         Function<IdempotencyKeys, ResponseEntity<?>> validateHashcodeForRequest = idempotencyKeys -> {
 
             OrderPaymentBo responseBO;
             try {
                 if (!idempotencyKeys.getRequest_hashcode().equals(orderPaymentDto.hashCodeWithOrderReference(orderReference))) {
-                    return new ResponseEntity<>("Payment already present for idempotency key with different payment details", HttpStatus.CONFLICT); // 409 if hashcode not matched
+                    return new ResponseEntity<>("Payment already present for idempotency key with different payment details", HttpStatus.CONFLICT);
+                    // 409 if hashcode not matched
                 }
                 if (idempotencyKeys.getResponseCode() >= 500) {
                     return new ResponseEntity<>(idempotencyKeys.getResponseBody(), HttpStatus.valueOf(idempotencyKeys.getResponseCode()));
@@ -122,7 +124,8 @@ public class OrderController {
         String responseJson;
         try {
             orderPaymentBo = orderDomainService.addPayments(order, orderPaymentDto);
-            HttpStatus httpStatus = orderPaymentBo.getStatus().equalsIgnoreCase(FAILED) ? HttpStatus.PAYMENT_REQUIRED : HttpStatus.CREATED; //402 for failed Payment scenarios
+            HttpStatus httpStatus = orderPaymentBo.getStatus().equalsIgnoreCase(FAILED) ? HttpStatus.PAYMENT_REQUIRED : HttpStatus.CREATED;
+            //402 for failed Payment scenarios
             responseEntity = new ResponseEntity<>(orderPaymentBo, httpStatus);
             responseJson = objectMapper.writeValueAsString(orderPaymentBo);
         } catch (LiberataServiceTimeoutException liberataServiceTimeoutException) {
@@ -131,7 +134,8 @@ public class OrderController {
         }
 
         //Create Idempotency Record
-        return orderDomainService.createIdempotencyRecord(objectMapper, idempotencyKey, orderReference, responseJson, responseEntity, orderPaymentDto);
+        return orderDomainService.createIdempotencyRecord(objectMapper, idempotencyKey,
+            orderReference, responseJson, responseEntity, orderPaymentDto);
     }
 
 

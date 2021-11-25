@@ -100,7 +100,8 @@ public class OrderDomainServiceImpl implements OrderDomainService {
     @Override
     public List<PaymentFeeLink> findByCcdCaseNumber(String ccdCaseNumber) {
         Optional<List<PaymentFeeLink>> paymentFeeLinks = paymentFeeLinkRepository.findByCcdCaseNumber(ccdCaseNumber);
-        return paymentFeeLinks.orElseThrow(() -> new PaymentGroupNotFoundException("Order detail not found for given ccdcasenumber " + ccdCaseNumber));
+        return paymentFeeLinks.orElseThrow(() -> new PaymentGroupNotFoundException("Order detail not found for given ccdcasenumber "
+            + ccdCaseNumber));
     }
 
     @Override
@@ -130,7 +131,8 @@ public class OrderDomainServiceImpl implements OrderDomainService {
         payment = accountCheckForPBAPayment(order, orderPaymentDto, payment);
 
         if (payment.getPaymentStatus().getName().equals(FAILED)) {
-            LOG.info("CreditAccountPayment Response 402(FORBIDDEN) for ccdCaseNumber : {} PaymentStatus : {}", payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
+            LOG.info("CreditAccountPayment Response 402(FORBIDDEN) for ccdCaseNumber : {} PaymentStatus : {}",
+                payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
             orderPaymentBo = orderPaymentDomainDataEntityMapper.toDomain(payment);
             return orderPaymentBo;
         }
@@ -170,7 +172,8 @@ public class OrderDomainServiceImpl implements OrderDomainService {
             AccountDto accountDetails;
             try {
                 accountDetails = accountService.retrieve(orderPaymentDto.getAccountNumber());
-                LOG.info("CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {}", payment.getCcdCaseNumber(), accountDetails.getStatus());
+                LOG.info("CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {}",
+                    payment.getCcdCaseNumber(), accountDetails.getStatus());
             } catch (HttpClientErrorException ex) {
                 LOG.error("Account information could not be found, exception: {}", ex.getMessage());
                 throw new AccountNotFoundException("Account information could not be found");
@@ -186,7 +189,8 @@ public class OrderDomainServiceImpl implements OrderDomainService {
         } else {
             LOG.info("Setting status to pending");
             payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("pending").build());
-            LOG.info("CreditAccountPayment received for ccdCaseNumber : {} PaymentStatus : {} - Account Balance Sufficient!!!", payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
+            LOG.info("CreditAccountPayment received for ccdCaseNumber : {} PaymentStatus : {} - Account Balance Sufficient!!!",
+                payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
         }
 
         //status history from created -> success
@@ -206,7 +210,8 @@ public class OrderDomainServiceImpl implements OrderDomainService {
 
     public PaymentFeeLink businessValidationForOrders(PaymentFeeLink order, OrderPaymentDto orderPaymentDto) {
         //Business validation for amount
-        Optional<BigDecimal> totalCalculatedAmount = order.getFees().stream().map(paymentFee -> paymentFee.getCalculatedAmount()).reduce(BigDecimal::add);
+        Optional<BigDecimal> totalCalculatedAmount = order.getFees().stream().map(paymentFee ->
+            paymentFee.getCalculatedAmount()).reduce(BigDecimal::add);
         if (totalCalculatedAmount.isPresent() && (totalCalculatedAmount.get().compareTo(orderPaymentDto.getAmount()) != 0)) {
             throw new OrderExceptionForNoMatchingAmount("The order amount should be equal to order balance");
         }
@@ -223,7 +228,8 @@ public class OrderDomainServiceImpl implements OrderDomainService {
 
 
     public ResponseEntity createIdempotencyRecord(ObjectMapper objectMapper, String idempotencyKey, String orderReference,
-                                                  String responseJson, ResponseEntity<?> responseEntity, OrderPaymentDto orderPaymentDto) throws JsonProcessingException {
+                                                  String responseJson, ResponseEntity<?> responseEntity, OrderPaymentDto orderPaymentDto)
+        throws JsonProcessingException {
         String requestJson = objectMapper.writeValueAsString(orderPaymentDto);
         int requestHashCode = orderPaymentDto.hashCodeWithOrderReference(orderReference);
 
@@ -237,9 +243,11 @@ public class OrderDomainServiceImpl implements OrderDomainService {
             .build();
 
         try {
-            Optional<IdempotencyKeys> idempotencyKeysRecord = idempotencyKeysRepository.findById(IdempotencyKeysPK.idempotencyKeysPKWith().idempotencyKey(idempotencyKey).request_hashcode(requestHashCode).build());
+            Optional<IdempotencyKeys> idempotencyKeysRecord = idempotencyKeysRepository.findById(IdempotencyKeysPK.idempotencyKeysPKWith().
+                idempotencyKey(idempotencyKey).request_hashcode(requestHashCode).build());
             if (idempotencyKeysRecord.isPresent()) {
-                return new ResponseEntity<>(objectMapper.readValue(idempotencyKeysRecord.get().getResponseBody(), OrderPaymentBo.class), HttpStatus.valueOf(idempotencyKeysRecord.get().getResponseCode()));
+                return new ResponseEntity<>(objectMapper.readValue(idempotencyKeysRecord.get().getResponseBody(), OrderPaymentBo.class),
+                    HttpStatus.valueOf(idempotencyKeysRecord.get().getResponseCode()));
             }
             idempotencyKeysRepository.save(idempotencyRecord);
 

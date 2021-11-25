@@ -583,7 +583,7 @@ public class PaymentGroupController {
         Map<String, String> params = new HashMap<>();
         params.put("dcn", dcn);
         params.put("status", status);
-//        return new ResponseEntity<String>("new ArrayList<>()", HttpStatus.OK);
+        //return new ResponseEntity<String>("new ArrayList<>()", HttpStatus.OK);
         LOG.info("Calling Bulk scan api to mark payment as processed from Payment Api");
         return restTemplatePaymentGroup.exchange(bulkScanPaymentsProcessedUrl + "/bulk-scan-payments/{dcn}/status/{status}",
             HttpMethod.PATCH, entity, String.class, params);
@@ -608,8 +608,10 @@ public class PaymentGroupController {
         if (antennaFeature) {
 
             LOG.info("Inside Telephony check!!!");
-            OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(telephonyCardPaymentsRequest.getCaseType(), headers);
-            TelephonyProviderAuthorisationResponse telephonyProviderAuthorisationResponse = pciPalPaymentService.getPaymentProviderAutorisationTokens();
+            OrganisationalServiceDto organisationalServiceDto = referenceDataService
+                .getOrganisationalDetail(telephonyCardPaymentsRequest.getCaseType(), headers);
+            TelephonyProviderAuthorisationResponse telephonyProviderAuthorisationResponse =
+                pciPalPaymentService.getPaymentProviderAutorisationTokens();
 
             PaymentServiceRequest paymentServiceRequest = PaymentServiceRequest.paymentServiceRequestWith()
                 .paymentGroupReference(paymentGroupReference)

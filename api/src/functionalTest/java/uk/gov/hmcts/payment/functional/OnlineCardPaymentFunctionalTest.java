@@ -39,7 +39,7 @@ import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP
 
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
-public class OnlineCardPaymentFunctionalTest {
+public class CMCCardPaymentFunctionalTest {
 
     @Autowired
     private TestConfigProperties testProps;
@@ -65,15 +65,12 @@ public class OnlineCardPaymentFunctionalTest {
     @Value("${gov.pay.keys.cmc}")
     private String govpayCmcKey;
 
-    @Value("${gov.pay.keys.iac}")
-    private String govpayIacKey;
-
     private static String USER_TOKEN;
     private static String USER_TOKEN_PAYMENT;
     private static String SERVICE_TOKEN;
     private static boolean TOKENS_INITIALIZED = false;
 
-    private static final Logger LOG = LoggerFactory.getLogger(OnlineCardPaymentFunctionalTest.class);
+    private static final Logger LOG = LoggerFactory.getLogger(CMCCardPaymentFunctionalTest.class);
 
     @Before
     public void setUp() throws Exception {
@@ -91,19 +88,6 @@ public class OnlineCardPaymentFunctionalTest {
             .s2sToken(SERVICE_TOKEN)
             .returnUrl("https://www.moneyclaims.service.gov.uk")
             .when().createCardPayment(getCardPaymentRequest())
-            .then().created(paymentDto -> {
-            assertNotNull(paymentDto.getReference());
-            assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
-        });
-
-    }
-
-    @Test
-    public void createIACCardPaymentTestShouldReturn201Success() {
-        dsl.given().userToken(USER_TOKEN)
-            .s2sToken(SERVICE_TOKEN)
-            .returnUrl("https://www.moneyclaims.service.gov.uk")
-            .when().createCardPayment(PaymentFixture.cardPaymentRequestIAC("215.55", "IAC"))
             .then().created(paymentDto -> {
             assertNotNull(paymentDto.getReference());
             assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
@@ -167,40 +151,6 @@ public class OnlineCardPaymentFunctionalTest {
 
     }
 
-    @Test
-    public void retrieveIACCardPaymentTestShouldReturn200Success() {
-        final String[] reference = new String[1];
-        // create card payment
-        dsl.given().userToken(USER_TOKEN)
-            .s2sToken(SERVICE_TOKEN)
-            .returnUrl("https://www.moneyclaims.service.gov.uk")
-            .when().createCardPayment(PaymentFixture.cardPaymentRequestIAC("215.55", "IAC"))
-            .then().created(savedPayment -> {
-            reference[0] = savedPayment.getReference();
-
-            assertNotNull(savedPayment.getReference());
-            assertEquals("payment status is properly set", "Initiated", savedPayment.getStatus());
-        });
-
-
-        // retrieve card payment
-        PaymentDto paymentDto = dsl.given().userToken(USER_TOKEN)
-            .s2sToken(SERVICE_TOKEN)
-            .when().getCardPayment(reference[0])
-            .then().get();
-
-        assertNotNull(paymentDto);
-        assertEquals(paymentDto.getAmount(), new BigDecimal("215.55"));
-        assertEquals(paymentDto.getReference(), reference[0]);
-        assertEquals(paymentDto.getExternalProvider(), "gov pay");
-        assertEquals(paymentDto.getServiceName(), "Immigration and Asylum Appeals");
-        assertEquals(paymentDto.getStatus(), "Initiated");
-        paymentDto.getFees().stream().forEach(f -> {
-            assertEquals(f.getVersion(), "1");
-            assertEquals(f.getCalculatedAmount(), new BigDecimal("215.55"));
-        });
-
-    }
 
     @Test
     public void retrieveAndValidatePayhubPaymentReferenceFromGovPay() throws Exception {

@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 @Component
 public class OrderDtoDomainMapper {
 
-    public OrderBo toDomain(OrderDto orderDto, OrganisationalServiceDto organisationalServiceDto){
+    public OrderBo toDomain(OrderDto orderDto, OrganisationalServiceDto organisationalServiceDto) {
 
         String orderReference = PaymentReference.getInstance().getNext();
 

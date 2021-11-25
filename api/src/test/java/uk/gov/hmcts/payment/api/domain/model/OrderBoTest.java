@@ -15,7 +15,6 @@ import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
 
 import java.math.BigDecimal;
 import java.util.Collections;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -35,7 +34,7 @@ public class OrderBoTest {
     private OrderDomainDataEntityMapper orderDomainDataEntityMapper;
 
     @Test
-    public void CreateOrderWithExistingCcdCaseNumber() throws Exception {
+    public void createOrderWithExistingCcdCaseNumber() throws Exception {
 
         String orderReference = "2200-1619524583862";
 
@@ -50,7 +49,7 @@ public class OrderBoTest {
     }
 
     @Test
-    public void CreateOrderWithNewCcdCaseNumber() throws Exception {
+    public void createOrderWithNewCcdCaseNumber() throws Exception {
 
         String orderReference = "2200-1619524583862";
 

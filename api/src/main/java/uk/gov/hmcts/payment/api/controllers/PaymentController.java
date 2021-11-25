@@ -354,7 +354,8 @@ public class PaymentController {
             }
         }
         //End of Apportion logic
-        final PaymentDto paymentDto = paymentDtoMapper.toReconciliationResponseDtoForLibereta(payment, paymentReference, fees, ff4j, isPaymentAfterApportionment);
+        final PaymentDto paymentDto = paymentDtoMapper.toReconciliationResponseDtoForLibereta(payment,
+            paymentReference, fees, ff4j, isPaymentAfterApportionment);
 
         paymentDtos.add(paymentDto);
     }

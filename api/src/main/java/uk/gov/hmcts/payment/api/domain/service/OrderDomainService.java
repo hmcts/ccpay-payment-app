@@ -12,7 +12,6 @@ import uk.gov.hmcts.payment.api.dto.order.OrderPaymentDto;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 
 import java.util.List;
-import java.util.Map;
 
 public interface OrderDomainService {
 
@@ -27,7 +26,8 @@ public interface OrderDomainService {
     PaymentFeeLink businessValidationForOrders(PaymentFeeLink order, OrderPaymentDto orderPaymentDto);
 
     ResponseEntity createIdempotencyRecord(ObjectMapper objectMapper, String idempotencyKey, String orderReference,
-                                           String responseJson, ResponseEntity<?> responseEntity, OrderPaymentDto orderPaymentDto) throws JsonProcessingException;
+                                           String responseJson, ResponseEntity<?> responseEntity, OrderPaymentDto orderPaymentDto)
+        throws JsonProcessingException;
 
     Boolean isDuplicate(String orderReference);
 }

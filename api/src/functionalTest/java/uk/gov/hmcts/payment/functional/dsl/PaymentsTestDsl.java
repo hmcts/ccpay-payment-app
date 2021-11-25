@@ -232,11 +232,11 @@ public class PaymentsTestDsl {
 
         public PaymentWhenDsl searchPaymentsBetweenDates(String startDate, String endDate) {
             if (startDate != null && endDate != null) {
-                response = newRequest().get("/reconciliation-payments?start_date=" + startDate + "&end_date=" + endDate);
+                response = newRequest().get("/payments?start_date=" + startDate + "&end_date=" + endDate);
             } else if (startDate != null) {
-                response = newRequest().get("/reconciliation-payments?start_date=" + startDate);
+                response = newRequest().get("/payments?start_date=" + startDate);
             } else if (endDate != null) {
-                response = newRequest().get("/reconciliation-payments?end_date=" + endDate);
+                response = newRequest().get("/payments?end_date=" + endDate);
             }
 
             return this;
@@ -244,11 +244,11 @@ public class PaymentsTestDsl {
 
         public PaymentWhenDsl searchPaymentsBetweenDatesPaymentMethodServiceName(String startDate, String endDate, String paymentMethod) {
             if (startDate != null && endDate != null) {
-                response = newRequest().get("/reconciliation-payments?start_date=" + startDate + "&end_date=" + endDate + "&service_name=Digital Bar" + "&payment_method=" + paymentMethod);
+                response = newRequest().get("/payments?start_date=" + startDate + "&end_date=" + endDate + "&service_name=Digital Bar" + "&payment_method=" + paymentMethod);
             } else if (startDate != null) {
-                response = newRequest().get("/reconciliation-payments?start_date=" + startDate + "&service_name=Digital Bar" + "&payment_method=" + paymentMethod);
+                response = newRequest().get("/payments?start_date=" + startDate + "&service_name=Digital Bar" + "&payment_method=" + paymentMethod);
             } else if (endDate != null) {
-                response = newRequest().get("/reconciliation-payments?end_date=" + endDate + "&service_name=Digital Bar" + "&payment_method=" + paymentMethod);
+                response = newRequest().get("/payments?end_date=" + endDate + "&service_name=Digital Bar" + "&payment_method=" + paymentMethod);
             }
 
             return this;
@@ -358,12 +358,6 @@ public class PaymentsTestDsl {
 
         public PaymentThenDsl getPayments(Consumer<PaymentsResponse> paymentsResponseAssertions) {
             PaymentsResponse paymentsResponse = response.then().statusCode(200).extract().as(PaymentsResponse.class);
-            paymentsResponseAssertions.accept(paymentsResponse);
-            return this;
-        }
-
-        public PaymentThenDsl getPayments206(Consumer<PaymentsResponse> paymentsResponseAssertions) {
-            PaymentsResponse paymentsResponse = response.then().statusCode(206).extract().as(PaymentsResponse.class);
             paymentsResponseAssertions.accept(paymentsResponse);
             return this;
         }

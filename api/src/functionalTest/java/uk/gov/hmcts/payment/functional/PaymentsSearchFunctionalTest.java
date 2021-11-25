@@ -65,7 +65,7 @@ public class PaymentsSearchFunctionalTest {
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .when().searchPaymentsBetweenDates(startDate, endDate)
-            .then().getPayments206(paymentsResponse -> {
+            .then().getPayments(paymentsResponse -> {
                 assertThat(paymentsResponse.getPayments()).isNotNull();
         });
     }
@@ -79,7 +79,7 @@ public class PaymentsSearchFunctionalTest {
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .when().searchPaymentsBetweenDates(startDate, endDate)
-            .then().getPayments206(paymentsResponse -> {
+            .then().getPayments(paymentsResponse -> {
                 assertThat(paymentsResponse.getPayments()).isNotNull();
         });
     }

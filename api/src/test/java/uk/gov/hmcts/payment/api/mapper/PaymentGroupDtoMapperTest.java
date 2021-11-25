@@ -10,7 +10,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import uk.gov.hmcts.fees2.register.api.contract.FeeVersionDto;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
-import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
 import uk.gov.hmcts.payment.api.model.FeePayApportion;
 import uk.gov.hmcts.payment.api.model.Payment;
@@ -51,36 +50,10 @@ public class PaymentGroupDtoMapperTest {
     @Before
 
     public void initiate() {
-        List<PaymentAllocation> paymentAllocations1 = new ArrayList<PaymentAllocation>();
-        PaymentAllocation allocation1 = PaymentAllocation.paymentAllocationWith()
-            .receivingOffice("receiving-office")
-            .unidentifiedReason("reason")
-            .paymentAllocationStatus(PaymentAllocationStatus.paymentAllocationStatusWith().name("Transferred").build()).build();
-        paymentAllocations1.add(allocation1);
-        List<Payment> payments = new ArrayList<Payment>();
-        Payment payment1 = Payment.paymentWith()
-            .siteId("siteId")
-            .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
-            .serviceType("service-type")
-            .caseReference("case-reference")
-            .reference("RC-1612-3710-5335-6484")
-            .ccdCaseNumber("ccd-case-number")
-            .bankedDate(new Date(2021,1,1))
-            .documentControlNumber("document-control-number")
-            .paymentMethod(PaymentMethod.paymentMethodWith().name("pay-method").build())
-            .amount(new BigDecimal("100.00"))
-            .paymentStatus(PaymentStatus.SUCCESS)
-            .dateCreated(new Date(2020,10,1))
-            .currency("GBP")
-            .paymentAllocation(paymentAllocations1)
-            .id(1).build();
-        payments.add(payment1);
-        PaymentFee fee = PaymentFee.feeWith().feeAmount(new BigDecimal("100.00")).ccdCaseNumber("ccd-case-number")
-            .calculatedAmount(new BigDecimal("100.00")).build();
-    public void initiate(){
         List<Payment> payments = new ArrayList<Payment>();
         payments.add(getPayment());
-        PaymentFee fee = PaymentFee.feeWith().feeAmount(new BigDecimal("100.00")).ccdCaseNumber("ccd-case-number").calculatedAmount(new BigDecimal("100.00")).build();
+        PaymentFee fee = PaymentFee.feeWith().feeAmount(new BigDecimal("100.00")).ccdCaseNumber("ccd-case-number")
+            .calculatedAmount(new BigDecimal("100.00")).build();
         Remission remission = Remission.remissionWith()
             .hwfAmount(new BigDecimal("10.00"))
             .fee(fee)
@@ -99,15 +72,8 @@ public class PaymentGroupDtoMapperTest {
     }
 
     @Test
-
-    public void testToPaymentGroupDto() {
-        PaymentGroupDto paymentGroupDto = paymentGroupDtoMapper.toPaymentGroupDto(feeLink);
-    }
-
-    @Test
     public void testToPaymentFee() {
 
-    public void testToPaymentFee(){
         Mockito.when(featureToggler.getBooleanValue(anyString(),anyBoolean())).thenReturn(false);
         FeeDto feeDto = FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal(("100.00")))
@@ -125,7 +91,7 @@ public class PaymentGroupDtoMapperTest {
         assertEquals("FEE123",paymentFee.getCode());
     }
 
-    private Payment getPayment(){
+    private Payment getPayment() {
         List<PaymentAllocation> paymentAllocations1 = new ArrayList<PaymentAllocation>();
         PaymentAllocation allocation1 = PaymentAllocation.paymentAllocationWith()
             .receivingOffice("receiving-office")
@@ -150,8 +116,7 @@ public class PaymentGroupDtoMapperTest {
             .id(1).build();
     }
 
-
-    private FeePayApportion getFeePayApportion(){
+    private FeePayApportion getFeePayApportion() {
         return FeePayApportion.feePayApportionWith()
             .apportionAmount(new BigDecimal("99.99"))
             .apportionType("AUTO")
@@ -162,7 +127,7 @@ public class PaymentGroupDtoMapperTest {
             .build();
     }
 
-    private PaymentFee getPaymentFee(){
+    private PaymentFee getPaymentFee() {
         return PaymentFee.feeWith()
             .calculatedAmount(new BigDecimal("99.99"))
             .version("1").code("FEE0001").volume(1)
@@ -186,7 +151,7 @@ public class PaymentGroupDtoMapperTest {
             .build();
     }
 
-    private Optional<FeeVersionDto> getPaymentFeeDto(){
+    private Optional<FeeVersionDto> getPaymentFeeDto() {
         FeeVersionDto feeVersionDto = FeeVersionDto.feeVersionDtoWith()
                                         .memoLine("Memo Line")
                                         .naturalAccountCode("acc-code")
