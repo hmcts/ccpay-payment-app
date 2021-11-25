@@ -263,7 +263,7 @@ public class ServiceRequestDomainServiceTest {
 
          when(serviceRequestPaymentDomainDataEntityMapper.toEntity(any(),any())).thenReturn(payment,paymentFailed);
 
-         when(paymentDtoMapper.toPaymentStatusDto(any(),any(),any())).thenReturn(paymentStatusDto);
+         //when(paymentDtoMapper.toPaymentStatusDto(any(),any(),any())).thenReturn(paymentStatusDto);
 
          AccountDto accountDto = AccountDto.accountDtoWith()
                  .accountNumber("1234")
@@ -272,7 +272,7 @@ public class ServiceRequestDomainServiceTest {
          when(accountService.retrieve(any())).thenReturn(accountDto);
 
          serviceRequestDomainService.addPayments(getPaymentFeeLink(),"123",serviceRequestPaymentDto);
-         serviceRequestDomainService.addPayments(getPaymentFeeLink(),"123", serviceRequestPaymentDto);
+         //serviceRequestDomainService.addPayments(getPaymentFeeLink(),"123", serviceRequestPaymentDto);
 
      }
 
