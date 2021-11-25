@@ -16,7 +16,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
 import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentRequest;
-import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentResponse;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupResponse;
 import uk.gov.hmcts.payment.api.dto.ServiceRequestResponseDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
@@ -573,7 +572,7 @@ public class ServiceRequestFunctionalTests {
     }
 
 
-    @Test
+    /*@Test
     // @Ignore("Test Build")
     @Ignore("DEFECT - Payment Equality is failing - expected:<100[].00> but was:<100[00].00>")
     public void positive_create_service_request_and_a_full_card_payment_user_hmcts() throws Exception {
@@ -616,7 +615,7 @@ public class ServiceRequestFunctionalTests {
         PaymentGroupResponse paymentGroupResponseForASolicitorUser =
             getPaymentGroupResponseForSolicitorUser.getBody().as(PaymentGroupResponse.class);
         verifyThePaymentGroupResponseForNoPaymentsOrRemisssions(serviceRequestDto, paymentGroupResponseForASolicitorUser);
-    }
+    }*/
 
     @Test
     //@Ignore("Test Build")
