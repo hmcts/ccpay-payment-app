@@ -5,6 +5,7 @@ spring:
       paths: /mnt/secrets/ccpay
       aliases:
         sb-primary-connection-string: azure.servicebus.connection-string
+        cpo-topic-primary-send-listen-shared-access-key: sb-cpo-primary-connection-string
         pci-pal-account-id-cmc: pci-pal.account.id.cmc
         pci-pal-account-id-probate: pci-pal.account.id.probate
         pci-pal-account-id-divorce: pci-pal.account.id.divorce
@@ -16,6 +17,7 @@ spring:
         gov-pay-keys-cmc-claim-store: gov.pay.auth.key.cmc_claim_store
         gov-pay-keys-divorce: gov.pay.auth.key.divorce_frontend
         gov-pay-keys-probate: gov.pay.auth.key.probate_frontend
+        gov-pay-keys-iac: gov.pay.auth.key.iac
         liberata-keys-oauth2-client-id: liberata.oauth2.client.id
         liberata-keys-oauth2-client-secret: liberata.oauth2.client.secret
         liberata-keys-oauth2-username: liberata.oauth2.username

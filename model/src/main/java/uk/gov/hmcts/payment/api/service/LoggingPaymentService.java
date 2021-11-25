@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
 import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
+import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
@@ -55,6 +56,20 @@ public class LoggingPaymentService implements DelegatingPaymentService<PaymentFe
     }
 
     @Override
+    public PaymentFeeLink create(CreatePaymentRequest createPaymentRequest, String serviceName ) {
+        return null;
+    }
+
+    @Override
+    public void cancel(Payment payment, String ccdCaseNumber) {
+
+    }
+
+    @Override
+    public void cancel(Payment payment, String ccdCaseNumber, String serviceName) {
+    }
+
+    @Override
     public PaymentFeeLink update(PaymentServiceRequest paymentServiceRequest) throws CheckDigitException, MethodNotSupportedException {
         PaymentFeeLink paymentFeeLink = delegate.update(paymentServiceRequest);
         Payment payment = paymentFeeLink.getPayments().get(0);
@@ -71,6 +86,11 @@ public class LoggingPaymentService implements DelegatingPaymentService<PaymentFe
     @Override
     public PaymentFeeLink retrieve(String paymentReference) {
         return delegate.retrieve(paymentReference);
+    }
+
+    @Override
+    public PaymentFeeLink retrieve(PaymentFeeLink paymentFeeLink, String s) {
+        return null;
     }
 
     @Override
@@ -105,5 +125,10 @@ public class LoggingPaymentService implements DelegatingPaymentService<PaymentFe
     @Override
     public void cancel(String paymentReference) {
         LOG.info("Cancel payment for supplied payment reference : {}", paymentReference);
+    }
+
+    @Override
+    public void cancel(String cancelUrl, String serviceName) {
+
     }
 }

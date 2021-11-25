@@ -8,9 +8,13 @@ import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
+import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.Locale;
+import java.util.Random;
 
 public class PaymentFixture {
 
@@ -48,6 +52,26 @@ public class PaymentFixture {
                 FeeDto.feeDtoWith()
                     .calculatedAmount(new BigDecimal(amountString))
                     .code("FEE0001")
+                    .version("1")
+                    .build())
+            )
+            .build();
+    }
+
+    public static CardPaymentRequest cardPaymentRequestIAC(String amountString, String service) {
+        String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
+        return CardPaymentRequest.createCardPaymentRequestDtoWith()
+            .amount(new BigDecimal(amountString))
+            .description("description")
+            .caseReference("telRefNumber")
+            .ccdCaseNumber(ccdCaseNumber)
+            .service(service)
+            .currency(CurrencyCode.GBP)
+            .siteId("BFA1")
+            .fees(Lists.newArrayList(
+                FeeDto.feeDtoWith()
+                    .calculatedAmount(new BigDecimal(amountString))
+                    .code("FEE0123")
                     .version("1")
                     .build())
             )
@@ -189,8 +213,15 @@ public class PaymentFixture {
             .build();
     }
 
-    public static CreditAccountPaymentRequest aPbaPaymentRequestForProbate(String amountString, String service) {
-        String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
+    public static CreditAccountPaymentRequest aPbaPaymentRequestForProbate(
+        final String amountString, final String service, final String pbaAccountNumber) {
+        Random rand = new Random();
+        String ccdCaseNumber = String.format((Locale)null, //don't want any thousand separators
+            "111122%04d%04d%02d",
+            rand.nextInt(10000),
+            rand.nextInt(10000),
+            rand.nextInt(99));
+        System.out.println("The Correct CCD Case Number : " + ccdCaseNumber);
         return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
             .amount(new BigDecimal(amountString))
             .description("New passport application")
@@ -201,11 +232,82 @@ public class PaymentFixture {
             .siteId("ABA6")
             .customerReference("CUST101")
             .organisationName("ORG101")
-            .accountNumber("PBAFUNC12345")
+            .accountNumber(pbaAccountNumber)
             .fees(Lists.newArrayList(
                 FeeDto.feeDtoWith()
                     .calculatedAmount(new BigDecimal(amountString))
                     .code("FEE0001")
+                    .version("1")
+                    .build())
+            )
+            .build();
+    }
+
+    public static CreditAccountPaymentRequest aPbaPaymentRequestForProbateWithFeeCode(
+        final String amountString, final String feeCode, final String service, final String pbaAccountNumber) {
+        Random rand = new Random();
+        String ccdCaseNumber = String.format((Locale)null, //don't want any thousand separators
+            "111122%04d%04d%02d",
+            rand.nextInt(10000),
+            rand.nextInt(10000),
+            rand.nextInt(99));
+        System.out.println("The Correct CCD Case Number : " + ccdCaseNumber);
+        return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
+            .amount(new BigDecimal(amountString))
+            .description("New passport application")
+            .ccdCaseNumber(ccdCaseNumber)
+            .caseReference("aCaseReference")
+            .service(service)
+            .currency(CurrencyCode.GBP)
+            .siteId("ABA6")
+            .customerReference("CUST101")
+            .organisationName("ORG101")
+            .accountNumber(pbaAccountNumber)
+            .fees(Lists.newArrayList(
+                FeeDto.feeDtoWith()
+                    .calculatedAmount(new BigDecimal(amountString))
+                    .code(feeCode)
+                    .version("1")
+                    .build())
+            )
+            .build();
+    }
+
+    public static CreditAccountPaymentRequest aPbaPaymentRequestForProbateSinglePaymentFor2Fees(
+        final String amountString,
+        final String service,
+        final String pbaAccountNumber,
+        final String feeCode1,
+        final String feeAmount1,
+        final String feeCode2,
+        final String feeAmount2 ) {
+        Random rand = new Random();
+        String ccdCaseNumber = String.format((Locale)null, //don't want any thousand separators
+            "111122%04d%04d%02d",
+            rand.nextInt(10000),
+            rand.nextInt(10000),
+            rand.nextInt(99));
+        System.out.println("The Correct CCD Case Number : " + ccdCaseNumber);
+        return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
+            .amount(new BigDecimal(amountString))
+            .description("New passport application")
+            .ccdCaseNumber(ccdCaseNumber)
+            .caseReference("aCaseReference")
+            .service(service)
+            .currency(CurrencyCode.GBP)
+            .siteId("ABA6")
+            .customerReference("CUST101")
+            .organisationName("ORG101")
+            .accountNumber(pbaAccountNumber)
+            .fees(List.of(
+                FeeDto.feeDtoWith()
+                    .calculatedAmount(new BigDecimal(feeAmount1))
+                    .code(feeCode1)
+                    .version("1")
+                    .build(),
+                FeeDto.feeDtoWith()
+                    .calculatedAmount(new BigDecimal(feeAmount2))
+                    .code(feeCode2)
                     .version("1")
                     .build())
             )
@@ -253,5 +355,13 @@ public class PaymentFixture {
                     .build())
             )
             .build();
+    }
+
+    public static PaymentRefundRequest aRefundRequest(final String refundReason,
+                                                      final String paymentReference) {
+        return PaymentRefundRequest
+            .refundRequestWith().paymentReference(paymentReference)
+            .refundReason(refundReason).build();
+
     }
 }

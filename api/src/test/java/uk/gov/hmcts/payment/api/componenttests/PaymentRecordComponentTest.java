@@ -4,6 +4,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,16 +19,15 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "componenttest"})
 @SpringBootTest(webEnvironment = MOCK)
+@DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
 @Transactional
 public class PaymentRecordComponentTest {
 
+    private final static String PAYMENT_REFERENCE_REFEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
     @Autowired
     private PaymentFeeLinkRepository paymentFeeLinkRepository;
-
     @Autowired
     private PaymentProviderRepository paymentProviderRespository;
-
-    private final static String PAYMENT_REFERENCE_REFEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
 
     @Test
     public void recordCashPaymentTest() throws Exception {
@@ -71,7 +71,6 @@ public class PaymentRecordComponentTest {
             assertThat(p.getPaymentStatus().getName()).isEqualTo("created");
             assertThat(p.getPaymentProvider().getName()).isEqualTo("middle office provider");
         });
-
 
 
     }

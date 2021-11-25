@@ -23,6 +23,12 @@ public class SpringSecurityConfiguration {
 
     private static final String CITIZEN_ROLE = "citizen";
     private static final String PAYMENTS_ROLE = "payments";
+    private static final String USER_MANAGER_ROLE = "pui-user-manager";
+    private static final String ORGANISATION_MANAGER_ROLE = "pui-organisation-manager";
+    private static final String FINANCE_MANAGER_ROLE = "pui-finance-manager";
+    private static final String CASE_MANAGER_ROLE = "pui-case-manager";
+    private static final String AUTHORISED_REFUNDS_ROLE = "payments-refund";
+    private static final String AUTHORISED_REFUNDS_APPROVER_ROLE = "payments-refund-approver";
 
     @Configuration
     @Order(1)
@@ -44,6 +50,7 @@ public class SpringSecurityConfiguration {
                     .antMatchers(HttpMethod.GET, "/payments1")
                     .antMatchers(HttpMethod.PATCH, "/payments/**")
                     .antMatchers(HttpMethod.POST, "/telephony/callback")
+                    .antMatchers(HttpMethod.GET, "/card-payments/*/status")
                     .antMatchers(  "/jobs/**")
                     .and()
                 .addFilter(authCheckerServiceOnlyFilter)
@@ -95,13 +102,17 @@ public class SpringSecurityConfiguration {
                 .formLogin().disable()
                 .logout().disable()
                 .authorizeRequests()
-                .antMatchers(HttpMethod.GET, "/cases/**").hasAuthority(PAYMENTS_ROLE)
+                .antMatchers(HttpMethod.GET, "/cases/{ccdcasenumber}/paymentgroups").hasAnyAuthority(PAYMENTS_ROLE, CASE_MANAGER_ROLE, FINANCE_MANAGER_ROLE, ORGANISATION_MANAGER_ROLE, USER_MANAGER_ROLE)
+                .antMatchers(HttpMethod.GET, "/cases/{case}/payments").hasAuthority(PAYMENTS_ROLE)
                 .antMatchers(HttpMethod.DELETE, "/fees/**").hasAuthority(PAYMENTS_ROLE)
                 .antMatchers(HttpMethod.POST, "/card-payments").hasAnyAuthority(PAYMENTS_ROLE, CITIZEN_ROLE)
                 .antMatchers(HttpMethod.POST, "/card-payments/*/cancel").hasAnyAuthority(PAYMENTS_ROLE, CITIZEN_ROLE)
                 .antMatchers(HttpMethod.GET, "/card-payments/*/details").hasAnyAuthority(PAYMENTS_ROLE, CITIZEN_ROLE)
                 .antMatchers(HttpMethod.GET, "/pba-accounts/*/payments").hasAnyAuthority(PAYMENTS_ROLE,"pui-finance-manager","caseworker-cmc-solicitor", "caseworker-publiclaw-solicitor", "caseworker-probate-solicitor", "caseworker-financialremedy-solicitor", "caseworker-divorce-solicitor")
                 .antMatchers(HttpMethod.GET, "/card-payments/*/status").hasAnyAuthority(PAYMENTS_ROLE, CITIZEN_ROLE)
+                .antMatchers(HttpMethod.POST,"/refund-for-payment").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE)
+                .antMatchers(HttpMethod.POST,"/refund-retro-remission").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE)
+                .antMatchers(HttpMethod.PATCH,"/refund/resubmit/*").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE)
                 .antMatchers(HttpMethod.GET, "/reference-data/**").permitAll()
                 .antMatchers(HttpMethod.GET, "/case-payment-orders**").permitAll()
                 .antMatchers(HttpMethod.POST, "/api/**").permitAll()

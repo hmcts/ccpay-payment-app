@@ -17,9 +17,10 @@ import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupResponse;
 import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
 import uk.gov.hmcts.payment.api.dto.RemissionRequest;
+import uk.gov.hmcts.payment.api.dto.RetroRemissionRequest;
 import uk.gov.hmcts.payment.api.dto.TelephonyCallbackDto;
-import uk.gov.hmcts.payment.api.dto.order.OrderDto;
-import uk.gov.hmcts.payment.api.dto.order.OrderPaymentDto;
+import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
+import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
 import uk.gov.hmcts.payment.functional.idam.IdamService;
 import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
 
@@ -106,13 +107,13 @@ public class PaymentsTestDsl {
             return this;
         }
 
-        public PaymentWhenDsl createOrder(OrderDto orderDto){
-            response=newRequest().contentType(ContentType.JSON).body(orderDto).post("/order");
+        public PaymentWhenDsl createServiceRequest(ServiceRequestDto serviceRequestDto){
+            response=newRequest().contentType(ContentType.JSON).body(serviceRequestDto).post("/service-request");
             return this;
         }
 
-        public PaymentWhenDsl createOrderCreditAccountPayment(OrderPaymentDto orderPaymentDto, String orderReference, String idempotencyKey){
-            response=newRequest().contentType(ContentType.JSON).header("idempotency_key",idempotencyKey).body(orderPaymentDto).post("/order/{order-reference}/credit-account-payment",orderReference);
+        public PaymentWhenDsl createServiceRequestCreditAccountPayment(ServiceRequestPaymentDto serviceRequestPaymentDto, String serviceRequestReference, String idempotencyKey){
+            response=newRequest().contentType(ContentType.JSON).header("idempotency_key",idempotencyKey).body(serviceRequestPaymentDto).post("/service-request/{service_request_reference}/pba-payments",serviceRequestReference);
             return this;
         }
 
@@ -144,6 +145,14 @@ public class PaymentsTestDsl {
         public PaymentWhenDsl createRetrospectiveRemission(RemissionRequest remissionRequest, String paymentGroup, Integer feeId) {
             response = newRequest().contentType(ContentType.JSON).body(remissionRequest)
                 .post("/payment-groups/{payment-group-reference}/fees/{unique_fee_id}/remissions", paymentGroup, feeId);
+            return this;
+        }
+
+        public PaymentWhenDsl createRetrospectiveRemissionForRefund(final RetroRemissionRequest retrospectiveRemissionRequest,
+                                                                    final String paymentGroup, final Integer feeId) {
+            response = newRequest().contentType(ContentType.JSON).body(retrospectiveRemissionRequest)
+                .post("/payment-groups/{payment-group-reference}/fees/{unique_fee_id}/retro-remission",
+                    paymentGroup, feeId);
             return this;
         }
 
@@ -232,11 +241,11 @@ public class PaymentsTestDsl {
 
         public PaymentWhenDsl searchPaymentsBetweenDates(String startDate, String endDate) {
             if (startDate != null && endDate != null) {
-                response = newRequest().get("/payments?start_date=" + startDate + "&end_date=" + endDate);
+                response = newRequest().get("/reconciliation-payments?start_date=" + startDate + "&end_date=" + endDate);
             } else if (startDate != null) {
-                response = newRequest().get("/payments?start_date=" + startDate);
+                response = newRequest().get("/reconciliation-payments?start_date=" + startDate);
             } else if (endDate != null) {
-                response = newRequest().get("/payments?end_date=" + endDate);
+                response = newRequest().get("/reconciliation-payments?end_date=" + endDate);
             }
 
             return this;
@@ -244,11 +253,11 @@ public class PaymentsTestDsl {
 
         public PaymentWhenDsl searchPaymentsBetweenDatesPaymentMethodServiceName(String startDate, String endDate, String paymentMethod) {
             if (startDate != null && endDate != null) {
-                response = newRequest().get("/payments?start_date=" + startDate + "&end_date=" + endDate + "&service_name=Digital Bar" + "&payment_method=" + paymentMethod);
+                response = newRequest().get("/reconciliation-payments?start_date=" + startDate + "&end_date=" + endDate + "&service_name=Digital Bar" + "&payment_method=" + paymentMethod);
             } else if (startDate != null) {
-                response = newRequest().get("/payments?start_date=" + startDate + "&service_name=Digital Bar" + "&payment_method=" + paymentMethod);
+                response = newRequest().get("/reconciliation-payments?start_date=" + startDate + "&service_name=Digital Bar" + "&payment_method=" + paymentMethod);
             } else if (endDate != null) {
-                response = newRequest().get("/payments?end_date=" + endDate + "&service_name=Digital Bar" + "&payment_method=" + paymentMethod);
+                response = newRequest().get("/reconciliation-payments?end_date=" + endDate + "&service_name=Digital Bar" + "&payment_method=" + paymentMethod);
             }
 
             return this;
@@ -385,6 +394,10 @@ public class PaymentsTestDsl {
 
         public Response validationErrorFor400() {
             return response.then().statusCode(400).extract().response();
+        }
+
+        public Response getResponse() {
+            return response;
         }
 
     }

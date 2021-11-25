@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.api.validators;
 
 import org.junit.Test;
+import org.springframework.test.annotation.DirtiesContext;
 import uk.gov.hmcts.payment.api.exception.ValidationErrorException;
 import uk.gov.hmcts.payment.api.util.DateUtil;
 
@@ -11,6 +12,7 @@ import static java.time.format.DateTimeFormatter.ISO_DATE;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.ThrowableAssert.catchThrowable;
 
+@DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
 public class PaymentValidatorTest {
 
     private static String NOW_STRING = LocalDate.now().format(ISO_DATE);
