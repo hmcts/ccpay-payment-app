@@ -113,7 +113,7 @@ public class CardPaymentController {
             );
         }
 
-        LOG.info("Case Type: {} ",request.getCaseType());
+        LOG.info("Case Type: {} ", request.getCaseType());
 
         if (StringUtils.isNotBlank(request.getCaseType())) {
             OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(request.getCaseType(), headers);
@@ -126,7 +126,7 @@ public class CardPaymentController {
             request.setService(paymentService.getServiceNameByCode(request.getService()));
         }
 
-        LOG.info("Service Name : {} ",request.getService());
+        LOG.info("Service Name : {} ", request.getService());
 
         PaymentServiceRequest paymentServiceRequest = PaymentServiceRequest.paymentServiceRequestWith()
             .paymentGroupReference(paymentGroupReference)

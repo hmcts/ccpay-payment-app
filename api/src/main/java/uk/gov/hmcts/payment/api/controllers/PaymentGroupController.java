@@ -52,6 +52,7 @@ import uk.gov.hmcts.payment.api.dto.PciPalPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.TelephonyDtoMapper;
+import uk.gov.hmcts.payment.api.exceptions.OrderReferenceNotFoundException;
 import uk.gov.hmcts.payment.api.external.client.dto.TelephonyProviderAuthorisationResponse;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.Payment2Repository;
@@ -582,12 +583,11 @@ public class PaymentGroupController {
         Map<String, String> params = new HashMap<>();
         params.put("dcn", dcn);
         params.put("status", status);
-
+//        return new ResponseEntity<String>("new ArrayList<>()", HttpStatus.OK);
         LOG.info("Calling Bulk scan api to mark payment as processed from Payment Api");
         return restTemplatePaymentGroup.exchange(bulkScanPaymentsProcessedUrl + "/bulk-scan-payments/{dcn}/status/{status}",
             HttpMethod.PATCH, entity, String.class, params);
     }
-
 
     @ApiOperation(value = "Create telephony card payment in Payment Group", notes = "Create telephony card payment in Payment Group")
     @ApiResponses(value = {
@@ -607,12 +607,10 @@ public class PaymentGroupController {
         LOG.info("Feature Flag Value in CardPaymentController : {}", antennaFeature);
         if (antennaFeature) {
 
-            OrganisationalServiceDto organisationalServiceDto = referenceDataService
-                .getOrganisationalDetail(telephonyCardPaymentsRequest.getCaseType(), headers);
-
             LOG.info("Inside Telephony check!!!");
-            TelephonyProviderAuthorisationResponse telephonyProviderAuthorisationResponse = pciPalPaymentService
-                .getPaymentProviderAutorisationTokens();
+            OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(telephonyCardPaymentsRequest.getCaseType(), headers);
+            TelephonyProviderAuthorisationResponse telephonyProviderAuthorisationResponse = pciPalPaymentService.getPaymentProviderAutorisationTokens();
+
             PaymentServiceRequest paymentServiceRequest = PaymentServiceRequest.paymentServiceRequestWith()
                 .paymentGroupReference(paymentGroupReference)
                 .paymentReference(referenceUtil.getNext("RC"))
@@ -630,6 +628,7 @@ public class PaymentGroupController {
             PciPalPaymentRequest pciPalPaymentRequest = PciPalPaymentRequest.pciPalPaymentRequestWith()
                 .orderAmount(telephonyCardPaymentsRequest.getAmount().toString()).orderCurrency(telephonyCardPaymentsRequest.getCurrency().getCode())
                 .orderReference(payment.getReference()).build();
+
             telephonyProviderAuthorisationResponse = pciPalPaymentService.getTelephonyProviderLink(pciPalPaymentRequest,
                 telephonyProviderAuthorisationResponse, paymentServiceRequest.getServiceType(), telephonyCardPaymentsRequest.getReturnURL());
             LOG.info("Next URL Value in PaymentGroupController : {}", telephonyProviderAuthorisationResponse.getNextUrl());
@@ -646,7 +645,6 @@ public class PaymentGroupController {
         } else {
             throw new MethodNotSupportedException("This feature is not available to use or invalid request!!!");
         }
-
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
@@ -660,6 +658,13 @@ public class PaymentGroupController {
     public String return504(GatewayTimeoutException ex) {
         return ex.getMessage();
     }
+
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(value = {OrderReferenceNotFoundException.class})
+    public String return404(OrderReferenceNotFoundException ex) {
+        return ex.getMessage();
+    }
+
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(InvalidPaymentGroupReferenceException.class)

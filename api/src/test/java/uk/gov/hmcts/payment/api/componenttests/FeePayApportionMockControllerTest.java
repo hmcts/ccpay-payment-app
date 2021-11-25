@@ -47,7 +47,7 @@ public class FeePayApportionMockControllerTest {
 
         String ccdCase = "1111222233334444";
 
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
 
         List<BigDecimal> feeAmounts = new ArrayList<>();
         feeAmounts.add(new BigDecimal(100));
@@ -89,7 +89,7 @@ public class FeePayApportionMockControllerTest {
 
         String ccdCase = "1111222233335555";
 
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
 
         List<BigDecimal> feeAmounts = new ArrayList<>();
         feeAmounts.add(new BigDecimal(100));
@@ -131,7 +131,7 @@ public class FeePayApportionMockControllerTest {
 
         String ccdCase = "1111222233336666";
 
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
 
         List<BigDecimal> feeAmounts = new ArrayList<>();
         feeAmounts.add(new BigDecimal(100));
@@ -173,7 +173,7 @@ public class FeePayApportionMockControllerTest {
 
         String ccdCase = "1111222233337777";
 
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
 
         List<BigDecimal> feeAmounts = new ArrayList<>();
         feeAmounts.add(new BigDecimal(100));
@@ -215,7 +215,7 @@ public class FeePayApportionMockControllerTest {
 
         String ccdCase = "1111222233338888";
 
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
 
         List<BigDecimal> feeAmounts = new ArrayList<>();
         feeAmounts.add(new BigDecimal(100));
@@ -259,7 +259,7 @@ public class FeePayApportionMockControllerTest {
 
         String ccdCase = "1111222233339999";
 
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
 
         List<BigDecimal> feeAmounts = new ArrayList<>();
         feeAmounts.add(new BigDecimal(100));
@@ -290,7 +290,7 @@ public class FeePayApportionMockControllerTest {
             .ccdCaseNo(ccdCase)
             .feePayGroups(getPaymentFeeLinks(1))
             .fees(getFees(ccdCase, feeAmounts, remissionAmounts, feeCreatedDates, 3))
-            .payments(getPayments(ccdCase, paymentAmounts, paymentCreatedDates,3))
+            .payments(getPayments(ccdCase, paymentAmounts, paymentCreatedDates, 3))
             .build();
 
         feePayApportionService.processFeePayApportion(feePayApportionCCDCase);
@@ -305,7 +305,7 @@ public class FeePayApportionMockControllerTest {
 
         String ccdCase = "1111222244441111";
 
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
 
         List<BigDecimal> feeAmounts = new ArrayList<>();
         feeAmounts.add(new BigDecimal(500));
@@ -364,6 +364,7 @@ public class FeePayApportionMockControllerTest {
                 .paymentProvider(PaymentProvider.paymentProviderWith().name("gov pay").build())
                 .serviceType("PROBATE")
                 .ccdCaseNumber(ccdCase)
+                .paymentLink(PaymentFeeLink.paymentFeeLinkWith().ccdCaseNumber(ccdCase).build())
                 .build());
         }
         return payments;

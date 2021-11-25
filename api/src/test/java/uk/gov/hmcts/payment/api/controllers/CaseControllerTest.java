@@ -3,7 +3,11 @@ package uk.gov.hmcts.payment.api.controllers;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
-import org.junit.*;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Answers;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,10 +25,19 @@ import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
+import uk.gov.hmcts.payment.api.domain.service.OrderDomainService;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupResponse;
 import uk.gov.hmcts.payment.api.dto.RemissionRequest;
-import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.model.FeePayApportion;
+import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.PaymentChannel;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentMethod;
+import uk.gov.hmcts.payment.api.model.PaymentProvider;
+import uk.gov.hmcts.payment.api.model.PaymentStatus;
+import uk.gov.hmcts.payment.api.model.StatusHistory;
 import uk.gov.hmcts.payment.api.reports.FeesService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataServiceImpl;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
@@ -39,9 +52,15 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -54,15 +73,11 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @Transactional
 public class CaseControllerTest extends PaymentsDataUtil {
 
+    private static final String USER_ID = UserResolverBackdoor.CASEWORKER_ID;
     @ClassRule
     public static WireMockClassRule wireMockRule = new WireMockClassRule(9190);
-
     @Rule
     public WireMockClassRule instanceRule = wireMockRule;
-
-    @Autowired
-    private WebApplicationContext webApplicationContext;
-
     @Autowired
     protected ServiceResolverBackdoor serviceRequestAuthorizer;
 
@@ -74,25 +89,21 @@ public class CaseControllerTest extends PaymentsDataUtil {
 
     @Autowired
     protected PaymentFeeDbBackdoor paymentFeeDbBackdoor;
-
+    RestActions restActions;
+    @Autowired
+    private WebApplicationContext webApplicationContext;
     @MockBean
     private AuthTokenGenerator authTokenGenerator;
-
     @Autowired
     private SiteService<Site, String> siteServiceMock;
-
     @MockBean(answer = Answers.RETURNS_DEEP_STUBS)
     private ReferenceDataServiceImpl referenceDataService;
-
     @Autowired
     private FeesService feesService;
-
-    private static final String USER_ID = UserResolverBackdoor.CASEWORKER_ID;
-
     @Autowired
     private ObjectMapper objectMapper;
-
-    RestActions restActions;
+    @MockBean
+    private OrderDomainService orderDomainService;
 
     @Before
     public void setup() {
@@ -224,7 +235,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .withUserId(UserResolverBackdoor.CITIZEN_ID)
             .get("/cases/ccdCaseNumber1/payments")
             .andExpect(status().isForbidden())
-        .andReturn()).isNotNull();
+            .andReturn()).isNotNull();
 
     }
 
@@ -245,7 +256,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .withUserId(USER_ID)
             .get("/cases/ccdCaseNumber2/payments")
             .andExpect(status().isNotFound())
-        .andReturn()).isNotNull();
+            .andReturn()).isNotNull();
     }
 
     @Test
@@ -581,5 +592,49 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .andExpect(status().isNotFound())
             .andReturn();
     }
+
+    private FeePayApportion getFeePayApportion() {
+        return FeePayApportion.feePayApportionWith()
+            .apportionAmount(new BigDecimal("99.99"))
+            .apportionType("AUTO")
+            .feeId(1)
+            .paymentId(1)
+            .feeAmount(new BigDecimal("99.99"))
+            .paymentId(1)
+            .paymentLink(getPaymentFeeLink())
+            .build();
+    }
+
+    private PaymentFeeLink getPaymentFeeLink() {
+        return PaymentFeeLink.paymentFeeLinkWith()
+            .id(1)
+            .orgId("org-id")
+            .enterpriseServiceName("enterprise-service-name")
+            .paymentReference("payment-ref")
+            .ccdCaseNumber("1607065108455502")
+            .fees(Arrays.asList(PaymentFee.feeWith().calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE0001").volume(1).build()))
+            .build();
+    }
+
+    private Payment getPayment() {
+        return Payment.paymentWith()
+            .id(1)
+            .amount(new BigDecimal("99.99"))
+            .caseReference("Reference1")
+            .ccdCaseNumber("1607065108455502")
+            .description("Test payments statuses  ")
+            .serviceType("PROBATE")
+            .currency("GBP")
+            .siteId("AA09")
+            .userId(USER_ID)
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
+            .paymentProvider(PaymentProvider.paymentProviderWith().name("gov pay").build())
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
+            .externalReference("e2kkddts5215h9qqoeuth5c0v")
+            .reference("RC-1519-9028-2432-0001")
+            .build();
+    }
+
 
 }

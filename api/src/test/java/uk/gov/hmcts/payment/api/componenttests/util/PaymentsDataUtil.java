@@ -6,12 +6,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.util.ResourceUtils;
 import uk.gov.hmcts.payment.api.componenttests.PaymentDbBackdoor;
-import uk.gov.hmcts.payment.api.contract.*;
+import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.dto.MissingSupplementaryInfo;
 import uk.gov.hmcts.payment.api.dto.SupplementaryDetails;
 import uk.gov.hmcts.payment.api.dto.SupplementaryDetailsResponse;
 import uk.gov.hmcts.payment.api.dto.SupplementaryInfo;
-import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.model.FeePayApportion;
+import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.PaymentAllocation;
+import uk.gov.hmcts.payment.api.model.PaymentAllocationStatus;
+import uk.gov.hmcts.payment.api.model.PaymentChannel;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentMethod;
+import uk.gov.hmcts.payment.api.model.PaymentProvider;
+import uk.gov.hmcts.payment.api.model.PaymentStatus;
+import uk.gov.hmcts.payment.api.model.StatusHistory;
+
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -19,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.hmcts.payment.api.model.Payment.paymentWith;
 import static uk.gov.hmcts.payment.api.model.PaymentFee.feeWith;
@@ -26,13 +38,21 @@ import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 
 public class PaymentsDataUtil {
 
+    private static final String USER_ID = "user-id";
     @Autowired
     protected PaymentDbBackdoor db;
-
     @Autowired
     private ConfigurableListableBeanFactory configurableListableBeanFactory;
 
-    private static final String USER_ID = "user-id";
+    public static List<PaymentFee> getFeesData() {
+        List<PaymentFee> fees = new ArrayList<>();
+        fees.add(feeWith().code("X0011").version("1").calculatedAmount(new BigDecimal(100)).build());
+        fees.add(feeWith().code("X0022").version("2").calculatedAmount(new BigDecimal(200)).build());
+        fees.add(feeWith().code("X0033").version("3").calculatedAmount(new BigDecimal(140)).build());
+        fees.add(feeWith().code("X0044").version("4").calculatedAmount(new BigDecimal(190)).build());
+
+        return fees;
+    }
 
     public List<Payment> getCreditAccountPaymentsData() {
         List<Payment> payments = new ArrayList<>();
@@ -70,16 +90,6 @@ public class PaymentsDataUtil {
         return payments;
     }
 
-    public static List<PaymentFee> getFeesData() {
-        List<PaymentFee> fees = new ArrayList<>();
-        fees.add(feeWith().code("X0011").version("1").calculatedAmount(new BigDecimal(100)).build());
-        fees.add(feeWith().code("X0022").version("2").calculatedAmount(new BigDecimal(200)).build());
-        fees.add(feeWith().code("X0033").version("3").calculatedAmount(new BigDecimal(140)).build());
-        fees.add(feeWith().code("X0044").version("4").calculatedAmount(new BigDecimal(190)).build());
-
-        return fees;
-    }
-
     public Payment populateCardPaymentToDb(String number) throws Exception {
         //Create a payment in remissionDbBackdoor
         StatusHistory statusHistory = StatusHistory.statusHistoryWith().status("Initiated").externalStatus("created").build();
@@ -103,7 +113,13 @@ public class PaymentsDataUtil {
 
         PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE000" + number).volume(1).build();
 
-        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number)
+
+        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith()
+            .paymentReference("2018-0000000000" + number)
+            .caseReference("Reference" + number)
+            .ccdCaseNumber("ccdCaseNumber" + number)
+            .enterpriseServiceName("Probate")
+            .orgId("AA0" + number)
             .payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);
         return payment;
@@ -332,7 +348,12 @@ public class PaymentsDataUtil {
 
         PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("FEE000" + number).volume(1).build();
 
-        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number)
+
+        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().caseReference("Reference" + number)
+            .ccdCaseNumber("ccdCaseNumber" + number)
+            .paymentReference("2018-0000000000" + number)
+            .enterpriseServiceName("Probate")
+            .orgId("AA0" + number)
             .payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);
 
@@ -615,7 +636,6 @@ public class PaymentsDataUtil {
         payment.setPaymentLink(paymentFeeLink);
 
 
-
         return payment;
     }
 
@@ -714,6 +734,7 @@ public class PaymentsDataUtil {
             });
         });
     }
+
     @SneakyThrows
     protected String contentsOf(String fileName) {
         String content = new String(Files.readAllBytes(Paths.get(ResourceUtils.getURL("classpath:" + fileName).toURI())));
@@ -743,6 +764,7 @@ public class PaymentsDataUtil {
             "  ]\n" +
             "}";
     }
+
     protected String requestJsonWithCaseType() {
         return "{\n" +
             "  \"amount\": 100.89,\n" +

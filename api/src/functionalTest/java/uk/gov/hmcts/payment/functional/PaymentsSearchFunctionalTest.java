@@ -65,10 +65,11 @@ public class PaymentsSearchFunctionalTest {
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .when().searchPaymentsBetweenDates(startDate, endDate)
-            .then().getPayments(paymentsResponse -> {
+            .then().getPayments206(paymentsResponse -> {
                 assertThat(paymentsResponse.getPayments()).isNotNull();
         });
     }
+
 
     @Test
     public void givenAnyTwoValidDatesWithFormatDDMMYYYYShouldNotBeAnyErrors() {
@@ -78,7 +79,7 @@ public class PaymentsSearchFunctionalTest {
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .when().searchPaymentsBetweenDates(startDate, endDate)
-            .then().getPayments(paymentsResponse -> {
+            .then().getPayments206(paymentsResponse -> {
                 assertThat(paymentsResponse.getPayments()).isNotNull();
         });
     }

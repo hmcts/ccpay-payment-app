@@ -1,4 +1,4 @@
-package uk.gov.hmcts.payment.api.controllers;
+package uk.gov.hmcts.payment.api.componenttests;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;

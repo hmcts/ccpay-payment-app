@@ -23,10 +23,7 @@ import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
@@ -38,6 +35,7 @@ public class PaymentDtoMapper {
 
     @Autowired
     private LaunchDarklyFeatureToggler featureToggler;
+
 
 
     public PaymentDto toCardPaymentDto(PaymentFeeLink paymentFeeLink) {
@@ -259,9 +257,8 @@ public class PaymentDtoMapper {
         return enrichWithFeeData(paymentDto);
     }
 
-    public PaymentDto toReconciliationResponseDtoForLibereta(final Payment payment, final String paymentReference,
-                                                             final List<PaymentFee> fees, final FF4j ff4j,boolean isPaymentAfterApportionment) {
-        boolean isBulkScanPayment = payment.getPaymentChannel() != null && payment.getPaymentChannel().getName().equals("bulk scan");
+    public PaymentDto toReconciliationResponseDtoForLibereta(final Payment payment, final String paymentReference, final List<PaymentFee> fees, final FF4j ff4j,boolean isPaymentAfterApportionment) {
+        boolean isBulkScanPayment = payment.getPaymentChannel() !=null && payment.getPaymentChannel().getName().equals("bulk scan");
         boolean bulkScanCheck = ff4j.check("bulk-scan-check");
         boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
         boolean apportionCheck = apportionFeature && isPaymentAfterApportionment;
