@@ -362,6 +362,12 @@ public class PaymentsTestDsl {
             return this;
         }
 
+        public PaymentThenDsl getPayments206(Consumer<PaymentsResponse> paymentsResponseAssertions) {
+            PaymentsResponse paymentsResponse = response.then().statusCode(206).extract().as(PaymentsResponse.class);
+            paymentsResponseAssertions.accept(paymentsResponse);
+            return this;
+        }
+
         public TelephonyCardPaymentsResponse createdTelephoneCardPaymentsResponse() {
             TelephonyCardPaymentsResponse telephonyCardPaymentsResponse = response.then().statusCode(201).extract().as(TelephonyCardPaymentsResponse.class);
             return telephonyCardPaymentsResponse;
