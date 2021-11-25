@@ -28,7 +28,7 @@ public class PaymentReference {
     @JsonProperty("payment_method")
     private String paymentMethod;
 
-    @JsonProperty("payment_method")
+    @JsonProperty("case_reference")
     private String caseReference;
 
     @JsonProperty("account_number")
