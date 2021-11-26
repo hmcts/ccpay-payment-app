@@ -51,7 +51,7 @@ public class PBAAccountsFunctionalTest {
     }
 
     @Test
-    @Ignore("As we need support from Raj to Cover this test....")
+    //@Ignore("As we need support from Raj to Cover this test....")
     public void perform_pba_accounts_lookup() throws Exception {
         final String userPUIFinanceManagerToken = this.getFinanceManagerTokenForOrganisation();
         Thread.sleep(TimeUnit.SECONDS.toMillis(10)); //Sleep the Thread so that the newly created credentials are available after sometime...

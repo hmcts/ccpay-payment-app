@@ -12,14 +12,14 @@ public class PBAAccountsTestService {
 
     public static final Response getPBAAccounts(final String userToken,
                                                 final String serviceToken) {
-        return givenWithServiceHeaders(serviceToken)
+        return givenWithAuthHeaders(userToken, serviceToken)
             .header("return-url", "http://localhost.hmcts.net")
             .contentType(ContentType.JSON)
             .when()
             .get("/pba-accounts");
     }
 
-    public RequestSpecification givenWithAuthHeaders(String userToken, String serviceToken) {
+    public static final RequestSpecification givenWithAuthHeaders(String userToken, String serviceToken) {
         return RestAssured.given()
             .header(AUTHORIZATION, userToken)
             .header("ServiceAuthorization", serviceToken);
