@@ -66,6 +66,15 @@ public class ServiceRequestTestService {
             .post("/service-request/{service-request-reference}/card-payments", serviceRequestReference);
     }
 
+    public Response getAnOnlineCardPaymentForAnInternalReference(final String serviceToken,
+                                                                final String internalReference) {
+        return givenWithServiceHeaders(serviceToken)
+            .header("return-url", "http://localhost.hmcts.net")
+            .contentType(ContentType.JSON)
+            .when()
+            .get("/card-payments/{internal-reference}/status", internalReference);
+    }
+
     public RequestSpecification givenWithAuthHeaders(String userToken, String serviceToken) {
         return RestAssured.given()
             .header(AUTHORIZATION, userToken)
