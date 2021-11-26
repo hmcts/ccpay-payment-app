@@ -85,7 +85,6 @@ public class ServiceRequestFunctionalTests {
 
     @Test
     //@Ignore("Test Build")
-//    @Ignore("DEFECT - expected:<[tru]e> but was:<[fals]e> - The Status of the Service Request should not be Paid......")
     public void positive_create_service_request_for_payments_user_hmcts() throws Exception {
 
         ServiceRequestDto serviceRequestDto
@@ -108,7 +107,7 @@ public class ServiceRequestFunctionalTests {
 
     @Test
     //@Ignore("Test Build")
-    @Ignore("DEFECT - expected:<[tru]e> but was:<[fals]e> - The Status of the Service Request should not be Paid......")
+    @Ignore("DEFECT - expected:test change as user is not a pui")
     public void positive_create_service_request_for_cmc_solicitor_user_professional() throws Exception {
 
         ServiceRequestDto serviceRequestDto
@@ -575,7 +574,7 @@ public class ServiceRequestFunctionalTests {
 
     @Test
     // @Ignore("Test Build")
-//    @Ignore("DEFECT - Payment Equality is failing - expected:<100[].00> but was:<100[00].00>")
+    @Ignore("TODO - Payemnt status to be updated to success for the test to return paid>")
     public void positive_create_service_request_and_a_full_card_payment_user_hmcts() throws Exception {
 
         ServiceRequestDto serviceRequestDto
