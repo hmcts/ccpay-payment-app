@@ -19,6 +19,8 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import javax.validation.constraints.NotNull;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 
 
@@ -126,6 +128,24 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
     }
 
     @Override
+    @Transactional
+    public void updatePaymentsForCCDCaseNumberByCertainDays(final String ccd_case_number) {
+
+      Optional<List<Payment>>  optionalPaymentList = paymentRepository.findByCcdCaseNumber(ccd_case_number);
+      List<Payment> paymentList = optionalPaymentList.orElseThrow();
+
+        paymentList.stream().forEach(payment -> {
+            Date dateCreated = payment.getDateCreated();
+            LocalDateTime localDateTime = LocalDateTime.ofInstant(dateCreated.toInstant(), ZoneId.systemDefault());
+            LocalDateTime rolledbackDateTime = localDateTime.minusDays(4);
+            payment.setDateCreated(Date.from(rolledbackDateTime.atZone(ZoneId.systemDefault()).toInstant()));
+            payment.setDateUpdated(Date.from(rolledbackDateTime.atZone(ZoneId.systemDefault()).toInstant()));
+            Payment paymentSaved = paymentRepository.save(payment);
+        });
+        return;
+    }
+
+    @Override
     public List<Payment> getPayments(Date atStartOfDay, Date atEndOfDay) {
         return paymentRepository.findAllByDateCreatedBetween(atStartOfDay, atEndOfDay).orElse(Collections.EMPTY_LIST);
     }
@@ -174,5 +194,10 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
     @Override
     public Payment findSavedPayment(@NotNull String paymentReference) {
         return paymentRepository.findByReference(paymentReference).orElseThrow(PaymentNotFoundException::new);
+    }
+
+    @Override
+    public Payment findPayment(@NotNull String internalReference) {
+        return paymentRepository.findByInternalReference(internalReference).orElseThrow(PaymentNotFoundException::new);
     }
 }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
 import com.microsoft.azure.servicebus.IMessage;
 import org.ff4j.FF4j;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -15,6 +16,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -48,53 +50,42 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "componenttest"})
 @SpringBootTest(webEnvironment = MOCK)
+@DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
 @Transactional
 public class MaintenanceJobsControllerTest extends PaymentsDataUtil {
 
-    @Autowired
-    private ConfigurableListableBeanFactory configurableListableBeanFactory;
-
-    @Autowired
-    private WebApplicationContext webApplicationContext;
-
+    private static final String USER_ID = UserResolverBackdoor.CITIZEN_ID;
     @ClassRule
     public static WireMockClassRule wireMockRule = new WireMockClassRule(9190);
-
-    @Value("${service.callback.url}")
-    private String serviceCallbackUrl;
-
     @Rule
     public WireMockClassRule instanceRule = wireMockRule;
-
+    MockMvc mvc;
+    @Autowired
+    private ConfigurableListableBeanFactory configurableListableBeanFactory;
+    @Autowired
+    private WebApplicationContext webApplicationContext;
+    @Value("${service.callback.url}")
+    private String serviceCallbackUrl;
     @Autowired
     private ServiceResolverBackdoor serviceRequestAuthorizer;
-
     @Autowired
     private UserResolverBackdoor userRequestAuthorizer;
-
     @Autowired
     private PaymentDbBackdoor db;
-
-    private static final String USER_ID = UserResolverBackdoor.CITIZEN_ID;
-
     private RestActions restActions;
-
     @MockBean
     private TopicClientProxy topicClientProxy;
-
     @MockBean
     private FF4j ff4j;
-
     @InjectMocks
     private MaintenanceJobsController controller;
-
     @Autowired
     private ObjectMapper objectMapper;
 
     @Before
     public void setUp() {
 
-        MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
+        mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
         this.restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
 
         when(ff4j.check(CallbackService.FEATURE)).thenReturn(true);
@@ -104,6 +95,11 @@ public class MaintenanceJobsControllerTest extends PaymentsDataUtil {
             .withAuthorizedUser(USER_ID)
             .withUserId(USER_ID)
             .withReturnUrl("https://www.moneyclaims.service.gov.uk");
+    }
+
+    @After
+    public void tearDown() {
+        this.restActions = null;
     }
 
     @Test

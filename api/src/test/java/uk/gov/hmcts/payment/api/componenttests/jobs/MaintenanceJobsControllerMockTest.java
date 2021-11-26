@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.api.componenttests.jobs;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -17,7 +18,9 @@ import uk.gov.hmcts.payment.api.service.PaymentService;
 import java.util.Arrays;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -35,13 +38,21 @@ public class MaintenanceJobsControllerMockTest {
     @InjectMocks
     private MaintenanceJobsController controller;
 
+    private Reference reference = new Reference("xxx");
+
     @Before
     public void setUp() {
         this.mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
     }
 
+    @After
+    public void tearDown() {
+        this.mockMvc = null;
+    }
+
+
     @Test
-    public void testThatNoPaymentsReturn200() throws Exception{
+    public void testThatNoPaymentsReturn200() throws Exception {
 
         // when & then
         this.mockMvc.perform(patch("/jobs/card-payments-status-update"))
@@ -54,7 +65,7 @@ public class MaintenanceJobsControllerMockTest {
     }
 
     @Test
-    public void testThatReturns200WhenPaymentsExist() throws Exception{
+    public void testThatReturns200WhenPaymentsExist() throws Exception {
 
         doReturn(Arrays.asList(reference, reference)).when(paymentService).listInitiatedStatusPaymentsReferences();
 
@@ -67,7 +78,5 @@ public class MaintenanceJobsControllerMockTest {
         verify(delegatingPaymentService, times(2)).retrieveWithCallBack("xxx");
 
     }
-
-    private Reference reference = new Reference("xxx");
 
 }
