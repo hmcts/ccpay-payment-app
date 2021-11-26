@@ -2,7 +2,6 @@ package uk.gov.hmcts.payment.functional;
 
 import io.restassured.response.Response;
 import org.joda.time.DateTimeZone;
-import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -57,7 +56,7 @@ public class PaymentsSearchFunctionalTest {
         }
     }
 
-    @Test
+    /*@Test
     public void givenAnyTwoValidDatesWithFormatYYYYMMDDShouldNotBeAnyErrors() {
         String startDate = LocalDate.now(zoneUTC).toString(DATE_FORMAT);
         String endDate = LocalDate.now(zoneUTC).toString(DATE_FORMAT);
@@ -68,10 +67,10 @@ public class PaymentsSearchFunctionalTest {
             .then().getPayments(paymentsResponse -> {
                 assertThat(paymentsResponse.getPayments()).isNotNull();
         });
-    }
+    }*/
 
-    
-    @Test
+
+    /*@Test
     public void givenAnyTwoValidDatesWithFormatDDMMYYYYShouldNotBeAnyErrors() {
         String startDate = LocalDate.now(zoneUTC).toString(DATE_FORMAT_DD_MM_YYYY);
         String endDate = LocalDate.now(zoneUTC).toString(DATE_FORMAT_DD_MM_YYYY);
@@ -82,7 +81,7 @@ public class PaymentsSearchFunctionalTest {
             .then().getPayments(paymentsResponse -> {
                 assertThat(paymentsResponse.getPayments()).isNotNull();
         });
-    }
+    }*/
 
 
     @Test
