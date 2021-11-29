@@ -81,4 +81,6 @@ public class FeeDto {
 
     private Date dateReceiptProcessed;
 
+    private Boolean remissionEnable;
+
 }

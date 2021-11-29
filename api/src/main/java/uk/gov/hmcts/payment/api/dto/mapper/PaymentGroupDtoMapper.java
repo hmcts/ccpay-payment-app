@@ -19,6 +19,7 @@ import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentFeeRepository;
 import uk.gov.hmcts.payment.api.model.Remission;
 import uk.gov.hmcts.payment.api.reports.FeesService;
+import uk.gov.hmcts.payment.api.service.RefundRemissionEnableService;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 
 import java.math.BigDecimal;
@@ -39,6 +40,9 @@ public class PaymentGroupDtoMapper {
 
     @Autowired
     private PaymentFeeRepository paymentFeeRepository;
+
+    @Autowired
+    private RefundRemissionEnableService refundRemissionEnableService;
 
     public PaymentGroupDto toPaymentGroupDto(PaymentFeeLink paymentFeeLink) {
         return PaymentGroupDto.paymentGroupDtoWith()
@@ -78,6 +82,7 @@ public class PaymentGroupDtoMapper {
             .documentControlNumber(payment.getDocumentControlNumber())
             .bankedDate(payment.getBankedDate())
             .payerName(payment.getPayerName())
+            .refundEnable(payment.getDateUpdated() != null ? toRefundEligible(payment):false)
             .paymentAllocation(payment.getPaymentAllocation() !=null ? toPaymentAllocationDtos(payment.getPaymentAllocation()) : null)
             .build();
     }
@@ -140,6 +145,7 @@ public class PaymentGroupDtoMapper {
             .dateUpdated(fee.getDateUpdated())
             .dateApportioned(fee.getDateApportioned())
             .amountDue(fee.getAmountDue())
+            .remissionEnable(toRemissionEnable(fee))
             .build();
     }
 
@@ -157,6 +163,16 @@ public class PaymentGroupDtoMapper {
             .reference(feeDto.getReference())
             .dateCreated(apportionFeature ? timestamp: null)
             .build();
+    }
+
+    private Boolean toRefundEligible(Payment payment) {
+
+        return refundRemissionEnableService.returnRefundEligible(payment);
+    }
+
+    private Boolean toRemissionEnable(PaymentFee fee){
+
+        return refundRemissionEnableService.returnRemissionEligible(fee);
     }
 
 }

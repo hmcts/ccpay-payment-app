@@ -38,6 +38,7 @@ import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.model.TelephonyCallback;
 import uk.gov.hmcts.payment.api.model.TelephonyRepository;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
+import uk.gov.hmcts.payment.api.service.RefundRemissionEnableService;
 import uk.gov.hmcts.payment.api.servicebus.CallbackServiceImpl;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
@@ -103,6 +104,8 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
     private ObjectMapper objectMapper;
     @MockBean
     private LaunchDarklyFeatureToggler featureToggler;
+    @MockBean
+    private RefundRemissionEnableService refundRemissionEnableService;
 
     protected CustomResultMatcher body() {
         return new CustomResultMatcher(objectMapper);
@@ -302,7 +305,7 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(getNewFee("1234123412341234")))
             .build();
-
+        when(refundRemissionEnableService.returnRemissionEligible(any())).thenReturn(true);
         MvcResult result = restActions
             .post("/payment-groups", request)
             .andExpect(status().isCreated())
@@ -353,6 +356,7 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(getNewFee("1234123412341234")))
             .build();
+        when(refundRemissionEnableService.returnRemissionEligible(any())).thenReturn(true);
 
         MvcResult result = restActions
             .post("/payment-groups", request)
