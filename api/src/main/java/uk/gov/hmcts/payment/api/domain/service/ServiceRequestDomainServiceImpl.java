@@ -224,6 +224,8 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
 
         PaymentStatusDto paymentStatusDto = paymentDtoMapper.toPaymentStatusDto(serviceRequestReference,
             serviceRequestPaymentBo.getAccountNumber(), payment);
+        PaymentFeeLink serviceRequestCallbackURL = paymentFeeLinkRepository.findByPaymentReference(serviceRequestReference)
+            .orElseThrow(() -> new ServiceRequestReferenceNotFoundException("Order reference doesn't exist"));
         sendMessageToTopic(paymentStatusDto);
 
         if (payment.getPaymentStatus().getName().equals(FAILED)) {
@@ -409,16 +411,16 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
             boolean isFound500 =  msgProperties.indexOf("500") !=-1? true: false;
 
 
-            if (receivedMessage != null && isFound500 )
-            {
-                byte[] body = receivedMessage.getBody();
-                ObjectMapper objectMapper = new ObjectMapper();
-                DeadLetterDto deadLetterDto = objectMapper.readValue(body,DeadLetterDto.class);
-                ObjectMapper objectMapper1 = new ObjectMapper();
-                Message msg = new Message(objectMapper1.writeValueAsString(deadLetterDto));
-                msg.setContentType(MSGCONTENTTYPE);
-                topicClientCPO.send(msg);
-
+            if (receivedMessage != null) {
+                if (isFound500) {
+                    byte[] body = receivedMessage.getBody();
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    DeadLetterDto deadLetterDto = objectMapper.readValue(body, DeadLetterDto.class);
+                    ObjectMapper objectMapper1 = new ObjectMapper();
+                    Message msg = new Message(objectMapper1.writeValueAsString(deadLetterDto));
+                    msg.setContentType(MSGCONTENTTYPE);
+                    topicClientCPO.send(msg);
+                }
             }
             else
             {
