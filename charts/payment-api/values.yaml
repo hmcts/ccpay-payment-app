@@ -82,11 +82,11 @@ java:
     SERVER_SHUTDOWN_STRATEGY: graceful
     TIMEOUT_SERVER_SHUTDOWN_PHASE: 30s
     IDAM_API_URL: "https://idam-api.{{ .Values.global.environment }}.platform.hmcts.net"
-      CARD_LAG_TIME: 120
-      CASH_LAG_TIME: 120
-      POSTALORDER_LAG_TIME: 480
-      CHEQUES_LAG_TIME: 480
-      PBA_LAG_TIME: 96
+    CARD_LAG_TIME: 120
+    CASH_LAG_TIME: 120
+    POSTALORDER_LAG_TIME: 480
+    CHEQUES_LAG_TIME: 480
+    PBA_LAG_TIME: 96
 
   keyVaults:
     "ccpay":
