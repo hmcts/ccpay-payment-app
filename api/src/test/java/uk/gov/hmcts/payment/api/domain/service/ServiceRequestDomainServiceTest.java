@@ -265,7 +265,7 @@ public class ServiceRequestDomainServiceTest {
 
          when(paymentFeeLinkRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(getPaymentFeeLink()));
 
-         //when(paymentDtoMapper.toPaymentStatusDto(any(),any(),any())).thenReturn(paymentStatusDto);
+         when(paymentDtoMapper.toPaymentStatusDto(any(),any(),any())).thenReturn(paymentStatusDto);
 
          AccountDto accountDto = AccountDto.accountDtoWith()
                  .accountNumber("1234")
