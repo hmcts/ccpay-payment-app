@@ -195,8 +195,6 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
     private void validateThePaymentBeforeInitiatingRefund(Payment payment,MultiValueMap<String, String> headers) {
 
-        Boolean isRole=checkRoles(headers);
-
         //payment success check
         if (!paymentSuccessCheck.test(payment)) {
             throw new PaymentNotSuccessException("Refund can not be processed for unsuccessful payment");
@@ -252,12 +250,4 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             .map(fee -> fee.getId().toString())
             .collect(Collectors.joining(","));
     }
-
-    private Boolean checkRoles(MultiValueMap<String, String> headers) {
-
-        IdamUserIdResponse uid = idamService.getUserId(headers);
-        return uid.getRoles().contains(AUTHORISED_REFUNDS_ROLE) || uid.getRoles().contains(AUTHORISED_REFUNDS_APPROVER_ROLE);
-    }
-
-
 }
