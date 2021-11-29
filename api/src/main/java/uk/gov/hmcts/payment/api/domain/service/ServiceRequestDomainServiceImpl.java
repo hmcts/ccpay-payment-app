@@ -401,16 +401,18 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
             boolean isFound500 =  msgProperties.indexOf("500") !=-1? true: false;
 
 
-            if (receivedMessage != null && isFound500 )
+            if (receivedMessage != null)
             {
-                byte[] body = receivedMessage.getBody();
-                ObjectMapper objectMapper = new ObjectMapper();
-                DeadLetterDto deadLetterDto = objectMapper.readValue(body,DeadLetterDto.class);
-                ObjectMapper objectMapper1 = new ObjectMapper();
-                Message msg = new Message(objectMapper1.writeValueAsString(deadLetterDto));
-                msg.setContentType("application/json");
-                topicClientCPO.send(msg);
-
+                if( isFound500 )
+                {
+                    byte[] body = receivedMessage.getBody();
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    DeadLetterDto deadLetterDto = objectMapper.readValue(body,DeadLetterDto.class);
+                    ObjectMapper objectMapper1 = new ObjectMapper();
+                    Message msg = new Message(objectMapper1.writeValueAsString(deadLetterDto));
+                    msg.setContentType("application/json");
+                    topicClientCPO.send(msg);
+                }
             }
             else
             {
