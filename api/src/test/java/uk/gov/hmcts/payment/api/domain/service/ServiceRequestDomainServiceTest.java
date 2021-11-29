@@ -263,6 +263,8 @@ public class ServiceRequestDomainServiceTest {
 
          when(serviceRequestPaymentDomainDataEntityMapper.toEntity(any(),any())).thenReturn(payment,paymentFailed);
 
+         when(paymentFeeLinkRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(getPaymentFeeLink()));
+
          //when(paymentDtoMapper.toPaymentStatusDto(any(),any(),any())).thenReturn(paymentStatusDto);
 
          AccountDto accountDto = AccountDto.accountDtoWith()
