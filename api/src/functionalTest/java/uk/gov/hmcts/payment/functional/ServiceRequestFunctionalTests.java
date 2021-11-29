@@ -13,9 +13,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
+import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
 import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentRequest;
+import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentResponse;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupResponse;
 import uk.gov.hmcts.payment.api.dto.ServiceRequestResponseDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
@@ -26,16 +28,18 @@ import uk.gov.hmcts.payment.functional.idam.IdamService;
 import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
 import uk.gov.hmcts.payment.functional.service.ServiceRequestTestService;
 
-import javax.inject.Inject;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.Date;
 import java.util.regex.Pattern;
+import javax.inject.Inject;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CASE_WORKER_GROUP;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
 
@@ -84,11 +88,11 @@ public class ServiceRequestFunctionalTests {
 
     @Test
     //@Ignore("Test Build")
-//    @Ignore("DEFECT - expected:<[tru]e> but was:<[fals]e> - The Status of the Service Request should not be Paid......")
     public void positive_create_service_request_for_payments_user_hmcts() throws Exception {
 
         ServiceRequestDto serviceRequestDto
             = ServiceRequestFixture.buildServiceRequestDTO("ABA6", null);
+        System.out.println("The Value of the CCD Case Number : "+serviceRequestDto.getCcdCaseNumber());
         Response createServiceRequestResponse
             = serviceRequestTestService.createServiceRequest(USER_TOKEN_PAYMENT, SERVICE_TOKEN,
             serviceRequestDto);
@@ -107,7 +111,7 @@ public class ServiceRequestFunctionalTests {
 
     @Test
     //@Ignore("Test Build")
-    @Ignore("DEFECT - expected:<[tru]e> but was:<[fals]e> - The Status of the Service Request should not be Paid......")
+    @Ignore("DEFECT - expected:test change as user is not a pui")
     public void positive_create_service_request_for_cmc_solicitor_user_professional() throws Exception {
 
         ServiceRequestDto serviceRequestDto
@@ -572,9 +576,9 @@ public class ServiceRequestFunctionalTests {
     }
 
 
-    /*@Test
+    @Test
     // @Ignore("Test Build")
-    @Ignore("DEFECT - Payment Equality is failing - expected:<100[].00> but was:<100[00].00>")
+    @Ignore("TODO - Payemnt status to be updated to success for the test to return paid>")
     public void positive_create_service_request_and_a_full_card_payment_user_hmcts() throws Exception {
 
         ServiceRequestDto serviceRequestDto
@@ -615,7 +619,7 @@ public class ServiceRequestFunctionalTests {
         PaymentGroupResponse paymentGroupResponseForASolicitorUser =
             getPaymentGroupResponseForSolicitorUser.getBody().as(PaymentGroupResponse.class);
         verifyThePaymentGroupResponseForNoPaymentsOrRemisssions(serviceRequestDto, paymentGroupResponseForASolicitorUser);
-    }*/
+    }
 
     @Test
     //@Ignore("Test Build")
