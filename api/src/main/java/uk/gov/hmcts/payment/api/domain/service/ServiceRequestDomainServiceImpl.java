@@ -406,11 +406,9 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         {
             IMessage receivedMessage = subscriptionClient.receive();
             LOG.info("receivedMessage\n", receivedMessage);
-            String  msgProperties = receivedMessage.getProperties().toString();
-            boolean isFound500 =  msgProperties.indexOf("500") !=-1? true: false;
-
-
             if (receivedMessage != null) {
+                String  msgProperties = receivedMessage.getProperties().toString();
+                boolean isFound500 =  msgProperties.indexOf("500") !=-1? true: false;
                 if (isFound500) {
                     byte[] body = receivedMessage.getBody();
                     ObjectMapper objectMapper = new ObjectMapper();
