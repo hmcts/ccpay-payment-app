@@ -66,6 +66,7 @@ public class PBAAccountsFunctionalTest {
             "pui-finance-manager");
         final String userPUIFinanceManagerToken = user.getAuthorisationToken();
         final String userEmail = user.getEmail();
+        System.out.println("The value of the userPUIFinanceManagerToken : " + userPUIFinanceManagerToken);
 
         SERVICE_TOKEN = s2sTokenService.getS2sToken("payment_app", testProps.getPaymentAppS2SSecret());
         final String fileContentsTemplate = readFileContents(INPUT_FILE_PATH + "/" + "CreateOrganisation.json");

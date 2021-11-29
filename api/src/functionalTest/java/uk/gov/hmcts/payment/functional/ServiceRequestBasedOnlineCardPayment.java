@@ -243,4 +243,17 @@ public class ServiceRequestBasedOnlineCardPayment {
         assertThat(paymentDtoForOnlineCardPaymentResponse.getStatus()).isEqualTo("created");
 
     }
+
+    @Test
+    //@Ignore("Test Build")
+    public void negative_online_card_payment_for_invalid_internal_reference() throws Exception {
+
+        Response getOnlineCardPaymentResponse =
+            serviceRequestTestService.getAnOnlineCardPaymentForAnInternalReference(SERVICE_TOKEN,
+                "Test Reference");
+        assertThat(getOnlineCardPaymentResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND.value());
+        /*PaymentDto paymentDtoForOnlineCardPaymentResponse = getOnlineCardPaymentResponse.getBody().as(PaymentDto.class);
+        assertThat(paymentDtoForOnlineCardPaymentResponse.getStatus()).isEqualTo("created");*/
+
+    }
 }
