@@ -39,11 +39,11 @@ public interface ServiceRequestDomainService {
 
     Boolean isDuplicate(String serviceRequestReference);
 
-    void sendMessageTopicCPO(ServiceRequestDto serviceRequestDto, PaymentDto payment);
+    void sendMessageTopicCPO(ServiceRequestDto serviceRequestDto);
 
-    void sendMessageToTopic(PaymentStatusDto payment);
+    void sendMessageToTopic(PaymentStatusDto payment, String callBackUrl);
 
-    void deadLetterprocess(IMessageReceiver subscriptionClient) throws ServiceBusException, InterruptedException, IOException;
+    void deadLetterProcess(IMessageReceiver subscriptionClient) throws ServiceBusException, InterruptedException, IOException;
 
     IMessageReceiver createDLQConnection() throws ServiceBusException, InterruptedException;
 }

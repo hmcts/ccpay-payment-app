@@ -69,7 +69,7 @@ public class ServiceRequestDomainServiceTest  {
         when(topicClientService.getTopicClientProxy()).thenReturn(topicClientProxy);
         doNothing().when(topicClientProxy).send(any(IMessage.class));
         doNothing().when(topicClientProxy).close();
-        serviceRequestDomainService.deadLetterprocess(subscriptionClient);
+        serviceRequestDomainService.deadLetterProcess(subscriptionClient);
         verify(topicClientProxy, times(1)).close();
     }
 

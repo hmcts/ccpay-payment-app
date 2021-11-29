@@ -37,7 +37,6 @@ import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.service.FeePayApportionService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.service.FeesService;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotSuccessException;
 
 import javax.validation.Valid;
@@ -103,7 +102,7 @@ public class ServiceRequestController {
         ResponseEntity<ServiceRequestResponseDto> serviceRequestResponseDto = new ResponseEntity<>(serviceRequestDomainService.
             create(serviceRequestDto, headers), HttpStatus.CREATED);
 
-        serviceRequestDomainService.sendMessageTopicCPO(serviceRequestDto,null);
+        serviceRequestDomainService.sendMessageTopicCPO(serviceRequestDto);
 
         return serviceRequestResponseDto;
     }
@@ -195,7 +194,7 @@ public class ServiceRequestController {
     public void receiveDeadLetterQueueMessage() throws ServiceBusException, InterruptedException, IOException {
 
         IMessageReceiver subscriptionClient = serviceRequestDomainService.createDLQConnection();
-        serviceRequestDomainService.deadLetterprocess(subscriptionClient);
+        serviceRequestDomainService.deadLetterProcess(subscriptionClient);
     }
 
 

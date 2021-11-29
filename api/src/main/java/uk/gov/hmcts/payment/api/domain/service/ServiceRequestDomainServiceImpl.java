@@ -152,11 +152,6 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
 
         OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(Optional.empty(), Optional.ofNullable(serviceRequestDto.getHmctsOrgId()), headers);
 
-//        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
-//            .serviceCode("AA001")
-//            .serviceDescription("DIVORCE")
-//            .build();
-
         ServiceRequestBo serviceRequestDomain = serviceRequestDtoDomainMapper.toDomain(serviceRequestDto, organisationalServiceDto);
         return serviceRequestBo.createServiceRequest(serviceRequestDomain);
 
@@ -189,9 +184,13 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         serviceRequest.getPayments().add(paymentEntity);
         paymentRepository.save(paymentEntity);
 
-        PaymentDto paymentDto = paymentDtoMapper.toResponseDto(serviceRequest, paymentEntity);
+        PaymentStatusDto paymentStatusDto = paymentDtoMapper.toPaymentStatusDto(serviceRequestReference,
+            "", paymentEntity);
 
-        sendMessageTopicCPO(null, paymentDto);
+        PaymentFeeLink serviceRequestCallbackURL = paymentFeeLinkRepository.findByPaymentReference(serviceRequestReference)
+            .orElseThrow(() -> new ServiceRequestReferenceNotFoundException("Order reference doesn't exist"));
+
+        sendMessageToTopic(paymentStatusDto, serviceRequestCallbackURL.getCallBackUrl());
 
         // Trigger Apportion based on the launch darkly feature flag
         boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature", false);
@@ -226,7 +225,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
             serviceRequestPaymentBo.getAccountNumber(), payment);
         PaymentFeeLink serviceRequestCallbackURL = paymentFeeLinkRepository.findByPaymentReference(serviceRequestReference)
             .orElseThrow(() -> new ServiceRequestReferenceNotFoundException("Order reference doesn't exist"));
-        sendMessageToTopic(paymentStatusDto);
+        sendMessageToTopic(paymentStatusDto, serviceRequestCallbackURL.getCallBackUrl());
 
         if (payment.getPaymentStatus().getName().equals(FAILED)) {
             LOG.info("CreditAccountPayment Response 402(FORBIDDEN) for ccdCaseNumber : {} PaymentStatus : {}", payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
@@ -396,7 +395,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
 
     @Override
 
-    public void deadLetterprocess(IMessageReceiver subscriptionClient) throws ServiceBusException, InterruptedException, IOException {
+    public void deadLetterProcess(IMessageReceiver subscriptionClient) throws ServiceBusException, InterruptedException, IOException {
 
 
         int receivedMessages =0;
@@ -434,34 +433,25 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
 
 
     @Override
-    public void sendMessageTopicCPO(ServiceRequestDto serviceRequestDto, PaymentDto payment){
+    public void sendMessageTopicCPO(ServiceRequestDto serviceRequestDto){
 
         try {
             TopicClientProxy topicClientCPO = null;
             Message msg = null;
             ObjectMapper objectMapper = new ObjectMapper();
 
-            if(serviceRequestDto==null && payment!=null){
+            LOG.info("Connection String: ", connectionString);
 
-                LOG.info("Connection String CardPBA: ", connectionString);
-
-                msg = new Message(objectMapper.writeValueAsString(payment));
-                topicClientCPO = new TopicClientProxy(connectionString, topicCardPBA);
-            }
-
-            else if(payment==null && serviceRequestDto!=null){
-
-                LOG.info("Connection String: ", connectionString);
-
-                ServiceRequestCpoDto serviceRequestCpoDto = ServiceRequestCpoDto.serviceRequestCpoDtoWith()
+            ServiceRequestCpoDto serviceRequestCpoDto = ServiceRequestCpoDto.serviceRequestCpoDtoWith()
                     .action(serviceRequestDto.getCasePaymentRequest().getAction())
                     .case_id(serviceRequestDto.getCcdCaseNumber())
                     .order_reference(serviceRequestDto.getCaseReference())
                     .responsible_party(serviceRequestDto.getCasePaymentRequest().getResponsibleParty())
                     .build();
-                msg = new Message(objectMapper.writeValueAsString(serviceRequestCpoDto));
-                topicClientCPO = new TopicClientProxy(connectionString, topic);
-            }
+
+            msg = new Message(objectMapper.writeValueAsString(serviceRequestCpoDto));
+
+            topicClientCPO = new TopicClientProxy(connectionString, topic);
 
             if(msg!=null && topicClientCPO!=null){
                 msg.setContentType(MSGCONTENTTYPE);
@@ -477,11 +467,13 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     }
 
     @Override
-    public void sendMessageToTopic(PaymentStatusDto payment){
+    public void sendMessageToTopic(PaymentStatusDto payment, String callBackUrl){
         try {
             TopicClientProxy topicClientCPO = null;
             Message msg = null;
             ObjectMapper objectMapper = new ObjectMapper();
+
+            LOG.info("Callback URL: {}", callBackUrl);
 
             if(payment!=null){
                 LOG.info("Connection String CardPBA: {}", connectionString);
@@ -489,8 +481,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
                 topicClientCPO = new TopicClientProxy(connectionString, topicCardPBA);
                 msg.setContentType(MSGCONTENTTYPE);
                 msg.setLabel("Service Callback Message");
-                msg.setProperties(Collections.singletonMap("serviceCallbackUrl",
-                    callBackUrl+"/case-payment-orders"));
+                msg.setProperties(Collections.singletonMap("serviceCallbackUrl",callBackUrl));
                 topicClientCPO.send(msg);
                 topicClientCPO.close();
             }
