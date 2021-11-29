@@ -209,13 +209,8 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             long timeDuration= ChronoUnit.HOURS.between( payment.getDateUpdated().toInstant(), new Date().toInstant());
             boolean isRefundPermit=refundEligibilityUtil.getRefundEligiblityStatus(payment,timeDuration);
 
-            if (!isRefundPermit || !isRole) {
+            if (!isRefundPermit) {
                 throw new InvalidRefundRequestException("This payment is not yet eligible for refund");
-            }
-        }
-        else{
-            if (!isRole) {
-                throw new InvalidRefundRequestException("Unauthorised role - access denied");
             }
         }
     }
