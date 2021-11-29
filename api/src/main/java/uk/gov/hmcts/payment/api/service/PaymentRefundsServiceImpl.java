@@ -199,7 +199,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
         //payment success check
         if (!paymentSuccessCheck.test(payment)) {
-            throw new PaymentNotSuccessException("Refund can be possible if payment is successful");
+            throw new PaymentNotSuccessException("Refund can not be processed for unsuccessful payment");
         }
 
         boolean refundEnableFeature = featureToggler.getBooleanValue("refund-remission-feature",false);
@@ -210,17 +210,14 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             boolean isRefundPermit=refundEligibilityUtil.getRefundEligiblityStatus(payment,timeDuration);
 
             if (!isRefundPermit || !isRole) {
-                throw new InvalidRefundRequestException("Refund can be raised after the payment lag time");
+                throw new InvalidRefundRequestException("This payment is not yet eligible for refund");
             }
         }
         else{
             if (!isRole) {
-                throw new InvalidRefundRequestException("Unauthorised roles - access denied ");
+                throw new InvalidRefundRequestException("Unauthorised role - access denied");
             }
         }
-//        if(payment.getDateCreated().compareTo(new Date())==4){
-//            throw new InvalidRefundRequestException("Refund can be raised 4 days after the payment made");
-//        }
     }
 
 
