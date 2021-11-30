@@ -438,7 +438,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
             Message msg = null;
             ObjectMapper objectMapper = new ObjectMapper();
 
-            LOG.info("Connection String: ", connectionString);
+            LOG.info("Connection String: {}", connectionString);
 
             ServiceRequestCpoDto serviceRequestCpoDto = ServiceRequestCpoDto.serviceRequestCpoDtoWith()
                     .action(serviceRequestDto.getCasePaymentRequest().getAction())
