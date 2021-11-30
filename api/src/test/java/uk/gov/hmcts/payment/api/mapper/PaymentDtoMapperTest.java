@@ -152,13 +152,6 @@ public class PaymentDtoMapperTest {
         assertEquals("service-type",paymentDto.getServiceName());
     }
 
-    /*@Test
-    public void testToPaymentStatusDto(){
-        PaymentStatusDto paymentStatusDto = paymentDtoMapper.toPaymentStatusDto("ABC123", "100", payment1);
-        assertEquals("service-request-reference",paymentStatusDto.getServiceRequestReference());
-        assertEquals("ccd_case_number",paymentStatusDto.getCcdCaseNumber());
-    }*/
-
     @Test
     public void testToRetrieveCardPaymentResponseDto(){
         PaymentDto paymentDto = paymentDtoMapper.toRetrieveCardPaymentResponseDto(paymentFeeLink);
