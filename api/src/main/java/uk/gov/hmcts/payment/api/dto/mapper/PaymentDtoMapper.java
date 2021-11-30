@@ -16,6 +16,8 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.StatusHistoryDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.controllers.CardPaymentController;
+import uk.gov.hmcts.payment.api.dto.PaymentStatusDto;
+import uk.gov.hmcts.payment.api.dto.PaymentReference;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.reports.FeesService;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
@@ -23,7 +25,10 @@ import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
@@ -146,6 +151,17 @@ public class PaymentDtoMapper {
                 retrieveCardPaymentLink(payment.getReference()),
                 null
             ) : null)
+            .build();
+    }
+
+    public PaymentStatusDto toPaymentStatusDto(String serviceRequestReference, String accountNumber,
+                                               Payment payment) {
+        return PaymentStatusDto.paymentStatusDto()
+            .serviceRequestReference(serviceRequestReference)
+            .ccdCaseNumber(payment.getCcdCaseNumber())
+            .serviceRequestAmount(payment.getAmount())
+            .serviceRequestStatus(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus())
+            .payment(toPaymentReference(accountNumber, payment))
             .build();
     }
 
@@ -389,6 +405,17 @@ public class PaymentDtoMapper {
         return feeDtos.stream().map(this::toFee).collect(Collectors.toList());
     }
 
+    private PaymentReference toPaymentReference(String accountNumber,
+                                               Payment payment) {
+        return PaymentReference.paymentReference()
+            .paymentAmount(payment.getAmount())
+            .paymentReference(payment.getReference())
+            .paymentMethod(payment.getPaymentMethod().getName())
+            .caseReference(payment.getCaseReference())
+            .accountNumber(accountNumber)
+            .build();
+    }
+
     public PaymentFee toFee(FeeDto feeDto) {
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
         boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
@@ -403,6 +430,8 @@ public class PaymentDtoMapper {
             .dateCreated(apportionFeature ? timestamp: null)
             .build();
     }
+
+
 
 
     private FeeDto toFeeDto(PaymentFee fee) {

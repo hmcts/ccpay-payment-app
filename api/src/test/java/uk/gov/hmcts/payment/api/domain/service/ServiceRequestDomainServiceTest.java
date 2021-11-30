@@ -102,7 +102,7 @@ public class ServiceRequestDomainServiceTest {
     @Mock
     IdempotencyKeysRepository idempotencyKeysRepository;
 
-    @Spy
+    @Mock
     PaymentDtoMapper paymentDtoMapper;
 
     @Before
@@ -232,18 +232,40 @@ public class ServiceRequestDomainServiceTest {
          Payment payment = Payment.paymentWith()
                  .paymentLink(getPaymentFeeLink())
                  .currency("GBP")
+                .paymentMethod(PaymentMethod.paymentMethodWith().name("Online").build())
                  .paymentStatus(PaymentStatus.SUCCESS)
                      .build();
 
          Payment paymentFailed = Payment.paymentWith()
              .paymentLink(getPaymentFeeLink())
              .currency("GBP")
+             .paymentMethod(PaymentMethod.paymentMethodWith().name("Online").build())
              .paymentStatus(PaymentStatus.FAILED)
              .build();
+
+         PaymentReference paymentReference = PaymentReference.paymentReference()
+             .caseReference("1234")
+             .paymentAmount(BigDecimal.valueOf(24244.60))
+             .accountNumber("12344")
+             .paymentReference("ABC")
+             .paymentMethod("ONLINE")
+             .build();
+
+        PaymentStatusDto paymentStatusDto = PaymentStatusDto.paymentStatusDto()
+            .serviceRequestReference("ABC123")
+            .ccdCaseNumber("12345")
+            .serviceRequestAmount(BigDecimal.valueOf(12300.00))
+            .serviceRequestStatus("PAID")
+            .payment(paymentReference)
+            .build();
 
          when(serviceRequestPaymentDtoDomainMapper.toDomain(any())).thenReturn(serviceRequestPaymentBo);
 
          when(serviceRequestPaymentDomainDataEntityMapper.toEntity(any(),any())).thenReturn(payment,paymentFailed);
+
+         when(paymentFeeLinkRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(getPaymentFeeLink()));
+
+         when(paymentDtoMapper.toPaymentStatusDto(any(),any(),any())).thenReturn(paymentStatusDto);
 
          AccountDto accountDto = AccountDto.accountDtoWith()
                  .accountNumber("1234")
@@ -251,9 +273,7 @@ public class ServiceRequestDomainServiceTest {
 
          when(accountService.retrieve(any())).thenReturn(accountDto);
 
-         serviceRequestDomainService.addPayments(getPaymentFeeLink(),serviceRequestPaymentDto);
-
-         serviceRequestDomainService.addPayments(getPaymentFeeLink(),serviceRequestPaymentDto);
+         serviceRequestDomainService.addPayments(getPaymentFeeLink(),"123",serviceRequestPaymentDto);
 
      }
 
@@ -306,7 +326,7 @@ public class ServiceRequestDomainServiceTest {
             .casePaymentRequest(getCasePaymentRequest())
             .build();
 
-        serviceRequestDomainService.sendMessageTopicCPO(serviceRequestDto,null);
+        serviceRequestDomainService.sendMessageTopicCPO(serviceRequestDto);
 
     }
 

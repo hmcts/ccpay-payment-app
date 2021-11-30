@@ -61,15 +61,14 @@ public class ServiceRequestDomainServiceTest  {
         byte[] dataInBytes = mapper.writeValueAsBytes(data);
         Map <String ,String>  msgProperties = new HashMap<>();
         msgProperties.put("action", "500");
-        Map <String ,String>  msgProperties1 = new HashMap<>();
-        msgProperties1.put("action", "000");
-        when(subscriptionClient.receive()).thenReturn(msg);
+
+        when(subscriptionClient.receive()).thenReturn(msg,null);
         when(msg.getBody()).thenReturn(dataInBytes);
-        when(msg.getProperties()).thenReturn(msgProperties,msgProperties1);
+        when(msg.getProperties()).thenReturn(msgProperties);
         when(topicClientService.getTopicClientProxy()).thenReturn(topicClientProxy);
         doNothing().when(topicClientProxy).send(any(IMessage.class));
         doNothing().when(topicClientProxy).close();
-        serviceRequestDomainService.deadLetterprocess(subscriptionClient);
+        serviceRequestDomainService.deadLetterProcess(subscriptionClient);
         verify(topicClientProxy, times(1)).close();
     }
 

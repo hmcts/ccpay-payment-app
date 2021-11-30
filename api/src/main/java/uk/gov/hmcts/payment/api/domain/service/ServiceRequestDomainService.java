@@ -11,10 +11,10 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
 import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentResponse;
+import uk.gov.hmcts.payment.api.dto.PaymentStatusDto;
 import uk.gov.hmcts.payment.api.dto.ServiceRequestResponseDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
-import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 
 import java.io.IOException;
@@ -28,7 +28,7 @@ public interface ServiceRequestDomainService {
 
     ServiceRequestResponseDto create(ServiceRequestDto serviceRequestDto, MultiValueMap<String, String> headers);
 
-    ServiceRequestPaymentBo addPayments(PaymentFeeLink serviceRequest, ServiceRequestPaymentDto serviceRequestPaymentDto) throws CheckDigitException;
+    ServiceRequestPaymentBo addPayments(PaymentFeeLink serviceRequest, String serviceRequestReference, ServiceRequestPaymentDto serviceRequestPaymentDto) throws CheckDigitException;
 
     OnlineCardPaymentResponse create(OnlineCardPaymentRequest onlineCardPaymentRequest, String serviceRequestReference, String returnURL, String serviceCallbackURL) throws CheckDigitException;
 
@@ -39,9 +39,11 @@ public interface ServiceRequestDomainService {
 
     Boolean isDuplicate(String serviceRequestReference);
 
-    void sendMessageTopicCPO(ServiceRequestDto serviceRequestDto, PaymentDto payment);
+    void sendMessageTopicCPO(ServiceRequestDto serviceRequestDto);
 
-    void deadLetterprocess(IMessageReceiver subscriptionClient) throws ServiceBusException, InterruptedException, IOException;
+    void sendMessageToTopic(PaymentStatusDto payment, String callBackUrl);
+
+    void deadLetterProcess(IMessageReceiver subscriptionClient) throws ServiceBusException, InterruptedException, IOException;
 
     IMessageReceiver createDLQConnection() throws ServiceBusException, InterruptedException;
 }
