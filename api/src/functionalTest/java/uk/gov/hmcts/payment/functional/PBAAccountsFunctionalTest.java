@@ -2,7 +2,7 @@ package uk.gov.hmcts.payment.functional;
 
 import io.restassured.response.Response;
 import org.junit.Before;
-import org.junit.Ignore;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,12 +48,21 @@ public class PBAAccountsFunctionalTest {
 
     @Before
     public void setUp() throws Exception {
+        if (!TOKENS_INITIALIZED) {
+            SERVICE_TOKEN = s2sTokenService.getS2sToken("payment_app", testProps.getPaymentAppS2SSecret());
+            TOKENS_INITIALIZED = false;
+        }
     }
 
     @Test
     //@Ignore("As we need support from Raj to Cover this test....")
     public void perform_pba_accounts_lookup() throws Exception {
-        final String userPUIFinanceManagerToken = this.getFinanceManagerTokenForOrganisation();
+        final User user = idamService.createUserWithRefDataEmailFormat(CMC_CASE_WORKER_GROUP,
+            "pui-finance-manager");
+        final String userPUIFinanceManagerToken = user.getAuthorisationToken();
+        System.out.println("The value of the userPUIFinanceManagerToken : " + userPUIFinanceManagerToken);
+        this.createPbaAccountsForOrganisation(user.getEmail());
+
         Thread.sleep(TimeUnit.SECONDS.toMillis(10)); //Sleep the Thread so that the newly created credentials are available after sometime...
         Response getPBAAccountsResponse = PBAAccountsTestService.getPBAAccounts(userPUIFinanceManagerToken, SERVICE_TOKEN);
         assertThat(getPBAAccountsResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
@@ -61,20 +70,14 @@ public class PBAAccountsFunctionalTest {
 
     }
 
-    private final String getFinanceManagerTokenForOrganisation() throws Exception {
-        final User user = idamService.createUserWithRefDataEmailFormat(CMC_CASE_WORKER_GROUP,
-            "pui-finance-manager");
-        final String userPUIFinanceManagerToken = user.getAuthorisationToken();
-        final String userEmail = user.getEmail();
-        System.out.println("The value of the userPUIFinanceManagerToken : " + userPUIFinanceManagerToken);
+    private final void createPbaAccountsForOrganisation(final String userEmailId) throws Exception {
 
-        SERVICE_TOKEN = s2sTokenService.getS2sToken("payment_app", testProps.getPaymentAppS2SSecret());
         final String fileContentsTemplate = readFileContents(INPUT_FILE_PATH + "/" + "CreateOrganisation.json");
         System.out.println("The value of the File Contents Before Templating : " + fileContentsTemplate);
         final String fileContents = String.format(fileContentsTemplate,
             generateRandomString(13, true, false),
             generateRandomString(8, true, false),
-            userEmail,
+            userEmailId,
             generateRandomString(6, true, false),
             generateRandomString(6, true, false),
             generateRandomString(6, true, false));
@@ -91,7 +94,6 @@ public class PBAAccountsFunctionalTest {
         System.out.println("The value of the Service Token : " + SERVICE_TOKEN);
         Response updatedResponse = approveOrganisation(prdAdminToken, SERVICE_TOKEN, testProps.getRefDataApiUrl(), fileContents, organisationIdentifier);
         assertThat(updatedResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
-        return userPUIFinanceManagerToken;
     }
 
 

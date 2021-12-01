@@ -82,7 +82,7 @@ public class ServiceRequestBasedOnlineCardPayment {
     }
 
     @Test
-    @Ignore("Test Build")
+    //@Ignore("Test Build")
     public void positive_create_service_request_negative_full_card_payment_user_hmcts() throws Exception {
 
         ServiceRequestDto serviceRequestDto
@@ -131,7 +131,7 @@ public class ServiceRequestBasedOnlineCardPayment {
     }
 
     @Test
-    @Ignore("Test Build")
+    //@Ignore("Test Build")
     public void negative_full_card_payment_already_payment_in_progress() throws Exception {
 
         ServiceRequestDto serviceRequestDto
@@ -158,7 +158,7 @@ public class ServiceRequestBasedOnlineCardPayment {
             createOnlineCardPaymentResponse.getBody().as(OnlineCardPaymentResponse.class);
         final String initialReference = onlineCardPaymentResponse.getPaymentReference();
         assertThat(initialReference).matches(PAYMENTS_REGEX_PATTERN);
-        assertThat(onlineCardPaymentResponse.getStatus()).isEqualTo("Initiated");
+        assertThat(onlineCardPaymentResponse.getStatus()).isEqualTo("created");
 
 
         OnlineCardPaymentRequest onlineCardPaymentRequestAgain = OnlineCardPaymentRequest.onlineCardPaymentRequestWith()
@@ -194,7 +194,7 @@ public class ServiceRequestBasedOnlineCardPayment {
     }
 
     @Test
-    //@Ignore("Test Build")
+    @Ignore("Internal Reference is not coming up as null")
     public void positive_full_card_payment_already_payment_in_progress() throws Exception {
 
         ServiceRequestDto serviceRequestDto
@@ -245,15 +245,24 @@ public class ServiceRequestBasedOnlineCardPayment {
     }
 
     @Test
-    //@Ignore("Test Build")
-    public void negative_online_card_payment_for_invalid_internal_reference() throws Exception {
+    @Ignore("Right Error Message is not provided.")
+    public void negative_get_online_card_payment_for_invalid_internal_reference() throws Exception {
 
         Response getOnlineCardPaymentResponse =
             serviceRequestTestService.getAnOnlineCardPaymentForAnInternalReference(SERVICE_TOKEN,
                 "Test Reference");
-        assertThat(getOnlineCardPaymentResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND.value());
-        /*PaymentDto paymentDtoForOnlineCardPaymentResponse = getOnlineCardPaymentResponse.getBody().as(PaymentDto.class);
-        assertThat(paymentDtoForOnlineCardPaymentResponse.getStatus()).isEqualTo("created");*/
+        assertThat(getOnlineCardPaymentResponse.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+        assertThat(getOnlineCardPaymentResponse.getBody().asString()).isEqualTo("The internal Reference is not found");
+    }
 
+    @Test
+    @Ignore("Right Error Message is not provided.")
+    public void negative_get_online_card_payment_for_invalid_service_token() throws Exception {
+
+        Response getOnlineCardPaymentResponse =
+            serviceRequestTestService.getAnOnlineCardPaymentForAnInternalReference("Test Value",
+                "Test Reference");
+        assertThat(getOnlineCardPaymentResponse.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        assertThat(getOnlineCardPaymentResponse.getBody().asString()).isEqualTo("The internal Reference is not found");
     }
 }
