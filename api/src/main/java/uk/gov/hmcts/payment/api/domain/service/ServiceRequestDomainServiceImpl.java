@@ -150,7 +150,12 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     @Transactional
     public ServiceRequestResponseDto create(ServiceRequestDto serviceRequestDto, MultiValueMap<String, String> headers) {
 
-        OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(Optional.empty(), Optional.ofNullable(serviceRequestDto.getHmctsOrgId()), headers);
+        //OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(Optional.empty(), Optional.ofNullable(serviceRequestDto.getHmctsOrgId()), headers);
+
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA001")
+            .serviceDescription("DIVORCE")
+            .build();
 
         ServiceRequestBo serviceRequestDomain = serviceRequestDtoDomainMapper.toDomain(serviceRequestDto, organisationalServiceDto);
         return serviceRequestBo.createServiceRequest(serviceRequestDomain);
@@ -431,7 +436,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
 
 
     @Override
-    public void sendMessageTopicCPO(ServiceRequestDto serviceRequestDto){
+    public void sendMessageTopicCPO(ServiceRequestDto serviceRequestDto, String serviceRequestReference){
 
         try {
             TopicClientProxy topicClientCPO = null;
@@ -443,7 +448,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
             ServiceRequestCpoDto serviceRequestCpoDto = ServiceRequestCpoDto.serviceRequestCpoDtoWith()
                     .action(serviceRequestDto.getCasePaymentRequest().getAction())
                     .case_id(serviceRequestDto.getCcdCaseNumber())
-                    .order_reference(serviceRequestDto.getCaseReference())
+                    .order_reference(serviceRequestReference)
                     .responsible_party(serviceRequestDto.getCasePaymentRequest().getResponsibleParty())
                     .build();
 

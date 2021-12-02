@@ -102,7 +102,7 @@ public class ServiceRequestController {
         ResponseEntity<ServiceRequestResponseDto> serviceRequestResponseDto = new ResponseEntity<>(serviceRequestDomainService.
             create(serviceRequestDto, headers), HttpStatus.CREATED);
 
-        serviceRequestDomainService.sendMessageTopicCPO(serviceRequestDto);
+        serviceRequestDomainService.sendMessageTopicCPO(serviceRequestDto, serviceRequestResponseDto.getBody().getServiceRequestReference());
 
         return serviceRequestResponseDto;
     }
