@@ -77,6 +77,8 @@ public class ServiceRequestController {
     @Autowired
     private FeesService feeService;
 
+    private String serviceRequestReference;
+
     @Autowired
     public ServiceRequestController(
         ServiceRequestDomainService serviceRequestDomainService) {
@@ -102,7 +104,10 @@ public class ServiceRequestController {
         ResponseEntity<ServiceRequestResponseDto> serviceRequestResponseDto = new ResponseEntity<>(serviceRequestDomainService.
             create(serviceRequestDto, headers), HttpStatus.CREATED);
 
-        serviceRequestDomainService.sendMessageTopicCPO(serviceRequestDto, serviceRequestResponseDto.getBody().getServiceRequestReference());
+        if(serviceRequestResponseDto.getBody()!=null)
+            serviceRequestReference = serviceRequestResponseDto.getBody().getServiceRequestReference();
+
+        serviceRequestDomainService.sendMessageTopicCPO(serviceRequestDto, serviceRequestReference);
 
         return serviceRequestResponseDto;
     }
