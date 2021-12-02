@@ -90,6 +90,8 @@ public class RefundRemissionEnableServiceImpl implements RefundRemissionEnableSe
 
         boolean refundEnableFeature = featureToggler.getBooleanValue("refund-remission-feature",false);
 
+        LOG.info("RefundEnableFeature Flag Value in RefundRemissionEnableServiceImpl : {}", refundEnableFeature);
+
         if(refundEnableFeature){
             Optional<FeePayApportion> FeePayApportion = FeePayApportionRepository.findByFeeId(
                 fee.getId());
