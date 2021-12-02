@@ -4,10 +4,13 @@ import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
+import uk.gov.hmcts.payment.api.controllers.CardPaymentController;
 import uk.gov.hmcts.payment.api.domain.model.Roles;
 import uk.gov.hmcts.payment.api.dto.idam.IdamUserIdResponse;
 import uk.gov.hmcts.payment.api.model.FeePayApportion;
@@ -25,6 +28,7 @@ public class RefundRemissionEnableServiceImpl implements RefundRemissionEnableSe
     private final String STATUS = "success";
     private static final String AUTHORISED_REFUNDS_ROLE = "payments-refund";
     private static final String AUTHORISED_REFUNDS_APPROVER_ROLE = "payments-refund-approver";
+    private static final Logger LOG = LoggerFactory.getLogger(RefundRemissionEnableServiceImpl.class);
 
     Roles roles = new Roles();
 
@@ -50,6 +54,8 @@ public class RefundRemissionEnableServiceImpl implements RefundRemissionEnableSe
             isRoles = checkRoles(roles.getRoles());
         }
         boolean refundEnableFeature = featureToggler.getBooleanValue("refund-remission-feature",false);
+
+        LOG.info("RefundEnableFeature Flag Value in RefundRemissionEnableServiceImpl : {}", refundEnableFeature);
 
         if(refundEnableFeature){
             refundEligibleDate = calculateLagDate(payment);

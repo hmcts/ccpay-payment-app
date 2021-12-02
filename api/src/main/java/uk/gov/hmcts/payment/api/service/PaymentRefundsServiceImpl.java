@@ -202,6 +202,8 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
         boolean refundEnableFeature = featureToggler.getBooleanValue("refund-remission-feature",false);
 
+        LOG.info("RefundEnableFeature Flag Value in PaymentRefundsServiceImpl : {}", refundEnableFeature);
+
         if(refundEnableFeature){
 
             long timeDuration= ChronoUnit.HOURS.between( payment.getDateUpdated().toInstant(), new Date().toInstant());
