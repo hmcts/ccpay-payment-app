@@ -1,20 +1,29 @@
 package uk.gov.hmcts.payment.api.configuration.security;
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import uk.gov.hmcts.reform.auth.checker.core.RequestAuthorizer;
 import uk.gov.hmcts.reform.auth.checker.core.service.Service;
 import uk.gov.hmcts.reform.auth.checker.core.user.User;
 import uk.gov.hmcts.reform.auth.checker.spring.serviceonly.AuthCheckerServiceOnlyFilter;
+import uk.gov.hmcts.payment.api.external.client.dto.Error;
+
+
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
 
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
@@ -33,6 +42,7 @@ public class SpringSecurityConfiguration {
     @Configuration
     @Order(1)
     public static class ExternalApiSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter {
+
 
         private AuthCheckerServiceOnlyFilter authCheckerServiceOnlyFilter;
 
@@ -93,9 +103,23 @@ public class SpringSecurityConfiguration {
                 "/");
         }
 
+        @Bean
+        public AccessDeniedHandler accessDeniedHandler() {
+            return (request, response, ex) -> {
+                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+
+                ServletOutputStream out = response.getOutputStream();
+                new ObjectMapper().writeValue(out, new Error("403", "User does not have a valid role"));
+                out.flush();
+            };
+        }
+
+
         @Override
         @SuppressWarnings(value = "SPRING_CSRF_PROTECTION_DISABLED", justification = "It's safe to disable CSRF protection as application is not being hit directly from the browser")
         protected void configure(HttpSecurity http) throws Exception {
+            http.exceptionHandling().accessDeniedHandler(accessDeniedHandler());
             http.addFilter(authCheckerFilter)
                 .sessionManagement().sessionCreationPolicy(STATELESS).and()
                 .csrf().disable()
