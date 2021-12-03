@@ -104,7 +104,7 @@ public class ServiceRequestController {
         ResponseEntity<ServiceRequestResponseDto> serviceRequestResponseDto = new ResponseEntity<>(serviceRequestDomainService.
             create(serviceRequestDto, headers), HttpStatus.CREATED);
 
-        if(serviceRequestResponseDto.getBody()!=null)
+        if(serviceRequestResponseDto!=null && serviceRequestResponseDto.getBody()!=null)
             serviceRequestReference = serviceRequestResponseDto.getBody().getServiceRequestReference();
 
         serviceRequestDomainService.sendMessageTopicCPO(serviceRequestDto, serviceRequestReference);
