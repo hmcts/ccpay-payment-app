@@ -256,7 +256,7 @@ public class ServiceRequestBasedOnlineCardPayment {
     }
 
     @Test
-//    @Ignore("Right Error Message is not provided.")
+    @Ignore("Right Error Message is not provided.")
     public void negative_get_online_card_payment_for_invalid_service_token() throws Exception {
 
         Response getOnlineCardPaymentResponse =
