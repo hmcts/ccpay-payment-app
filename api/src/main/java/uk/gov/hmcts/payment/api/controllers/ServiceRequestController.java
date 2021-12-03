@@ -106,8 +106,10 @@ public class ServiceRequestController {
 
         ServiceRequestResponseDto serviceRequestResponseDtoBody = serviceRequestResponseDto.getBody();
 
-        if(serviceRequestResponseDtoBody!=null)
+        if(serviceRequestResponseDtoBody!=null){
+            //NOSONAR
             serviceRequestReference = serviceRequestResponseDto.getBody().getServiceRequestReference();
+        }
 
         serviceRequestDomainService.sendMessageTopicCPO(serviceRequestDto, serviceRequestReference);
 
