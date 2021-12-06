@@ -622,7 +622,7 @@ public class ServiceRequestFunctionalTests {
         assertThat(responseDTO.getServiceRequestReference()).matches(SERVICE_REQUEST_REGEX_PATTERN);
 
         OnlineCardPaymentRequest onlineCardPaymentRequest = OnlineCardPaymentRequest.onlineCardPaymentRequestWith()
-            .amount(new BigDecimal(100.00))
+            .amount(new BigDecimal("100.00"))
             .currency(CurrencyCode.GBP)
             .language("cy")
             .build();
