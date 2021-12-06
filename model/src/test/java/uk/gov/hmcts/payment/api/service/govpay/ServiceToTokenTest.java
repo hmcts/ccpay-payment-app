@@ -16,7 +16,7 @@ public class ServiceToTokenTest {
 
     @Test
     public void getServiceKeyVaultNameShouldReturnKeyvaultName(){
-        String actual = serviceToTokenMap.getServiceKeyVaultName("Divorce");
+        String actual = serviceToTokenMap.getServiceKeyVaultName("divorce");
         assertEquals("divorce_frontend",actual);
     }
 
