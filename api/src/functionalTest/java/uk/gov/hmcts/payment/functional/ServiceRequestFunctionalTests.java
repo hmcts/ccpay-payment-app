@@ -122,7 +122,7 @@ public class ServiceRequestFunctionalTests {
     }
 
     @Test
-    @Ignore("TODO- response body has been populated with error object, test case needs to be modified")
+//    @Ignore("TODO- Error message is not provided. UPDATE: FIXED")
     public void negative_create_service_request_for_cmc_solicitor_user_professional() throws Exception {
 
         ServiceRequestDto serviceRequestDto
@@ -168,7 +168,7 @@ public class ServiceRequestFunctionalTests {
         Response getPaymentGroupResponseForCmcSolicitor =
             serviceRequestTestService.getPaymentGroups(USER_TOKEN_CMC_SOLICITOR, SERVICE_TOKEN, serviceRequestDto.getCcdCaseNumber());
         assertThat(getPaymentGroupResponseForCmcSolicitor.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN.value());
-        assertThat(getPaymentGroupResponseForCmcSolicitor.getBody().asString()).isEqualTo("A user with a solicitor role should not be able to search on this API Action....");
+        assertThat(getPaymentGroupResponseForCmcSolicitor.getBody().asString()).isEqualTo("User does not have a valid role");
     }
 
     @Test

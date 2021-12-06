@@ -110,7 +110,7 @@ public class SpringSecurityConfiguration {
                 response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
                 ServletOutputStream out = response.getOutputStream();
-                new ObjectMapper().writeValue(out, new Error("403", "User does not have a valid role"));
+                new ObjectMapper().writeValue(out,"User does not have a valid role");
                 out.flush();
             };
         }
