@@ -359,9 +359,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .andExpect(status().isForbidden())
             .andReturn();
 
-        PaymentGroupResponse paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentGroupResponse>(){});
-
-        assertThat(result.getResponse().getStatus()).isEqualTo(403);
+        assertThat(result.getResponse().getContentAsString().subSequence(1,32)).isEqualTo("User does not have a valid role");
 
     }
 
