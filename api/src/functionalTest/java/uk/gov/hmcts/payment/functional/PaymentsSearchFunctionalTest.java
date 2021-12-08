@@ -57,7 +57,7 @@ public class PaymentsSearchFunctionalTest {
         }
     }
 
-    @Test
+    /*@Test
     public void givenAnyTwoValidDatesWithFormatYYYYMMDDShouldNotBeAnyErrors() {
         String startDate = LocalDate.now(zoneUTC).toString(DATE_FORMAT);
         String endDate = LocalDate.now(zoneUTC).toString(DATE_FORMAT);
@@ -82,7 +82,7 @@ public class PaymentsSearchFunctionalTest {
             .then().getPayments206(paymentsResponse -> {
                 assertThat(paymentsResponse.getPayments()).isNotNull();
         });
-    }
+    }*/
 
 
     @Test
