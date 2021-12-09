@@ -176,6 +176,7 @@ def sonarExclusions = [
         '**/v1/**',
         '**/OtpBootstrap.java',
         '**/api/model/**',
+        '**/api/configuration/security/SpringSecurityConfiguration.java',
         '**/referencedata/model/**',
         '**/api/dto/*.java',
         '**/referencedata/dto/*.java',
