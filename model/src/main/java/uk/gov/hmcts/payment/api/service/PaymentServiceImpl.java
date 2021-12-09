@@ -198,6 +198,6 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
 
     @Override
     public Payment findPayment(@NotNull String internalReference) {
-        return paymentRepository.findByInternalReference(internalReference).orElseThrow((PaymentNotFoundException::new));
+        return paymentRepository.findByInternalReference(internalReference).orElseThrow(() -> new PaymentNotFoundException("The internal Reference is not found"));
     }
 }
