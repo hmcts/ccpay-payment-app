@@ -227,7 +227,8 @@ public class ServiceRequestController {
     @ApiOperation(value = "Get card payment status by Internal Reference", notes = "Get payment status for supplied Internal Reference")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Payment status retrieved"),
-        @ApiResponse(code = 404, message = "Internal reference not found")
+        @ApiResponse(code = 404, message = "Internal reference not found"),
+        @ApiResponse(code = 403, message = "Invalid user token")
     })
     @PaymentExternalAPI
     @GetMapping(value = "/card-payments/{internal-reference}/status")
