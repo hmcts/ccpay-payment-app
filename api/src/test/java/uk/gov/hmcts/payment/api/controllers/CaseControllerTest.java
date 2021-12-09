@@ -359,7 +359,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .andExpect(status().isForbidden())
             .andReturn();
 
-        assertThat(result.getResponse().getContentAsString().subSequence(1,32)).isEqualTo("User does not have a valid role");
+        assertThat(result.getResponse().getContentAsString()).isEqualTo("User does not have a valid role");
 
     }
 

@@ -107,11 +107,9 @@ public class SpringSecurityConfiguration {
         public AccessDeniedHandler accessDeniedHandler() {
             return (request, response, ex) -> {
                 response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-
-                ServletOutputStream out = response.getOutputStream();
-                new ObjectMapper().writeValue(out,"User does not have a valid role");
-                out.flush();
+                response.setContentType(MediaType.TEXT_HTML_VALUE);
+                response.setStatus(403);
+                response.getWriter().print("User does not have a valid role");
             };
         }
 
