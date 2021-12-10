@@ -48,18 +48,18 @@ public class SpringSecurityConfiguration {
             authCheckerServiceOnlyFilter.setAuthenticationManager(authenticationManager);
         }
 
-//        @Bean
-//        public AccessDeniedHandler accessDeniedHandler() {
-//            return (request, response, ex) -> {
-//                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-//                response.setContentType(MediaType.TEXT_HTML_VALUE);
-//                response.setStatus(403);
-//                response.getWriter().print("Invalid Service Token");
-//            };
-//        }
+        @Bean
+        public AccessDeniedHandler accessDeniedHandler() {
+            return (request, response, ex) -> {
+                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                response.setContentType(MediaType.TEXT_HTML_VALUE);
+                response.setStatus(403);
+                response.getWriter().print("Invalid Service Token");
+            };
+        }
 
         protected void configure(HttpSecurity http) throws Exception {
-//            http.exceptionHandling().accessDeniedHandler(accessDeniedHandler());
+            http.exceptionHandling().accessDeniedHandler(accessDeniedHandler());
             http
                 .requestMatchers()
                     .antMatchers(HttpMethod.GET, "/payments")
