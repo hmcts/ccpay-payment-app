@@ -43,12 +43,7 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.TelephonyCardPaymentsRequest;
 import uk.gov.hmcts.payment.api.contract.TelephonyCardPaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.TelephonyPaymentRequest;
-import uk.gov.hmcts.payment.api.dto.BulkScanPaymentRequest;
-import uk.gov.hmcts.payment.api.dto.BulkScanPaymentRequestStrategic;
-import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
-import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
-import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
-import uk.gov.hmcts.payment.api.dto.PciPalPaymentRequest;
+import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.TelephonyDtoMapper;
@@ -153,7 +148,7 @@ public class PaymentGroupController {
         @ApiResponse(code = 404, message = "Payment not found")
     })
     @GetMapping(value = "/payment-groups/{payment-group-reference}")
-    public ResponseEntity<PaymentGroupDto> retrievePayment(@PathVariable("payment-group-reference") String paymentGroupReference) {
+    public ResponseEntity<RetrieveOrderPaymentGroupDto> retrievePayment(@PathVariable("payment-group-reference") String paymentGroupReference) {
         PaymentFeeLink paymentFeeLink = paymentGroupService.findByPaymentGroupReference(paymentGroupReference);
 
         return new ResponseEntity<>(paymentGroupDtoMapper.toPaymentGroupDto(paymentFeeLink), HttpStatus.OK);
@@ -161,11 +156,11 @@ public class PaymentGroupController {
 
     @ApiOperation(value = "Add Payment Group with Fees", notes = "Add Payment Group with Fees")
     @ApiResponses(value = {
-        @ApiResponse(code = 201, message = "Payment group with fee(s) created"),
-        @ApiResponse(code = 400, message = "Payment group creation failed")
+            @ApiResponse(code = 201, message = "Payment group with fee(s) created"),
+            @ApiResponse(code = 400, message = "Payment group creation failed")
     })
     @PostMapping(value = "/payment-groups")
-    public ResponseEntity<PaymentGroupDto> addNewFee(@Valid @RequestBody PaymentGroupDto paymentGroupDto) {
+    public ResponseEntity<RetrieveOrderPaymentGroupDto> addNewFee(@Valid @RequestBody PaymentGroupDto paymentGroupDto) {
 
         String paymentGroupReference = PaymentReference.getInstance().getNext();
 
@@ -176,20 +171,18 @@ public class PaymentGroupController {
         });
 
         List<PaymentFee> feeList = paymentGroupDto.getFees().stream()
-            .map(paymentGroupDtoMapper::toPaymentFee).collect(Collectors.toList());
+                .map(paymentGroupDtoMapper::toPaymentFee).collect(Collectors.toList());
 
         PaymentFeeLink feeLink = PaymentFeeLink.paymentFeeLinkWith()
-            .paymentReference(paymentGroupReference)
-            .fees(Lists.newArrayList(feeList))
-            .build();
+                .paymentReference(paymentGroupReference)
+                .fees(Lists.newArrayList(feeList))
+                .build();
         feeList.stream().forEach(fee -> fee.setPaymentLink(feeLink));
 
         PaymentFeeLink paymentFeeLink = paymentGroupService.addNewFeeWithPaymentGroup(feeLink);
 
-        PaymentGroupDto responsePaymentGroupDto = paymentGroupDtoMapper.toPaymentGroupDto(paymentFeeLink);
-        return new ResponseEntity<>(responsePaymentGroupDto, HttpStatus.CREATED);
+        return new ResponseEntity<>(paymentGroupDtoMapper.toPaymentGroupDto(paymentFeeLink), HttpStatus.CREATED);
     }
-
 
     @ApiOperation(value = "Add new Fee(s) to existing Payment Group", notes = "Add new Fee(s) to existing Payment Group")
     @ApiResponses(value = {
@@ -198,7 +191,7 @@ public class PaymentGroupController {
         @ApiResponse(code = 404, message = "Payment Group not found")
     })
     @PutMapping(value = "/payment-groups/{payment-group-reference}")
-    public ResponseEntity<PaymentGroupDto> addNewFeetoPaymentGroup(@PathVariable("payment-group-reference") String paymentGroupReference,
+    public ResponseEntity<RetrieveOrderPaymentGroupDto> addNewFeetoPaymentGroup(@PathVariable("payment-group-reference") String paymentGroupReference,
                                                                    @Valid @RequestBody PaymentGroupDto paymentGroupDto) {
 
         paymentGroupDto.getFees().stream().forEach(f -> {

@@ -10,10 +10,7 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.fees2.register.api.contract.Fee2Dto;
 import uk.gov.hmcts.fees2.register.api.contract.FeeVersionDto;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
-import uk.gov.hmcts.payment.api.contract.FeeDto;
-import uk.gov.hmcts.payment.api.contract.PaymentAllocationDto;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.contract.StatusHistoryDto;
+import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.controllers.CardPaymentController;
 import uk.gov.hmcts.payment.api.model.*;
@@ -23,7 +20,10 @@ import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
@@ -186,8 +186,8 @@ public class PaymentDtoMapper {
             .build();
     }
 
-    public PaymentDto toPaymentStatusesDto(Payment payment) {
-        return PaymentDto.payment2DtoWith()
+    public PaymentStatusDto toPaymentStatusesDto(Payment payment) {
+        return PaymentStatusDto.paymentStatusDtoWith()
             .reference(payment.getReference())
             .amount(payment.getAmount())
             .paymentGroupReference(payment.getPaymentLink() != null ? payment.getPaymentLink().getPaymentReference() : null)
@@ -259,8 +259,8 @@ public class PaymentDtoMapper {
 
 
 
-    public PaymentDto toPaymentDto(Payment payment, PaymentFeeLink paymentFeeLink){
-        PaymentDto paymentDto = PaymentDto.payment2DtoWith()
+    public CasePaymentDto toCasePaymentDto(Payment payment, PaymentFeeLink paymentFeeLink){
+        CasePaymentDto paymentDto = CasePaymentDto.casePaymentDtoWith()
             .paymentReference(payment.getReference())
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
             .serviceName(payment.getServiceType())
@@ -328,6 +328,33 @@ public class PaymentDtoMapper {
         return enrichWithFeeData(paymentDto);
     }
 
+
+    private CasePaymentDto enrichWithFeeData(CasePaymentDto paymentDto) {
+        LOG.info("Start of enrichWithFeeData!!!");
+        paymentDto.getFees().forEach(fee -> {
+            Optional<Map<String, Fee2Dto>> optFrFeeMap = Optional.ofNullable(feesService.getFeesDtoMap());
+            if (optFrFeeMap.isPresent()) {
+                LOG.info("Fee details retrieved from fees-register!!!");
+                Map<String, Fee2Dto> frFeeMap = optFrFeeMap.get();
+
+                if (frFeeMap.containsKey(fee.getCode())) {
+                    Fee2Dto frFee = frFeeMap.get(fee.getCode());
+                    fee.setJurisdiction1(frFee.getJurisdiction1Dto().getName());
+                    fee.setJurisdiction2(frFee.getJurisdiction2Dto().getName());
+
+                    Optional<FeeVersionDto> optionalFeeVersionDto = feesService.getFeeVersion(fee.getCode(), fee.getVersion());
+                    if (optionalFeeVersionDto.isPresent()) {
+                        fee.setMemoLine(optionalFeeVersionDto.get().getMemoLine());
+                        fee.setNaturalAccountCode(optionalFeeVersionDto.get().getNaturalAccountCode());
+                    }
+                    LOG.info("End of enrichWithFeeData!!!");
+                } else {
+                    LOG.info("No fee found with the code: {}", fee.getCode());
+                }
+            }
+        });
+        return paymentDto;
+    }
 
     private PaymentDto enrichWithFeeData(PaymentDto paymentDto) {
         LOG.info("Start of enrichWithFeeData!!!");
