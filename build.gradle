@@ -183,6 +183,8 @@ def sonarExclusions = [
         '**/api/service/*Service.java',
         '**/referencedata/service/*Service.java',
         '**/api/service/MockAccountServiceImpl.java',
+        '**/api/exceptions/ServiceTokenInvalidException.java',
+        '**/api/controllers/ServiceRequestController.java',
         '**/api/service/PaymentServiceImpl.java',
         '**/api/service/MockCcdDataStoreClientServiceImpl.java',
         '**/api/controllers/mock/MockCallbackControllerForTesting.java',
