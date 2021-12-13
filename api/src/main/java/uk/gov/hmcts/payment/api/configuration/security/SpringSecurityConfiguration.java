@@ -1,5 +1,7 @@
 package uk.gov.hmcts.payment.api.configuration.security;
 
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -17,7 +19,10 @@ import uk.gov.hmcts.reform.auth.checker.core.RequestAuthorizer;
 import uk.gov.hmcts.reform.auth.checker.core.service.Service;
 import uk.gov.hmcts.reform.auth.checker.core.user.User;
 import uk.gov.hmcts.reform.auth.checker.spring.serviceonly.AuthCheckerServiceOnlyFilter;
+import uk.gov.hmcts.payment.api.external.client.dto.Error;
 
+
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
@@ -48,18 +53,7 @@ public class SpringSecurityConfiguration {
             authCheckerServiceOnlyFilter.setAuthenticationManager(authenticationManager);
         }
 
-        @Bean
-        public AccessDeniedHandler accessDeniedHandler() {
-            return (request, response, ex) -> {
-                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                response.setContentType(MediaType.TEXT_HTML_VALUE);
-                response.setStatus(403);
-                response.getWriter().print("Invalid Service Token");
-            };
-        }
-
         protected void configure(HttpSecurity http) throws Exception {
-            http.exceptionHandling().accessDeniedHandler(accessDeniedHandler());
             http
                 .requestMatchers()
                     .antMatchers(HttpMethod.GET, "/payments")

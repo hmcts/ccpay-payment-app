@@ -28,7 +28,6 @@ import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
 import uk.gov.hmcts.payment.api.exception.LiberataServiceTimeoutException;
 import uk.gov.hmcts.payment.api.exceptions.PaymentServiceNotFoundException;
-import uk.gov.hmcts.payment.api.exceptions.ServiceTokenInvalidException;
 import uk.gov.hmcts.payment.api.model.FeePayApportion;
 import uk.gov.hmcts.payment.api.model.IdempotencyKeys;
 import uk.gov.hmcts.payment.api.model.Payment;
@@ -259,12 +258,6 @@ public class ServiceRequestController {
     @ExceptionHandler(PaymentServiceNotFoundException.class)
     public String paymentNotSuccess(PaymentServiceNotFoundException ex) {
         return ex.getMessage();
-    }
-
-    @ResponseStatus(HttpStatus.FORBIDDEN)
-    @ExceptionHandler(ServiceTokenInvalidException.class)
-    public String InvalidServiceToken(ServiceTokenInvalidException ex) {
-        return "Invalid token";
     }
 
 }
