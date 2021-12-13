@@ -68,7 +68,7 @@ public class AuthCheckerServiceAndAnonymousUserFilter extends AbstractPreAuthent
             return serviceRequestAuthorizer.authorise(request);
         } catch (AuthCheckerException e) {
             log.warn("Unsuccessful service authentication", e);
-            return null;
+            throw new AuthCheckerException("Unsuccessful service authentication");
         }
     }
 
