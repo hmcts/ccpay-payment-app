@@ -15,6 +15,7 @@ import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import uk.gov.hmcts.reform.auth.checker.core.RequestAuthorizer;
 import uk.gov.hmcts.reform.auth.checker.core.service.Service;
 import uk.gov.hmcts.reform.auth.checker.core.user.User;
@@ -82,6 +83,8 @@ public class SpringSecurityConfiguration {
                                            AuthenticationManager authenticationManager) {
             authCheckerFilter = new AuthCheckerServiceAndAnonymousUserFilter(serviceRequestAuthorizer, userRequestAuthorizer);
             authCheckerFilter.setAuthenticationManager(authenticationManager);
+
+            authCheckerFilter.setAuthenticationFailureHandler((AuthenticationFailureHandler) accessDeniedHandler());
         }
 
         @Override
