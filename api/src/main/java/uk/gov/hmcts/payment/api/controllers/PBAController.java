@@ -29,6 +29,7 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @RestController
@@ -94,7 +95,12 @@ public class PBAController {
     @GetMapping(value = "/pba-accounts")
     @PaymentExternalAPI
     public ResponseEntity<PBAResponse> retrievePBADetails(@RequestHeader(required = false) MultiValueMap<String, String> headers) {
-
+        // Put in place for testing
+        Set<String> keySet = headers.keySet();
+        for (String key: keySet) {
+            LOG.info("Value retrieved from Header: {} ",headers.get(key));
+        }
+        // To be removed after testing
         String userId = idamService.getUserId(headers);
         LOG.info("User Id retrieved from IDAM : {} ",userId);
         UserIdentityDataDto userIdentityDataDto = idamService.getUserIdentityData(headers, userId);
@@ -138,6 +144,7 @@ public class PBAController {
         headerMultiValueMapForRefData.put("ServiceAuthorization", serviceAuthTokenPaymentList);
         headerMultiValueMapForRefData.put("UserEmail", email);
         LOG.info("headers to ref data : {}", headerMultiValueMapForRefData);
+        LOG.info("ServiceAuthorization Token : {}", serviceAuthTokenPaymentList);
         return headerMultiValueMapForRefData;
     }
 

@@ -2,7 +2,6 @@ package uk.gov.hmcts.payment.functional;
 
 import io.restassured.response.Response;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,7 +40,8 @@ public class PBAAccountsFunctionalTest {
     private S2sTokenService s2sTokenService;
 
     private static String USER_TOKEN_PUI_FINANCE_MANAGER;
-    private static String SERVICE_TOKEN;
+    private static String SERVICE_TOKEN_PAYMENT_APP;
+    private static String SERVICE_TOKEN_CCPAY_BUBBLE;
     private static boolean TOKENS_INITIALIZED = false;
 
     private static final String INPUT_FILE_PATH = "uk/gov/hmcts/payment/functional/pbaaccounts";
@@ -49,7 +49,8 @@ public class PBAAccountsFunctionalTest {
     @Before
     public void setUp() throws Exception {
         if (!TOKENS_INITIALIZED) {
-            SERVICE_TOKEN = s2sTokenService.getS2sToken("payment_app", testProps.getPaymentAppS2SSecret());
+            SERVICE_TOKEN_PAYMENT_APP = s2sTokenService.getS2sToken("payment_app", testProps.getPaymentAppS2SSecret());
+            SERVICE_TOKEN_CCPAY_BUBBLE = s2sTokenService.getS2sToken("ccpay_bubble", testProps.getPayBubbleS2SSecret());
             TOKENS_INITIALIZED = false;
         }
     }
@@ -63,8 +64,10 @@ public class PBAAccountsFunctionalTest {
         System.out.println("The value of the userPUIFinanceManagerToken : " + userPUIFinanceManagerToken);
         this.createPbaAccountsForOrganisation(user.getEmail());
 
-        Thread.sleep(TimeUnit.SECONDS.toMillis(10)); //Sleep the Thread so that the newly created credentials are available after sometime...
-        Response getPBAAccountsResponse = PBAAccountsTestService.getPBAAccounts(userPUIFinanceManagerToken, SERVICE_TOKEN);
+        Thread.sleep(TimeUnit.SECONDS
+            .toMillis(10)); //Sleep the Thread so that the newly created credentials are available after sometime...
+        Response getPBAAccountsResponse =
+            PBAAccountsTestService.getPBAAccounts(userPUIFinanceManagerToken, SERVICE_TOKEN_CCPAY_BUBBLE);
         assertThat(getPBAAccountsResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         PBAResponse pbaResponseDTO = getPBAAccountsResponse.getBody().as(PBAResponse.class);
 
@@ -82,17 +85,21 @@ public class PBAAccountsFunctionalTest {
             generateRandomString(6, true, false),
             generateRandomString(6, true, false));
         System.out.println("The value of the File Contents After Templating : " + fileContents);
-        Response response = postOrganisation(SERVICE_TOKEN, testProps.getRefDataApiUrl(), fileContents);
+        Response response = postOrganisation(SERVICE_TOKEN_PAYMENT_APP, testProps.getRefDataApiUrl(), fileContents);
         System.out.println("The value of the Body" + response.getBody().prettyPrint());
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
         String organisationIdentifier = response.jsonPath().getString("organisationIdentifier");
         System.out.println(organisationIdentifier);
 
 
-        final String prdAdminToken = idamService.createUserWithCreateScope(CMC_CASE_WORKER_GROUP, "prd-admin").getAuthorisationToken();
+        final String prdAdminToken =
+            idamService.createUserWithCreateScope(CMC_CASE_WORKER_GROUP, "prd-admin").getAuthorisationToken();
         System.out.println("The value of the Admin Token : " + prdAdminToken);
-        System.out.println("The value of the Service Token : " + SERVICE_TOKEN);
-        Response updatedResponse = approveOrganisation(prdAdminToken, SERVICE_TOKEN, testProps.getRefDataApiUrl(), fileContents, organisationIdentifier);
+        System.out.println("The value of the Service Token PAY BUBBLE : " + SERVICE_TOKEN_CCPAY_BUBBLE);
+        System.out.println("The value of the Service Token PAYMENT APP : " + SERVICE_TOKEN_PAYMENT_APP);
+        Response updatedResponse =
+            approveOrganisation(prdAdminToken, SERVICE_TOKEN_PAYMENT_APP, testProps.getRefDataApiUrl(), fileContents,
+                organisationIdentifier);
         assertThat(updatedResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
     }
 

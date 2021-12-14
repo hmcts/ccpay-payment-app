@@ -12,6 +12,7 @@ public class PBAAccountsTestService {
 
     public static final Response getPBAAccounts(final String userToken,
                                                 final String serviceToken) {
+        System.out.println("The value of the Base URL : " + RestAssured.baseURI);
         return givenWithAuthHeaders(userToken, serviceToken)
             .header("return-url", "http://localhost.hmcts.net")
             .contentType(ContentType.JSON)

@@ -2,7 +2,7 @@
 <suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
 
     <!-- Below are the supressions added fpr False Positive CVEs -->
-    <suppress until="2021-12-07">
+    <suppress until="2022-03-30">
         <notes>The CVE-2018-1258 occurs from spring security libraries, despite the latest versions are used. This is
             confirmed as false positive
             and hence it is suppressed (https://github.com/jeremylong/DependencyCheck/issues/2952).
@@ -67,6 +67,11 @@
         <cve>CVE-2018-1258</cve>
     </suppress>
 
+
+    <suppress until="2021-12-25">
+        <notes>A vulnerability in all versions of adal4j, this library is an internal dependency in azure libraries. Hence this is suppressed</notes>
+        <cve>CVE-2021-42306</cve>
+    </suppress>
     <!-- Supression Group ends here -->
 
 

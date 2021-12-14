@@ -39,7 +39,7 @@ public interface ServiceRequestDomainService {
 
     Boolean isDuplicate(String serviceRequestReference);
 
-    void sendMessageTopicCPO(ServiceRequestDto serviceRequestDto);
+    void sendMessageTopicCPO(ServiceRequestDto serviceRequestDto, String serviceRequestReference);
 
     void sendMessageToTopic(PaymentStatusDto payment, String callBackUrl);
 

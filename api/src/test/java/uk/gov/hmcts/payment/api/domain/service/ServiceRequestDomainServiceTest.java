@@ -326,7 +326,7 @@ public class ServiceRequestDomainServiceTest {
             .casePaymentRequest(getCasePaymentRequest())
             .build();
 
-        serviceRequestDomainService.sendMessageTopicCPO(serviceRequestDto);
+        serviceRequestDomainService.sendMessageTopicCPO(serviceRequestDto,"ref");
 
     }
 

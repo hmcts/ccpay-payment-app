@@ -870,7 +870,7 @@ public class ServiceRequestControllerTest {
 
         when(serviceRequestDomainService.create(any(),any())).thenThrow(new GatewayTimeoutException("Test Error"));
 
-        doNothing().when(serviceRequestDomainService).sendMessageTopicCPO(any(ServiceRequestDto.class));
+        doNothing().when(serviceRequestDomainService).sendMessageTopicCPO(any(ServiceRequestDto.class), anyString());
 
         restActions
             .post("/service-request", serviceRequestDto)
@@ -1080,7 +1080,7 @@ public class ServiceRequestControllerTest {
 
         when(serviceRequestDomainService.create(any(),any())).thenReturn(serviceRequestResponseDtoSample);
 
-        doNothing().when(serviceRequestDomainService).sendMessageTopicCPO(any(ServiceRequestDto.class));
+        doNothing().when(serviceRequestDomainService).sendMessageTopicCPO(any(ServiceRequestDto.class), anyString());
 
         MvcResult result = restActions
             .post("/service-request", serviceRequestDto)
