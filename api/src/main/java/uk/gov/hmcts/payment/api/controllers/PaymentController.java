@@ -122,12 +122,12 @@ public class PaymentController {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @RequestMapping(value = "/payments/ccd_case_reference/{ccd_case_number}", method = PATCH)
+    @RequestMapping(value = "/payments/ccd_case_reference/{ccd_case_number}/{hours}", method = PATCH)
     @Transactional
     public ResponseEntity
-        updatePaymentsForCCDCaseNumberByCertainDays(@PathVariable("ccd_case_number")
-                                                        String ccd_case_number) {
-        paymentService.updatePaymentsForCCDCaseNumberByCertainDays(ccd_case_number);
+        updatePaymentsForCCDCaseNumberByCertainHours(@PathVariable("ccd_case_number")
+                                                        final String ccd_case_number, @PathVariable("hours") final String hours) {
+        paymentService.updatePaymentsForCCDCaseNumberByCertainHours(ccd_case_number, hours);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 

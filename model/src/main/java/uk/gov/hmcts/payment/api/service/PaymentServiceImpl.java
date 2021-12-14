@@ -129,7 +129,7 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
 
     @Override
     @Transactional
-    public void updatePaymentsForCCDCaseNumberByCertainDays(final String ccd_case_number) {
+    public void updatePaymentsForCCDCaseNumberByCertainHours(final String ccd_case_number, final String hours) {
 
       Optional<List<Payment>>  optionalPaymentList = paymentRepository.findByCcdCaseNumber(ccd_case_number);
       List<Payment> paymentList = optionalPaymentList.orElseThrow();
@@ -137,8 +137,7 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
         paymentList.stream().forEach(payment -> {
             Date dateCreated = payment.getDateCreated();
             LocalDateTime localDateTime = LocalDateTime.ofInstant(dateCreated.toInstant(), ZoneId.systemDefault());
-            LocalDateTime rolledbackDateTime = localDateTime.minusDays(4);
-            payment.setDateCreated(Date.from(rolledbackDateTime.atZone(ZoneId.systemDefault()).toInstant()));
+            LocalDateTime rolledbackDateTime = localDateTime.minusHours(Integer.parseInt(hours));
             payment.setDateUpdated(Date.from(rolledbackDateTime.atZone(ZoneId.systemDefault()).toInstant()));
             Payment paymentSaved = paymentRepository.save(payment);
         });
