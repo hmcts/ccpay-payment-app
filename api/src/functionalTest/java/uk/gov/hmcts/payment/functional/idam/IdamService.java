@@ -38,6 +38,7 @@ public class IdamService {
     public static final String SCOPES = "openid profile roles";
     public static final String SCOPES_SEARCH_USER = "openid profile roles search-user";
     public static final String SCOPES_CREATE_USER = "openid profile roles openid roles profile create-user manage-user";
+    public static final String SCOPES_CREATE_USER_AND_SEARCH_USER = "openid profile roles openid roles profile create-user manage-user search-user";
     private final IdamApi idamApi;
     private final TestConfigProperties testConfig;
 
@@ -107,7 +108,7 @@ public class IdamService {
             LOG.info(ex.getMessage());
         }
 
-        String accessToken = authenticateUserWithCreateScope(email, testConfig.getTestUserPassword());
+        String accessToken = authenticateUserWithCreateAndSearchScope(email, testConfig.getTestUserPassword());
 
         return new ValidUser(email, accessToken);
     }
@@ -186,6 +187,31 @@ public class IdamService {
         return null;
     }
 
+    public String authenticateUserWithCreateAndSearchScope(String username, String password) {
+        String authorisation = username + ":" + password;
+        String base64Authorisation = Base64.getEncoder().encodeToString(authorisation.getBytes());
+
+        LOG.info("username : " + username);
+        LOG.info("password : " + password);
+        LOG.info("base64Authorisation : " + base64Authorisation);
+        LOG.info("testConfig.getOauth2().getClientId() : " + testConfig.getOauth2().getClientId());
+        LOG.info("testConfig.getOauth2().getRedirectUrl() : " + testConfig.getOauth2().getRedirectUrl());
+
+        try {
+            TokenExchangeResponse tokenExchangeResponse = idamApi.exchangeCode(username,
+                password,
+                SCOPES_CREATE_USER_AND_SEARCH_USER,
+                GRANT_TYPE,
+                testConfig.getIdamRefDataApiClientId(),
+                testConfig.getIdamRefDataApiClientSecret(),
+                testConfig.getOauth2().getRedirectUrl());
+
+            return BEARER + tokenExchangeResponse.getAccessToken();
+        } catch (Exception ex) {
+            LOG.info(ex.getMessage());
+        }
+        return null;
+    }
 
     private CreateUserRequest userRequest(String email, String userGroup, String[] roles) {
         return userRequestWith()
