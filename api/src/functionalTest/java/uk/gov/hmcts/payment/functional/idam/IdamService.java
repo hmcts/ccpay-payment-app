@@ -96,17 +96,20 @@ public class IdamService {
         return new ValidUser(email, accessToken);
     }
 
-    public User createUserWithRefDataEmailFormat(String userGroup, String... roles) {
+    public ValidUser createUserWithRefDataEmailFormat(String userGroup, String... roles) {
         String email = nextUserEmailForRefData();
         CreateUserRequest userRequest = userRequest(email, userGroup, roles);
-        idamApi.createUser(userRequest);
+        LOG.info("idamApi : " + idamApi.toString());
+        LOG.info("userRequest : " + userRequest);
+        try {
+            idamApi.createUser(userRequest);
+        } catch (Exception ex) {
+            LOG.info(ex.getMessage());
+        }
 
-        String accessToken = authenticateUser(email, testConfig.getTestUserPassword());
+        String accessToken = authenticateUserWithCreateScope(email, testConfig.getTestUserPassword());
 
-        return User.userWith()
-            .authorisationToken(accessToken)
-            .email(email)
-            .build();
+        return new ValidUser(email, accessToken);
     }
 
 
@@ -201,7 +204,6 @@ public class IdamService {
 
     private String nextUserEmailForRefData() {
         LOG.info("The value of the Ref Data Email Id "+testConfig.getGeneratedUserEmailPatternForRefData());
-        LOG.info("The value of the Formatted Ref Data Email Id "+String.format(testConfig.getGeneratedUserEmailPatternForRefData(), RandomStringUtils.random(6, true, true)));
         return String.format(testConfig.getGeneratedUserEmailPatternForRefData(), RandomStringUtils.random(6, true, true));
     }
 }

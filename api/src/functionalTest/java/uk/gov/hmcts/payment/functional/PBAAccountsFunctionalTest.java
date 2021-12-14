@@ -12,6 +12,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.testcontainers.shaded.org.apache.commons.lang.RandomStringUtils;
 import uk.gov.hmcts.payment.api.dto.PBAResponse;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
+import uk.gov.hmcts.payment.functional.config.ValidUser;
 import uk.gov.hmcts.payment.functional.idam.IdamService;
 import uk.gov.hmcts.payment.functional.idam.models.User;
 import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
@@ -58,7 +59,7 @@ public class PBAAccountsFunctionalTest {
     @Test
     //@Ignore("As we need support from Raj to Cover this test....")
     public void perform_pba_accounts_lookup() throws Exception {
-        final User user = idamService.createUserWithRefDataEmailFormat(CMC_CASE_WORKER_GROUP,
+        final ValidUser user = idamService.createUserWithRefDataEmailFormat(CMC_CASE_WORKER_GROUP,
             "pui-finance-manager");
         final String userPUIFinanceManagerToken = user.getAuthorisationToken();
         System.out.println("The value of the userPUIFinanceManagerToken : " + userPUIFinanceManagerToken);
