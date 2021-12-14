@@ -1,7 +1,6 @@
 package uk.gov.hmcts.payment.api.configuration.security;
 
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -15,15 +14,12 @@ import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.web.access.AccessDeniedHandler;
-import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import uk.gov.hmcts.reform.auth.checker.core.RequestAuthorizer;
 import uk.gov.hmcts.reform.auth.checker.core.service.Service;
 import uk.gov.hmcts.reform.auth.checker.core.user.User;
 import uk.gov.hmcts.reform.auth.checker.spring.serviceonly.AuthCheckerServiceOnlyFilter;
-import uk.gov.hmcts.payment.api.external.client.dto.Error;
 
 
-import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
@@ -77,14 +73,13 @@ public class SpringSecurityConfiguration {
 
         private AuthCheckerServiceAndAnonymousUserFilter authCheckerFilter;
 
+
         @Autowired
         public InternalApiSecurityConfigurationAdapter(RequestAuthorizer<User> userRequestAuthorizer,
                                            RequestAuthorizer<Service> serviceRequestAuthorizer,
                                            AuthenticationManager authenticationManager) {
             authCheckerFilter = new AuthCheckerServiceAndAnonymousUserFilter(serviceRequestAuthorizer, userRequestAuthorizer);
             authCheckerFilter.setAuthenticationManager(authenticationManager);
-
-            authCheckerFilter.setAuthenticationFailureHandler((AuthenticationFailureHandler) accessDeniedHandler());
         }
 
         @Override
