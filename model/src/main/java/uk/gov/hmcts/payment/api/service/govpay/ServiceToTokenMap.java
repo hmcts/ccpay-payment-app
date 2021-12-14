@@ -12,18 +12,14 @@ public class ServiceToTokenMap {
 
     static {
         servicesMap.put("divorce", "divorce_frontend");
-        servicesMap.put("DIVORCE", "divorce_frontend");
         servicesMap.put("probate", "probate_frontend");
-        servicesMap.put("PROBATE", "probate_frontend");
         servicesMap.put("civil money claims", "cmc");
-        servicesMap.put("CIVIL MONEY CLAIMS", "cmc");
         servicesMap.put("specified money claims", "cmc");
-        servicesMap.put("SPECIFIED MONEY CLAIMS", "cmc");
     }
 
     public String getServiceKeyVaultName(String serviceName) {
-        if(servicesMap.get(serviceName) != null) {
-            return servicesMap.get(serviceName);
+        if(servicesMap.get(serviceName.toLowerCase()) != null) {
+            return servicesMap.get(serviceName.toLowerCase());
         } else {
             throw new PaymentServiceNotFoundException(serviceName + " service not found in map");
         }
