@@ -18,7 +18,7 @@ public class ServiceToTokenMap {
     }
 
     public String getServiceKeyVaultName(String serviceName) {
-        if(servicesMap.get(serviceName) != null) {
+        if(servicesMap.get(serviceName.toLowerCase()) != null) {
             return servicesMap.get(serviceName.toLowerCase());
         } else {
             throw new PaymentServiceNotFoundException(serviceName + " service not found in map");
