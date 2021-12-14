@@ -256,7 +256,7 @@ public class ServiceRequestBasedOnlineCardPayment {
     }
 
     @Test
-    @Ignore("Right Error Message is not provided. Response is coming from library, generic error code do not require a custom message confirmed by Yashar")
+    @Ignore("Right Error Message is not provided. Decided to make the severity of this as low for now as the solution will require 417 unit test cases to be fixed")
     public void negative_get_online_card_payment_for_invalid_service_token() throws Exception {
 
         Response getOnlineCardPaymentResponse =
