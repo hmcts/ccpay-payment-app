@@ -122,12 +122,19 @@ public class PaymentController {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @RequestMapping(value = "/payments/ccd_case_reference/{ccd_case_number}/{hours}", method = PATCH)
+    /*
+     * This API is used only for testing purposes mainly for the Refunds feature.
+     * There is a requirement for Testing mainly for the Front End Tests to rollback the
+     * payment made by the hours so that the payment can be eligible for a Refund.
+     * All the Refunds tests hinge on this requirement.
+     * Please do not use this for an Application  feature or build purposes.
+     */
+    @RequestMapping(value = "/payments/ccd_case_reference/{ccd_case_number}/lag_time/{lag_time}", method = PATCH)
     @Transactional
     public ResponseEntity
         updatePaymentsForCCDCaseNumberByCertainHours(@PathVariable("ccd_case_number")
-                                                        final String ccd_case_number, @PathVariable("hours") final String hours) {
-        paymentService.updatePaymentsForCCDCaseNumberByCertainHours(ccd_case_number, hours);
+                                                        final String ccd_case_number, @PathVariable("lag_time") final String lag_time) {
+        paymentService.updatePaymentsForCCDCaseNumberByCertainHours(ccd_case_number, lag_time);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
