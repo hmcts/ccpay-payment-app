@@ -57,6 +57,7 @@ import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -108,7 +109,6 @@ public class OrderControllerTest {
     @MockBean
     private LaunchDarklyFeatureToggler launchDarklyFeatureToggler;
 
-
     @Before
     @Transactional
     public void setup() {
@@ -133,6 +133,8 @@ public class OrderControllerTest {
 
     @Test
     public void createPBAPaymentWithOrderSuccessTest() throws Exception {
+        when(launchDarklyFeatureToggler.getBooleanValue(Mockito.eq("apportion-feature"),anyBoolean())).thenReturn(true);
+
         when(launchDarklyFeatureToggler.getBooleanValue(Mockito.eq("apportion-feature"),anyBoolean())).thenReturn(true);
 
         //Creation of Order-reference
