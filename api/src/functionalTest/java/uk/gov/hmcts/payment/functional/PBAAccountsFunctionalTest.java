@@ -133,6 +133,43 @@ public class PBAAccountsFunctionalTest {
 
     }
 
+    private final List<String> createPbaAccountsForOrganisation(final String userEmailId) throws Exception {
+
+        final String pba_account_number_1 = generateRandomString(6, true, false);
+        final String pba_account_number_2 = generateRandomString(6, true, false);
+        final String pba_account_number_3 = generateRandomString(6, true, false);
+        final List<String> accountsForCreatedOrganisation =
+            List.of(pba_account_number_1, pba_account_number_2, pba_account_number_3);
+
+        final String fileContentsTemplate = readFileContents(INPUT_FILE_PATH + "/" + "CreateOrganisation.json");
+        System.out.println("The value of the File Contents Before Templating : " + fileContentsTemplate);
+        final String fileContents = String.format(fileContentsTemplate,
+            generateRandomString(13, true, false),
+            generateRandomString(8, true, false),
+            userEmailId,
+            pba_account_number_1,
+            pba_account_number_2,
+            pba_account_number_3);
+        System.out.println("The value of the File Contents After Templating : " + fileContents);
+        Response response = postOrganisation(SERVICE_TOKEN_PAYMENT_APP, testProps.getRefDataApiUrl(), fileContents);
+        System.out.println("The value of the Body" + response.getBody().prettyPrint());
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
+        String organisationIdentifier = response.jsonPath().getString("organisationIdentifier");
+        System.out.println(organisationIdentifier);
+
+
+        final String prdAdminToken =
+            idamService.createUserWithCreateScope(CMC_CASE_WORKER_GROUP, "prd-admin").getAuthorisationToken();
+        System.out.println("The value of the Admin Token : " + prdAdminToken);
+        System.out.println("The value of the Service Token PAY BUBBLE : " + SERVICE_TOKEN_CCPAY_BUBBLE);
+        System.out.println("The value of the Service Token PAYMENT APP : " + SERVICE_TOKEN_PAYMENT_APP);
+        Response updatedResponse =
+            approveOrganisation(prdAdminToken, SERVICE_TOKEN_PAYMENT_APP, testProps.getRefDataApiUrl(), fileContents,
+                organisationIdentifier);
+        assertThat(updatedResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+        return accountsForCreatedOrganisation;
+    }
+
 
     public static String generateRandomString(final int length, final boolean useLetters, final boolean useNumbers) {
         return RandomStringUtils.random(length, useLetters, useNumbers);
