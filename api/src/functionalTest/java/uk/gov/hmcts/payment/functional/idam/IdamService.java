@@ -38,7 +38,7 @@ public class IdamService {
     public static final String SCOPES = "openid profile roles";
     public static final String SCOPES_SEARCH_USER = "openid profile roles search-user";
     public static final String SCOPES_CREATE_USER = "openid profile roles openid roles profile create-user manage-user";
-    public static final String SCOPES_CREATE_USER_AND_SEARCH_USER = "openid profile roles openid roles profile create-user manage-user search-user";
+    public static final String SCOPES_CREATE_USER_AND_SEARCH_USER = "openid profile roles create-user manage-user search-user";
     private final IdamApi idamApi;
     private final TestConfigProperties testConfig;
 
