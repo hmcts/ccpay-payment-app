@@ -149,14 +149,14 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     @Override
     @Transactional
     public ServiceRequestResponseDto create(ServiceRequestDto serviceRequestDto, MultiValueMap<String, String> headers) {
-
-        //OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(Optional.empty(), Optional.ofNullable(serviceRequestDto.getHmctsOrgId()), headers);
-
-        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
-            .serviceCode("AA001")
-            .serviceDescription("DIVORCE")
-            .build();
-
+        LOG.info("Ref data from service request HMCTSorgid---- {} ",serviceRequestDto.getHmctsOrgId());
+        OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(Optional.empty(),
+            Optional.ofNullable(serviceRequestDto.getHmctsOrgId()), headers);
+        LOG.info("Ref data from service request orgunit---- {} ",organisationalServiceDto.getOrgUnit());
+        LOG.info("Ref data from service request Description---- {} ",organisationalServiceDto.getServiceDescription());
+        LOG.info("Ref data from service request service---- {} ",organisationalServiceDto.getServiceId());
+        LOG.info("Ref data from service request ---- {} ",organisationalServiceDto.getServiceCode());
+        LOG.info("Ref data from service request ---- {} ",organisationalServiceDto.getCcdServiceName());
         ServiceRequestBo serviceRequestDomain = serviceRequestDtoDomainMapper.toDomain(serviceRequestDto, organisationalServiceDto);
         return serviceRequestBo.createServiceRequest(serviceRequestDomain);
 
