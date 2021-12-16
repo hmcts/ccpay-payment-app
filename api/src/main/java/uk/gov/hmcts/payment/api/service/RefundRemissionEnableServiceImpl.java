@@ -53,11 +53,11 @@ public class RefundRemissionEnableServiceImpl implements RefundRemissionEnableSe
         if(!roles.getRoles().isEmpty()){
             isRoles = checkRoles(roles.getRoles());
         }
-        boolean refundEnableFeature = featureToggler.getBooleanValue("refund-remission-feature",false);
+        boolean refundLagTimeFeature = featureToggler.getBooleanValue("refund-remission-lagtime-feature",false);
 
-        LOG.info("RefundEnableFeature Flag Value in RefundRemissionEnableServiceImpl : {}", refundEnableFeature);
+        LOG.info("RefundEnableFeature Flag Value in RefundRemissionEnableServiceImpl : {}", refundLagTimeFeature);
 
-        if(refundEnableFeature){
+        if(refundLagTimeFeature){
             refundEligibleDate = calculateLagDate(payment);
             return payment.getPaymentStatus().getName().equalsIgnoreCase(STATUS) && refundEligibleDate
                 && isRoles;
@@ -88,11 +88,11 @@ public class RefundRemissionEnableServiceImpl implements RefundRemissionEnableSe
             isRemission=true;
         }
 
-        boolean refundEnableFeature = featureToggler.getBooleanValue("refund-remission-feature",false);
+        boolean remissionLagTimeFeature = featureToggler.getBooleanValue("refund-remission-lagtime-feature",false);
 
-        LOG.info("RefundEnableFeature Flag Value in RefundRemissionEnableServiceImpl : {}", refundEnableFeature);
+        LOG.info("RefundEnableFeature Flag Value in RefundRemissionEnableServiceImpl : {}", remissionLagTimeFeature);
 
-        if(refundEnableFeature){
+        if(remissionLagTimeFeature){
             Optional<FeePayApportion> FeePayApportion = FeePayApportionRepository.findByFeeId(
                 fee.getId());
 

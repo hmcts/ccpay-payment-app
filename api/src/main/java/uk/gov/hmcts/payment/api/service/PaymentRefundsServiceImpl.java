@@ -200,11 +200,11 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             throw new PaymentNotSuccessException("Refund can not be processed for unsuccessful payment");
         }
 
-        boolean refundEnableFeature = featureToggler.getBooleanValue("refund-remission-feature",false);
+        boolean refundLagTimefeature = featureToggler.getBooleanValue("refund-remission-lagtime-feature",false);
 
-        LOG.info("RefundEnableFeature Flag Value in PaymentRefundsServiceImpl : {}", refundEnableFeature);
+        LOG.info("RefundEnableFeature Flag Value in PaymentRefundsServiceImpl : {}", refundLagTimefeature);
 
-        if(refundEnableFeature){
+        if(refundLagTimefeature){
 
             long timeDuration= ChronoUnit.HOURS.between( payment.getDateUpdated().toInstant(), new Date().toInstant());
             boolean isRefundPermit=refundEligibilityUtil.getRefundEligiblityStatus(payment,timeDuration);

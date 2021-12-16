@@ -81,7 +81,6 @@ java:
     REFUND_API_URL: http://ccpay-refunds-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal
     SERVER_SHUTDOWN_STRATEGY: graceful
     TIMEOUT_SERVER_SHUTDOWN_PHASE: 30s
-    IDAM_API_URL: "https://idam-api.{{ .Values.global.environment }}.platform.hmcts.net"
     CARD_LAG_TIME: 120
     CASH_LAG_TIME: 120
     POSTALORDER_LAG_TIME: 480

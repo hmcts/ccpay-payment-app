@@ -32,7 +32,7 @@ public class IdamServiceImpl implements IdamService {
     private static final String INTERNAL_SERVER_ERROR_MSG = "Internal Server error. Please, try again later";
     private static final String USER_DETAILS_NOT_FOUND_ERROR_MSG = "User details not found for these roles in IDAM";
 
-    @Value("${idam.api.url}")
+    @Value("${auth.idam.client.baseurl}")
     private String idamBaseUrl;
 
     @Autowired()
