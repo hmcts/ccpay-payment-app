@@ -133,8 +133,7 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
 
       Optional<List<Payment>>  optionalPaymentList = paymentRepository.findByCcdCaseNumber(ccd_case_number);
       List<Payment> paymentList = optionalPaymentList.orElseThrow();
-
-        paymentList.stream().forEach(payment -> {
+      paymentList.stream().forEach(payment -> {
             Date dateCreated = payment.getDateCreated();
             LocalDateTime localDateTime = LocalDateTime.ofInstant(dateCreated.toInstant(), ZoneId.systemDefault());
             LocalDateTime rolledbackDateTime = localDateTime.minusHours(Integer.parseInt(hours));

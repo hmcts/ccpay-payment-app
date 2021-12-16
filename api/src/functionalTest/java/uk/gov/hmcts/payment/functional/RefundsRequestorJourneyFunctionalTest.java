@@ -48,7 +48,7 @@ import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
 @ActiveProfiles({"functional-tests", "liberataMock"})
-@SpringBootTest(classes = {PaymentApiApplication.class})
+//@SpringBootTest(classes = {PaymentApiApplication.class})
 public class RefundsRequestorJourneyFunctionalTest {
 
     private static String USER_TOKEN;
@@ -81,9 +81,9 @@ public class RefundsRequestorJourneyFunctionalTest {
     @Autowired
     private PaymentsTestDsl dsl;
 
-    @Autowired
+    /*@Autowired
     @Qualifier("paymentServiceImpl")
-    private PaymentService paymentService;
+    private PaymentService paymentService;*/
 
     @Before
     public void setUp() throws Exception {
@@ -113,8 +113,9 @@ public class RefundsRequestorJourneyFunctionalTest {
             .aPbaPaymentRequestForProbate("90.00",
                 "PROBATE", "PBAFUNC12345");
         accountPaymentRequest.setAccountNumber(accountNumber);
-        paymentTestService.updateThePaymentDateByCCDCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
-            accountPaymentRequest.getCcdCaseNumber(),String.valueOf(4 * 24));
+        Response rollbackPaymentResponse = paymentTestService.updateThePaymentDateByCCDCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
+            accountPaymentRequest.getCcdCaseNumber(),"96");
+        rollbackPaymentResponse.getBody();
         /*paymentService
             .updatePaymentsForCCDCaseNumberByCertainHours(accountPaymentRequest.getCcdCaseNumber(), String.valueOf(4 * 24));*/
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()

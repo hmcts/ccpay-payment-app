@@ -67,10 +67,11 @@ public class PaymentTestService {
 
     public Response updateThePaymentDateByCCDCaseNumberForCertainHours(final String userToken,
                                                                        final String serviceToken,
-                                                                       final String ccdCaseNumber, final String hours) {
+                                                                       final String ccdCaseNumber,
+                                                                       final String lag_time) {
         return givenWithAuthHeaders(userToken, serviceToken)
             .when()
-            .patch("/payments/ccd_case_reference/{ccd_case_number}/{hours}", ccdCaseNumber, hours);
+            .patch("/payments/ccd_case_reference/{ccd_case_number}/lag_time/{lag_time}", ccdCaseNumber, lag_time);
     }
 
     public Response recordBarPayment(String userToken, String serviceToken, PaymentRecordRequest request) {
