@@ -108,7 +108,6 @@ public class OrderControllerTest {
     @MockBean
     private LaunchDarklyFeatureToggler launchDarklyFeatureToggler;
 
-
     @Before
     @Transactional
     public void setup() {
@@ -133,6 +132,8 @@ public class OrderControllerTest {
 
     @Test
     public void createPBAPaymentWithOrderSuccessTest() throws Exception {
+        when(launchDarklyFeatureToggler.getBooleanValue(Mockito.eq("apportion-feature"),anyBoolean())).thenReturn(true);
+
         when(launchDarklyFeatureToggler.getBooleanValue(Mockito.eq("apportion-feature"),anyBoolean())).thenReturn(true);
 
         //Creation of Order-reference
