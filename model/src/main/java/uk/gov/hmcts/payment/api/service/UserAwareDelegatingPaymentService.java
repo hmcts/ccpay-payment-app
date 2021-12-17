@@ -367,6 +367,14 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
                         LOG.info("Update Fee Amount Due as Payment Status received from GovPAY as SUCCESS!!!");
                         feePayApportionService.updateFeeAmountDue(payment);
                     }
+                    else {
+                        payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name(govPayPayment.getState().getStatus().toLowerCase()).build());
+                        LOG.info(" Payment updated for failure Gov.uk : {}" ,payment.getCcdCaseNumber());
+                        LOG.info(" Payment updated for failure Gov.uk : {}" ,payment.getExternalReference());
+                        LOG.info(" Payment updated for failure Gov.uk : {}" ,payment.getPaymentStatus());
+                        LOG.info("payment saved payment table succussfully for failure case");
+                        paymentRespository.save(payment);
+                    }
                 }
 
                 if (shouldCallBack && payment.getServiceCallbackUrl() != null) {
@@ -376,6 +384,11 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
         } catch (GovPayPaymentNotFoundException | NullPointerException pnfe) {
             LOG.error("Gov Pay payment not found id is:{} and govpay id is:{}", payment.getExternalReference(), paymentReference);
         }
+
+        LOG.info(" Payment updated for failure Gov.uk response : {}" ,paymentFeeLink.getCcdCaseNumber());
+        LOG.info(" Payment updated for failure Gov.uk response : {}" ,paymentFeeLink.getPaymentReference());
+        LOG.info(" Payment updated for failure Gov.uk response : {}" ,paymentFeeLink.getPayments());
+        LOG.info("payment saved payment table succussfully for failure case");
 
         return paymentFeeLink;
     }
