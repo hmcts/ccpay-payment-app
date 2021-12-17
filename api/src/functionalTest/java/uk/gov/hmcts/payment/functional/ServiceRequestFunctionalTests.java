@@ -605,7 +605,7 @@ public class ServiceRequestFunctionalTests {
 
 
     @Test
-    @Ignore ("Card payment Failing")
+//    @Ignore ("Card payment Failing")
     public void positive_create_service_request_and_a_full_card_payment_user_hmcts() throws Exception {
 
         ServiceRequestDto serviceRequestDto
