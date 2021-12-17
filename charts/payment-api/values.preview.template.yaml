@@ -41,5 +41,10 @@ java:
         - pci-pal-antenna-divorce-flow-id
         - pci-pal-antenna-financial-remedy-flow-id
         - spring-mail-password
+        - gov-pay-keys-reference
+        - gov-pay-keys-cmc-claim-store
+        - gov-pay-keys-divorce
+        - gov-pay-keys-probate
+        - gov-pay-keys-iac
   postgresql:
     enabled: true

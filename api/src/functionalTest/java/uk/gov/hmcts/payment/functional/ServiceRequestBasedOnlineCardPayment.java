@@ -146,7 +146,7 @@ public class ServiceRequestBasedOnlineCardPayment {
         assertThat(responseDTO.getServiceRequestReference()).matches(SERVICE_REQUEST_REGEX_PATTERN);
 
         OnlineCardPaymentRequest onlineCardPaymentRequest = OnlineCardPaymentRequest.onlineCardPaymentRequestWith()
-            .amount(new BigDecimal(100.00))
+            .amount(new BigDecimal("100.00"))
             .currency(CurrencyCode.GBP)
             .language("cy")
             .build();
@@ -245,7 +245,7 @@ public class ServiceRequestBasedOnlineCardPayment {
     }
 
     @Test
-    @Ignore("Right Error Message is not provided.")
+//    @Ignore("Right Error Message is not provided. UPDATE: FIXED")
     public void negative_get_online_card_payment_for_invalid_internal_reference() throws Exception {
 
         Response getOnlineCardPaymentResponse =
@@ -256,13 +256,13 @@ public class ServiceRequestBasedOnlineCardPayment {
     }
 
     @Test
-    @Ignore("Right Error Message is not provided.")
+    @Ignore("Right Error Message is not provided. Decided to make the severity of this as low for now as the solution will require 417 unit test cases to be fixed")
     public void negative_get_online_card_payment_for_invalid_service_token() throws Exception {
 
         Response getOnlineCardPaymentResponse =
             serviceRequestTestService.getAnOnlineCardPaymentForAnInternalReference("Test Value",
                 "Test Reference");
         assertThat(getOnlineCardPaymentResponse.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN.value());
-        assertThat(getOnlineCardPaymentResponse.getBody().asString()).isEqualTo("The internal Reference is not found");
+        assertThat(getOnlineCardPaymentResponse.getBody().asString()).isEqualTo("Invalid Service Token");
     }
 }

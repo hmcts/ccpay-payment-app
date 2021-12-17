@@ -55,7 +55,7 @@
         <cve>CVE-2020-23171</cve>
     </suppress>
 
-    <suppress until="2021-10-25">
+    <suppress until="2022-03-30">
         <notes>Temporary suppression
         </notes>
         <cve>CVE-2020-29243</cve>
