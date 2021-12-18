@@ -371,9 +371,9 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
                         payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name(govPayPayment.getState().getStatus().toLowerCase()).build());
                         LOG.info(" Payment updated for failure Gov.uk : {}" ,payment.getCcdCaseNumber());
                         LOG.info(" Payment updated for failure Gov.uk : {}" ,payment.getExternalReference());
-                        LOG.info(" Payment updated for failure Gov.uk : {}" ,payment.getPaymentStatus());
+                        LOG.info(" Payment updated for failure Gov.uk : {}" ,payment.getPaymentStatus().getName());
                         LOG.info("payment saved payment table succussfully for failure case");
-                        paymentRespository.save(payment);
+                        paymentFeeLinkRepository.save(paymentFeeLink);
                     }
                 }
 
@@ -388,7 +388,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
         LOG.info(" Payment updated for failure Gov.uk response : {}" ,paymentFeeLink.getCcdCaseNumber());
         LOG.info(" Payment updated for failure Gov.uk response : {}" ,paymentFeeLink.getPaymentReference());
         LOG.info(" Payment updated for failure Gov.uk response : {}" ,paymentFeeLink.getPayments());
-        LOG.info("payment saved payment table succussfully for failure case");
+        LOG.info("payment saved payment table succussfully for failure case : Out");
 
         return paymentFeeLink;
     }
