@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.functional;
 
 import io.restassured.response.Response;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,13 +69,20 @@ public class PBAAccountsFunctionalTest {
     }
 
     @Test
-    public void perform_pba_accounts_lookup_for_an_invalid_user_roles() throws Exception {
+    @Ignore("A citizen should not be able to look up the PBA Accounts...")
+    public void negative_perform_pba_accounts_lookup_for_an_invalid_user_roles() throws Exception {
         this.performPbaAccountsVerification("citizen");
+    }
+
+    @Test
+    @Ignore("Failing with wrong Response Codes")
+    public void perform_pba_accounts_lookup_for_no_accounts_in_the_organisation() throws Exception {
+        this.performOrganisationCreationWithNoAccounts("citizen");
     }
 
     private final void performPbaAccountsVerification(final String role) throws Exception {
 
-        final ValidUser user = idamService.createUserWithRefDataEmailFormat(CMC_CASE_WORKER_GROUP,
+        final ValidUser user = idamService.createUserWithSearchScopeForRefData(CMC_CASE_WORKER_GROUP,
             role);
         final String userPUIFinanceManagerToken = user.getAuthorisationToken();
         System.out.println("The value of the userPUIFinanceManagerToken : " + userPUIFinanceManagerToken);
@@ -133,31 +141,23 @@ public class PBAAccountsFunctionalTest {
 
     }
 
-    private final List<String> createPbaAccountsForOrganisation(final String userEmailId) throws Exception {
-
-        final String pba_account_number_1 = generateRandomString(6, true, false);
-        final String pba_account_number_2 = generateRandomString(6, true, false);
-        final String pba_account_number_3 = generateRandomString(6, true, false);
-        final List<String> accountsForCreatedOrganisation =
-            List.of(pba_account_number_1, pba_account_number_2, pba_account_number_3);
-
-        final String fileContentsTemplate = readFileContents(INPUT_FILE_PATH + "/" + "CreateOrganisation.json");
+    private final void performOrganisationCreationWithNoAccounts(final String role) throws Exception {
+        final ValidUser user = idamService.createUserWithSearchScopeForRefData(CMC_CASE_WORKER_GROUP,
+            role);
+        final String userPUIFinanceManagerToken = user.getAuthorisationToken();
+        System.out.println("The value of the userPUIFinanceManagerToken : " + userPUIFinanceManagerToken);
+        final String fileContentsTemplate = readFileContents(INPUT_FILE_PATH + "/" + "CreateOrganisation_WithNoAccounts.json");
         System.out.println("The value of the File Contents Before Templating : " + fileContentsTemplate);
         final String fileContents = String.format(fileContentsTemplate,
             generateRandomString(13, true, false),
             generateRandomString(8, true, false),
-            userEmailId,
-            pba_account_number_1,
-            pba_account_number_2,
-            pba_account_number_3);
+            user.getEmail());
         System.out.println("The value of the File Contents After Templating : " + fileContents);
         Response response = postOrganisation(SERVICE_TOKEN_PAYMENT_APP, testProps.getRefDataApiUrl(), fileContents);
         System.out.println("The value of the Body" + response.getBody().prettyPrint());
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
-        String organisationIdentifier = response.jsonPath().getString("organisationIdentifier");
+        final String organisationIdentifier = response.jsonPath().getString("organisationIdentifier");
         System.out.println(organisationIdentifier);
-
-
         final String prdAdminToken =
             idamService.createUserWithCreateScope(CMC_CASE_WORKER_GROUP, "prd-admin").getAuthorisationToken();
         System.out.println("The value of the Admin Token : " + prdAdminToken);
@@ -167,7 +167,23 @@ public class PBAAccountsFunctionalTest {
             approveOrganisation(prdAdminToken, SERVICE_TOKEN_PAYMENT_APP, testProps.getRefDataApiUrl(), fileContents,
                 organisationIdentifier);
         assertThat(updatedResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
-        return accountsForCreatedOrganisation;
+
+
+        Thread.sleep(TimeUnit.SECONDS
+            .toMillis(10)); //Sleep the Thread so that the newly created credentials are available after sometime...
+        Response getPBAAccountsResponse =
+            PBAAccountsTestService.getPBAAccounts(userPUIFinanceManagerToken, SERVICE_TOKEN_CCPAY_BUBBLE);
+        assertThat(getPBAAccountsResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+        PBAResponse pbaResponseDTO = getPBAAccountsResponse.getBody().as(PBAResponse.class);
+        assertThat(pbaResponseDTO.getOrganisationEntityResponse().getOrganisationIdentifier()).isEqualTo(organisationIdentifier);
+        assertThat(pbaResponseDTO.getOrganisationEntityResponse().getName()).isEqualTo("OjNWEZXxZt");
+        assertThat(pbaResponseDTO.getOrganisationEntityResponse().getSuperUser().getFirstName())
+            .isEqualTo("John");//'firstName' is not matched as Ref Data are responding back with this value
+        assertThat(pbaResponseDTO.getOrganisationEntityResponse().getSuperUser().getLastName())
+            .isEqualTo("Smith");//'lastName' is not matched as Ref Data are responding back with this value
+        assertThat(pbaResponseDTO.getOrganisationEntityResponse().getSuperUser().getEmail())
+            .isEqualToIgnoringCase(user.getEmail());
+        assertThat(pbaResponseDTO.getOrganisationEntityResponse().getPaymentAccount().size()).isEqualTo(0);
     }
 
 

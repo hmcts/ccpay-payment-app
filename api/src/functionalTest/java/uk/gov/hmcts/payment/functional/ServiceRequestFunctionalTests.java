@@ -190,7 +190,7 @@ public class ServiceRequestFunctionalTests {
     }
 
     @Test
-    @Ignore ("No proper Error message for a ccdCaseNumber that is not present")
+    //@Ignore ("No proper Error message for a ccdCaseNumber that is not present")
     public void negative_create_service_request_service_not_found() throws Exception {
 
         Response getPaymentGroupResponse =
@@ -264,7 +264,7 @@ public class ServiceRequestFunctionalTests {
     }
 
     @Test
-    @Ignore ("Card payment Failing")
+    //@Ignore ("Card payment Failing")
     public void positive_create_service_request_and_a_full_pba_payment_user_hmcts() throws Exception {
 
         final ServiceRequestDto serviceRequestDto
@@ -605,7 +605,7 @@ public class ServiceRequestFunctionalTests {
 
 
     @Test
-//    @Ignore ("Card payment Failing")
+    //@Ignore ("Card payment Failing")
     public void positive_create_service_request_and_a_full_card_payment_user_hmcts() throws Exception {
 
         ServiceRequestDto serviceRequestDto
@@ -620,7 +620,7 @@ public class ServiceRequestFunctionalTests {
         assertThat(responseDTO.getServiceRequestReference()).matches(SERVICE_REQUEST_REGEX_PATTERN);
 
         OnlineCardPaymentRequest onlineCardPaymentRequest = OnlineCardPaymentRequest.onlineCardPaymentRequestWith()
-            .amount(new BigDecimal("100.00"))
+            .amount(new BigDecimal(100.00))
             .currency(CurrencyCode.GBP)
             .language("cy")
             .build();
@@ -631,7 +631,9 @@ public class ServiceRequestFunctionalTests {
         OnlineCardPaymentResponse onlineCardPaymentResponse =
             createOnlineCardPaymentResponse.getBody().as(OnlineCardPaymentResponse.class);
         assertThat(onlineCardPaymentResponse.getPaymentReference()).matches(PAYMENTS_REGEX_PATTERN);
-        //TODO - Raise a Defect as the mandatory return URL is not failing...
+        assertThat(onlineCardPaymentResponse.getNextUrl()).isNotNull();
+        assertThat(onlineCardPaymentResponse.getNextUrl()).isNotBlank();
+        assertThat(onlineCardPaymentResponse.getNextUrl()).startsWith("https://");
 
         Response getPaymentGroupResponseForPaymentUser =
             serviceRequestTestService.getPaymentGroups(USER_TOKEN_PAYMENT, SERVICE_TOKEN, serviceRequestDto.getCcdCaseNumber());
@@ -709,7 +711,7 @@ public class ServiceRequestFunctionalTests {
     }
 
     @Test
-    @Ignore ("Should not be able to Create a Service Request with an Invalid hmctsOrgID")
+    //@Ignore ("Should not be able to Create a Service Request with an Invalid hmctsOrgID")
     public void negative_create_service_request_for_invalid_hmcts_org_id() throws Exception {
         ServiceRequestDto serviceRequestDto
             = ServiceRequestFixture.buildServiceRequestDTO("ZAM6", null);
