@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.api.model;
 
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.UpdateTimestamp;
 import uk.gov.hmcts.payment.api.jpaaudit.listner.Auditable;
 import uk.gov.hmcts.payment.api.jpaaudit.listner.PaymentEntityListener;
@@ -24,6 +25,7 @@ import java.util.List;
     @Index(name = "ix_pay_ccd_case_number", columnList = "ccd_case_number"),
     @Index(name = "ix_pay_payment_status_provider", columnList = "payment_status, payment_provider")
 })
+@DynamicUpdate
 public class Payment extends Auditable<String> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
