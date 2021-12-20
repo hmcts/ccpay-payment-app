@@ -605,7 +605,7 @@ public class ServiceRequestFunctionalTests {
 
 
     @Test
-    @Ignore ("Card payment Failing on the amounts Decimal Point......")
+//    @Ignore ("Card payment Failing on the amounts Decimal Point......")
     public void positive_create_service_request_and_a_full_card_payment_user_hmcts() throws Exception {
 
         ServiceRequestDto serviceRequestDto
