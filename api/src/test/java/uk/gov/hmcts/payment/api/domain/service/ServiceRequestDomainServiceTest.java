@@ -294,7 +294,6 @@ public class ServiceRequestDomainServiceTest {
         when(serviceRequestDtoDomainMapper.toDomain(any(),any(),any())).thenReturn(serviceRequestOnlinePaymentBo);
 
         GovPayPayment govPayPayment = GovPayPayment.govPaymentWith()
-                .amount(20)
                 .paymentId("id")
                     .build();
 
