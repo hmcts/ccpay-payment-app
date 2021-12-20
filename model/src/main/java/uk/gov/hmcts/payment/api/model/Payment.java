@@ -41,7 +41,8 @@ public class Payment extends Auditable<String> {
     @Column(name = "date_created")
     private Date dateCreated;
 
-    @Column(name = "date_updated")
+    @Column(name = "date_updated", updatable = true)
+    @UpdateTimestamp
     private Date dateUpdated;
 
     @ToString.Exclude
