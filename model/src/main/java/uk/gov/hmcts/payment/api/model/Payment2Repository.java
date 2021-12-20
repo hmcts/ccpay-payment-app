@@ -1,7 +1,6 @@
 package uk.gov.hmcts.payment.api.model;
 
 
-import org.springframework.stereotype.Repository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -14,7 +13,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-@Repository
 public interface Payment2Repository extends CrudRepository<Payment, Integer>, JpaSpecificationExecutor<Payment> {
 
     Optional<Payment> findByReferenceAndPaymentMethod(String reference, PaymentMethod paymentMethod);
@@ -36,7 +34,7 @@ public interface Payment2Repository extends CrudRepository<Payment, Integer>, Jp
 
     @Modifying
     @Query(value = "UPDATE payment SET date_updated = :rollbackdate where ccd_case_number = :ccdcasenumber",nativeQuery = true)
-    int updatePaymentUpdatedDateTime(@Param("rollbackdate") Date rollbackDate,
+    int updatePaymentUpdatedDateTime(@Param("rollbackdate") LocalDateTime rollbackDate,
                                    @Param("ccdcasenumber") String ccdCaseNumber);
 
 }
