@@ -132,9 +132,9 @@ public class PaymentController {
     @RequestMapping(value = "/payments/ccd_case_reference/{ccd_case_number}/lag_time/{lag_time}", method = PATCH)
     @Transactional
     public ResponseEntity
-        updatePaymentsForCCDCaseNumberByCertainHours(@PathVariable("ccd_case_number")
+        updatePaymentsForCCDCaseNumberByCertainDays(@PathVariable("ccd_case_number")
                                                         final String ccd_case_number, @PathVariable("lag_time") final String lag_time) {
-        paymentService.updatePaymentsForCCDCaseNumberByCertainHours(ccd_case_number, lag_time);
+        paymentService.updatePaymentsForCCDCaseNumberByCertainDays(ccd_case_number, lag_time);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
