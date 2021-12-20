@@ -150,7 +150,10 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
     public void updatePaymentsForCCDCaseNumberByCertainDays(final String ccd_case_number, final String days) {
         LOG.info("The value of the ccd_case_number :" + ccd_case_number);
         LOG.info("The value of the days :" + days);
-        Optional<List<Payment>> optionalPaymentList = paymentRepository.findByCcdCaseNumber(ccd_case_number);
+        LocalDateTime localDateTime = LocalDateTime.now();
+        LocalDateTime rolledbackDateTime = localDateTime.minusDays(Integer.parseInt(days));
+        paymentRepository.updatePaymentUpdatedDateTime(rolledbackDateTime,ccd_case_number);
+        /*Optional<List<Payment>> optionalPaymentList = paymentRepository.findByCcdCaseNumber(ccd_case_number);
         List<Payment> paymentList = optionalPaymentList.orElseThrow();
         paymentList.stream().forEach(payment -> {
             Date dateCreated = payment.getDateCreated();
@@ -158,10 +161,11 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
             LocalDateTime rolledbackDateTime = localDateTime.minusDays(Integer.parseInt(days));
             LOG.info("The rolled back date :" + rolledbackDateTime.toString());
             LOG.info("Date Value " + Date.from(rolledbackDateTime.atZone(ZoneId.systemDefault()).toInstant()));
-            payment.setDateCreated(Date.from(rolledbackDateTime.atZone(ZoneId.systemDefault()).toInstant()));
-            payment.setDateUpdated(Date.from(rolledbackDateTime.atZone(ZoneId.systemDefault()).toInstant()));
-            paymentRepository.save(payment);
-        });
+            paymentRepository.updatePaymentUpdatedDateTime(rolledbackDateTime,);
+            *//*payment.setDateCreated(Date.from(rolledbackDateTime.atZone(ZoneId.systemDefault()).toInstant()));
+            payment.setDateUpdated(Date.from(rolledbackDateTime.atZone(ZoneId.systemDefault()).toInstant()));*//*
+            //paymentRepository.save(payment);
+        });*/
         return;
     }
 
