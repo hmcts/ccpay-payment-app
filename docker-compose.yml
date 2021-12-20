@@ -62,7 +62,7 @@ services:
       - REFORM_SERVICE_NAME=payment-api
       - REFORM_TEAM=cc
       - SPRING_DATASOURCE_URL=jdbc:postgresql://payments-database:5432/payment
-      - SPRING_DATASOURCE_USERNAME=payment
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USERNAME}
       - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
       - SPRING_LIQUIBASE_ENABLED=true
       - SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE=true
@@ -104,7 +104,7 @@ services:
     container_name: ccfr-fees-api
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://ccfr-fees-database:5432/fees_register
-      - SPRING_DATASOURCE_USERNAME=fees_register
+      - SPRING_DATASOURCE_USERNAME=${FEE_REGISTER_USER}
       - SPRING_DATASOURCE_PASSWORD=${FEE_REGISTER}
       - AUTH_IDAM_CLIENT_BASEURL=https://idam-test.dev.ccidam.reform.hmcts.net
     ports:
@@ -163,18 +163,18 @@ services:
       - STRATEGIC_WEBPUBLIC_URL=http://idam-web-public:9002
       - SPRING_PROFILES_ACTIVE=local
       - SPRING_DATASOURCE_URL=jdbc:postgresql://shared-db:5432/openidm?currentSchema=fridam
-      - SPRING_DATASOURCE_USERNAME=openidm
+      - SPRING_DATASOURCE_USERNAME=${OPENIDM}
       - SPRING_DATASOURCE_PASSWORD=${OPENIDM}
       - SECURITY_OAUTH2_CLIENT_CLIENTSECRET=${PASSWORD}
       - SECURITY_OAUTH2_CLIENT_PRE_ESTABLISHED_REDIRECT_URI=http://idam-web-public:9002/login
       - SECURITY_OAUTH2_CLIENT_REGISTERED_REDIRECT_URI=http://idam-web-public:9002/login
       - IDAM_SPI_FORGEROCK_AM_ROOT=http://fr-am:8080/openam
       - IDAM_SPI_FORGEROCK_AM_TOPLEVELHOST=fr-am
-      - IDAM_SPI_FORGEROCK_AM_USERNAME=amadmin
+      - IDAM_SPI_FORGEROCK_AM_USERNAME=${AM-ADMIN}
       - IDAM_SPI_FORGEROCK_AM_PASSWORD=${PASSWORD}
       - IDAM_SPI_FORGEROCK_AM_JWKSURIFOROAUTH2CLIENTS=http://fr-am:8080/openam/oauth2/hmcts/connect/jwk_uri
       - IDAM_SPI_FORGEROCK_IDM_ROOT=http://fr-idm:18080/openidm
-      - IDAM_SPI_FORGEROCK_IDM_USERNAME=openidm-admin
+      - IDAM_SPI_FORGEROCK_IDM_USERNAME=${OPENIDM-ADMIN}
       - IDAM_SPI_FORGEROCK_IDM_PASSWORD=${OPENIDM}
       - IDAM_SPI_FORGEROCK_IDM_PIN_DEFAULTPASSWORD=${PASSWORD}
       - APPSETTING_NODE_PATH=/opt/app
