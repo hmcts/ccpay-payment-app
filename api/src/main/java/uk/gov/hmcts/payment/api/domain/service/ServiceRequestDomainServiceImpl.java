@@ -182,9 +182,10 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         CreatePaymentRequest createGovPayRequest = serviceRequestDtoDomainMapper.createGovPayRequest(requestOnlinePaymentBo);
         LOG.info("Reaching card payment");
         GovPayPayment govPayPayment = delegateGovPay.create(createGovPayRequest, serviceRequest.getEnterpriseServiceName());
-
-        if(govPayPayment.getAmount()!= null && !(govPayPayment.getAmount().toString().equals(onlineCardPaymentRequest.getAmount().toString()))){
-            govPayPayment.setAmount(onlineCardPaymentRequest.getAmount().intValue());
+        if(govPayPayment.getAmount()!= null){
+            if(!(govPayPayment.getAmount().toString().equals(onlineCardPaymentRequest.getAmount().toString()))){
+                govPayPayment.setAmount(onlineCardPaymentRequest.getAmount().intValue());
+            }
         }
 
         //Payment - Entity creation
