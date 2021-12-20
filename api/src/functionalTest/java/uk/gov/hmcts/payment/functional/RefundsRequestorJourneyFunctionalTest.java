@@ -113,13 +113,11 @@ public class RefundsRequestorJourneyFunctionalTest {
             .aPbaPaymentRequestForProbate("90.00",
                 "PROBATE", "PBAFUNC12345");
         accountPaymentRequest.setAccountNumber(accountNumber);
-        Response rollbackPaymentResponse = paymentTestService.updateThePaymentDateByCCDCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
-            accountPaymentRequest.getCcdCaseNumber(),"96");
-        rollbackPaymentResponse.getBody();
         /*paymentService
             .updatePaymentsForCCDCaseNumberByCertainHours(accountPaymentRequest.getCcdCaseNumber(), String.valueOf(4 * 24));*/
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success"));
+
 
         // Get pba payments by accountNumber
         PaymentsResponse paymentsResponse = paymentTestService
@@ -137,6 +135,11 @@ public class RefundsRequestorJourneyFunctionalTest {
         assertThat(paymentDtoOptional.get().getCcdCaseNumber()).isEqualTo(accountPaymentRequest.getCcdCaseNumber());
         System.out.println("The value of the CCD Case Number " + paymentDtoOptional.get().getCcdCaseNumber());
         String paymentReference = paymentDtoOptional.get().getPaymentReference();
+
+        Response rollbackPaymentResponse = paymentTestService.updateThePaymentDateByCCDCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
+            accountPaymentRequest.getCcdCaseNumber(),"100");
+        System.out.println(rollbackPaymentResponse.getBody().prettyPrint());
+
         PaymentRefundRequest paymentRefundRequest
             = PaymentFixture.aRefundRequest("RR001", paymentReference);
         Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
