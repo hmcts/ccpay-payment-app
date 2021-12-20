@@ -153,19 +153,6 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
         LocalDateTime localDateTime = LocalDateTime.now();
         LocalDateTime rolledbackDateTime = localDateTime.minusDays(Integer.parseInt(days));
         paymentRepository.updatePaymentUpdatedDateTime(rolledbackDateTime,ccd_case_number);
-        /*Optional<List<Payment>> optionalPaymentList = paymentRepository.findByCcdCaseNumber(ccd_case_number);
-        List<Payment> paymentList = optionalPaymentList.orElseThrow();
-        paymentList.stream().forEach(payment -> {
-            Date dateCreated = payment.getDateCreated();
-            LocalDateTime localDateTime = LocalDateTime.ofInstant(dateCreated.toInstant(), ZoneId.systemDefault());
-            LocalDateTime rolledbackDateTime = localDateTime.minusDays(Integer.parseInt(days));
-            LOG.info("The rolled back date :" + rolledbackDateTime.toString());
-            LOG.info("Date Value " + Date.from(rolledbackDateTime.atZone(ZoneId.systemDefault()).toInstant()));
-            paymentRepository.updatePaymentUpdatedDateTime(rolledbackDateTime,);
-            *//*payment.setDateCreated(Date.from(rolledbackDateTime.atZone(ZoneId.systemDefault()).toInstant()));
-            payment.setDateUpdated(Date.from(rolledbackDateTime.atZone(ZoneId.systemDefault()).toInstant()));*//*
-            //paymentRepository.save(payment);
-        });*/
         return;
     }
 
