@@ -1668,7 +1668,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
     }
 
-    @Test
+    /*@Test
     public void test_update_payments_ccd_case_reference() throws Exception {
 
         Random rand = new Random();
@@ -1701,7 +1701,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .patch("/payments/ccd_case_reference/"+ccdCaseNumber+"/lag_time/"+String.valueOf(4 * 24))
             .andExpect(status().isNoContent());
         db.deletePayment(payment);
-    }
+    }*/
 
     private Date parseDate(String date) {
         try {

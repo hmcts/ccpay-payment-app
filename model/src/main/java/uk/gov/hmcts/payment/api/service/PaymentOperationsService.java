@@ -46,7 +46,7 @@ public class PaymentOperationsService implements PaymentService<Payment, String>
     }
 
     @Override
-    public void updatePaymentsForCCDCaseNumberByCertainDays(final String ccd_case_number, final String days){
+    public void updatePaymentsForCCDCaseNumberByCertainDays(String ccd_case_number){
 
     }
 

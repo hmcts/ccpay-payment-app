@@ -2,16 +2,14 @@ package uk.gov.hmcts.payment.functional;
 
 import io.restassured.response.Response;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
-import uk.gov.hmcts.PaymentApiApplication;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
@@ -20,8 +18,6 @@ import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
 import uk.gov.hmcts.payment.api.dto.RefundResponse;
 import uk.gov.hmcts.payment.api.dto.RetroRemissionRequest;
 import uk.gov.hmcts.payment.api.dto.RetroSpectiveRemissionRequest;
-import uk.gov.hmcts.payment.api.service.PaymentService;
-import uk.gov.hmcts.payment.api.service.PaymentServiceImpl;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
 import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
 import uk.gov.hmcts.payment.functional.fixture.PaymentFixture;
@@ -48,7 +44,6 @@ import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
 @ActiveProfiles({"functional-tests", "liberataMock"})
-//@SpringBootTest(classes = {PaymentApiApplication.class})
 public class RefundsRequestorJourneyFunctionalTest {
 
     private static String USER_TOKEN;
@@ -81,19 +76,13 @@ public class RefundsRequestorJourneyFunctionalTest {
     @Autowired
     private PaymentsTestDsl dsl;
 
-    /*@Autowired
-    @Qualifier("paymentServiceImpl")
-    private PaymentService paymentService;*/
-
     @Before
     public void setUp() throws Exception {
 
         if (!TOKENS_INITIALIZED) {
             USER_TOKEN = idamService.createUserWith(CMC_CASE_WORKER_GROUP, "caseworker-cmc-solicitor")
                 .getAuthorisationToken();
-            System.out.println("The value of the USER_TOKEN : "+USER_TOKEN);
             SERVICE_TOKEN = s2sTokenService.getS2sToken(testProps.s2sServiceName, testProps.s2sServiceSecret);
-            System.out.println("The value of the SERVICE_TOKEN : "+SERVICE_TOKEN);
 
             USER_TOKEN_CMC_CITIZEN = idamService.createUserWith(CMC_CITIZEN_GROUP, "citizen").getAuthorisationToken();
             USER_TOKEN_PAYMENT = idamService.createUserWith(CMC_CITIZEN_GROUP, "payments").getAuthorisationToken();
@@ -115,11 +104,8 @@ public class RefundsRequestorJourneyFunctionalTest {
             .aPbaPaymentRequestForProbate("90.00",
                 "PROBATE", "PBAFUNC12345");
         accountPaymentRequest.setAccountNumber(accountNumber);
-        /*paymentService
-            .updatePaymentsForCCDCaseNumberByCertainHours(accountPaymentRequest.getCcdCaseNumber(), String.valueOf(4 * 24));*/
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success"));
-
 
         // Get pba payments by accountNumber
         PaymentsResponse paymentsResponse = paymentTestService
@@ -137,12 +123,7 @@ public class RefundsRequestorJourneyFunctionalTest {
         assertThat(paymentDtoOptional.get().getCcdCaseNumber()).isEqualTo(accountPaymentRequest.getCcdCaseNumber());
         System.out.println("The value of the CCD Case Number " + paymentDtoOptional.get().getCcdCaseNumber());
         String paymentReference = paymentDtoOptional.get().getPaymentReference();
-
-        Response rollbackPaymentResponse = paymentTestService.updateThePaymentDateByCCDCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
-            accountPaymentRequest.getCcdCaseNumber(),"5");
-        System.out.println(rollbackPaymentResponse.getBody().prettyPrint());
-
-       /* PaymentRefundRequest paymentRefundRequest
+        PaymentRefundRequest paymentRefundRequest
             = PaymentFixture.aRefundRequest("RR001", paymentReference);
         Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
@@ -153,7 +134,7 @@ public class RefundsRequestorJourneyFunctionalTest {
         RefundResponse refundResponseFromPost = refundResponse.getBody().as(RefundResponse.class);
         assertThat(refundResponseFromPost.getRefundAmount()).isEqualTo(new BigDecimal("90.00"));
         System.out.println(refundResponseFromPost.getRefundReference());
-        assertThat(REFUNDS_REGEX_PATTERN.matcher(refundResponseFromPost.getRefundReference()).matches()).isEqualTo(true);*/
+        assertThat(REFUNDS_REGEX_PATTERN.matcher(refundResponseFromPost.getRefundReference()).matches()).isEqualTo(true);
     }
 
     @Test
@@ -245,14 +226,14 @@ public class RefundsRequestorJourneyFunctionalTest {
         // create a PBA payment
         String accountNumber = testProps.existingAccountNumber;
         CreditAccountPaymentRequest accountPaymentRequest1 = PaymentFixture
-            .aPbaPaymentRequestForProbateWithFeeCode("90.00", "FEE0001",
+            .aPbaPaymentRequestForProbateWithFeeCode("90.00","FEE0001",
                 "PROBATE", "PBAFUNC12345");
         accountPaymentRequest1.setAccountNumber(accountNumber);
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest1).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success"));
 
         CreditAccountPaymentRequest accountPaymentRequest2 = PaymentFixture
-            .aPbaPaymentRequestForProbateWithFeeCode("550.00", "FEE0002",
+            .aPbaPaymentRequestForProbateWithFeeCode("550.00","FEE0002",
                 "PROBATE", "PBAFUNC12345");
         accountPaymentRequest2.setAccountNumber(accountNumber);
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest2).then()
@@ -295,7 +276,7 @@ public class RefundsRequestorJourneyFunctionalTest {
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
             .aPbaPaymentRequestForProbateSinglePaymentFor2Fees("640.00",
                 "PROBATE", "PBAFUNC12345",
-                "FEE0001", "90.00", "FEE002", "550.00");
+                "FEE0001","90.00","FEE002","550.00");
         accountPaymentRequest.setAccountNumber(accountNumber);
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success"));
@@ -499,14 +480,14 @@ public class RefundsRequestorJourneyFunctionalTest {
         // create a PBA payment
         String accountNumber = testProps.existingAccountNumber;
         CreditAccountPaymentRequest accountPaymentRequest1 = PaymentFixture
-            .aPbaPaymentRequestForProbateWithFeeCode("90.00", "FEE0001",
+            .aPbaPaymentRequestForProbateWithFeeCode("90.00","FEE0001",
                 "PROBATE", "PBAFUNC12345");
         accountPaymentRequest1.setAccountNumber(accountNumber);
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest1).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success"));
 
         CreditAccountPaymentRequest accountPaymentRequest2 = PaymentFixture
-            .aPbaPaymentRequestForProbateWithFeeCode("550.00", "FEE0002",
+            .aPbaPaymentRequestForProbateWithFeeCode("550.00","FEE0002",
                 "PROBATE", "PBAFUNC12345");
         accountPaymentRequest2.setCcdCaseNumber(accountPaymentRequest1.getCcdCaseNumber());
         accountPaymentRequest2.setAccountNumber(accountNumber);
@@ -691,7 +672,7 @@ public class RefundsRequestorJourneyFunctionalTest {
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
             .aPbaPaymentRequestForProbateSinglePaymentFor2Fees("640.00",
                 "PROBATE", "PBAFUNC12345",
-                "FEE0001", "90.00", "FEE0002", "550.00");
+                "FEE0001","90.00","FEE0002","550.00");
         accountPaymentRequest.setAccountNumber(accountNumber);
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success"));
@@ -702,9 +683,7 @@ public class RefundsRequestorJourneyFunctionalTest {
             = casePaymentGroupResponse.getBody().as(PaymentGroupResponse.class);
         //System.out.println("The Payment Group Reference : " + casePaymentGroupResponse.getBody().prettyPrint());
         final String paymentGroupReference = paymentGroupResponse.getPaymentGroups().get(0).getPaymentGroupReference();
-        final Integer feeId =
-            paymentGroupResponse.getPaymentGroups().get(0).getFees().stream().filter(s -> s.getCode().equals("FEE0002"))
-                .findFirst().get().getId();
+        final Integer feeId = paymentGroupResponse.getPaymentGroups().get(0).getFees().stream().filter(s -> s.getCode().equals("FEE0002")).findFirst().get().getId();
 
         //TEST create retrospective remission
         Response retrospectiveRemissionResponse = dsl.given().userToken(USER_TOKEN)
@@ -717,7 +696,7 @@ public class RefundsRequestorJourneyFunctionalTest {
         Response refundResponse = paymentTestService.postSubmitRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             RetroSpectiveRemissionRequest.retroSpectiveRemissionRequestWith().remissionReference(remissionReference).build());
-        System.out.println("The value of the responseBody : " + refundResponse.getBody().prettyPrint());
+        System.out.println("The value of the responseBody : "+refundResponse.getBody().prettyPrint());
         assertThat(refundResponse.statusCode()).isEqualTo(HttpStatus.CREATED.value());
         RefundResponse refundResponseFromPost = refundResponse.getBody().as(RefundResponse.class);
         assertThat(refundResponseFromPost.getRefundAmount()).isEqualTo(new BigDecimal("540.00"));

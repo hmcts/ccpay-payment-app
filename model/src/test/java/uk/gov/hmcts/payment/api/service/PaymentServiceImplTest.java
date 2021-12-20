@@ -101,10 +101,10 @@ public class PaymentServiceImplTest {
             .statusHistories(Arrays.asList(statusHistory))
             .paymentAllocation(Arrays.asList(paymentAllocation))
             .dateCreated(new Date())
-            .dateUpdated(new Date())
+            .dateCreated(new Date())
             .build();
         List<Payment> paymentList = List.of(payment);
         when(paymentRepository.findByCcdCaseNumber(any())).thenReturn(Optional.of(paymentList));
-        paymentService.updatePaymentsForCCDCaseNumberByCertainDays("ccdCaseNumber","5");
+        paymentService.updatePaymentsForCCDCaseNumberByCertainDays("");
     }
 }
