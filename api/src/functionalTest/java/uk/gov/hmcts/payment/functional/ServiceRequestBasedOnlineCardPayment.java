@@ -194,7 +194,7 @@ public class ServiceRequestBasedOnlineCardPayment {
     }
 
     @Test
-//    @Ignore("Internal Reference is not coming up as null" UPDATE: FIXED ISSUE)
+    //@Ignore("Internal Reference is not coming up as null")
     public void positive_full_card_payment_already_payment_in_progress() throws Exception {
 
         ServiceRequestDto serviceRequestDto
@@ -256,7 +256,7 @@ public class ServiceRequestBasedOnlineCardPayment {
     }
 
     @Test
-    @Ignore("Right Error Message is not provided. Decided to make the severity of this as low for now as the solution will require 417 unit test cases to be fixed")
+    //@Ignore("Right Error Message is not provided. Decided to make the severity of this as low for now as the solution will require 417 unit test cases to be fixed")
     public void negative_get_online_card_payment_for_invalid_service_token() throws Exception {
 
         Response getOnlineCardPaymentResponse =
