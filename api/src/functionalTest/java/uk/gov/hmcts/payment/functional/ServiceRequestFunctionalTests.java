@@ -190,7 +190,7 @@ public class ServiceRequestFunctionalTests {
     }
 
     @Test
-    //@Ignore ("No proper Error message for a ccdCaseNumber that is not present")
+    @Ignore ("No proper Error message for a ccdCaseNumber that is not present")
     public void negative_create_service_request_service_not_found() throws Exception {
 
         Response getPaymentGroupResponse =
@@ -264,7 +264,7 @@ public class ServiceRequestFunctionalTests {
     }
 
     @Test
-    //@Ignore ("Card payment Failing")
+    @Ignore ("A card payment is failing even after a PBA Payment has been made.....")
     public void positive_create_service_request_and_a_full_pba_payment_user_hmcts() throws Exception {
 
         final ServiceRequestDto serviceRequestDto
@@ -605,7 +605,7 @@ public class ServiceRequestFunctionalTests {
 
 
     @Test
-    //@Ignore ("Card payment Failing")
+    @Ignore ("Card payment Failing on the amounts Decimal Point......")
     public void positive_create_service_request_and_a_full_card_payment_user_hmcts() throws Exception {
 
         ServiceRequestDto serviceRequestDto
