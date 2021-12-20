@@ -183,10 +183,6 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         LOG.info("Reaching card payment");
         GovPayPayment govPayPayment = delegateGovPay.create(createGovPayRequest, serviceRequest.getEnterpriseServiceName());
 
-        if(govPayPayment.getAmount().toString() != onlineCardPaymentRequest.getAmount().toString()){
-            govPayPayment.setAmount(onlineCardPaymentRequest.getAmount().intValue());
-        }
-
         //Payment - Entity creation
         Payment paymentEntity = serviceRequestDomainDataEntityMapper.toPaymentEntity(requestOnlinePaymentBo, govPayPayment, serviceRequest);
         paymentEntity.setPaymentLink(serviceRequest);
