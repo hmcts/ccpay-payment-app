@@ -30,6 +30,6 @@ public interface PaymentService<T, ID> {
 
     Payment findSavedPayment(String reference);
 
-    void updatePaymentsForCCDCaseNumberByCertainHours(String ccd_case_number, String hours);
+    void updatePaymentsForCCDCaseNumberByCertainDays(String ccd_case_number, String days);
 
 }
