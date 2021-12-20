@@ -41,7 +41,6 @@ public class Payment extends Auditable<String> {
     @Column(name = "date_created")
     private Date dateCreated;
 
-    @UpdateTimestamp
     @Column(name = "date_updated")
     private Date dateUpdated;
 

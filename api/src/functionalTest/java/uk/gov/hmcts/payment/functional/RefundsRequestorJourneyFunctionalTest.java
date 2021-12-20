@@ -142,7 +142,7 @@ public class RefundsRequestorJourneyFunctionalTest {
             accountPaymentRequest.getCcdCaseNumber(),"5");
         System.out.println(rollbackPaymentResponse.getBody().prettyPrint());
 
-       /* PaymentRefundRequest paymentRefundRequest
+       PaymentRefundRequest paymentRefundRequest
             = PaymentFixture.aRefundRequest("RR001", paymentReference);
         Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
@@ -153,7 +153,7 @@ public class RefundsRequestorJourneyFunctionalTest {
         RefundResponse refundResponseFromPost = refundResponse.getBody().as(RefundResponse.class);
         assertThat(refundResponseFromPost.getRefundAmount()).isEqualTo(new BigDecimal("90.00"));
         System.out.println(refundResponseFromPost.getRefundReference());
-        assertThat(REFUNDS_REGEX_PATTERN.matcher(refundResponseFromPost.getRefundReference()).matches()).isEqualTo(true);*/
+        assertThat(REFUNDS_REGEX_PATTERN.matcher(refundResponseFromPost.getRefundReference()).matches()).isEqualTo(true);
     }
 
     @Test
