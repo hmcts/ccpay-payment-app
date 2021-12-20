@@ -35,7 +35,7 @@ public class ServiceRequestTestService {
                                      String serviceToken,
                                      final String ccdCaseNumber) {
         return givenWithAuthHeaders(userToken, serviceToken)
-            .header("return-url", "http://localhost.hmcts.net")
+//            .header("return-url", "http://localhost.hmcts.net")
             .contentType(ContentType.JSON)
             .when()
             .get("/cases/{ccdcasenumber}/paymentgroups", ccdCaseNumber);
