@@ -152,7 +152,7 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
         LOG.info("The value of the days :" + days);
         LocalDateTime localDateTime = LocalDateTime.now();
         LocalDateTime rolledbackDateTime = localDateTime.minusDays(Integer.parseInt(days));
-        paymentRepository.updatePaymentUpdatedDateTime(rolledbackDateTime,ccd_case_number);
+        paymentRepository.updatePaymentUpdatedDateTime(Date.from(rolledbackDateTime.atZone(ZoneId.systemDefault()).toInstant()),ccd_case_number);
         /*Optional<List<Payment>> optionalPaymentList = paymentRepository.findByCcdCaseNumber(ccd_case_number);
         List<Payment> paymentList = optionalPaymentList.orElseThrow();
         paymentList.stream().forEach(payment -> {
