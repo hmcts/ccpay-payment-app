@@ -194,7 +194,7 @@ public class ServiceRequestBasedOnlineCardPayment {
     }
 
     @Test
-    @Ignore("Internal Reference is not coming up as null")
+//    @Ignore("Internal Reference is not coming up as null" UPDATE: FIXED ISSUE)
     public void positive_full_card_payment_already_payment_in_progress() throws Exception {
 
         ServiceRequestDto serviceRequestDto

@@ -183,6 +183,7 @@ public class PaymentDtoMapper {
             .externalReference(payment.getExternalReference())
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
             .externalProvider(payment.getPaymentProvider() != null ? payment.getPaymentProvider().getName() : null)
+            .internalReference(payment.getInternalReference())
             .fees(toFeeDtos(fees))
             .links(payment.getReference() != null ? new PaymentDto.LinksDto(null,
                 retrieveCardPaymentLink(payment.getReference()),
