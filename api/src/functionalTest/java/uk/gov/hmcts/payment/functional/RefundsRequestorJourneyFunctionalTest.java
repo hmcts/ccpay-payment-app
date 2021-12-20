@@ -137,7 +137,7 @@ public class RefundsRequestorJourneyFunctionalTest {
         String paymentReference = paymentDtoOptional.get().getPaymentReference();
 
         Response rollbackPaymentResponse = paymentTestService.updateThePaymentDateByCCDCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
-            accountPaymentRequest.getCcdCaseNumber(),"100");
+            accountPaymentRequest.getCcdCaseNumber(),"5");
         System.out.println(rollbackPaymentResponse.getBody().prettyPrint());
 
         PaymentRefundRequest paymentRefundRequest
