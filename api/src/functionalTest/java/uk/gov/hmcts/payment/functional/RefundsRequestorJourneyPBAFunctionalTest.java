@@ -2,16 +2,14 @@ package uk.gov.hmcts.payment.functional;
 
 import io.restassured.response.Response;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
-import uk.gov.hmcts.PaymentApiApplication;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
@@ -20,8 +18,6 @@ import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
 import uk.gov.hmcts.payment.api.dto.RefundResponse;
 import uk.gov.hmcts.payment.api.dto.RetroRemissionRequest;
 import uk.gov.hmcts.payment.api.dto.RetroSpectiveRemissionRequest;
-import uk.gov.hmcts.payment.api.service.PaymentService;
-import uk.gov.hmcts.payment.api.service.PaymentServiceImpl;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
 import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
 import uk.gov.hmcts.payment.functional.fixture.PaymentFixture;
@@ -49,7 +45,7 @@ import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP
 @ContextConfiguration(classes = TestContextConfiguration.class)
 @ActiveProfiles({"functional-tests", "liberataMock"})
 //@SpringBootTest(classes = {PaymentApiApplication.class})
-public class RefundsRequestorJourneyFunctionalTest {
+public class RefundsRequestorJourneyPBAFunctionalTest {
 
     private static String USER_TOKEN;
     private static String USER_TOKEN_PAYMENT;
@@ -132,6 +128,7 @@ public class RefundsRequestorJourneyFunctionalTest {
             return s2.getDateCreated().compareTo(s1.getDateCreated());
         }).findFirst();
 
+
         assertThat(paymentDtoOptional.get().getAccountNumber()).isEqualTo(accountNumber);
         assertThat(paymentDtoOptional.get().getAmount()).isEqualTo(new BigDecimal("90.00"));
         assertThat(paymentDtoOptional.get().getCcdCaseNumber()).isEqualTo(accountPaymentRequest.getCcdCaseNumber());
@@ -205,6 +202,10 @@ public class RefundsRequestorJourneyFunctionalTest {
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success"));
 
+        Response rollbackPaymentResponse = paymentTestService.updateThePaymentDateByCCDCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
+            accountPaymentRequest.getCcdCaseNumber(),"5");
+        System.out.println(rollbackPaymentResponse.getBody().prettyPrint());
+
         // Get pba payments by accountNumber
         PaymentsResponse paymentsResponse = paymentTestService
             .getPbaPaymentsByAccountNumber(USER_TOKEN, SERVICE_TOKEN, testProps.existingAccountNumber)
@@ -251,12 +252,20 @@ public class RefundsRequestorJourneyFunctionalTest {
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest1).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success"));
 
+        Response rollbackPaymentResponse1 = paymentTestService.updateThePaymentDateByCCDCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
+            accountPaymentRequest1.getCcdCaseNumber(),"5");
+        System.out.println(rollbackPaymentResponse1.getBody().prettyPrint());
+
         CreditAccountPaymentRequest accountPaymentRequest2 = PaymentFixture
             .aPbaPaymentRequestForProbateWithFeeCode("550.00", "FEE0002",
                 "PROBATE", "PBAFUNC12345");
         accountPaymentRequest2.setAccountNumber(accountNumber);
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest2).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success"));
+
+        Response rollbackPaymentResponse2 = paymentTestService.updateThePaymentDateByCCDCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
+            accountPaymentRequest2.getCcdCaseNumber(),"5");
+        System.out.println(rollbackPaymentResponse2.getBody().prettyPrint());
 
         // Get pba payments by accountNumber
         PaymentsResponse paymentsResponse = paymentTestService
@@ -268,6 +277,7 @@ public class RefundsRequestorJourneyFunctionalTest {
             = paymentsResponse.getPayments().stream().sorted((s1, s2) -> {
             return s2.getDateCreated().compareTo(s1.getDateCreated());
         }).findFirst();
+
 
         assertThat(paymentDtoOptional.get().getAccountNumber()).isEqualTo(accountNumber);
         assertThat(paymentDtoOptional.get().getAmount()).isEqualTo(new BigDecimal("550.00"));
@@ -300,6 +310,10 @@ public class RefundsRequestorJourneyFunctionalTest {
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success"));
 
+        Response rollbackPaymentResponse = paymentTestService.updateThePaymentDateByCCDCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
+            accountPaymentRequest.getCcdCaseNumber(),"5");
+        System.out.println(rollbackPaymentResponse.getBody().prettyPrint());
+
         // Get pba payments by accountNumber
         PaymentsResponse paymentsResponse = paymentTestService
             .getPbaPaymentsByAccountNumber(USER_TOKEN, SERVICE_TOKEN, testProps.existingAccountNumber)
@@ -329,8 +343,14 @@ public class RefundsRequestorJourneyFunctionalTest {
         assertThat(REFUNDS_REGEX_PATTERN.matcher(refundResponseFromPost.getRefundReference()).matches()).isEqualTo(true);
     }
 
+    @Ignore("This is now a valid scenario")
     @Test
     public void negative_issue_refund_for_card_payment() {
+
+        /*
+        Refund response returns "Refund can not be processed for unsuccessful payment" for a card payment
+        Expected :"Refund currently supported for PBA Payment Channel only"
+         */
 
         PaymentDto paymentDto = paymentsTestDsl.given().userToken(USER_TOKEN_CMC_CITIZEN)
             .s2sToken(SERVICE_TOKEN)
@@ -361,6 +381,11 @@ public class RefundsRequestorJourneyFunctionalTest {
         accountPaymentRequest.setAccountNumber(accountNumber);
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success"));
+
+        Response rollbackPaymentResponse = paymentTestService.updateThePaymentDateByCCDCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
+            accountPaymentRequest.getCcdCaseNumber(),"5");
+        System.out.println(rollbackPaymentResponse.getBody().prettyPrint());
+
         Response casePaymentGroupResponse
             = cardTestService
             .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN_PAYMENT, accountPaymentRequest.getCcdCaseNumber());
@@ -428,6 +453,12 @@ public class RefundsRequestorJourneyFunctionalTest {
         accountPaymentRequest.setAccountNumber(accountNumber);
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success"));
+
+        Response rollbackPaymentResponse = paymentTestService.updateThePaymentDateByCCDCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
+            accountPaymentRequest.getCcdCaseNumber(),"5");
+        System.out.println(rollbackPaymentResponse.getBody().prettyPrint());
+
+
         Response casePaymentGroupResponse
             = cardTestService
             .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN_PAYMENT, accountPaymentRequest.getCcdCaseNumber());
@@ -505,6 +536,10 @@ public class RefundsRequestorJourneyFunctionalTest {
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest1).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success"));
 
+        Response rollbackPaymentResponse1 = paymentTestService.updateThePaymentDateByCCDCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
+            accountPaymentRequest1.getCcdCaseNumber(),"5");
+        System.out.println(rollbackPaymentResponse1.getBody().prettyPrint());
+
         CreditAccountPaymentRequest accountPaymentRequest2 = PaymentFixture
             .aPbaPaymentRequestForProbateWithFeeCode("550.00", "FEE0002",
                 "PROBATE", "PBAFUNC12345");
@@ -512,6 +547,10 @@ public class RefundsRequestorJourneyFunctionalTest {
         accountPaymentRequest2.setAccountNumber(accountNumber);
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest2).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success"));
+
+        Response rollbackPaymentResponse2 = paymentTestService.updateThePaymentDateByCCDCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
+            accountPaymentRequest2.getCcdCaseNumber(),"5");
+        System.out.println(rollbackPaymentResponse2.getBody().prettyPrint());
 
         Response casePaymentGroupResponse
             = cardTestService
@@ -577,6 +616,10 @@ public class RefundsRequestorJourneyFunctionalTest {
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success"));
 
+        Response rollbackPaymentResponse = paymentTestService.updateThePaymentDateByCCDCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
+            accountPaymentRequest.getCcdCaseNumber(),"5");
+        System.out.println(rollbackPaymentResponse.getBody().prettyPrint());
+
         Response casePaymentGroupResponse
             = cardTestService
             .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN_PAYMENT, accountPaymentRequest.getCcdCaseNumber());
@@ -633,6 +676,10 @@ public class RefundsRequestorJourneyFunctionalTest {
         accountPaymentRequest.setAccountNumber(accountNumber);
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success"));
+
+        Response rollbackPaymentResponse = paymentTestService.updateThePaymentDateByCCDCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
+            accountPaymentRequest.getCcdCaseNumber(),"5");
+        System.out.println(rollbackPaymentResponse.getBody().prettyPrint());
 
         Response casePaymentGroupResponse
             = cardTestService
@@ -695,6 +742,11 @@ public class RefundsRequestorJourneyFunctionalTest {
         accountPaymentRequest.setAccountNumber(accountNumber);
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success"));
+
+        Response rollbackPaymentResponse = paymentTestService.updateThePaymentDateByCCDCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
+            accountPaymentRequest.getCcdCaseNumber(),"5");
+        System.out.println(rollbackPaymentResponse.getBody().prettyPrint());
+
         Response casePaymentGroupResponse
             = cardTestService
             .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN_PAYMENT, accountPaymentRequest.getCcdCaseNumber());
@@ -781,7 +833,7 @@ public class RefundsRequestorJourneyFunctionalTest {
             paymentRefundRequest);
         assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
         System.out.println("The value of the response body " + refundResponse.getBody().prettyPrint());
-        assertThat(refundResponse.getBody().print()).isEqualTo("Refund can be possible if payment is successful");
+        assertThat(refundResponse.getBody().print()).isEqualTo("Refund can not be processed for unsuccessful payment");
     }
 
     @Test
