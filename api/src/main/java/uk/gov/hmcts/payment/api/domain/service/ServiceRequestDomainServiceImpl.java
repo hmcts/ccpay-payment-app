@@ -460,6 +460,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
             msg = new Message(objectMapper.writeValueAsString(serviceRequestCpoDto));
 
             topicClientCPO = new TopicClientProxy(connectionString, topic);
+            LOG.info("sending message started..");
 
             if(msg!=null && topicClientCPO!=null){
                 msg.setContentType(MSGCONTENTTYPE);
@@ -467,6 +468,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
                 msg.setProperties(Collections.singletonMap("serviceCallbackUrl",
                     callBackUrl+"/case-payment-orders"));
                 topicClientCPO.send(msg);
+                LOG.info("Message sent: {}", msg);
                 topicClientCPO.close();
             }
         } catch (Exception e) {

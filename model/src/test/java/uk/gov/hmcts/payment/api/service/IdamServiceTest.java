@@ -64,12 +64,13 @@ public class IdamServiceTest{
         header.put("authorization", Collections.singletonList("Bearer 131313"));
 
         IdamUserIdResponse mockIdamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith()
-            .familyName("VP")
-            .givenName("VP")
-            .name("VP")
-            .sub("V_P@gmail.com")
+
+            .id("123")
+            .forename("VP")
+            .surname("VP")
+            .email("V_P@gmail.com")
+            .active("true")
             .roles(Arrays.asList("vp"))
-            .uid("986-erfg-kjhg-123")
             .build();
 
         ResponseEntity<IdamUserIdResponse> responseEntity = new ResponseEntity<>(mockIdamUserIdResponse, HttpStatus.OK);
@@ -79,7 +80,7 @@ public class IdamServiceTest{
         )).thenReturn(responseEntity);
 
         String idamUserIdResponse = idamService.getUserId(header);
-        assertEquals(mockIdamUserIdResponse.getUid(), idamUserIdResponse);
+        assertEquals(mockIdamUserIdResponse.getEmail(), idamUserIdResponse);
     }
 
     @Test
@@ -163,20 +164,19 @@ public class IdamServiceTest{
     @Test
     public void validateResponseDto() throws Exception {
         IdamUserIdResponse idamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith()
-            .familyName("VP")
-            .givenName("VP")
-            .name("VP")
-            .sub("V_P@gmail.com")
+            .id("123")
+            .forename("VP")
+            .surname("VP")
+            .email("V_P@gmail.com")
+            .active("true")
             .roles(Arrays.asList("vp"))
-            .uid("986-erfg-kjhg-123")
             .build();
 
-        assertEquals("VP", idamUserIdResponse.getFamilyName());
-        assertEquals("VP", idamUserIdResponse.getGivenName());
-        assertEquals("VP", idamUserIdResponse.getName());
+        assertEquals("123", idamUserIdResponse.getId());
+        assertEquals("VP", idamUserIdResponse.getForename());
+        assertEquals("VP", idamUserIdResponse.getSurname());
         assertEquals(Arrays.asList("vp"), idamUserIdResponse.getRoles());
-        assertEquals("986-erfg-kjhg-123", idamUserIdResponse.getUid());
-        assertEquals("V_P@gmail.com", idamUserIdResponse.getSub());
+        assertEquals("V_P@gmail.com", idamUserIdResponse.getEmail());
     }
 
     public void mockIdamFullNameCall(String userId,

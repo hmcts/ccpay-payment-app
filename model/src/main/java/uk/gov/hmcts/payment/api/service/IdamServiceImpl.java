@@ -32,7 +32,7 @@ public class IdamServiceImpl implements IdamService {
 
     private static final Logger LOG = LoggerFactory.getLogger(IdamServiceImpl.class);
 
-    public static final String USERID_ENDPOINT = "/o/userinfo";
+    public static final String USERID_ENDPOINT = "/details";
 
     public static final String USER_FULL_NAME_ENDPOINT = "/api/v1/users";
 
@@ -53,7 +53,8 @@ public class IdamServiceImpl implements IdamService {
             if (responseEntity != null) {
                 IdamUserIdResponse idamUserIdResponse = responseEntity.getBody();
                 if (idamUserIdResponse != null) {
-                    return idamUserIdResponse.getUid();
+                    LOG.info("User id from IDAM service {} " ,idamUserIdResponse.getEmail());
+                    return idamUserIdResponse.getEmail();
                 }
             }
             LOG.error("Parse error user not found");
