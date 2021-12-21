@@ -95,19 +95,10 @@ public class PBAController {
     @GetMapping(value = "/pba-accounts")
     @PaymentExternalAPI
     public ResponseEntity<PBAResponse> retrievePBADetails(@RequestHeader(required = false) MultiValueMap<String, String> headers) {
-        // Put in place for testing
-        Set<String> keySet = headers.keySet();
-        for (String key: keySet) {
-            LOG.info("Value retrieved from Header: {} ",headers.get(key));
-        }
-        // To be removed after testing
-        String userId = idamService.getUserId(headers);
-        LOG.info("User Id retrieved from IDAM : {} ",userId);
-        UserIdentityDataDto userIdentityDataDto = idamService.getUserIdentityData(headers, userId);
-        String emailId = userIdentityDataDto.getEmailId();
-        LOG.info("emailId retrieved from IDAM : {} ",emailId);
 
-        MultiValueMap<String, String> headerMultiValueMapForRefData = generateHeaders(headers, emailId);
+        String emailIdFromIdam = idamService.getUserId(headers);
+
+        MultiValueMap<String, String> headerMultiValueMapForRefData = generateHeaders(headers, emailIdFromIdam);
 
         try {
             ResponseEntity<PBAResponse> response = getDetailsFromRefData(headerMultiValueMapForRefData);
