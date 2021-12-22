@@ -469,6 +469,10 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
                     callBackUrl+"/case-payment-orders"));
                 topicClientCPO.send(msg);
                 LOG.info("Message sent: {}", msg);
+                LOG.info("message content Action: {}",serviceRequestCpoDto.getAction() );
+                LOG.info("message content case id: {}",serviceRequestCpoDto.getCase_id() );
+                LOG.info("message content order reference: {}",serviceRequestCpoDto.getOrder_reference() );
+                LOG.info("message content res party: {}",serviceRequestCpoDto.getResponsible_party() );
                 topicClientCPO.close();
             }
         } catch (Exception e) {
