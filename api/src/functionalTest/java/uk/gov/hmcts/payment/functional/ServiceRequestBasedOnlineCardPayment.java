@@ -221,7 +221,7 @@ public class ServiceRequestBasedOnlineCardPayment {
             createOnlineCardPaymentResponse.getBody().as(OnlineCardPaymentResponse.class);
         final String paymentReference = onlineCardPaymentResponse.getPaymentReference();
         assertThat(paymentReference).matches(PAYMENTS_REGEX_PATTERN);
-        assertThat(onlineCardPaymentResponse.getStatus()).isEqualTo("created");
+        assertThat(onlineCardPaymentResponse.getStatus()).isEqualTo("Initiated");
         assertThat(onlineCardPaymentResponse.getNextUrl()).startsWith("https://www.payments.service.gov.uk/secure/");
         assertThat(onlineCardPaymentResponse.getExternalReference()).isNotNull().isNotBlank();
 
@@ -234,13 +234,13 @@ public class ServiceRequestBasedOnlineCardPayment {
         assertThat(paymentDto).isNotNull();
         assertThat(paymentDto.getReference()).isEqualTo(paymentReference);
         assertThat(paymentDto.getStatus()).isEqualTo("Initiated");
-        assertThat(paymentDto.getInternalReference()).isNotNull();
+        assertThat(paymentDto.getInternalReference()).isNotNull().isNotBlank();
 
         Response getOnlineCardPaymentResponse =
             serviceRequestTestService.getAnOnlineCardPaymentForAnInternalReference(SERVICE_TOKEN,
                 paymentDto.getInternalReference());
         PaymentDto paymentDtoForOnlineCardPaymentResponse = getOnlineCardPaymentResponse.getBody().as(PaymentDto.class);
-        assertThat(paymentDtoForOnlineCardPaymentResponse.getStatus()).isEqualTo("created");
+        assertThat(paymentDtoForOnlineCardPaymentResponse.getStatus()).isEqualTo("Initiated");
 
     }
 
