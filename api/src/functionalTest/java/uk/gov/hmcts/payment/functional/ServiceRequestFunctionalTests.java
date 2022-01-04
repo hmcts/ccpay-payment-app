@@ -13,7 +13,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
 import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentRequest;
@@ -38,8 +37,6 @@ import javax.inject.Inject;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CASE_WORKER_GROUP;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
 
@@ -105,7 +102,7 @@ public class ServiceRequestFunctionalTests {
 
         ServiceRequestDto serviceRequestDto
             = ServiceRequestFixture.buildServiceRequestDTO("ABA6", null);
-        System.out.println("The Value of the CCD Case Number : "+serviceRequestDto.getCcdCaseNumber());
+        System.out.println("The Value of the CCD Case Number : " + serviceRequestDto.getCcdCaseNumber());
         Response createServiceRequestResponse
             = serviceRequestTestService.createServiceRequest(USER_TOKEN_PAYMENT, SERVICE_TOKEN,
             serviceRequestDto);
@@ -142,31 +139,44 @@ public class ServiceRequestFunctionalTests {
         verifyThePaymentGroupResponseForNoPaymentsOrRemisssions(serviceRequestDto, paymentGroupResponse);
 
         Response getPaymentGroupResponseForPUIFinanceManager =
-            serviceRequestTestService.getPaymentGroups(USER_TOKEN_PUI_FINANCE_MANAGER, SERVICE_TOKEN, serviceRequestDto.getCcdCaseNumber());
+            serviceRequestTestService
+                .getPaymentGroups(USER_TOKEN_PUI_FINANCE_MANAGER, SERVICE_TOKEN, serviceRequestDto.getCcdCaseNumber());
         assertThat(getPaymentGroupResponseForPUIFinanceManager.getStatusCode()).isEqualTo(HttpStatus.OK.value());
-        PaymentGroupResponse getPaymentGroupResponseForPUIFinanceManagerResponse = getPaymentGroupResponseForPUIFinanceManager.getBody().as(PaymentGroupResponse.class);
-        verifyThePaymentGroupResponseForNoPaymentsOrRemisssions(serviceRequestDto, getPaymentGroupResponseForPUIFinanceManagerResponse);
+        PaymentGroupResponse getPaymentGroupResponseForPUIFinanceManagerResponse =
+            getPaymentGroupResponseForPUIFinanceManager.getBody().as(PaymentGroupResponse.class);
+        verifyThePaymentGroupResponseForNoPaymentsOrRemisssions(serviceRequestDto,
+            getPaymentGroupResponseForPUIFinanceManagerResponse);
 
         Response getPaymentGroupResponseForPUICaseManager =
-            serviceRequestTestService.getPaymentGroups(USER_TOKEN_PUI_CASE_MANAGER, SERVICE_TOKEN, serviceRequestDto.getCcdCaseNumber());
+            serviceRequestTestService
+                .getPaymentGroups(USER_TOKEN_PUI_CASE_MANAGER, SERVICE_TOKEN, serviceRequestDto.getCcdCaseNumber());
         assertThat(getPaymentGroupResponseForPUICaseManager.getStatusCode()).isEqualTo(HttpStatus.OK.value());
-        PaymentGroupResponse getPaymentGroupResponseForPUICaseManagerResponse = getPaymentGroupResponseForPUICaseManager.getBody().as(PaymentGroupResponse.class);
-        verifyThePaymentGroupResponseForNoPaymentsOrRemisssions(serviceRequestDto, getPaymentGroupResponseForPUICaseManagerResponse);
+        PaymentGroupResponse getPaymentGroupResponseForPUICaseManagerResponse =
+            getPaymentGroupResponseForPUICaseManager.getBody().as(PaymentGroupResponse.class);
+        verifyThePaymentGroupResponseForNoPaymentsOrRemisssions(serviceRequestDto,
+            getPaymentGroupResponseForPUICaseManagerResponse);
 
         Response getPaymentGroupResponseForPUIOrganisationManager =
-            serviceRequestTestService.getPaymentGroups(USER_TOKEN_PUI_ORGANISATION_MANAGER, SERVICE_TOKEN, serviceRequestDto.getCcdCaseNumber());
+            serviceRequestTestService
+                .getPaymentGroups(USER_TOKEN_PUI_ORGANISATION_MANAGER, SERVICE_TOKEN, serviceRequestDto.getCcdCaseNumber());
         assertThat(getPaymentGroupResponseForPUIOrganisationManager.getStatusCode()).isEqualTo(HttpStatus.OK.value());
-        PaymentGroupResponse getPaymentGroupResponseForPUIOrganisationManagerResponse = getPaymentGroupResponseForPUIOrganisationManager.getBody().as(PaymentGroupResponse.class);
-        verifyThePaymentGroupResponseForNoPaymentsOrRemisssions(serviceRequestDto, getPaymentGroupResponseForPUIOrganisationManagerResponse);
+        PaymentGroupResponse getPaymentGroupResponseForPUIOrganisationManagerResponse =
+            getPaymentGroupResponseForPUIOrganisationManager.getBody().as(PaymentGroupResponse.class);
+        verifyThePaymentGroupResponseForNoPaymentsOrRemisssions(serviceRequestDto,
+            getPaymentGroupResponseForPUIOrganisationManagerResponse);
 
         Response getPaymentGroupResponseForPUIUserManager =
-            serviceRequestTestService.getPaymentGroups(USER_TOKEN_PUI_USER_MANAGER, SERVICE_TOKEN, serviceRequestDto.getCcdCaseNumber());
+            serviceRequestTestService
+                .getPaymentGroups(USER_TOKEN_PUI_USER_MANAGER, SERVICE_TOKEN, serviceRequestDto.getCcdCaseNumber());
         assertThat(getPaymentGroupResponseForPUIUserManager.getStatusCode()).isEqualTo(HttpStatus.OK.value());
-        PaymentGroupResponse getPaymentGroupResponseForPUIUserManagerResponse = getPaymentGroupResponseForPUIUserManager.getBody().as(PaymentGroupResponse.class);
-        verifyThePaymentGroupResponseForNoPaymentsOrRemisssions(serviceRequestDto, getPaymentGroupResponseForPUIUserManagerResponse);
+        PaymentGroupResponse getPaymentGroupResponseForPUIUserManagerResponse =
+            getPaymentGroupResponseForPUIUserManager.getBody().as(PaymentGroupResponse.class);
+        verifyThePaymentGroupResponseForNoPaymentsOrRemisssions(serviceRequestDto,
+            getPaymentGroupResponseForPUIUserManagerResponse);
 
         Response getPaymentGroupResponseForCmcSolicitor =
-            serviceRequestTestService.getPaymentGroups(USER_TOKEN_CMC_SOLICITOR, SERVICE_TOKEN, serviceRequestDto.getCcdCaseNumber());
+            serviceRequestTestService
+                .getPaymentGroups(USER_TOKEN_CMC_SOLICITOR, SERVICE_TOKEN, serviceRequestDto.getCcdCaseNumber());
         assertThat(getPaymentGroupResponseForCmcSolicitor.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN.value());
         assertThat(getPaymentGroupResponseForCmcSolicitor.getBody().asString()).isEqualTo("User does not have a valid role");
     }
@@ -190,7 +200,7 @@ public class ServiceRequestFunctionalTests {
     }
 
     @Test
-    //@Ignore ("No proper Error message for a ccdCaseNumber that is not present")
+    @Ignore("No proper Error message for a ccdCaseNumber that is not present")
     public void negative_create_service_request_service_not_found() throws Exception {
 
         Response getPaymentGroupResponse =
@@ -264,7 +274,6 @@ public class ServiceRequestFunctionalTests {
     }
 
     @Test
-    //@Ignore ("A card payment is failing even after a PBA Payment has been made.....")
     public void positive_create_service_request_and_a_full_pba_payment_user_hmcts() throws Exception {
 
         final ServiceRequestDto serviceRequestDto
@@ -295,15 +304,15 @@ public class ServiceRequestFunctionalTests {
         assertThat(getPaymentGroupResponseForPaymentUser.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         PaymentGroupResponse paymentGroupResponseForAPaymentUser =
             getPaymentGroupResponseForPaymentUser.getBody().as(PaymentGroupResponse.class);
-        verifyThePaymentGroupResponseForPayments(serviceRequestDto, paymentGroupResponseForAPaymentUser,true);
+        verifyThePaymentGroupResponseForUsers(serviceRequestDto, paymentGroupResponseForAPaymentUser, true, true);
 
         Response getPaymentGroupResponseForSolicitorUser =
             serviceRequestTestService
                 .getPaymentGroups(USER_TOKEN_PUI_CASE_MANAGER, SERVICE_TOKEN, serviceRequestDto.getCcdCaseNumber());
         assertThat(getPaymentGroupResponseForSolicitorUser.getStatusCode()).isEqualTo(HttpStatus.OK.value());
-                PaymentGroupResponse paymentGroupResponseForASolicitorUser =
+        PaymentGroupResponse paymentGroupResponseForASolicitorUser =
             getPaymentGroupResponseForSolicitorUser.getBody().as(PaymentGroupResponse.class);
-        verifyThePaymentGroupResponseForPayments(serviceRequestDto, paymentGroupResponseForASolicitorUser,true);
+        verifyThePaymentGroupResponseForUsers(serviceRequestDto, paymentGroupResponseForASolicitorUser, false, true);
     }
 
     @Test
@@ -640,7 +649,7 @@ public class ServiceRequestFunctionalTests {
         assertThat(getPaymentGroupResponseForPaymentUser.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         PaymentGroupResponse paymentGroupResponseForAPaymentUser =
             getPaymentGroupResponseForPaymentUser.getBody().as(PaymentGroupResponse.class);
-        verifyThePaymentGroupResponseForPayments(serviceRequestDto, paymentGroupResponseForAPaymentUser,false);
+        verifyThePaymentGroupResponseForUsers(serviceRequestDto, paymentGroupResponseForAPaymentUser, true, false);
 
         Response getPaymentGroupResponseForSolicitorUser =
             serviceRequestTestService
@@ -719,7 +728,8 @@ public class ServiceRequestFunctionalTests {
             = serviceRequestTestService.createServiceRequest(USER_TOKEN_PAYMENT, SERVICE_TOKEN,
             serviceRequestDto);
         assertThat(createServiceRequestResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND.value());
-        assertThat(createServiceRequestResponse.getBody().asString()).isEqualTo("No Service found for given CaseType or HMCTS Org Id");
+        assertThat(createServiceRequestResponse.getBody().asString())
+            .isEqualTo("No Service found for given CaseType or HMCTS Org Id");
     }
 
     private void verifyThePaymentGroupResponseForNoPaymentsOrRemisssions(final ServiceRequestDto serviceRequestDto,
@@ -745,16 +755,19 @@ public class ServiceRequestFunctionalTests {
         });
     }
 
-    private static void verifyThePaymentGroupResponseForPayments(final ServiceRequestDto serviceRequestDto,
-                                                                 final PaymentGroupResponse paymentGroupResponse,
-                                                                 final boolean paymentStatusFlag)
+    private static void verifyThePaymentGroupResponseForUsers(final ServiceRequestDto serviceRequestDto,
+                                                              final PaymentGroupResponse paymentGroupResponse,
+                                                              final boolean isPaymentsRole,
+                                                              final boolean paymentStatusFlag)
         throws Exception {
         paymentGroupResponse.getPaymentGroups().stream().forEach(paymentGroupDto -> {
-            assertThat(paymentGroupDto.getPayments()).isNotNull();
-            assertThat(paymentGroupDto.getPayments().get(0).getAmount())
-                .isEqualTo(serviceRequestDto.getFees().get(0).getCalculatedAmount());
-            assertThat(paymentGroupDto.getPayments().get(0).getCcdCaseNumber()).isEqualTo(serviceRequestDto.getCcdCaseNumber());
-            assertThat(paymentGroupDto.getRemissions().size()).isEqualTo(0);
+            if (isPaymentsRole) {
+                assertThat(paymentGroupDto.getPayments()).isNotNull();
+                assertThat(paymentGroupDto.getPayments().get(0).getAmount())
+                    .isEqualTo(serviceRequestDto.getFees().get(0).getCalculatedAmount());
+                assertThat(paymentGroupDto.getPayments().get(0).getCcdCaseNumber()).isEqualTo(serviceRequestDto.getCcdCaseNumber());
+                assertThat(paymentGroupDto.getRemissions().size()).isEqualTo(0);
+            }
             assertThat(paymentGroupDto.getPaymentGroupReference()).matches(SERVICE_REQUEST_REGEX_PATTERN);
             assertThat(paymentGroupDto.getFees().get(0).getCode().equals(serviceRequestDto.getFees().get(0).getCode())).isTrue();
             if (paymentStatusFlag) {

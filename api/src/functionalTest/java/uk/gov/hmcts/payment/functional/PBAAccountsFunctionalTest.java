@@ -69,15 +69,15 @@ public class PBAAccountsFunctionalTest {
     }
 
     @Test
-    @Ignore("A citizen should not be able to look up the PBA Accounts...")
+    @Ignore("A citizen should not be able to look up the PBA Accounts... but this would be a Ref Data Check that has to be checked....")
     public void negative_perform_pba_accounts_lookup_for_an_invalid_user_roles() throws Exception {
         this.performPbaAccountsVerification("citizen");
     }
 
     @Test
-    @Ignore("Failing with wrong Response Codes")
+    @Ignore("The Error Code Reported should be 404")
     public void perform_pba_accounts_lookup_for_no_accounts_in_the_organisation() throws Exception {
-        this.performOrganisationCreationWithNoAccounts("citizen");
+        this.performOrganisationCreationWithNoAccounts("payments");
     }
 
     private final void performPbaAccountsVerification(final String role) throws Exception {
@@ -173,7 +173,7 @@ public class PBAAccountsFunctionalTest {
             .toMillis(10)); //Sleep the Thread so that the newly created credentials are available after sometime...
         Response getPBAAccountsResponse =
             PBAAccountsTestService.getPBAAccounts(userPUIFinanceManagerToken, SERVICE_TOKEN_CCPAY_BUBBLE);
-        assertThat(getPBAAccountsResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+        assertThat(getPBAAccountsResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND.value());
         PBAResponse pbaResponseDTO = getPBAAccountsResponse.getBody().as(PBAResponse.class);
         assertThat(pbaResponseDTO.getOrganisationEntityResponse().getOrganisationIdentifier()).isEqualTo(organisationIdentifier);
         assertThat(pbaResponseDTO.getOrganisationEntityResponse().getName()).isEqualTo("OjNWEZXxZt");
