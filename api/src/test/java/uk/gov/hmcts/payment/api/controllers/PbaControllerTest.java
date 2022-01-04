@@ -219,4 +219,27 @@ public class PbaControllerTest extends PaymentsDataUtil {
             .andExpect(status().isBadRequest())
             .andReturn();
     }
+
+
+    @Test
+    @Transactional
+    public void getPBAAccountsFromRefDataFailureForNotFound() throws Exception {
+
+        UserIdentityDataDto userIdentityDataDto = UserIdentityDataDto.userIdentityDataWith()
+            .emailId("j@mail.com")
+            .fullName("ccd-full-name")
+            .build();
+
+        when(idamService.getUserId(any())).thenReturn(IDAM_EMAIL_ID);
+        when(idamService.getUserIdentityData(any(), any())).thenReturn(userIdentityDataDto);
+        when(restTemplateRefData.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+            eq(PBAResponse.class)
+        )).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND, "No PBA Accounts found"));
+
+        MvcResult result = restActions
+            .get("/pba-accounts")
+            .andExpect(status().isNotFound())
+            .andReturn();
+    }
+
 }

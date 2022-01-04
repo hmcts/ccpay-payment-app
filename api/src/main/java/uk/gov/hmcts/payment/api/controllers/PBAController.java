@@ -20,9 +20,11 @@ import uk.gov.hmcts.payment.api.dto.PBAResponse;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
 import uk.gov.hmcts.payment.api.dto.UserIdentityDataDto;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
+import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.IdamService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.NoServiceFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
@@ -105,9 +107,14 @@ public class PBAController {
             PBAResponse pbaResponse = pbaObjectMapper.convertValue(response.getBody(), PBAResponse.class);
             return new ResponseEntity(pbaResponse, HttpStatus.OK);
         } catch (HttpClientErrorException httpClientErrorException) {
-            LOG.info("Exception : {} ",httpClientErrorException.getMessage());
-            throw new PaymentException(httpClientErrorException.getMessage());
-        }catch (Exception exception) {
+            LOG.info("Exception : {} ",httpClientErrorException.getStatusCode());
+            if(httpClientErrorException.getStatusCode().value() == HttpStatus.NOT_FOUND.value()) {
+                throw new AccountNotFoundException("No PBA Accounts found"); }
+            else {
+                throw new PaymentException(httpClientErrorException.getMessage());
+            }
+        }
+        catch (Exception exception) {
             throw new PaymentException(exception.getMessage());
         }
     }
@@ -151,6 +158,13 @@ public class PBAController {
                 HttpMethod.GET,
                 entity, PBAResponse.class
             );
+    }
+
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(AccountNotFoundException.class)
+    public String return404(AccountNotFoundException ex) {
+        LOG.error("No PBA Accounts found:", ex);
+        return ex.getMessage();
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
