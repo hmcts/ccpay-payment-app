@@ -167,4 +167,82 @@ public class RefundRequestorJourneyBulkscanPaymentFunctionalTest {
 
     }
 
+
+    @Test
+    public void negative_givenAFeeInPG_WhenABulkScanPaymentNeedsMappingthenPaymentShouldBeAddedToExistingGroup_under_lag_time() throws Exception {
+        Random rand = new Random();
+        String ccdCaseNumber = String.format((Locale)null, //don't want any thousand separators
+            "111122%04d%04d%02d",
+            rand.nextInt(10000),
+            rand.nextInt(10000),
+            rand.nextInt(99));
+
+        String ccdCaseNumber1 = "1111-CC12-" + RandomUtils.nextInt();
+        String dcn = "3456908723459" + RandomUtils.nextInt();
+
+        BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
+            .amount(new BigDecimal(100.00))
+            .service("DIVORCE")
+            .siteId("AA01")
+            .currency(CurrencyCode.GBP)
+            .documentControlNumber(dcn)
+            .ccdCaseNumber(ccdCaseNumber)
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
+            .payerName("CCD User1")
+            .bankedDate(DateTime.now().toString())
+            .paymentMethod(PaymentMethodType.CHEQUE)
+            .paymentStatus(PaymentStatus.SUCCESS)
+            .giroSlipNo("GH716376")
+            .build();
+
+        PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(FeeDto.feeDtoWith()
+                .calculatedAmount(new BigDecimal("450.00"))
+                .code("FEE3132")
+                .version("1")
+                .reference("testRef1")
+                .volume(2)
+                .ccdCaseNumber(ccdCaseNumber1)
+                .build())).build();
+
+        AtomicReference<String> paymentReference = new AtomicReference<>();
+
+        dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .when().addNewFeeAndPaymentGroup(paymentGroupDto)
+            .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
+                assertThat(paymentGroupFeeDto).isNotNull();
+                assertThat(paymentGroupFeeDto.getPaymentGroupReference()).isNotNull();
+                assertThat(paymentGroupFeeDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(paymentGroupDto);
+
+                dsl.given().userToken(USER_TOKEN)
+                    .s2sToken(SERVICE_TOKEN)
+                    .when().createBulkScanPayment(bulkScanPaymentRequest,paymentGroupFeeDto.getPaymentGroupReference())
+                    .then().gotCreated(PaymentDto.class, paymentDto -> {
+                        assertThat(paymentDto.getReference()).isNotNull();
+                        assertThat(paymentDto.getStatus()).isEqualToIgnoringCase("success");
+                        assertThat(paymentDto.getPaymentGroupReference()).isEqualTo(paymentGroupFeeDto.getPaymentGroupReference());
+
+                        paymentReference.set(paymentDto.getReference());
+
+                    });
+
+            });
+
+        Response rollbackPaymentResponse = paymentTestService.updateThePaymentDateByCCDCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
+            ccdCaseNumber, "15");
+        System.out.println(rollbackPaymentResponse.getBody().prettyPrint());
+
+        PaymentRefundRequest paymentRefundRequest
+            = PaymentFixture.aRefundRequest("RR001", paymentReference.get());
+        Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            SERVICE_TOKEN_PAYMENT,
+            paymentRefundRequest);
+
+        System.out.println(refundResponse.getBody().prettyPrint());
+        assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+        assertThat(refundResponse.getBody().asString()).isEqualTo("This payment is not yet eligible for refund");
+
+    }
+
 }
