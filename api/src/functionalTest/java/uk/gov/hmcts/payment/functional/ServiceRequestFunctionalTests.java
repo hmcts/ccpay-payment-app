@@ -200,7 +200,7 @@ public class ServiceRequestFunctionalTests {
     }
 
     @Test
-    @Ignore("No proper Error message for a ccdCaseNumber that is not present")
+//    @Ignore("No proper Error message for a ccdCaseNumber that is not present")
     public void negative_create_service_request_service_not_found() throws Exception {
 
         Response getPaymentGroupResponse =
