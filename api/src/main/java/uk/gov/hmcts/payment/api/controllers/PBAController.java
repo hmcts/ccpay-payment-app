@@ -93,8 +93,7 @@ public class PBAController {
         @ApiResponse(code = 200, message = "PBA accounts retrieved"),
         @ApiResponse(code = 401, message = "Unauthorized"),
         @ApiResponse(code = 403, message = "Forbidden"),
-        @ApiResponse(code = 404, message = "No PBA Accounts found."),
-        @ApiResponse(code = 500, message = "Internal Server Error")
+        @ApiResponse(code = 404, message = "No PBA Accounts found.")
     })
     @GetMapping(value = "/pba-accounts")
     @PaymentExternalAPI
@@ -113,7 +112,7 @@ public class PBAController {
             if(httpClientErrorException.getStatusCode().value() == HttpStatus.NOT_FOUND.value()) {
                 throw new AccountNotFoundException("No PBA Accounts found"); }
             else {
-                throw new AccountServiceUnavailableException(httpClientErrorException.getMessage());
+                throw new PaymentException(httpClientErrorException.getMessage());
             }
         }
         catch (Exception exception) {
@@ -166,13 +165,6 @@ public class PBAController {
     @ExceptionHandler(AccountNotFoundException.class)
     public String return404(AccountNotFoundException ex) {
         LOG.error("No PBA Accounts found:", ex);
-        return ex.getMessage();
-    }
-
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    @ExceptionHandler( AccountServiceUnavailableException.class)
-    public String return500( AccountServiceUnavailableException ex) {
-        LOG.error("Internal Server Error :", ex);
         return ex.getMessage();
     }
 
