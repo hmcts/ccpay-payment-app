@@ -85,6 +85,8 @@ public class PaymentDto {
 
     private String payerName;
 
+    private Boolean refundEnable;
+
     //@JsonUnwrapped
     @NotNull
     private List<FeeDto> fees;

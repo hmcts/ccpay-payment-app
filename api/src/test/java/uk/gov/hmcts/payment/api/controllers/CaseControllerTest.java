@@ -42,6 +42,7 @@ import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.model.StatusHistory;
 import uk.gov.hmcts.payment.api.reports.FeesService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataServiceImpl;
+import uk.gov.hmcts.payment.api.service.RefundRemissionEnableService;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
@@ -63,6 +64,7 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -106,6 +108,9 @@ public class CaseControllerTest extends PaymentsDataUtil {
     protected PaymentDbBackdoor paymentDbBackdoor;
     @Autowired
     protected PaymentFeeDbBackdoor paymentFeeDbBackdoor;
+    @MockBean
+    private RefundRemissionEnableService refundRemissionEnableService;
+
     RestActions restActions;
     MockMvc mvc;
     List<Site> serviceReturn = Arrays.asList(Site.siteWith()
@@ -340,7 +345,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
         PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(feeRequest))
             .build();
-
+        when(refundRemissionEnableService.returnRemissionEligible(any())).thenReturn(true);
         restActions
             .post("/payment-groups", paymentGroupDto)
             .andReturn();

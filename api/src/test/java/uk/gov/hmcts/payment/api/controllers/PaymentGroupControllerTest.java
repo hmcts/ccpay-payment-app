@@ -56,6 +56,7 @@ import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.service.PciPalPaymentService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
+import uk.gov.hmcts.payment.api.service.RefundRemissionEnableService;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
@@ -128,6 +129,8 @@ public class PaymentGroupControllerTest {
     private ServiceAuthorisationHealthApi serviceAuthorisationHealthApi;
     @MockBean
     private LaunchDarklyFeatureToggler featureToggler;
+    @MockBean
+    private RefundRemissionEnableService refundRemissionEnableService;
 
     protected CustomResultMatcher body() {
         return new CustomResultMatcher(objectMapper);
@@ -372,7 +375,7 @@ public class PaymentGroupControllerTest {
 
         PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(getConsecutiveFee())).build();
-
+        when(refundRemissionEnableService.returnRemissionEligible(any())).thenReturn(true);
         MvcResult result = restActions
             .post("/payment-groups", request)
             .andExpect(status().isCreated())
@@ -529,7 +532,7 @@ public class PaymentGroupControllerTest {
         PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(getConsecutiveFee()))
             .build();
-
+        when(refundRemissionEnableService.returnRemissionEligible(any())).thenReturn(true);
         MvcResult result = restActions
             .post("/payment-groups", request)
             .andExpect(status().isCreated())
@@ -605,7 +608,7 @@ public class PaymentGroupControllerTest {
             .put("/payment-groups/" + createPaymentResponseDto.getPaymentGroupReference(), request)
             .andReturn();
 
-
+        when(refundRemissionEnableService.returnRemissionEligible(any())).thenReturn(true);
         // Retrieve payment by payment group reference
         MvcResult result3 = restActions
             .get("/payment-groups/" + createPaymentResponseDto.getPaymentGroupReference())
@@ -763,7 +766,7 @@ public class PaymentGroupControllerTest {
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(getNewFee()))
             .build();
-
+        when(refundRemissionEnableService.returnRemissionEligible(any())).thenReturn(true);
         PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(getConsecutiveFee())).build();
 
@@ -1201,7 +1204,7 @@ public class PaymentGroupControllerTest {
     public void addNewPaymenttoExistingPaymentGroupTestWhenChannelAndProviderIsEmpty() throws Exception {
         PaymentGroupDto paymentGroupDto = addNewPaymentToExistingPaymentGroup();
 
-
+        when(refundRemissionEnableService.returnRemissionEligible(any())).thenReturn(true);
         BigDecimal amount = new BigDecimal("200");
 
         TelephonyPaymentRequest telephonyPaymentRequest = TelephonyPaymentRequest.createTelephonyPaymentRequestDtoWith()

@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.api.service;
 
+import java.time.temporal.ChronoUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,14 +14,17 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.dto.InternalRefundResponse;
 import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
 import uk.gov.hmcts.payment.api.dto.RefundRequestDto;
 import uk.gov.hmcts.payment.api.dto.RefundResponse;
 import uk.gov.hmcts.payment.api.dto.ResubmitRefundRemissionRequest;
+import uk.gov.hmcts.payment.api.dto.idam.IdamUserIdResponse;
 import uk.gov.hmcts.payment.api.exception.InvalidRefundRequestException;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
+import uk.gov.hmcts.payment.api.util.RefundEligibilityUtil;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.NonPBAPaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotSuccessException;
@@ -37,11 +41,11 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
     private static final Logger LOG = LoggerFactory.getLogger(PaymentRefundsServiceImpl.class);
     private static final String REFUND_ENDPOINT = "/refund";
+    private static final String AUTHORISED_REFUNDS_ROLE = "payments-refund";
+    private static final String AUTHORISED_REFUNDS_APPROVER_ROLE = "payments-refund-approver";
 
     final Predicate<Payment> paymentSuccessCheck =
         payment -> payment.getPaymentStatus().getName().equals(PaymentStatus.SUCCESS.getName());
-    final Predicate<Payment> checkIfPaymentIsPBA = payment -> payment.getPaymentMethod()
-        .getName().equalsIgnoreCase(PaymentMethodType.PBA.getType());
 
     @Autowired
     RemissionRepository remissionRepository;
@@ -60,11 +64,21 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
     @Value("${refund.api.url}")
     private String refundApiUrl;
 
+    @Autowired
+    private LaunchDarklyFeatureToggler featureToggler;
+    @Autowired
+    private IdamService idamService;
+    @Autowired
+    private RefundRemissionEnableService refundRemissionEnableService;
+    @Autowired
+    private RefundEligibilityUtil refundEligibilityUtil;
+
+
     public ResponseEntity<RefundResponse> createRefund(PaymentRefundRequest paymentRefundRequest, MultiValueMap<String, String> headers) {
 
         Payment payment = paymentRepository.findByReference(paymentRefundRequest.getPaymentReference()).orElseThrow(PaymentNotFoundException::new);
 
-        validateThePaymentBeforeInitiatingRefund(payment);
+        validateThePaymentBeforeInitiatingRefund(payment,headers);
 
         RefundRequestDto refundRequest = RefundRequestDto.refundRequestDtoWith()
             .paymentReference(paymentRefundRequest.getPaymentReference())
@@ -104,7 +118,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                     .findById(paymentId).orElseThrow(() -> new PaymentNotFoundException("Payment not found for given apportionment"));
 
                 BigDecimal remissionAmount = remission.get().getHwfAmount();
-                validateThePaymentBeforeInitiatingRefund(payment);
+                validateThePaymentBeforeInitiatingRefund(payment,headers);
 
                 RefundRequestDto refundRequest = RefundRequestDto.refundRequestDtoWith()
                     .paymentReference(payment.getReference()) //RC reference
@@ -179,21 +193,26 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         return (collection == null || collection.isEmpty());
     }
 
-    private void validateThePaymentBeforeInitiatingRefund(Payment payment) {
-        //payment should be PBA check
-        if (!checkIfPaymentIsPBA.test(payment)) {
-            throw new NonPBAPaymentException("Refund currently supported for PBA Payment Channel only");
-        }
+    private void validateThePaymentBeforeInitiatingRefund(Payment payment,MultiValueMap<String, String> headers) {
 
         //payment success check
         if (!paymentSuccessCheck.test(payment)) {
-            throw new PaymentNotSuccessException("Refund can be possible if payment is successful");
+            throw new PaymentNotSuccessException("Refund can not be processed for unsuccessful payment");
         }
 
+        boolean refundLagTimefeature = featureToggler.getBooleanValue("refund-remission-lagtime-feature",false);
 
-//        if(payment.getDateCreated().compareTo(new Date())==4){
-//            throw new InvalidRefundRequestException("Refund can be raised 4 days after the payment made");
-//        }
+        LOG.info("RefundEnableFeature Flag Value in PaymentRefundsServiceImpl : {}", refundLagTimefeature);
+
+        if(refundLagTimefeature){
+
+            long timeDuration= ChronoUnit.HOURS.between( payment.getDateUpdated().toInstant(), new Date().toInstant());
+            boolean isRefundPermit=refundEligibilityUtil.getRefundEligiblityStatus(payment,timeDuration);
+
+            if (!isRefundPermit) {
+                throw new InvalidRefundRequestException("This payment is not yet eligible for refund");
+            }
+        }
     }
 
 
@@ -233,5 +252,4 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             .map(fee -> fee.getId().toString())
             .collect(Collectors.joining(","));
     }
-
 }
