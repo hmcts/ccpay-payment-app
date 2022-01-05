@@ -21,6 +21,7 @@ import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
 import uk.gov.hmcts.payment.api.dto.UserIdentityDataDto;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
+import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.IdamService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
@@ -92,7 +93,8 @@ public class PBAController {
         @ApiResponse(code = 200, message = "PBA accounts retrieved"),
         @ApiResponse(code = 401, message = "Unauthorized"),
         @ApiResponse(code = 403, message = "Forbidden"),
-        @ApiResponse(code = 404, message = "No PBA Accounts found.")
+        @ApiResponse(code = 404, message = "No PBA Accounts found."),
+        @ApiResponse(code = 500, message = "Internal Server Error")
     })
     @GetMapping(value = "/pba-accounts")
     @PaymentExternalAPI
@@ -111,7 +113,7 @@ public class PBAController {
             if(httpClientErrorException.getStatusCode().value() == HttpStatus.NOT_FOUND.value()) {
                 throw new AccountNotFoundException("No PBA Accounts found"); }
             else {
-                throw new PaymentException(httpClientErrorException.getMessage());
+                throw new AccountServiceUnavailableException(httpClientErrorException.getMessage());
             }
         }
         catch (Exception exception) {
@@ -164,6 +166,13 @@ public class PBAController {
     @ExceptionHandler(AccountNotFoundException.class)
     public String return404(AccountNotFoundException ex) {
         LOG.error("No PBA Accounts found:", ex);
+        return ex.getMessage();
+    }
+
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ExceptionHandler( AccountServiceUnavailableException.class)
+    public String return500( AccountServiceUnavailableException ex) {
+        LOG.error("Internal Server Error :", ex);
         return ex.getMessage();
     }
 
