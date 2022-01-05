@@ -97,7 +97,7 @@ public class CaseController {
             .collect(Collectors.toList());
 
         if (paymentGroups == null || paymentGroups.isEmpty()) {
-            throw new PaymentGroupNotFoundException();
+            throw new PaymentGroupNotFoundException("No Service found for given CaseType or HMCTS Org Id");
         }
 
         return new PaymentGroupResponse(paymentGroups);
