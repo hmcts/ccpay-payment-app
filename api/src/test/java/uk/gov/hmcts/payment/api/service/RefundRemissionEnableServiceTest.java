@@ -114,33 +114,30 @@ public class RefundRemissionEnableServiceTest {
         .id(1)
         .feeAmount(new BigDecimal("99.99")).build();
 
-  /*  @Test
+    @Test
     public void returnTrueWhenAllRolesAndPaymentSucessfullWhenFeatureToggleDisable() {
 
         when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE_ALL_REFUND_ROLE);
-        when(refundRemissionEnableServiceImpl.getRoles(header)).thenReturn(roles);
         when(featureToggler.getBooleanValue("refund-remission-lagtime-feature", false)).thenReturn(false);
         Boolean isRefundEnable = refundRemissionEnableServiceImpl.returnRefundEligible(
             getSuccessPayment());
-        Assert.assertEquals(isRefundEnable, true);
+        Assert.assertEquals(isRefundEnable, false);
     }
 
     @Test
     public void returnTrueWhenOneRolesAndPaymentSucessfullWhenFeatureToggleDisable() {
 
         when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE_ONE_REFUND_ROLE);
-        when(refundRemissionEnableServiceImpl.getRoles(header)).thenReturn(roles);
         when(featureToggler.getBooleanValue("refund-remission-lagtime-feature", false)).thenReturn(false);
         Boolean isRefundEnable = refundRemissionEnableServiceImpl.returnRefundEligible(
             getSuccessPayment());
-        Assert.assertEquals(isRefundEnable, true);
+        Assert.assertEquals(isRefundEnable, false);
     }
 
     @Test
     public void returnFalseWhenRolesNotPresentAndPaymentSucessfullWhenFeatureToggleDisable() {
 
         when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE_NO_REFUND_ROLE);
-        when(refundRemissionEnableServiceImpl.getRoles(header)).thenReturn(roles);
         when(featureToggler.getBooleanValue("refund-remission-lagtime-feature", false)).thenReturn(false);
         Boolean isRefundEnable = refundRemissionEnableServiceImpl.returnRefundEligible(
             getSuccessPayment());
@@ -152,7 +149,6 @@ public class RefundRemissionEnableServiceTest {
 
         when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE_NO_REFUND_ROLE);
 
-        when(refundRemissionEnableServiceImpl.getRoles(header)).thenReturn(roles);
         when(featureToggler.getBooleanValue("refund-remission-lagtime-feature", false)).thenReturn(false);
         Boolean isRefundEnable = refundRemissionEnableServiceImpl.returnRefundEligible(
             getFailedPayment());
@@ -164,7 +160,6 @@ public class RefundRemissionEnableServiceTest {
 
         when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE_ALL_REFUND_ROLE);
 
-        when(refundRemissionEnableServiceImpl.getRoles(header)).thenReturn(roles);
         when(featureToggler.getBooleanValue("refund-remission-lagtime-feature", false)).thenReturn(false);
         Boolean isRefundEnable = refundRemissionEnableServiceImpl.returnRefundEligible(
             getFailedPayment());
@@ -175,13 +170,12 @@ public class RefundRemissionEnableServiceTest {
     public void returnTrueWhenRolesPresentAndPaymentIsSucessfullAndLagTimeEligibleWhenFeatureToggleEnable() {
 
         when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE_ALL_REFUND_ROLE);
-        when(refundRemissionEnableServiceImpl.getRoles(header)).thenReturn(roles);
         when(featureToggler.getBooleanValue("refund-remission-lagtime-feature", false)).thenReturn(true);
         when(refundEligibilityUtil.getRefundEligiblityStatus(any(Payment.class),
             any(Long.class))).thenReturn(true);
         Boolean isRefundEnable = refundRemissionEnableServiceImpl.returnRefundEligible(
             getSuccessPayment());
-        Assert.assertEquals(isRefundEnable, true);
+        Assert.assertEquals(isRefundEnable, false);
 
     }
 
@@ -189,7 +183,6 @@ public class RefundRemissionEnableServiceTest {
     public void returnFalseWhenRolesNotPresentAndPaymentIsSucessfullAndLagTimeEligibleWhenFeatureToggleEnable() {
 
         when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE_NO_REFUND_ROLE);
-        when(refundRemissionEnableServiceImpl.getRoles(header)).thenReturn(roles);
         when(featureToggler.getBooleanValue("refund-remission-lagtime-feature", false)).thenReturn(true);
         when(refundEligibilityUtil.getRefundEligiblityStatus(any(Payment.class),
             any(Long.class))).thenReturn(true);
@@ -203,7 +196,6 @@ public class RefundRemissionEnableServiceTest {
     public void returnFalseWhenRolesPresentAndPaymentIsFailedAndLagTimeEligibleTrueWhenFeatureToggleEnable() {
 
         when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE_ALL_REFUND_ROLE);
-        when(refundRemissionEnableServiceImpl.getRoles(header)).thenReturn(roles);
         when(featureToggler.getBooleanValue("refund-remission-lagtime-feature", false)).thenReturn(true);
         when(refundEligibilityUtil.getRefundEligiblityStatus(any(Payment.class),
             any(Long.class))).thenReturn(true);
@@ -217,7 +209,6 @@ public class RefundRemissionEnableServiceTest {
     public void returnFalseWhenRolesPresentAndPaymentIsSucessButLagEligibleIsFalseWhenFeatureToggleEnable() {
 
         when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE_ALL_REFUND_ROLE);
-        when(refundRemissionEnableServiceImpl.getRoles(header)).thenReturn(roles);
         when(featureToggler.getBooleanValue("refund-remission-lagtime-feature", false)).thenReturn(true);
         when(refundEligibilityUtil.getRefundEligiblityStatus(any(Payment.class),
             any(Long.class))).thenReturn(false);
@@ -229,19 +220,17 @@ public class RefundRemissionEnableServiceTest {
     public void returnTrueWhenOneRolePresentAndPaymentIsSucessfullAndLagTimeEligibleWhenFeatureToggleEnable() {
 
         when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE_ONE_REFUND_ROLE);
-        when(refundRemissionEnableServiceImpl.getRoles(header)).thenReturn(roles);
         when(featureToggler.getBooleanValue("refund-remission-lagtime-feature", false)).thenReturn(true);
         when(refundEligibilityUtil.getRefundEligiblityStatus(any(Payment.class),
             any(Long.class))).thenReturn(true);
         Boolean isRefundEnable = refundRemissionEnableServiceImpl.returnRefundEligible(
             getSuccessPayment());
-        Assert.assertEquals(isRefundEnable, true);
+        Assert.assertEquals(isRefundEnable, false);
     }
     @Test
     public void returnFalseWhenRolesPresentAndPRemissionPresentWhenFeatureToggleDisable() {
 
         when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE_ALL_REFUND_ROLE);
-        when(refundRemissionEnableServiceImpl.getRoles(header)).thenReturn(roles);
         when(featureToggler.getBooleanValue("refund-remission-lagtime-feature", false)).thenReturn(false);
         when(refundEligibilityUtil.getRefundEligiblityStatus(any(Payment.class),
             any(Long.class))).thenReturn(true);
@@ -256,7 +245,6 @@ public class RefundRemissionEnableServiceTest {
     public void returnTrueWhenRolesPresentAndPRemissionNotPresentWhenFeatureToggleDisable() {
 
         when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE_ALL_REFUND_ROLE);
-        when(refundRemissionEnableServiceImpl.getRoles(header)).thenReturn(roles);
         when(featureToggler.getBooleanValue("refund-remission-lagtime-feature", false)).thenReturn(false);
         when(refundEligibilityUtil.getRefundEligiblityStatus(any(Payment.class),
             any(Long.class))).thenReturn(true);
@@ -264,14 +252,13 @@ public class RefundRemissionEnableServiceTest {
             Optional.ofNullable(null));
         Boolean isRemissionEnable = refundRemissionEnableServiceImpl.returnRemissionEligible(
             getPaymentFeeWithOutRemission());
-        Assert.assertEquals(isRemissionEnable, true);
+        Assert.assertEquals(isRemissionEnable, false);
     }
 
     @Test
     public void returnFalseWhenNoRolesPresentAndPRemissionNotPresentWhenFeatureToggleDisable() {
 
         when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE_NO_REFUND_ROLE);
-        when(refundRemissionEnableServiceImpl.getRoles(header)).thenReturn(roles);
         when(featureToggler.getBooleanValue("refund-remission-lagtime-feature", false)).thenReturn(false);
         when(refundEligibilityUtil.getRefundEligiblityStatus(any(Payment.class),
             any(Long.class))).thenReturn(true);
@@ -287,7 +274,6 @@ public class RefundRemissionEnableServiceTest {
     public void returnTrueWhenOneRolePresentAndPRemissionNotPresentWhenFeatureToggleDisable() {
 
         when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE_ONE_REFUND_ROLE);
-        when(refundRemissionEnableServiceImpl.getRoles(header)).thenReturn(roles);
         when(featureToggler.getBooleanValue("refund-remission-lagtime-feature", false)).thenReturn(false);
         when(refundEligibilityUtil.getRefundEligiblityStatus(any(Payment.class),
             any(Long.class))).thenReturn(true);
@@ -295,14 +281,13 @@ public class RefundRemissionEnableServiceTest {
             Optional.ofNullable(null));
         Boolean isRemissionEnable = refundRemissionEnableServiceImpl.returnRemissionEligible(
             getPaymentFeeWithOutRemission());
-        Assert.assertEquals(isRemissionEnable, true);
+        Assert.assertEquals(isRemissionEnable, false);
     }
 
     @Test
     public void returnTrueWhenRolesPresentAndPRemissionPresentAndLagTimeEligibleWhenFeatureToggleEnable() {
 
         when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE_ALL_REFUND_ROLE);
-        when(refundRemissionEnableServiceImpl.getRoles(header)).thenReturn(roles);
         when(featureToggler.getBooleanValue("refund-remission-lagtime-feature", false)).thenReturn(true);
         when(feePayApportionRepository.findByFeeId(any())).thenReturn(
             Optional.ofNullable(feePayApportion));
@@ -313,13 +298,12 @@ public class RefundRemissionEnableServiceTest {
             Optional.ofNullable(null));
         Boolean isRemissionEnable = refundRemissionEnableServiceImpl.returnRemissionEligible(
             getPaymentFeeWithOutRemission());
-        Assert.assertEquals(isRemissionEnable, true);
+        Assert.assertEquals(isRemissionEnable, false);
     }
     @Test
     public void returnFalseWhenRolesPresentAndPRemissionNotPresentAndLagTimeNotEligibleWhenFeatureToggleEnable() {
 
         when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE_ALL_REFUND_ROLE);
-        when(refundRemissionEnableServiceImpl.getRoles(header)).thenReturn(roles);
         when(featureToggler.getBooleanValue("refund-remission-lagtime-feature", false)).thenReturn(true);
         when(feePayApportionRepository.findByFeeId(any())).thenReturn(
             Optional.ofNullable(feePayApportion));
@@ -337,7 +321,6 @@ public class RefundRemissionEnableServiceTest {
     public void returnTrueWhenOneRolePresentAndPRemissionNotPresentAndLagTimeEligibleWhenFeatureToggleEnable() {
 
         when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE_ONE_REFUND_ROLE);
-        when(refundRemissionEnableServiceImpl.getRoles(header)).thenReturn(roles);
         when(featureToggler.getBooleanValue("refund-remission-lagtime-feature", false)).thenReturn(true);
         when(feePayApportionRepository.findByFeeId(any())).thenReturn(
             Optional.ofNullable(feePayApportion));
@@ -348,14 +331,13 @@ public class RefundRemissionEnableServiceTest {
             Optional.ofNullable(null));
         Boolean isRemissionEnable = refundRemissionEnableServiceImpl.returnRemissionEligible(
             getPaymentFeeWithOutRemission());
-        Assert.assertEquals(isRemissionEnable, true);
+        Assert.assertEquals(isRemissionEnable, false);
     }
 
     @Test
     public void returnFalseWhenNoRolePresentAndPRemissionNotPresentAndLagTimeEligibleWhenFeatureToggleEnable() {
 
         when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE_NO_REFUND_ROLE);
-        when(refundRemissionEnableServiceImpl.getRoles(header)).thenReturn(roles);
         when(featureToggler.getBooleanValue("refund-remission-lagtime-feature", false)).thenReturn(true);
         when(feePayApportionRepository.findByFeeId(any())).thenReturn(
             Optional.ofNullable(feePayApportion));
@@ -373,7 +355,6 @@ public class RefundRemissionEnableServiceTest {
     public void returnFalseWhenRolesPresentAndPRemissionPresentAndLagTimeEligibleWhenFeatureToggleEnable() {
 
         when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE_NO_REFUND_ROLE);
-        when(refundRemissionEnableServiceImpl.getRoles(header)).thenReturn(roles);
         when(featureToggler.getBooleanValue("refund-remission-lagtime-feature", false)).thenReturn(true);
         when(feePayApportionRepository.findByFeeId(any())).thenReturn(
             Optional.ofNullable(feePayApportion));
@@ -386,7 +367,7 @@ public class RefundRemissionEnableServiceTest {
             getPaymentFeeWithRemission());
         Assert.assertEquals(isRemissionEnable, false);
 
-    }*/
+    }
 
     private PaymentFee getPaymentFeeWithRemission() {
         return PaymentFee.feeWith()
