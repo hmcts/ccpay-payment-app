@@ -31,7 +31,7 @@ public class RefundRemissionEnableServiceImpl implements RefundRemissionEnableSe
     private static final Logger LOG = LoggerFactory.getLogger(RefundRemissionEnableServiceImpl.class);
 
     Roles roles = new Roles();
-
+    Optional<List<String>> roleList = Optional.empty();
     @Autowired
     private RefundEligibilityUtil refundEligibilityUtil;
     @Autowired
@@ -50,8 +50,8 @@ public class RefundRemissionEnableServiceImpl implements RefundRemissionEnableSe
     public Boolean returnRefundEligible(Payment payment) {
 
         boolean refundEligibleDate;
-        if(!roles.getRoles().isEmpty()){
-            isRoles = checkRoles(roles.getRoles());
+        if(roleList.isPresent() && !roleList.get().isEmpty()){
+            isRoles = checkRoles(roleList);
         }
         boolean refundLagTimeFeature = featureToggler.getBooleanValue("refund-remission-lagtime-feature",false);
 
@@ -67,7 +67,6 @@ public class RefundRemissionEnableServiceImpl implements RefundRemissionEnableSe
         }
 
     }
-
     private Boolean calculateLagDate(Payment payment) {
 
         long timeDuration= ChronoUnit.HOURS.between( payment.getDateUpdated().toInstant(), new Date().toInstant());
@@ -79,8 +78,8 @@ public class RefundRemissionEnableServiceImpl implements RefundRemissionEnableSe
         Boolean remissionEligible=false;
         boolean isRemission=false;
 
-        if(!roles.getRoles().isEmpty()){
-            isRoles = checkRoles(roles.getRoles());
+        if(roleList.isPresent() && !roleList.get().isEmpty()){
+            isRoles = checkRoles(roleList);
         }
 
         Optional<Remission> remission = remissionRepository.findByFeeId(fee.getId());
@@ -109,17 +108,18 @@ public class RefundRemissionEnableServiceImpl implements RefundRemissionEnableSe
 
     }
 
-    public Roles getRoles(MultiValueMap<String, String> headers) {
+    public Optional<List<String>> getRoles(MultiValueMap<String, String> headers) {
 
         if (!headers.isEmpty()) {
             IdamUserIdResponse uid = idamService.getUserId(headers);
             roles.setRoles(uid.getRoles());
+            roleList= Optional.ofNullable(roles.getRoles());
         }
-        return roles;
+        return roleList;
     }
 
-    private Boolean checkRoles(List<String> roles) {
-            return roles.contains(AUTHORISED_REFUNDS_ROLE) || roles.contains(AUTHORISED_REFUNDS_APPROVER_ROLE);
+    private Boolean checkRoles(Optional<List<String>> roles) {
+        return roles.get().contains(AUTHORISED_REFUNDS_ROLE) || roles.get().contains(AUTHORISED_REFUNDS_APPROVER_ROLE);
     }
 }
 
