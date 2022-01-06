@@ -2,7 +2,6 @@ package uk.gov.hmcts.payment.api.service;
 
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
-import java.util.List;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
-import uk.gov.hmcts.payment.api.domain.model.Roles;
 import uk.gov.hmcts.payment.api.dto.idam.IdamUserIdResponse;
 import uk.gov.hmcts.payment.api.model.FeePayApportion;
 import uk.gov.hmcts.payment.api.model.FeePayApportionRepository;
@@ -29,8 +27,6 @@ public class RefundRemissionEnableServiceImpl implements RefundRemissionEnableSe
     private static final String AUTHORISED_REFUNDS_APPROVER_ROLE = "payments-refund-approver";
     private static final Logger LOG = LoggerFactory.getLogger(RefundRemissionEnableServiceImpl.class);
 
-    Roles roles = new Roles();
-    Optional<List<String>> roleList = Optional.empty();
     @Autowired
     private RefundEligibilityUtil refundEligibilityUtil;
     @Autowired
@@ -49,9 +45,6 @@ public class RefundRemissionEnableServiceImpl implements RefundRemissionEnableSe
     public Boolean returnRefundEligible(Payment payment) {
 
         boolean refundEligibleDate;
-        if(roleList.isPresent() && !roleList.get().isEmpty()){
-            isRoles = checkRoles(roleList);
-        }
         boolean refundLagTimeFeature = featureToggler.getBooleanValue("refund-remission-lagtime-feature",false);
 
         LOG.info("RefundEnableFeature Flag Value in RefundRemissionEnableServiceImpl : {}", refundLagTimeFeature);
@@ -76,10 +69,6 @@ public class RefundRemissionEnableServiceImpl implements RefundRemissionEnableSe
 
         Boolean remissionEligible=false;
         boolean isRemission=false;
-
-        if(roleList.isPresent() && !roleList.get().isEmpty()){
-            isRoles = checkRoles(roleList);
-        }
 
         Optional<Remission> remission = remissionRepository.findByFeeId(fee.getId());
         if(remission.isPresent()) {
@@ -107,19 +96,17 @@ public class RefundRemissionEnableServiceImpl implements RefundRemissionEnableSe
 
     }
 
-    public Optional<List<String>> getRoles(MultiValueMap<String, String> headers) {
+    public boolean getRoles(MultiValueMap<String, String> headers) {
 
         if (!headers.isEmpty()) {
             IdamUserIdResponse uid = idamService.getUserId(headers);
-            roles.setRoles(uid.getRoles());
-            roleList= Optional.ofNullable(roles.getRoles());
+            if(!uid.getRoles().isEmpty()){
+                isRoles=uid.getRoles().contains(AUTHORISED_REFUNDS_ROLE) || uid.getRoles().contains(AUTHORISED_REFUNDS_APPROVER_ROLE);
+            }
         }
-        return roleList;
+        return isRoles;
     }
 
-    private Boolean checkRoles(Optional<List<String>> roles) {
-        return roles.get().contains(AUTHORISED_REFUNDS_ROLE) || roles.get().contains(AUTHORISED_REFUNDS_APPROVER_ROLE);
-    }
 }
 
 
