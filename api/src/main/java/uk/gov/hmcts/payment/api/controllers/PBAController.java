@@ -112,7 +112,7 @@ public class PBAController {
             if(httpClientErrorException.getStatusCode().value() == HttpStatus.NOT_FOUND.value()) {
                 throw new AccountNotFoundException("No PBA Accounts found"); }
             else {
-                throw new PaymentException(httpClientErrorException.getMessage());
+                throw new AccountServiceUnavailableException(httpClientErrorException.getMessage());
             }
         }
         catch (Exception exception) {
@@ -165,6 +165,13 @@ public class PBAController {
     @ExceptionHandler(AccountNotFoundException.class)
     public String return404(AccountNotFoundException ex) {
         LOG.error("No PBA Accounts found:", ex);
+        return ex.getMessage();
+    }
+
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ExceptionHandler( AccountServiceUnavailableException.class)
+    public String return500( AccountServiceUnavailableException ex) {
+        LOG.error("Internal Server Error :", ex);
         return ex.getMessage();
     }
 

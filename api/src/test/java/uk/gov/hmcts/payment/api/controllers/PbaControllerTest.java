@@ -201,7 +201,7 @@ public class PbaControllerTest extends PaymentsDataUtil {
 
     @Test
     @Transactional
-    public void getPBAAccountsFromRefDataFailureForBadRequest() throws Exception {
+    public void getPBAAccountsFromRefDataFailureForInternalServerError() throws Exception {
 
         UserIdentityDataDto userIdentityDataDto = UserIdentityDataDto.userIdentityDataWith()
             .emailId("j@mail.com")
@@ -212,11 +212,11 @@ public class PbaControllerTest extends PaymentsDataUtil {
         when(idamService.getUserIdentityData(any(), any())).thenReturn(userIdentityDataDto);
         when(restTemplateRefData.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
             eq(PBAResponse.class)
-        )).thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST, "bad request"));
+        )).thenThrow(new HttpClientErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "internal server error"));
 
         MvcResult result = restActions
             .get("/pba-accounts")
-            .andExpect(status().isBadRequest())
+            .andExpect(status().isInternalServerError())
             .andReturn();
     }
 
