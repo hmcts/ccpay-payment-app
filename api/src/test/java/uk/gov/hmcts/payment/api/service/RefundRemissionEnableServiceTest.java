@@ -119,7 +119,7 @@ public class RefundRemissionEnableServiceTest {
 
         when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE_ALL_REFUND_ROLE);
         when(featureToggler.getBooleanValue("refund-remission-lagtime-feature", false)).thenReturn(false);
-        boolean IsRole=refundRemissionEnableServiceImpl.getRoles(header);
+        boolean IsRole=refundRemissionEnableServiceImpl.isRolePresent(header);
         Boolean isRefundEnable = refundRemissionEnableServiceImpl.returnRefundEligible(
             getSuccessPayment());
         Assert.assertEquals(isRefundEnable, true);
@@ -130,7 +130,7 @@ public class RefundRemissionEnableServiceTest {
 
         when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE_ONE_REFUND_ROLE);
         when(featureToggler.getBooleanValue("refund-remission-lagtime-feature", false)).thenReturn(false);
-        boolean IsRole=refundRemissionEnableServiceImpl.getRoles(header);
+        boolean IsRole=refundRemissionEnableServiceImpl.isRolePresent(header);
         Boolean isRefundEnable = refundRemissionEnableServiceImpl.returnRefundEligible(
             getSuccessPayment());
         Assert.assertEquals(isRefundEnable, true);
@@ -141,7 +141,7 @@ public class RefundRemissionEnableServiceTest {
 
         when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE_NO_REFUND_ROLE);
         when(featureToggler.getBooleanValue("refund-remission-lagtime-feature", false)).thenReturn(false);
-        boolean IsRole=refundRemissionEnableServiceImpl.getRoles(header);
+        boolean IsRole=refundRemissionEnableServiceImpl.isRolePresent(header);
         Boolean isRefundEnable = refundRemissionEnableServiceImpl.returnRefundEligible(
             getSuccessPayment());
         Assert.assertEquals(isRefundEnable, false);
@@ -153,7 +153,7 @@ public class RefundRemissionEnableServiceTest {
         when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE_NO_REFUND_ROLE);
 
         when(featureToggler.getBooleanValue("refund-remission-lagtime-feature", false)).thenReturn(false);
-        boolean IsRole=refundRemissionEnableServiceImpl.getRoles(header);
+        boolean IsRole=refundRemissionEnableServiceImpl.isRolePresent(header);
         Boolean isRefundEnable = refundRemissionEnableServiceImpl.returnRefundEligible(
             getFailedPayment());
         Assert.assertEquals(isRefundEnable, false);
@@ -165,7 +165,7 @@ public class RefundRemissionEnableServiceTest {
         when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE_ALL_REFUND_ROLE);
 
         when(featureToggler.getBooleanValue("refund-remission-lagtime-feature", false)).thenReturn(false);
-        boolean IsRole=refundRemissionEnableServiceImpl.getRoles(header);
+        boolean IsRole=refundRemissionEnableServiceImpl.isRolePresent(header);
         Boolean isRefundEnable = refundRemissionEnableServiceImpl.returnRefundEligible(
             getFailedPayment());
         Assert.assertEquals(isRefundEnable, false);
@@ -178,7 +178,7 @@ public class RefundRemissionEnableServiceTest {
         when(featureToggler.getBooleanValue("refund-remission-lagtime-feature", false)).thenReturn(true);
         when(refundEligibilityUtil.getRefundEligiblityStatus(any(Payment.class),
             any(Long.class))).thenReturn(true);
-        boolean IsRole=refundRemissionEnableServiceImpl.getRoles(header);
+        boolean IsRole=refundRemissionEnableServiceImpl.isRolePresent(header);
         Boolean isRefundEnable = refundRemissionEnableServiceImpl.returnRefundEligible(
             getSuccessPayment());
         Assert.assertEquals(isRefundEnable, true);
@@ -192,7 +192,7 @@ public class RefundRemissionEnableServiceTest {
         when(featureToggler.getBooleanValue("refund-remission-lagtime-feature", false)).thenReturn(true);
         when(refundEligibilityUtil.getRefundEligiblityStatus(any(Payment.class),
             any(Long.class))).thenReturn(true);
-        boolean IsRole=refundRemissionEnableServiceImpl.getRoles(header);
+        boolean IsRole=refundRemissionEnableServiceImpl.isRolePresent(header);
         Boolean isRefundEnable = refundRemissionEnableServiceImpl.returnRefundEligible(
             getSuccessPayment());
         Assert.assertEquals(isRefundEnable, false);
@@ -206,7 +206,7 @@ public class RefundRemissionEnableServiceTest {
         when(featureToggler.getBooleanValue("refund-remission-lagtime-feature", false)).thenReturn(true);
         when(refundEligibilityUtil.getRefundEligiblityStatus(any(Payment.class),
             any(Long.class))).thenReturn(true);
-        boolean IsRole=refundRemissionEnableServiceImpl.getRoles(header);
+        boolean IsRole=refundRemissionEnableServiceImpl.isRolePresent(header);
         Boolean isRefundEnable = refundRemissionEnableServiceImpl.returnRefundEligible(
             getFailedPayment());
         Assert.assertEquals(isRefundEnable, false);
@@ -220,7 +220,7 @@ public class RefundRemissionEnableServiceTest {
         when(featureToggler.getBooleanValue("refund-remission-lagtime-feature", false)).thenReturn(true);
         when(refundEligibilityUtil.getRefundEligiblityStatus(any(Payment.class),
             any(Long.class))).thenReturn(false);
-        boolean IsRole=refundRemissionEnableServiceImpl.getRoles(header);
+        boolean IsRole=refundRemissionEnableServiceImpl.isRolePresent(header);
         Boolean isRefundEnable = refundRemissionEnableServiceImpl.returnRefundEligible(
             getSuccessPayment());
         Assert.assertEquals(isRefundEnable, false);
@@ -232,7 +232,7 @@ public class RefundRemissionEnableServiceTest {
         when(featureToggler.getBooleanValue("refund-remission-lagtime-feature", false)).thenReturn(true);
         when(refundEligibilityUtil.getRefundEligiblityStatus(any(Payment.class),
             any(Long.class))).thenReturn(true);
-        boolean IsRole=refundRemissionEnableServiceImpl.getRoles(header);
+        boolean IsRole=refundRemissionEnableServiceImpl.isRolePresent(header);
         Boolean isRefundEnable = refundRemissionEnableServiceImpl.returnRefundEligible(
             getSuccessPayment());
         Assert.assertEquals(isRefundEnable, true);
@@ -246,7 +246,7 @@ public class RefundRemissionEnableServiceTest {
             any(Long.class))).thenReturn(true);
         when(remissionRepository.findByFeeId(getPaymentFeeWithRemission().getId())).thenReturn(
             Optional.ofNullable(remission));
-        boolean IsRole=refundRemissionEnableServiceImpl.getRoles(header);
+        boolean IsRole=refundRemissionEnableServiceImpl.isRolePresent(header);
         Boolean isRemissionEnable = refundRemissionEnableServiceImpl.returnRemissionEligible(
             getPaymentFeeWithRemission());
         Assert.assertEquals(isRemissionEnable, false);
@@ -261,7 +261,7 @@ public class RefundRemissionEnableServiceTest {
             any(Long.class))).thenReturn(true);
         when(remissionRepository.findByFeeId(getPaymentFeeWithRemission().getId())).thenReturn(
             Optional.ofNullable(null));
-        boolean IsRole=refundRemissionEnableServiceImpl.getRoles(header);
+        boolean IsRole=refundRemissionEnableServiceImpl.isRolePresent(header);
         Boolean isRemissionEnable = refundRemissionEnableServiceImpl.returnRemissionEligible(
             getPaymentFeeWithOutRemission());
         Assert.assertEquals(isRemissionEnable, true);
@@ -276,7 +276,7 @@ public class RefundRemissionEnableServiceTest {
             any(Long.class))).thenReturn(true);
         when(remissionRepository.findByFeeId(getPaymentFeeWithRemission().getId())).thenReturn(
             Optional.ofNullable(null));
-        boolean IsRole=refundRemissionEnableServiceImpl.getRoles(header);
+        boolean IsRole=refundRemissionEnableServiceImpl.isRolePresent(header);
         Boolean isRemissionEnable = refundRemissionEnableServiceImpl.returnRemissionEligible(
             getPaymentFeeWithOutRemission());
         Assert.assertEquals(isRemissionEnable, false);
@@ -292,7 +292,7 @@ public class RefundRemissionEnableServiceTest {
             any(Long.class))).thenReturn(true);
         when(remissionRepository.findByFeeId(getPaymentFeeWithRemission().getId())).thenReturn(
             Optional.ofNullable(null));
-        boolean IsRole=refundRemissionEnableServiceImpl.getRoles(header);
+        boolean IsRole=refundRemissionEnableServiceImpl.isRolePresent(header);
         Boolean isRemissionEnable = refundRemissionEnableServiceImpl.returnRemissionEligible(
             getPaymentFeeWithOutRemission());
         Assert.assertEquals(isRemissionEnable, true);
@@ -310,7 +310,7 @@ public class RefundRemissionEnableServiceTest {
             any(Long.class))).thenReturn(true);
         when(remissionRepository.findByFeeId(getPaymentFeeWithRemission().getId())).thenReturn(
             Optional.ofNullable(null));
-        boolean IsRole=refundRemissionEnableServiceImpl.getRoles(header);
+        boolean IsRole=refundRemissionEnableServiceImpl.isRolePresent(header);
         Boolean isRemissionEnable = refundRemissionEnableServiceImpl.returnRemissionEligible(
             getPaymentFeeWithOutRemission());
         Assert.assertEquals(isRemissionEnable, true);
@@ -327,7 +327,7 @@ public class RefundRemissionEnableServiceTest {
             any(Long.class))).thenReturn(false);
         when(remissionRepository.findByFeeId(getPaymentFeeWithRemission().getId())).thenReturn(
             Optional.ofNullable(null));
-        boolean IsRole=refundRemissionEnableServiceImpl.getRoles(header);
+        boolean IsRole=refundRemissionEnableServiceImpl.isRolePresent(header);
         Boolean isRemissionEnable = refundRemissionEnableServiceImpl.returnRemissionEligible(
             getPaymentFeeWithOutRemission());
         Assert.assertEquals(isRemissionEnable, false);
@@ -345,7 +345,7 @@ public class RefundRemissionEnableServiceTest {
             any(Long.class))).thenReturn(true);
         when(remissionRepository.findByFeeId(getPaymentFeeWithRemission().getId())).thenReturn(
             Optional.ofNullable(null));
-        boolean IsRole=refundRemissionEnableServiceImpl.getRoles(header);
+        boolean IsRole=refundRemissionEnableServiceImpl.isRolePresent(header);
         Boolean isRemissionEnable = refundRemissionEnableServiceImpl.returnRemissionEligible(
             getPaymentFeeWithOutRemission());
         Assert.assertEquals(isRemissionEnable, true);
@@ -363,7 +363,7 @@ public class RefundRemissionEnableServiceTest {
             any(Long.class))).thenReturn(true);
         when(remissionRepository.findByFeeId(getPaymentFeeWithRemission().getId())).thenReturn(
             Optional.ofNullable(null));
-        boolean IsRole=refundRemissionEnableServiceImpl.getRoles(header);
+        boolean IsRole=refundRemissionEnableServiceImpl.isRolePresent(header);
         Boolean isRemissionEnable = refundRemissionEnableServiceImpl.returnRemissionEligible(
             getPaymentFeeWithOutRemission());
         Assert.assertEquals(isRemissionEnable, false);
@@ -381,7 +381,7 @@ public class RefundRemissionEnableServiceTest {
             any(Long.class))).thenReturn(true);
         when(remissionRepository.findByFeeId(getPaymentFeeWithRemission().getId())).thenReturn(
             Optional.ofNullable(remission));
-        boolean IsRole=refundRemissionEnableServiceImpl.getRoles(header);
+        boolean IsRole=refundRemissionEnableServiceImpl.isRolePresent(header);
         Boolean isRemissionEnable = refundRemissionEnableServiceImpl.returnRemissionEligible(
             getPaymentFeeWithRemission());
         Assert.assertEquals(isRemissionEnable, false);

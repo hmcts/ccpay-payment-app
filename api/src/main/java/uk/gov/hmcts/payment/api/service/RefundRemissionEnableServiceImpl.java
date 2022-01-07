@@ -96,7 +96,7 @@ public class RefundRemissionEnableServiceImpl implements RefundRemissionEnableSe
 
     }
 
-    public boolean getRoles(MultiValueMap<String, String> headers) {
+    public boolean isRolePresent(MultiValueMap<String, String> headers) {
 
         if (!headers.isEmpty()) {
             IdamUserIdResponse uid = idamService.getUserId(headers);
