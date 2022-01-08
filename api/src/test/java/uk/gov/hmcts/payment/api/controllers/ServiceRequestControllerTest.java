@@ -31,6 +31,8 @@ import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
 import uk.gov.hmcts.payment.api.domain.service.IdempotencyService;
 import uk.gov.hmcts.payment.api.domain.service.ServiceRequestDomainService;
 import uk.gov.hmcts.payment.api.dto.*;
+import uk.gov.hmcts.payment.api.dto.PaymentReference;
+import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestFeeDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
@@ -125,6 +127,8 @@ public class ServiceRequestControllerTest {
 
     @MockBean
     private TopicClientProxy topicClientProxy;
+
+
 
     @Before
     @Transactional
@@ -962,9 +966,16 @@ public class ServiceRequestControllerTest {
     @Test
     public void createSuccessOnlinePaymentAndValidateSuccessStatus() throws Exception {
 
+        PaymentMethod paymentMethod = PaymentMethod.paymentMethodWith().name("online").build();
+
         Payment payment = Payment.paymentWith().internalReference("abc")
             .id(1)
-            .reference("RC-1632-3254-9172-5888").paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
+            .reference("RC-1632-3254-9172-5888")
+            .caseReference("123789")
+            .paymentMethod(paymentMethod )
+            .ccdCaseNumber("1234")
+            .amount(new BigDecimal(300))
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
             .build();
 
         List<Payment> paymentList = new ArrayList<>();
@@ -973,6 +984,23 @@ public class ServiceRequestControllerTest {
         PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith().ccdCaseNumber("1234")
             .enterpriseServiceName("divorce")
             .payments(paymentList)
+            .paymentReference("123456")
+            .build();
+
+        PaymentReference paymentReference = PaymentReference.paymentReference()
+            .paymentAmount(new BigDecimal(300))
+            .paymentReference("123")
+            .paymentMethod("online")
+            .caseReference("123")
+            .accountNumber("123")
+            .build();
+
+        PaymentStatusDto paymentStatusDto = PaymentStatusDto.paymentStatusDto()
+            .serviceRequestReference("123")
+            .ccdCaseNumber("123456")
+            .serviceRequestAmount(new BigDecimal(300))
+            .serviceRequestStatus("Success")
+            .payment(paymentReference)
             .build();
 
         when(paymentService.findPayment(anyString())).thenReturn(payment);

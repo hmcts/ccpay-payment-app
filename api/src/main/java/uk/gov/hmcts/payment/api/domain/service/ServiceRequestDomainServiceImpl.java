@@ -197,11 +197,6 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         PaymentStatusDto paymentStatusDto = paymentDtoMapper.toPaymentStatusDto(serviceRequestReference,
             "", paymentEntity);
 
-        PaymentFeeLink serviceRequestCallbackURL = paymentFeeLinkRepository.findByPaymentReference(serviceRequestReference)
-            .orElseThrow(() -> new ServiceRequestReferenceNotFoundException("Order reference doesn't exist"));
-
-        sendMessageToTopic(paymentStatusDto, serviceRequestCallbackURL.getCallBackUrl());
-
         // Trigger Apportion based on the launch darkly feature flag
         boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature", false);
         LOG.info("ApportionFeature Flag Value in online card payment : {}", apportionFeature);

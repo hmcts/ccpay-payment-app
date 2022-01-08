@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.api.controllers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.microsoft.azure.servicebus.IMessageReceiver;
 import com.microsoft.azure.servicebus.TopicClient;
 import com.microsoft.azure.servicebus.primitives.ServiceBusException;
@@ -21,6 +22,7 @@ import uk.gov.hmcts.payment.api.domain.service.IdempotencyService;
 import uk.gov.hmcts.payment.api.domain.service.ServiceRequestDomainService;
 import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentResponse;
+import uk.gov.hmcts.payment.api.dto.PaymentStatusDto;
 import uk.gov.hmcts.payment.api.dto.ServiceRequestResponseDto;
 import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
@@ -238,7 +240,7 @@ public class ServiceRequestController {
     })
     @PaymentExternalAPI
     @GetMapping(value = "/card-payments/{internal-reference}/status")
-    public PaymentDto retrieveStatusByInternalReference(@PathVariable("internal-reference") String internalReference) {
+    public PaymentDto retrieveStatusByInternalReference(@PathVariable("internal-reference") String internalReference) throws JsonProcessingException {
         Payment payment = paymentService.findPayment(internalReference);
         List<FeePayApportion> feePayApportionList = paymentService.findByPaymentId(payment.getId());
         if(feePayApportionList.isEmpty()){
@@ -249,7 +251,16 @@ public class ServiceRequestController {
         PaymentFeeLink paymentFeeLink = fees.get(0).getPaymentLink();
         LOG.info("paymentFeeLink getEnterpriseServiceName {}",paymentFeeLink.getEnterpriseServiceName());
         LOG.info("paymentFeeLink getCcdCaseNumber {}",paymentFeeLink.getCcdCaseNumber());
-        return paymentDtoMapper.toRetrieveCardPaymentResponseDtoWithoutExtReference(delegatingPaymentService.retrieve(paymentFeeLink, payment.getReference()));
+        PaymentFeeLink  retrieveDelegatingPaymentService = delegatingPaymentService.retrieve(paymentFeeLink, payment.getReference());
+        Payment paymentNew = paymentService.findPayment(internalReference);
+        String serviceRequestReference = paymentFeeLink.getPaymentReference();
+        PaymentStatusDto paymentStatusDto = paymentDtoMapper.toPaymentStatusDto(serviceRequestReference, "", paymentNew);
+        serviceRequestDomainService.sendMessageToTopic(paymentStatusDto, paymentFeeLink.getCallBackUrl());
+        ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+        String jsonpaymentStatusDto = ow.writeValueAsString(paymentStatusDto);
+        LOG.info("json format paymentStatusDto to Topic {}",jsonpaymentStatusDto);
+        LOG.info("callback URL paymentStatusDto to Topic {}",paymentFeeLink.getCallBackUrl());
+        return paymentDtoMapper.toRetrieveCardPaymentResponseDtoWithoutExtReference( retrieveDelegatingPaymentService);
     }
 
 
