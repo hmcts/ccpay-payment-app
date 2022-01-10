@@ -24,6 +24,7 @@ import uk.gov.hmcts.payment.api.dto.RefundResponse;
 import uk.gov.hmcts.payment.api.dto.ResubmitRefundRemissionRequest;
 import uk.gov.hmcts.payment.api.dto.RetroSpectiveRemissionRequest;
 import uk.gov.hmcts.payment.api.exception.InvalidRefundRequestException;
+import uk.gov.hmcts.payment.api.model.ContactDetails;
 import uk.gov.hmcts.payment.api.service.PaymentRefundsServiceImpl;
 import uk.gov.hmcts.payment.api.service.PaymentServiceImpl;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
@@ -56,10 +57,13 @@ public class RefundsControllerTest {
     PaymentRefundRequest paymentRefundRequest = PaymentRefundRequest.refundRequestWith()
         .paymentReference("RC-1234-1234-1234-1234")
         .refundReason("RESN1")
+        .contactDetails(ContactDetails.contactDetailsWith().build())
         .build();
 
     RetroSpectiveRemissionRequest retroSpectiveRemissionRequest = RetroSpectiveRemissionRequest.retroSpectiveRemissionRequestWith()
-        .remissionReference("qwerty").build();
+        .remissionReference("qwerty")
+        .contactDetails(ContactDetails.contactDetailsWith().build())
+        .build();
     MockMvc mvc;
     @Autowired
     private WebApplicationContext webApplicationContext;

@@ -50,7 +50,7 @@ public class RefundsController {
     @Transactional(rollbackFor = Exception.class)
     public ResponseEntity<RefundResponse> createRefundForRetroSpective(@Valid @RequestBody RetroSpectiveRemissionRequest
                                                                            request, @RequestHeader(required = false) MultiValueMap<String, String> headers) {
-        return paymentRefundsService.createAndValidateRetroSpectiveRemissionRequest(request.getRemissionReference(), headers);
+        return paymentRefundsService.createAndValidateRetroSpectiveRemissionRequest(request, headers);
     }
 
 

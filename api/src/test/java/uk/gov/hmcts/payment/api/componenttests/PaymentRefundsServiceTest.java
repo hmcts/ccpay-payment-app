@@ -240,7 +240,7 @@ public class PaymentRefundsServiceTest {
         when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
             eq(InternalRefundResponse.class))).thenReturn(responseEntity);
 
-        ResponseEntity<RefundResponse> refundResponse = paymentRefundsService.createAndValidateRetroSpectiveRemissionRequest(retroSpectiveRemissionRequest.getRemissionReference(), header);
+        ResponseEntity<RefundResponse> refundResponse = paymentRefundsService.createAndValidateRetroSpectiveRemissionRequest(retroSpectiveRemissionRequest, header);
 
         assertEquals("RF-4321-4321-4321-4321", refundResponse.getBody().getRefundReference());
 
@@ -253,7 +253,7 @@ public class PaymentRefundsServiceTest {
 
         Mockito.when(remissionRepository.findByRemissionReference(any())).thenReturn(Optional.empty());
 
-        ResponseEntity<RefundResponse> refundResponse = paymentRefundsService.createAndValidateRetroSpectiveRemissionRequest(retroSpectiveRemissionRequest.getRemissionReference(), header);
+        ResponseEntity<RefundResponse> refundResponse = paymentRefundsService.createAndValidateRetroSpectiveRemissionRequest(retroSpectiveRemissionRequest, header);
 
     }
 
