@@ -22,7 +22,7 @@ import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
 import uk.gov.hmcts.payment.api.dto.RefundResponse;
 import uk.gov.hmcts.payment.api.dto.ResubmitRefundRemissionRequest;
-import uk.gov.hmcts.payment.api.dto.RetroSpectiveRemissionRequest;
+import uk.gov.hmcts.payment.api.dto.RetrospectiveRemissionRequest;
 import uk.gov.hmcts.payment.api.exception.InvalidRefundRequestException;
 import uk.gov.hmcts.payment.api.model.ContactDetails;
 import uk.gov.hmcts.payment.api.service.PaymentRefundsServiceImpl;
@@ -60,7 +60,7 @@ public class RefundsControllerTest {
         .contactDetails(ContactDetails.contactDetailsWith().build())
         .build();
 
-    RetroSpectiveRemissionRequest retroSpectiveRemissionRequest = RetroSpectiveRemissionRequest.retroSpectiveRemissionRequestWith()
+    RetrospectiveRemissionRequest retrospectiveRemissionRequest = RetrospectiveRemissionRequest.retrospectiveRemissionRequestWith()
         .remissionReference("qwerty")
         .contactDetails(ContactDetails.contactDetailsWith().build())
         .build();
@@ -190,10 +190,10 @@ public class RefundsControllerTest {
             .refundReference("RF-4321-4321-4321-4321")
             .build(), HttpStatus.CREATED);
 
-        when(paymentRefundsService.createAndValidateRetroSpectiveRemissionRequest(any(), any())).thenReturn(mockRefundResponse);
+        when(paymentRefundsService.createAndValidateRetrospectiveRemissionRequest(any(), any())).thenReturn(mockRefundResponse);
 
         MvcResult result = restActions
-            .post("/refund-retro-remission", retroSpectiveRemissionRequest)
+            .post("/refund-retro-remission", retrospectiveRemissionRequest)
             .andExpect(status().isCreated())
             .andReturn();
 
@@ -207,10 +207,10 @@ public class RefundsControllerTest {
     @Test
     public void createRetroRemissionRefundWithInvalidRequestReturnsNonPbaPaymentException() throws Exception {
 
-        when(paymentRefundsService.createAndValidateRetroSpectiveRemissionRequest(any(), any())).thenThrow(new NonPBAPaymentException("test 123"));
+        when(paymentRefundsService.createAndValidateRetrospectiveRemissionRequest(any(), any())).thenThrow(new NonPBAPaymentException("test 123"));
 
         MvcResult result = restActions
-            .post("/refund-retro-remission", retroSpectiveRemissionRequest)
+            .post("/refund-retro-remission", retrospectiveRemissionRequest)
             .andExpect(status().isBadRequest())
             .andReturn();
 
@@ -219,10 +219,10 @@ public class RefundsControllerTest {
     @Test
     public void createRetroRemissionRefundWithInvalidRequestReturnsRemissionNotFoundException() throws Exception {
 
-        when(paymentRefundsService.createAndValidateRetroSpectiveRemissionRequest(any(), any())).thenThrow(new RemissionNotFoundException("test 123"));
+        when(paymentRefundsService.createAndValidateRetrospectiveRemissionRequest(any(), any())).thenThrow(new RemissionNotFoundException("test 123"));
 
         MvcResult result = restActions
-            .post("/refund-retro-remission", retroSpectiveRemissionRequest)
+            .post("/refund-retro-remission", retrospectiveRemissionRequest)
             .andExpect(status().isBadRequest())
             .andReturn();
 
@@ -231,10 +231,10 @@ public class RefundsControllerTest {
     @Test
     public void createRetroRemissionRefundWithInvalidRequestReturnsPaymentNotSuccessException() throws Exception {
 
-        when(paymentRefundsService.createAndValidateRetroSpectiveRemissionRequest(any(), any())).thenThrow(new PaymentNotSuccessException("test 123"));
+        when(paymentRefundsService.createAndValidateRetrospectiveRemissionRequest(any(), any())).thenThrow(new PaymentNotSuccessException("test 123"));
 
         MvcResult result = restActions
-            .post("/refund-retro-remission", retroSpectiveRemissionRequest)
+            .post("/refund-retro-remission", retrospectiveRemissionRequest)
             .andExpect(status().isBadRequest())
             .andReturn();
 

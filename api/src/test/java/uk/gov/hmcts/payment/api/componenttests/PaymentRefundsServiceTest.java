@@ -25,7 +25,7 @@ import uk.gov.hmcts.payment.api.dto.InternalRefundResponse;
 import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
 import uk.gov.hmcts.payment.api.dto.RefundResponse;
 import uk.gov.hmcts.payment.api.dto.ResubmitRefundRemissionRequest;
-import uk.gov.hmcts.payment.api.dto.RetroSpectiveRemissionRequest;
+import uk.gov.hmcts.payment.api.dto.RetrospectiveRemissionRequest;
 import uk.gov.hmcts.payment.api.dto.idam.IdamUserIdResponse;
 import uk.gov.hmcts.payment.api.exception.InvalidRefundRequestException;
 import uk.gov.hmcts.payment.api.model.FeePayApportion;
@@ -73,7 +73,7 @@ public class PaymentRefundsServiceTest {
         .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
         .paymentLink(PaymentFeeLink.paymentFeeLinkWith().fees(Arrays.asList(PaymentFee.feeWith().id(1).build())).build())
         .build();
-    RetroSpectiveRemissionRequest retroSpectiveRemissionRequest = RetroSpectiveRemissionRequest.retroSpectiveRemissionRequestWith()
+    RetrospectiveRemissionRequest retrospectiveRemissionRequest = RetrospectiveRemissionRequest.retrospectiveRemissionRequestWith()
         .remissionReference("qwerty").build();
 
     private static final IdamUserIdResponse IDAM_USER_ID_RESPONSE =
@@ -240,7 +240,8 @@ public class PaymentRefundsServiceTest {
         when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
             eq(InternalRefundResponse.class))).thenReturn(responseEntity);
 
-        ResponseEntity<RefundResponse> refundResponse = paymentRefundsService.createAndValidateRetroSpectiveRemissionRequest(retroSpectiveRemissionRequest, header);
+        ResponseEntity<RefundResponse> refundResponse = paymentRefundsService.createAndValidateRetrospectiveRemissionRequest(
+                retrospectiveRemissionRequest, header);
 
         assertEquals("RF-4321-4321-4321-4321", refundResponse.getBody().getRefundReference());
 
@@ -253,7 +254,8 @@ public class PaymentRefundsServiceTest {
 
         Mockito.when(remissionRepository.findByRemissionReference(any())).thenReturn(Optional.empty());
 
-        ResponseEntity<RefundResponse> refundResponse = paymentRefundsService.createAndValidateRetroSpectiveRemissionRequest(retroSpectiveRemissionRequest, header);
+        ResponseEntity<RefundResponse> refundResponse = paymentRefundsService.createAndValidateRetrospectiveRemissionRequest(
+                retrospectiveRemissionRequest, header);
 
     }
 

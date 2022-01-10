@@ -15,8 +15,8 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder(builderMethodName = "retroSpectiveRemissionRequestWith")
-public class RetroSpectiveRemissionRequest {
+@Builder(builderMethodName = "retrospectiveRemissionRequestWith")
+public class RetrospectiveRemissionRequest {
 
     @NotEmpty
     @JsonProperty("remissionReference")
