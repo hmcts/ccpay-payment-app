@@ -9,6 +9,7 @@ import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
 import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
+import uk.gov.hmcts.payment.api.model.ContactDetails;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 
 import java.math.BigDecimal;
@@ -361,7 +362,9 @@ public class PaymentFixture {
                                                       final String paymentReference) {
         return PaymentRefundRequest
             .refundRequestWith().paymentReference(paymentReference)
-            .refundReason(refundReason).build();
+            .refundReason(refundReason)
+            .contactDetails(ContactDetails.contactDetailsWith().build())
+            .build();
 
     }
 }

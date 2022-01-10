@@ -14,6 +14,7 @@ import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.dto.*;
+import uk.gov.hmcts.payment.api.model.ContactDetails;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
 import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
 import uk.gov.hmcts.payment.functional.fixture.PaymentFixture;
@@ -401,7 +402,8 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
 
         Response refundResponse = paymentTestService.postSubmitRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
-            RetrospectiveRemissionRequest.retrospectiveRemissionRequestWith().remissionReference(remissionReference).build());
+            RetrospectiveRemissionRequest.retrospectiveRemissionRequestWith().remissionReference(remissionReference).contactDetails(
+                    ContactDetails.contactDetailsWith().build()).build());
         assertThat(refundResponse.statusCode()).isEqualTo(HttpStatus.CREATED.value());
         RefundResponse refundResponseFromPost = refundResponse.getBody().as(RefundResponse.class);
         assertThat(refundResponseFromPost.getRefundAmount()).isEqualTo(new BigDecimal("5.00"));
@@ -474,7 +476,8 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
 
         Response refundResponse = paymentTestService.postSubmitRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
-            RetrospectiveRemissionRequest.retrospectiveRemissionRequestWith().remissionReference(remissionReference).build());
+            RetrospectiveRemissionRequest.retrospectiveRemissionRequestWith().remissionReference(remissionReference).contactDetails(
+                    ContactDetails.contactDetailsWith().build()).build());
         assertThat(refundResponse.statusCode()).isEqualTo(HttpStatus.CREATED.value());
         RefundResponse refundResponseFromPost = refundResponse.getBody().as(RefundResponse.class);
         assertThat(refundResponseFromPost.getRefundAmount()).isEqualTo(new BigDecimal("5.00"));
@@ -482,7 +485,8 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
 
         Response refundResponseDuplicate = paymentTestService.postSubmitRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
-            RetrospectiveRemissionRequest.retrospectiveRemissionRequestWith().remissionReference(remissionReference).build());
+            RetrospectiveRemissionRequest.retrospectiveRemissionRequestWith().remissionReference(remissionReference).contactDetails(
+                    ContactDetails.contactDetailsWith().build()).build());
         assertThat(refundResponseDuplicate.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
         assertThat(refundResponseDuplicate.getBody().asString()).isEqualTo("Refund is already requested for this payment");
     }
@@ -567,7 +571,8 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
 
         Response refundResponse = paymentTestService.postSubmitRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
-            RetrospectiveRemissionRequest.retrospectiveRemissionRequestWith().remissionReference(remissionReference).build());
+            RetrospectiveRemissionRequest.retrospectiveRemissionRequestWith().remissionReference(remissionReference).contactDetails(
+                    ContactDetails.contactDetailsWith().build()).build());
         assertThat(refundResponse.statusCode()).isEqualTo(HttpStatus.CREATED.value());
         RefundResponse refundResponseFromPost = refundResponse.getBody().as(RefundResponse.class);
         assertThat(refundResponseFromPost.getRefundAmount()).isEqualTo(new BigDecimal("5.00"));
@@ -697,7 +702,8 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
 
         Response refundResponse = paymentTestService.postSubmitRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
-            RetrospectiveRemissionRequest.retrospectiveRemissionRequestWith().remissionReference(remissionReference).build());
+            RetrospectiveRemissionRequest.retrospectiveRemissionRequestWith().remissionReference(remissionReference).contactDetails(
+                    ContactDetails.contactDetailsWith().build()).build());
         assertThat(refundResponse.statusCode()).isEqualTo(HttpStatus.CREATED.value());
         RefundResponse refundResponseFromPost = refundResponse.getBody().as(RefundResponse.class);
         assertThat(refundResponseFromPost.getRefundAmount()).isEqualTo(new BigDecimal("5.00"));
@@ -765,7 +771,8 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
 
         Response refundResponse = paymentTestService.postSubmitRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
-            RetrospectiveRemissionRequest.retrospectiveRemissionRequestWith().remissionReference(remissionReference).build());
+            RetrospectiveRemissionRequest.retrospectiveRemissionRequestWith().remissionReference(remissionReference).contactDetails(
+                    ContactDetails.contactDetailsWith().build()).build());
         System.out.println("The value of the responseBody : " + refundResponse.getBody().prettyPrint());
         assertThat(refundResponse.statusCode()).isEqualTo(HttpStatus.CREATED.value());
         RefundResponse refundResponseFromPost = refundResponse.getBody().as(RefundResponse.class);
@@ -907,7 +914,8 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
 
         Response refundResponse = paymentTestService.postSubmitRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
-            RetrospectiveRemissionRequest.retrospectiveRemissionRequestWith().remissionReference(remissionReference).build());
+            RetrospectiveRemissionRequest.retrospectiveRemissionRequestWith().remissionReference(remissionReference).contactDetails(
+                    ContactDetails.contactDetailsWith().build()).build());
         assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
         System.out.println("The value of the response body " + refundResponse.getBody().prettyPrint());
         assertThat(refundResponse.getBody().print()).isEqualTo("Refund can be possible if payment is successful");
