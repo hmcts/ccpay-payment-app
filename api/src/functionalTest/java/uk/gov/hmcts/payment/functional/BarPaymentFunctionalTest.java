@@ -276,9 +276,9 @@ public class BarPaymentFunctionalTest {
             assertThat(paymentsResponse.getPayments().get(0).getDateCreated()).isNotNull();
             assertThat(paymentsResponse.getPayments().get(0).getDateUpdated()).isNotNull();
             assertThat(paymentsResponse.getPayments().get(0).getCurrency()).isNotNull();
-            //assertThat(paymentsResponse.getPayments().get(0).getCaseReference()).isNotNull();
+            assertThat(paymentsResponse.getPayments().get(0).getCaseReference()).isNotNull();
             assertThat(paymentsResponse.getPayments().get(0).getPaymentReference()).isNotNull();
-            //assertThat(paymentsResponse.getPayments().get(0).getExternalProvider()).isNotNull();
+            assertThat(paymentsResponse.getPayments().get(0).getExternalProvider()).isNotNull();
             assertThat(paymentsResponse.getPayments().get(0).getSiteId()).isNotNull();
             assertThat(paymentsResponse.getPayments().get(0).getPaymentGroupReference()).isNotNull();
             assertThat(paymentsResponse.getPayments().get(0).getReportedDateOffline()).isNotNull();
