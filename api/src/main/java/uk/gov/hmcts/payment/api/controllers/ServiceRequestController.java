@@ -170,7 +170,7 @@ public class ServiceRequestController {
 
         //business validations for serviceRequest
         PaymentFeeLink serviceRequest = serviceRequestDomainService.businessValidationForServiceRequests(serviceRequestDomainService.find(serviceRequestReference), serviceRequestPaymentDto);
-        LOG.info("PBA payment service request CCD number: {} ",serviceRequest.getCcdCaseNumber());
+
         //PBA Payment
         ServiceRequestPaymentBo serviceRequestPaymentBo = null;
         ResponseEntity responseEntity;
