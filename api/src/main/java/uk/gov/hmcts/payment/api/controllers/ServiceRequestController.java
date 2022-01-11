@@ -135,8 +135,13 @@ public class ServiceRequestController {
                                                                                                @PathVariable("service-request-reference") String serviceRequestReference,
                                                                                                @Valid @RequestBody ServiceRequestPaymentDto serviceRequestPaymentDto) throws CheckDigitException, JsonProcessingException {
 
+        LOG.info("PBA payment started");
         ObjectMapper objectMapper = new ObjectMapper();
         Function<String, Optional<IdempotencyKeys>> getIdempotencyKey = idempotencyKeyToCheck -> idempotencyService.findTheRecordByIdempotencyKey(idempotencyKeyToCheck);
+
+        ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+        String serviceRequestStatusDisplay = ow.writeValueAsString(serviceRequestPaymentDto);
+        LOG.info("Passed service Request Status Display PBA payment : {} ", serviceRequestStatusDisplay);
 
         Function<IdempotencyKeys, ResponseEntity<?>> validateHashcodeForRequest = idempotencyKeys -> {
 
@@ -155,6 +160,7 @@ public class ServiceRequestController {
             return new ResponseEntity<>(responseBO, HttpStatus.valueOf(idempotencyKeys.getResponseCode())); // if hashcode matched
         };
 
+
         //Idempotency Check
         Optional<IdempotencyKeys> idempotencyKeysRow = getIdempotencyKey.apply(idempotencyKey);
         if (idempotencyKeysRow.isPresent()) {
@@ -164,7 +170,7 @@ public class ServiceRequestController {
 
         //business validations for serviceRequest
         PaymentFeeLink serviceRequest = serviceRequestDomainService.businessValidationForServiceRequests(serviceRequestDomainService.find(serviceRequestReference), serviceRequestPaymentDto);
-
+        LOG.info("PBA payment service request CCD number: {} ",serviceRequest.getCcdCaseNumber());
         //PBA Payment
         ServiceRequestPaymentBo serviceRequestPaymentBo = null;
         ResponseEntity responseEntity;
@@ -181,10 +187,11 @@ public class ServiceRequestController {
             }else{
                 httpStatus = HttpStatus.CREATED;
             }
-
+            LOG.info("PBA payment status : {}" ,httpStatus );
             responseEntity = new ResponseEntity<>(serviceRequestPaymentBo, httpStatus);
             responseJson = objectMapper.writeValueAsString(serviceRequestPaymentBo);
         } catch (LiberataServiceTimeoutException liberataServiceTimeoutException) {
+            LOG.error(" Exception from Liberata for PBA payment {} ",liberataServiceTimeoutException);
             responseEntity = new ResponseEntity<>(liberataServiceTimeoutException.getMessage(), HttpStatus.GATEWAY_TIMEOUT);
             responseJson = liberataServiceTimeoutException.getMessage();
         }

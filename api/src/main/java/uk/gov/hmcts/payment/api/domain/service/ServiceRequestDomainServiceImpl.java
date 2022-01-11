@@ -218,6 +218,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     public ServiceRequestPaymentBo addPayments(PaymentFeeLink serviceRequest, String serviceRequestReference,
                                                ServiceRequestPaymentDto serviceRequestPaymentDto) throws CheckDigitException {
 
+        LOG.info("PBA add payment started");
         ServiceRequestPaymentBo serviceRequestPaymentBo = serviceRequestPaymentDtoDomainMapper.toDomain(serviceRequestPaymentDto);
         serviceRequestPaymentBo.setStatus(PaymentStatus.CREATED.getName());
         Payment payment = serviceRequestPaymentDomainDataEntityMapper.toEntity(serviceRequestPaymentBo, serviceRequest);
@@ -231,6 +232,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         PaymentFeeLink serviceRequestCallbackURL = paymentFeeLinkRepository.findByPaymentReference(serviceRequestReference)
             .orElseThrow(() -> new ServiceRequestReferenceNotFoundException("Order reference doesn't exist"));
         sendMessageToTopic(paymentStatusDto, serviceRequestCallbackURL.getCallBackUrl());
+        LOG.info("send PBA payment status to topic completed ");
 
         if (payment.getPaymentStatus().getName().equals(FAILED)) {
             LOG.info("CreditAccountPayment Response 402(FORBIDDEN) for ccdCaseNumber : {} PaymentStatus : {}", payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
@@ -240,6 +242,8 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
 
         // 3. Auto-Apportionment of Payment against serviceRequest Fees
         extractApportionmentForPBA(serviceRequest);
+
+        LOG.info("PBA add payment completed");
 
         serviceRequestPaymentBo = serviceRequestPaymentDomainDataEntityMapper.toDomain(payment);
         return serviceRequestPaymentBo;
