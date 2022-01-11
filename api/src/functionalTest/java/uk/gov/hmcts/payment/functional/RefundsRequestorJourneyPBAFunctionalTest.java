@@ -136,6 +136,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
 
        PaymentRefundRequest paymentRefundRequest
             = PaymentFixture.aRefundRequest("RR001", paymentReference);
+
         Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentRefundRequest);
@@ -569,10 +570,12 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
             .then().getResponse();
         String remissionReference = response.getBody().jsonPath().getString("remission_reference");
 
+        RetrospectiveRemissionRequest retrospectiveRemissionRequest
+            = PaymentFixture.aRetroRemissionRequest(remissionReference);
+
         Response refundResponse = paymentTestService.postSubmitRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
-            SERVICE_TOKEN_PAYMENT,
-            RetrospectiveRemissionRequest.retrospectiveRemissionRequestWith().remissionReference(remissionReference).contactDetails(
-                    ContactDetails.contactDetailsWith().build()).build());
+            SERVICE_TOKEN_PAYMENT, retrospectiveRemissionRequest);
+
         assertThat(refundResponse.statusCode()).isEqualTo(HttpStatus.CREATED.value());
         RefundResponse refundResponseFromPost = refundResponse.getBody().as(RefundResponse.class);
         assertThat(refundResponseFromPost.getRefundAmount()).isEqualTo(new BigDecimal("5.00"));
