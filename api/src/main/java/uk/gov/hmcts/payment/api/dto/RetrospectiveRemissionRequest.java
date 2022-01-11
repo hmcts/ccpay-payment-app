@@ -8,10 +8,13 @@ import lombok.*;
 import uk.gov.hmcts.payment.api.model.ContactDetails;
 
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+@Getter
+@Setter
 @With
 @JsonInclude(NON_NULL)
 @Data
@@ -24,6 +27,6 @@ public class RetrospectiveRemissionRequest {
     @JsonProperty("remissionReference")
     private String remissionReference;
 
-//    @NotNull(message = "Contact Details cannot be null")
+    @NotNull(message = "Contact Details cannot be null")
     private ContactDetails contactDetails;
 }
