@@ -69,7 +69,9 @@ public class PBAAccountsFunctionalTest {
     }
 
     @Test
-    @Ignore("A citizen should not be able to look up the PBA Accounts... but this would be a Ref Data Check that has to be checked....")
+    @Ignore("A citizen should not be able to look up the PBA Accounts... " +
+        "but this would be a Ref Data Check that has to be checked....Defect RDCC-3876 has been " +
+        "raised with the Ref Data team for the purpose of further investigations")
     public void negative_perform_pba_accounts_lookup_for_an_invalid_user_roles() throws Exception {
         this.performPbaAccountsVerification("citizen");
     }
@@ -82,7 +84,7 @@ public class PBAAccountsFunctionalTest {
 
     private final void performPbaAccountsVerification(final String role) throws Exception {
 
-        final ValidUser user = idamService.createUserWithSearchScopeForRefData(CMC_CASE_WORKER_GROUP,
+        final ValidUser user = idamService.createUserWithRefDataEmailFormat(CMC_CASE_WORKER_GROUP,
             role);
         final String userPUIFinanceManagerToken = user.getAuthorisationToken();
         System.out.println("The value of the userPUIFinanceManagerToken : " + userPUIFinanceManagerToken);
