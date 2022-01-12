@@ -9,6 +9,7 @@ import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
 import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
+import uk.gov.hmcts.payment.api.dto.RetrospectiveRemissionRequest;
 import uk.gov.hmcts.payment.api.model.ContactDetails;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 
@@ -366,5 +367,21 @@ public class PaymentFixture {
             .contactDetails(ContactDetails.contactDetailsWith().build())
             .build();
 
+    }
+
+    public static RetrospectiveRemissionRequest aRetroRemissionRequest(final String remissionReference) {
+
+        return RetrospectiveRemissionRequest
+            .retrospectiveRemissionRequestWith().remissionReference(remissionReference)
+            .contactDetails(ContactDetails.contactDetailsWith()
+                .addressLine("High Street 112")
+                .country("UK")
+                .county("Londonshire")
+                .city("London")
+                .postalCode("P1 1PO")
+                .email("person@gmail.com")
+                .notificationType("email")
+                .templateId("112abcdefg112").build())
+            .build();
     }
 }
