@@ -17,8 +17,6 @@ import javax.validation.constraints.NotNull;
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-@Getter
-@Setter
 @With
 @JsonInclude(NON_NULL)
 @Data
