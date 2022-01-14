@@ -113,7 +113,7 @@ public class OnlineCardPaymentFunctionalTest {
         });
 
     }
-    //ANIL
+
     @Test
     public void createPRLCardPaymentTestShouldReturn201Success() {
         dsl.given().userToken(USER_TOKEN)
@@ -217,7 +217,7 @@ public class OnlineCardPaymentFunctionalTest {
         });
 
     }
-//Anil
+
     @Test
     public void retrievePRLCardPaymentTestShouldReturn200Success() {
         final String[] reference = new String[1];

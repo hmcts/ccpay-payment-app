@@ -74,7 +74,6 @@ public class PaymentFixture {
             .build();
     }
 
-    //ANIL
     public static CardPaymentRequest cardPaymentRequestPRL(String amountString, String service) {
         String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
         return CardPaymentRequest.createCardPaymentRequestDtoWith()
