@@ -381,7 +381,7 @@ public class PaymentFixture {
                 .postalCode("P1 1PO")
                 .email("person@gmail.com")
                 .notificationType("email")
-                .templateId("112abcdefg112").build())
+                .build())
             .build();
     }
 }
