@@ -119,7 +119,7 @@ public class OnlineCardPaymentFunctionalTest {
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .returnUrl("https://www.moneyclaims.service.gov.uk")
-            .when().createCardPayment(PaymentFixture.cardPaymentRequestPRL("215.55", "prl_cos_api"))
+            .when().createCardPayment(PaymentFixture.cardPaymentRequestPRL("215.55", "Family Private Law"))
             .then().created(paymentDto -> {
             assertNotNull(paymentDto.getReference());
             assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
@@ -225,7 +225,7 @@ public class OnlineCardPaymentFunctionalTest {
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .returnUrl("https://www.moneyclaims.service.gov.uk")
-            .when().createCardPayment(PaymentFixture.cardPaymentRequestPRL("215.55", "prl_cos_api"))
+            .when().createCardPayment(PaymentFixture.cardPaymentRequestPRL("215.55", "Family Private Law"))
             .then().created(savedPayment -> {
             reference[0] = savedPayment.getReference();
 

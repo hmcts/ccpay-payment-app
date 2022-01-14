@@ -83,7 +83,7 @@ public class PaymentFixture {
             .ccdCaseNumber(ccdCaseNumber)
             .service(service)
             .currency(CurrencyCode.GBP)
-            .siteId("XXXXX")
+            .siteId("ABA5")
             .fees(Lists.newArrayList(
                 FeeDto.feeDtoWith()
                     .calculatedAmount(new BigDecimal(amountString))
