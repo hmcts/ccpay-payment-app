@@ -811,7 +811,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
             = paymentsResponse.getPayments().stream().findFirst();
 
         assertThat(paymentDtoOptional.get().getAccountNumber()).isEqualTo(accountNumber);
-        assertThat(paymentDtoOptional.get().getAmount()).isEqualTo(new BigDecimal("90.00"));
+        assertThat(paymentDtoOptional.get().getAmount()).isEqualTo(new BigDecimal("640.00"));
         assertThat(paymentDtoOptional.get().getCcdCaseNumber()).isEqualTo(ccdCaseNumber);
         System.out.println("The value of the CCD Case Number " + ccdCaseNumber);
 
