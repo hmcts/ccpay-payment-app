@@ -60,6 +60,7 @@ public class PBAAccountsFunctionalTest {
     }
 
     @Test
+    @Ignore
     public void perform_pba_accounts_lookup_for_valid_user_roles() throws Exception {
         this.performPbaAccountsVerification("pui-finance-manager");
         this.performPbaAccountsVerification("pui-organisation-manager");
@@ -79,7 +80,13 @@ public class PBAAccountsFunctionalTest {
     @Test
     @Ignore("The Error Code Reported should be 404")
     public void perform_pba_accounts_lookup_for_no_accounts_in_the_organisation() throws Exception {
-        this.performOrganisationCreationWithNoAccounts("payments");
+        this.performOrganisationCreationWithNoAccounts("payments","CreateOrganisation_WithNoAccounts.json");
+    }
+
+    @Test
+    @Ignore("To be used for one time Data Creation purposes only")
+    public void perform_pba_accounts_lookup_for_fixed_accounts_in_the_organisation() throws Exception {
+        this.performOrganisationCreationWithNoAccounts("payments","CreateOrganisation_WithFixedAccounts.json");
     }
 
     private final void performPbaAccountsVerification(final String role) throws Exception {
@@ -143,12 +150,12 @@ public class PBAAccountsFunctionalTest {
 
     }
 
-    private final void performOrganisationCreationWithNoAccounts(final String role) throws Exception {
+    private final void performOrganisationCreationWithNoAccounts(final String role,final String fileName) throws Exception {
         final ValidUser user = idamService.createUserWithSearchScopeForRefData(CMC_CASE_WORKER_GROUP,
             role);
         final String userPUIFinanceManagerToken = user.getAuthorisationToken();
         System.out.println("The value of the userPUIFinanceManagerToken : " + userPUIFinanceManagerToken);
-        final String fileContentsTemplate = readFileContents(INPUT_FILE_PATH + "/" + "CreateOrganisation_WithNoAccounts.json");
+        final String fileContentsTemplate = readFileContents(INPUT_FILE_PATH + "/" + fileName);
         System.out.println("The value of the File Contents Before Templating : " + fileContentsTemplate);
         final String fileContents = String.format(fileContentsTemplate,
             generateRandomString(13, true, false),

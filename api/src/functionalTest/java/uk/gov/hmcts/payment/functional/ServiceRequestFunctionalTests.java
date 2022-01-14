@@ -97,7 +97,7 @@ public class ServiceRequestFunctionalTests {
         }
     }
 
-    @Test
+    /*@Test
     public void positive_create_service_request_for_payments_user_hmcts() throws Exception {
 
         ServiceRequestDto serviceRequestDto
@@ -611,7 +611,7 @@ public class ServiceRequestFunctionalTests {
         assertThat(serviceRequestReferenceAgain).isNotEqualTo(serviceRequestReference);
 
     }
-
+*/
 
     @Test
 //    @Ignore ("Card payment Failing on the amounts Decimal Point......")
@@ -660,7 +660,7 @@ public class ServiceRequestFunctionalTests {
         verifyThePaymentGroupResponseForNoPaymentsOrRemisssions(serviceRequestDto, paymentGroupResponseForASolicitorUser);
     }
 
-    @Test
+    /*@Test
     //@Ignore("Test Build")
     public void positive_create_service_request_and_an_underpayment_full_card_payment_user_hmcts() throws Exception {
 
@@ -731,7 +731,7 @@ public class ServiceRequestFunctionalTests {
         assertThat(createServiceRequestResponse.getBody().asString())
             .isEqualTo("No Service found for given CaseType or HMCTS Org Id");
     }
-
+*/
     private void verifyThePaymentGroupResponseForNoPaymentsOrRemisssions(final ServiceRequestDto serviceRequestDto,
                                                                          final PaymentGroupResponse paymentGroupResponse)
         throws Exception {

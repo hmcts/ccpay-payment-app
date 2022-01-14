@@ -11,9 +11,10 @@
     "email": "%s"
   },
   "paymentAccount": [
-    "PBA3%s",
-    "PBA4%s",
-    "PBA5%s"
+    "PBAFUNC345",
+    "PBAFUNC350",
+    "PBAFUNC355",
+    "PBAFUNC360"
   ],
   "contactInformation": [
     {
