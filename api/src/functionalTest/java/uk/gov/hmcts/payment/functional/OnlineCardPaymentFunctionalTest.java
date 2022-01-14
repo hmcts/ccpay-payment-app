@@ -119,7 +119,7 @@ public class OnlineCardPaymentFunctionalTest {
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .returnUrl("https://www.moneyclaims.service.gov.uk")
-            .when().createCardPayment(PaymentFixture.cardPaymentRequestPRL("215.55", "Family Private Law"))
+            .when().createCardPayment(PaymentFixture.cardPaymentRequestPRL("215.55", "PRL"))
             .then().created(paymentDto -> {
             assertNotNull(paymentDto.getReference());
             assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
@@ -225,7 +225,7 @@ public class OnlineCardPaymentFunctionalTest {
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .returnUrl("https://www.moneyclaims.service.gov.uk")
-            .when().createCardPayment(PaymentFixture.cardPaymentRequestPRL("215.55", "Family Private Law"))
+            .when().createCardPayment(PaymentFixture.cardPaymentRequestPRL("215.55", "PRL"))
             .then().created(savedPayment -> {
             reference[0] = savedPayment.getReference();
 
@@ -244,7 +244,7 @@ public class OnlineCardPaymentFunctionalTest {
         assertEquals(paymentDto.getAmount(), new BigDecimal("215.55"));
         assertEquals(paymentDto.getReference(), reference[0]);
         assertEquals(paymentDto.getExternalProvider(), "gov pay");
-        assertEquals(paymentDto.getServiceName(), "prl_cos_api");
+        assertEquals(paymentDto.getServiceName(), "Family Private Law");
         assertEquals(paymentDto.getStatus(), "Initiated");
         paymentDto.getFees().stream().forEach(f -> {
             assertEquals(f.getVersion(), "1");
