@@ -168,7 +168,7 @@ public class RefundsRequestorJourneyTelephonyPaymentFunctionalTest {
 
             });
 
-        paymentTestService.updateThePaymentDateByCCDCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
             ccdCaseNumber, "5");
 
         // initiate the refund
@@ -255,7 +255,7 @@ public class RefundsRequestorJourneyTelephonyPaymentFunctionalTest {
             });
 
 
-        paymentTestService.updateThePaymentDateByCCDCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
             ccdCaseNumber, "4");
 
         // initiate the refund

@@ -148,7 +148,7 @@ public class RefundRequestorJourneyBulkscanPaymentFunctionalTest {
 
         });
 
-        paymentTestService.updateThePaymentDateByCCDCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
             ccdCaseNumber, "20");
 
         // initiate the refund
@@ -229,7 +229,7 @@ public class RefundRequestorJourneyBulkscanPaymentFunctionalTest {
 
             });
 
-        paymentTestService.updateThePaymentDateByCCDCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
             ccdCaseNumber, "15");
 
         // initiate the refund
