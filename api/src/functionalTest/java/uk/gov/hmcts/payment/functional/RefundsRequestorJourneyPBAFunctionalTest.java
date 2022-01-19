@@ -47,6 +47,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
     private static String SERVICE_TOKEN;
     private static String SERVICE_TOKEN_PAYMENT;
     private static String USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE;
+    private static String USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE;
     private static boolean TOKENS_INITIALIZED = false;
     private static final Pattern REFUNDS_REGEX_PATTERN = Pattern.compile("^(RF)-([0-9]{4})-([0-9-]{4})-([0-9-]{4})-([0-9-]{4})$");
 
@@ -105,10 +106,10 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
             .aPbaPaymentRequestForProbate("90.00",
                 "PROBATE", "PBAFUNC12345");
         accountPaymentRequest.setAccountNumber(accountNumber);
-        /*paymentService
-            .updatePaymentsForCCDCaseNumberByCertainHours(accountPaymentRequest.getCcdCaseNumber(), String.valueOf(4 * 24));*/
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success"));
+
+        String ccdCaseNumber = accountPaymentRequest.getCcdCaseNumber();
 
 
         // Get pba payments by accountNumber
@@ -129,9 +130,22 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         System.out.println("The value of the CCD Case Number " + paymentDtoOptional.get().getCcdCaseNumber());
         String paymentReference = paymentDtoOptional.get().getPaymentReference();
 
+        // refund_enable flag should be false before lagTime applied and true after
+        Response paymentGroupResponse = paymentTestService.getPaymentGroupsForCase(USER_TOKEN_PAYMENT,
+            SERVICE_TOKEN_PAYMENT, ccdCaseNumber);
+//        PaymentGroupResponse groupResponsefromPost = paymentGroupResponse.getBody().as(PaymentGroupResponse.class);
+//        assertThat(!groupResponsefromPost.getPaymentGroups().get(0).getPayments().get(0).getRefundEnable());
+
+        // ROLL BACK
         Response rollbackPaymentResponse = paymentTestService.updateThePaymentDateByCCDCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
             accountPaymentRequest.getCcdCaseNumber(),"5");
         System.out.println(rollbackPaymentResponse.getBody().prettyPrint());
+
+        paymentGroupResponse = paymentTestService.getPaymentGroupsForCase(USER_TOKEN_PAYMENT,
+            SERVICE_TOKEN_PAYMENT, ccdCaseNumber);
+//        groupResponsefromPost = paymentGroupResponse.getBody().as(PaymentGroupResponse.class);
+//        assertThat(groupResponsefromPost.getPaymentGroups().get(0).getPayments().get(0).getRefundEnable());
+
 
        PaymentRefundRequest paymentRefundRequest
             = PaymentFixture.aRefundRequest("RR001", paymentReference);
