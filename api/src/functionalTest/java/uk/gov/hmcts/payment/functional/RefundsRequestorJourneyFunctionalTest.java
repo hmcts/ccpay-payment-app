@@ -712,11 +712,13 @@ public class RefundsRequestorJourneyFunctionalTest {
             "Payment request failed. PBA account CAERPHILLY COUNTY BOROUGH COUNCIL have insufficient funds available");
     }
 
+    @Ignore
     @Test
     public void positive_issue_refunds_for_a_pba_account_deleted_payment() {
         issue_refunds_for_a_failed_payment("100.00", "PBAFUNC12350", "Your account is deleted");
     }
 
+    @Ignore
     @Test
     public void positive_issue_refunds_for_a_pba_account_on_hold_payment() {
         issue_refunds_for_a_failed_payment("100.00", "PBAFUNC12355", "Your account is on hold");
@@ -774,6 +776,7 @@ public class RefundsRequestorJourneyFunctionalTest {
             "Payment request failed. PBA account CAERPHILLY COUNTY BOROUGH COUNCIL have insufficient funds available");
     }
 
+    @Ignore
     @Test
     public void negative_add_remission_and_submit_a_refund_for_a_pba_payment_with_account_deleted() {
 
@@ -783,6 +786,7 @@ public class RefundsRequestorJourneyFunctionalTest {
             "Your account is deleted");
     }
 
+    @Ignore
     @Test
     public void negative_add_remission_and_submit_a_refund_for_a_pba_payment_with_account_on_hold() {
 

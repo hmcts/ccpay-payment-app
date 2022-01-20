@@ -5,6 +5,7 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -59,6 +60,7 @@ public class BarPaymentFunctionalTest {
              }
     }
 
+    @Ignore
     @Test
     public void createPaymentRecordAndValidateSearchResults() throws Exception {
         SimpleDateFormat formatter = new SimpleDateFormat(DATE_TIME_FORMAT);
