@@ -13,11 +13,13 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.dto.InternalRefundResponse;
 import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
 import uk.gov.hmcts.payment.api.dto.RefundRequestDto;
 import uk.gov.hmcts.payment.api.dto.RefundResponse;
 import uk.gov.hmcts.payment.api.dto.ResubmitRefundRemissionRequest;
+import uk.gov.hmcts.payment.api.exception.InvalidPartialRefundRequestException;
 import uk.gov.hmcts.payment.api.exception.InvalidRefundRequestException;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
@@ -64,6 +66,8 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
         Payment payment = paymentRepository.findByReference(paymentRefundRequest.getPaymentReference()).orElseThrow(PaymentNotFoundException::new);
 
+        validateRefund(paymentRefundRequest,payment.getPaymentLink().getFees());
+
         validateThePaymentBeforeInitiatingRefund(payment);
 
         RefundRequestDto refundRequest = RefundRequestDto.refundRequestDtoWith()
@@ -74,15 +78,13 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             .feeIds(getFeeIds(payment.getPaymentLink().getFees()))
             .build();
 
-
         RefundResponse refundResponse = RefundResponse.RefundResponseWith()
             .refundAmount(payment.getAmount())
             .refundReference(postToRefundService(refundRequest, headers)).build();
+
         return new ResponseEntity<>(refundResponse, HttpStatus.CREATED);
 
-
     }
-
 
     @Override
     public ResponseEntity<RefundResponse> createAndValidateRetroSpectiveRemissionRequest(String remissionReference, MultiValueMap<String, String> headers) {
@@ -234,4 +236,30 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             .collect(Collectors.joining(","));
     }
 
+    private void validateRefund(PaymentRefundRequest paymentRefundRequest, List<PaymentFee> paymentFeeList) {
+
+        if(paymentRefundRequest.getRefundAmount().compareTo(BigDecimal.valueOf(0))==0)
+            throw new InvalidPartialRefundRequestException("You need to enter a refund amount");
+
+        for(PaymentFee paymentFee : paymentFeeList){
+            for (FeeDto feeDto : paymentRefundRequest.getFees()) {
+
+                if (feeDto.getId() == paymentFee.getId()){
+
+                    if(feeDto.getVolume()==0)
+                        throw new InvalidPartialRefundRequestException("You need to enter a valid number");
+
+                    if(paymentRefundRequest.getRefundAmount().compareTo(feeDto.getApportionAmount())==1)
+                        throw new InvalidPartialRefundRequestException("The amount you want to refund is more than the amount paid");
+
+                    if(feeDto.getVolume()>paymentFee.getVolume())
+                        throw new InvalidPartialRefundRequestException("The quantity you want to refund is more than the available quantity");
+
+                    if(paymentRefundRequest.getRefundAmount().compareTo(BigDecimal.valueOf(feeDto.getFeeAmount().intValue()*feeDto.getVolume()))!=0
+                        && feeDto.getVolume()>1)
+                        throw new InvalidPartialRefundRequestException("The Amount to Refund should be equal to the product of Fee Amount and quantity");
+                }
+            }
+        }
+    }
 }

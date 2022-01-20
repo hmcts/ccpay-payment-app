@@ -21,11 +21,13 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
+import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.dto.InternalRefundResponse;
 import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
 import uk.gov.hmcts.payment.api.dto.RefundResponse;
 import uk.gov.hmcts.payment.api.dto.ResubmitRefundRemissionRequest;
 import uk.gov.hmcts.payment.api.dto.RetroSpectiveRemissionRequest;
+import uk.gov.hmcts.payment.api.exception.InvalidPartialRefundRequestException;
 import uk.gov.hmcts.payment.api.exception.InvalidRefundRequestException;
 import uk.gov.hmcts.payment.api.model.FeePayApportion;
 import uk.gov.hmcts.payment.api.model.FeePayApportionRepository;
@@ -49,10 +51,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 
 @RunWith(SpringRunner.class)
@@ -64,12 +65,30 @@ public class PaymentRefundsServiceTest {
     PaymentRefundRequest paymentRefundRequest = PaymentRefundRequest.refundRequestWith()
         .paymentReference("RC-1234-1234-1234-1234")
         .refundReason("RESN1")
+        .refundAmount(BigDecimal.valueOf(550))
+        .fees(
+            Arrays.asList(
+                    FeeDto.feeDtoWith()
+                        .calculatedAmount(new BigDecimal("550.00"))
+                        .apportionAmount(new BigDecimal("550.00"))
+                        .feeAmount(new BigDecimal("550.00"))
+                        .code("FEE0333")
+                        .volume(1)
+                        .id(1)
+                        .memoLine("Bar Cash")
+                        .naturalAccountCode("21245654433")
+                        .version("1")
+                        .volume(1)
+                        .reference("REF_123")
+                        .build()
+                ))
         .build();
     Payment mockPaymentSuccess = Payment.paymentWith().reference("RC-1234-1234-1234-1234")
         .amount(BigDecimal.valueOf(100))
+        .id(1)
         .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
         .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
-        .paymentLink(PaymentFeeLink.paymentFeeLinkWith().fees(Arrays.asList(PaymentFee.feeWith().id(1).build())).build())
+        .paymentLink(PaymentFeeLink.paymentFeeLinkWith().fees(Arrays.asList(PaymentFee.feeWith().id(1).volume(1).build())).build())
         .build();
     RetroSpectiveRemissionRequest retroSpectiveRemissionRequest = RetroSpectiveRemissionRequest.retroSpectiveRemissionRequestWith()
         .remissionReference("qwerty").build();
@@ -92,9 +111,7 @@ public class PaymentRefundsServiceTest {
     private PaymentRefundsService paymentRefundsService;
 
     @Before
-    public void setup() {
-        header.put("Authorization", Collections.singletonList("Bearer 131313"));
-    }
+    public void setup() {header.put("Authorization", Collections.singletonList("Bearer 131313"));}
 
     @After
     public void tearDown() {
@@ -403,5 +420,83 @@ public class PaymentRefundsServiceTest {
         ResponseEntity responseEntity = paymentRefundsService.updateTheRemissionAmount("RC-1234-1234-1234-1234",resubmitRefundRemissionRequest);
         assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
         verify(remissionRepository).save(any(Remission.class));
+    }
+
+    @Test
+    public void  partialRefundsValidationExceptionScenariosTest(){
+
+        Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentSuccess));
+
+        InternalRefundResponse mockRefundResponse = InternalRefundResponse.InternalRefundResponseWith().refundReference("RF-4321-4321-4321-4321").build();
+
+
+        ResponseEntity<InternalRefundResponse> responseEntity = new ResponseEntity<>(mockRefundResponse, HttpStatus.CREATED);
+
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+            eq(InternalRefundResponse.class))).thenReturn(responseEntity);
+
+        String expectedMessage;
+
+        paymentRefundRequest.setRefundAmount(BigDecimal.valueOf(0));
+
+        expectedMessage = "You need to enter a refund amount";
+
+        validateRefundException(expectedMessage);
+
+        paymentRefundRequest.setRefundAmount(BigDecimal.valueOf(550));
+
+        paymentRefundRequest.getFees().get(0).setVolume(0);
+
+        expectedMessage = "You need to enter a valid number";
+
+        validateRefundException(expectedMessage);
+
+        paymentRefundRequest.getFees().get(0).setVolume(1);
+
+        paymentRefundRequest.setRefundAmount(BigDecimal.valueOf(600));
+
+        expectedMessage = "The amount you want to refund is more than the amount paid";
+
+        validateRefundException(expectedMessage);
+
+        paymentRefundRequest.setRefundAmount(BigDecimal.valueOf(550));
+
+        paymentRefundRequest.getFees().get(0).setVolume(2);
+
+        expectedMessage = "The quantity you want to refund is more than the available quantity";
+
+        validateRefundException(expectedMessage);
+
+        paymentRefundRequest.getFees().get(0).setVolume(2);
+
+        mockPaymentSuccess.getPaymentLink().getFees().get(0).setVolume(2);
+
+        paymentRefundRequest.setRefundAmount(BigDecimal.valueOf(500));
+
+        expectedMessage = "The Amount to Refund should be equal to the product of Fee Amount and quantity";
+
+        validateRefundException(expectedMessage);
+
+        paymentRefundRequest.getFees().get(0).setVolume(1);
+
+        mockPaymentSuccess.getPaymentLink().getFees().get(0).setVolume(1);
+
+        paymentRefundRequest.setRefundAmount(BigDecimal.valueOf(550));
+
+    }
+
+    private void validateRefundException(String expectedMessage){
+
+        String actualMessage;
+
+        Exception exception;
+
+        exception = assertThrows(InvalidPartialRefundRequestException.class, () -> {
+            paymentRefundsService.createRefund(paymentRefundRequest,header);
+        });
+
+        actualMessage = exception.getMessage();
+
+        assertTrue(actualMessage.contains(expectedMessage));
     }
 }
