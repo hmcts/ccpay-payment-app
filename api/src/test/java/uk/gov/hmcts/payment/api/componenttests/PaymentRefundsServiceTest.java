@@ -144,8 +144,11 @@ public class PaymentRefundsServiceTest {
     public void createRefundWithFailedReference() throws Exception {
 
         Payment mockPaymentFailed = Payment.paymentWith().reference("RC-1234-1234-1234-1234")
+            .amount(BigDecimal.valueOf(100))
+            .id(1)
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("failed").build())
             .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
-            .paymentStatus(PaymentStatus.paymentStatusWith().name("Failed").build())
+            .paymentLink(PaymentFeeLink.paymentFeeLinkWith().fees(Arrays.asList(PaymentFee.feeWith().id(1).volume(1).build())).build())
             .build();
 
         Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentFailed));
