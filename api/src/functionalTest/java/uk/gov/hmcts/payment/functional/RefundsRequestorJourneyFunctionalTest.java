@@ -47,6 +47,7 @@ import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP
 @ActiveProfiles({"functional-tests", "liberataMock"})
 public class RefundsRequestorJourneyFunctionalTest {
 
+
     private static String USER_TOKEN;
     private static String USER_TOKEN_PAYMENT;
     private static String USER_TOKEN_CMC_CITIZEN;
