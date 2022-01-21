@@ -50,7 +50,7 @@ public class AccountController {
         try {
             return accountService.retrieve(accountNumber);
         } catch (HttpClientErrorException ex) {
-            LOG.error("Error while calling account", ex);
+            LOG.error("Error while  calling account", ex);
             throw new AccountNotFoundException("Account not found");
         } catch (Exception ex) {
             throw new LiberataServiceInaccessibleException("Failed to connect with Liberata. " + ex.getMessage());
