@@ -115,7 +115,6 @@ public class OnlineCardPaymentFunctionalTest {
     }
 
 
-    //ANIL
     @Test
     public void createAdoptionCardPaymentTestShouldReturn201Success() {
         dsl.given().userToken(USER_TOKEN)
