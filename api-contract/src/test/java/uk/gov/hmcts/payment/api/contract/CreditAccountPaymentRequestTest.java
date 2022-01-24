@@ -103,8 +103,8 @@ public class CreditAccountPaymentRequestTest {
         request.setSiteId("invalid-site-id");
         Set<ConstraintViolation<CreditAccountPaymentRequest>> violations = validator.validate(request);
         violations.stream().forEach(v->{
-                if(v.getMessage().equals("Invalid Site ID (URN) provided for PRL. Accepted values are ABA4")){
-                    assertEquals("Invalid Site ID (URN) provided for FPL. Accepted values are ABA4",v.getMessage());
+                if(v.getMessage().equals("Invalid Site ID (URN) provided for Adoption. Accepted values are ABA4")){
+                    assertEquals("Invalid Site ID (URN) provided for Adoption. Accepted values are ABA4",v.getMessage());
                 }
             }
         );
