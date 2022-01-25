@@ -1016,58 +1016,6 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
 
     }
 
-    @Test
-    public void negative_issue_refunds_for_a_pba_payment_with_empty_mandatory_fields() {
-
-        // create a PBA payment
-        String accountNumber = testProps.existingAccountNumber;
-        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
-            .aPbaPaymentRequestForProbate("90.00",
-                "PROBATE", accountNumber);
-
-        String ccdCaseNumber = accountPaymentRequest.getCcdCaseNumber();
-
-        paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).
-            then().statusCode(CREATED.value()).body("status", equalTo("Success"));
-        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
-            ccdCaseNumber,"5");
-
-        // get the payment by ccdCaseNumber
-        PaymentsResponse paymentsResponse = paymentTestService
-            .getPbaPaymentsByCCDCaseNumber(SERVICE_TOKEN, ccdCaseNumber)
-            .then()
-            .statusCode(OK.value()).extract().as(PaymentsResponse.class);
-        Optional<PaymentDto> paymentDtoOptional
-            = paymentsResponse.getPayments().stream().findFirst();
-
-        assertThat(paymentDtoOptional.get().getAccountNumber()).isEqualTo(accountNumber);
-        assertThat(paymentDtoOptional.get().getAmount()).isEqualTo(new BigDecimal("90.00"));
-        assertThat(paymentDtoOptional.get().getCcdCaseNumber()).isEqualTo(ccdCaseNumber);
-        System.out.println("The value of the CCD Case Number " + ccdCaseNumber);
-
-        // create a refund request on payment and initiate the refund
-        String paymentReference = paymentDtoOptional.get().getPaymentReference();
-        PaymentRefundRequest paymentRefundRequest
-            = PaymentFixture.aRefundRequest("RR001", paymentReference);
-
-        paymentRefundRequest.setContactDetails(ContactDetails.contactDetailsWith()
-            .addressLine("High Street 112")
-            .country("UK")
-            .county("Londonshire")
-            .city("London")
-            .postalCode("P1 1PO")
-            .email("")
-            .notificationType("email").build());
-
-        Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
-            SERVICE_TOKEN_PAYMENT,
-            paymentRefundRequest);
-
-        // make the assertion
-
-    }
-
-
     private static final RetroRemissionRequest getRetroRemissionRequest(final String remissionAmount) {
         return RetroRemissionRequest.createRetroRemissionRequestWith()
             .hwfAmount(new BigDecimal(remissionAmount))
