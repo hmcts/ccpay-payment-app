@@ -88,6 +88,7 @@ public class GovPayDelegatingPaymentService implements DelegatingPaymentService<
     }
 
     private String keyForService() {
+        LOG.info("serviceIdSupplier.get(): {}", serviceIdSupplier.get());
         return govPayKeyRepository.getKey(serviceIdSupplier.get());
     }
 }
