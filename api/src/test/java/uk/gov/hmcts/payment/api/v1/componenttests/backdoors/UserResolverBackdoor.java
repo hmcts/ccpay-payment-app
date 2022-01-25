@@ -19,6 +19,7 @@ public class UserResolverBackdoor implements SubjectResolver<User>{
     public final static String AUTHENTICATED_USER_ID = "3";
     public final static String SOLICITOR_ID = "4";
     public final static String REFUND_ID = "5";
+    public final static String FINANCE_MANAGER_ID = "6";
 
     public UserResolverBackdoor() {
 
@@ -27,6 +28,7 @@ public class UserResolverBackdoor implements SubjectResolver<User>{
         tokenToUserMap.put("Bearer authenticated-3", new User(AUTHENTICATED_USER_ID, ImmutableSet.of()));
         tokenToUserMap.put("Bearer solicitor-4", new User(SOLICITOR_ID, ImmutableSet.of("caseworker", "caseworker-probate-solicitor")));
         tokenToUserMap.put("Bearer refund-5", new User(REFUND_ID, ImmutableSet.of("payments-refund", "caseworker-probate-solicitor")));
+        tokenToUserMap.put("Bearer finance_manager-6", new User(FINANCE_MANAGER_ID, ImmutableSet.of("pui-finance-manager")));
     }
 
     @Override

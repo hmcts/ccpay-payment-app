@@ -92,7 +92,85 @@ public class PaymentsDataUtil {
 
     public Payment populateCardPaymentToDb(String number) throws Exception {
         //Create a payment in remissionDbBackdoor
-        StatusHistory statusHistory = StatusHistory.statusHistoryWith().status("Initiated").externalStatus("created").build();
+        StatusHistory statusHistory = StatusHistory.statusHistoryWith().status("Success").externalStatus("success").build();
+        Payment payment = Payment.paymentWith()
+            .amount(new BigDecimal("99.99"))
+            .caseReference("Reference" + number)
+            .ccdCaseNumber("ccdCaseNumber" + number)
+            .description("Test payments statuses for " + number)
+            .serviceType("PROBATE")
+            .currency("GBP")
+            .siteId("AA0" + number)
+            .userId(USER_ID)
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
+            .paymentProvider(PaymentProvider.paymentProviderWith().name("gov pay").build())
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
+            .externalReference("e2kkddts5215h9qqoeuth5c0v" + number)
+            .reference("RC-1519-9028-2432-000" + number)
+            .statusHistories(Arrays.asList(statusHistory))
+            .build();
+
+        PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("99.99"))
+            .version("1")
+            .code("FEE000" + number)
+            .volume(1)
+            .feeAmount(new BigDecimal("99.99"))
+            .build();
+
+        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith()
+            .paymentReference("2018-0000000000" + number)
+            .caseReference("Reference" + number)
+            .ccdCaseNumber("ccdCaseNumber" + number)
+            .enterpriseServiceName("Probate")
+            .orgId("AA0" + number)
+            .payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        payment.setPaymentLink(paymentFeeLink);
+        return payment;
+    }
+
+    public Payment populateCardPaymentToDbWithPartiallyPaidPayment(String number) throws Exception {
+        //Create a payment in remissionDbBackdoor
+        StatusHistory statusHistory = StatusHistory.statusHistoryWith().status("Success").externalStatus("success").build();
+        Payment payment = Payment.paymentWith()
+            .amount(new BigDecimal("59.99"))
+            .caseReference("Reference" + number)
+            .ccdCaseNumber("ccdCaseNumber" + number)
+            .description("Test payments statuses for " + number)
+            .serviceType("PROBATE")
+            .currency("GBP")
+            .siteId("AA0" + number)
+            .userId(USER_ID)
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
+            .paymentProvider(PaymentProvider.paymentProviderWith().name("gov pay").build())
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
+            .externalReference("e2kkddts5215h9qqoeuth5c0v" + number)
+            .reference("RC-1519-9028-2432-000" + number)
+            .statusHistories(Arrays.asList(statusHistory))
+            .build();
+
+        PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("99.99"))
+            .version("1")
+            .code("FEE000" + number)
+            .volume(1)
+            .feeAmount(new BigDecimal("99.99"))
+            .build();
+
+        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith()
+            .paymentReference("2018-0000000000" + number)
+            .caseReference("Reference" + number)
+            .ccdCaseNumber("ccdCaseNumber" + number)
+            .enterpriseServiceName("Probate")
+            .orgId("AA0" + number)
+            .payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        payment.setPaymentLink(paymentFeeLink);
+        return payment;
+    }
+
+    public Payment populateCardPaymentToDbWithPaymentWithCreatedstatus(String number) throws Exception {
+        //Create a payment in remissionDbBackdoor
+        StatusHistory statusHistory = StatusHistory.statusHistoryWith().status("Intiated").externalStatus("created").build();
         Payment payment = Payment.paymentWith()
             .amount(new BigDecimal("99.99"))
             .caseReference("Reference" + number)
@@ -111,7 +189,12 @@ public class PaymentsDataUtil {
             .statusHistories(Arrays.asList(statusHistory))
             .build();
 
-        PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE000" + number).volume(1).build();
+        PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("99.99"))
+            .version("1")
+            .code("FEE000" + number)
+            .volume(1)
+            .feeAmount(new BigDecimal("99.99"))
+            .build();
 
         PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith()
             .paymentReference("2018-0000000000" + number)

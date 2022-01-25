@@ -1,4 +1,4 @@
-package uk.gov.hmcts.payment.api.componenttests;
+package uk.gov.hmcts.payment.api.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.joda.time.LocalDate;
@@ -40,8 +40,8 @@ import static uk.gov.hmcts.payment.api.model.PaymentFee.feeWith;
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "componenttest"})
 @SpringBootTest(webEnvironment = MOCK)
-@Transactional
 @DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
+@Transactional
 public class BulkScanningReportControllerTest extends PaymentsDataUtil {
 
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormat.forPattern("MM/dd/yyyy");

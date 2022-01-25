@@ -17,11 +17,13 @@ import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
 import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
 import uk.gov.hmcts.payment.api.dto.PciPalPayment;
+import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayPaymentNotFoundException;
 import uk.gov.hmcts.payment.api.model.*;
-import uk.gov.hmcts.payment.api.util.OrderCaseUtil;
+import uk.gov.hmcts.payment.api.service.govpay.ServiceToTokenMap;
+import uk.gov.hmcts.payment.api.util.ServiceRequestCaseUtil;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
@@ -45,7 +47,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
     private final static String PAYMENT_METHOD = "paymentMethod";
     private final static String PAYMENT_STATUS_CREATED = "created";
     private final static String PAYMENT_METHOD_CARD = "card";
-
+    private static final Predicate[] REF = new Predicate[0];
     private final UserIdSupplier userIdSupplier;
     private final PaymentFeeLinkRepository paymentFeeLinkRepository;
     private final DelegatingPaymentService<GovPayPayment, String> delegateGovPay;
@@ -65,11 +67,15 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
     private final FeePayApportionService feePayApportionService;
     private final LaunchDarklyFeatureToggler featureToggler;
 
-    private final OrderCaseUtil orderCaseUtil;
+    private final ServiceRequestCaseUtil serviceRequestCaseUtil;
 
-    private static final Predicate[] REF = new Predicate[0];
+    @Autowired
+    private ServiceToTokenMap serviceToTokenMap;
+
 
     @Value("${gov.pay.url}") String govpayUrl;
+
+
 
     @Autowired
     public UserAwareDelegatingPaymentService(UserIdSupplier userIdSupplier,
@@ -90,7 +96,8 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
                                              PaymentFeeRepository paymentFeeRepository,
                                              FeePayApportionService feePayApportionService,
                                              LaunchDarklyFeatureToggler featureToggler,
-                                             OrderCaseUtil orderCaseUtil) {
+                                             ServiceRequestCaseUtil serviceRequestCaseUtil
+                                             ) {
         this.userIdSupplier = userIdSupplier;
         this.paymentFeeLinkRepository = paymentFeeLinkRepository;
         this.delegateGovPay = delegateGovPay;
@@ -109,7 +116,109 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
         this.paymentFeeRepository = paymentFeeRepository;
         this.feePayApportionService = feePayApportionService;
         this.featureToggler = featureToggler;
-        this.orderCaseUtil = orderCaseUtil;
+        this.serviceRequestCaseUtil = serviceRequestCaseUtil;
+    }
+
+    private static final Specification constructPaymentSpecification(final PaymentSearchCriteria searchCriteria) {
+        return ((root, query, cb) -> constructPredicate(root, cb, searchCriteria, query));
+    }
+
+    private static Predicate constructPredicate(final Root<Payment> root,
+                                                final CriteriaBuilder cb,
+                                                final PaymentSearchCriteria searchCriteria,
+                                                final CriteriaQuery<?> query) {
+        final List<Predicate> predicates = new ArrayList<>();
+        final Expression<Date> dateUpdatedExpr = cb.function("date_trunc", Date.class, cb.literal("seconds"), root.get("dateUpdated"));
+
+        if (searchCriteria.getCcdCaseNumber() != null) {
+            predicates.add(cb.equal(root.get("ccdCaseNumber"), searchCriteria.getCcdCaseNumber()));
+        }
+        if (searchCriteria.getStartDate() != null && searchCriteria.getEndDate() != null) {
+            predicates.add(cb.between(dateUpdatedExpr, searchCriteria.getStartDate(), searchCriteria.getEndDate()));
+        } else if (searchCriteria.getStartDate() != null) {
+            predicates.add(cb.greaterThanOrEqualTo(dateUpdatedExpr, searchCriteria.getStartDate()));
+        } else if (searchCriteria.getEndDate() != null) {
+            predicates.add(cb.lessThanOrEqualTo(dateUpdatedExpr, searchCriteria.getEndDate()));
+        }
+        if (searchCriteria.getPaymentMethod() != null) {
+            if (searchCriteria.getPaymentMethod().equalsIgnoreCase("all")) {
+                Predicate predicateCheque = cb.equal(root.get(PAYMENT_METHOD), PaymentMethod.paymentMethodWith().name("cheque").build());
+                Predicate predicateCard = cb.equal(root.get(PAYMENT_METHOD), PaymentMethod.paymentMethodWith().name("card").build());
+                Predicate predicateDD = cb.equal(root.get(PAYMENT_METHOD), PaymentMethod.paymentMethodWith().name("direct debit").build());
+                Predicate predicateCash = cb.equal(root.get(PAYMENT_METHOD), PaymentMethod.paymentMethodWith().name("cash").build());
+                Predicate predicatePBA = cb.equal(root.get(PAYMENT_METHOD), PaymentMethod.paymentMethodWith().name("payment by account").build());
+                Predicate predicateAllPay = cb.equal(root.get(PAYMENT_METHOD), PaymentMethod.paymentMethodWith().name("all pay").build());
+                Predicate predicatePO = cb.equal(root.get(PAYMENT_METHOD), PaymentMethod.paymentMethodWith().name("postal order").build());
+                Predicate predicateFinal = cb.or(predicateCheque, predicateCard, predicateDD, predicateCash, predicatePBA, predicateAllPay, predicatePO);
+                predicates.add(predicateFinal);
+            } else {
+                predicates.add(cb.equal(root.get(PAYMENT_METHOD), PaymentMethod.paymentMethodWith().name(searchCriteria.getPaymentMethod()).build()));
+            }
+
+        }
+        if (searchCriteria.getServiceType() != null) {
+            predicates.add(cb.equal(root.get("serviceType"), searchCriteria.getServiceType()));
+        }
+        if (searchCriteria.getPbaNumber() != null) {
+            predicates.add(cb.equal(root.get("pbaNumber"), searchCriteria.getPbaNumber()));
+        }
+
+        query.groupBy(root.get("id"));
+        return cb.and(predicates.toArray(REF));
+    }
+
+    private static Specification findPayments(PaymentSearchCriteria searchCriteria) {
+        return ((root, query, cb) -> getPredicate(root, cb, searchCriteria, query));
+    }
+
+    private static Predicate getPredicate(
+        Root<Payment> root,
+        CriteriaBuilder cb,
+        PaymentSearchCriteria searchCriteria, CriteriaQuery<?> query) {
+        List<Predicate> predicates = new ArrayList<>();
+
+        Join<PaymentFeeLink, Payment> paymentJoin = root.join("payments", JoinType.LEFT);
+
+        if (searchCriteria.getPaymentMethod() != null) {
+            if (searchCriteria.getPaymentMethod().equalsIgnoreCase("all")) {
+                Predicate predicateCheque = cb.equal(paymentJoin.get(PAYMENT_METHOD), PaymentMethod.paymentMethodWith().name("cheque").build());
+                Predicate predicateCard = cb.equal(paymentJoin.get(PAYMENT_METHOD), PaymentMethod.paymentMethodWith().name("card").build());
+                Predicate predicateDD = cb.equal(paymentJoin.get(PAYMENT_METHOD), PaymentMethod.paymentMethodWith().name("direct debit").build());
+                Predicate predicateCash = cb.equal(paymentJoin.get(PAYMENT_METHOD), PaymentMethod.paymentMethodWith().name("cash").build());
+                Predicate predicatePBA = cb.equal(paymentJoin.get(PAYMENT_METHOD), PaymentMethod.paymentMethodWith().name("payment by account").build());
+                Predicate predicateAllPay = cb.equal(paymentJoin.get(PAYMENT_METHOD), PaymentMethod.paymentMethodWith().name("all pay").build());
+                Predicate predicatePO = cb.equal(paymentJoin.get(PAYMENT_METHOD), PaymentMethod.paymentMethodWith().name("postal order").build());
+                Predicate predicateFinal = cb.or(predicateCheque, predicateCard, predicateDD, predicateCash, predicatePBA, predicateAllPay, predicatePO);
+                predicates.add(predicateFinal);
+            } else {
+                predicates.add(cb.equal(paymentJoin.get(PAYMENT_METHOD), PaymentMethod.paymentMethodWith().name(searchCriteria.getPaymentMethod()).build()));
+            }
+
+        }
+
+        Expression<Date> dateUpdatedExpr = cb.function("date_trunc", Date.class, cb.literal("seconds"), paymentJoin.get("dateUpdated"));
+
+        if (searchCriteria.getStartDate() != null && searchCriteria.getEndDate() != null) {
+            predicates.add(cb.between(dateUpdatedExpr, searchCriteria.getStartDate(), searchCriteria.getEndDate()));
+        } else if (searchCriteria.getStartDate() != null) {
+            predicates.add(cb.greaterThanOrEqualTo(dateUpdatedExpr, searchCriteria.getStartDate()));
+        } else if (searchCriteria.getEndDate() != null) {
+            predicates.add(cb.lessThanOrEqualTo(dateUpdatedExpr, searchCriteria.getEndDate()));
+        }
+
+        if (searchCriteria.getCcdCaseNumber() != null) {
+            predicates.add(cb.equal(paymentJoin.get("ccdCaseNumber"), searchCriteria.getCcdCaseNumber()));
+        }
+
+        if (searchCriteria.getServiceType() != null) {
+            predicates.add(cb.equal(paymentJoin.get("serviceType"), searchCriteria.getServiceType()));
+        }
+
+        if (searchCriteria.getPbaNumber() != null) {
+            predicates.add(cb.equal(paymentJoin.get("pbaNumber"), searchCriteria.getPbaNumber()));
+        }
+        query.groupBy(root.get("id"));
+        return cb.and(predicates.toArray(REF));
     }
 
     @Override
@@ -148,10 +257,15 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
 
         payment.setPaymentLink(paymentFeeLink);
 
-        paymentFeeLink = paymentFeeLinkRepository.save(orderCaseUtil.enhanceWithOrderCaseDetails(paymentFeeLink, payment));
+        paymentFeeLink = paymentFeeLinkRepository.save(serviceRequestCaseUtil.enhanceWithServiceRequestCaseDetails(paymentFeeLink, payment));
 
         auditRepository.trackPaymentEvent("CREATE_CARD_PAYMENT", payment, paymentServiceRequest.getFees());
         return paymentFeeLink;
+    }
+
+    @Override
+    public PaymentFeeLink create(CreatePaymentRequest createPaymentRequest, String serviceName) {
+        return null;
     }
 
     @Override
@@ -176,11 +290,11 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
         PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.findByPaymentReference(paymentServiceRequest.
             getPaymentGroupReference()).orElseThrow(InvalidPaymentGroupReferenceException::new);
 
-        orderCaseUtil.updateOrderCaseDetails(paymentFeeLink, payment);
+        serviceRequestCaseUtil.updateServiceRequestCaseDetails(paymentFeeLink, payment);
 
         payment.setPaymentLink(paymentFeeLink);
 
-        if(paymentFeeLink.getPayments() != null){
+        if (paymentFeeLink.getPayments() != null) {
             paymentFeeLink.getPayments().addAll(Lists.newArrayList(payment));
         } else {
             paymentFeeLink.setPayments(Lists.newArrayList(payment));
@@ -208,7 +322,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
             .build();
     }
 
-    private PaymentFeeLink retrieve(String paymentReference, boolean shouldCallBack) {
+    private PaymentFeeLink retrieve(String paymentReference, boolean shouldCallBack, String serviceName ) {
 
         final Payment payment = findSavedPayment(paymentReference);
 
@@ -217,10 +331,13 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
         String paymentService = payment.getS2sServiceName();
 
         if (null == paymentService || paymentService.trim().equals("")) {
-            LOG.error("Unable to determine the payment service which created this payment-Ref: {}",paymentReference);
+            LOG.error("Unable to determine the payment service which created this payment-Ref: {}", paymentReference);
         }
-
-        paymentService = govPayAuthUtil.getServiceName(serviceIdSupplier.get(), paymentService);
+        if(serviceName == null) {
+            paymentService = govPayAuthUtil.getServiceName(serviceIdSupplier.get(), paymentService);
+        } else {
+            paymentService = serviceToTokenMap.getServiceKeyVaultName(serviceName);
+        }
 
         try {
             GovPayPayment govPayPayment = delegateGovPay.retrieve(payment.getExternalReference(), paymentService);
@@ -243,12 +360,20 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
                     .build()));
 
                 //1. Update Fee Amount Due as Payment Status received from GovPAY as SUCCESS
-                boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
+                boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature", false);
                 LOG.info("ApportionFeature Flag Value in UserAwareDelegatingPaymentService : {}", apportionFeature);
-                if(apportionFeature) {
-                    if(govPayPayment.getState().getStatus().toLowerCase().equalsIgnoreCase("success")) {
+                if (apportionFeature) {
+                    if (govPayPayment.getState().getStatus().toLowerCase().equalsIgnoreCase("success")) {
                         LOG.info("Update Fee Amount Due as Payment Status received from GovPAY as SUCCESS!!!");
                         feePayApportionService.updateFeeAmountDue(payment);
+                    }
+                    else {
+                        payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name(govPayPayment.getState().getStatus().toLowerCase()).build());
+                        LOG.info(" Payment updated for failure Gov.uk : {}" ,payment.getCcdCaseNumber());
+                        LOG.info(" Payment updated for failure Gov.uk : {}" ,payment.getExternalReference());
+                        LOG.info(" Payment updated for failure Gov.uk : {}" ,payment.getPaymentStatus().getName());
+                        LOG.info("payment saved payment table succussfully for failure case");
+                        paymentFeeLinkRepository.save(paymentFeeLink);
                     }
                 }
 
@@ -260,19 +385,29 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
             LOG.error("Gov Pay payment not found id is:{} and govpay id is:{}", payment.getExternalReference(), paymentReference);
         }
 
+        LOG.info(" Payment updated for failure Gov.uk response : {}" ,paymentFeeLink.getCcdCaseNumber());
+        LOG.info(" Payment updated for failure Gov.uk response : {}" ,paymentFeeLink.getPaymentReference());
+        LOG.info(" Payment updated for failure Gov.uk response : {}" ,paymentFeeLink.getPayments());
+        LOG.info("payment saved payment table succussfully for failure case : Out");
+
         return paymentFeeLink;
     }
 
     @Override
     @Transactional
     public PaymentFeeLink retrieve(String paymentReference) {
-        return retrieve(paymentReference, false);
+        return retrieve(paymentReference, false,null);
+    }
+
+    @Override
+    public PaymentFeeLink retrieve(PaymentFeeLink paymentFeeLink, String paymentReference) {
+        return retrieve(paymentReference, false,paymentFeeLink.getEnterpriseServiceName());
     }
 
     @Override
     @Transactional
     public PaymentFeeLink retrieveWithCallBack(String paymentReference) {
-        return retrieve(paymentReference, true);
+        return retrieve(paymentReference, true,null);
 
     }
 
@@ -356,61 +491,34 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
         auditRepository.trackEvent("CANCEL_CARD_PAYMENT", properties);
     }
 
-    private static Specification findPayments(PaymentSearchCriteria searchCriteria) {
-        return ((root, query, cb) -> getPredicate(root, cb, searchCriteria, query));
+    @Override
+    public void cancel(String cancelUrl, String serviceName) {
+
     }
 
-    private static Predicate getPredicate(
-        Root<Payment> root,
-        CriteriaBuilder cb,
-        PaymentSearchCriteria searchCriteria, CriteriaQuery<?> query) {
-        List<Predicate> predicates = new ArrayList<>();
+    @Override
+    public void cancel(Payment payment, String ccdCaseNumber) {
+        delegateGovPay.cancel(govpayUrl + "/" + payment.getExternalReference() + "/cancel");
+        Map<String, String> properties = new ImmutableMap.Builder<String, String>()
+            .put("paymentReference", payment.getReference())
+            .put("amount", payment.getAmount().toString())
+            .put("CcdCaseNumber", ccdCaseNumber)
+            .put("ExternalReference", payment.getExternalReference())
+            .build();
+        auditRepository.trackEvent("CANCEL_CARD_PAYMENT", properties);
+    }
 
-        Join<PaymentFeeLink, Payment> paymentJoin = root.join("payments", JoinType.LEFT);
-
-        if (searchCriteria.getPaymentMethod() != null) {
-            if(searchCriteria.getPaymentMethod().equalsIgnoreCase("all"))
-            {
-                Predicate predicateCheque = cb.equal(paymentJoin.get(PAYMENT_METHOD), PaymentMethod.paymentMethodWith().name("cheque").build());
-                Predicate predicateCard = cb.equal(paymentJoin.get(PAYMENT_METHOD), PaymentMethod.paymentMethodWith().name("card").build());
-                Predicate predicateDD = cb.equal(paymentJoin.get(PAYMENT_METHOD), PaymentMethod.paymentMethodWith().name("direct debit").build());
-                Predicate predicateCash = cb.equal(paymentJoin.get(PAYMENT_METHOD), PaymentMethod.paymentMethodWith().name("cash").build());
-                Predicate predicatePBA = cb.equal(paymentJoin.get(PAYMENT_METHOD), PaymentMethod.paymentMethodWith().name("payment by account").build());
-                Predicate predicateAllPay = cb.equal(paymentJoin.get(PAYMENT_METHOD), PaymentMethod.paymentMethodWith().name("all pay").build());
-                Predicate predicatePO = cb.equal(paymentJoin.get(PAYMENT_METHOD), PaymentMethod.paymentMethodWith().name("postal order").build());
-                Predicate predicateFinal = cb.or(predicateCheque,predicateCard,predicateDD,predicateCash,predicatePBA,predicateAllPay,predicatePO);
-                predicates.add(predicateFinal);
-            }
-            else
-            {
-                predicates.add(cb.equal(paymentJoin.get(PAYMENT_METHOD), PaymentMethod.paymentMethodWith().name(searchCriteria.getPaymentMethod()).build()));
-            }
-
-        }
-
-        Expression<Date> dateUpdatedExpr = cb.function("date_trunc", Date.class, cb.literal("seconds"), paymentJoin.get("dateUpdated"));
-
-        if (searchCriteria.getStartDate() != null && searchCriteria.getEndDate() != null) {
-            predicates.add(cb.between(dateUpdatedExpr, searchCriteria.getStartDate(), searchCriteria.getEndDate()));
-        } else if (searchCriteria.getStartDate() != null) {
-            predicates.add(cb.greaterThanOrEqualTo(dateUpdatedExpr, searchCriteria.getStartDate()));
-        } else if (searchCriteria.getEndDate() != null) {
-            predicates.add(cb.lessThanOrEqualTo(dateUpdatedExpr, searchCriteria.getEndDate()));
-        }
-
-        if (searchCriteria.getCcdCaseNumber() != null) {
-            predicates.add(cb.equal(paymentJoin.get("ccdCaseNumber"), searchCriteria.getCcdCaseNumber()));
-        }
-
-        if (searchCriteria.getServiceType() != null) {
-            predicates.add(cb.equal(paymentJoin.get("serviceType"), searchCriteria.getServiceType()));
-        }
-
-        if (searchCriteria.getPbaNumber() != null) {
-            predicates.add(cb.equal(paymentJoin.get("pbaNumber"), searchCriteria.getPbaNumber()));
-        }
-        query.groupBy(root.get("id"));
-        return cb.and(predicates.toArray(REF));
+    @Override
+    public void cancel(Payment payment, String ccdCaseNumber, String serviceName) {
+        LOG.info("NEW cancel received");
+        delegateGovPay.cancel(govpayUrl + "/" + payment.getExternalReference() + "/cancel",serviceName);
+        Map<String, String> properties = new ImmutableMap.Builder<String, String>()
+            .put("paymentReference", payment.getReference())
+            .put("amount", payment.getAmount().toString())
+            .put("CcdCaseNumber", ccdCaseNumber)
+            .put("ExternalReference", payment.getExternalReference())
+            .build();
+        auditRepository.trackEvent("CANCEL_CARD_PAYMENT", properties);
     }
 
     private Payment findSavedPayment(@NotNull String paymentReference) {

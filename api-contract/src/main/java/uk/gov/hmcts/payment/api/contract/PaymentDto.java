@@ -97,6 +97,8 @@ public class PaymentDto {
 
     private String giroSlipNo;
 
+    private String internalReference;
+
     @JsonProperty("_links")
     private LinksDto links;
 

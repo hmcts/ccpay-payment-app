@@ -32,4 +32,6 @@ public interface PaymentService<T, ID> {
 
     void updatePaymentsForCCDCaseNumberByCertainDays(String ccd_case_number, String days);
 
+    Payment findPayment(String internalReference);
+
 }

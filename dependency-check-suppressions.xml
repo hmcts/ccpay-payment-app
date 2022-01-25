@@ -47,7 +47,7 @@
         <cve>CVE-2021-28170</cve>
     </suppress>
 
-     <suppress until="2022-03-30">
+    <suppress until="2022-03-30">
         <notes>A vulnerability in all versions of Nim-lang allows unauthenticated attackers to write files to
             arbitrary directories via a crafted zip file with dot-slash characters included in the name of the
             crafted file
@@ -55,18 +55,21 @@
         <cve>CVE-2020-23171</cve>
     </suppress>
 
-    <suppress until="2021-12-25">
-        <notes>A vulnerability in all versions of Nim-lang allows unauthenticated attackers to write files to
-            arbitrary directories via a crafted zip file with dot-slash characters included in the name of the
-            crafted file
+    <suppress until="2022-03-30">
+        <notes>Temporary suppression
         </notes>
-        <cve>CVE-2020-23171</cve>
+        <cve>CVE-2020-29243</cve>
+        <cve>CVE-2020-29242</cve>
+        <cve>CVE-2020-29245</cve>
+        <cve>CVE-2020-29244</cve>
+        <cve>CVE-2007-1652</cve>
+        <cve>CVE-2007-1651</cve>
+        <cve>CVE-2018-1258</cve>
     </suppress>
+
+
     <suppress until="2021-12-25">
-        <notes>A vulnerability in all versions of Nim-lang allows unauthenticated attackers to write files to
-            arbitrary directories via a crafted zip file with dot-slash characters included in the name of the
-            crafted file
-        </notes>
+        <notes>A vulnerability in all versions of adal4j, this library is an internal dependency in azure libraries. Hence this is suppressed</notes>
         <cve>CVE-2021-42306</cve>
     </suppress>
     <!-- Supression Group ends here -->

@@ -1,5 +1,5 @@
 package uk.gov.hmcts.payment.api.controllers;
-
+/*
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.hystrix.HystrixCommand;
@@ -563,4 +563,4 @@ public class OrderControllerTest {
         return orderReferenceResult;
     }
 
-}
+}*/

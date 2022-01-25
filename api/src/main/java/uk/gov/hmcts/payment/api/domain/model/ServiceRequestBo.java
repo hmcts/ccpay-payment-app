@@ -11,31 +11,31 @@ import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.hmcts.payment.api.domain.mapper.OrderDomainDataEntityMapper;
-import uk.gov.hmcts.payment.api.dto.OrderResponseDto;
+import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestDomainDataEntityMapper;
+import uk.gov.hmcts.payment.api.dto.ServiceRequestResponseDto;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
 
 import java.math.BigDecimal;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @JsonInclude(NON_NULL)
-@Builder(builderMethodName = "orderBoWith")
+@Builder(builderMethodName = "serviceRequestBoWith")
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
 @Component
-public class OrderBo {
+public class ServiceRequestBo {
     //-- All CRUD & Validation operations for Orders to be implemented
 
     private String reference;
+
+    private String callBackUrl;
 
     private String ccdCaseNumber;
 
@@ -45,30 +45,30 @@ public class OrderBo {
 
     private String enterpriseServiceName;
 
-    private List<OrderFeeBo> fees;
+    private List<ServiceRequestFeeBo> fees;
 
     private PaymentStatus status;
 
-    private BigDecimal orderBalance;
+    private BigDecimal serviceRequestBalance;
 
     @Autowired
-    private OrderDomainDataEntityMapper orderDomainDataEntityMapper;
+    private ServiceRequestDomainDataEntityMapper serviceRequestDomainDataEntityMapper;
 
     @Autowired
     private PaymentFeeLinkRepository paymentFeeLinkRepository;
 
     @Transactional
-    public OrderResponseDto createOrder(OrderBo orderBo) {
+    public ServiceRequestResponseDto createServiceRequest(ServiceRequestBo serviceRequestBo) {
 
-        PaymentFeeLink paymentFeeLinkAliasOrderEntity = orderDomainDataEntityMapper.toOrderEntity(orderBo);
+        PaymentFeeLink paymentFeeLinkAliasServiceRequestEntity = serviceRequestDomainDataEntityMapper.toServiceRequestEntity(serviceRequestBo);
 
-        PaymentFeeLink orderSavedWithFees = paymentFeeLinkRepository.save(paymentFeeLinkAliasOrderEntity);
+        PaymentFeeLink serviceRequestSavedWithFees = paymentFeeLinkRepository.save(paymentFeeLinkAliasServiceRequestEntity);
 
-        OrderResponseDto orderResponseDto = OrderResponseDto.orderResponseDtoWith()
-                                                .orderReference(orderSavedWithFees.getPaymentReference())
+        ServiceRequestResponseDto serviceRequestResponseDto = ServiceRequestResponseDto.serviceRequestResponseDtoWith()
+                                                .serviceRequestReference(serviceRequestSavedWithFees.getPaymentReference())
                                                 .build();
 
-        return orderResponseDto;
+        return serviceRequestResponseDto;
     }
 
 }

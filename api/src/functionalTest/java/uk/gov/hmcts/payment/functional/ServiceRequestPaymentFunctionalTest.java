@@ -4,13 +4,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
-import uk.gov.hmcts.payment.api.domain.model.OrderPaymentBo;
-import uk.gov.hmcts.payment.api.dto.order.OrderDto;
-import uk.gov.hmcts.payment.api.dto.order.OrderFeeDto;
-import uk.gov.hmcts.payment.api.dto.order.OrderPaymentDto;
+import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
+import uk.gov.hmcts.payment.api.dto.CasePaymentRequest;
+import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
+import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestFeeDto;
+import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
 import uk.gov.hmcts.payment.functional.config.LaunchDarklyFeature;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
 import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
@@ -27,7 +27,7 @@ import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP
 
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
-public class OrdersPaymentFunctionalTest {
+public class ServiceRequestPaymentFunctionalTest {
 
     @Autowired
     private TestConfigProperties testProps;
@@ -56,20 +56,22 @@ public class OrdersPaymentFunctionalTest {
     }
 
     @Test
-    public void createAnOrderAndMakePBAPayment(){
+    public void createAnServiceRequestAndMakePBAPayment(){
         UUID randomUUID = UUID.randomUUID();
-        OrderDto requestOrder = OrderDto.orderDtoWith()
-            .caseType("Divorce")
+        ServiceRequestDto serviceRequestDto = ServiceRequestDto.serviceRequestDtoWith()
+            .hmctsOrgId("ABA1")
             .ccdCaseNumber("1234567890123456")
             .caseReference("abcd-defg-hjik-1234")
-            .fees(Arrays.asList(OrderFeeDto.feeDtoWith()
+            .casePaymentRequest(getCasePaymentRequest())
+            .callBackUrl("http://callback.hmcts.net")
+            .fees(Arrays.asList(ServiceRequestFeeDto.feeDtoWith()
                 .calculatedAmount(BigDecimal.valueOf(100))
                 .code("FEE0101")
                 .version("1")
                 .volume(1)
                 .build()))
             .build();
-        OrderPaymentDto paymentDto = OrderPaymentDto.paymentDtoWith()
+        ServiceRequestPaymentDto paymentDto = ServiceRequestPaymentDto.paymentDtoWith()
             .accountNumber("PBAFUNC12345")
             .amount(BigDecimal.valueOf(100))
             .currency("GBP")
@@ -77,17 +79,31 @@ public class OrdersPaymentFunctionalTest {
             .build();
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
-            .when().createOrder(requestOrder)
+            .when().createServiceRequest(serviceRequestDto)
             .then().gotCreated(Map.class,mapResult->{
-            Object orderReference=mapResult.get("order_reference");
-            assertThat(orderReference).isNotNull();
+            Object serviceRequestReference=mapResult.get("service_request_reference");
+            assertThat(serviceRequestReference).isNotNull();
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             dsl.given().userToken(USER_TOKEN)
                 .s2sToken(SERVICE_TOKEN)
-                .when().createOrderCreditAccountPayment(paymentDto,orderReference.toString(),randomUUID.toString())
-                .then().gotCreated(OrderPaymentBo.class, paymentBo->{
+                .when().createServiceRequestCreditAccountPayment(paymentDto,serviceRequestReference.toString(),randomUUID.toString())
+                .then().gotCreated(ServiceRequestPaymentBo.class, paymentBo->{
                 assertThat(paymentBo.getPaymentReference()).isNotNull();
                 assertThat(paymentBo.getStatus()).isEqualToIgnoringCase("success");
             });
         });
+    }
+
+    private CasePaymentRequest getCasePaymentRequest(){
+        CasePaymentRequest casePaymentRequest = CasePaymentRequest.casePaymentRequestWith()
+            .action("action")
+            .responsibleParty("party")
+            .build();
+
+        return casePaymentRequest;
     }
 }

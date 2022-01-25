@@ -22,6 +22,7 @@ import uk.gov.hmcts.payment.api.service.RemissionService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.*;
 
 import javax.validation.Valid;
+import java.util.Optional;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 
@@ -53,7 +54,7 @@ public class RemissionController {
                                                         @RequestHeader(required = false) MultiValueMap<String, String> headers)
         throws CheckDigitException {
 
-        OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(remissionRequest.getCaseType(), headers);
+        OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(Optional.ofNullable(remissionRequest.getCaseType()),Optional.empty(), headers);
 
         RemissionServiceRequest remissionServiceRequest = populateRemissionServiceRequest(remissionRequest, organisationalServiceDto);
         remissionRequest.getFee().setCcdCaseNumber(remissionRequest.getCcdCaseNumber());
@@ -78,7 +79,7 @@ public class RemissionController {
         @RequestHeader(required = false) MultiValueMap<String, String> headers,
         @Valid @RequestBody RemissionRequest remissionRequest) throws CheckDigitException {
 
-        OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(remissionRequest.getCaseType(), headers);
+        OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(Optional.ofNullable(remissionRequest.getCaseType()),Optional.empty(), headers);
 
         RemissionServiceRequest remissionServiceRequest = populateRemissionServiceRequest(remissionRequest, organisationalServiceDto);
         PaymentFeeLink paymentFeeLink = remissionService.createRetrospectiveRemission(remissionServiceRequest, paymentGroupReference, feeId);

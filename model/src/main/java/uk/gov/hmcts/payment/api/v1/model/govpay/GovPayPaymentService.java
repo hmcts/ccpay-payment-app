@@ -1,6 +1,8 @@
 package uk.gov.hmcts.payment.api.v1.model.govpay;
 
 import lombok.NonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.payment.api.external.client.GovPayClient;
@@ -16,6 +18,7 @@ public class GovPayPaymentService implements PaymentService<GovPayPayment, Strin
     private final GovPayKeyRepository govPayKeyRepository;
     private final GovPayClient govPayClient;
     private final ServiceIdSupplier serviceIdSupplier;
+    private static final Logger LOG = LoggerFactory.getLogger(GovPayPaymentService.class);
 
     @Autowired
     public GovPayPaymentService(GovPayKeyRepository govPayKeyRepository, GovPayClient govPayClient, ServiceIdSupplier serviceIdSupplier) {
@@ -60,6 +63,7 @@ public class GovPayPaymentService implements PaymentService<GovPayPayment, Strin
     }
 
     private String keyForCurrentService() {
+        LOG.info("keyForCurrentService "+serviceIdSupplier.get());
         return govPayKeyRepository.getKey(serviceIdSupplier.get());
     }
 }

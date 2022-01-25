@@ -25,6 +25,7 @@ java:
 
     AUTH_PROVIDER_SERVICE_CLIENT_BASEURL: http://rpe-service-auth-provider-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal
     AUTH_IDAM_CLIENT_BASEURL: https://idam-api.{{ .Values.global.environment }}.platform.hmcts.net
+    AUTH_REF_DATA_BASEURL: http://rd-professional-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal
     FEES_REGISTER_URL: http://fees-register-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal
     PAYBUBBLE_HOME_URL: https://ccpay-bubble-frontend-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal
     CORE_CASE_DATA_API_URL: http://ccd-data-store-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal
@@ -93,6 +94,8 @@ java:
       secrets:
         - api-POSTGRES-PASS
         - sb-primary-connection-string
+        - sb-cpo-primary-connection-string
+        - ccpay-payment-status-connection-string
         - pci-pal-account-id-cmc
         - pci-pal-account-id-probate
         - pci-pal-account-id-divorce

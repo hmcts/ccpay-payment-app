@@ -7,9 +7,9 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
-import uk.gov.hmcts.payment.api.domain.mapper.OrderDomainDataEntityMapper;
-import uk.gov.hmcts.payment.api.dto.OrderResponseDto;
-import uk.gov.hmcts.payment.api.dto.order.OrderFeeDto;
+import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestDomainDataEntityMapper;
+import uk.gov.hmcts.payment.api.dto.ServiceRequestResponseDto;
+import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestFeeDto;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
@@ -24,51 +24,56 @@ import static org.mockito.Mockito.when;
 
 @RunWith(SpringRunner.class)
 @DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
-public class OrderBoTest {
+public class ServiceRequestBoTest {
+
 
     String orderReference = "2200-1619524583862";
     @InjectMocks
-    private OrderBo orderBo;
+    private ServiceRequestBo serviceRequestBo;
     @Mock
     private PaymentFeeLinkRepository paymentFeeLinkRepository;
     @Spy
-    private OrderDomainDataEntityMapper orderDomainDataEntityMapper;
+    private ServiceRequestDomainDataEntityMapper serviceRequestDomainDataEntityMapper;
 
     @Test
-    public void CreateOrderWithExistingCcdCaseNumber() throws Exception {
+    public void CreateServiceRequestWithExistingCcdCaseNumber() throws Exception {
 
-        OrderBo orderBoDomain = getOrderBoDomain(orderReference);
+        String serviceRequestReference = "2200-1619524583862";
+
+        ServiceRequestBo serviceRequestBoDomain = getServiceRequestBoDomain(serviceRequestReference);
 
         when(paymentFeeLinkRepository.save(any())).thenReturn(getPaymentFeeLink());
 
-        OrderResponseDto orderReferenceResult = orderBo.createOrder(orderBoDomain);
+        ServiceRequestResponseDto serviceRequestReferenceResult = serviceRequestBo.createServiceRequest(serviceRequestBoDomain);
 
-        assertThat(orderReference).isEqualTo(orderReferenceResult.getOrderReference());
+        assertThat(serviceRequestReference).isEqualTo(serviceRequestReferenceResult.getServiceRequestReference());
 
     }
 
     @Test
-    public void CreateOrderWithNewCcdCaseNumber() throws Exception {
+    public void CreateServiceRequestWithNewCcdCaseNumber() throws Exception {
 
-        OrderBo orderBoDomain = getOrderBoDomain(orderReference);
+        String serviceRequestReference = "2200-1619524583862";
+
+        ServiceRequestBo serviceRequestBoDomain = getServiceRequestBoDomain(serviceRequestReference);
 
         when(paymentFeeLinkRepository.save(any())).thenReturn(getPaymentFeeLink());
 
-        OrderResponseDto orderReferenceResult = orderBo.createOrder(orderBoDomain);
+        ServiceRequestResponseDto serviceRequestReferenceResult = serviceRequestBo.createServiceRequest(serviceRequestBoDomain);
 
-        assertThat(orderReference).isEqualTo(orderReferenceResult.getOrderReference());
+        assertThat(serviceRequestReference).isEqualTo(serviceRequestReferenceResult.getServiceRequestReference());
 
     }
 
 
-    private OrderBo getOrderBoDomain(String orderReference) {
-        return OrderBo.orderBoWith()
+    private ServiceRequestBo getServiceRequestBoDomain(String serviceRequestReference) {
+        return ServiceRequestBo.serviceRequestBoWith()
             .enterpriseServiceName("DIVORCE")
             .orgId("AA001")
             .ccdCaseNumber("8696869686968696")
             .caseReference("rertyuilkjhcxdfgh")
-            .reference(orderReference)
-            .fees(Collections.singletonList(getOrderFee())
+            .reference(serviceRequestReference)
+            .fees(Collections.singletonList(getServiceRequestFee())
                 .stream()
                 .map(feeDto -> toFeeDomain(feeDto, "8696869686968696")) // Will be removed after get api's work without ccd dependency
                 .collect(Collectors.toList()))
@@ -97,18 +102,18 @@ public class OrderBoTest {
     }
 
 
-    public OrderFeeBo toFeeDomain(OrderFeeDto orderFeeDto, String ccdCaseNumber) {
-        return OrderFeeBo.orderFeeBoWith()
-            .calculatedAmount(orderFeeDto.getCalculatedAmount())
-            .code(orderFeeDto.getCode())
+    public ServiceRequestFeeBo toFeeDomain(ServiceRequestFeeDto serviceRequestFeeDto, String ccdCaseNumber) {
+        return ServiceRequestFeeBo.serviceRequestFeeBoWith()
+            .calculatedAmount(serviceRequestFeeDto.getCalculatedAmount())
+            .code(serviceRequestFeeDto.getCode())
             .ccdCaseNumber(ccdCaseNumber)
-            .version(orderFeeDto.getVersion())
-            .volume(orderFeeDto.getVolume())
+            .version(serviceRequestFeeDto.getVersion())
+            .volume(serviceRequestFeeDto.getVolume())
             .build();
     }
 
-    private OrderFeeDto getOrderFee() {
-        return OrderFeeDto.feeDtoWith()
+    private ServiceRequestFeeDto getServiceRequestFee() {
+        return ServiceRequestFeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("92.19"))
             .code("FEE312")
             .version("1")
@@ -116,3 +121,4 @@ public class OrderBoTest {
             .build();
     }
 }
+

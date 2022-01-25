@@ -46,10 +46,9 @@ allprojects {
     repositories {
         mavenLocal()
         mavenCentral()
-        maven { url 'https://jitpack.io' }
         jcenter()
-        maven { url "https://dl.bintray.com/hmcts/hmcts-maven" }
         maven { url 'https://repo.spring.io/libs-milestone' }
+        maven { url 'https://jitpack.io' }
     }
 
     apply from: "${rootDir}/cve-resolution-strategy.gradle"
@@ -176,12 +175,14 @@ def sonarExclusions = [
         '**/v1/**',
         '**/OtpBootstrap.java',
         '**/api/model/**',
+        '**/api/configuration/security/SpringSecurityConfiguration.java',
         '**/referencedata/model/**',
         '**/api/dto/*.java',
         '**/referencedata/dto/*.java',
         '**/api/service/*Service.java',
         '**/referencedata/service/*Service.java',
         '**/api/service/MockAccountServiceImpl.java',
+        '**/api/service/PaymentServiceImpl.java',
         '**/api/service/MockCcdDataStoreClientServiceImpl.java',
         '**/api/controllers/mock/MockCallbackControllerForTesting.java',
         '**/api/contract/**',

@@ -14,11 +14,11 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @JsonInclude(NON_NULL)
-@Builder(builderMethodName = "orderFeeBoWith")
+@Builder(builderMethodName = "serviceRequestFeeBoWith")
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class OrderFeeBo {
+public class ServiceRequestFeeBo {
 
     private String code;
 
