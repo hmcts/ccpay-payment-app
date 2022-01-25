@@ -17,7 +17,7 @@ spring:
         gov-pay-keys-divorce: gov.pay.auth.key.divorce_frontend
         gov-pay-keys-probate: gov.pay.auth.key.probate_frontend
         gov-pay-keys-iac: gov.pay.auth.key.iac
-        gov-pay-keys-adoption: gov.pay.auth.key.adoption
+        gov-pay-keys-adoption: gov.pay.auth.key.adoption_web
         liberata-keys-oauth2-client-id: liberata.oauth2.client.id
         liberata-keys-oauth2-client-secret: liberata.oauth2.client.secret
         liberata-keys-oauth2-username: liberata.oauth2.username
