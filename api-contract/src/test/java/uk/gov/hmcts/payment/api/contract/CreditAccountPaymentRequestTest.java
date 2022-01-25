@@ -96,20 +96,6 @@ public class CreditAccountPaymentRequestTest {
         );
     }
 
-    @Test
-    public void testValidateSiteIdForAdoption() {
-        CreditAccountPaymentRequest request = new CreditAccountPaymentRequest();
-        request.setService("ADOPTION");
-        request.setSiteId("invalid-site-id");
-        Set<ConstraintViolation<CreditAccountPaymentRequest>> violations = validator.validate(request);
-        violations.stream().forEach(v->{
-                if(v.getMessage().equals("Invalid Site ID (URN) provided for Adoption. Accepted values are ABA4")){
-                    assertEquals("Invalid Site ID (URN) provided for Adoption. Accepted values are ABA4",v.getMessage());
-                }
-            }
-        );
-    }
-
 
 
 
