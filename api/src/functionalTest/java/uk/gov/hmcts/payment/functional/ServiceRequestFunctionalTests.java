@@ -612,9 +612,8 @@ public class ServiceRequestFunctionalTests {
 
     }
 
-
     @Test
-//    @Ignore ("Card payment Failing on the amounts Decimal Point......")
+    //    @Ignore ("Card payment Failing on the amounts Decimal Point......")
     public void positive_create_service_request_and_a_full_card_payment_user_hmcts() throws Exception {
 
         ServiceRequestDto serviceRequestDto
@@ -731,6 +730,7 @@ public class ServiceRequestFunctionalTests {
         assertThat(createServiceRequestResponse.getBody().asString())
             .isEqualTo("No Service found for given CaseType or HMCTS Org Id");
     }
+
     private void verifyThePaymentGroupResponseForNoPaymentsOrRemisssions(final ServiceRequestDto serviceRequestDto,
                                                                          final PaymentGroupResponse paymentGroupResponse)
         throws Exception {
