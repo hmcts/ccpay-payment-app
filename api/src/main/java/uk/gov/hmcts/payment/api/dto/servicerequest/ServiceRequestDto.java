@@ -1,4 +1,4 @@
-package uk.gov.hmcts.payment.api.dto.order;
+package uk.gov.hmcts.payment.api.dto.servicerequest;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
@@ -8,7 +8,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import uk.gov.hmcts.payment.api.dto.CasePaymentRequest;
 
+import javax.validation.Valid;
 import javax.validation.constraints.AssertFalse;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
