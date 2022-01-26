@@ -39,8 +39,8 @@ public class PaymentRefundRequest {
     private String refundReason;
 
     @Digits(integer = 10, fraction = 2, message = "Please check the amount you want to refund")
-    @NotNull(message = "Refund Amount cannot be null")
-    @NotEmpty(message = "Refund Amount cannot be blank")
+    @NotNull(message = "You need to enter a refund amount")
+    @NotEmpty(message = "You need to enter a refund amount")
     private BigDecimal refundAmount;
 
     @NotEmpty
