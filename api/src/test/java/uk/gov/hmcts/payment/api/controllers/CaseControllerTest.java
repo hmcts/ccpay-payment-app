@@ -251,7 +251,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
         assertThat(payment.getDateCreated()).isNotNull();
         assertThat(payment.getCustomerReference()).isNotBlank();
 
-        Assert.assertThat(payment.getStatusHistories(), hasItem(hasProperty("status", is("Initiated"))));
+        Assert.assertThat(payment.getStatusHistories(), hasItem(hasProperty("status", is("Success"))));
         Assert.assertThat(payment.getStatusHistories(), hasItem(hasProperty("errorCode", nullValue())));
     }
 
