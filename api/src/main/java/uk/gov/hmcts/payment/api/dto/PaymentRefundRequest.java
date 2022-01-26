@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 
+import javax.validation.Valid;
 import javax.validation.constraints.Digits;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
@@ -38,8 +39,12 @@ public class PaymentRefundRequest {
     private String refundReason;
 
     @Digits(integer = 10, fraction = 2, message = "Please check the amount you want to refund")
+    @NotNull(message = "Refund Amount cannot be null")
+    @NotEmpty(message = "Refund Amount cannot be blank")
     private BigDecimal refundAmount;
 
+    @NotEmpty
+    @Valid
     private List<FeeDto> fees;
 
     private String paymentMethod;
