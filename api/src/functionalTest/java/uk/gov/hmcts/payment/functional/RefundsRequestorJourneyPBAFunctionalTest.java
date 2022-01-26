@@ -47,6 +47,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
     private static String SERVICE_TOKEN;
     private static String SERVICE_TOKEN_PAYMENT;
     private static String USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE;
+    private static String USER_TOKEN_PAYMENTS_REFUND_ROLE;
     private static String USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE;
     private static boolean TOKENS_INITIALIZED = false;
     private static final Pattern REFUNDS_REGEX_PATTERN = Pattern.compile("^(RF)-([0-9]{4})-([0-9-]{4})-([0-9-]{4})-([0-9-]{4})$");
@@ -88,6 +89,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
 
             USER_TOKEN_CMC_CITIZEN = idamService.createUserWith(CMC_CITIZEN_GROUP, "citizen").getAuthorisationToken();
             USER_TOKEN_PAYMENT = idamService.createUserWith(CMC_CITIZEN_GROUP, "payments").getAuthorisationToken();
+            USER_TOKEN_PAYMENTS_REFUND_ROLE = idamService.createUserWith(CMC_CITIZEN_GROUP, "payments", "payments-refund").getAuthorisationToken();
 
             USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE =
                 idamService.createUserWithSearchScope(CMC_CASE_WORKER_GROUP, "payments-refund")
@@ -119,9 +121,8 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
             .statusCode(OK.value()).extract().as(PaymentsResponse.class);
 
         Optional<PaymentDto> paymentDtoOptional
-            = paymentsResponse.getPayments().stream().sorted((s1, s2) -> {
-            return s2.getDateCreated().compareTo(s1.getDateCreated());
-        }).findFirst();
+            = paymentsResponse.getPayments().stream().sorted((s1, s2) ->
+            s2.getDateCreated().compareTo(s1.getDateCreated())).findFirst();
 
 
         assertThat(paymentDtoOptional.get().getAccountNumber()).isEqualTo(accountNumber);
@@ -131,7 +132,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         String paymentReference = paymentDtoOptional.get().getPaymentReference();
 
         // refund_enable flag should be false before lagTime applied and true after
-        Response paymentGroupResponse = paymentTestService.getPaymentGroupsForCase(USER_TOKEN_PAYMENT,
+        Response paymentGroupResponse = paymentTestService.getPaymentGroupsForCase(USER_TOKEN_PAYMENTS_REFUND_ROLE,
             SERVICE_TOKEN_PAYMENT, ccdCaseNumber);
 //        PaymentGroupResponse groupResponsefromPost = paymentGroupResponse.getBody().as(PaymentGroupResponse.class);
 //        assertThat(!groupResponsefromPost.getPaymentGroups().get(0).getPayments().get(0).getRefundEnable());
@@ -141,7 +142,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
             accountPaymentRequest.getCcdCaseNumber(),"5");
         System.out.println(rollbackPaymentResponse.getBody().prettyPrint());
 
-        paymentGroupResponse = paymentTestService.getPaymentGroupsForCase(USER_TOKEN_PAYMENT,
+        paymentGroupResponse = paymentTestService.getPaymentGroupsForCase(USER_TOKEN_PAYMENTS_REFUND_ROLE,
             SERVICE_TOKEN_PAYMENT, ccdCaseNumber);
 //        groupResponsefromPost = paymentGroupResponse.getBody().as(PaymentGroupResponse.class);
 //        assertThat(groupResponsefromPost.getPaymentGroups().get(0).getPayments().get(0).getRefundEnable());
