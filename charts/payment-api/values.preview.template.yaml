@@ -46,5 +46,6 @@ java:
         - gov-pay-keys-divorce
         - gov-pay-keys-probate
         - gov-pay-keys-iac
+        - gov-pay-keys-adoption
   postgresql:
     enabled: true

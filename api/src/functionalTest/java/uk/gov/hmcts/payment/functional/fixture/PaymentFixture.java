@@ -78,6 +78,26 @@ public class PaymentFixture {
             .build();
     }
 
+    public static CardPaymentRequest cardPaymentRequestAdoption(String amountString, String service) {
+        String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
+        return CardPaymentRequest.createCardPaymentRequestDtoWith()
+            .amount(new BigDecimal(amountString))
+            .description("description")
+            .caseReference("telRefNumber")
+            .ccdCaseNumber(ccdCaseNumber)
+            .service(service)
+            .currency(CurrencyCode.GBP)
+            .siteId("ABA4")
+            .fees(Lists.newArrayList(
+                FeeDto.feeDtoWith()
+                    .calculatedAmount(new BigDecimal(amountString))
+                    .code("FEE0123")
+                    .version("1")
+                    .build())
+            )
+            .build();
+    }
+
     public static CardPaymentRequest cardPaymentRequestall(String amountString, String service) {
         String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
         return CardPaymentRequest.createCardPaymentRequestDtoWith()
