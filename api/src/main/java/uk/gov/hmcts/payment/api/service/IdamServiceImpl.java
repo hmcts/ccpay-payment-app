@@ -20,7 +20,7 @@ import uk.gov.hmcts.payment.api.dto.IdamFullNameRetrivalResponse;
 import uk.gov.hmcts.payment.api.dto.idam.IdamUserIdResponse;
 import uk.gov.hmcts.payment.api.dto.IdamUserIdDetailsResponse;
 import uk.gov.hmcts.payment.api.dto.UserIdentityDataDto;
-import uk.gov.hmcts.payment.api.exceptions.UserNotFoundException;
+import uk.gov.hmcts.payment.api.exception.UserNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.GatewayTimeoutException;
 
 
