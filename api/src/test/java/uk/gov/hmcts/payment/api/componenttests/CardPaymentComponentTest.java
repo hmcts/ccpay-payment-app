@@ -98,7 +98,6 @@ public class CardPaymentComponentTest extends TestUtil {
 
         PaymentFeeLink foundPayment = paymentFeeLinkRepository.findByPaymentReference("00000006").orElseThrow(PaymentNotFoundException::new);
     }*/
-
     public static List<Payment> getPaymentsData() {
         List<Payment> payments = new ArrayList<>();
         payments.add(paymentWith().amount(BigDecimal.valueOf(10000).movePointRight(2)).reference("reference1").description("desc1").returnUrl("https://www.moneyclaims.service.gov.uk")
@@ -129,7 +128,6 @@ public class CardPaymentComponentTest extends TestUtil {
                 .status("Initiated")
                 .build()))
             .ccdCaseNumber("ccdCaseNo3").caseReference("caseRef3").serviceType("probate").currency("GBP").build());
-
         return payments;
     }
 
