@@ -18,7 +18,7 @@ import static org.junit.Assert.assertNotNull;
 import static uk.gov.hmcts.payment.api.model.Payment.paymentWith;
 import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 
-public class CardPaymentComponentTest extends TestUtil {
+public class CardPaymentComponentTest  {
 
     /*@Test
     public void testSaveOfSinglePaymentWithSingleFee() {
