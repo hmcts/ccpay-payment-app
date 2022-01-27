@@ -8,8 +8,10 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
+import uk.gov.hmcts.payment.api.external.client.dto.Error;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayPaymentNotFoundException;
+import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayUnauthorizedClientException;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
@@ -49,6 +51,22 @@ public class GovPayClientTest {
         CreatePaymentRequest request = new CreatePaymentRequest(12000, "reference", "description", "return_url","language");
         GovPayPayment payment = client.createPayment("token", request);
         assertThat(payment.getAmount()).isEqualTo(12000);
+    }
+
+    @Test(expected = GovPayUnauthorizedClientException.class)
+    public void createPaymentReturn401Unauthorized() {
+        Error error = new Error();
+        stubFor(
+            post(urlEqualTo("/"))
+                .withHeader("Authorization", matching("Bearer token"))
+                .willReturn(aResponse()
+                    .withStatus(401)
+                )
+        );
+
+        CreatePaymentRequest request = new CreatePaymentRequest(0, "reference", "description", "return_url","language");
+            GovPayPayment payment = client.createPayment("token", request);
+
     }
 
 

@@ -8,6 +8,8 @@ import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
 import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+
+import net.minidev.json.JSONObject;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
@@ -63,6 +65,8 @@ public class GovPayClient {
         return withIOExceptionHandling(() -> {
             HttpPost request = postRequestFor(authorizationKey, url, createPaymentRequest);
             HttpResponse response = httpClient.execute(request);
+            response.setHeader("Accept", "application/json");
+            response.setHeader("Content-Type","application/json;charset=UTF-8");
             checkNotAnError(response);
             return objectMapper.readValue(response.getEntity().getContent(), GovPayPayment.class);
         });
@@ -126,7 +130,16 @@ public class GovPayClient {
         if (status >= 400) {
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             httpResponse.getEntity().writeTo(bos);
-            throw errorTranslator.toException(bos.toByteArray());
+            String byteResponseData = bos.toString();
+            if (byteResponseData.contains("P0")) {
+                throw errorTranslator.toException(bos.toByteArray());
+            }
+            else {
+                JSONObject json = new JSONObject();
+                json.put("code", status);
+                json.put("description", httpResponse.getStatusLine().getReasonPhrase());
+                throw errorTranslator.toException(json.toString().getBytes("utf-8"));
+            }
         }
     }
 

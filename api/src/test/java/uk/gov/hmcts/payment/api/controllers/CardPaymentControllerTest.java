@@ -36,6 +36,8 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
 import uk.gov.hmcts.payment.api.external.client.dto.CardDetails;
+import uk.gov.hmcts.payment.api.external.client.dto.Error;
+import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayUnauthorizedClientException;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentChannel;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
@@ -252,6 +254,20 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .post("/card-payments", cardPaymentRequestWithCaseType())
             .andExpect(status().isNotFound())
             .andExpect(content().string("No Service found for given CaseType"));
+    }
+
+    @Test
+    public void createCardPaymentReturn401Test() throws Exception {
+        Error error =new Error("401","Unauthorized");
+
+        when(authTokenGenerator.generate()).thenReturn("test-token");
+
+        when(restTemplatePaymentGroup.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+            eq(new ParameterizedTypeReference<List<OrganisationalServiceDto>>() {}))).thenThrow(new GovPayUnauthorizedClientException(error));
+
+        restActions
+            .post("/card-payments", cardPaymentRequestWithCaseType())
+            .andExpect(status().isUnauthorized());
     }
 
     @Test

@@ -47,7 +47,7 @@
         </notes>
         <cve>CVE-2020-23171</cve>
     </suppress>
-    <!-- Supression Group ends here -->
 
+    <!-- Supression Group ends here -->
 
 </suppressions>

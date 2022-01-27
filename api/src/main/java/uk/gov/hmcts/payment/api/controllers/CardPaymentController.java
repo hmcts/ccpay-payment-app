@@ -23,6 +23,7 @@ import uk.gov.hmcts.payment.api.external.client.dto.CardDetails;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayCancellationFailedException;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayException;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayPaymentNotFoundException;
+import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayUnauthorizedClientException;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.*;
@@ -80,6 +81,7 @@ public class CardPaymentController {
     @ApiResponses(value = {
         @ApiResponse(code = 201, message = "Payment created"),
         @ApiResponse(code = 400, message = "Payment creation failed"),
+        @ApiResponse(code = 401, message = "Payment authentication failed"),
         @ApiResponse(code = 422, message = "Invalid or missing attribute"),
         @ApiResponse(code = 404, message = "No Service found for given CaseType"),
         @ApiResponse(code = 504, message = "Unable to retrieve service information. Please try again later")
@@ -226,11 +228,13 @@ public class CardPaymentController {
         return new ResponseEntity(NOT_FOUND);
     }
 
-    @ExceptionHandler(value = {GovPayException.class})
-    public ResponseEntity httpClientErrorException(GovPayException e) {
-        LOG.error("Error while calling payments", e);
-        return new ResponseEntity(INTERNAL_SERVER_ERROR);
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    @ExceptionHandler(value = {GovPayUnauthorizedClientException.class})
+    public String httpClientErrorException(GovPayException e) {
+        LOG.info("Error while authorizing service");
+        return "Unauthorized Service to use online card payment";
     }
+
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(value = {NoServiceFoundException.class})
