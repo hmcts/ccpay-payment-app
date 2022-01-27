@@ -43,5 +43,6 @@ java:
         - gov-pay-keys-probate
         - gov-pay-keys-iac
         - gov-pay-keys-adoption
+        - gov-pay-keys-prl
   postgresql:
     enabled: true

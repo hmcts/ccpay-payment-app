@@ -97,5 +97,19 @@ public class CardPaymentRequestTest {
         );
     }
 
+    @Test
+    public void testValidateSiteIdForPRL() {
+        CreditAccountPaymentRequest request = new CreditAccountPaymentRequest();
+        request.setService("PRL");
+        request.setSiteId("invalid-site-id");
+        Set<ConstraintViolation<CreditAccountPaymentRequest>> violations = validator.validate(request);
+        violations.stream().forEach(v->{
+                if(v.getMessage().equals("Invalid Site ID (URN) provided for PRL. Accepted values are ABA5")){
+                    assertEquals("Invalid Site ID (URN) provided for FPL. Accepted values are ABA5",v.getMessage());
+                }
+            }
+        );
+    }
+
 
 }
