@@ -4,6 +4,7 @@ import org.joda.time.MutableDateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.test.annotation.DirtiesContext;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.v1.componenttests.TestUtil;
@@ -18,8 +19,19 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 
+@DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
 public class PaymentReconciliationComponentTest extends TestUtil {
     private PaymentsDataUtil paymentsDataUtil;
+
+    private static Specification findByDatesBetween(Date fromDate, Date toDate) {
+        return Specification
+            .where(isBetween(fromDate, toDate));
+    }
+
+    private static Specification isBetween(Date startDate, Date endDate) {
+
+        return ((root, query, cb) -> cb.between(root.get("dateCreated"), startDate, endDate));
+    }
 
     @Before
     public void setUp() {
@@ -81,17 +93,6 @@ public class PaymentReconciliationComponentTest extends TestUtil {
 
         assertNotNull(paymentFeeLink);
         assertEquals(paymentFeeLinks.size(), 0);
-    }
-
-
-    private static Specification findByDatesBetween(Date fromDate, Date toDate) {
-        return Specification
-            .where(isBetween(fromDate, toDate));
-    }
-
-    private static Specification isBetween(Date startDate, Date endDate) {
-
-        return ((root, query, cb) -> cb.between(root.get("dateCreated"), startDate, endDate));
     }
 
 }

@@ -1,8 +1,10 @@
 package uk.gov.hmcts.payment.api.scheduler;
 
 import org.joda.time.DateTime;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.test.annotation.DirtiesContext;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -10,6 +12,7 @@ import java.util.Date;
 
 import static org.assertj.core.api.Assertions.*;
 
+@DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
 public class ClockTest {
 
     private Clock clock;
@@ -17,6 +20,11 @@ public class ClockTest {
     @Before
     public void setUp() {
         clock = new Clock();
+    }
+
+    @After
+    public void tearDown() {
+        clock = null;
     }
 
     @Test
@@ -42,7 +50,7 @@ public class ClockTest {
 
     @Test
     public void testAtEndOfDay() {
-        Date timeAtEndOfDay = DateTime.now().withTime(23, 59, 59,000).toDate();
+        Date timeAtEndOfDay = DateTime.now().withTime(23, 59, 59, 000).toDate();
         System.out.println("timeAtEndOfDay : " + timeAtEndOfDay);
         DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE;
         Date result = clock.atEndOfDay(LocalDate.now().toString(), formatter);

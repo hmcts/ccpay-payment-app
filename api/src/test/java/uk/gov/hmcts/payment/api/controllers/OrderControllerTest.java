@@ -4,6 +4,7 @@ package uk.gov.hmcts.payment.api.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.hystrix.HystrixCommand;
 import com.netflix.hystrix.exception.HystrixRuntimeException;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -52,6 +54,9 @@ import java.util.*;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -63,11 +68,23 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @ActiveProfiles({"local", "componenttest"})
 @SpringBootTest(webEnvironment = MOCK)
 @Transactional
+@DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
 public class OrderControllerTest {
 
     private static final String USER_ID = UserResolverBackdoor.CITIZEN_ID;
     @Autowired
     PaymentDbBackdoor paymentDbBackdoor;
+    OrderDto orderDto = OrderDto.orderDtoWith()
+        .caseReference("123245677")
+        .caseType("ClaimCase")
+        .ccdCaseNumber("8689869686968696")
+        .fees(Collections.singletonList(getFee()))
+        .build();
+    MockMvc mvc;
+    OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+        .serviceCode("AA001")
+        .serviceDescription("DIVORCE")
+        .build();
     @Autowired
     private WebApplicationContext webApplicationContext;
     @MockBean
@@ -81,13 +98,10 @@ public class OrderControllerTest {
     @Autowired
     private AccountService<AccountDto, String> accountService;
     private RestActions restActions;
-
     @Autowired
     private UserResolverBackdoor userRequestAuthorizer;
-
     @Autowired
     private ServiceResolverBackdoor serviceRequestAuthorizer;
-
     @Autowired
     private ObjectMapper objectMapper;
 
@@ -97,8 +111,7 @@ public class OrderControllerTest {
     @Before
     @Transactional
     public void setup() {
-
-        MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
+        mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
         this.restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
 
         restActions
@@ -107,17 +120,19 @@ public class OrderControllerTest {
             .withUserId(USER_ID)
             .withReturnUrl("https://www.moneyclaims.service.gov.uk");
 
-        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
-            .serviceCode("AA001")
-            .serviceDescription("DIVORCE")
-            .build();
-
         when(referenceDataService.getOrganisationalDetail(any(), any())).thenReturn(organisationalServiceDto);
 
     }
 
+    @After
+    public void tearDown() {
+        this.restActions=null;
+        mvc=null;
+    }
+
     @Test
     public void createPBAPaymentWithOrderSuccessTest() throws Exception {
+        when(launchDarklyFeatureToggler.getBooleanValue(Mockito.eq("apportion-feature"),anyBoolean())).thenReturn(true);
 
         when(launchDarklyFeatureToggler.getBooleanValue(Mockito.eq("apportion-feature"),anyBoolean())).thenReturn(true);
 
@@ -483,13 +498,6 @@ public class OrderControllerTest {
     @Test
     public void createOrderWithInvalidCaseType() throws Exception {
 
-        OrderDto orderDto = OrderDto.orderDtoWith()
-            .caseReference("123245677")
-            .caseType("ClaimCase")
-            .ccdCaseNumber("8689869686968696")
-            .fees(Collections.singletonList(getFee()))
-            .build();
-
         when(referenceDataService.getOrganisationalDetail(any(), any())).thenThrow(new NoServiceFoundException("Test Error"));
 
         restActions
@@ -500,13 +508,6 @@ public class OrderControllerTest {
 
     @Test
     public void createOrderWithValidCaseTypeReturnsTimeOutException() throws Exception {
-
-        OrderDto orderDto = OrderDto.orderDtoWith()
-            .caseReference("123245677")
-            .caseType("ClaimCase")
-            .ccdCaseNumber("8689869686968696")
-            .fees(Collections.singletonList(getFee()))
-            .build();
 
         when(referenceDataService.getOrganisationalDetail(any(), any())).thenThrow(new GatewayTimeoutException("Test Error"));
 

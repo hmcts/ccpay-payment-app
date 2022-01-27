@@ -1,25 +1,34 @@
 package uk.gov.hmcts.payment.api.componenttests;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.*;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import uk.gov.hmcts.payment.api.controllers.CreditAccountPaymentController;
 import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
-import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.PaymentChannel;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentMethod;
+import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.service.CreditAccountPaymentService;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
 
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class CreditAccountPaymentControllerMockTest {
 
@@ -43,12 +52,17 @@ public class CreditAccountPaymentControllerMockTest {
         this.mockMvc = MockMvcBuilders.standaloneSetup(creditAccountPaymentController).build();
     }
 
+    @After
+    public void cleanup() {
+        this.mockMvc = null;
+    }
 
     @Test
     public void retrieveCreditAccountPayment_byReferenceTest() throws Exception {
+        BigDecimal amount = new BigDecimal("11.99");
         Payment payment = Payment.paymentWith()
             .id(1)
-            .amount(new BigDecimal("11.99"))
+            .amount(amount)
             .caseReference("caseReference")
             .description("retrieve payment mock test")
             .serviceType("Civil Money Claims")
@@ -62,7 +76,7 @@ public class CreditAccountPaymentControllerMockTest {
             .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
             .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
             .build();
-        PaymentFee fee = PaymentFee.feeWith().id(1).calculatedAmount(new BigDecimal("11.99")).code("X0001").version("1").build();
+        PaymentFee fee = PaymentFee.feeWith().id(1).calculatedAmount(amount).code("X0001").version("1").build();
         PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith()
             .id(1)
             .paymentReference("2018-15202505035")

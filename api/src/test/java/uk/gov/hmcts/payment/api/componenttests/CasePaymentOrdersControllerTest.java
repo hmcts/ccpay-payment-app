@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.api.componenttests;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -50,28 +51,23 @@ public class CasePaymentOrdersControllerTest extends PaymentsDataUtil {
 
     @Rule
     public WireMockClassRule instanceRule = wireMockRule;
-
-    @Autowired
-    private WebApplicationContext webApplicationContext;
-
     @Autowired
     protected ServiceResolverBackdoor serviceRequestAuthorizer;
-
     @Autowired
     protected UserResolverBackdoor userRequestAuthorizer;
-
+    MockMvc mvc;
+    @Autowired
+    private WebApplicationContext webApplicationContext;
     private RestActions restActions;
-
     @Autowired
     private ObjectMapper objectMapper;
-
     @MockBean
     private AuthTokenGenerator authTokenGenerator;
 
     @Before
     public void setup() {
 
-        MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
+        mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
         this.restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
 
         restActions
@@ -81,19 +77,24 @@ public class CasePaymentOrdersControllerTest extends PaymentsDataUtil {
             .withReturnUrl("https://www.moneyclaims.service.gov.uk");
     }
 
+    @After
+    public void tearDown() {
+        this.restActions = null;
+    }
+
     @Test
     @Transactional
     public void getCasePaymentOrdersWithValidInputData_shouldReturn200Test() throws Exception {
 
         stubFor(get(urlPathMatching("/case-payment-orders"))
-                    .withQueryParam("case_ids", containing("1709243447569253"))
-                    .withQueryParam("page", containing("1"))
-                    .withQueryParam("size", containing("2"))
-                    .willReturn(aResponse()
-                                    .withStatus(200)
-                                    .withHeader("Content-Type", "application/json")
-                                    .withBody(contentsOf(
-                                        "case-payment-orders-responses/get-case-payment-orders-response.json"))));
+            .withQueryParam("case_ids", containing("1709243447569253"))
+            .withQueryParam("page", containing("1"))
+            .withQueryParam("size", containing("2"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody(contentsOf(
+                    "case-payment-orders-responses/get-case-payment-orders-response.json"))));
 
         MvcResult result = restActions
             .get("/case-payment-orders?case_ids=1709243447569253&page_number=1&page_size=2")
@@ -123,9 +124,9 @@ public class CasePaymentOrdersControllerTest extends PaymentsDataUtil {
     public void getCasePaymentOrdersInternalServerError_shouldReturn500Test() throws Exception {
 
         stubFor(get(urlPathMatching("/case-payment-orders"))
-                    .willReturn(aResponse()
-                                    .withStatus(500)
-                                    .withBody("Error - InternalServerError")));
+            .willReturn(aResponse()
+                .withStatus(500)
+                .withBody("Error - InternalServerError")));
 
         restActions
             .get("/case-payment-orders?case_ids=1709243447569253")
@@ -138,17 +139,17 @@ public class CasePaymentOrdersControllerTest extends PaymentsDataUtil {
     public void getCasePaymentOrdersBadRequestException_shouldReturn400Test() throws Exception {
 
         stubFor(get(urlPathMatching("/case-payment-orders"))
-                    .withQueryParam("case_ids", containing("invalidCaseId"))
-                    .willReturn(aResponse()
-                                    .withStatus(400)
-                                    .withHeader("Content-Type", "application/json")
-                                    .withBody("{\"exception\":\"CasePaymentOrdersFilterException\","
-                                                  + "\"timestamp\":\"2021-04-12T21:04:26.471639\","
-                                                  + "\"status\":400,"
-                                                  + "\"error\":\"Bad Request\","
-                                                  + "\"message\":\"CPOs cannot be filtered by both id and case id.\","
-                                                  + "\"path\":\"/case-payment-orders\","
-                                                  + "\"details\":null}")));
+            .withQueryParam("case_ids", containing("invalidCaseId"))
+            .willReturn(aResponse()
+                .withStatus(400)
+                .withHeader("Content-Type", "application/json")
+                .withBody("{\"exception\":\"CasePaymentOrdersFilterException\","
+                    + "\"timestamp\":\"2021-04-12T21:04:26.471639\","
+                    + "\"status\":400,"
+                    + "\"error\":\"Bad Request\","
+                    + "\"message\":\"CPOs cannot be filtered by both id and case id.\","
+                    + "\"path\":\"/case-payment-orders\","
+                    + "\"details\":null}")));
 
         restActions
             .get("/case-payment-orders?case_ids=invalidCaseId")
@@ -161,9 +162,9 @@ public class CasePaymentOrdersControllerTest extends PaymentsDataUtil {
     public void getCasePaymentOrdersForbidden_shouldReturn401Test() throws Exception {
 
         stubFor(get(urlPathMatching("/case-payment-orders"))
-                    .withQueryParam("case_ids", containing("1709243447569253"))
-                    .willReturn(aResponse()
-                                    .withStatus(401)));
+            .withQueryParam("case_ids", containing("1709243447569253"))
+            .willReturn(aResponse()
+                .withStatus(401)));
 
         restActions
             .get("/case-payment-orders?case_ids=1709243447569253")
@@ -175,10 +176,10 @@ public class CasePaymentOrdersControllerTest extends PaymentsDataUtil {
     public void getCasePaymentOrdersForbidden_shouldReturn403Test() throws Exception {
 
         stubFor(get(urlPathMatching("/case-payment-orders"))
-                    .withQueryParam("case_ids", containing("1709243447569253"))
-                    .willReturn(aResponse()
-                                    .withStatus(403)
-                                    .withBody("Unauthorised S2S service.")));
+            .withQueryParam("case_ids", containing("1709243447569253"))
+            .willReturn(aResponse()
+                .withStatus(403)
+                .withBody("Unauthorised S2S service.")));
 
         restActions
             .get("/case-payment-orders?case_ids=1709243447569253")

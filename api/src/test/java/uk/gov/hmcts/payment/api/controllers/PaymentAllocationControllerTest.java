@@ -1,12 +1,14 @@
-package uk.gov.hmcts.payment.api.componenttests;
+package uk.gov.hmcts.payment.api.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -44,36 +46,27 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @ActiveProfiles({"local", "componenttest"})
 @SpringBootTest(webEnvironment = MOCK)
 @Transactional
+@DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
 public class PaymentAllocationControllerTest extends PaymentsDataUtil {
 
+    private static final String USER_ID = UserResolverBackdoor.CITIZEN_ID;
+    private final static String PAYMENT_REFERENCE_REGEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
+    MockMvc mvc;
     @Autowired
     private WebApplicationContext webApplicationContext;
-
     @Autowired
     private ServiceResolverBackdoor serviceRequestAuthorizer;
-
     @Autowired
     private UserResolverBackdoor userRequestAuthorizer;
-
-
-    private static final String USER_ID = UserResolverBackdoor.CITIZEN_ID;
-
     private RestActions restActions;
-
     @Autowired
     private ObjectMapper objectMapper;
-
     @Autowired
     private SiteService<Site, String> siteServiceMock;
-
     @MockBean
     private Payment2Repository paymentRepository;
-
-
     @Autowired
     private PaymentDbBackdoor db;
-
-    private final static String PAYMENT_REFERENCE_REGEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
 
     protected CustomResultMatcher body() {
         return new CustomResultMatcher(objectMapper);
@@ -81,7 +74,7 @@ public class PaymentAllocationControllerTest extends PaymentsDataUtil {
 
     @Before
     public void setup() {
-        MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
+        mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
         this.restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
 
         restActions
@@ -110,10 +103,15 @@ public class PaymentAllocationControllerTest extends PaymentsDataUtil {
 
     }
 
+    @After
+    public void tearDown() {
+        this.restActions = null;
+        mvc = null;
+    }
 
     @Test
     public void addInvalidPaymentAllocationTest() throws Exception {
-        Payment payment =populateCardPaymentToDbForPaymentAllocation("1");
+        Payment payment = populateCardPaymentToDbForPaymentAllocation("1");
         PaymentAllocationDto paymentAllocationDto = PaymentAllocationDto.paymentAllocationDtoWith()
             .paymentGroupReference("2018-00000000001")
             .paymentReference("RC-1519-9028-2432-0001")
@@ -154,7 +152,7 @@ public class PaymentAllocationControllerTest extends PaymentsDataUtil {
 
     @Test
     public void addPaymentAllocationForSolicitedPaymentTest() throws Exception {
-        Payment payment =populateCardPaymentToDbForPaymentAllocation("1");
+        Payment payment = populateCardPaymentToDbForPaymentAllocation("1");
         PaymentAllocationDto request = PaymentAllocationDto.paymentAllocationDtoWith()
             .paymentGroupReference("2018-00000000001")
             .paymentReference("RC-1519-9028-2432-0001")
@@ -179,7 +177,7 @@ public class PaymentAllocationControllerTest extends PaymentsDataUtil {
     @Test
     @Transactional
     public void addPaymentAllocationForUnsolicitedPaymentTest() throws Exception {
-        Payment payment =populateCardPaymentToDbForPaymentAllocation("1");
+        Payment payment = populateCardPaymentToDbForPaymentAllocation("1");
         PaymentAllocationDto request = PaymentAllocationDto.paymentAllocationDtoWith()
             .paymentGroupReference("2018-00000000001")
             .paymentReference("RC-1519-9028-2432-0001")
@@ -192,23 +190,23 @@ public class PaymentAllocationControllerTest extends PaymentsDataUtil {
         when(paymentRepository.findByReference(anyString())).thenReturn(Optional.of(payment));
         when(paymentRepository.save(any(Payment.class))).thenReturn(payment);
 
-    MvcResult result = restActions
-        .post("/payment-allocations", request)
-        .andExpect(status().isCreated())
-        .andReturn();
+        MvcResult result = restActions
+            .post("/payment-allocations", request)
+            .andExpect(status().isCreated())
+            .andReturn();
 
-    PaymentAllocationDto paymentAllocationDto = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentAllocationDto.class);
+        PaymentAllocationDto paymentAllocationDto = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentAllocationDto.class);
 
-    assertTrue(paymentAllocationDto.getPaymentReference().equals(request.getPaymentReference()));
-    assertTrue(paymentAllocationDto.getPaymentGroupReference().equals(request.getPaymentGroupReference()));
-    //assertThat(paymentAllocationDto.getDateCreated().getDate()).isEqualTo(new Date().getDate());
-    assertThat(paymentAllocationDto.getReason()).isEqualTo(request.getReason());
+        assertTrue(paymentAllocationDto.getPaymentReference().equals(request.getPaymentReference()));
+        assertTrue(paymentAllocationDto.getPaymentGroupReference().equals(request.getPaymentGroupReference()));
+        //assertThat(paymentAllocationDto.getDateCreated().getDate()).isEqualTo(new Date().getDate());
+        assertThat(paymentAllocationDto.getReason()).isEqualTo(request.getReason());
 
     }
 
     @Test
     public void addPaymentAllocationForUnIdentifiedPaymentTest() throws Exception {
-        Payment payment =populateCardPaymentToDbForPaymentAllocation("1");
+        Payment payment = populateCardPaymentToDbForPaymentAllocation("1");
         PaymentAllocationDto request = PaymentAllocationDto.paymentAllocationDtoWith()
             .paymentGroupReference("2018-00000000001")
             .paymentReference("RC-1519-9028-2432-0001")
@@ -232,9 +230,10 @@ public class PaymentAllocationControllerTest extends PaymentsDataUtil {
         assertThat(paymentAllocationDto.getUnidentifiedReason()).isEqualTo(request.getUnidentifiedReason());
 
     }
+
     @Test
     public void paymentIsNotFound() throws Exception {
-        Payment payment =populateCardPaymentToDbForPaymentAllocation("1");
+        Payment payment = populateCardPaymentToDbForPaymentAllocation("1");
         PaymentAllocationDto request = PaymentAllocationDto.paymentAllocationDtoWith()
             .paymentGroupReference("2018-00000000001")
             .paymentReference("RC-1519-9028-2432-00011")

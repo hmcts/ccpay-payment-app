@@ -23,10 +23,11 @@ public class ReferenceUtilTest {
 
     @Test
     public void generatePaymentReference_isValidCheckDigit_shouldReturnTrueTest() throws Exception {
-
-        for (int i=0 ; i<100 ; i++) {
-            String ref = referenceUtil.getNext("RC");
-            String refNumberWithCheckDigit = ref.substring(3, ref.length()).replace("-", "");
+        String ref;
+        String refNumberWithCheckDigit;
+        for (int i = 0; i < 100; i++) {
+            ref = referenceUtil.getNext("RC");
+            refNumberWithCheckDigit = ref.substring(3, ref.length()).replace("-", "");
 
             assertTrue(ref.matches(PAYMENT_REFERENCE_REGEX));
             assertTrue(checkDigit.isValid(refNumberWithCheckDigit));
@@ -36,7 +37,7 @@ public class ReferenceUtilTest {
     @Test
     public void appendRandomDigit_inPlaceOfCheckDigit_isValidCheckDigit_shouldReturnFalseTest() throws Exception {
         String ref = referenceUtil.getNext("RC");
-        String refNum = ref.substring(3, ref.length()-1).replace("-", "");
+        String refNum = ref.substring(3, ref.length() - 1).replace("-", "");
         refNum = refNum + 7;
 
         assertTrue(ref.matches(PAYMENT_REFERENCE_REGEX));

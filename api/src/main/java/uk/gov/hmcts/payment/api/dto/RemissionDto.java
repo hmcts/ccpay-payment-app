@@ -41,6 +41,8 @@ public class RemissionDto {
 
     private String feeCode;
 
+    private Integer feeId;
+
     private FeeDto fee;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone = "GMT")

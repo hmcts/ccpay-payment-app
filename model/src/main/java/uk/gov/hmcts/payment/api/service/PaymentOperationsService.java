@@ -46,6 +46,11 @@ public class PaymentOperationsService implements PaymentService<Payment, String>
     }
 
     @Override
+    public void updatePaymentsForCCDCaseNumberByCertainDays(final String ccd_case_number, final String days){
+
+    }
+
+    @Override
     public List<Payment> getPayments(Date atStartOfDay, Date atEndOfDay) {
         return null;
     }

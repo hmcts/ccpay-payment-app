@@ -77,7 +77,7 @@ public class PBAPaymentFunctionalTest {
         // create a PBA payment
         String accountNumber = testProps.existingAccountNumber;
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequestForProbate("90.00",
-                "PROBATE");
+                "PROBATE",accountNumber);
         accountPaymentRequest.setAccountNumber(accountNumber);
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
                 .statusCode(CREATED.value()).body("status", equalTo("Success"));
@@ -341,7 +341,7 @@ public class PBAPaymentFunctionalTest {
     public void shouldRejectDuplicatePayment() {
         String accountNumber = testProps.existingAccountNumber;
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequestForProbate("550.50",
-                "PROBATE");
+                "PROBATE",accountNumber);
         accountPaymentRequest.setAccountNumber(accountNumber);
         // when & then
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()

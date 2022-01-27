@@ -62,6 +62,8 @@ public class PaymentDtoTest {
     private BigDecimal apportionedPayment;
     private Date dateReceiptProcessed;
     private Date dateApportioned;
+    private Boolean refundEnable;
+    private Boolean remissionEnable;
 
     public PaymentDtoTest() {
         feeWithVolumeCode = "X0001";
@@ -89,10 +91,10 @@ public class PaymentDtoTest {
         dateReceiptProcessed = currentDateTime.toDate();
 
         feeWithVolumeDto = new FeeDto(1, feeWithVolumeCode, feeVersion, volume, calculatedAmountForFeeWithVolume,
-            feeAmount, memoLine, naturalAccountCode, null, null, null, jurisdiction1, jurisdiction2, feeDescription,caseReference,apportionAmount,allocatedAmount,dateApportioned,dateCreated,dateUpdated,amountDue,paymentGroupReference,apportionedPayment,dateReceiptProcessed);
+            feeAmount, memoLine, naturalAccountCode, null, null, null, jurisdiction1, jurisdiction2, feeDescription,caseReference,apportionAmount,allocatedAmount,dateApportioned,dateCreated,dateUpdated,amountDue,paymentGroupReference,apportionedPayment,dateReceiptProcessed,remissionEnable);
 
         feeNoVolumeDto = new FeeDto(1, feeNoVolumeCode, feeVersion, volume, calculatedAmountForFeeNoVolume,
-            feeAmount, memoLine, naturalAccountCode, null, null, null, jurisdiction1, jurisdiction2, feeDescription,caseReference,apportionAmount,allocatedAmount,dateApportioned,dateCreated,dateUpdated,amountDue,paymentGroupReference,apportionedPayment,dateReceiptProcessed);
+            feeAmount, memoLine, naturalAccountCode, null, null, null, jurisdiction1, jurisdiction2, feeDescription,caseReference,apportionAmount,allocatedAmount,dateApportioned,dateCreated,dateUpdated,amountDue,paymentGroupReference,apportionedPayment,dateReceiptProcessed,remissionEnable);
     }
 
     @Before
@@ -130,12 +132,14 @@ public class PaymentDtoTest {
         documentControlNumber = "12345";
         bankedDate = new Date();
         payerName = "test";
+        refundEnable = true;
+        remissionEnable=true;
 
 
         testDto = new PaymentDto(id, amount, description, reference, dateCreated, dateUpdated,
             gbp, ccdNumber, caseReference, paymentReference, channel, method, externalProvider,
             status, externalReference, siteId, serviceName, customerReference, accountNumber,
-            organisationName, paymentGroupReference, reportedDateOffline,documentControlNumber,bankedDate,payerName,
+            organisationName, paymentGroupReference, reportedDateOffline,documentControlNumber,bankedDate,payerName,true,
             null, statusHistories, paymentAllocations,giroSlipNo, links);
     }
 

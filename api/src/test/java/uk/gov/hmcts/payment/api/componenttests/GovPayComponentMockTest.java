@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.api.componenttests;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -47,23 +48,18 @@ public class GovPayComponentMockTest {
     private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;
 
     private final static String PAYMENT_REFERENCE_REFEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
-
-    @Autowired
-    private ConfigurableListableBeanFactory configurableListableBeanFactory;
-
-    @Autowired
-    private WebApplicationContext webApplicationContext;
-
     @Autowired
     protected ServiceResolverBackdoor serviceRequestAuthorizer;
-
     @Autowired
     protected UserResolverBackdoor userRequestAuthorizer;
-
     protected ObjectMapper objectMapper;
-
     protected RestActions restActions;
-
+    @Autowired
+    private ConfigurableListableBeanFactory configurableListableBeanFactory;
+    @Autowired
+    private WebApplicationContext webApplicationContext;
+    private RestTemplate restTemplate;
+    private MockRestServiceServer mockServer;
 
     @SneakyThrows
     String contentsOf(String fileName) {
@@ -74,12 +70,6 @@ public class GovPayComponentMockTest {
     String resolvePlaceholders(String content) {
         return configurableListableBeanFactory.resolveEmbeddedValue(content);
     }
-
-
-    private RestTemplate restTemplate;
-
-    private MockRestServiceServer mockServer;
-
 
     @Before
     public void setup() {
@@ -96,6 +86,13 @@ public class GovPayComponentMockTest {
 
         restTemplate = new RestTemplate();
         mockServer = MockRestServiceServer.bindTo(restTemplate).build();
+    }
+
+    @After
+    public void tearDown() {
+        this.restActions = null;
+        restTemplate = null;
+        mockServer = null;
     }
 
     @Test

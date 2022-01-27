@@ -1,13 +1,5 @@
 package uk.gov.hmcts.payment.api.email;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.*;
-
-import java.util.ArrayList;
-import java.util.List;
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -16,10 +8,24 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
+
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 @ContextConfiguration
+@DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
 public class EmailServiceTest {
 
     private static final String EMAIL_FROM = "no-reply@testing.com";

@@ -43,4 +43,13 @@ public class TestConfigProperties {
 
     @Value("${mock.callback.url.endpoint}")
     public String mockCallBackUrl;
+
+    @Value("${paybubble.s2s.service.secret}")
+    public String payBubbleS2SSecret;
+
+    @Value("${idam.paybubble.client.id}")
+    public String idamPayBubbleClientID;
+
+    @Value("${idam.paybubble.client.secret}")
+    public String idamPayBubbleClientSecret;
 }

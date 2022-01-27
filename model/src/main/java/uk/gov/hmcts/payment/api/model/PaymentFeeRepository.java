@@ -16,4 +16,6 @@ public interface PaymentFeeRepository extends CrudRepository<PaymentFee, Integer
 
     Optional<PaymentFee> findById(Integer id);
 
+    List<PaymentFee> findAll();
+
 }
