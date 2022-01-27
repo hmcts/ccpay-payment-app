@@ -95,7 +95,7 @@ public class IdamServiceImpl implements IdamService {
 
     private ResponseEntity<IdamUserIdResponse> getResponseEntity(MultiValueMap<String, String> headers) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(idamBaseURL + USERID_ENDPOINT);
-        LOG.error("builder.toUriString() : {}", builder.toUriString());
+        LOG.info("builder.toUriString() : {}", builder.toUriString());
         return restTemplateIdam
             .exchange(
                 builder.toUriString(),
@@ -106,7 +106,7 @@ public class IdamServiceImpl implements IdamService {
 
     private ResponseEntity<IdamUserIdDetailsResponse> getUserDetailsResponseEntity(MultiValueMap<String, String> headers) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(idamBaseURL + USERDETAILS_ENDPOINT);
-        LOG.error("builder.toUriString() : {}", builder.toUriString());
+        LOG.info("builder.toUriString() : {}", builder.toUriString());
         return restTemplateIdam
             .exchange(
                 builder.toUriString(),
@@ -159,7 +159,7 @@ public class IdamServiceImpl implements IdamService {
             }
         }
 
-        LOG.error("User name not found for given user id : {}", uid);
+        LOG.error("User details not found for given user id : {}", uid);
         throw new UserNotFoundException("Internal Server error. Please, try again later");
     }
 }
