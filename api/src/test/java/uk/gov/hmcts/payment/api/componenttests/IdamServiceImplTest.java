@@ -214,4 +214,31 @@ public class IdamServiceImplTest {
         assertEquals(mockIdamUserIdDetailsResponse.getEmail(), idamUserIdDetailsResponse);
     }
 
+    @Test
+    public void getUserDetailsThrowsUserNotFoundExceptionTest() {
+
+        MultiValueMap<String, String> header = new LinkedMultiValueMap<String, String>();
+        header.put("authorization", Collections.singletonList("Bearer 131313"));
+
+        IdamUserIdDetailsResponse mockIdamUserIdDetailsResponse = IdamUserIdDetailsResponse.
+            idamUserIdResponseWith()
+            .forename("AAA")
+            .surname("VP")
+            .email("V_P@gmail.com")
+            .roles(Arrays.asList("vp"))
+            .id("986-erfg-kjhg-123")
+            .build();
+
+        ResponseEntity<IdamUserIdDetailsResponse> responseEntity = null;
+
+        when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+            eq(IdamUserIdDetailsResponse.class)
+        )).thenReturn(responseEntity);
+
+        Exception exception = Assertions.assertThrows(UserNotFoundException.class, () ->
+            idamService.getUserDetails(header));
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains("Internal Server error. Please, try again later"));
+    }
+
 }
