@@ -18,14 +18,12 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.dto.PBAResponse;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
-import uk.gov.hmcts.payment.api.dto.UserIdentityDataDto;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.IdamService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.NoServiceFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
