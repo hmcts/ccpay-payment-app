@@ -27,7 +27,7 @@ import uk.gov.hmcts.payment.api.service.AccountService;
 public class AccountController {
 
 
-    
+
     private static final Logger LOG = LoggerFactory.getLogger(AccountController.class);
 
     private final AccountService<AccountDto, String> accountService;
@@ -56,7 +56,7 @@ public class AccountController {
             throw new LiberataServiceInaccessibleException("Failed to connect with Liberata. " + ex.getMessage());
         }
 
-        
+
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
