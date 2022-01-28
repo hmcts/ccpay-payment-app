@@ -136,6 +136,15 @@ public class PaymentTestService {
 
     }
 
+    public Response getPaymentGroupsForCase(final String userToken,
+                                            final String serviceToken,
+                                            final String ccdCaseNumber) {
+        return givenWithAuthHeaders(userToken, serviceToken)
+            .contentType(ContentType.JSON)
+            .when()
+            .get("/cases/{ccdcasenumber}/paymentgroups",ccdCaseNumber);
+    }
+
     public RequestSpecification givenWithAuthHeaders(String userToken, String serviceToken) {
         return RestAssured.given()
             .header(AUTHORIZATION, userToken)
@@ -146,4 +155,5 @@ public class PaymentTestService {
         return RestAssured.given()
             .header("ServiceAuthorization", serviceToken);
     }
+
 }
