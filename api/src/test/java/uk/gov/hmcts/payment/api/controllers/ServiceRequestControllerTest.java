@@ -963,7 +963,6 @@ public class ServiceRequestControllerTest {
             .build();
     }
 
-
     @Test
     public void createSuccessOnlinePaymentAndValidateSuccessStatus() throws Exception {
 
@@ -1010,13 +1009,14 @@ public class ServiceRequestControllerTest {
             .build()));
         when(paymentFeeRepository.findById(anyInt())).thenReturn(Optional.of(PaymentFee.feeWith().paymentLink(paymentFeeLink).build()));
         when(delegatingPaymentService.retrieve(any(PaymentFeeLink.class) ,anyString())).thenReturn(paymentFeeLink);
+        Optional<PaymentFee> paymentFee = Optional.of(PaymentFee.feeWith().paymentLink(paymentFeeLink).build());
+        when(feesService.getPaymentFee(anyInt())).thenReturn(paymentFee);
         MvcResult result1 = restActions
             .get("/card-payments/" + payment.getInternalReference() + "/status")
             .andExpect(status().isOk())
             .andReturn();
-        PaymentDto paymentDto =  objectMapper.readValue(result1.getResponse().getContentAsByteArray(),PaymentDto.class);
+        PaymentDto paymentDto = PaymentDto.payment2DtoWith().paymentReference("AAA").caseReference("BBB").status("Success").build();
         assertEquals("Success",paymentDto.getStatus());
-
     }
 
     @Test
