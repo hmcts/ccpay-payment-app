@@ -30,7 +30,6 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @RestController
 @Api(tags = {"PaymentApportion"})
@@ -78,11 +77,10 @@ public class FeePayApportionController {
             if(feePayApportionList != null && !feePayApportionList.isEmpty()) {
                 LOG.info("Apportion details available in FeePayApportionController");
                 List<PaymentFee> feeList = new ArrayList<>();
-                List<PaymentFee> paymentFeeList = paymentFeeRepository.findAll();
                 for (FeePayApportion feePayApportion : feePayApportionList)
                 {
                     LOG.info("Inside FeePayApportion section in FeePayApportionController");
-                    Optional<PaymentFee> apportionedFee = Optional.ofNullable(paymentFeeList.stream().filter(e->e.getId().equals(feePayApportion.getFeeId())).collect(Collectors.toList()).get(0));
+                    Optional<PaymentFee> apportionedFee = paymentFeeRepository.findById(feePayApportion.getFeeId());
                     if(apportionedFee.isPresent())
                     {
                         LOG.info("Apportioned fee is present");
