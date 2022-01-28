@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.functional;
 
 import io.restassured.response.Response;
+import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -13,7 +14,11 @@ import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
-import uk.gov.hmcts.payment.api.dto.*;
+import uk.gov.hmcts.payment.api.dto.PaymentGroupResponse;
+import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
+import uk.gov.hmcts.payment.api.dto.RefundResponse;
+import uk.gov.hmcts.payment.api.dto.RetroRemissionRequest;
+import uk.gov.hmcts.payment.api.dto.RetroSpectiveRemissionRequest;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
 import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
 import uk.gov.hmcts.payment.functional.fixture.PaymentFixture;
@@ -35,7 +40,7 @@ import static org.springframework.http.HttpStatus.*;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CASE_WORKER_GROUP;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
 
-@RunWith(SpringRunner.class)
+@RunWith(SpringIntegrationSerenityRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
 @ActiveProfiles({"functional-tests", "liberataMock"})
 //@SpringBootTest(classes = {PaymentApiApplication.class})
@@ -83,9 +88,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         if (!TOKENS_INITIALIZED) {
             USER_TOKEN = idamService.createUserWith(CMC_CASE_WORKER_GROUP, "caseworker-cmc-solicitor")
                 .getAuthorisationToken();
-            System.out.println("The value of the USER_TOKEN : "+USER_TOKEN);
             SERVICE_TOKEN = s2sTokenService.getS2sToken(testProps.s2sServiceName, testProps.s2sServiceSecret);
-            System.out.println("The value of the SERVICE_TOKEN : "+SERVICE_TOKEN);
 
             USER_TOKEN_CMC_CITIZEN = idamService.createUserWith(CMC_CITIZEN_GROUP, "citizen").getAuthorisationToken();
             USER_TOKEN_PAYMENT = idamService.createUserWith(CMC_CITIZEN_GROUP, "payments").getAuthorisationToken();
@@ -124,7 +127,6 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
             = paymentsResponse.getPayments().stream().sorted((s1, s2) ->
             s2.getDateCreated().compareTo(s1.getDateCreated())).findFirst();
 
-
         assertThat(paymentDtoOptional.get().getAccountNumber()).isEqualTo(accountNumber);
         assertThat(paymentDtoOptional.get().getAmount()).isEqualTo(new BigDecimal("90.00"));
         assertThat(paymentDtoOptional.get().getCcdCaseNumber()).isEqualTo(accountPaymentRequest.getCcdCaseNumber());
@@ -134,19 +136,17 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         // refund_enable flag should be false before lagTime applied and true after
         Response paymentGroupResponse = paymentTestService.getPaymentGroupsForCase(USER_TOKEN_PAYMENTS_REFUND_ROLE,
             SERVICE_TOKEN_PAYMENT, ccdCaseNumber);
-//        PaymentGroupResponse groupResponsefromPost = paymentGroupResponse.getBody().as(PaymentGroupResponse.class);
-//        assertThat(!groupResponsefromPost.getPaymentGroups().get(0).getPayments().get(0).getRefundEnable());
+        PaymentGroupResponse groupResponsefromPost = paymentGroupResponse.getBody().as(PaymentGroupResponse.class);
+        assertThat(!groupResponsefromPost.getPaymentGroups().get(0).getPayments().get(0).getRefundEnable());
 
-        // ROLL BACK
         Response rollbackPaymentResponse = paymentTestService.updateThePaymentDateByCCDCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
             accountPaymentRequest.getCcdCaseNumber(),"5");
         System.out.println(rollbackPaymentResponse.getBody().prettyPrint());
 
         paymentGroupResponse = paymentTestService.getPaymentGroupsForCase(USER_TOKEN_PAYMENTS_REFUND_ROLE,
             SERVICE_TOKEN_PAYMENT, ccdCaseNumber);
-//        groupResponsefromPost = paymentGroupResponse.getBody().as(PaymentGroupResponse.class);
-//        assertThat(groupResponsefromPost.getPaymentGroups().get(0).getPayments().get(0).getRefundEnable());
-
+        groupResponsefromPost = paymentGroupResponse.getBody().as(PaymentGroupResponse.class);
+        assertThat(groupResponsefromPost.getPaymentGroups().get(0).getPayments().get(0).getRefundEnable());
 
        PaymentRefundRequest paymentRefundRequest
             = PaymentFixture.aRefundRequest("RR001", paymentReference);
@@ -156,8 +156,6 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
 
         System.out.println(refundResponse.getStatusLine());
         System.out.println(refundResponse.getBody().prettyPrint());
-        System.out.println(refundResponse.getStatusCode());
-
         assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
         RefundResponse refundResponseFromPost = refundResponse.getBody().as(RefundResponse.class);
         assertThat(refundResponseFromPost.getRefundAmount()).isEqualTo(new BigDecimal("90.00"));
@@ -781,7 +779,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         Response refundResponse = paymentTestService.postSubmitRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             RetroSpectiveRemissionRequest.retroSpectiveRemissionRequestWith().remissionReference(remissionReference).build());
-        System.out.println("The value of the responseBody : " + refundResponse.getBody().prettyPrint());
+        System.out.println("The value of the responseBody : "+refundResponse.getBody().prettyPrint());
         assertThat(refundResponse.statusCode()).isEqualTo(HttpStatus.CREATED.value());
         RefundResponse refundResponseFromPost = refundResponse.getBody().as(RefundResponse.class);
         assertThat(refundResponseFromPost.getRefundAmount()).isEqualTo(new BigDecimal("540.00"));

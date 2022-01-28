@@ -32,6 +32,8 @@ public interface Payment2Repository extends CrudRepository<Payment, Integer>, Jp
 
     Optional<List<Payment>> findByPaymentLinkId(Integer id);
 
+    Optional<Payment> findByInternalReference(String internalReference);
+
     @Modifying
     @Query(value = "UPDATE payment SET date_updated = :rollbackdate where ccd_case_number = :ccdcasenumber",nativeQuery = true)
     int updatePaymentUpdatedDateTime(@Param("rollbackdate") LocalDateTime rollbackDate,

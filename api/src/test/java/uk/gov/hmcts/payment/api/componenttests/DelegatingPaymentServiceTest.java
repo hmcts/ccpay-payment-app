@@ -17,7 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-@DirtiesContext(classMode= DirtiesContext.ClassMode.BEFORE_CLASS)
+@DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
 public class DelegatingPaymentServiceTest extends TestUtil {
     private PaymentsDataUtil paymentsDataUtil;
 
