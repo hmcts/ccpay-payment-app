@@ -8,7 +8,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -35,7 +34,6 @@ import uk.gov.hmcts.payment.api.dto.IdamFullNameRetrivalResponse;
 import uk.gov.hmcts.payment.api.dto.IdamUserIdDetailsResponse;
 import uk.gov.hmcts.payment.api.dto.UserIdentityDataDto;
 import uk.gov.hmcts.payment.api.dto.idam.IdamUserIdResponse;
-import uk.gov.hmcts.payment.api.dto.idam.IdamUserInfoResponse;
 import uk.gov.hmcts.payment.api.exception.UserNotFoundException;
 import uk.gov.hmcts.payment.api.service.IdamServiceImpl;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.GatewayTimeoutException;
@@ -220,15 +218,6 @@ public class IdamServiceImplTest {
         MultiValueMap<String, String> header = new LinkedMultiValueMap<String, String>();
         header.put("authorization", Collections.singletonList("Bearer 131313"));
 
-        IdamUserIdDetailsResponse mockIdamUserIdDetailsResponse = IdamUserIdDetailsResponse.
-            idamUserIdResponseWith()
-            .forename("AAA")
-            .surname("VP")
-            .email("V_P@gmail.com")
-            .roles(Arrays.asList("vp"))
-            .id("986-erfg-kjhg-123")
-            .build();
-
         ResponseEntity<IdamUserIdDetailsResponse> responseEntity = null;
 
         when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
@@ -241,4 +230,27 @@ public class IdamServiceImplTest {
         assertTrue(actualMessage.contains("Internal Server error. Please, try again later"));
     }
 
+    @Test(expected = UserNotFoundException.class)
+    public void getUserDetailsThrowsHttpClientErrorExceptionTest() {
+
+        MultiValueMap<String, String> header = new LinkedMultiValueMap<String, String>();
+        header.put("authorization", Collections.singletonList("Bearer 131313"));
+
+        when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+            eq(IdamUserIdDetailsResponse.class)
+        )).thenThrow(HttpClientErrorException.class);
+        idamService.getUserDetails(header);
+    }
+
+    @Test(expected = GatewayTimeoutException.class)
+    public void getUserDetailsThrowsHttpServerErrorExceptionTest() {
+
+        MultiValueMap<String, String> header = new LinkedMultiValueMap<String, String>();
+        header.put("authorization", Collections.singletonList("Bearer 131313"));
+
+        when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+            eq(IdamUserIdDetailsResponse.class)
+        )).thenThrow(HttpServerErrorException.class);
+        idamService.getUserDetails(header);
+    }
 }
