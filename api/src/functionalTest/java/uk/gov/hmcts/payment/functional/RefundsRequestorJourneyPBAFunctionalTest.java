@@ -915,6 +915,8 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         assertThat(paymentDtoOptional.get().getStatus()).isEqualTo("Failed");
         assertThat(paymentDtoOptional.get().getStatusHistories().get(0).getErrorMessage()).isEqualTo(errorMessage);
 
+        System.out.println("The value of the  Payment Requestor Role Token : " + USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE);
+        System.out.println("The value of the  Service Token : " + SERVICE_TOKEN_PAYMENT);
         Response refundResponse = paymentTestService.postSubmitRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             RetroSpectiveRemissionRequest.retroSpectiveRemissionRequestWith().remissionReference(remissionReference).build());
