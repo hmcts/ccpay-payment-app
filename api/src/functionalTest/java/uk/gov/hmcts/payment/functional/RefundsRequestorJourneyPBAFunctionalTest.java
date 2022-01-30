@@ -92,7 +92,9 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
             USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE =
                 idamService.createUserWithSearchScope(CMC_CASE_WORKER_GROUP, "payments-refund")
                     .getAuthorisationToken();
+            System.out.println("The value of the Requestor Role user Token : "+USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE);
             SERVICE_TOKEN_PAYMENT = s2sTokenService.getS2sToken("ccpay_bubble", testProps.payBubbleS2SSecret);
+            System.out.println("The value of the Service Token For Payment : "+SERVICE_TOKEN_PAYMENT);
             TOKENS_INITIALIZED = true;
         }
     }
