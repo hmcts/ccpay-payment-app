@@ -445,7 +445,6 @@ public class PaymentRefundsServiceTest {
 
         InternalRefundResponse mockRefundResponse = InternalRefundResponse.InternalRefundResponseWith().refundReference("RF-4321-4321-4321-4321").build();
 
-
         ResponseEntity<InternalRefundResponse> responseEntity = new ResponseEntity<>(mockRefundResponse, HttpStatus.CREATED);
 
         when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
@@ -483,8 +482,6 @@ public class PaymentRefundsServiceTest {
 
         validateRefundException(expectedMessage);
 
-        paymentRefundRequest.getFees().get(0).setVolume(2);
-
         mockPaymentSuccess.getPaymentLink().getFees().get(0).setVolume(2);
 
         paymentRefundRequest.setRefundAmount(BigDecimal.valueOf(500));
@@ -493,11 +490,25 @@ public class PaymentRefundsServiceTest {
 
         validateRefundException(expectedMessage);
 
+        paymentRefundRequest.setRefundAmount(BigDecimal.valueOf(1300));
+
         paymentRefundRequest.getFees().get(0).setVolume(1);
+
+        paymentRefundRequest.getFees().get(0).setCalculatedAmount(BigDecimal.valueOf(1300));
+
+        paymentRefundRequest.getFees().get(0).setApportionAmount(BigDecimal.valueOf(1300));
+
+        expectedMessage = "The quantity you want to refund should be maximum in case of full refund";
+
+        validateRefundException(expectedMessage);
 
         mockPaymentSuccess.getPaymentLink().getFees().get(0).setVolume(1);
 
         paymentRefundRequest.setRefundAmount(BigDecimal.valueOf(550));
+
+        paymentRefundRequest.getFees().get(0).setCalculatedAmount(BigDecimal.valueOf(550));
+
+        paymentRefundRequest.getFees().get(0).setApportionAmount(BigDecimal.valueOf(550));
 
     }
 
