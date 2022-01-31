@@ -20,12 +20,10 @@ import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
 import uk.gov.hmcts.payment.api.dto.RefundRequestDto;
 import uk.gov.hmcts.payment.api.dto.RefundResponse;
 import uk.gov.hmcts.payment.api.dto.ResubmitRefundRemissionRequest;
-import uk.gov.hmcts.payment.api.dto.idam.IdamUserIdResponse;
+import uk.gov.hmcts.payment.api.dto.RetrospectiveRemissionRequest;
 import uk.gov.hmcts.payment.api.exception.InvalidRefundRequestException;
 import uk.gov.hmcts.payment.api.model.*;
-import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 import uk.gov.hmcts.payment.api.util.RefundEligibilityUtil;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.NonPBAPaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotSuccessException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.RemissionNotFoundException;
@@ -86,6 +84,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             .ccdCaseNumber(payment.getCcdCaseNumber())
             .refundReason(paymentRefundRequest.getRefundReason())
             .feeIds(getFeeIds(payment.getPaymentLink().getFees()))
+            .contactDetails(paymentRefundRequest.getContactDetails())
             .build();
 
 
@@ -99,8 +98,9 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
 
     @Override
-    public ResponseEntity<RefundResponse> createAndValidateRetroSpectiveRemissionRequest(String remissionReference, MultiValueMap<String, String> headers) {
-        Optional<Remission> remission = remissionRepository.findByRemissionReference(remissionReference);
+    public ResponseEntity<RefundResponse> createAndValidateRetrospectiveRemissionRequest(
+            RetrospectiveRemissionRequest retrospectiveRemissionRequest, MultiValueMap<String, String> headers) {
+        Optional<Remission> remission = remissionRepository.findByRemissionReference(retrospectiveRemissionRequest.getRemissionReference());
         PaymentFee paymentFee;
         Integer paymentId;
 
@@ -126,6 +126,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                     .ccdCaseNumber(payment.getCcdCaseNumber()) // ccd case number
                     .refundReason("RR036")//Refund reason category would be other
                     .feeIds(getFeeIds(Collections.singletonList(paymentFee)))
+                    .contactDetails(retrospectiveRemissionRequest.getContactDetails())
                     .build();
                 RefundResponse refundResponse = RefundResponse.RefundResponseWith()
                     .refundAmount(remissionAmount)
