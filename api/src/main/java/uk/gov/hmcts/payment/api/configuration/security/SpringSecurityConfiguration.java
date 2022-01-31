@@ -40,7 +40,6 @@ public class SpringSecurityConfiguration {
     @Order(1)
     public static class ExternalApiSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter {
 
-
         private AuthCheckerServiceOnlyFilter authCheckerServiceOnlyFilter;
 
         @Autowired
@@ -72,7 +71,6 @@ public class SpringSecurityConfiguration {
     public static class InternalApiSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter {
 
         private AuthCheckerServiceAndAnonymousUserFilter authCheckerFilter;
-
 
         @Autowired
         public InternalApiSecurityConfigurationAdapter(RequestAuthorizer<User> userRequestAuthorizer,

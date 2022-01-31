@@ -40,6 +40,7 @@ import uk.gov.hmcts.payment.api.model.PaymentMethod;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.model.Remission;
 import uk.gov.hmcts.payment.api.model.RemissionRepository;
+import uk.gov.hmcts.payment.api.service.IdamService;
 import uk.gov.hmcts.payment.api.service.PaymentRefundsService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotSuccessException;
@@ -51,9 +52,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 
 @RunWith(SpringRunner.class)
@@ -92,6 +94,12 @@ public class PaymentRefundsServiceTest {
         .build();
     RetroSpectiveRemissionRequest retroSpectiveRemissionRequest = RetroSpectiveRemissionRequest.retroSpectiveRemissionRequestWith()
         .remissionReference("qwerty").build();
+
+    private static final IdamUserIdResponse IDAM_USER_ID_RESPONSE =
+        IdamUserIdResponse.idamUserIdResponseWith().uid("1").givenName("XX").familyName("YY").name("XX YY")
+            .roles(Arrays.asList("payments-refund-approver", "payments-refund")).sub("ZZ")
+            .build();
+
     @MockBean
     private Payment2Repository paymentRepository;
 
@@ -109,9 +117,13 @@ public class PaymentRefundsServiceTest {
     private AuthTokenGenerator authTokenGenerator;
     @Autowired
     private PaymentRefundsService paymentRefundsService;
+    @MockBean
+    private IdamService idamService;
 
     @Before
-    public void setup() {header.put("Authorization", Collections.singletonList("Bearer 131313"));}
+    public void setup() {
+        header.put("Authorization", Collections.singletonList("Bearer 131313"));
+    }
 
     @After
     public void tearDown() {
@@ -122,7 +134,7 @@ public class PaymentRefundsServiceTest {
     public void createSuccessfulRefund() throws Exception {
 
         Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentSuccess));
-
+        when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
         InternalRefundResponse mockRefundResponse = InternalRefundResponse.InternalRefundResponseWith().refundReference("RF-4321-4321-4321-4321").build();
 
 
@@ -142,7 +154,7 @@ public class PaymentRefundsServiceTest {
 
     @Test(expected = PaymentNotSuccessException.class)
     public void createRefundWithFailedReference() throws Exception {
-
+        when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
         Payment mockPaymentFailed = Payment.paymentWith().reference("RC-1234-1234-1234-1234")
             .amount(BigDecimal.valueOf(100))
             .id(1)
@@ -160,7 +172,7 @@ public class PaymentRefundsServiceTest {
 
     @Test(expected = InvalidRefundRequestException.class)
     public void createRefundWithClientException() throws Exception {
-
+        when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
         Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentSuccess));
 
 
@@ -176,7 +188,7 @@ public class PaymentRefundsServiceTest {
 
     @Test(expected = HttpServerErrorException.class)
     public void createRefundWithServerException() throws Exception {
-
+        when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
         Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentSuccess));
 
         when(authTokenGenerator.generate()).thenReturn("test-token");
@@ -240,7 +252,7 @@ public class PaymentRefundsServiceTest {
         Mockito.when(feePayApportionRepository.findByFeeId(any())).thenReturn(Optional.ofNullable(feePayApportion));
 
         Mockito.when(paymentRepository.findById(any())).thenReturn(Optional.ofNullable(payment));
-
+        when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
         InternalRefundResponse mockRefundResponse = InternalRefundResponse.InternalRefundResponseWith().refundReference("RF-4321-4321-4321-4321").build();
 
         ResponseEntity<InternalRefundResponse> responseEntity = new ResponseEntity<>(mockRefundResponse, HttpStatus.CREATED);

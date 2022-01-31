@@ -49,7 +49,7 @@ public class PaymentTestService {
 
     public Response postInitiateRefund(String userToken, String serviceToken,
                                        PaymentRefundRequest paymentRefundRequest) {
-        return givenWithAuthHeaders(userToken,serviceToken)
+        return givenWithAuthHeaders(userToken, serviceToken)
             .contentType(ContentType.JSON)
             .body(paymentRefundRequest)
             .when()
@@ -58,19 +58,20 @@ public class PaymentTestService {
 
     public Response postSubmitRefund(String userToken, String serviceToken,
                                      RetroSpectiveRemissionRequest retroSpectiveRemissionRequest) {
-        return givenWithAuthHeaders(userToken,serviceToken)
+        return givenWithAuthHeaders(userToken, serviceToken)
             .contentType(ContentType.JSON)
             .body(retroSpectiveRemissionRequest)
             .when()
             .post("/refund-retro-remission");
     }
 
-    public Response updateThePaymentDateByCCDCaseNumber(final String userToken,
-                                                        final String serviceToken,
-                                                        final String ccdCaseNumber) {
+    public Response updateThePaymentDateByCCDCaseNumberForCertainHours(final String userToken,
+                                                                       final String serviceToken,
+                                                                       final String ccdCaseNumber,
+                                                                       final String lag_time) {
         return givenWithAuthHeaders(userToken, serviceToken)
             .when()
-            .patch("/payments/ccd_case_reference/{ccd_case_number}", ccdCaseNumber);
+            .patch("/payments/ccd_case_reference/{ccd_case_number}/lag_time/{lag_time}", ccdCaseNumber, lag_time);
     }
 
     public Response recordBarPayment(String userToken, String serviceToken, PaymentRecordRequest request) {
@@ -105,33 +106,43 @@ public class PaymentTestService {
             .get("/reconciliation-payments?ccd_case_number={ccdCaseNumber}", ccdCaseNumber);
     }
 
-    public ValidatableResponse getLiberatePullPaymentsByStartAndEndDate(String serviceToken, String startDate, String endDate, Long responseTime) {
+    public ValidatableResponse getLiberatePullPaymentsByStartAndEndDate(String serviceToken, String startDate, String endDate,
+                                                                        Long responseTime) {
         return givenWithServiceHeaders(serviceToken)
             .when()
-            .get("/reconciliation-payments?end_date={endDate}&start_date={startDate}", endDate,startDate)
-            .then().time(lessThan(responseTime),TimeUnit.SECONDS);
+            .get("/payments?end_date={endDate}&start_date={startDate}", endDate, startDate)
+            .then().time(lessThan(responseTime), TimeUnit.SECONDS);
     }
 
-    public ValidatableResponse getLiberatePullPaymentsByStartAndEndDateApproach1(String serviceToken, String startDate, String endDate, Long responseTime) {
+    public ValidatableResponse getLiberatePullPaymentsByStartAndEndDateApproach1(String serviceToken, String startDate,
+                                                                                 String endDate, Long responseTime) {
         return givenWithServiceHeaders(serviceToken)
             .when()
-            .get("/reconciliation-payments?end_date={endDate}&start_date={startDate}", endDate,startDate)
-            .then().time(lessThan(responseTime),TimeUnit.SECONDS);
+            .get("/reconciliation-payments?end_date={endDate}&start_date={startDate}", endDate, startDate)
+            .then().time(lessThan(responseTime), TimeUnit.SECONDS);
     }
 
 
     public Response getLiberatePullPaymentsTimeByStartAndEndDate(String serviceToken, String startDate, String endDate) {
         return givenWithServiceHeaders(serviceToken)
             .when()
-            .get("/reconciliation-payments?end_date={endDate}&start_date={startDate}", endDate,startDate);
-
+            .get("/payments?end_date={endDate}&start_date={startDate}", endDate, startDate);
     }
 
     public Response getLiberatePullPaymentsTimeByStartAndEndDateApproach1(String serviceToken, String startDate, String endDate) {
         return givenWithServiceHeaders(serviceToken)
             .when()
-            .get("/reconciliation-payments?end_date={endDate}&start_date={startDate}", endDate,startDate);
+            .get("/reconciliation-payments?end_date={endDate}&start_date={startDate}", endDate, startDate);
 
+    }
+
+    public Response getPaymentGroupsForCase(final String userToken,
+                                            final String serviceToken,
+                                            final String ccdCaseNumber) {
+        return givenWithAuthHeaders(userToken, serviceToken)
+            .contentType(ContentType.JSON)
+            .when()
+            .get("/cases/{ccdcasenumber}/paymentgroups",ccdCaseNumber);
     }
 
     public RequestSpecification givenWithAuthHeaders(String userToken, String serviceToken) {
@@ -144,4 +155,5 @@ public class PaymentTestService {
         return RestAssured.given()
             .header("ServiceAuthorization", serviceToken);
     }
+
 }
