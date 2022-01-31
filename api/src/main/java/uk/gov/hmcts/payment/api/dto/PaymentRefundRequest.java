@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
+import uk.gov.hmcts.payment.api.model.ContactDetails;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Digits;
@@ -47,4 +48,6 @@ public class PaymentRefundRequest {
 
     private String ccdCaseNumber;
 
+    @NotNull(message = "Contact Details cannot be null")
+    private ContactDetails contactDetails;
 }

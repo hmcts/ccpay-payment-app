@@ -9,6 +9,8 @@ import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
 import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
+import uk.gov.hmcts.payment.api.dto.RetrospectiveRemissionRequest;
+import uk.gov.hmcts.payment.api.model.ContactDetails;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 
 import java.math.BigDecimal;
@@ -30,10 +32,10 @@ public class PaymentFixture {
             .siteId("AA101")
             .fees(Lists.newArrayList(
                 FeeDto.feeDtoWith()
-                .calculatedAmount(new BigDecimal(amountString))
-                .code("FEE0001")
-                .version("1")
-                .build())
+                    .calculatedAmount(new BigDecimal(amountString))
+                    .code("FEE0001")
+                    .version("1")
+                    .build())
             )
             .build();
     }
@@ -256,7 +258,7 @@ public class PaymentFixture {
     public static CreditAccountPaymentRequest aPbaPaymentRequestForProbate(
         final String amountString, final String service, final String pbaAccountNumber) {
         Random rand = new Random();
-        String ccdCaseNumber = String.format((Locale)null, //don't want any thousand separators
+        String ccdCaseNumber = String.format((Locale) null, //don't want any thousand separators
             "111122%04d%04d%02d",
             rand.nextInt(10000),
             rand.nextInt(10000),
@@ -286,7 +288,7 @@ public class PaymentFixture {
     public static CreditAccountPaymentRequest aPbaPaymentRequestForProbateWithFeeCode(
         final String amountString, final String feeCode, final String service, final String pbaAccountNumber) {
         Random rand = new Random();
-        String ccdCaseNumber = String.format((Locale)null, //don't want any thousand separators
+        String ccdCaseNumber = String.format((Locale) null, //don't want any thousand separators
             "111122%04d%04d%02d",
             rand.nextInt(10000),
             rand.nextInt(10000),
@@ -320,9 +322,9 @@ public class PaymentFixture {
         final String feeCode1,
         final String feeAmount1,
         final String feeCode2,
-        final String feeAmount2 ) {
+        final String feeAmount2) {
         Random rand = new Random();
-        String ccdCaseNumber = String.format((Locale)null, //don't want any thousand separators
+        String ccdCaseNumber = String.format((Locale) null, //don't want any thousand separators
             "111122%04d%04d%02d",
             rand.nextInt(10000),
             rand.nextInt(10000),
@@ -378,7 +380,7 @@ public class PaymentFixture {
     }
 
     public static PaymentRecordRequest aBarPaymentRequest(String amountString) {
-        return  PaymentRecordRequest.createPaymentRecordRequestDtoWith()
+        return PaymentRecordRequest.createPaymentRecordRequestDtoWith()
             .amount(new BigDecimal(amountString))
             .paymentMethod(PaymentMethodType.CASH)
             .reference("case_ref_123")
@@ -401,7 +403,33 @@ public class PaymentFixture {
                                                       final String paymentReference) {
         return PaymentRefundRequest
             .refundRequestWith().paymentReference(paymentReference)
-            .refundReason(refundReason).build();
+            .refundReason(refundReason)
+            .contactDetails(ContactDetails.contactDetailsWith().
+                addressLine("High Street 112")
+                .country("UK")
+                .county("Londonshire")
+                .city("London")
+                .postalCode("P1 1PO")
+                .email("person@gmail.com")
+                .notificationType("email")
+                .build())
+            .build();
 
+    }
+
+    public static RetrospectiveRemissionRequest aRetroRemissionRequest(final String remissionReference) {
+
+        return RetrospectiveRemissionRequest
+            .retrospectiveRemissionRequestWith().remissionReference(remissionReference)
+            .contactDetails(ContactDetails.contactDetailsWith()
+                .addressLine("High Street 112")
+                .country("UK")
+                .county("Londonshire")
+                .city("London")
+                .postalCode("P1 1PO")
+                .email("person@gmail.com")
+                .notificationType("email")
+                .build())
+            .build();
     }
 }
