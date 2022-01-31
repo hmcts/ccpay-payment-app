@@ -39,6 +39,9 @@ public class Payment extends Auditable<String> {
     @Column(name = "external_reference")
     private String externalReference;
 
+    @Column(name = "internal_reference")
+    private String internalReference;
+
     @CreationTimestamp
     @Column(name = "date_created")
     private Date dateCreated;

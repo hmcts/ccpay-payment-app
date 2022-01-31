@@ -63,6 +63,7 @@ public class GovPayClient {
         return withIOExceptionHandling(() -> {
             HttpPost request = postRequestFor(authorizationKey, url, createPaymentRequest);
             HttpResponse response = httpClient.execute(request);
+            LOG.info("response {}",objectMapper.writeValueAsString(response.getStatusLine()));
             checkNotAnError(response);
             return objectMapper.readValue(response.getEntity().getContent(), GovPayPayment.class);
         });
@@ -70,6 +71,7 @@ public class GovPayClient {
 
     @HystrixCommand(commandKey = "retrieveCardPayment", ignoreExceptions = {GovPayPaymentNotFoundException.class})
     public GovPayPayment retrievePayment(String authorizationKey, String govPayId) {
+        LOG.info("retrievePayment");
         return withIOExceptionHandling(() -> {
             HttpGet request = getRequestFor(authorizationKey, url + "/" + govPayId);
             HttpResponse response = httpClient.execute(request);
@@ -79,6 +81,7 @@ public class GovPayClient {
     }
 
     public void cancelPayment(String authorizationKey, String cancelUrl) {
+        LOG.info("CANCELLING PAYMENT");
         withIOExceptionHandling(() -> {
             HttpPost request = postRequestFor(authorizationKey, cancelUrl, null);
             HttpResponse response = httpClient.execute(request);
@@ -97,11 +100,20 @@ public class GovPayClient {
     }
 
     private HttpPost postRequestFor(String authorizationKey, String url, Object entity) throws JsonProcessingException {
+        LOG.info("new StringEntity(objectMapper.writeValueAsString(entity) {}",objectMapper.writeValueAsString(entity));
         return postRequestFor(authorizationKey, url, new StringEntity(objectMapper.writeValueAsString(entity), APPLICATION_JSON));
     }
 
     private HttpPost postRequestFor(String authorizationKey, String url, HttpEntity entity) throws JsonProcessingException {
         LOG.info("Inside postRequestFor in GovPayClient");
+        LOG.info("authorizationKey {} ",authorizationKey);
+        LOG.info("url {} ",url);
+        try{
+            LOG.info("entity {}", entity.getContent().toString());
+        }catch (Exception e){
+            LOG.info(e.getMessage());
+        }
+
         HttpPost request = new HttpPost(url);
         request.setEntity(entity);
         request.addHeader(authorizationHeader(authorizationKey));

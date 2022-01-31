@@ -64,6 +64,7 @@ public class PaymentDtoTest {
     private Date dateApportioned;
     private Boolean refundEnable;
     private Boolean remissionEnable;
+    private String internalReference;
 
     public PaymentDtoTest() {
         feeWithVolumeCode = "X0001";
@@ -140,7 +141,7 @@ public class PaymentDtoTest {
             gbp, ccdNumber, caseReference, paymentReference, channel, method, externalProvider,
             status, externalReference, siteId, serviceName, customerReference, accountNumber,
             organisationName, paymentGroupReference, reportedDateOffline,documentControlNumber,bankedDate,payerName,true,
-            null, statusHistories, paymentAllocations,giroSlipNo, links);
+            null, statusHistories, paymentAllocations,giroSlipNo, internalReference,links);
     }
 
     @Test

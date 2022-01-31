@@ -154,21 +154,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             if (request.getRefundReason().contains("RR036")) {
                     Integer feeId = Integer.parseInt(request.getFeeId());
                     updateRemissionAmount(feeId, request.getAmount());
-
-//                Optional<List<FeePayApportion>> feePayApportion = feePayApportionRepository.findByPaymentId(payment.getId());
-//
-//                if (feePayApportion.isPresent()) {
-//                    List<FeePayApportion> feePayApportionList = feePayApportion.get();
-//                    if (!isEmptyOrNull(feePayApportionList)) {
-//                        FeePayApportion feePayApportionElement = feePayApportionList.get(0);
-//                        updateRemissionAmount(feePayApportionElement.getFeeId(), request.getAmount());
-//                    }
-//                }else {
-//                    throw new PaymentNotFoundException("payment not found for"+payment.getId());
-//                }
             }
-
-
         return new ResponseEntity<>(null, HttpStatus.OK);
     }
 
