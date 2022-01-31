@@ -13,7 +13,6 @@ import org.springframework.web.client.HttpServerErrorException;
 import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
 import uk.gov.hmcts.payment.api.dto.RefundResponse;
 import uk.gov.hmcts.payment.api.dto.ResubmitRefundRemissionRequest;
-import uk.gov.hmcts.payment.api.dto.RetroSpectiveRemissionRequest;
 import uk.gov.hmcts.payment.api.exception.InvalidPartialRefundRequestException;
 import uk.gov.hmcts.payment.api.dto.RetrospectiveRemissionRequest;
 import uk.gov.hmcts.payment.api.exception.InvalidRefundRequestException;
