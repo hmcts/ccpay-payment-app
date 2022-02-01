@@ -44,9 +44,7 @@ public class PaymentRefundRequest {
 
     @NotEmpty
     @Valid
-    private List<FeeDto> fees;
-
-    private String ccdCaseNumber;
+    private List<FeeDto>  fees;
 
     @NotNull(message = "Contact Details cannot be null")
     private ContactDetails contactDetails;
