@@ -21,24 +21,10 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
-import uk.gov.hmcts.payment.api.dto.InternalRefundResponse;
-import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
-import uk.gov.hmcts.payment.api.dto.RefundResponse;
-import uk.gov.hmcts.payment.api.dto.ResubmitRefundRemissionRequest;
-import uk.gov.hmcts.payment.api.dto.RetrospectiveRemissionRequest;
+import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.dto.idam.IdamUserIdResponse;
 import uk.gov.hmcts.payment.api.exception.InvalidRefundRequestException;
-import uk.gov.hmcts.payment.api.model.FeePayApportion;
-import uk.gov.hmcts.payment.api.model.FeePayApportionRepository;
-import uk.gov.hmcts.payment.api.model.Payment;
-import uk.gov.hmcts.payment.api.model.Payment2Repository;
-import uk.gov.hmcts.payment.api.model.PaymentChannel;
-import uk.gov.hmcts.payment.api.model.PaymentFee;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.model.PaymentMethod;
-import uk.gov.hmcts.payment.api.model.PaymentStatus;
-import uk.gov.hmcts.payment.api.model.Remission;
-import uk.gov.hmcts.payment.api.model.RemissionRepository;
+import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.IdamService;
 import uk.gov.hmcts.payment.api.service.PaymentRefundsService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
@@ -66,6 +52,8 @@ public class PaymentRefundsServiceTest {
     PaymentRefundRequest paymentRefundRequest = PaymentRefundRequest.refundRequestWith()
         .paymentReference("RC-1234-1234-1234-1234")
         .refundReason("RESN1")
+        .contactDetails(ContactDetails.contactDetailsWith().notificationType(Notification.EMAIL.getNotification())
+            .email("a@a.a").build())
         .build();
     Payment mockPaymentSuccess = Payment.paymentWith().reference("RC-1234-1234-1234-1234")
         .amount(BigDecimal.valueOf(100))
@@ -73,8 +61,11 @@ public class PaymentRefundsServiceTest {
         .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
         .paymentLink(PaymentFeeLink.paymentFeeLinkWith().fees(Arrays.asList(PaymentFee.feeWith().id(1).build())).build())
         .build();
-    RetrospectiveRemissionRequest retrospectiveRemissionRequest = RetrospectiveRemissionRequest.retrospectiveRemissionRequestWith()
-        .remissionReference("qwerty").build();
+    RetrospectiveRemissionRequest retrospectiveRemissionRequest =
+        RetrospectiveRemissionRequest.retrospectiveRemissionRequestWith()
+            .remissionReference("qwerty").contactDetails(
+            ContactDetails.contactDetailsWith().notificationType(Notification.EMAIL.getNotification())
+                .email("a@a.a").build()).build();
 
     private static final IdamUserIdResponse IDAM_USER_ID_RESPONSE =
         IdamUserIdResponse.idamUserIdResponseWith().uid("1").givenName("XX").familyName("YY").name("XX YY")
