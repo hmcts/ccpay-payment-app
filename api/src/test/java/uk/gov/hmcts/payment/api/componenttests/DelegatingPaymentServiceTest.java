@@ -2,7 +2,6 @@ package uk.gov.hmcts.payment.api.componenttests;
 
 import org.joda.time.MutableDateTime;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.test.annotation.DirtiesContext;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
@@ -18,7 +17,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-@Ignore
 @DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
 public class DelegatingPaymentServiceTest extends TestUtil {
     private PaymentsDataUtil paymentsDataUtil;
