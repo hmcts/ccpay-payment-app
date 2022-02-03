@@ -129,7 +129,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             throw new InvalidRefundRequestException("Postal code should not be null or empty");
         } else if (Notification.EMAIL.getNotification()
                 .equals(contactDetails.getNotificationType())
-                && !matcher.find()) {
+                && null != matcher && !matcher.find()) {
             throw new InvalidRefundRequestException("Email id is not valid");
         }
     }
