@@ -411,7 +411,7 @@ public class PaymentFixture {
                 .city("London")
                 .postalCode("P1 1PO")
                 .email("person@gmail.com")
-                .notificationType("email")
+                .notificationType("EMAIL")
                 .build())
             .build();
 
@@ -428,7 +428,7 @@ public class PaymentFixture {
                 .city("London")
                 .postalCode("P1 1PO")
                 .email("person@gmail.com")
-                .notificationType("email")
+                .notificationType("EMAIL")
                 .build())
             .build();
     }
