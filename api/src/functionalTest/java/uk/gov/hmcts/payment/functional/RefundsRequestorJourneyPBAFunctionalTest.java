@@ -111,12 +111,6 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success"));
 
-
-        paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).
-            then().statusCode(CREATED.value()).body("status", equalTo("Success"));
-        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
-            ccdCaseNumber,"5");
-
         // get the payment by ccdCaseNumber
         PaymentsResponse paymentsResponse = paymentTestService
             .getPbaPaymentsByCCDCaseNumber(SERVICE_TOKEN, ccdCaseNumber)

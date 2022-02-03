@@ -238,20 +238,6 @@ public class RefundRequestorJourneyBulkscanPaymentFunctionalTest {
 
                             paymentReference.set(paymentDto.getReference());
 
-
-                            paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
-                                ccdCaseNumber, "15");
-
-                            // initiate the refund
-                            PaymentRefundRequest paymentRefundRequest
-                                = PaymentFixture.aRefundRequest("RR001", paymentReference.get());
-                            Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
-                                SERVICE_TOKEN_PAYMENT,
-                                paymentRefundRequest);
-
-                            System.out.println(refundResponse.getBody().prettyPrint());
-                            assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
-                            assertThat(refundResponse.getBody().asString()).isEqualTo("This payment is not yet eligible for refund");
                         });
 
                 });
