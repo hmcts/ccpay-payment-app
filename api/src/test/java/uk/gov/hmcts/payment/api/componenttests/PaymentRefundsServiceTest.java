@@ -37,7 +37,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -123,8 +123,7 @@ public class PaymentRefundsServiceTest {
 
     }
 
-
-    @Test(expected = PaymentNotSuccessException.class)
+    @Test
     public void createRefundWithFailedReference() throws Exception {
         when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
         Payment mockPaymentFailed = Payment.paymentWith().reference("RC-1234-1234-1234-1234")
@@ -134,12 +133,17 @@ public class PaymentRefundsServiceTest {
 
         Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentFailed));
 
-        paymentRefundsService.createRefund(paymentRefundRequest, header);
+        Exception exception = assertThrows(
+                PaymentNotSuccessException.class,
+                () -> paymentRefundsService.createRefund(paymentRefundRequest, header)
+        );
+
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains("Refund can not be processed for unsuccessful payment"));
 
     }
 
-
-    @Test(expected = InvalidRefundRequestException.class)
+    @Test
     public void createRefundWithClientException() throws Exception {
         when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
         Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentSuccess));
@@ -150,12 +154,17 @@ public class PaymentRefundsServiceTest {
         when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
             eq(InternalRefundResponse.class))).thenThrow(new HttpClientErrorException(HttpStatus.UNAUTHORIZED));
 
-        paymentRefundsService.createRefund(paymentRefundRequest, header);
+        Exception exception = assertThrows(
+                InvalidRefundRequestException.class,
+                () -> paymentRefundsService.createRefund(paymentRefundRequest, header)
+        );
 
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains(""));
     }
 
 
-    @Test(expected = HttpServerErrorException.class)
+    @Test
     public void createRefundWithServerException() throws Exception {
         when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
         Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentSuccess));
@@ -165,8 +174,13 @@ public class PaymentRefundsServiceTest {
         when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
             eq(InternalRefundResponse.class))).thenThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR));
 
-        paymentRefundsService.createRefund(paymentRefundRequest, header);
+        Exception exception = assertThrows(
+                HttpServerErrorException.class,
+                () -> paymentRefundsService.createRefund(paymentRefundRequest, header)
+        );
 
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains("500 INTERNAL_SERVER_ERROR"));
     }
 
 
@@ -240,14 +254,19 @@ public class PaymentRefundsServiceTest {
     }
 
 
-    @Test(expected = RemissionNotFoundException.class)
+    @Test
     public void RemissionNotFoundException() throws Exception {
 
         Mockito.when(remissionRepository.findByRemissionReference(any())).thenReturn(Optional.empty());
 
-        ResponseEntity<RefundResponse> refundResponse = paymentRefundsService.createAndValidateRetrospectiveRemissionRequest(
-                retrospectiveRemissionRequest, header);
+        Exception exception = assertThrows(
+                RemissionNotFoundException.class,
+                () -> paymentRefundsService.createAndValidateRetrospectiveRemissionRequest(
+                retrospectiveRemissionRequest, header)
+        );
 
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains("Remission not found for given remission reference"));
     }
 
     @Test
@@ -289,7 +308,10 @@ public class PaymentRefundsServiceTest {
         verify(remissionRepository).save(any(Remission.class));
     }
 
-    @Test(expected = PaymentNotFoundException.class)
+    /*
+    To be updated in PAY-5368
+
+    @Test
     public void testUpdateRemissionWhenPaymentReferenceIsNotFound(){
         Mockito.when(paymentRepository.findByReference(any())).thenThrow(new PaymentNotFoundException());
         ResubmitRefundRemissionRequest resubmitRefundRemissionRequest = ResubmitRefundRemissionRequest
@@ -298,11 +320,17 @@ public class PaymentRefundsServiceTest {
             .refundReason("RR003")
             .feeId("100")
             .build();
-        ResponseEntity responseEntity = paymentRefundsService.updateTheRemissionAmount("RC-1234-1234-1234-1234",resubmitRefundRemissionRequest);
 
-    }
+        Exception exception = assertThrows(
+                PaymentNotFoundException.class,
+                () -> paymentRefundsService.updateTheRemissionAmount("RC-1234-1234-1234-1234",resubmitRefundRemissionRequest)
+        );
 
-    @Test(expected = InvalidRefundRequestException.class)
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains("Refund can not be processed for unsuccessful payment"));
+    }*/
+
+    /*@Test
     public void testUpdateRemissionWhenRequestAmountIsGreaterThanPaymentAmount(){
         Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentSuccess));
         ResubmitRefundRemissionRequest resubmitRefundRemissionRequest = ResubmitRefundRemissionRequest
@@ -311,8 +339,14 @@ public class PaymentRefundsServiceTest {
             .refundReason("RR003")
             .feeId("100")
             .build();
-        ResponseEntity responseEntity = paymentRefundsService.updateTheRemissionAmount("RC-1234-1234-1234-1234",resubmitRefundRemissionRequest);
-    }
+        Exception exception = assertThrows(
+                InvalidRefundRequestException.class,
+                () -> paymentRefundsService.updateTheRemissionAmount("RC-1234-1234-1234-1234",resubmitRefundRemissionRequest)
+        );
+
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains("This payment is not yet eligible for refund"));
+    }*/
 
     @Test
     public  void testUpdateRemissionAmountForRefundsOtherThanRetrospectiveRemission(){
@@ -406,5 +440,185 @@ public class PaymentRefundsServiceTest {
         ResponseEntity responseEntity = paymentRefundsService.updateTheRemissionAmount("RC-1234-1234-1234-1234",resubmitRefundRemissionRequest);
         assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
         verify(remissionRepository).save(any(Remission.class));
+    }
+
+    @Test
+    public void givenNullContactDetails_whenCreateRefund_thenInvalidRefundRequestExceptionIsReceived() throws Exception {
+        Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentSuccess));
+        when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
+        InternalRefundResponse mockRefundResponse =
+                InternalRefundResponse.InternalRefundResponseWith().refundReference("RF-4321-4321-4321-4321").build();
+
+        ResponseEntity<InternalRefundResponse> responseEntity =
+                new ResponseEntity<>(mockRefundResponse, HttpStatus.CREATED);
+
+        when(authTokenGenerator.generate()).thenReturn("test-token");
+
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+                eq(InternalRefundResponse.class))).thenReturn(responseEntity);
+
+        PaymentRefundRequest paymentRefundRequest = PaymentRefundRequest.refundRequestWith()
+                .paymentReference("RC-1234-1234-1234-1234")
+                .refundReason("RESN1")
+                .contactDetails(null)
+                .build();
+
+        Exception exception = assertThrows(
+                InvalidRefundRequestException.class,
+                () -> paymentRefundsService.createRefund(paymentRefundRequest, header)
+        );
+
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains("Contact Details should not be null or empty"));
+    }
+
+    @Test
+    public void givenEmptyNotificationType_whenCreateRefund_thenInvalidRefundRequestExceptionIsReceived() throws Exception {
+        Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentSuccess));
+        when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
+        InternalRefundResponse mockRefundResponse =
+                InternalRefundResponse.InternalRefundResponseWith().refundReference("RF-4321-4321-4321-4321").build();
+
+        ResponseEntity<InternalRefundResponse> responseEntity =
+                new ResponseEntity<>(mockRefundResponse, HttpStatus.CREATED);
+
+        when(authTokenGenerator.generate()).thenReturn("test-token");
+
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+                eq(InternalRefundResponse.class))).thenReturn(responseEntity);
+
+        PaymentRefundRequest paymentRefundRequest = PaymentRefundRequest.refundRequestWith()
+                .paymentReference("RC-1234-1234-1234-1234")
+                .refundReason("RESN1")
+                .contactDetails(ContactDetails.contactDetailsWith().notificationType("").build())
+                .build();
+
+        Exception exception = assertThrows(
+                InvalidRefundRequestException.class,
+                () -> paymentRefundsService.createRefund(paymentRefundRequest, header)
+        );
+
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains("Notification Type should not be null or empty"));
+    }
+
+    @Test
+    public void givenInvalidNotificationType_whenCreateRefund_thenInvalidRefundRequestExceptionIsReceived() throws Exception {
+        Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentSuccess));
+        when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
+        InternalRefundResponse mockRefundResponse =
+                InternalRefundResponse.InternalRefundResponseWith().refundReference("RF-4321-4321-4321-4321").build();
+
+        ResponseEntity<InternalRefundResponse> responseEntity =
+                new ResponseEntity<>(mockRefundResponse, HttpStatus.CREATED);
+
+        when(authTokenGenerator.generate()).thenReturn("test-token");
+
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+                eq(InternalRefundResponse.class))).thenReturn(responseEntity);
+
+        PaymentRefundRequest paymentRefundRequest = PaymentRefundRequest.refundRequestWith()
+                .paymentReference("RC-1234-1234-1234-1234")
+                .refundReason("RESN1")
+                .contactDetails(ContactDetails.contactDetailsWith().notificationType("POST").build())
+                .build();
+
+        Exception exception = assertThrows(
+                InvalidRefundRequestException.class,
+                () -> paymentRefundsService.createRefund(paymentRefundRequest, header)
+        );
+
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains("Notification Type should be EMAIL or LETTER"));
+    }
+
+    @Test
+    public void givenEmptyEmailId_whenCreateRefund_thenInvalidRefundRequestExceptionIsReceived() throws Exception {
+        Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentSuccess));
+        when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
+        InternalRefundResponse mockRefundResponse =
+                InternalRefundResponse.InternalRefundResponseWith().refundReference("RF-4321-4321-4321-4321").build();
+
+        ResponseEntity<InternalRefundResponse> responseEntity =
+                new ResponseEntity<>(mockRefundResponse, HttpStatus.CREATED);
+
+        when(authTokenGenerator.generate()).thenReturn("test-token");
+
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+                eq(InternalRefundResponse.class))).thenReturn(responseEntity);
+
+        PaymentRefundRequest paymentRefundRequest = PaymentRefundRequest.refundRequestWith()
+                .paymentReference("RC-1234-1234-1234-1234")
+                .refundReason("RESN1")
+                .contactDetails(ContactDetails.contactDetailsWith().notificationType("EMAIL").email("").build())
+                .build();
+
+        Exception exception = assertThrows(
+                InvalidRefundRequestException.class,
+                () -> paymentRefundsService.createRefund(paymentRefundRequest, header)
+        );
+
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains("Email id should not be null or empty"));
+    }
+
+    @Test
+    public void givenInvalidEmailId_whenCreateRefund_thenInvalidRefundRequestExceptionIsReceived() throws Exception {
+        Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentSuccess));
+        when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
+        InternalRefundResponse mockRefundResponse =
+                InternalRefundResponse.InternalRefundResponseWith().refundReference("RF-4321-4321-4321-4321").build();
+
+        ResponseEntity<InternalRefundResponse> responseEntity =
+                new ResponseEntity<>(mockRefundResponse, HttpStatus.CREATED);
+
+        when(authTokenGenerator.generate()).thenReturn("test-token");
+
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+                eq(InternalRefundResponse.class))).thenReturn(responseEntity);
+
+        PaymentRefundRequest paymentRefundRequest = PaymentRefundRequest.refundRequestWith()
+                .paymentReference("RC-1234-1234-1234-1234")
+                .refundReason("RESN1")
+                .contactDetails(ContactDetails.contactDetailsWith().notificationType("EMAIL").email("sfgsd").build())
+                .build();
+
+        Exception exception = assertThrows(
+                InvalidRefundRequestException.class,
+                () -> paymentRefundsService.createRefund(paymentRefundRequest, header)
+        );
+
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains("Email id is not valid"));
+    }
+
+    @Test
+    public void givenEmptyPostalCode_whenCreateRefund_thenInvalidRefundRequestExceptionIsReceived() throws Exception {
+        Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentSuccess));
+        when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
+        InternalRefundResponse mockRefundResponse =
+                InternalRefundResponse.InternalRefundResponseWith().refundReference("RF-4321-4321-4321-4321").build();
+
+        ResponseEntity<InternalRefundResponse> responseEntity =
+                new ResponseEntity<>(mockRefundResponse, HttpStatus.CREATED);
+
+        when(authTokenGenerator.generate()).thenReturn("test-token");
+
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+                eq(InternalRefundResponse.class))).thenReturn(responseEntity);
+
+        PaymentRefundRequest paymentRefundRequest = PaymentRefundRequest.refundRequestWith()
+                .paymentReference("RC-1234-1234-1234-1234")
+                .refundReason("RESN1")
+                .contactDetails(ContactDetails.contactDetailsWith().notificationType("LETTER").postalCode("").build())
+                .build();
+
+        Exception exception = assertThrows(
+                InvalidRefundRequestException.class,
+                () -> paymentRefundsService.createRefund(paymentRefundRequest, header)
+        );
+
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains("Postal code should not be null or empty"));
     }
 }
