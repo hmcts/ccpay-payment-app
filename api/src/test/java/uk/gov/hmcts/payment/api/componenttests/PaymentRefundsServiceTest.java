@@ -53,7 +53,7 @@ public class PaymentRefundsServiceTest {
         .paymentReference("RC-1234-1234-1234-1234")
         .refundReason("RESN1")
         .contactDetails(ContactDetails.contactDetailsWith().notificationType(Notification.EMAIL.getNotification())
-            .email("a@a.a").build())
+            .email("a@a.com").build())
         .build();
     Payment mockPaymentSuccess = Payment.paymentWith().reference("RC-1234-1234-1234-1234")
         .amount(BigDecimal.valueOf(100))
@@ -65,7 +65,7 @@ public class PaymentRefundsServiceTest {
         RetrospectiveRemissionRequest.retrospectiveRemissionRequestWith()
             .remissionReference("qwerty").contactDetails(
             ContactDetails.contactDetailsWith().notificationType(Notification.EMAIL.getNotification())
-                .email("a@a.a").build()).build();
+                .email("a@a.aa").build()).build();
 
     private static final IdamUserIdResponse IDAM_USER_ID_RESPONSE =
         IdamUserIdResponse.idamUserIdResponseWith().uid("1").givenName("XX").familyName("YY").name("XX YY")

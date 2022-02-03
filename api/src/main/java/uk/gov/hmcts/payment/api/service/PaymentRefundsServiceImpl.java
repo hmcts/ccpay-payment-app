@@ -35,6 +35,7 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.function.Predicate;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -45,7 +46,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
     private static final String REFUND_ENDPOINT = "/refund";
     private static final String AUTHORISED_REFUNDS_ROLE = "payments-refund";
     private static final String AUTHORISED_REFUNDS_APPROVER_ROLE = "payments-refund-approver";
-    private static final String EMAIL_ID_REGEX = "^(.+)@(.+)$";
+    private static final Pattern EMAIL_ID_REGEX = Pattern.compile("^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}$", Pattern.CASE_INSENSITIVE);
 
     final Predicate<Payment> paymentSuccessCheck =
         payment -> payment.getPaymentStatus().getName().equals(PaymentStatus.SUCCESS.getName());
@@ -104,7 +105,9 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
     }
 
     private void validateContactDetails(ContactDetails contactDetails) {
-        Pattern pattern = Pattern.compile(EMAIL_ID_REGEX);
+        Matcher matcher = null;
+        if (null != contactDetails && null != contactDetails.getEmail())
+            matcher = EMAIL_ID_REGEX.matcher(contactDetails.getEmail());
         if (null == contactDetails ||
                 contactDetails.toString().equals("{}")) {
             throw new InvalidRefundRequestException("Contact Details should not be null or empty");
@@ -119,15 +122,15 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                 && (null == contactDetails.getEmail() ||
                 contactDetails.getEmail().isEmpty())) {
             throw new InvalidRefundRequestException("Email id should not be null or empty");
-        } else if (Notification.EMAIL.getNotification()
-                .equals(contactDetails.getNotificationType())
-                && !pattern.matcher(contactDetails.getEmail()).matches()) {
-            throw new InvalidRefundRequestException("Email id is not valid");
         } else if (Notification.LETTER.getNotification()
                 .equals(contactDetails.getNotificationType())
                 && (null == contactDetails.getPostalCode() ||
                 contactDetails.getPostalCode().isEmpty())) {
             throw new InvalidRefundRequestException("Postal code should not be null or empty");
+        } else if (Notification.EMAIL.getNotification()
+                .equals(contactDetails.getNotificationType())
+                && !matcher.find()) {
+            throw new InvalidRefundRequestException("Email id is not valid");
         }
     }
 
