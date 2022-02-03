@@ -178,6 +178,7 @@ public class RefundRequestorJourneyBulkscanPaymentFunctionalTest {
 
     @Test
     public void negative_givenAFeeInPG_WhenABulkScanPaymentNeedsMappingthenPaymentShouldBeAddedToExistingGroup_under_lag_time() throws Exception {
+
         String[] paymentMethod = {"CHEQUE", "POSTAL_ORDER", "CASH"};
         String[] lag_time = {"15", "15", "3"};
 
@@ -246,6 +247,7 @@ public class RefundRequestorJourneyBulkscanPaymentFunctionalTest {
                 ccdCaseNumber, lag_time[i]);
             System.out.println(rollbackPaymentResponse.getBody().prettyPrint());
 
+            // initiate the refund
             PaymentRefundRequest paymentRefundRequest
                 = PaymentFixture.aRefundRequest("RR001", paymentReference.get());
             Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
