@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.api.componenttests;
 
 import org.joda.time.MutableDateTime;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.annotation.DirtiesContext;
@@ -19,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 
+@Ignore
 @DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
 public class PaymentReconciliationComponentTest extends TestUtil {
     private PaymentsDataUtil paymentsDataUtil;
@@ -40,7 +42,6 @@ public class PaymentReconciliationComponentTest extends TestUtil {
 
     @Test
     public void testFindPaymetsBetweenGivenValidDates() throws Exception {
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
         String paymentRef1 = UUID.randomUUID().toString();
         PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.save(paymentFeeLinkWith().paymentReference(paymentRef1)
             .payments(paymentsDataUtil.getCardPaymentsData())
