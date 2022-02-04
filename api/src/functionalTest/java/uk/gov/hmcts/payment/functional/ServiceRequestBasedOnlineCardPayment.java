@@ -200,7 +200,7 @@ public class ServiceRequestBasedOnlineCardPayment {
     }
 
     @Test
-    @Ignore("Statuses are inconsistent...")
+//    @Ignore("Statuses are inconsistent... UPDATE: FIXED")
     public void positive_full_card_payment_already_payment_in_progress() throws Exception {
 
         ServiceRequestDto serviceRequestDto
@@ -227,7 +227,7 @@ public class ServiceRequestBasedOnlineCardPayment {
             createOnlineCardPaymentResponse.getBody().as(OnlineCardPaymentResponse.class);
         final String paymentReference = onlineCardPaymentResponse.getPaymentReference();
         assertThat(paymentReference).matches(PAYMENTS_REGEX_PATTERN);
-        assertThat(onlineCardPaymentResponse.getStatus()).isEqualTo("created");
+        assertThat(onlineCardPaymentResponse.getStatus()).isEqualTo("Initiated");
         assertThat(onlineCardPaymentResponse.getNextUrl()).startsWith("https://www.payments.service.gov.uk/secure/");
         assertThat(onlineCardPaymentResponse.getExternalReference()).isNotNull().isNotBlank();
 
@@ -246,7 +246,7 @@ public class ServiceRequestBasedOnlineCardPayment {
             serviceRequestTestService.getAnOnlineCardPaymentForAnInternalReference(SERVICE_TOKEN,
                 paymentDto.getInternalReference());
         PaymentDto paymentDtoForOnlineCardPaymentResponse = getOnlineCardPaymentResponse.getBody().as(PaymentDto.class);
-        assertThat(paymentDtoForOnlineCardPaymentResponse.getStatus()).isEqualTo("created");
+        assertThat(paymentDtoForOnlineCardPaymentResponse.getStatus()).isEqualTo("Initiated");
 
     }
 

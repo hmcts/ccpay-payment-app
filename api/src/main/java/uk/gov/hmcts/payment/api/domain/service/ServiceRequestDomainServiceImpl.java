@@ -45,6 +45,7 @@ import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.*;
 import uk.gov.hmcts.payment.api.servicebus.TopicClientProxy;
 import uk.gov.hmcts.payment.api.servicebus.TopicClientService;
+import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentGroupNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoAmountDue;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoMatchingAmount;
@@ -210,7 +211,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
             .externalReference(paymentEntity.getExternalReference())
             .nextUrl(paymentEntity.getNextUrl())
             .paymentReference(paymentEntity.getReference())
-            .status(paymentEntity.getPaymentStatus().getName())
+            .status(PayStatusToPayHubStatus.valueOf(paymentEntity.getPaymentStatus().getName()).getMappedStatus())
             .build();
     }
 
