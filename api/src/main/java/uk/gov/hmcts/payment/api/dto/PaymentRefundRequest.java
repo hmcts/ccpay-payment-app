@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import uk.gov.hmcts.payment.api.model.ContactDetails;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
@@ -31,4 +32,6 @@ public class PaymentRefundRequest {
     @NotEmpty(message = "Refund Reason cannot be blank")
     private String refundReason;
 
+    @NotNull(message = "Contact Details cannot be null")
+    private ContactDetails contactDetails;
 }
