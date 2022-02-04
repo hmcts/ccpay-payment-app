@@ -91,10 +91,10 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
                 idamService.createUserWithSearchScope(CMC_CASE_WORKER_GROUP, "payments-refund")
                     .getAuthorisationToken();
 
-            System.out.println("The value of the Requestor Role user Token : "+USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE);
+            System.out.println("The value of the Requestor Role user Token : " + USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE);
 
             SERVICE_TOKEN_PAYMENT = s2sTokenService.getS2sToken("ccpay_bubble", testProps.payBubbleS2SSecret);
-            System.out.println("The value of the Service Token For Payment : "+SERVICE_TOKEN_PAYMENT);
+            System.out.println("The value of the Service Token For Payment : " + SERVICE_TOKEN_PAYMENT);
             TOKENS_INITIALIZED = true;
         }
     }
@@ -138,7 +138,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         assertThat(groupResponsefromPost.getPaymentGroups().get(0).getPayments().get(0).getRefundEnable()).isFalse();
 
         Response rollbackPaymentResponse = paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
-            accountPaymentRequest.getCcdCaseNumber(),"5");
+            accountPaymentRequest.getCcdCaseNumber(), "5");
         System.out.println(rollbackPaymentResponse.getBody().prettyPrint());
 
         paymentGroupResponse = paymentTestService.getPaymentGroupsForCase(USER_TOKEN_PAYMENTS_REFUND_ROLE,
@@ -146,7 +146,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         groupResponsefromPost = paymentGroupResponse.getBody().as(PaymentGroupResponse.class);
         assertThat(groupResponsefromPost.getPaymentGroups().get(0).getPayments().get(0).getRefundEnable()).isTrue();
 
-       PaymentRefundRequest paymentRefundRequest
+        PaymentRefundRequest paymentRefundRequest
             = PaymentFixture.aRefundRequest("RR001", paymentReference);
         Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
@@ -175,7 +175,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success"));
         paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
-            ccdCaseNumber,"5");
+            ccdCaseNumber, "5");
 
         // get the payment by ccdCaseNumber
         PaymentsResponse paymentsResponse = paymentTestService
@@ -216,7 +216,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success"));
         paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
-            accountPaymentRequest.getCcdCaseNumber(),"5");
+            accountPaymentRequest.getCcdCaseNumber(), "5");
 
         // get the payments by ccdCaseNumber
         PaymentsResponse paymentsResponse = paymentTestService
@@ -267,7 +267,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest1).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success"));
         paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
-            ccdCaseNumber1,"5");
+            ccdCaseNumber1, "5");
 
         CreditAccountPaymentRequest accountPaymentRequest2 = PaymentFixture
             .aPbaPaymentRequestForProbateWithFeeCode("550.00", "FEE0002",
@@ -278,7 +278,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest2).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success"));
         paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
-            ccdCaseNumber2,"5");
+            ccdCaseNumber2, "5");
 
         // get the payments by ccdCaseNumbers
         PaymentsResponse paymentsResponse = paymentTestService
@@ -324,7 +324,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success"));
         paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
-            ccdCaseNumber,"5");
+            ccdCaseNumber, "5");
 
 
         // get the payment by ccdCaseNumber
@@ -369,7 +369,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success"));
         paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
-            ccdCaseNumber,"5");
+            ccdCaseNumber, "5");
 
         // get payment groups
         Response casePaymentGroupResponse
@@ -414,7 +414,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success"));
         paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
-            ccdCaseNumber,"5");
+            ccdCaseNumber, "5");
 
         // get payment groups
         Response casePaymentGroupResponse
@@ -456,7 +456,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success"));
         paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
-            ccdCaseNumber,"5");
+            ccdCaseNumber, "5");
 
         // get payment groups
         Response casePaymentGroupResponse
@@ -508,7 +508,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success"));
         paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
-            ccdCaseNumber,"5");
+            ccdCaseNumber, "5");
 
         // get payment groups
         Response casePaymentGroupResponse
@@ -561,7 +561,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest1).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success"));
         paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
-            ccdCaseNumber1,"5");
+            ccdCaseNumber1, "5");
 
         CreditAccountPaymentRequest accountPaymentRequest2 = PaymentFixture
             .aPbaPaymentRequestForProbateWithFeeCode("550.00", "FEE0002",
@@ -572,7 +572,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest2).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success"));
         paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
-            ccdCaseNumber2,"5");
+            ccdCaseNumber2, "5");
 
         // get payment groups
         Response casePaymentGroupResponse
@@ -617,7 +617,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success"));
         paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
-            ccdCaseNumber,"5");
+            ccdCaseNumber, "5");
 
         // get payment groups
         Response casePaymentGroupResponse
@@ -653,7 +653,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success"));
         paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
-            ccdCaseNumber,"5");
+            ccdCaseNumber, "5");
 
         // get payment groups
         Response casePaymentGroupResponse
@@ -717,7 +717,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success"));
         paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
-            ccdCaseNumber,"5");
+            ccdCaseNumber, "5");
 
         // get payment group
         Response casePaymentGroupResponse
@@ -789,7 +789,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success"));
         paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
-            ccdCaseNumber,"5");
+            ccdCaseNumber, "5");
 
         // get payment groups
         Response casePaymentGroupResponse
@@ -820,7 +820,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         System.out.println("The value of the responseBody : " + refundResponse.getBody().prettyPrint());
 
         RetrospectiveRemissionRequest.retrospectiveRemissionRequestWith().remissionReference(remissionReference).build();
-        System.out.println("The value of the responseBody : "+refundResponse.getBody().prettyPrint());
+        System.out.println("The value of the responseBody : " + refundResponse.getBody().prettyPrint());
 
         assertThat(refundResponse.statusCode()).isEqualTo(HttpStatus.CREATED.value());
         RefundResponse refundResponseFromPost = refundResponse.getBody().as(RefundResponse.class);
@@ -1018,7 +1018,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).
             then().statusCode(CREATED.value()).body("status", equalTo("Success"));
         paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
-            ccdCaseNumber,"5");
+            ccdCaseNumber, "5");
 
         // get the payment by ccdCaseNumber
         PaymentsResponse paymentsResponse = paymentTestService
@@ -1047,7 +1047,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
     }
 
     @Test
-    public void negative_issue_refunds_for_a_pba_payment_with_invalid_email_in_contact_details() {
+    public void negative_issue_refunds_for_a_pba_payment_notification_type_invalid_details() {
 
         // create a PBA payment
         String accountNumber = testProps.existingAccountNumber;
@@ -1060,7 +1060,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).
             then().statusCode(CREATED.value()).body("status", equalTo("Success"));
         paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
-            ccdCaseNumber,"5");
+            ccdCaseNumber, "5");
 
         // get the payment by ccdCaseNumber
         PaymentsResponse paymentsResponse = paymentTestService
@@ -1078,8 +1078,8 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         // create a refund request on payment and initiate the refund
         String paymentReference = paymentDtoOptional.get().getPaymentReference();
 
+        // Validate notification type EMAIL requirements
         List<String> invalidEmailList = Arrays.asList("", "persongmail.com", "person@gmailcom");
-
         for (int i = 0; i < invalidEmailList.size(); i++) {
 
             PaymentRefundRequest paymentRefundRequest
@@ -1091,6 +1091,16 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
             assertThat(refundResponse.getStatusCode()).isEqualTo(BAD_REQUEST.value());
         }
 
+        // validate notification type for LETTER has to have postal code populated
+        PaymentRefundRequest paymentRefundRequest
+            = aRefundRequestWithEmptyPostalCodeInContactDetails("RR001", paymentReference, "");
+        Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            SERVICE_TOKEN_PAYMENT,
+            paymentRefundRequest);
+
+        assertThat(refundResponse.getStatusCode()).isEqualTo(BAD_REQUEST.value());
+
+
     }
 
     private static final RetroRemissionRequest getRetroRemissionRequest(final String remissionAmount) {
@@ -1101,7 +1111,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
     }
 
     public static PaymentRefundRequest aRefundRequestWithNullContactDetails(final String refundReason,
-                                                      final String paymentReference) {
+                                                                            final String paymentReference) {
         return PaymentRefundRequest
             .refundRequestWith().paymentReference(paymentReference)
             .refundReason(refundReason).build();
@@ -1110,18 +1120,36 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
 
 
     public static PaymentRefundRequest aRefundRequestWithInvalidEmailInContactDetails(final String refundReason,
-                                                      final String paymentReference, String email) {
+                                                                                      final String paymentReference, String email) {
         return PaymentRefundRequest
             .refundRequestWith().paymentReference(paymentReference)
             .refundReason(refundReason)
             .contactDetails(ContactDetails.contactDetailsWith().
-                addressLine("High Street 112")
-                .country("UK")
-                .county("Londonshire")
-                .city("London")
-                .postalCode("P1 1PO")
+                addressLine("")
+                .country("")
+                .county("")
+                .city("")
+                .postalCode("")
                 .email(email)
                 .notificationType("EMAIL")
+                .build())
+            .build();
+
+    }
+
+    public static PaymentRefundRequest aRefundRequestWithEmptyPostalCodeInContactDetails(final String refundReason,
+                                                                                            final String paymentReference, String postalCode) {
+        return PaymentRefundRequest
+            .refundRequestWith().paymentReference(paymentReference)
+            .refundReason(refundReason)
+            .contactDetails(ContactDetails.contactDetailsWith().
+                addressLine("")
+                .country("")
+                .county("")
+                .city("")
+                .postalCode(postalCode)
+                .email("")
+                .notificationType("LETTER")
                 .build())
             .build();
 
