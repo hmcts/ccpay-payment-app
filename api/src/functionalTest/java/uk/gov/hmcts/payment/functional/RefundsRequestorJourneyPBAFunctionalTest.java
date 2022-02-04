@@ -1047,7 +1047,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
     }
 
     @Test
-    public void negative_issue_refunds_for_a_pba_payment_with_invalid_email_in_contact_details() {
+    public void negative_issue_refunds_for_a_pba_payment_notification_type_invalid_details() {
 
         // create a PBA payment
         String accountNumber = testProps.existingAccountNumber;
