@@ -18,21 +18,18 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.dto.PBAResponse;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
-import uk.gov.hmcts.payment.api.dto.UserIdentityDataDto;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.IdamService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.NoServiceFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @RestController
@@ -91,15 +88,15 @@ public class PBAController {
     @ApiOperation(value = "Get PBA account details from ref data", notes = "Get list of PBA account details from ref data")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "PBA accounts retrieved"),
+        @ApiResponse(code = 204, message = "No PBA Accounts found."),
         @ApiResponse(code = 401, message = "Unauthorized"),
-        @ApiResponse(code = 403, message = "Forbidden"),
-        @ApiResponse(code = 404, message = "No PBA Accounts found.")
+        @ApiResponse(code = 403, message = "Forbidden")
     })
     @GetMapping(value = "/pba-accounts")
     @PaymentExternalAPI
     public ResponseEntity<PBAResponse> retrievePBADetails(@RequestHeader(required = false) MultiValueMap<String, String> headers) {
 
-        String emailIdFromIdam = idamService.getUserId(headers);
+        String emailIdFromIdam = idamService.getUserDetails(headers);
 
         MultiValueMap<String, String> headerMultiValueMapForRefData = generateHeaders(headers, emailIdFromIdam);
 
@@ -115,9 +112,9 @@ public class PBAController {
                 throw new AccountServiceUnavailableException(httpClientErrorException.getMessage());
             }
         }
-        catch (Exception exception) {
-            throw new PaymentException(exception.getMessage());
-        }
+//        catch (Exception exception) {
+//            throw new PaymentException(exception.getMessage());
+//        }
     }
 
     private MultiValueMap<String, String> generateHeaders(MultiValueMap<String, String> headers, String emailId) {
@@ -161,9 +158,9 @@ public class PBAController {
             );
     }
 
-    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @ExceptionHandler(AccountNotFoundException.class)
-    public String return404(AccountNotFoundException ex) {
+    public String return204(AccountNotFoundException ex) {
         LOG.error("No PBA Accounts found:", ex);
         return ex.getMessage();
     }
