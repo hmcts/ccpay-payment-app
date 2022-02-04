@@ -13,6 +13,7 @@ import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.dto.*;
+import uk.gov.hmcts.payment.api.model.ContactDetails;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
 import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
 import uk.gov.hmcts.payment.functional.fixture.PaymentFixture;
@@ -23,6 +24,8 @@ import uk.gov.hmcts.payment.functional.service.PaymentTestService;
 
 import javax.inject.Inject;
 import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
@@ -1043,6 +1046,53 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
 
     }
 
+    @Test
+    public void negative_issue_refunds_for_a_pba_payment_with_invalid_email_in_contact_details() {
+
+        // create a PBA payment
+        String accountNumber = testProps.existingAccountNumber;
+        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
+            .aPbaPaymentRequestForProbate("90.00",
+                "PROBATE", accountNumber);
+
+        String ccdCaseNumber = accountPaymentRequest.getCcdCaseNumber();
+
+        paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).
+            then().statusCode(CREATED.value()).body("status", equalTo("Success"));
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
+            ccdCaseNumber,"5");
+
+        // get the payment by ccdCaseNumber
+        PaymentsResponse paymentsResponse = paymentTestService
+            .getPbaPaymentsByCCDCaseNumber(SERVICE_TOKEN, ccdCaseNumber)
+            .then()
+            .statusCode(OK.value()).extract().as(PaymentsResponse.class);
+        Optional<PaymentDto> paymentDtoOptional
+            = paymentsResponse.getPayments().stream().findFirst();
+
+        assertThat(paymentDtoOptional.get().getAccountNumber()).isEqualTo(accountNumber);
+        assertThat(paymentDtoOptional.get().getAmount()).isEqualTo(new BigDecimal("90.00"));
+        assertThat(paymentDtoOptional.get().getCcdCaseNumber()).isEqualTo(ccdCaseNumber);
+        System.out.println("The value of the CCD Case Number " + ccdCaseNumber);
+
+        // create a refund request on payment and initiate the refund
+        String paymentReference = paymentDtoOptional.get().getPaymentReference();
+
+        List<String> invalidEmailList = Arrays.asList("", "persongmail.com", "person@gmailcom");
+
+        for (int i = 0; i < invalidEmailList.size(); i++) {
+
+            PaymentRefundRequest paymentRefundRequest
+                = aRefundRequestWithInvalidEmailInContactDetails("RR001", paymentReference, invalidEmailList.get(i));
+            Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+                SERVICE_TOKEN_PAYMENT,
+                paymentRefundRequest);
+
+            assertThat(refundResponse.getStatusCode()).isEqualTo(BAD_REQUEST.value());
+        }
+
+    }
+
     private static final RetroRemissionRequest getRetroRemissionRequest(final String remissionAmount) {
         return RetroRemissionRequest.createRetroRemissionRequestWith()
             .hwfAmount(new BigDecimal(remissionAmount))
@@ -1057,4 +1107,24 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
             .refundReason(refundReason).build();
 
     }
+
+
+    public static PaymentRefundRequest aRefundRequestWithInvalidEmailInContactDetails(final String refundReason,
+                                                      final String paymentReference, String email) {
+        return PaymentRefundRequest
+            .refundRequestWith().paymentReference(paymentReference)
+            .refundReason(refundReason)
+            .contactDetails(ContactDetails.contactDetailsWith().
+                addressLine("High Street 112")
+                .country("UK")
+                .county("Londonshire")
+                .city("London")
+                .postalCode("P1 1PO")
+                .email(email)
+                .notificationType("EMAIL")
+                .build())
+            .build();
+
+    }
 }
+

@@ -1,6 +1,8 @@
 package uk.gov.hmcts.payment.api.service;
 
 import java.time.temporal.ChronoUnit;
+
+import org.apache.commons.lang3.EnumUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +19,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.dto.InternalRefundResponse;
+import uk.gov.hmcts.payment.api.dto.Notification;
 import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
 import uk.gov.hmcts.payment.api.dto.RefundRequestDto;
 import uk.gov.hmcts.payment.api.dto.RefundResponse;
@@ -34,6 +37,8 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.function.Predicate;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -43,6 +48,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
     private static final String REFUND_ENDPOINT = "/refund";
     private static final String AUTHORISED_REFUNDS_ROLE = "payments-refund";
     private static final String AUTHORISED_REFUNDS_APPROVER_ROLE = "payments-refund-approver";
+    private static final Pattern EMAIL_ID_REGEX = Pattern.compile("^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}$", Pattern.CASE_INSENSITIVE);
 
     final Predicate<Payment> paymentSuccessCheck =
         payment -> payment.getPaymentStatus().getName().equals(PaymentStatus.SUCCESS.getName());
@@ -76,6 +82,8 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
     public ResponseEntity<RefundResponse> createRefund(PaymentRefundRequest paymentRefundRequest, MultiValueMap<String, String> headers) {
 
+        validateContactDetails(paymentRefundRequest.getContactDetails());
+
         Payment payment = paymentRepository.findByReference(paymentRefundRequest.getPaymentReference()).orElseThrow(PaymentNotFoundException::new);
 
         validateRefund(paymentRefundRequest,payment.getPaymentLink().getFees());
@@ -99,9 +107,42 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
     }
 
+    private void validateContactDetails(ContactDetails contactDetails) {
+        Matcher matcher = null;
+        if (null != contactDetails && null != contactDetails.getEmail())
+            matcher = EMAIL_ID_REGEX.matcher(contactDetails.getEmail());
+        if (null == contactDetails ||
+                contactDetails.toString().equals("{}")) {
+            throw new InvalidRefundRequestException("Contact Details should not be null or empty");
+        } else if (null == contactDetails.getNotificationType() ||
+                contactDetails.getNotificationType().isEmpty()) {
+            throw new InvalidRefundRequestException("Notification Type should not be null or empty");
+        } else if (!EnumUtils
+                .isValidEnum(Notification.class, contactDetails.getNotificationType())) {
+            throw new InvalidRefundRequestException("Notification Type should be EMAIL or LETTER");
+        } else if (Notification.EMAIL.getNotification()
+                .equals(contactDetails.getNotificationType())
+                && (null == contactDetails.getEmail() ||
+                contactDetails.getEmail().isEmpty())) {
+            throw new InvalidRefundRequestException("Email id should not be null or empty");
+        } else if (Notification.LETTER.getNotification()
+                .equals(contactDetails.getNotificationType())
+                && (null == contactDetails.getPostalCode() ||
+                contactDetails.getPostalCode().isEmpty())) {
+            throw new InvalidRefundRequestException("Postal code should not be null or empty");
+        } else if (Notification.EMAIL.getNotification()
+                .equals(contactDetails.getNotificationType())
+                && null != matcher && !matcher.find()) {
+            throw new InvalidRefundRequestException("Email id is not valid");
+        }
+    }
+
     @Override
     public ResponseEntity<RefundResponse> createAndValidateRetrospectiveRemissionRequest(
             RetrospectiveRemissionRequest retrospectiveRemissionRequest, MultiValueMap<String, String> headers) {
+
+        validateContactDetails(retrospectiveRemissionRequest.getContactDetails());
+
         Optional<Remission> remission = remissionRepository.findByRemissionReference(retrospectiveRemissionRequest.getRemissionReference());
         PaymentFee paymentFee;
         Integer paymentId;
