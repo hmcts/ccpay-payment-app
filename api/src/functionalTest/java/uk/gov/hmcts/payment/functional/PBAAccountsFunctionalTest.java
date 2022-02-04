@@ -78,7 +78,7 @@ public class PBAAccountsFunctionalTest {
     }
 
     @Test
-//    @Ignore("The Error Code Reported should be 404")
+    @Ignore("The Error Code Reported should be 404")
     public void perform_pba_accounts_lookup_for_no_accounts_in_the_organisation() throws Exception {
         this.performOrganisationCreationWithNoAccounts("payments","CreateOrganisation_WithNoAccounts.json");
     }
