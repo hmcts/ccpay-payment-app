@@ -764,6 +764,7 @@ public class RefundsRequestorJourneyFunctionalTest {
     }
 
     @Test
+    @Ignore("This test is Ignored as the liberataMock profile would be switched off in AAT")
     public void negative_add_remission_and_submit_a_refund_for_a_pba_payment_more_than_the_account_limit() {
 
         // Create a PBA payment
@@ -773,6 +774,7 @@ public class RefundsRequestorJourneyFunctionalTest {
     }
 
     @Test
+    @Ignore("This test is Ignored as the liberataMock profile would be switched off in AAT")
     public void negative_add_remission_and_submit_a_refund_for_a_pba_payment_with_account_deleted() {
 
         // Create a PBA payment
@@ -782,6 +784,7 @@ public class RefundsRequestorJourneyFunctionalTest {
     }
 
     @Test
+    @Ignore("This test is Ignored as the liberataMock profile would be switched off in AAT")
     public void negative_add_remission_and_submit_a_refund_for_a_pba_payment_with_account_on_hold() {
 
         // Create a PBA payment
