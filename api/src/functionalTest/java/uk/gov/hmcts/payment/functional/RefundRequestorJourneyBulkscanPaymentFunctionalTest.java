@@ -160,7 +160,7 @@ public class RefundRequestorJourneyBulkscanPaymentFunctionalTest {
             System.out.println(rollbackPaymentResponse.getBody().prettyPrint());
 
             PaymentRefundRequest paymentRefundRequest
-                = PaymentFixture.aRefundRequest("RR001", paymentReference.get());
+                = PaymentFixture.aRefundRequest("RR001", paymentReference.get(), "100", "450");
             Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
                 SERVICE_TOKEN_PAYMENT,
                 paymentRefundRequest);
@@ -249,7 +249,7 @@ public class RefundRequestorJourneyBulkscanPaymentFunctionalTest {
 
             // initiate the refund
             PaymentRefundRequest paymentRefundRequest
-                = PaymentFixture.aRefundRequest("RR001", paymentReference.get());
+                = PaymentFixture.aRefundRequest("RR001", paymentReference.get(), "100", "450");
             Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
                 SERVICE_TOKEN_PAYMENT,
                 paymentRefundRequest);

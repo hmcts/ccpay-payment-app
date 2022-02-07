@@ -400,10 +400,22 @@ public class PaymentFixture {
     }
 
     public static PaymentRefundRequest aRefundRequest(final String refundReason,
-                                                      final String paymentReference) {
+                                                      final String paymentReference, final String refundAmount, final String feeAmount) {
         return PaymentRefundRequest
             .refundRequestWith().paymentReference(paymentReference)
             .refundReason(refundReason)
+            .refundAmount(new BigDecimal(refundAmount))
+            .fees(Lists.newArrayList(
+                FeeDto.feeDtoWith()
+                    .apportionAmount(BigDecimal.valueOf(0))
+                    .apportionedPayment(BigDecimal.valueOf(0))
+                    .calculatedAmount(new BigDecimal(feeAmount))
+                    .code("FEE0001")
+                    .id(0)
+                    .version("1")
+                    .volume(1)
+                    .build())
+            )
             .contactDetails(ContactDetails.contactDetailsWith().
                 addressLine("High Street 112")
                 .country("UK")
