@@ -3,6 +3,7 @@ package uk.gov.hmcts.payment.functional;
 import io.restassured.response.Response;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -204,6 +205,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
     }
 
     @Test
+    @Ignore
     public void negative_duplicate_issue_refunds_for_a_pba_payment() {
         // create a PBA payment
         String accountNumber = testProps.existingAccountNumber;
@@ -444,6 +446,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
     }
 
     @Test
+    @Ignore
     public void negative_add_remission_and_add_refund_and_a_duplicate_refund_for_a_pba_payment() {
         // Create a PBA payment
         String accountNumber = testProps.existingAccountNumber;
@@ -705,7 +708,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
     }
 
     @Test
-    public void negative_add_remission_add_refund_and_then_initiate_a_refund_for_a_pba_payment() {
+    public void positive_add_remission_add_refund_and_then_initiate_a_refund_for_a_pba_payment() {
         // create a PBA payment
         String accountNumber = testProps.existingAccountNumber;
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
@@ -771,11 +774,10 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
 
         System.out.println(refundInitiatedResponse.getStatusLine());
         System.out.println(refundInitiatedResponse.getBody().prettyPrint());
-        assertThat(refundInitiatedResponse.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
-        // WHAT IS THE ACCEPTANCE CRITERIA IN THIS TEST? ASSERT THE MESSAGE HERE
+        assertThat(refundInitiatedResponse.getStatusCode()).isEqualTo(CREATED.value());
+
     }
 
-    // WHAT IS THE DIFFERENCE COMPARED TO ABOVE SCENARIO OTHER THAN HAVING 2_FEE. IS THIS A POSITIVE OR NEGATIVE CASE?
     @Test
     public void positive_create_2_fee_payment_add_remission_add_refund_and_then_initiate_a_refund_for_a_pba_payment() {
         String accountNumber = testProps.existingAccountNumber;
@@ -828,8 +830,6 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         assertThat(refundResponseFromPost.getRefundReference()).startsWith("RF-");
 
 
-        // DON'T WE NEED THE BELOW BLOCK IN THIS SCENARIO ???
-        // Get pba payments to initiate a refund for
         PaymentsResponse paymentsResponse = paymentTestService
             .getPbaPaymentsByCCDCaseNumber(SERVICE_TOKEN, ccdCaseNumber)
             .then()
@@ -851,8 +851,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
 
         System.out.println(refundInitiatedResponse.getStatusLine());
         System.out.println(refundInitiatedResponse.getBody().prettyPrint());
-        assertThat(refundInitiatedResponse.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
-        // WHAT IS THE ACCEPTANCE CRITERIA IN THIS TEST? ASSERT THE MESSAGE HERE
+        assertThat(refundInitiatedResponse.getStatusCode()).isEqualTo(CREATED.value());
 
     }
 
