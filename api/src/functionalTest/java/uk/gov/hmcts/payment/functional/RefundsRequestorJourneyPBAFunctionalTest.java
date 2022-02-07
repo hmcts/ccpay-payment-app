@@ -1098,7 +1098,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
             SERVICE_TOKEN_PAYMENT,
             paymentRefundRequest);
 
-        assertThat(refundResponse.getStatusCode()).isEqualTo(BAD_REQUEST.value());
+        assertThat(refundResponse.getStatusCode()).isEqualTo(UNPROCESSABLE_ENTITY.value());
 
 
     }
