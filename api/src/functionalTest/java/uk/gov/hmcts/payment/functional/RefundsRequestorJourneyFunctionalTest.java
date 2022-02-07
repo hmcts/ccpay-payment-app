@@ -705,17 +705,20 @@ public class RefundsRequestorJourneyFunctionalTest {
     }
 
     @Test
+    @Ignore("This test is Ignored as the liberataMock profile would be switched off in AAT")
     public void positive_issue_refunds_for_a_failed_pba_payment() {
         issue_refunds_for_a_failed_payment("350000.00", "PBAFUNC12345",
             "Payment request failed. PBA account CAERPHILLY COUNTY BOROUGH COUNCIL have insufficient funds available");
     }
 
     @Test
+    @Ignore("This test is Ignored as the liberataMock profile would be switched off in AAT")
     public void positive_issue_refunds_for_a_pba_account_deleted_payment() {
         issue_refunds_for_a_failed_payment("100.00", "PBAFUNC12350", "Your account is deleted");
     }
 
     @Test
+    @Ignore("This test is Ignored as the liberataMock profile would be switched off in AAT")
     public void positive_issue_refunds_for_a_pba_account_on_hold_payment() {
         issue_refunds_for_a_failed_payment("100.00", "PBAFUNC12355", "Your account is on hold");
     }
