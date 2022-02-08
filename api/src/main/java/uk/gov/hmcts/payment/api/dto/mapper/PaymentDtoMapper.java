@@ -206,6 +206,7 @@ public class PaymentDtoMapper {
     public PaymentDto toRetrieveCardPaymentResponseDtoWithoutExtReference(PaymentFeeLink paymentFeeLink) {
         LOG.info("paymentFeeLink.getPayments() {}",paymentFeeLink.getPayments());
         Payment payment = paymentFeeLink.getPayments().get(0);
+        LOG.info("payment status from gov uk - {}",payment.getPaymentStatus().getName());
         return PaymentDto.payment2DtoWith()
             .reference(payment.getReference())
             .caseReference(payment.getCaseReference())
