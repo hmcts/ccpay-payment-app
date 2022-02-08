@@ -82,7 +82,6 @@ public class ServiceRequestBasedOnlineCardPayment {
     }
 
     @Test
-    //@Ignore("Test Build")
     public void positive_create_service_request_negative_full_card_payment_user_hmcts() throws Exception {
 
         ServiceRequestDto serviceRequestDto
@@ -131,7 +130,7 @@ public class ServiceRequestBasedOnlineCardPayment {
     }
 
     @Test
-    @Ignore("Statuses are inconsistent...")
+    @Ignore("The Last Payment Reference is not coming back properly....")
     public void negative_full_card_payment_already_payment_in_progress() throws Exception {
 
         ServiceRequestDto serviceRequestDto
@@ -158,7 +157,7 @@ public class ServiceRequestBasedOnlineCardPayment {
             createOnlineCardPaymentResponse.getBody().as(OnlineCardPaymentResponse.class);
         final String initialPaymentReference = onlineCardPaymentResponse.getPaymentReference();
         assertThat(initialPaymentReference).matches(PAYMENTS_REGEX_PATTERN);
-        assertThat(onlineCardPaymentResponse.getStatus()).isEqualTo("created");
+        assertThat(onlineCardPaymentResponse.getStatus()).isEqualTo("Initiated");
 
 
         OnlineCardPaymentRequest onlineCardPaymentRequestAgain = OnlineCardPaymentRequest.onlineCardPaymentRequestWith()
@@ -195,12 +194,11 @@ public class ServiceRequestBasedOnlineCardPayment {
             serviceRequestTestService.getAnOnlineCardPaymentForAnInternalReference(SERVICE_TOKEN,
                 paymentDto.getInternalReference());
         PaymentDto paymentDtoForOnlineCardPaymentResponse = getOnlineCardPaymentResponse.getBody().as(PaymentDto.class);
-        assertThat(paymentDtoForOnlineCardPaymentResponse.getStatus()).isEqualTo("created");
+        assertThat(paymentDtoForOnlineCardPaymentResponse.getStatus()).isEqualTo("Initiated");
         assertThat(paymentDtoForOnlineCardPaymentResponse.getPaymentReference()).isEqualTo(laterPaymentReference);
     }
 
     @Test
-//    @Ignore("Statuses are inconsistent... UPDATE: FIXED")
     public void positive_full_card_payment_already_payment_in_progress() throws Exception {
 
         ServiceRequestDto serviceRequestDto
@@ -251,7 +249,6 @@ public class ServiceRequestBasedOnlineCardPayment {
     }
 
     @Test
-    //@Ignore("Right Error Message is not provided. UPDATE: FIXED")
     public void negative_get_online_card_payment_for_invalid_internal_reference() throws Exception {
 
         Response getOnlineCardPaymentResponse =
