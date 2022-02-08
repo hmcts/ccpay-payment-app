@@ -112,9 +112,9 @@ public class PBAController {
                 throw new AccountServiceUnavailableException(httpClientErrorException.getMessage());
             }
         }
-        catch (Exception exception) {
-            throw new PaymentException(exception.getMessage());
-        }
+//         catch (Exception exception) {
+//             throw new PaymentException(exception.getMessage());
+//         }
     }
 
     private MultiValueMap<String, String> generateHeaders(MultiValueMap<String, String> headers, String emailId) {
