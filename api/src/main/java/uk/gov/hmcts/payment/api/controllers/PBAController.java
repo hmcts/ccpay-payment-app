@@ -82,6 +82,10 @@ public class PBAController {
         List<PaymentDto> paymentDto = paymentFeeLinks.stream()
             .map(paymentDtoMapper::toReconciliationResponseDto).collect(Collectors.toList());
 
+        if (paymentDto.isEmpty()){
+            throw new AccountNotFoundException("No PBA Accounts found");
+        }
+
         return new PaymentsResponse(paymentDto);
     }
 
@@ -158,12 +162,13 @@ public class PBAController {
             );
     }
 
-    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @ExceptionHandler(AccountNotFoundException.class)
-    public String return404(AccountNotFoundException ex) {
+    public String return204(AccountNotFoundException ex) {
         LOG.error("No PBA Accounts found:", ex);
         return ex.getMessage();
     }
+
 
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler( AccountServiceUnavailableException.class)
