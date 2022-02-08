@@ -461,6 +461,11 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
 
             topicClientCPO = new TopicClientProxy(connectionString, topic);
             LOG.info("sending message started..");
+            LOG.info("Message sent: {}", msg);
+            LOG.info("message content Action: {}",serviceRequestCpoDto.getAction() );
+            LOG.info("message content case id: {}",serviceRequestCpoDto.getCase_id() );
+            LOG.info("message content order reference: {}",serviceRequestCpoDto.getOrder_reference() );
+            LOG.info("message content res party: {}",serviceRequestCpoDto.getResponsible_party() );
 
             if(msg!=null && topicClientCPO!=null){
                 msg.setContentType(MSGCONTENTTYPE);
@@ -468,11 +473,6 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
                 msg.setProperties(Collections.singletonMap("serviceCallbackUrl",
                     callBackUrl+"/case-payment-orders"));
                 topicClientCPO.send(msg);
-                LOG.info("Message sent: {}", msg);
-                LOG.info("message content Action: {}",serviceRequestCpoDto.getAction() );
-                LOG.info("message content case id: {}",serviceRequestCpoDto.getCase_id() );
-                LOG.info("message content order reference: {}",serviceRequestCpoDto.getOrder_reference() );
-                LOG.info("message content res party: {}",serviceRequestCpoDto.getResponsible_party() );
                 topicClientCPO.close();
             }
         } catch (Exception e) {
