@@ -259,11 +259,13 @@ public class ServiceRequestController {
         LOG.info("paymentFeeLink getEnterpriseServiceName {}",paymentFeeLink.getEnterpriseServiceName());
         LOG.info("paymentFeeLink getCcdCaseNumber {}",paymentFeeLink.getCcdCaseNumber());
         PaymentFeeLink  retrieveDelegatingPaymentService = delegatingPaymentService.retrieve(paymentFeeLink, payment.getReference());
+        ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
         Payment paymentNew = paymentService.findPayment(internalReference);
+        String jsonPaymentNew = ow.writeValueAsString(paymentNew);
+        LOG.info("json paymentNew",jsonPaymentNew);
         String serviceRequestReference = paymentFeeLink.getPaymentReference();
         PaymentStatusDto paymentStatusDto = paymentDtoMapper.toPaymentStatusDto(serviceRequestReference, "", paymentNew);
         serviceRequestDomainService.sendMessageToTopic(paymentStatusDto, paymentFeeLink.getCallBackUrl());
-        ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
         String jsonpaymentStatusDto = ow.writeValueAsString(paymentStatusDto);
         LOG.info("json format paymentStatusDto to Topic {}",jsonpaymentStatusDto);
         LOG.info("callback URL paymentStatusDto to Topic {}",paymentFeeLink.getCallBackUrl());
