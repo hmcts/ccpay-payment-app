@@ -92,7 +92,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
         RefundRequestDto refundRequest = RefundRequestDto.refundRequestDtoWith()
             .paymentReference(paymentRefundRequest.getPaymentReference())
-            .refundAmount(payment.getAmount())
+            .refundAmount(paymentRefundRequest.getRefundAmount())
             .ccdCaseNumber(payment.getCcdCaseNumber())
             .refundReason(paymentRefundRequest.getRefundReason())
             .feeIds(getFeeIds(payment.getPaymentLink().getFees()))
@@ -100,7 +100,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             .build();
 
         RefundResponse refundResponse = RefundResponse.RefundResponseWith()
-            .refundAmount(payment.getAmount())
+            .refundAmount(paymentRefundRequest.getRefundAmount())
             .refundReference(postToRefundService(refundRequest, headers)).build();
 
         return new ResponseEntity<>(refundResponse, HttpStatus.CREATED);
