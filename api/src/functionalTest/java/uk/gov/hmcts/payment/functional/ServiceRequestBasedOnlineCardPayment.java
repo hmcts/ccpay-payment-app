@@ -195,7 +195,7 @@ public class ServiceRequestBasedOnlineCardPayment {
                 paymentDto.getInternalReference());
         PaymentDto paymentDtoForOnlineCardPaymentResponse = getOnlineCardPaymentResponse.getBody().as(PaymentDto.class);
         assertThat(paymentDtoForOnlineCardPaymentResponse.getStatus()).isEqualTo("Initiated");
-        assertThat(paymentDtoForOnlineCardPaymentResponse.getPaymentReference()).isEqualTo(laterPaymentReference);
+        assertThat(paymentDtoForOnlineCardPaymentResponse.getReference()).isEqualTo(laterPaymentReference);
     }
 
     @Test
