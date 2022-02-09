@@ -97,6 +97,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             .refundReason(paymentRefundRequest.getRefundReason())
             .feeIds(getFeeIds(payment.getPaymentLink().getFees()))
             .contactDetails(paymentRefundRequest.getContactDetails())
+            .serviceName(payment.getServiceType())
             .build();
 
         RefundResponse refundResponse = RefundResponse.RefundResponseWith()
