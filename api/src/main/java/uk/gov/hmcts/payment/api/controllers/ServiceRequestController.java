@@ -261,8 +261,6 @@ public class ServiceRequestController {
         PaymentFeeLink  retrieveDelegatingPaymentService = delegatingPaymentService.retrieve(paymentFeeLink, payment.getReference());
         ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
         Payment paymentNew = paymentService.findPayment(internalReference);
-        String jsonPaymentNew = ow.writeValueAsString(paymentNew);
-        LOG.info("json paymentNew",jsonPaymentNew);
         String serviceRequestReference = paymentFeeLink.getPaymentReference();
         PaymentStatusDto paymentStatusDto = paymentDtoMapper.toPaymentStatusDto(serviceRequestReference, "", paymentNew);
         serviceRequestDomainService.sendMessageToTopic(paymentStatusDto, paymentFeeLink.getCallBackUrl());
