@@ -32,7 +32,8 @@ def secrets = [
         secret('freg-idam-test-user-password', 'TEST_USER_PASSWORD'),
         secret('gov-pay-keys-cmc', 'GOV_PAY_AUTH_KEY_CMC'),
         secret('pci-pal-antenna-client-secret', 'PCI_PAL_ANTENNA_CLIENT_SECRET'),
-        secret('paybubble-idam-client-secret','IDAM_PAYBUBBLE_CLIENT_SECRET')
+        secret('paybubble-idam-client-secret','IDAM_PAYBUBBLE_CLIENT_SECRET'),
+        secret('payment-s2s-secret',S2S_PAYMENT_APP_SERVICE_SECRET)
     ]
 ]
 
