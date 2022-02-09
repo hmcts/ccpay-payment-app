@@ -39,7 +39,6 @@ import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP
 @RunWith(SpringIntegrationSerenityRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
 @ActiveProfiles({"functional-tests", "liberataMock"})
-//@SpringBootTest(classes = {PaymentApiApplication.class})
 public class RefundsRequestorJourneyPBAFunctionalTest {
 
     private static String USER_TOKEN;
@@ -205,7 +204,6 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
     }
 
     @Test
-    @Ignore
     public void negative_duplicate_issue_refunds_for_a_pba_payment() {
         // create a PBA payment
         String accountNumber = testProps.existingAccountNumber;
@@ -446,7 +444,6 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
     }
 
     @Test
-    @Ignore
     public void negative_add_remission_and_add_refund_and_a_duplicate_refund_for_a_pba_payment() {
         // Create a PBA payment
         String accountNumber = testProps.existingAccountNumber;
@@ -856,48 +853,23 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
     }
 
     @Test
+    @Ignore("This test is Ignored as the liberataMock profile would be switched off in AAT")
     public void positive_issue_refunds_for_a_failed_pba_payment() {
         issue_refunds_for_a_failed_payment("350000.00", "PBAFUNC12345",
             "Payment request failed. PBA account CAERPHILLY COUNTY BOROUGH COUNCIL have insufficient funds available");
     }
 
     @Test
+    @Ignore("This test is Ignored as the liberataMock profile would be switched off in AAT")
     public void positive_issue_refunds_for_a_pba_account_deleted_payment() {
         issue_refunds_for_a_failed_payment("100.00", "PBAFUNC12350", "Your account is deleted");
     }
 
     @Test
+    @Ignore("This test is Ignored as the liberataMock profile would be switched off in AAT")
     public void positive_issue_refunds_for_a_pba_account_on_hold_payment() {
         issue_refunds_for_a_failed_payment("100.00", "PBAFUNC12355", "Your account is on hold");
     }
-
-    @Test
-    public void negative_add_remission_and_submit_a_refund_for_a_pba_payment_more_than_the_account_limit() {
-
-        // Create a PBA payment
-        this.add_remisssions_and_add_refund_for_a_failed_payment("350000.00",
-            "PBAFUNC12345",
-            "Payment request failed. PBA account CAERPHILLY COUNTY BOROUGH COUNCIL have insufficient funds available");
-    }
-
-    @Test
-    public void negative_add_remission_and_submit_a_refund_for_a_pba_payment_with_account_deleted() {
-
-        // Create a PBA payment
-        this.add_remisssions_and_add_refund_for_a_failed_payment("100.00",
-            "PBAFUNC12350",
-            "Your account is deleted");
-    }
-
-    @Test
-    public void negative_add_remission_and_submit_a_refund_for_a_pba_payment_with_account_on_hold() {
-
-        // Create a PBA payment
-        this.add_remisssions_and_add_refund_for_a_failed_payment("100.00",
-            "PBAFUNC12355",
-            "Your account is on hold");
-    }
-
 
     private void issue_refunds_for_a_failed_payment(final String amount,
                                                     final String accountNumber,
@@ -940,9 +912,35 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
 
         assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
         System.out.println("The value of the response body " + refundResponse.getBody().prettyPrint());
-        assertThat(refundResponse.getBody().print()).isEqualTo("Refund can not be processed for unsuccessful payment");
+        assertThat(refundResponse.getBody().print()).isEqualTo("Refund can be possible if payment is successful");
     }
 
+    @Test
+    public void negative_add_remission_and_submit_a_refund_for_a_pba_payment_more_than_the_account_limit() {
+
+        // Create a PBA payment
+        this.add_remisssions_and_add_refund_for_a_failed_payment("350000.00",
+            "PBAFUNC12345",
+            "Payment request failed. PBA account CAERPHILLY COUNTY BOROUGH COUNCIL have insufficient funds available");
+    }
+
+    @Test
+    public void negative_add_remission_and_submit_a_refund_for_a_pba_payment_with_account_deleted() {
+
+        // Create a PBA payment
+        this.add_remisssions_and_add_refund_for_a_failed_payment("100.00",
+            "PBAFUNC12350",
+            "Your account is deleted");
+    }
+
+    @Test
+    public void negative_add_remission_and_submit_a_refund_for_a_pba_payment_with_account_on_hold() {
+
+        // Create a PBA payment
+        this.add_remisssions_and_add_refund_for_a_failed_payment("100.00",
+            "PBAFUNC12355",
+            "Your account is on hold");
+    }
 
     private void add_remisssions_and_add_refund_for_a_failed_payment(final String amount,
                                                                      final String accountNumber,
@@ -964,6 +962,8 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         //TEST create retrospective remission
         final String paymentGroupReference = paymentGroupResponse.getPaymentGroups().get(0).getPaymentGroupReference();
         final Integer feeId = paymentGroupResponse.getPaymentGroups().get(0).getFees().get(0).getId();
+
+        //TEST create retrospective remission
         Response response = dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .when().createRetrospectiveRemissionForRefund(getRetroRemissionRequest("5.00"), paymentGroupReference, feeId)
@@ -1154,4 +1154,3 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
 
     }
 }
-
