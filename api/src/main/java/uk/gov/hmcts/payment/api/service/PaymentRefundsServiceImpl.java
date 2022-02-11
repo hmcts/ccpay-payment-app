@@ -18,13 +18,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
-import uk.gov.hmcts.payment.api.dto.InternalRefundResponse;
-import uk.gov.hmcts.payment.api.dto.Notification;
-import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
-import uk.gov.hmcts.payment.api.dto.RefundRequestDto;
-import uk.gov.hmcts.payment.api.dto.RefundResponse;
-import uk.gov.hmcts.payment.api.dto.ResubmitRefundRemissionRequest;
-import uk.gov.hmcts.payment.api.dto.RetrospectiveRemissionRequest;
+import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.exception.InvalidPartialRefundRequestException;
 import uk.gov.hmcts.payment.api.exception.InvalidRefundRequestException;
 import uk.gov.hmcts.payment.api.model.*;
@@ -95,7 +89,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             .refundAmount(paymentRefundRequest.getRefundAmount())
             .ccdCaseNumber(payment.getCcdCaseNumber())
             .refundReason(paymentRefundRequest.getRefundReason())
-            .feeIds(getFeeIds(payment.getPaymentLink().getFees()))
+            .refundFees(getRefundFees(payment.getPaymentLink().getFees()))
             .contactDetails(paymentRefundRequest.getContactDetails())
             .build();
 
@@ -168,7 +162,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                     .refundAmount(remissionAmount) //Refund amount
                     .ccdCaseNumber(payment.getCcdCaseNumber()) // ccd case number
                     .refundReason("RR036")//Refund reason category would be other
-                    .feeIds(getFeeIds(Collections.singletonList(paymentFee)))
+                    .refundFees(getRefundFees(Collections.singletonList(paymentFee)))
                     .contactDetails(retrospectiveRemissionRequest.getContactDetails())
                     .build();
                 RefundResponse refundResponse = RefundResponse.RefundResponseWith()
@@ -277,10 +271,16 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         return new HttpEntity<>(refundRequest, httpHeaders);
     }
 
-    private String getFeeIds(List<PaymentFee> paymentFees) {
+    private List<RefundFeesDto> getRefundFees(List<PaymentFee> paymentFees) {
         return paymentFees.stream()
-            .map(fee -> fee.getId().toString())
-            .collect(Collectors.joining(","));
+            .map(fee -> RefundFeesDto.refundFeesDtoWith()
+                .id(fee.getId())
+                .code(fee.getCode())
+                .version(fee.getVersion())
+                .volume(fee.getVolume())
+                .refundAmount(fee.getAmountDue())
+                .build())
+            .collect(Collectors.toList());
     }
 
     private void validateRefund(PaymentRefundRequest paymentRefundRequest, List<PaymentFee> paymentFeeList) {
