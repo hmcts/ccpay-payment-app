@@ -59,7 +59,11 @@
         <notes>A vulnerability in all versions of adal4j, this library is an internal dependency in azure libraries. Hence this is suppressed</notes>
         <cve>CVE-2021-42306</cve>
     </suppress>
-    <!-- Supression Group ends here -->
 
+    <suppress until="2022-03-30">
+        <notes>A vulnerability in all versions of adal4j, this library is an internal dependency in azure libraries. Hence this is suppressed</notes>
+        <cve>CVE-2021-42306</cve>
+    </suppress>
+    <!-- Supression Group ends here -->
 
 </suppressions>
