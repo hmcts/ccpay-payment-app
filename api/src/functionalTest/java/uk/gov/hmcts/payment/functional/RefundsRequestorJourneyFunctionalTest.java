@@ -45,7 +45,7 @@ import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP
 @RunWith(SpringIntegrationSerenityRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
 @ActiveProfiles({"functional-tests", "liberataMock"})
-@Ignore("Only to be activated after Refunds V1 is merged to master and that is the test that should be enabled.")
+// @Ignore("Only to be activated after Refunds V1 is merged to master and that is the test that should be enabled.")
 public class RefundsRequestorJourneyFunctionalTest {
 
     private static String USER_TOKEN;

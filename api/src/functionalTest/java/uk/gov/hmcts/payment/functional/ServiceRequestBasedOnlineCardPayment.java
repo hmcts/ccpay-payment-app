@@ -130,7 +130,7 @@ public class ServiceRequestBasedOnlineCardPayment {
     }
 
     @Test
-    @Ignore("The Last Payment Reference is not coming back properly....")
+    //@Ignore("The initial payment is not Cancelled.")
     public void negative_full_card_payment_already_payment_in_progress() throws Exception {
 
         ServiceRequestDto serviceRequestDto
@@ -144,6 +144,7 @@ public class ServiceRequestBasedOnlineCardPayment {
         final String serviceRequestReference = responseDTO.getServiceRequestReference();
         assertThat(responseDTO.getServiceRequestReference()).matches(SERVICE_REQUEST_REGEX_PATTERN);
 
+        //First Card Payment
         OnlineCardPaymentRequest onlineCardPaymentRequest = OnlineCardPaymentRequest.onlineCardPaymentRequestWith()
             .amount(new BigDecimal("100.00"))
             .currency(CurrencyCode.GBP)
@@ -159,6 +160,17 @@ public class ServiceRequestBasedOnlineCardPayment {
         assertThat(initialPaymentReference).matches(PAYMENTS_REGEX_PATTERN);
         assertThat(onlineCardPaymentResponse.getStatus()).isEqualTo("Initiated");
 
+        PaymentDto initialPaymentDto = dsl.given().userToken(USER_TOKEN_PAYMENT)
+            .s2sToken(SERVICE_TOKEN)
+            .when().getCardPayment(initialPaymentReference)
+            .then().get();
+
+        Response getOnlineCardPaymentResponse =
+            serviceRequestTestService.getAnOnlineCardPaymentForAnInternalReference(SERVICE_TOKEN,
+                initialPaymentDto.getInternalReference());
+        PaymentDto paymentDtoForOnlineCardPaymentDto = getOnlineCardPaymentResponse.getBody().as(PaymentDto.class);
+        assertThat(paymentDtoForOnlineCardPaymentDto.getStatus()).isEqualTo("Initiated");
+        assertThat(paymentDtoForOnlineCardPaymentDto.getReference()).isEqualTo(initialPaymentReference);
 
         OnlineCardPaymentRequest onlineCardPaymentRequestAgain = OnlineCardPaymentRequest.onlineCardPaymentRequestWith()
             .amount(new BigDecimal(100.00))
@@ -178,7 +190,7 @@ public class ServiceRequestBasedOnlineCardPayment {
         //Also to check that the old Payment Fee Link was Cancelled
 
         // Retrieve card payment
-        PaymentDto paymentDto = dsl.given().userToken(USER_TOKEN_PAYMENT)
+        /*PaymentDto paymentDto = dsl.given().userToken(USER_TOKEN_PAYMENT)
             .s2sToken(SERVICE_TOKEN)
             .when().getCardPayment(laterPaymentReference)
             .then().get();
@@ -188,14 +200,14 @@ public class ServiceRequestBasedOnlineCardPayment {
         assertThat(paymentDto.getAmount()).isEqualTo(new BigDecimal("100.00"));
         assertEquals(paymentDto.getExternalProvider(), "gov pay");
         assertEquals(paymentDto.getServiceName(), "Specified Money Claims");
-        assertEquals(paymentDto.getStatus(), "Initiated");
+        assertEquals(paymentDto.getStatus(), "Initiated");*/
 
-        Response getOnlineCardPaymentResponse =
+        Response getOnlineCardPaymentResponseForInitialPaymentResponse =
             serviceRequestTestService.getAnOnlineCardPaymentForAnInternalReference(SERVICE_TOKEN,
-                paymentDto.getInternalReference());
-        PaymentDto paymentDtoForOnlineCardPaymentResponse = getOnlineCardPaymentResponse.getBody().as(PaymentDto.class);
-        assertThat(paymentDtoForOnlineCardPaymentResponse.getStatus()).isEqualTo("Initiated");
-        assertThat(paymentDtoForOnlineCardPaymentResponse.getReference()).isEqualTo(laterPaymentReference);
+                initialPaymentDto.getInternalReference());
+        PaymentDto getOnlineCardPaymentInitialDto = getOnlineCardPaymentResponseForInitialPaymentResponse.getBody().as(PaymentDto.class);
+        assertThat(getOnlineCardPaymentInitialDto.getStatus()).isEqualTo("Cancelled");
+        //assertThat(getOnlineCardPaymentInitialDto.getReference()).isEqualTo(laterPaymentReference);
     }
 
     @Test
@@ -245,7 +257,6 @@ public class ServiceRequestBasedOnlineCardPayment {
                 paymentDto.getInternalReference());
         PaymentDto paymentDtoForOnlineCardPaymentResponse = getOnlineCardPaymentResponse.getBody().as(PaymentDto.class);
         assertThat(paymentDtoForOnlineCardPaymentResponse.getStatus()).isEqualTo("Initiated");
-
     }
 
     @Test
