@@ -170,6 +170,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                     .ccdCaseNumber(payment.getCcdCaseNumber()) // ccd case number
                     .refundReason("RR036")//Refund reason category would be other
                     .feeIds(getFeeIds(Collections.singletonList(paymentFee)))
+                    .serviceType(payment.getServiceType())
                     .contactDetails(retrospectiveRemissionRequest.getContactDetails())
                     .build();
                 RefundResponse refundResponse = RefundResponse.RefundResponseWith()
