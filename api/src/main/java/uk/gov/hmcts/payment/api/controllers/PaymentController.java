@@ -447,7 +447,8 @@ public class PaymentController {
                 while(feeDtoIterator.hasNext()) {
                     feeDto  = feeDtoIterator.next();
                     calculatedAmount = calculatedAmount.add(feeDto.getCalculatedAmount());
-                    apportionedPayment = apportionedPayment.add(feeDto.getApportionedPayment());
+                    if(feeDto.getApportionedPayment()!=null)
+                        apportionedPayment = apportionedPayment.add(feeDto.getApportionedPayment());
                     volume = volume + feeDto.getVolume();
                     feeDto.setVolume(volume);
                     feeDto.setApportionedPayment(apportionedPayment);
