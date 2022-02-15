@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
+import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.UpdatePaymentRequest;
@@ -49,7 +50,9 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -201,7 +204,7 @@ public class PaymentController {
                 getSearchCriteria(paymentMethodType, serviceType, ccdCaseNumber, pbaNumber, fromDateTime, toDateTime)
             );
 
-        final List<PaymentDto> paymentDtos = new ArrayList<>();
+        List<PaymentDto> paymentDtos = new ArrayList<>();
         LOG.info("No of paymentFeeLinks retrieved for Liberata Pull : {}", payments.size());
         populatePaymentDtos(paymentDtos, payments);
 
@@ -214,6 +217,8 @@ public class PaymentController {
         if(iacPaymentAny.isPresent() && iacSupplementaryDetailsFeature){
             return iacService.getIacSupplementaryInfo(paymentDtos,paymentService.getServiceNameByCode("IAC"));
         }
+
+        paymentDtos = filterFeeCode(paymentDtos);
 
         return new ResponseEntity(new PaymentsResponse(paymentDtos),HttpStatus.OK);
 
@@ -422,5 +427,36 @@ public class PaymentController {
     @ExceptionHandler(PaymentException.class)
     public String return400(PaymentException ex) {
         return ex.getMessage();
+    }
+
+    private List<PaymentDto> filterFeeCode(List<PaymentDto> paymentDtoList) {
+        Iterator<PaymentDto> paymentIterator = paymentDtoList.iterator();
+        while(paymentIterator.hasNext()) {
+            PaymentDto paymentDto = paymentIterator.next();
+            List<List<FeeDto>> groupedFee = paymentDto.getFees().stream()
+                .collect(Collectors.groupingBy(o -> o.getCode()))
+                .entrySet().stream()
+                .map(Map.Entry::getValue).collect(Collectors.toList());
+            List feeDTOList = new ArrayList();
+            Iterator< List<FeeDto> > groupedFeeIterator = groupedFee.iterator();
+            while(groupedFeeIterator.hasNext()) {
+                List<FeeDto> feeDTOL  = groupedFeeIterator.next();
+                BigDecimal calculatedAmount = BigDecimal.ZERO, apportionedPayment = BigDecimal.ZERO;Integer volume = 0;
+                FeeDto feeDto = new FeeDto();
+                Iterator< FeeDto > feeDtoIterator = feeDTOL.iterator();
+                while(feeDtoIterator.hasNext()) {
+                    feeDto  = feeDtoIterator.next();
+                    calculatedAmount = calculatedAmount.add(feeDto.getCalculatedAmount());
+                    apportionedPayment = apportionedPayment.add(feeDto.getApportionedPayment());
+                    volume = volume + feeDto.getVolume();
+                    feeDto.setVolume(volume);
+                    feeDto.setApportionedPayment(apportionedPayment);
+                    feeDto.setCalculatedAmount(calculatedAmount);
+                }
+                feeDTOList.add(feeDto);
+            }
+            paymentDto.setFees(feeDTOList);
+        }
+        return paymentDtoList;
     }
 }
