@@ -28,6 +28,8 @@ public class RefundRequestDto {
 
     private BigDecimal refundAmount;
 
+    private BigDecimal paymentAmount;
+
     private String ccdCaseNumber;
 
     private List<RefundFeesDto> refundFees;

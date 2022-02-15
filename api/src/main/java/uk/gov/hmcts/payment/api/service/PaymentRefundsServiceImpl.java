@@ -87,6 +87,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         RefundRequestDto refundRequest = RefundRequestDto.refundRequestDtoWith()
             .paymentReference(paymentRefundRequest.getPaymentReference())
             .refundAmount(paymentRefundRequest.getRefundAmount())
+            .paymentAmount(payment.getAmount())
             .ccdCaseNumber(payment.getCcdCaseNumber())
             .refundReason(paymentRefundRequest.getRefundReason())
             .refundFees(getRefundFees(payment.getPaymentLink().getFees()))
@@ -160,6 +161,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                 RefundRequestDto refundRequest = RefundRequestDto.refundRequestDtoWith()
                     .paymentReference(payment.getReference()) //RC reference
                     .refundAmount(remissionAmount) //Refund amount
+                    .paymentAmount(payment.getAmount())
                     .ccdCaseNumber(payment.getCcdCaseNumber()) // ccd case number
                     .refundReason("RR036")//Refund reason category would be other
                     .refundFees(getRefundFees(Collections.singletonList(paymentFee)))
