@@ -6,6 +6,7 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import io.swagger.annotations.SwaggerDefinition;
 import io.swagger.annotations.Tag;
+import org.apache.commons.lang3.tuple.Pair;
 import org.ff4j.FF4j;
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormatter;
@@ -429,11 +430,13 @@ public class PaymentController {
 
 
     private PaymentDto filterFeeCode(PaymentDto paymentDto) {
+        LOG.info("Start Function filterFeeCode" + paymentDto.toString());
             List<List<FeeDto>> groupedFee = paymentDto.getFees().stream()
-                .collect(Collectors.groupingBy(o -> o.getCode()))
+                .collect(Collectors.groupingBy(o -> Pair.of(o.getCode(), o.getNaturalAccountCode())))
                 .entrySet().stream()
                 .map(Map.Entry::getValue).collect(Collectors.toList());
-            List feeDTOList = new ArrayList();
+        LOG.info("Groupedfee List size" + groupedFee.size());
+        List feeDTOList = new ArrayList();
             Iterator< List<FeeDto> > groupedFeeIterator = groupedFee.iterator();
             while(groupedFeeIterator.hasNext()) {
                 List<FeeDto> feeDTOL  = groupedFeeIterator.next();
@@ -442,6 +445,7 @@ public class PaymentController {
                 Iterator< FeeDto > feeDtoIterator = feeDTOL.iterator();
                 while(feeDtoIterator.hasNext()) {
                     feeDto  = feeDtoIterator.next();
+                    LOG.info("NaturalAccountCode "+feeDto.getNaturalAccountCode()+"FeeCode"+feeDto.getCode());
                     calculatedAmount = calculatedAmount.add(feeDto.getCalculatedAmount());
                     apportionedPayment = apportionedPayment.add(feeDto.getApportionedPayment());
                     volume = volume + feeDto.getVolume();
@@ -452,6 +456,7 @@ public class PaymentController {
                 feeDTOList.add(feeDto);
             }
             paymentDto.setFees(feeDTOList);
+        LOG.info("End Function filterFeeCode" + paymentDto.toString());
         return paymentDto;
     }
 }
