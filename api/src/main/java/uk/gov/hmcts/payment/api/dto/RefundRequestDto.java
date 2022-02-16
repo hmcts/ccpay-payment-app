@@ -34,5 +34,7 @@ public class RefundRequestDto {
 
     private List<RefundFeesDto> refundFees;
 
+    private String serviceType;
+
     private ContactDetails contactDetails;
 }
