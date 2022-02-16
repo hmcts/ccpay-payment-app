@@ -455,6 +455,7 @@ public class ServiceRequestFunctionalTests {
         final String paymentReference = serviceRequestPaymentBo.getPaymentReference();
         assertThat(paymentReference).matches(PAYMENTS_REGEX_PATTERN);
 
+        serviceRequestPaymentDto.setIdempotencyKey(ServiceRequestFixture.generateUniqueCCDCaseReferenceNumber());
         final Response pbaPaymentServiceRequestResponseAgain
             = serviceRequestTestService.createPBAPaymentForAServiceRequest(USER_TOKEN_PAYMENT,
             SERVICE_TOKEN,
@@ -577,7 +578,7 @@ public class ServiceRequestFunctionalTests {
         final ServiceRequestResponseDto responseDTO = createServiceRequestResponse.getBody().as(ServiceRequestResponseDto.class);
         final String serviceRequestReference = responseDTO.getServiceRequestReference();
         assertThat(serviceRequestReference).matches(SERVICE_REQUEST_REGEX_PATTERN);
-        
+
         final ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
             .paymentDtoWith().accountNumber("PBAFUNC12345")
             .amount(BigDecimal.valueOf(35000.00))
@@ -628,6 +629,7 @@ public class ServiceRequestFunctionalTests {
             .amount(new BigDecimal(100.00))
             .currency(CurrencyCode.GBP)
             .language("cy")
+            .returnUrl("https://localhost.hmcts.net")
             .build();
         Response createOnlineCardPaymentResponse =
             serviceRequestTestService.createAnOnlineCardPaymentForAServiceRequest(USER_TOKEN_PAYMENT,
