@@ -147,7 +147,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         assertThat(groupResponsefromPost.getPaymentGroups().get(0).getPayments().get(0).getRefundEnable()).isTrue();
 
         PaymentRefundRequest paymentRefundRequest
-            = PaymentFixture.aRefundRequest("RR001", paymentReference, "90", "550");
+            = PaymentFixture.aRefundRequest("RR001", paymentReference, "90.00", "550");
         Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentRefundRequest);
@@ -235,7 +235,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         // create a refund request and initiate the refund
         String paymentReference = paymentDtoOptional.get().getPaymentReference();
         PaymentRefundRequest paymentRefundRequest
-            = PaymentFixture.aRefundRequest("RR001", paymentReference, "90", "0");
+            = PaymentFixture.aRefundRequest("RR001", paymentReference, "90.00", "0");
         Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentRefundRequest);
@@ -296,7 +296,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         // issuing refund using the reference for second payment
         String paymentReference = paymentDtoOptional.get().getPaymentReference();
         PaymentRefundRequest paymentRefundRequest
-            = PaymentFixture.aRefundRequest("RR001", paymentReference, "550", "0");
+            = PaymentFixture.aRefundRequest("RR001", paymentReference, "550.00", "0");
         Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentRefundRequest);
@@ -343,7 +343,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         // issue a refund
         String paymentReference = paymentDtoOptional.get().getPaymentReference();
         PaymentRefundRequest paymentRefundRequest
-            = PaymentFixture.aRefundRequest("RR001", paymentReference, "640", "640");
+            = PaymentFixture.aRefundRequest("RR001", paymentReference, "640.00", "640");
         Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentRefundRequest);
@@ -691,7 +691,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         // initiate a refund for the payment
         String paymentReference = paymentDtoOptional.get().getPaymentReference();
         PaymentRefundRequest paymentRefundRequest
-            = PaymentFixture.aRefundRequest("RR001", paymentReference, "90", "0");
+            = PaymentFixture.aRefundRequest("RR001", paymentReference, "90.00", "0");
         Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentRefundRequest);
