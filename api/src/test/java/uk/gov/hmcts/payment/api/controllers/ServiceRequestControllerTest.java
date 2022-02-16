@@ -427,6 +427,7 @@ public class ServiceRequestControllerTest {
         ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
             .paymentDtoWith().accountNumber("PBA12347")
             .amount(BigDecimal.valueOf(300))
+            .idempotencyKey(UUID.randomUUID().toString())
             .currency("GBP")
             .customerReference("testCustReference").
                 build();
@@ -458,10 +459,8 @@ public class ServiceRequestControllerTest {
         when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any())).thenReturn(responseEntity,responseEntity2);
 
         //ServiceRequest reference creation
-        String idempotencyKey = UUID.randomUUID().toString();
 
         MvcResult accountOnHoldResult = restActions
-            .withHeaderIfpresent("idempotency_key", idempotencyKey)
             .post("/service-request/" + serviceRequestReference + "/pba-payments", serviceRequestPaymentDto)
             .andExpect(status().isPreconditionFailed())
             .andReturn();
@@ -739,12 +738,12 @@ public class ServiceRequestControllerTest {
         ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
             .paymentDtoWith().accountNumber("PBA12345")
             .amount(BigDecimal.valueOf(100))
+            .idempotencyKey(UUID.randomUUID().toString())
             .currency("INR") //instead of GBP
             .customerReference("testCustReference").
             build();
 
         restActions
-            .withHeader("idempotency_key", UUID.randomUUID().toString())
             .post("/service-request/" + "2021-1621352112222" + "/pba-payments", serviceRequestPaymentDto)
             .andExpect(status().isUnprocessableEntity())
             .andExpect(content().string("validCurrency: Invalid currency. Accepted value GBP"));
