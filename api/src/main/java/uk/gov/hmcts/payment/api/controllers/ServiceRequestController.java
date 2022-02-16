@@ -131,9 +131,8 @@ public class ServiceRequestController {
     @ResponseBody
     @ResponseStatus(HttpStatus.CREATED)
     @Transactional
-    public ResponseEntity<ServiceRequestPaymentBo> createCreditAccountPaymentForServiceRequest(@RequestHeader(value = "idempotency_key") String idempotencyKey,
-                                                                                               @PathVariable("service-request-reference") String serviceRequestReference,
-                                                                                               @Valid @RequestBody ServiceRequestPaymentDto serviceRequestPaymentDto) throws CheckDigitException, JsonProcessingException {
+    public ResponseEntity<ServiceRequestPaymentBo> createCreditAccountPaymentForServiceRequest(@PathVariable("service-request-reference") String serviceRequestReference,
+                                                                                               @Valid @RequestBody ServiceRequestPaymentDto serviceRequestPaymentDto, String idempotencyKey) throws CheckDigitException, JsonProcessingException {
 
         LOG.info("PBA payment started");
         ObjectMapper objectMapper = new ObjectMapper();
