@@ -90,6 +90,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             .paymentAmount(payment.getAmount())
             .ccdCaseNumber(payment.getCcdCaseNumber())
             .refundReason(paymentRefundRequest.getRefundReason())
+            .feeIds(getFeeIds(payment.getPaymentLink().getFees()))
             .refundFees(getRefundFees(payment.getPaymentLink().getFees()))
             .contactDetails(paymentRefundRequest.getContactDetails())
             .serviceType(payment.getServiceType())
@@ -165,6 +166,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                     .paymentAmount(payment.getAmount())
                     .ccdCaseNumber(payment.getCcdCaseNumber()) // ccd case number
                     .refundReason("RR036")//Refund reason category would be other
+                    .feeIds(getFeeIds(Collections.singletonList(paymentFee)))
                     .refundFees(getRefundFees(Collections.singletonList(paymentFee)))
                     .serviceType(payment.getServiceType())
                     .contactDetails(retrospectiveRemissionRequest.getContactDetails())
@@ -285,6 +287,12 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                 .refundAmount(fee.getAmountDue())
                 .build())
             .collect(Collectors.toList());
+    }
+
+    private String getFeeIds(List<PaymentFee> paymentFees) {
+        return paymentFees.stream()
+            .map(fee -> fee.getId().toString())
+            .collect(Collectors.joining(","));
     }
 
     private void validateRefund(PaymentRefundRequest paymentRefundRequest, List<PaymentFee> paymentFeeList) {

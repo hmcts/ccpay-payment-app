@@ -32,6 +32,8 @@ public class RefundRequestDto {
 
     private String ccdCaseNumber;
 
+    private String feeIds;
+
     private List<RefundFeesDto> refundFees;
 
     private String serviceType;
