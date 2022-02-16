@@ -217,9 +217,6 @@ public class PaymentController {
         if(iacPaymentAny.isPresent() && iacSupplementaryDetailsFeature){
             return iacService.getIacSupplementaryInfo(paymentDtos,paymentService.getServiceNameByCode("IAC"));
         }
-
-        paymentDtos = filterFeeCode(paymentDtos);
-
         return new ResponseEntity(new PaymentsResponse(paymentDtos),HttpStatus.OK);
 
     }
@@ -363,7 +360,8 @@ public class PaymentController {
             }
         }
         //End of Apportion logic
-        final PaymentDto paymentDto = paymentDtoMapper.toReconciliationResponseDtoForLibereta(payment, paymentReference, fees, ff4j, isPaymentAfterApportionment);
+        PaymentDto paymentDto = paymentDtoMapper.toReconciliationResponseDtoForLibereta(payment, paymentReference, fees, ff4j, isPaymentAfterApportionment);
+        paymentDto = filterFeeCode(paymentDto);
         paymentDtos.add(paymentDto);
     }
 
@@ -429,10 +427,8 @@ public class PaymentController {
         return ex.getMessage();
     }
 
-    private List<PaymentDto> filterFeeCode(List<PaymentDto> paymentDtoList) {
-        Iterator<PaymentDto> paymentIterator = paymentDtoList.iterator();
-        while(paymentIterator.hasNext()) {
-            PaymentDto paymentDto = paymentIterator.next();
+
+    private PaymentDto filterFeeCode(PaymentDto paymentDto) {
             List<List<FeeDto>> groupedFee = paymentDto.getFees().stream()
                 .collect(Collectors.groupingBy(o -> o.getCode()))
                 .entrySet().stream()
@@ -447,8 +443,7 @@ public class PaymentController {
                 while(feeDtoIterator.hasNext()) {
                     feeDto  = feeDtoIterator.next();
                     calculatedAmount = calculatedAmount.add(feeDto.getCalculatedAmount());
-                    if(feeDto.getApportionedPayment()!=null)
-                        apportionedPayment = apportionedPayment.add(feeDto.getApportionedPayment());
+                    apportionedPayment = apportionedPayment.add(feeDto.getApportionedPayment());
                     volume = volume + feeDto.getVolume();
                     feeDto.setVolume(volume);
                     feeDto.setApportionedPayment(apportionedPayment);
@@ -457,7 +452,6 @@ public class PaymentController {
                 feeDTOList.add(feeDto);
             }
             paymentDto.setFees(feeDTOList);
-        }
-        return paymentDtoList;
+        return paymentDto;
     }
 }
