@@ -1139,7 +1139,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
     }
 
     public static PaymentRefundRequest aRefundRequestWithEmptyPostalCodeInContactDetails(final String refundReason,
-                                                                                         final String paymentReference, String postalCode) {
+                                                                                            final String paymentReference, String postalCode) {
         return PaymentRefundRequest
             .refundRequestWith().paymentReference(paymentReference)
             .refundReason(refundReason)
