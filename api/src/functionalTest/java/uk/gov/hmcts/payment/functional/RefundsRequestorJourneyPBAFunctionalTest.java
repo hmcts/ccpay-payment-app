@@ -204,6 +204,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
     }
 
     @Test
+    @Ignore
     public void negative_duplicate_issue_refunds_for_a_pba_payment() {
         // create a PBA payment
         String accountNumber = testProps.existingAccountNumber;
@@ -444,6 +445,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
     }
 
     @Test
+    @Ignore
     public void negative_add_remission_and_add_refund_and_a_duplicate_refund_for_a_pba_payment() {
         // Create a PBA payment
         String accountNumber = testProps.existingAccountNumber;
@@ -1137,7 +1139,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
     }
 
     public static PaymentRefundRequest aRefundRequestWithEmptyPostalCodeInContactDetails(final String refundReason,
-                                                                                            final String paymentReference, String postalCode) {
+                                                                                         final String paymentReference, String postalCode) {
         return PaymentRefundRequest
             .refundRequestWith().paymentReference(paymentReference)
             .refundReason(refundReason)
