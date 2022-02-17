@@ -84,8 +84,8 @@ import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "componenttest"})
 @SpringBootTest(webEnvironment = MOCK)
-@Transactional
 @DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
+@Transactional
 public class CardPaymentControllerTest extends PaymentsDataUtil {
 
     private final static String PAYMENT_REFERENCE_REGEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
@@ -248,7 +248,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
         restActions
             .post("/card-payments", cardPaymentRequestWithCaseType())
             .andExpect(status().isNotFound())
-            .andExpect(content().string("No Service found for given CaseType"));
+            .andExpect(content().string("No Service found for given CaseType or HMCTS Org Id"));
     }
 
     @Test

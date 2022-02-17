@@ -8,11 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.RestTemplate;
@@ -68,6 +64,12 @@ public class OnlineCardPaymentFunctionalTest {
     @Value("${gov.pay.keys.iac}")
     private String govpayIacKey;
 
+    @Value("${gov.pay.keys.adoption}")
+    private String govpayAdoptionKey;
+
+    @Value("${gov.pay.keys.prl}")
+    private String govpayPrlKey;
+
     private static String USER_TOKEN;
     private static String USER_TOKEN_PAYMENT;
     private static String SERVICE_TOKEN;
@@ -104,6 +106,33 @@ public class OnlineCardPaymentFunctionalTest {
             .s2sToken(SERVICE_TOKEN)
             .returnUrl("https://www.moneyclaims.service.gov.uk")
             .when().createCardPayment(PaymentFixture.cardPaymentRequestIAC("215.55", "IAC"))
+            .then().created(paymentDto -> {
+            assertNotNull(paymentDto.getReference());
+            assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
+        });
+
+    }
+
+
+    @Test
+    public void createAdoptionCardPaymentTestShouldReturn201Success() {
+        dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .returnUrl("https://www.moneyclaims.service.gov.uk")
+            .when().createCardPayment(PaymentFixture.cardPaymentRequestAdoption("215.55", "ADOPTION"))
+            .then().created(paymentDto -> {
+            assertNotNull(paymentDto.getReference());
+            assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
+        });
+
+    }
+
+    @Test
+    public void createPRLCardPaymentTestShouldReturn201Success() {
+        dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .returnUrl("https://www.moneyclaims.service.gov.uk")
+            .when().createCardPayment(PaymentFixture.cardPaymentRequestPRL("215.55", "PRL"))
             .then().created(paymentDto -> {
             assertNotNull(paymentDto.getReference());
             assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
@@ -194,6 +223,76 @@ public class OnlineCardPaymentFunctionalTest {
         assertEquals(paymentDto.getReference(), reference[0]);
         assertEquals(paymentDto.getExternalProvider(), "gov pay");
         assertEquals(paymentDto.getServiceName(), "Immigration and Asylum Appeals");
+        assertEquals(paymentDto.getStatus(), "Initiated");
+        paymentDto.getFees().stream().forEach(f -> {
+            assertEquals(f.getVersion(), "1");
+            assertEquals(f.getCalculatedAmount(), new BigDecimal("215.55"));
+        });
+
+    }
+
+    @Test
+    public void retrieveAdoptionCardPaymentTestShouldReturn200Success() {
+        final String[] reference = new String[1];
+        // create card payment
+        dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .returnUrl("https://www.moneyclaims.service.gov.uk")
+            .when().createCardPayment(PaymentFixture.cardPaymentRequestAdoption("215.55", "ADOPTION"))
+            .then().created(savedPayment -> {
+            reference[0] = savedPayment.getReference();
+
+            assertNotNull(savedPayment.getReference());
+            assertEquals("payment status is properly set", "Initiated", savedPayment.getStatus());
+        });
+
+
+        // retrieve card payment
+        PaymentDto paymentDto = dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .when().getCardPayment(reference[0])
+            .then().get();
+
+        assertNotNull(paymentDto);
+        assertEquals(paymentDto.getAmount(), new BigDecimal("215.55"));
+        assertEquals(paymentDto.getReference(), reference[0]);
+        assertEquals(paymentDto.getExternalProvider(), "gov pay");
+        assertEquals(paymentDto.getServiceName(), "Adoption");
+        assertEquals(paymentDto.getStatus(), "Initiated");
+        paymentDto.getFees().stream().forEach(f -> {
+            assertEquals(f.getVersion(), "1");
+            assertEquals(f.getCalculatedAmount(), new BigDecimal("215.55"));
+        });
+
+    }
+
+    @Test
+    public void retrievePRLCardPaymentTestShouldReturn200Success() {
+        final String[] reference = new String[1];
+        // create card payment
+        dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .returnUrl("https://www.moneyclaims.service.gov.uk")
+            .when().createCardPayment(PaymentFixture.cardPaymentRequestPRL("215.55", "PRL"))
+            .then().created(savedPayment -> {
+            reference[0] = savedPayment.getReference();
+
+            assertNotNull(savedPayment.getReference());
+            assertEquals("payment status is properly set", "Initiated", savedPayment.getStatus());
+        });
+
+
+        // retrieve card payment
+        PaymentDto paymentDto = dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .when().getCardPayment(reference[0])
+            .then().get();
+
+        assertNotNull(paymentDto);
+        assertEquals(paymentDto.getAmount(), new BigDecimal("215.55"));
+        assertEquals(paymentDto.getReference(), reference[0]);
+        assertEquals(paymentDto.getExternalProvider(), "gov pay");
+        assertEquals(paymentDto.getServiceName(), "Family Private Law");
         assertEquals(paymentDto.getStatus(), "Initiated");
         paymentDto.getFees().stream().forEach(f -> {
             assertEquals(f.getVersion(), "1");
@@ -325,6 +424,35 @@ public class OnlineCardPaymentFunctionalTest {
                 });
         }));
     }
+
+    // TO BE IMPLEMENTED IN THE CARD PAYMENT SCOPE
+//    @Ignore("This is now a valid scenario")
+//    @Test
+//    public void negative_issue_refund_for_card_payment() {
+//
+//        /*
+//        Refund response returns "Refund can not be processed for unsuccessful payment" for a card payment
+//        Expected :"Refund currently supported for PBA Payment Channel only"
+//         */
+//
+//        PaymentDto paymentDto = paymentsTestDsl.given().userToken(USER_TOKEN_CMC_CITIZEN)
+//            .s2sToken(SERVICE_TOKEN)
+//            .returnUrl("https://www.moneyclaims.service.gov.uk")
+//            .when().createCardPayment(PaymentFixture.aCardPaymentRequest("20.99"))
+//            .then().getByStatusCode(201);
+//
+//        String paymentReference = paymentDto.getReference();
+//        assertNotNull(paymentReference);
+//        assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
+//
+//        PaymentRefundRequest paymentRefundRequest
+//            = PaymentFixture.aRefundRequest("RR001", paymentReference);
+//        Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+//            SERVICE_TOKEN_PAYMENT,
+//            paymentRefundRequest);
+//        assertThat(refundResponse.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+//        assertThat(refundResponse.getBody().print()).isEqualTo("Refund currently supported for PBA Payment Channel only");
+//    }
 
     private CardPaymentRequest getCardPaymentRequest() {
         return PaymentFixture.aCardPaymentRequest("20.99");

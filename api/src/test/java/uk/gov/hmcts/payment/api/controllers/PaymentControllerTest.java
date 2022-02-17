@@ -71,8 +71,8 @@ import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "componenttest", "mockcallbackservice"})
 @SpringBootTest(webEnvironment = MOCK)
+@DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
 @Transactional
-@DirtiesContext(classMode= DirtiesContext.ClassMode.BEFORE_CLASS)
 public class PaymentControllerTest extends PaymentsDataUtil {
 
     private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;
@@ -424,7 +424,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             assertThat(p.getAmount()).isEqualTo(new BigDecimal("99.99"));
             assertThat(p.getChannel()).isEqualTo("online");
             assertThat(p.getMethod()).isEqualTo("card");
-            assertThat(p.getStatus()).isEqualTo("initiated");
+            assertThat(p.getStatus()).isEqualTo("success");
             assertThat(p.getSiteId()).isEqualTo("AA02");
             assertThat(p.getDateCreated()).isNotNull();
             assertThat(p.getDateUpdated()).isNotNull();
@@ -766,7 +766,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             assertThat(p.getAmount()).isEqualTo(new BigDecimal("99.99"));
             assertThat(p.getChannel()).isEqualTo("online");
             assertThat(p.getMethod()).isEqualTo("card");
-            assertThat(p.getStatus()).isEqualTo("initiated");
+            assertThat(p.getStatus()).isEqualTo("success");
             assertThat(p.getSiteId()).isEqualTo("AA02");
             assertThat(p.getDateCreated()).isNotNull();
             assertThat(p.getDateUpdated()).isNotNull();
@@ -1698,7 +1698,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         db.createPayment(payment);
         // Update payment status with valid payment reference
         restActions
-            .patch("/payments/ccd_case_reference/" + ccdCaseNumber)
+            .patch("/payments/ccd_case_reference/"+ccdCaseNumber+"/lag_time/"+String.valueOf(4 * 24))
             .andExpect(status().isNoContent());
         db.deletePayment(payment);
     }

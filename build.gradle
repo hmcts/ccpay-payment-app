@@ -46,10 +46,9 @@ allprojects {
     repositories {
         mavenLocal()
         mavenCentral()
-        maven { url 'https://jitpack.io' }
         jcenter()
-        maven { url "https://dl.bintray.com/hmcts/hmcts-maven" }
         maven { url 'https://repo.spring.io/libs-milestone' }
+        maven { url 'https://jitpack.io' }
     }
 
     apply from: "${rootDir}/cve-resolution-strategy.gradle"
@@ -58,7 +57,7 @@ allprojects {
         imports {
             mavenBom "org.springframework.boot:spring-boot-dependencies:${springBootVersion}"
             mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
-            mavenBom 'org.apache.logging.log4j:log4j-bom:2.15.0'
+            mavenBom 'org.apache.logging.log4j:log4j-bom:2.16.0'
         }
         dependencies {
             dependencySet(
@@ -180,6 +179,7 @@ def sonarExclusions = [
         '**/api/dto/*.java',
         '**/referencedata/dto/*.java',
         '**/api/service/*Service.java',
+        '**/api/servicebus/TopicClientService.java',
         '**/referencedata/service/*Service.java',
         '**/api/service/MockAccountServiceImpl.java',
         '**/api/service/MockCcdDataStoreClientServiceImpl.java',

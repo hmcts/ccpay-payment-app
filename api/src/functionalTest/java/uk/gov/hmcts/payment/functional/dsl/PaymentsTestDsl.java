@@ -19,8 +19,8 @@ import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
 import uk.gov.hmcts.payment.api.dto.RemissionRequest;
 import uk.gov.hmcts.payment.api.dto.RetroRemissionRequest;
 import uk.gov.hmcts.payment.api.dto.TelephonyCallbackDto;
-import uk.gov.hmcts.payment.api.dto.order.OrderDto;
-import uk.gov.hmcts.payment.api.dto.order.OrderPaymentDto;
+import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
+import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
 import uk.gov.hmcts.payment.functional.idam.IdamService;
 import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
 
@@ -107,13 +107,13 @@ public class PaymentsTestDsl {
             return this;
         }
 
-        public PaymentWhenDsl createOrder(OrderDto orderDto){
-            response=newRequest().contentType(ContentType.JSON).body(orderDto).post("/order");
+        public PaymentWhenDsl createServiceRequest(ServiceRequestDto serviceRequestDto){
+            response=newRequest().contentType(ContentType.JSON).body(serviceRequestDto).post("/service-request");
             return this;
         }
 
-        public PaymentWhenDsl createOrderCreditAccountPayment(OrderPaymentDto orderPaymentDto, String orderReference, String idempotencyKey){
-            response=newRequest().contentType(ContentType.JSON).header("idempotency_key",idempotencyKey).body(orderPaymentDto).post("/order/{order-reference}/credit-account-payment",orderReference);
+        public PaymentWhenDsl createServiceRequestCreditAccountPayment(ServiceRequestPaymentDto serviceRequestPaymentDto, String serviceRequestReference, String idempotencyKey){
+            response=newRequest().contentType(ContentType.JSON).header("idempotency_key",idempotencyKey).body(serviceRequestPaymentDto).post("/service-request/{service_request_reference}/pba-payments",serviceRequestReference);
             return this;
         }
 

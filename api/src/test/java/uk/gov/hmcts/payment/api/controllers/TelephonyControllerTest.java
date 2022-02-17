@@ -18,6 +18,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
+import org.testcontainers.shaded.org.apache.commons.lang.math.RandomUtils;
 import uk.gov.hmcts.payment.api.componenttests.PaymentDbBackdoor;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
@@ -38,6 +39,7 @@ import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.model.TelephonyCallback;
 import uk.gov.hmcts.payment.api.model.TelephonyRepository;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
+import uk.gov.hmcts.payment.api.service.RefundRemissionEnableService;
 import uk.gov.hmcts.payment.api.servicebus.CallbackServiceImpl;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
@@ -66,8 +68,8 @@ import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "componenttest", "mockcallbackservice"})
 @SpringBootTest(webEnvironment = MOCK)
-@Transactional
 @DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
+@Transactional
 public class TelephonyControllerTest extends PaymentsDataUtil {
 
     private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;
@@ -103,6 +105,8 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
     private ObjectMapper objectMapper;
     @MockBean
     private LaunchDarklyFeatureToggler featureToggler;
+    @MockBean
+    private RefundRemissionEnableService refundRemissionEnableService;
 
     protected CustomResultMatcher body() {
         return new CustomResultMatcher(objectMapper);
@@ -297,12 +301,14 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
     @Test
     public void updateTelephonyPaymentStatusWithSuccess_Apportionment() throws Exception {
 
+        String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
+
         when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
 
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(getNewFee("1234123412341234")))
             .build();
-
+        when(refundRemissionEnableService.returnRemissionEligible(any())).thenReturn(true);
         MvcResult result = restActions
             .post("/payment-groups", request)
             .andExpect(status().isCreated())
@@ -310,7 +316,24 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
 
         PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
-        when(referenceDataService.getOrganisationalDetail(any(), any())).thenReturn(organisationalServiceDto);
+        BigDecimal amount = new BigDecimal("101.99");
+
+        TelephonyPaymentRequest telephonyPaymentRequest = TelephonyPaymentRequest.createTelephonyPaymentRequestDtoWith()
+            .amount(amount)
+            .currency(CurrencyCode.GBP)
+            .description("Test cross field validation")
+            .caseType("tax_exception")
+            .ccdCaseNumber(ccdCaseNumber)
+            .provider("pci pal")
+            .channel("telephony")
+            .build();
+
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA001")
+            .serviceDescription("DIVORCE")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any(),any())).thenReturn(organisationalServiceDto);
 
         MvcResult result2 = restActions
             .withReturnUrl("https://www.moneyclaims.service.gov.uk")
@@ -348,11 +371,14 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
     @Test
     public void updateTelephonyPaymentStatusWithFailed_Apportionment() throws Exception {
 
+        String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
+
         when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
 
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(getNewFee("1234123412341234")))
             .build();
+        when(refundRemissionEnableService.returnRemissionEligible(any())).thenReturn(true);
 
         MvcResult result = restActions
             .post("/payment-groups", request)
@@ -361,7 +387,24 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
 
         PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
-        when(referenceDataService.getOrganisationalDetail(any(), any())).thenReturn(organisationalServiceDto);
+        BigDecimal amount = new BigDecimal("101.99");
+
+        TelephonyPaymentRequest telephonyPaymentRequest = TelephonyPaymentRequest.createTelephonyPaymentRequestDtoWith()
+            .amount(amount)
+            .currency(CurrencyCode.GBP)
+            .description("Test cross field validation")
+            .caseType("tax_exception")
+            .ccdCaseNumber(ccdCaseNumber)
+            .provider("pci pal")
+            .channel("telephony")
+            .build();
+
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA001")
+            .serviceDescription("DIVORCE")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any(),any())).thenReturn(organisationalServiceDto);
 
         MvcResult result2 = restActions
             .withReturnUrl("https://www.moneyclaims.service.gov.uk")

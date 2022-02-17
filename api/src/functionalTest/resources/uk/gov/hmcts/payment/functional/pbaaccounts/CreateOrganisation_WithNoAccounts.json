@@ -1,0 +1,57 @@
+{
+  "name": "OjNWEZXxZt",
+  "status": "ACTIVE",
+  "sraId": "%s-id-7-number",
+  "sraRegulated": "false",
+  "companyNumber": "%s",
+  "companyUrl": "jtUkRAxXqqcompany-url",
+  "superUser": {
+    "firstName": "firstName",
+    "lastName": "lastName",
+    "email": "%s"
+  },
+  "contactInformation": [
+    {
+      "addressLine1": "addressLine1",
+      "addressLine2": "addressLine2",
+      "addressLine3": "addressLine3",
+      "townCity": "some-town-city",
+      "county": "some-county",
+      "country": "some-country",
+      "postCode": "some-post-code",
+      "dxAddress": [
+        {
+          "dxNumber": "DX 1234567890",
+          "dxExchange": "dxExchange"
+        },
+        {
+          "dxNumber": "DX 123456777",
+          "dxExchange": "dxExchange"
+        },
+        {
+          "dxNumber": "DX 123456788",
+          "dxExchange": "dxExchange"
+        }
+      ]
+    },
+    {
+      "addressLine1": "addLine1",
+      "addressLine2": "addLine2",
+      "addressLine3": "addLine3",
+      "townCity": "some-town-city",
+      "county": "some-county",
+      "country": "some-country",
+      "postCode": "some-post-code",
+      "dxAddress": [
+        {
+          "dxNumber": "DX 123452222",
+          "dxExchange": "dxExchange"
+        },
+        {
+          "dxNumber": "DX 123456333",
+          "dxExchange": "dxExchange"
+        }
+      ]
+    }
+  ]
+}

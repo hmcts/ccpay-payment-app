@@ -167,14 +167,14 @@ withPipeline(type, product, app) {
     disableLegacyDeployment()
     onMaster() {
         enablePactAs([
-                AppPipelineDsl.PactRoles.CONSUMER,
-                AppPipelineDsl.PactRoles.PROVIDER
+            AppPipelineDsl.PactRoles.CONSUMER,
+            AppPipelineDsl.PactRoles.PROVIDER
         ])
     }
     onPR() {
         enablePactAs([
-                AppPipelineDsl.PactRoles.CONSUMER,
-                AppPipelineDsl.PactRoles.PROVIDER
+            AppPipelineDsl.PactRoles.CONSUMER,
+            AppPipelineDsl.PactRoles.PROVIDER
         ])
     }
 

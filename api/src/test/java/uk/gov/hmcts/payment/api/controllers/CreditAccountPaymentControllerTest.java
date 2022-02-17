@@ -42,6 +42,7 @@ import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.model.StatusHistory;
 import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
+import uk.gov.hmcts.payment.api.service.RefundRemissionEnableService;
 import uk.gov.hmcts.payment.api.util.AccountStatus;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
@@ -49,6 +50,8 @@ import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.GatewayTimeoutException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.NoServiceFoundException;
+import uk.gov.hmcts.payment.referencedata.model.Site;
+import uk.gov.hmcts.payment.referencedata.service.SiteService;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -76,10 +79,11 @@ import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "componenttest"})
 @SpringBootTest(webEnvironment = MOCK)
-@Transactional
 @DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
+@Transactional
 public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
+    private static final String USER_ID_PAYMENT_ROLE = UserResolverBackdoor.CASEWORKER_ID;
     private final static String PAYMENT_REFERENCE_REFEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
     private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;
     @Autowired
@@ -93,6 +97,8 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     @Autowired
     protected AccountService<AccountDto, String> accountService;
     @MockBean
+    private SiteService<Site, String> siteServiceMock;
+    @MockBean
     ReferenceDataService referenceDataService;
     RestActions restActions;
     MockMvc mvc;
@@ -105,6 +111,8 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     private ObjectMapper objectMapper;
     @MockBean
     private LaunchDarklyFeatureToggler featureToggler;
+    @MockBean
+    private RefundRemissionEnableService refundRemissionEnableService;
 
     protected CustomResultMatcher body() {
         return new CustomResultMatcher(objectMapper);
@@ -124,6 +132,35 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         Mockito.reset(accountService);
         request = objectMapper.readValue(creditAccountPaymentRequestJsonWithFinRemJson().getBytes(), CreditAccountPaymentRequest.class);
+    }
+
+    public void setupForPaymentRoleUser() {
+        MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
+        this.restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
+
+        restActions
+            .withAuthorizedService("divorce")
+            .withAuthorizedUser(USER_ID_PAYMENT_ROLE)
+            .withUserId(USER_ID_PAYMENT_ROLE)
+            .withReturnUrl("https://www.moneyclaims.service.gov.uk");
+
+        List<Site> serviceReturn = Arrays.asList(Site.siteWith()
+                .sopReference("sop")
+                .siteId("AA99")
+                .name("name")
+                .service("service")
+                .id(1)
+                .build(),
+            Site.siteWith()
+                .sopReference("sop")
+                .siteId("AA001")
+                .name("name")
+                .service("service")
+                .id(1)
+                .build()
+        );
+
+        when(siteServiceMock.getAllSites()).thenReturn(serviceReturn);
     }
 
     @After
@@ -372,7 +409,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             .ccdCaseTypes(Collections.singletonList("DIVORCE"))
             .build();
 
-        when(referenceDataService.getOrganisationalDetail(anyString(), any())).thenReturn(organisationalServiceDto);
+        when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenReturn(organisationalServiceDto);
 
         AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
             new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
@@ -394,7 +431,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     public void CreateCreditAccountPayment_withCaseTypereturn404() throws Exception {
         CreditAccountPaymentRequest request = objectMapper.readValue(jsonRequestWithCaseType().getBytes(), CreditAccountPaymentRequest.class);
 
-        Mockito.when(referenceDataService.getOrganisationalDetail(any(), any())).thenThrow(new NoServiceFoundException("Test Error"));
+        Mockito.when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenThrow(new NoServiceFoundException("Test Error"));
 
         restActions
             .post("/credit-account-payments", request)
@@ -406,7 +443,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     public void CreateCreditAccountPayment_withCaseTypeReturn504() throws Exception {
         CreditAccountPaymentRequest request = objectMapper.readValue(jsonRequestWithCaseType().getBytes(), CreditAccountPaymentRequest.class);
 
-        Mockito.when(referenceDataService.getOrganisationalDetail(any(), any())).thenThrow(new GatewayTimeoutException("Test Error"));
+        Mockito.when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenThrow(new GatewayTimeoutException("Test Error"));
 
         restActions
             .post("/credit-account-payments", request)
@@ -690,6 +727,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     @Test
     public void givenLiberataCheckOffAndCheckLiberataAccountForAllSericesOnThenAllServicesTriggerLiberataCheck() throws Exception {
 
+        setupForPaymentRoleUser();
         AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
             new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
         Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);

@@ -85,6 +85,8 @@ public class PaymentDto {
 
     private String payerName;
 
+    private Boolean refundEnable;
+
     //@JsonUnwrapped
     @NotNull
     private List<FeeDto> fees;
@@ -94,6 +96,8 @@ public class PaymentDto {
     private List<PaymentAllocationDto> paymentAllocation;
 
     private String giroSlipNo;
+
+    private String internalReference;
 
     @JsonProperty("_links")
     private LinksDto links;

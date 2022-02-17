@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.payment.api.model.ContactDetails;
 
 import java.math.BigDecimal;
 
@@ -29,4 +30,8 @@ public class RefundRequestDto {
     private String ccdCaseNumber;
 
     private String feeIds;
+
+    private String serviceType;
+
+    private ContactDetails contactDetails;
 }

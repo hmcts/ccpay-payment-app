@@ -7,7 +7,6 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import uk.gov.hmcts.fees2.register.data.model.Fee;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.PaymentAllocationDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
@@ -222,6 +221,32 @@ public class PaymentDtoMapperTest {
     public void testToPaymentAllocationDtos(){
         PaymentAllocationDto paymentAllocationDto = paymentDtoMapper.toPaymentAllocationDtos(allocation1);
         assertEquals("Transferred",paymentAllocationDto.getAllocationStatus());
+    }
+
+    @Test
+    public void testToRetrieveCardPaymentResponseDtoWithoutExtReference() {
+        PaymentMethod paymentMethod = PaymentMethod.paymentMethodWith().name("online").build();
+
+        Payment payment = Payment.paymentWith().internalReference("abc")
+            .id(1)
+            .reference("RC-1632-3254-9172-5888")
+            .caseReference("123789")
+            .paymentMethod(paymentMethod )
+            .ccdCaseNumber("1234")
+            .amount(new BigDecimal(300))
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
+            .build();
+
+        List<Payment> paymentList = new ArrayList<>();
+        paymentList.add(payment);
+        PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith().ccdCaseNumber("1234")
+            .enterpriseServiceName("divorce")
+            .payments(paymentList)
+            .paymentReference("123456")
+            .build();
+
+        PaymentDto paymentDto = paymentDtoMapper.toRetrieveCardPaymentResponseDtoWithoutExtReference(paymentFeeLink);
+        assertEquals(paymentDto.getCaseReference(), payment.getCaseReference());
     }
 
 }

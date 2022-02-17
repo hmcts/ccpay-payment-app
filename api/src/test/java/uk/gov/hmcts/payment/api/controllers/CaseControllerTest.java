@@ -21,16 +21,18 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
+import org.testcontainers.shaded.okhttp3.Response;
 import uk.gov.hmcts.payment.api.componenttests.PaymentDbBackdoor;
 import uk.gov.hmcts.payment.api.componenttests.PaymentFeeDbBackdoor;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
-import uk.gov.hmcts.payment.api.domain.service.OrderDomainService;
+import uk.gov.hmcts.payment.api.domain.service.ServiceRequestDomainService;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupResponse;
 import uk.gov.hmcts.payment.api.dto.RemissionRequest;
+import uk.gov.hmcts.payment.api.external.client.dto.Error;
 import uk.gov.hmcts.payment.api.model.FeePayApportion;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentChannel;
@@ -42,6 +44,7 @@ import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.model.StatusHistory;
 import uk.gov.hmcts.payment.api.reports.FeesService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataServiceImpl;
+import uk.gov.hmcts.payment.api.service.RefundRemissionEnableService;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
@@ -63,6 +66,7 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -72,11 +76,13 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "componenttest"})
 @SpringBootTest(webEnvironment = MOCK)
-@Transactional
 @DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
+@Transactional
 public class CaseControllerTest extends PaymentsDataUtil {
 
     private static final String USER_ID = UserResolverBackdoor.CASEWORKER_ID;
+    private static final String FINANCE_MANAGER_USER_ID = UserResolverBackdoor.FINANCE_MANAGER_ID;
+    private static final String CITIZEN_USER_ID = UserResolverBackdoor.CITIZEN_ID;
     @ClassRule
     public static WireMockClassRule wireMockRule = new WireMockClassRule(9190);
     static FeeDto feeRequest = FeeDto.feeDtoWith()
@@ -106,6 +112,9 @@ public class CaseControllerTest extends PaymentsDataUtil {
     protected PaymentDbBackdoor paymentDbBackdoor;
     @Autowired
     protected PaymentFeeDbBackdoor paymentFeeDbBackdoor;
+    @MockBean
+    private RefundRemissionEnableService refundRemissionEnableService;
+
     RestActions restActions;
     MockMvc mvc;
     List<Site> serviceReturn = Arrays.asList(Site.siteWith()
@@ -136,7 +145,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
     @Autowired
     private ObjectMapper objectMapper;
     @MockBean
-    private OrderDomainService orderDomainService;
+    private ServiceRequestDomainService orderDomainService;
 
     @Before
     public void setup() {
@@ -148,6 +157,64 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .withAuthorizedUser(USER_ID)
             .withUserId(USER_ID)
             .withReturnUrl("https://www.moneyclaims.service.gov.uk");
+
+        when(siteServiceMock.getAllSites()).thenReturn(serviceReturn);
+    }
+
+    public void setupForFinanceManagerUser() {
+        MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
+        this.restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
+
+        restActions
+            .withAuthorizedService("divorce")
+            .withAuthorizedUser(FINANCE_MANAGER_USER_ID)
+            .withUserId(FINANCE_MANAGER_USER_ID)
+            .withReturnUrl("https://www.moneyclaims.service.gov.uk");
+
+        List<Site> serviceReturn = Arrays.asList(Site.siteWith()
+                .sopReference("sop")
+                .siteId("AA99")
+                .name("name")
+                .service("service")
+                .id(1)
+                .build(),
+            Site.siteWith()
+                .sopReference("sop")
+                .siteId("AA001")
+                .name("name")
+                .service("service")
+                .id(1)
+                .build()
+        );
+
+        when(siteServiceMock.getAllSites()).thenReturn(serviceReturn);
+    }
+
+    public void setupForCitizenUser() {
+        MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
+        this.restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
+
+        restActions
+            .withAuthorizedService("divorce")
+            .withAuthorizedUser(CITIZEN_USER_ID)
+            .withUserId(CITIZEN_USER_ID)
+            .withReturnUrl("https://www.moneyclaims.service.gov.uk");
+
+        List<Site> serviceReturn = Arrays.asList(Site.siteWith()
+                .sopReference("sop")
+                .siteId("AA99")
+                .name("name")
+                .service("service")
+                .id(1)
+                .build(),
+            Site.siteWith()
+                .sopReference("sop")
+                .siteId("AA001")
+                .name("name")
+                .service("service")
+                .id(1)
+                .build()
+        );
 
         when(siteServiceMock.getAllSites()).thenReturn(serviceReturn);
     }
@@ -184,7 +251,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
         assertThat(payment.getDateCreated()).isNotNull();
         assertThat(payment.getCustomerReference()).isNotBlank();
 
-        Assert.assertThat(payment.getStatusHistories(), hasItem(hasProperty("status", is("Initiated"))));
+        Assert.assertThat(payment.getStatusHistories(), hasItem(hasProperty("status", is("Success"))));
         Assert.assertThat(payment.getStatusHistories(), hasItem(hasProperty("errorCode", nullValue())));
     }
 
@@ -285,6 +352,85 @@ public class CaseControllerTest extends PaymentsDataUtil {
 
     @Test
     @Transactional
+    public void searchAllPaymentGroupsWithUserWithoutValidRole() throws Exception {
+
+        setupForCitizenUser();
+        populateCardPaymentToDbWithPaymentWithCreatedstatus("1");
+
+        MvcResult result = restActions
+            .withAuthorizedUser(UserResolverBackdoor.CITIZEN_ID)
+            .withUserId(UserResolverBackdoor.CITIZEN_ID)
+            .get("/cases/ccdCaseNumber1/paymentgroups")
+            .andExpect(status().isForbidden())
+            .andReturn();
+
+        assertThat(result.getResponse().getContentAsString()).isEqualTo("User does not have a valid role");
+
+    }
+
+    @Test
+    @Transactional
+    public void searchAllPaymentGroupsWithUserWithoutPaymentsRole() throws Exception {
+
+        setupForFinanceManagerUser();
+        populateCardPaymentToDbWithPaymentWithCreatedstatus("1");
+
+        MvcResult result = restActions
+            .withAuthorizedUser(UserResolverBackdoor.FINANCE_MANAGER_ID)
+            .withUserId(UserResolverBackdoor.FINANCE_MANAGER_ID)
+            .get("/cases/ccdCaseNumber1/paymentgroups")
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentGroupResponse paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentGroupResponse>(){});
+
+
+        assertThat(paymentGroups.getPaymentGroups().size()).isEqualTo(1);
+        assertThat(paymentGroups.getPaymentGroups().get(0).getPayments()).isNull();
+        assertThat(paymentGroups.getPaymentGroups().get(0).getRemissions()).isNull();
+    }
+
+    @Test
+    @Transactional
+    public void searchAllPaymentGroupsWithUnsuccessulPaymentStatus() throws Exception {
+
+        populateCardPaymentToDbWithPaymentWithCreatedstatus("1");
+
+        MvcResult result = restActions
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
+            .get("/cases/ccdCaseNumber1/paymentgroups")
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentGroupResponse paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentGroupResponse>(){});
+
+        assertThat(paymentGroups.getPaymentGroups().size()).isEqualTo(1);
+        assertThat(paymentGroups.getPaymentGroups().get(0).getServiceRequestStatus()).isEqualTo("Not paid");
+
+    }
+    @Test
+    @Transactional
+    public void searchAllPaymentGroupsWithUnderPaidFees() throws Exception {
+
+        populateCardPaymentToDbWithPartiallyPaidPayment("1");
+
+        MvcResult result = restActions
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
+            .get("/cases/ccdCaseNumber1/paymentgroups")
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentGroupResponse paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentGroupResponse>(){});
+
+        assertThat(paymentGroups.getPaymentGroups().size()).isEqualTo(1);
+        assertThat(paymentGroups.getPaymentGroups().get(0).getServiceRequestStatus()).isEqualTo("Partially paid");
+
+    }
+
+    @Test
+    @Transactional
     public void searchAllPaymentGroupsWithCcdCaseNumberShouldReturnRequiredFields() throws Exception {
 
         populateCardPaymentToDb("1");
@@ -340,7 +486,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
         PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(feeRequest))
             .build();
-
+        when(refundRemissionEnableService.returnRemissionEligible(any())).thenReturn(true);
         restActions
             .post("/payment-groups", paymentGroupDto)
             .andReturn();

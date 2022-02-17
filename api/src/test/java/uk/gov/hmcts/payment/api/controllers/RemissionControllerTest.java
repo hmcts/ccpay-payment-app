@@ -37,6 +37,7 @@ import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.model.Remission;
 import uk.gov.hmcts.payment.api.model.StatusHistory;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
+import uk.gov.hmcts.payment.api.service.RefundRemissionEnableService;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
@@ -99,6 +100,8 @@ public class RemissionControllerTest {
     private SiteService<Site, String> siteServiceMock;
     @MockBean
     private ReferenceDataService referenceDataService;
+    @MockBean
+    private RefundRemissionEnableService refundRemissionEnableService;
 
     @Before
     public void setUp() {
@@ -111,7 +114,14 @@ public class RemissionControllerTest {
             .withUserId(USER_ID)
             .withReturnUrl("https://www.moneyclaims.service.gov.uk");
 
-        when(referenceDataService.getOrganisationalDetail(any(), any())).thenReturn(organisationalServiceDto);
+        when(referenceDataService.getOrganisationalDetail(any(), any(), any())).thenReturn(organisationalServiceDto);
+
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA001")
+            .serviceDescription("DIVORCE")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any(),any())).thenReturn(organisationalServiceDto);
 
     }
 
@@ -751,6 +761,10 @@ public class RemissionControllerTest {
         PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(getConsecutiveFee())).build();
 
+        PaymentFee fee = PaymentFee.feeWith().amountDue(new BigDecimal("10.00")).netAmount(new BigDecimal("10.00"))
+            .calculatedAmount(new BigDecimal("10.00")).version("1").code("FEE000567").remissions(new ArrayList<>()).build();
+
+        when(refundRemissionEnableService.returnRemissionEligible(fee)).thenReturn(true);
         MvcResult result = restActions
             .post("/payment-groups", request)
             .andExpect(status().isCreated())
@@ -817,7 +831,8 @@ public class RemissionControllerTest {
             .fee(getFee())
             .build();
 
-        when(referenceDataService.getOrganisationalDetail(any(), any())).thenThrow(new NoServiceFoundException("Test Error"));
+        when(referenceDataService.getOrganisationalDetail(any(),any(),any())).thenThrow(new NoServiceFoundException("Test Error"));
+
         restActions
             .post("/remissions", remission)
             .andExpect(status().isNotFound())
@@ -836,7 +851,8 @@ public class RemissionControllerTest {
             .fee(getFee())
             .build();
 
-        when(referenceDataService.getOrganisationalDetail(any(), any())).thenThrow(new GatewayTimeoutException("Test Error"));
+        when(referenceDataService.getOrganisationalDetail(any(),any(),any())).thenThrow(new GatewayTimeoutException("Test Error"));
+
         restActions
             .post("/remissions", remission)
             .andExpect(status().isGatewayTimeout())

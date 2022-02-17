@@ -46,7 +46,7 @@ public class PaymentOperationsService implements PaymentService<Payment, String>
     }
 
     @Override
-    public void updatePaymentsForCCDCaseNumberByCertainDays(String ccd_case_number){
+    public void updatePaymentsForCCDCaseNumberByCertainDays(final String ccd_case_number, final String days){
 
     }
 
@@ -77,6 +77,11 @@ public class PaymentOperationsService implements PaymentService<Payment, String>
 
     @Override
     public Payment findSavedPayment(String reference) {
+        return null;
+    }
+
+    @Override
+    public Payment findPayment(String uuid) {
         return null;
     }
 

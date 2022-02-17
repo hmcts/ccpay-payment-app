@@ -40,7 +40,7 @@ import uk.gov.hmcts.payment.api.service.CallbackService;
 import uk.gov.hmcts.payment.api.service.IacService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.util.DateUtil;
-import uk.gov.hmcts.payment.api.util.OrderCaseUtil;
+import uk.gov.hmcts.payment.api.util.ServiceRequestCaseUtil;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
@@ -73,7 +73,7 @@ public class PaymentController {
     private final LaunchDarklyFeatureToggler featureToggler;
 
     @Autowired
-    private OrderCaseUtil orderCaseUtil;
+    private ServiceRequestCaseUtil serviceRequestCaseUtil;
 
     @Autowired
     private IacService iacService;
@@ -114,7 +114,7 @@ public class PaymentController {
                 payment.get().setCcdCaseNumber(request.getCcdCaseNumber());
             }
 
-            orderCaseUtil.updateOrderCaseDetails(payment.get().getPaymentLink(), payment.get());
+            serviceRequestCaseUtil.updateServiceRequestCaseDetails(payment.get().getPaymentLink(), payment.get());
 
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
@@ -122,12 +122,19 @@ public class PaymentController {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @RequestMapping(value = "/payments/ccd_case_reference/{ccd_case_number}", method = PATCH)
+    /*
+     * This API is used only for testing purposes mainly for the Refunds feature.
+     * There is a requirement for Testing mainly for the Front End Tests to rollback the
+     * payment made by the hours so that the payment can be eligible for a Refund.
+     * All the Refunds tests hinge on this requirement.
+     * Please do not use this for an Application  feature or build purposes.
+     */
+    @RequestMapping(value = "/payments/ccd_case_reference/{ccd_case_number}/lag_time/{lag_time}", method = PATCH)
     @Transactional
     public ResponseEntity
         updatePaymentsForCCDCaseNumberByCertainDays(@PathVariable("ccd_case_number")
-                                                        String ccd_case_number) {
-        paymentService.updatePaymentsForCCDCaseNumberByCertainDays(ccd_case_number);
+                                                        final String ccd_case_number, @PathVariable("lag_time") final String lag_time) {
+        paymentService.updatePaymentsForCCDCaseNumberByCertainDays(ccd_case_number, lag_time);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 

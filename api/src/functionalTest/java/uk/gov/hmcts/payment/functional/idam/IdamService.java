@@ -36,7 +36,9 @@ public class IdamService {
     public static final String BASIC = "Basic ";
     public static final String GRANT_TYPE = "password";
     public static final String SCOPES = "openid profile roles";
-    public static final String SCOPES_SEARCH_USER = "openid profile roles search-user";
+    public static final String SCOPES_SEARCH_USER = "openid profile authorities acr roles search-user";
+    public static final String SCOPES_CREATE_USER = "openid profile roles openid roles profile create-user manage-user";
+    public static final String SCOPES_CREATE_USER_AND_SEARCH_USER = "openid profile roles create-user manage-user search-user";
     private final IdamApi idamApi;
     private final TestConfigProperties testConfig;
 
@@ -65,6 +67,54 @@ public class IdamService {
 
     public ValidUser createUserWithSearchScope(String userGroup, String... roles) {
         String email = nextUserEmail();
+        CreateUserRequest userRequest = userRequest(email, userGroup, roles);
+        LOG.info("idamApi : " + idamApi.toString());
+        LOG.info("userRequest : " + userRequest);
+        try {
+            idamApi.createUser(userRequest);
+        } catch (Exception ex) {
+            LOG.info(ex.getMessage());
+        }
+
+        String accessToken = authenticateUserWithSearchScope(email, testConfig.getTestUserPassword());
+
+        return new ValidUser(email, accessToken);
+    }
+
+    public ValidUser createUserWithSearchScopeForRefData(String userGroup, String... roles) {
+        String email = nextUserEmailForRefData();
+        CreateUserRequest userRequest = userRequest(email, userGroup, roles);
+        LOG.info("idamApi : " + idamApi.toString());
+        LOG.info("userRequest : " + userRequest);
+        try {
+            idamApi.createUser(userRequest);
+        } catch (Exception ex) {
+            LOG.info(ex.getMessage());
+        }
+
+        String accessToken = authenticateUserWithSearchScope(email, testConfig.getTestUserPassword());
+
+        return new ValidUser(email, accessToken);
+    }
+
+    public ValidUser createUserWithCreateScope(String userGroup, String... roles) {
+        String email = nextUserEmail();
+        CreateUserRequest userRequest = userRequest(email, userGroup, roles);
+        LOG.info("idamApi : " + idamApi.toString());
+        LOG.info("userRequest : " + userRequest);
+        try {
+            idamApi.createUser(userRequest);
+        } catch (Exception ex) {
+            LOG.info(ex.getMessage());
+        }
+
+        String accessToken = authenticateUserWithCreateAndSearchScope(email, testConfig.getTestUserPassword());
+
+        return new ValidUser(email, accessToken);
+    }
+
+    public ValidUser createUserWithRefDataEmailFormat(String userGroup, String... roles) {
+        String email = nextUserEmailForRefData();
         CreateUserRequest userRequest = userRequest(email, userGroup, roles);
         LOG.info("idamApi : " + idamApi.toString());
         LOG.info("userRequest : " + userRequest);
@@ -108,8 +158,8 @@ public class IdamService {
         LOG.info("username : " + username);
         LOG.info("password : " + password);
         LOG.info("base64Authorisation : " + base64Authorisation);
-        LOG.info("testConfig.getOauth2().getClientId() : " + testConfig.getOauth2().getClientId());
-        LOG.info("testConfig.getOauth2().getRedirectUrl() : " + testConfig.getOauth2().getRedirectUrl());
+        LOG.info("testConfig.getIdamPayBubbleClientID() : " + testConfig.getIdamPayBubbleClientID());
+        LOG.info("testConfig.getIdamPayBubbleClientSecret() : " + testConfig.getIdamPayBubbleClientSecret());
 
         try {
             TokenExchangeResponse tokenExchangeResponse = idamApi.exchangeCode(username,
@@ -127,6 +177,58 @@ public class IdamService {
         return null;
     }
 
+    public String authenticateUserWithCreateScope(String username, String password) {
+        String authorisation = username + ":" + password;
+        String base64Authorisation = Base64.getEncoder().encodeToString(authorisation.getBytes());
+
+        LOG.info("username : " + username);
+        LOG.info("password : " + password);
+        LOG.info("base64Authorisation : " + base64Authorisation);
+        LOG.info("testConfig.getOauth2().getClientId() : " + testConfig.getOauth2().getClientId());
+        LOG.info("testConfig.getOauth2().getRedirectUrl() : " + testConfig.getOauth2().getRedirectUrl());
+
+        try {
+            TokenExchangeResponse tokenExchangeResponse = idamApi.exchangeCode(username,
+                password,
+                SCOPES_CREATE_USER,
+                GRANT_TYPE,
+                testConfig.getIdamRefDataApiClientId(),
+                testConfig.getIdamRefDataApiClientSecret(),
+                testConfig.getOauth2().getRedirectUrl());
+
+            return BEARER + tokenExchangeResponse.getAccessToken();
+        } catch (Exception ex) {
+            LOG.info(ex.getMessage());
+        }
+        return null;
+    }
+
+    public String authenticateUserWithCreateAndSearchScope(String username, String password) {
+        String authorisation = username + ":" + password;
+        String base64Authorisation = Base64.getEncoder().encodeToString(authorisation.getBytes());
+
+        LOG.info("username : " + username);
+        LOG.info("password : " + password);
+        LOG.info("base64Authorisation : " + base64Authorisation);
+        LOG.info(" testConfig.getIdamRefDataApiClientId() : " +  testConfig.getIdamRefDataApiClientId());
+        LOG.info(" testConfig.getIdamRefDataApiClientSecret() : " +  testConfig.getIdamRefDataApiClientSecret());
+        LOG.info("testConfig.getOauth2().getRedirectUrl() : " + testConfig.getOauth2().getRedirectUrl());
+
+        try {
+            TokenExchangeResponse tokenExchangeResponse = idamApi.exchangeCode(username,
+                password,
+                SCOPES_CREATE_USER_AND_SEARCH_USER,
+                GRANT_TYPE,
+                testConfig.getIdamRefDataApiClientId(),
+                testConfig.getIdamRefDataApiClientSecret(),
+                testConfig.getOauth2().getRedirectUrl());
+
+            return BEARER + tokenExchangeResponse.getAccessToken();
+        } catch (Exception ex) {
+            LOG.info(ex.getMessage());
+        }
+        return null;
+    }
 
     private CreateUserRequest userRequest(String email, String userGroup, String[] roles) {
         return userRequestWith()
@@ -141,5 +243,10 @@ public class IdamService {
 
     private String nextUserEmail() {
         return String.format(testConfig.getGeneratedUserEmailPattern(), UUID.randomUUID().toString());
+    }
+
+    private String nextUserEmailForRefData() {
+        LOG.info("The value of the Ref Data Email Id "+testConfig.getGeneratedUserEmailPatternForRefData());
+        return String.format(testConfig.getGeneratedUserEmailPatternForRefData(), RandomStringUtils.random(6, true, true));
     }
 }

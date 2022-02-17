@@ -15,6 +15,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.LinkedMultiValueMap;
@@ -32,6 +33,7 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -44,6 +46,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "componenttest"})
 @SpringBootTest(webEnvironment = MOCK)
+@DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
 public class ReferenceDataServiceTest extends PaymentsDataUtil {
 
     static MultiValueMap<String, String> header = new LinkedMultiValueMap<String, String>();
@@ -101,30 +104,48 @@ public class ReferenceDataServiceTest extends PaymentsDataUtil {
         when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
             eq(new ParameterizedTypeReference<List<OrganisationalServiceDto>>() {
             }))).thenReturn(responseEntity);
-        OrganisationalServiceDto res = referenceDataServiceImp.getOrganisationalDetail("VPAA", header);
+
+        OrganisationalServiceDto res = referenceDataServiceImp.getOrganisationalDetail(Optional.ofNullable("VPAA"),Optional.empty(), header);
+
         assertEquals("VPAA", res.getServiceCode());
     }
 
     @Test(expected = NoServiceFoundException.class)
     public void getOrganisationalDetailNoServiceFound() throws Exception {
 
+        MultiValueMap<String, String> header = new LinkedMultiValueMap<String, String>();
+        //User token
+        // changed to lower case to depict real time header
+        header.put("authorization", Collections.singletonList("Bearer 131313"));
+        //Service token
+        header.put("ServiceAuthorization", Collections.singletonList("qwertyuio.poiuytrewq.zxfghimbfdw"));
+        header.put("Content-Type", Collections.singletonList("application/json"));
+
         ResponseEntity<List<OrganisationalServiceDto>> responseEntity = new ResponseEntity<>(Collections.emptyList(), HttpStatus.OK);
 
         when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
             eq(new ParameterizedTypeReference<List<OrganisationalServiceDto>>() {
             }))).thenReturn(responseEntity);
-        OrganisationalServiceDto res = referenceDataServiceImp.getOrganisationalDetail("VPAA", header);
+
+        OrganisationalServiceDto res = referenceDataServiceImp.getOrganisationalDetail(Optional.ofNullable("VPAA"),Optional.empty(), header);
     }
 
     @Test(expected = NoServiceFoundException.class)
     public void getOrganisationalDetailNoServiceFoundWithNull() throws Exception {
 
         ResponseEntity<List<OrganisationalServiceDto>> responseEntity = new ResponseEntity<>(null, HttpStatus.OK);
+        MultiValueMap<String, String> header = new LinkedMultiValueMap<String, String>();
+        //User token
+        header.put("Authorization", Collections.singletonList("Bearer 131313"));
+        //Service token
+        header.put("ServiceAuthorization", Collections.singletonList("qwertyuio.poiuytrewq.zxfghimbfdw"));
+        header.put("Content-Type", Collections.singletonList("application/json"));
 
         when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
             eq(new ParameterizedTypeReference<List<OrganisationalServiceDto>>() {
             }))).thenReturn(responseEntity);
-        OrganisationalServiceDto res = referenceDataServiceImp.getOrganisationalDetail("VPAA", header);
+
+        OrganisationalServiceDto res = referenceDataServiceImp.getOrganisationalDetail(Optional.ofNullable("VPAA"), Optional.empty(), header);
     }
 
 }

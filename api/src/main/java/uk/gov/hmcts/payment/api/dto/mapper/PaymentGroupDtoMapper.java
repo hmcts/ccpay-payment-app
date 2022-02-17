@@ -3,6 +3,9 @@ package uk.gov.hmcts.payment.api.dto.mapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.fees2.register.api.contract.FeeVersionDto;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
@@ -19,10 +22,13 @@ import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentFeeRepository;
 import uk.gov.hmcts.payment.api.model.Remission;
 import uk.gov.hmcts.payment.api.reports.FeesService;
+import uk.gov.hmcts.payment.api.service.RefundRemissionEnableService;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
+import uk.gov.hmcts.payment.api.util.ServiceRequestUtil;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -40,8 +46,27 @@ public class PaymentGroupDtoMapper {
     @Autowired
     private PaymentFeeRepository paymentFeeRepository;
 
+    @Autowired
+    private RefundRemissionEnableService refundRemissionEnableService;
+
     public PaymentGroupDto toPaymentGroupDto(PaymentFeeLink paymentFeeLink) {
-        return PaymentGroupDto.paymentGroupDtoWith()
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        boolean containsPaymentRole = false;
+        ServiceRequestUtil serviceRequestUtil = new ServiceRequestUtil();
+
+        Iterator<? extends GrantedAuthority> userRole =  authentication.getAuthorities().iterator();
+
+        while (userRole.hasNext()){
+            if(userRole.next().toString().equals("payments")){
+                containsPaymentRole = true;
+                break;
+            }
+        }
+
+
+        PaymentGroupDto paymentGroupDto;
+
+        paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
             .dateCreated(paymentFeeLink.getDateCreated())
             .dateUpdated(paymentFeeLink.getDateUpdated())
@@ -49,6 +74,20 @@ public class PaymentGroupDtoMapper {
             .payments((!(paymentFeeLink.getPayments() == null) && !paymentFeeLink.getPayments().isEmpty()) ? toPaymentDtos(paymentFeeLink.getPayments()) : null)
             .remissions(!(paymentFeeLink.getRemissions() == null) ? toRemissionDtos(paymentFeeLink.getRemissions()) : null)
             .build();
+
+        String serviceRequestStatus = serviceRequestUtil.getServiceRequestStatus(paymentGroupDto);
+
+        if(!containsPaymentRole){
+            paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
+                .paymentGroupReference(paymentFeeLink.getPaymentReference())
+                .dateCreated(paymentFeeLink.getDateCreated())
+                .dateUpdated(paymentFeeLink.getDateUpdated())
+                .fees(toFeeDtos(paymentFeeLink.getFees()))
+                .build();
+        }
+        paymentGroupDto.setServiceRequestStatus(serviceRequestStatus);
+
+        return paymentGroupDto;
     }
 
     private List<PaymentDto> toPaymentDtos(List<Payment> payments) {
@@ -78,6 +117,7 @@ public class PaymentGroupDtoMapper {
             .documentControlNumber(payment.getDocumentControlNumber())
             .bankedDate(payment.getBankedDate())
             .payerName(payment.getPayerName())
+            .refundEnable(payment.getDateUpdated() != null ? toRefundEligible(payment):false)
             .paymentAllocation(payment.getPaymentAllocation() !=null ? toPaymentAllocationDtos(payment.getPaymentAllocation()) : null)
             .build();
     }
@@ -140,6 +180,7 @@ public class PaymentGroupDtoMapper {
             .dateUpdated(fee.getDateUpdated())
             .dateApportioned(fee.getDateApportioned())
             .amountDue(fee.getAmountDue())
+            .remissionEnable(toRemissionEnable(fee))
             .build();
     }
 
@@ -157,6 +198,16 @@ public class PaymentGroupDtoMapper {
             .reference(feeDto.getReference())
             .dateCreated(apportionFeature ? timestamp: null)
             .build();
+    }
+
+    private Boolean toRefundEligible(Payment payment) {
+
+        return refundRemissionEnableService.returnRefundEligible(payment);
+    }
+
+    private Boolean toRemissionEnable(PaymentFee fee){
+
+        return refundRemissionEnableService.returnRemissionEligible(fee);
     }
 
 }
