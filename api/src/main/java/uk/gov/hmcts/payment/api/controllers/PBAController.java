@@ -96,7 +96,6 @@ public class PBAController {
         @ApiResponse(code = 404, message = "No PBA Accounts found.")
     })
     @GetMapping(value = "/pba-accounts")
-    @PaymentExternalAPI
     public ResponseEntity<PBAResponse> retrievePBADetails(@RequestHeader(required = false) MultiValueMap<String, String> headers) {
 
         String emailIdFromIdam = idamService.getUserId(headers);
