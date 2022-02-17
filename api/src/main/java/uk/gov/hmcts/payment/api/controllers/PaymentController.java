@@ -362,7 +362,7 @@ public class PaymentController {
         }
         //End of Apportion logic
         PaymentDto paymentDto = paymentDtoMapper.toReconciliationResponseDtoForLibereta(payment, paymentReference, fees, ff4j, isPaymentAfterApportionment);
-        paymentDto = filterFeeCode(paymentDto);
+        //paymentDto = filterFeeCode(paymentDto);
         paymentDtos.add(paymentDto);
     }
 
@@ -430,13 +430,13 @@ public class PaymentController {
 
 
     private PaymentDto filterFeeCode(PaymentDto paymentDto) {
-        LOG.info("Start Function filterFeeCode" + paymentDto.toString());
+        LOG.info("Start Function filterFeeCode :" , paymentDto.toString());
             List<List<FeeDto>> groupedFee = paymentDto.getFees().stream()
                 .collect(Collectors.groupingBy(o -> Pair.of(o.getCode(), o.getNaturalAccountCode())))
                 .entrySet().stream()
                 .map(Map.Entry::getValue).collect(Collectors.toList());
-        LOG.info("Groupedfee List size" + groupedFee.size());
-        List feeDTOList = new ArrayList();
+        LOG.info("Groupedfee List size {}" , groupedFee.size());
+        List<FeeDto> feeDTOList = new ArrayList();
             Iterator< List<FeeDto> > groupedFeeIterator = groupedFee.iterator();
             while(groupedFeeIterator.hasNext()) {
                 List<FeeDto> feeDTOL  = groupedFeeIterator.next();
@@ -445,7 +445,7 @@ public class PaymentController {
                 Iterator< FeeDto > feeDtoIterator = feeDTOL.iterator();
                 while(feeDtoIterator.hasNext()) {
                     feeDto  = feeDtoIterator.next();
-                    LOG.info("NaturalAccountCode "+feeDto.getNaturalAccountCode()+"FeeCode"+feeDto.getCode());
+                    LOG.info("NaturalAccountCode {} ",feeDto.getNaturalAccountCode(),"FeeCode {}",feeDto.getCode());
                     if(feeDto.getCalculatedAmount()!=null)
                         calculatedAmount = calculatedAmount.add(feeDto.getCalculatedAmount());
                     if(feeDto.getApportionedPayment()!=null)
@@ -459,7 +459,7 @@ public class PaymentController {
                 feeDTOList.add(feeDto);
             }
             paymentDto.setFees(feeDTOList);
-        LOG.info("End Function filterFeeCode" + paymentDto.toString());
+        LOG.info("End Function filterFeeCode " , paymentDto.toString());
         return paymentDto;
     }
 }
