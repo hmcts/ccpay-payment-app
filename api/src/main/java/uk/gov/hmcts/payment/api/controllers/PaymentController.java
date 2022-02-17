@@ -456,6 +456,7 @@ public class PaymentController {
                     feeDto.setApportionedPayment(apportionedPayment);
                     feeDto.setCalculatedAmount(calculatedAmount);
                 }
+                LOG.info("feeDto- " ,feeDto.toString());
                 feeDTOList.add(feeDto);
             }
             paymentDto.setFees(feeDTOList);
