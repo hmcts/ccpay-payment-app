@@ -446,9 +446,12 @@ public class PaymentController {
                 while(feeDtoIterator.hasNext()) {
                     feeDto  = feeDtoIterator.next();
                     LOG.info("NaturalAccountCode "+feeDto.getNaturalAccountCode()+"FeeCode"+feeDto.getCode());
-                    calculatedAmount = calculatedAmount.add(feeDto.getCalculatedAmount());
-                    apportionedPayment = apportionedPayment.add(feeDto.getApportionedPayment());
-                    volume = volume + feeDto.getVolume();
+                    if(feeDto.getCalculatedAmount()!=null)
+                        calculatedAmount = calculatedAmount.add(feeDto.getCalculatedAmount());
+                    if(feeDto.getApportionedPayment()!=null)
+                        apportionedPayment = apportionedPayment.add(feeDto.getApportionedPayment());
+                    if(feeDto.getVolume()!=null)
+                        volume = volume + feeDto.getVolume();
                     feeDto.setVolume(volume);
                     feeDto.setApportionedPayment(apportionedPayment);
                     feeDto.setCalculatedAmount(calculatedAmount);
