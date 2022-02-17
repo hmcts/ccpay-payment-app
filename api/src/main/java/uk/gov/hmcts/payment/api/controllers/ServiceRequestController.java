@@ -131,7 +131,7 @@ public class ServiceRequestController {
     @ResponseBody
     @ResponseStatus(HttpStatus.CREATED)
     @Transactional
-    public ResponseEntity<ServiceRequestPaymentBo> createCreditAccountPaymentForServiceRequest(@ApiParam(value = "idempotency_key", required = false, hidden = true, defaultValue = "should be hidden")@RequestHeader String idempotencyKey,
+    public ResponseEntity<ServiceRequestPaymentBo> createCreditAccountPaymentForServiceRequest(@ApiParam(value = "idempotency_key", hidden = true)@RequestHeader(required = false) String idempotencyKey,
                                                                                                @PathVariable("service-request-reference") String serviceRequestReference,
                                                                                                @Valid @RequestBody ServiceRequestPaymentDto serviceRequestPaymentDto) throws CheckDigitException, JsonProcessingException {
 
@@ -234,7 +234,7 @@ public class ServiceRequestController {
     @ResponseStatus(HttpStatus.CREATED)
     @Transactional
 
-    public ResponseEntity<OnlineCardPaymentResponse> createCardPayment(@ApiParam(value = "return-url", required = false, hidden = true, defaultValue = "should be hidden") @RequestHeader String returnURL,
+    public ResponseEntity<OnlineCardPaymentResponse> createCardPayment(@ApiParam(value = "return-url", hidden = true) @RequestHeader(required = false) String returnURL,
                                                                        @RequestHeader(value = "service-callback-url", required = false) String serviceCallbackURL,
                                                                        @PathVariable("service-request-reference") String serviceRequestReference,
                                                                        @Valid @RequestBody OnlineCardPaymentRequest onlineCardPaymentRequest) throws CheckDigitException, JsonProcessingException {
