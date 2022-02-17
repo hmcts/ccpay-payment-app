@@ -430,13 +430,13 @@ public class PaymentController {
 
 
     private PaymentDto filterFeeCode(PaymentDto paymentDto) {
-        LOG.info("Start Function filterFeeCode: {}" , paymentDto.toString());
+        LOG.info("Start Function filterFeeCode: {}" , paymentDto);
             List<List<FeeDto>> groupedFee = paymentDto.getFees().stream()
                 .collect(Collectors.groupingBy(o -> Pair.of(o.getCode(), o.getNaturalAccountCode())))
                 .entrySet().stream()
                 .map(Map.Entry::getValue).collect(Collectors.toList());
         LOG.info("Groupedfee List size: {}" , groupedFee.size());
-        List<FeeDto> feeDTOList = new ArrayList();
+        List<FeeDto> feeDTOList = new ArrayList<FeeDto>();
             Iterator< List<FeeDto> > groupedFeeIterator = groupedFee.iterator();
             while(groupedFeeIterator.hasNext()) {
                 List<FeeDto> feeDTOL  = groupedFeeIterator.next();
@@ -445,7 +445,7 @@ public class PaymentController {
                 Iterator< FeeDto > feeDtoIterator = feeDTOL.iterator();
                 while(feeDtoIterator.hasNext()) {
                     feeDto  = feeDtoIterator.next();
-                    LOG.info("NaturalAccountCode: {} ",feeDto.getNaturalAccountCode(),"FeeCode {}",feeDto.getCode());
+                    LOG.info("NaturalAccountCode: FeeCode: {} ",feeDto.getNaturalAccountCode()+ feeDto.getCode());
                     if(feeDto.getCalculatedAmount()!=null)
                         calculatedAmount = calculatedAmount.add(feeDto.getCalculatedAmount());
                     if(feeDto.getApportionedPayment()!=null)
@@ -456,11 +456,11 @@ public class PaymentController {
                     feeDto.setApportionedPayment(apportionedPayment);
                     feeDto.setCalculatedAmount(calculatedAmount);
                 }
-                LOG.info("feeDto: {}" ,feeDto.toString());
+                LOG.info("feeDto: {}" ,feeDto);
                 feeDTOList.add(feeDto);
             }
             paymentDto.setFees(feeDTOList);
-        LOG.info("End Function filterFeeCode: {} " , paymentDto.toString());
+        LOG.info("End Function filterFeeCode: {} " , paymentDto);
         return paymentDto;
     }
 }
