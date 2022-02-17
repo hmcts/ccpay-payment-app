@@ -232,11 +232,12 @@ public class ServiceRequestController {
     @ResponseBody
     @ResponseStatus(HttpStatus.CREATED)
     @Transactional
-    public ResponseEntity<OnlineCardPaymentResponse> createCardPayment(@RequestHeader(value = "service-callback-url", required = false) String serviceCallbackURL,
+    public ResponseEntity<OnlineCardPaymentResponse> createCardPayment(
+        @RequestHeader(value = "return-url") String returnURL, @RequestHeader(value = "service-callback-url", required = false) String serviceCallbackURL,
                                                                        @PathVariable("service-request-reference") String serviceRequestReference,
                                                                        @Valid @RequestBody OnlineCardPaymentRequest onlineCardPaymentRequest) throws CheckDigitException, JsonProcessingException {
 
-        return new ResponseEntity<>(serviceRequestDomainService.create(onlineCardPaymentRequest, serviceRequestReference, onlineCardPaymentRequest.getReturnUrl(), serviceCallbackURL), HttpStatus.CREATED);
+        return new ResponseEntity<>(serviceRequestDomainService.create(onlineCardPaymentRequest, serviceRequestReference, returnURL, serviceCallbackURL), HttpStatus.CREATED);
     }
 
     @ApiOperation(value = "Get card payment status by Internal Reference", notes = "Get payment status for supplied Internal Reference")
