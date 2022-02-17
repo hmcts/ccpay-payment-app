@@ -173,7 +173,7 @@ public class RefundsRequestorJourneyTelephonyPaymentFunctionalTest {
 
         // initiate the refund
         PaymentRefundRequest paymentRefundRequest
-            = PaymentFixture.aRefundRequest("RR001", paymentReference.get(), "550", "550");
+            = PaymentFixture.aRefundRequest("RR001", paymentReference.get(), "550.00", "550");
         Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentRefundRequest);

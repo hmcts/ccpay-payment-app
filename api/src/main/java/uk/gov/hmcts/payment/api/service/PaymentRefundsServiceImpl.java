@@ -92,15 +92,16 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
         RefundRequestDto refundRequest = RefundRequestDto.refundRequestDtoWith()
             .paymentReference(paymentRefundRequest.getPaymentReference())
-            .refundAmount(payment.getAmount())
+            .refundAmount(paymentRefundRequest.getRefundAmount())
             .ccdCaseNumber(payment.getCcdCaseNumber())
             .refundReason(paymentRefundRequest.getRefundReason())
             .feeIds(getFeeIds(payment.getPaymentLink().getFees()))
             .contactDetails(paymentRefundRequest.getContactDetails())
+            .serviceType(payment.getServiceType())
             .build();
 
         RefundResponse refundResponse = RefundResponse.RefundResponseWith()
-            .refundAmount(payment.getAmount())
+            .refundAmount(paymentRefundRequest.getRefundAmount())
             .refundReference(postToRefundService(refundRequest, headers)).build();
 
         return new ResponseEntity<>(refundResponse, HttpStatus.CREATED);
@@ -169,6 +170,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                     .ccdCaseNumber(payment.getCcdCaseNumber()) // ccd case number
                     .refundReason("RR036")//Refund reason category would be other
                     .feeIds(getFeeIds(Collections.singletonList(paymentFee)))
+                    .serviceType(payment.getServiceType())
                     .contactDetails(retrospectiveRemissionRequest.getContactDetails())
                     .build();
                 RefundResponse refundResponse = RefundResponse.RefundResponseWith()

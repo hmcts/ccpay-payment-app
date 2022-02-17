@@ -31,5 +31,7 @@ public class RefundRequestDto {
 
     private String feeIds;
 
+    private String serviceType;
+
     private ContactDetails contactDetails;
 }
