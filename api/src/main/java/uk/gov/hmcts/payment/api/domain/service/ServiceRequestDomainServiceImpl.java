@@ -30,7 +30,7 @@ import uk.gov.hmcts.payment.api.domain.model.ServiceRequestOnlinePaymentBo;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
 import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
-import uk.gov.hmcts.payment.api.dto.order.ServiceRequestCpoDto;
+import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestCpoDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.DeadLetterDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
@@ -473,6 +473,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
                 msg.setProperties(Collections.singletonMap("serviceCallbackUrl",
                     callBackUrl+"/case-payment-orders"));
                 topicClientCPO.send(msg);
+                LOG.info("Message sent: {}", msg);
                 topicClientCPO.close();
             }
         } catch (Exception e) {

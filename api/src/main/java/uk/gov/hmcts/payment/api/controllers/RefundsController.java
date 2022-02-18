@@ -13,7 +13,8 @@ import org.springframework.web.client.HttpServerErrorException;
 import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
 import uk.gov.hmcts.payment.api.dto.RefundResponse;
 import uk.gov.hmcts.payment.api.dto.ResubmitRefundRemissionRequest;
-import uk.gov.hmcts.payment.api.dto.RetroSpectiveRemissionRequest;
+import uk.gov.hmcts.payment.api.exception.InvalidPartialRefundRequestException;
+import uk.gov.hmcts.payment.api.dto.RetrospectiveRemissionRequest;
 import uk.gov.hmcts.payment.api.exception.InvalidRefundRequestException;
 import uk.gov.hmcts.payment.api.service.PaymentRefundsService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.NonPBAPaymentException;
@@ -48,9 +49,9 @@ public class RefundsController {
 
     @PostMapping(value = "/refund-retro-remission")
     @Transactional(rollbackFor = Exception.class)
-    public ResponseEntity<RefundResponse> createRefundForRetroSpective(@Valid @RequestBody RetroSpectiveRemissionRequest
+    public ResponseEntity<RefundResponse> createRefundForRetrospective(@Valid @RequestBody RetrospectiveRemissionRequest
                                                                            request, @RequestHeader(required = false) MultiValueMap<String, String> headers) {
-        return paymentRefundsService.createAndValidateRetroSpectiveRemissionRequest(request.getRemissionReference(), headers);
+        return paymentRefundsService.createAndValidateRetrospectiveRemissionRequest(request, headers);
     }
 
 
@@ -70,7 +71,7 @@ public class RefundsController {
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler({PaymentNotSuccessException.class, NonPBAPaymentException.class, RemissionNotFoundException.class, InvalidRefundRequestException.class})
+    @ExceptionHandler({PaymentNotSuccessException.class, NonPBAPaymentException.class, RemissionNotFoundException.class, InvalidRefundRequestException.class, InvalidPartialRefundRequestException.class})
     public String return400(Exception ex) {
         return ex.getMessage();
     }

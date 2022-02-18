@@ -24,8 +24,10 @@ import uk.gov.hmcts.payment.api.service.CasePaymentOrdersService;
 import uk.gov.hmcts.payment.casepaymentorders.client.dto.CpoGetResponse;
 import uk.gov.hmcts.payment.casepaymentorders.client.exceptions.CpoBadRequestException;
 import uk.gov.hmcts.payment.casepaymentorders.client.exceptions.CpoClientException;
+import uk.gov.hmcts.payment.casepaymentorders.client.exceptions.CpoInternalServerErrorException;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 /**
@@ -77,6 +79,12 @@ public class CasePaymentOrdersController {
     public ResponseEntity<String> cpoBadRequestException(CpoBadRequestException e) {
         LOG.error("BadRequest - Error while calling case payment orders", e);
         return new ResponseEntity<>(e.getMessage(), BAD_REQUEST);
+    }
+
+    @ExceptionHandler(value = {CpoInternalServerErrorException.class})
+    public ResponseEntity<String> cpoInternalServerErrorException(CpoInternalServerErrorException e) {
+        LOG.error("InternalServerError - Error while calling case payment orders", e);
+        return new ResponseEntity<>(e.getMessage(), INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(value = {CpoClientException.class})

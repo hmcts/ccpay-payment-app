@@ -18,14 +18,8 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @Builder(builderMethodName = "idamUserIdResponseWith")
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @JsonInclude(NON_NULL)
-public class IdamUserIdResponse {
+public class IdamUserIdDetailsResponse {
 
-//    private String familyName;
-//    private String name;
-//    private String givenName;
-//    private List<String> roles;
-//    private String uid;
-//    private String sub;
     private String id;
     private String forename;
     private String surname;

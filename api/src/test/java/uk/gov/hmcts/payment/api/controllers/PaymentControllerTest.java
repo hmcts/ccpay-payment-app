@@ -1698,7 +1698,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         db.createPayment(payment);
         // Update payment status with valid payment reference
         restActions
-            .patch("/payments/ccd_case_reference/" + ccdCaseNumber)
+            .patch("/payments/ccd_case_reference/"+ccdCaseNumber+"/lag_time/"+String.valueOf(4 * 24))
             .andExpect(status().isNoContent());
         db.deletePayment(payment);
     }

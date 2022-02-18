@@ -18,7 +18,9 @@ java:
     IAC_SERVICE_API_URL: http://ia-case-access-api-aat.service.core-compute-aat.internal
     PBA_CONFIG1_SERVICE_NAMES: dummy
     PCI_PAL_API_URL: https://ip3cloud.com/clients/hmcts/payments/index.php
-    REFUND_API_URL: http://ccpay-refunds-api-aat.service.core-compute-aat.internal/
+
+    REFUND_API_URL: http://ccpay-refunds-api-pr-129.service.core-compute-preview.internal/
+
   keyVaults:
     "ccpay":
       resourceGroup: ccpay
@@ -40,6 +42,7 @@ java:
         - pci-pal-antenna-financial-remedy-flow-id
         - spring-mail-password
         - gov-pay-keys-cmc-claim-store
+        - gov-pay-keys-reference
         - gov-pay-keys-divorce
         - gov-pay-keys-probate
         - gov-pay-keys-iac
