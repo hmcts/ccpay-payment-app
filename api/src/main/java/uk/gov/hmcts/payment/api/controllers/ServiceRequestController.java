@@ -131,10 +131,11 @@ public class ServiceRequestController {
     @ResponseBody
     @ResponseStatus(HttpStatus.CREATED)
     @Transactional
-    public ResponseEntity<ServiceRequestPaymentBo> createCreditAccountPaymentForServiceRequest(@RequestHeader(value = "idempotency_key") String idempotencyKey,
+    public ResponseEntity<ServiceRequestPaymentBo> createCreditAccountPaymentForServiceRequest(@ApiParam(value = "idempotency_key", hidden = true)@RequestHeader(required = false) String idempotencyKey,
                                                                                                @PathVariable("service-request-reference") String serviceRequestReference,
                                                                                                @Valid @RequestBody ServiceRequestPaymentDto serviceRequestPaymentDto) throws CheckDigitException, JsonProcessingException {
 
+        idempotencyKey = serviceRequestPaymentDto.getIdempotencyKey();
         LOG.info("PBA payment started");
         ObjectMapper objectMapper = new ObjectMapper();
         Function<String, Optional<IdempotencyKeys>> getIdempotencyKey = idempotencyKeyToCheck -> idempotencyService.findTheRecordByIdempotencyKey(idempotencyKeyToCheck);
@@ -232,11 +233,12 @@ public class ServiceRequestController {
     @ResponseBody
     @ResponseStatus(HttpStatus.CREATED)
     @Transactional
-    public ResponseEntity<OnlineCardPaymentResponse> createCardPayment(@RequestHeader(value = "return-url") String returnURL,
+
+    public ResponseEntity<OnlineCardPaymentResponse> createCardPayment(@ApiParam(value = "return-url", hidden = true) @RequestHeader(required = false) String returnURL,
                                                                        @RequestHeader(value = "service-callback-url", required = false) String serviceCallbackURL,
                                                                        @PathVariable("service-request-reference") String serviceRequestReference,
                                                                        @Valid @RequestBody OnlineCardPaymentRequest onlineCardPaymentRequest) throws CheckDigitException, JsonProcessingException {
-
+        returnURL = onlineCardPaymentRequest.getReturnUrl();
         return new ResponseEntity<>(serviceRequestDomainService.create(onlineCardPaymentRequest, serviceRequestReference, returnURL, serviceCallbackURL), HttpStatus.CREATED);
     }
 
@@ -259,11 +261,11 @@ public class ServiceRequestController {
         LOG.info("paymentFeeLink getEnterpriseServiceName {}",paymentFeeLink.getEnterpriseServiceName());
         LOG.info("paymentFeeLink getCcdCaseNumber {}",paymentFeeLink.getCcdCaseNumber());
         PaymentFeeLink  retrieveDelegatingPaymentService = delegatingPaymentService.retrieve(paymentFeeLink, payment.getReference());
+        ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
         Payment paymentNew = paymentService.findPayment(internalReference);
         String serviceRequestReference = paymentFeeLink.getPaymentReference();
         PaymentStatusDto paymentStatusDto = paymentDtoMapper.toPaymentStatusDto(serviceRequestReference, "", paymentNew);
         serviceRequestDomainService.sendMessageToTopic(paymentStatusDto, paymentFeeLink.getCallBackUrl());
-        ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
         String jsonpaymentStatusDto = ow.writeValueAsString(paymentStatusDto);
         LOG.info("json format paymentStatusDto to Topic {}",jsonpaymentStatusDto);
         LOG.info("callback URL paymentStatusDto to Topic {}",paymentFeeLink.getCallBackUrl());

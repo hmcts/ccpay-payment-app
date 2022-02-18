@@ -164,6 +164,7 @@ public class ServiceRequestControllerTest {
             .paymentDtoWith().accountNumber("PBAFUNC12345")
             .amount(BigDecimal.valueOf(300))
             .currency("GBP")
+            .idempotencyKey(UUID.randomUUID().toString())
             .customerReference("testCustReference").
             build();
 
@@ -178,8 +179,6 @@ public class ServiceRequestControllerTest {
 
         when(accountService.retrieve("PBAFUNC12345")).thenReturn(liberataAccountResponse);
 
-        //Payment amount should be matching with fees
-        String idempotencyKey = UUID.randomUUID().toString();
 
 
         ServiceRequestPaymentBo serviceRequestPaymentBo = ServiceRequestPaymentBo.serviceRequestPaymentBoWith().
@@ -208,7 +207,6 @@ public class ServiceRequestControllerTest {
         when(serviceRequestDomainService.create(any(),any())).thenReturn(serviceRequestResponseDtoSample);
 
         MvcResult successServiceRequestPaymentResult = restActions
-            .withHeader("idempotency_key", idempotencyKey)
             .post("/service-request/" + serviceRequestReferenceResult + "/pba-payments", serviceRequestPaymentDto)
             .andExpect(status().isCreated())
             .andReturn();
@@ -221,7 +219,6 @@ public class ServiceRequestControllerTest {
 
         // 2.Duplicate request with same Idempotency key, same request content, same serviceRequest reference
         MvcResult duplicatePBAPaymentResult = restActions
-            .withHeaderIfpresent("idempotency_key", idempotencyKey)
             .post("/service-request/" + serviceRequestReferenceResult + "/pba-payments", serviceRequestPaymentDto)
             .andExpect(status().isCreated())
             .andReturn();
@@ -242,7 +239,6 @@ public class ServiceRequestControllerTest {
         serviceRequestPaymentDto.setCustomerReference("cust-reference-change"); //changed the customer reference
 
         MvcResult conflictPBAPaymentResult = restActions
-            .withHeaderIfpresent("idempotency_key", idempotencyKey)
             .post("/service-request/" + serviceRequestReferenceResult + "/pba-payments", serviceRequestPaymentDto)
             .andExpect(status().isConflict())
             .andReturn();
@@ -251,8 +247,8 @@ public class ServiceRequestControllerTest {
         serviceRequestPaymentDto.setAmount(BigDecimal.valueOf(300)); //changed the amount
         serviceRequestPaymentDto.setCustomerReference("testCustReference"); //changed the customer reference
 
+        serviceRequestPaymentDto.setIdempotencyKey(UUID.randomUUID().toString());
         restActions
-            .withHeaderIfpresent("idempotency_key", UUID.randomUUID().toString())
             .post("/service-request/" + serviceRequestReferenceResult + "/pba-payments", serviceRequestPaymentDto)
             .andExpect(status().isPreconditionFailed())
             .andReturn();
@@ -271,11 +267,11 @@ public class ServiceRequestControllerTest {
             .paymentDtoWith().accountNumber("PBA12346")
             .amount(BigDecimal.valueOf(300))
             .currency("GBP")
+            .idempotencyKey(UUID.randomUUID().toString())
             .customerReference("testCustReference").
             build();
 
         //ServiceRequest reference creation
-        String idempotencyKey = UUID.randomUUID().toString();
 
         ServiceRequestPaymentBo serviceRequestPaymentBoSample = ServiceRequestPaymentBo.serviceRequestPaymentBoWith().
             paymentReference("reference").
@@ -298,7 +294,6 @@ public class ServiceRequestControllerTest {
             thenThrow(new AccountServiceUnavailableException("Unable to retrieve account information due to timeout"));
 
         MvcResult result = restActions
-            .withHeaderIfpresent("idempotency_key", idempotencyKey)
             .post("/service-request/" + serviceRequestReference + "/pba-payments", serviceRequestPaymentDto)
             .andExpect(status().isGatewayTimeout())
             .andReturn();
@@ -309,7 +304,6 @@ public class ServiceRequestControllerTest {
 
         //Duplicate request for timeout
         MvcResult result1 = restActions
-            .withHeaderIfpresent("idempotency_key", idempotencyKey)
             .post("/service-request/" + serviceRequestReference + "/pba-payments", serviceRequestPaymentDto)
             .andExpect(status().isGatewayTimeout())
             .andReturn();
@@ -350,6 +344,7 @@ public class ServiceRequestControllerTest {
         ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
             .paymentDtoWith().accountNumber("PBA12347")
             .amount(BigDecimal.valueOf(300))
+            .idempotencyKey(UUID.randomUUID().toString())
             .currency("GBP")
             .customerReference("testCustReference").
             build();
@@ -384,7 +379,6 @@ public class ServiceRequestControllerTest {
         String idempotencyKey = UUID.randomUUID().toString();
 
         MvcResult accountOnHoldResult = restActions
-            .withHeaderIfpresent("idempotency_key", idempotencyKey)
             .post("/service-request/" + serviceRequestReference + "/pba-payments", serviceRequestPaymentDto)
             .andExpect(status().isPaymentRequired())
             .andReturn();
@@ -403,8 +397,9 @@ public class ServiceRequestControllerTest {
         serviceRequestPaymentDto.setAccountNumber("PBAFUNC12345");
         String newIdempotencyKey = UUID.randomUUID().toString(); //changed idempotency Key
 
+        serviceRequestPaymentDto.setIdempotencyKey(UUID.randomUUID().toString());
+
         MvcResult accountSuccessResult = restActions
-            .withHeaderIfpresent("idempotency_key", newIdempotencyKey)
             .post("/service-request/" + serviceRequestReference + "/pba-payments", serviceRequestPaymentDto)
             .andExpect(status().isCreated())
             .andReturn();
@@ -433,6 +428,7 @@ public class ServiceRequestControllerTest {
         ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
             .paymentDtoWith().accountNumber("PBA12347")
             .amount(BigDecimal.valueOf(300))
+            .idempotencyKey(UUID.randomUUID().toString())
             .currency("GBP")
             .customerReference("testCustReference").
                 build();
@@ -464,10 +460,8 @@ public class ServiceRequestControllerTest {
         when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any())).thenReturn(responseEntity,responseEntity2);
 
         //ServiceRequest reference creation
-        String idempotencyKey = UUID.randomUUID().toString();
 
         MvcResult accountOnHoldResult = restActions
-            .withHeaderIfpresent("idempotency_key", idempotencyKey)
             .post("/service-request/" + serviceRequestReference + "/pba-payments", serviceRequestPaymentDto)
             .andExpect(status().isPreconditionFailed())
             .andReturn();
@@ -502,6 +496,7 @@ public class ServiceRequestControllerTest {
         ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
             .paymentDtoWith().accountNumber("PBA12347")
             .amount(BigDecimal.valueOf(300))
+            .idempotencyKey(UUID.randomUUID().toString())
             .currency("GBP")
             .customerReference("testCustReference").
                 build();
@@ -533,10 +528,8 @@ public class ServiceRequestControllerTest {
         when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any())).thenReturn(responseEntity,responseEntity2);
 
         //ServiceRequest reference creation
-        String idempotencyKey = UUID.randomUUID().toString();
 
         MvcResult accountDeletedResult = restActions
-            .withHeaderIfpresent("idempotency_key", idempotencyKey)
             .post("/service-request/" + serviceRequestReference + "/pba-payments", serviceRequestPaymentDto)
             .andExpect(status().isGone())
             .andReturn();
@@ -571,6 +564,7 @@ public class ServiceRequestControllerTest {
         ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
             .paymentDtoWith().accountNumber("PBA12347")
             .amount(BigDecimal.valueOf(300))
+            .idempotencyKey(UUID.randomUUID().toString())
             .currency("GBP")
             .customerReference("testCustReference").
                 build();
@@ -601,11 +595,9 @@ public class ServiceRequestControllerTest {
 
         when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any())).thenReturn(responseEntity,responseEntity2);
 
-        //ServiceRequest reference creation
-        String idempotencyKey = UUID.randomUUID().toString();
+
 
         MvcResult accountOnHoldResult = restActions
-            .withHeaderIfpresent("idempotency_key", idempotencyKey)
             .post("/service-request/" + serviceRequestReference + "/pba-payments", serviceRequestPaymentDto)
             .andExpect(status().isPaymentRequired())
             .andReturn();
@@ -635,6 +627,7 @@ public class ServiceRequestControllerTest {
             .paymentDtoWith().accountNumber("PBA1111")
             .amount(BigDecimal.valueOf(300))
             .currency("GBP")
+            .idempotencyKey(UUID.randomUUID().toString())
             .customerReference("testCustReference").
             build();
 
@@ -659,7 +652,6 @@ public class ServiceRequestControllerTest {
 
         // 1. Account not found exception
         restActions
-            .withHeader("idempotency_key", UUID.randomUUID().toString())
             .post("/service-request/" + ServiceRequestReference + "/pba-payments", serviceRequestPaymentDto)
             .andExpect(status().isNotFound())
             .andExpect(ServiceRequestException -> assertTrue(ServiceRequestException.getResolvedException() instanceof AccountNotFoundException))
@@ -669,8 +661,8 @@ public class ServiceRequestControllerTest {
         //AccountServiceUnAvailableException
         serviceRequestPaymentDto.setAccountNumber("PBA2222"); //Account for runtime exception
 
+        serviceRequestPaymentDto.setIdempotencyKey(UUID.randomUUID().toString());
         restActions
-            .withHeader("idempotency_key", UUID.randomUUID().toString())
             .post("/service-request/" + ServiceRequestReference + "/pba-payments", serviceRequestPaymentDto)
             .andExpect(status().isGatewayTimeout())
             .andExpect(serviceRequestException -> assertTrue(serviceRequestException.getResolvedException() instanceof AccountServiceUnavailableException))
@@ -687,6 +679,7 @@ public class ServiceRequestControllerTest {
             .paymentDtoWith().accountNumber("PBA12345")
             .amount(BigDecimal.valueOf(100))
             .currency("GBP")
+            .idempotencyKey(UUID.randomUUID().toString())
             .customerReference("testCustReference").
             build();
 
@@ -707,7 +700,6 @@ public class ServiceRequestControllerTest {
 
         //Payment amount should not be matching with fees
         MvcResult result = restActions
-            .withHeader("idempotency_key", UUID.randomUUID().toString())
             .post("/service-request/" + serviceRequestReferenceNotPresent + "/pba-payments", serviceRequestPaymentDto)
             .andExpect(status().isNotFound())
             .andExpect(serviceRequestException -> assertTrue(serviceRequestException.getResolvedException() instanceof ServiceRequestReferenceNotFoundException))
@@ -747,12 +739,12 @@ public class ServiceRequestControllerTest {
         ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
             .paymentDtoWith().accountNumber("PBA12345")
             .amount(BigDecimal.valueOf(100))
+            .idempotencyKey(UUID.randomUUID().toString())
             .currency("INR") //instead of GBP
             .customerReference("testCustReference").
             build();
 
         restActions
-            .withHeader("idempotency_key", UUID.randomUUID().toString())
             .post("/service-request/" + "2021-1621352112222" + "/pba-payments", serviceRequestPaymentDto)
             .andExpect(status().isUnprocessableEntity())
             .andExpect(content().string("validCurrency: Invalid currency. Accepted value GBP"));
@@ -767,6 +759,7 @@ public class ServiceRequestControllerTest {
             .paymentDtoWith().accountNumber("PBA12345")
             .amount(BigDecimal.valueOf(100))
             .currency("GBP")
+            .idempotencyKey(UUID.randomUUID().toString())
             .customerReference("testCustReference").
             build();
 
@@ -787,7 +780,6 @@ public class ServiceRequestControllerTest {
 
         //Payment amount should not be matching with fees
         MvcResult result = restActions
-            .withHeader("idempotency_key", UUID.randomUUID().toString())
             .post("/service-request/" + serviceRequestReference + "/pba-payments", serviceRequestPaymentDto)
             .andExpect(status().isExpectationFailed())
             .andReturn();
@@ -893,6 +885,7 @@ public class ServiceRequestControllerTest {
             .amount(new BigDecimal(300))
             .currency(CurrencyCode.GBP)
             .language("cy")
+            .returnUrl("https://abc.com")
             .build();
 
         when(govPayClient.createPayment(anyString(), any())).thenReturn(getGovPayPayment());
@@ -921,6 +914,7 @@ public class ServiceRequestControllerTest {
         OnlineCardPaymentRequest onlineCardPaymentRequest = OnlineCardPaymentRequest.onlineCardPaymentRequestWith()
             .amount(new BigDecimal(300))
             .currency(CurrencyCode.GBP)
+            .returnUrl("https://abc.com")
             .language("cy")
             .build();
 

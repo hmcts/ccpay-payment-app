@@ -195,7 +195,7 @@ public class PbaControllerTest extends PaymentsDataUtil {
 
         MvcResult result = restActions
             .get("/pba-accounts")
-            .andExpect(status().isBadRequest())
+            .andExpect(status().isInternalServerError())
             .andReturn();
     }
 
@@ -238,7 +238,7 @@ public class PbaControllerTest extends PaymentsDataUtil {
 
         MvcResult result = restActions
             .get("/pba-accounts")
-            .andExpect(status().isNotFound())
+            .andExpect(status().isNoContent())
             .andReturn();
     }
 
