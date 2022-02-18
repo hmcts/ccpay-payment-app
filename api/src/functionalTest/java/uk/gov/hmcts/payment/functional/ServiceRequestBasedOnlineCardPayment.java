@@ -148,6 +148,7 @@ public class ServiceRequestBasedOnlineCardPayment {
         OnlineCardPaymentRequest onlineCardPaymentRequest = OnlineCardPaymentRequest.onlineCardPaymentRequestWith()
             .amount(new BigDecimal("100.00"))
             .currency(CurrencyCode.GBP)
+            .returnUrl("http://localhost.hmcts.net")
             .language("cy")
             .build();
         Response createOnlineCardPaymentResponse =
@@ -175,6 +176,7 @@ public class ServiceRequestBasedOnlineCardPayment {
         OnlineCardPaymentRequest onlineCardPaymentRequestAgain = OnlineCardPaymentRequest.onlineCardPaymentRequestWith()
             .amount(new BigDecimal(100.00))
             .currency(CurrencyCode.GBP)
+            .returnUrl("http://localhost.hmcts.net")
             .language("cy")
             .build();
         Response createOnlineCardPaymentResponseAgain =
@@ -227,6 +229,7 @@ public class ServiceRequestBasedOnlineCardPayment {
         OnlineCardPaymentRequest onlineCardPaymentRequest = OnlineCardPaymentRequest.onlineCardPaymentRequestWith()
             .amount(new BigDecimal(100.00))
             .currency(CurrencyCode.GBP)
+            .returnUrl("http://localhost.hmcts.net")
             .language("cy")
             .build();
         Response createOnlineCardPaymentResponse =

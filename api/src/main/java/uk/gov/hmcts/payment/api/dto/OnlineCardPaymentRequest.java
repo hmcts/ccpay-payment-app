@@ -42,4 +42,9 @@ public class OnlineCardPaymentRequest {
     @NotNull(message = "language can't be Blank")
     @NotEmpty(message = "language can't be Empty")
     private String language;
+
+    @NotNull(message = "return-url can't be Blank")
+    @NotEmpty(message = "return-url can't be Empty")
+    @JsonProperty("return-url")
+    private String returnUrl;
 }
