@@ -78,7 +78,7 @@
         <cve>CVE-2007-1652</cve>
         <cve>CVE-2007-1651</cve>
         <cve>CVE-2018-1258</cve>
-        <cve>CWE-862</cve>
+        <cwe>CWE-862</cwe>
     </suppress>
 
 
