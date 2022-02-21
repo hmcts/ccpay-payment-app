@@ -26,6 +26,7 @@ import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.PaymentGroupService;
+import uk.gov.hmcts.payment.api.service.PaymentRefundsService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.service.RefundRemissionEnableService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
@@ -53,6 +54,9 @@ public class CaseController {
 
     @Autowired
     private RefundRemissionEnableService refundRemissionEnableService;
+
+    @Autowired
+    private PaymentRefundsService paymentRefundsService;
 
     @Autowired
     public CaseController(PaymentService<PaymentFeeLink, String> paymentService, PaymentGroupService paymentGroupService,
@@ -110,7 +114,7 @@ public class CaseController {
 
         PaymentGroupResponse paymentGroupResponse = new PaymentGroupResponse(paymentGroups);
 
-        paymentGroupResponse = refundRemissionEnableService.checkRefundAgainstRemission(headers, paymentGroupResponse, ccdCaseNumber);
+        paymentGroupResponse = paymentRefundsService.checkRefundAgainstRemission(headers, paymentGroupResponse, ccdCaseNumber);
 
         return paymentGroupResponse;
     }

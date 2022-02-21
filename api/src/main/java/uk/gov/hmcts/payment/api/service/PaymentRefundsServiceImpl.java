@@ -18,13 +18,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
-import uk.gov.hmcts.payment.api.dto.InternalRefundResponse;
-import uk.gov.hmcts.payment.api.dto.Notification;
-import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
-import uk.gov.hmcts.payment.api.dto.RefundRequestDto;
-import uk.gov.hmcts.payment.api.dto.RefundResponse;
-import uk.gov.hmcts.payment.api.dto.ResubmitRefundRemissionRequest;
-import uk.gov.hmcts.payment.api.dto.RetrospectiveRemissionRequest;
+import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.exception.InvalidPartialRefundRequestException;
 import uk.gov.hmcts.payment.api.exception.InvalidRefundRequestException;
 import uk.gov.hmcts.payment.api.model.*;
@@ -201,6 +195,110 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                     updateRemissionAmount(feeId, request.getAmount());
             }
         return new ResponseEntity<>(null, HttpStatus.OK);
+    }
+
+    @Override
+    public PaymentGroupResponse checkRefundAgainstRemission(MultiValueMap<String, String> headers,
+                                                            PaymentGroupResponse paymentGroupResponse, String ccdCaseNumber) {
+
+        RefundListDtoResponse refundListDtoResponse = getRefundsFromRefundService(ccdCaseNumber, headers);
+
+        var lambdaContext = new Object() {
+            BigDecimal refundAmount = BigDecimal.ZERO;
+        };
+
+        if(paymentGroupResponse.getPaymentGroups()!=null){
+
+            paymentGroupResponse.getPaymentGroups().forEach(paymentGroup ->{
+
+                paymentGroup.getRemissions().forEach(remission -> {
+
+                    remission.setAddRefund(true);
+
+                    remission.setIssueRefund(false);
+
+                    refundListDtoResponse.getRefundList().forEach(refundDto -> {
+
+                        if (refundDto.getRefundReference()!=null && !refundDto.getRefundReference().isBlank()){
+
+                            remission.setAddRefund(false);
+
+                            remission.setIssueRefund(true);
+
+                        }
+                    });
+                });
+
+                if(paymentGroup.getPayments()!=null){
+
+                    paymentGroup.getPayments().forEach(paymentDto -> {
+
+                        refundListDtoResponse.getRefundList().forEach(refundDto -> {
+
+                            lambdaContext.refundAmount = lambdaContext.refundAmount.add(refundDto.getAmount());
+
+                        });
+
+                        if(paymentDto.getAmount().subtract(lambdaContext.refundAmount).compareTo(BigDecimal.ZERO)==1)
+                            paymentDto.setIssueRefundAddRefundAddRemission(true);
+
+                        else
+                            paymentDto.setIssueRefundAddRefundAddRemission(false);
+
+                    });
+                }
+            });
+        }
+
+        return paymentGroupResponse;
+    }
+
+    private RefundListDtoResponse getRefundsFromRefundService(String ccdCaseNumber, MultiValueMap<String, String> headers) {
+
+
+        RefundListDtoResponse refundListDtoResponse;
+
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(refundApiUrl + REFUND_ENDPOINT).queryParam("ccdCaseNumber",ccdCaseNumber);
+
+        LOG.debug("builder.toUriString() : {}", builder.toUriString());
+
+        try {
+
+            ResponseEntity<RefundListDtoResponse> refundListDtoResponseEntity  = restTemplateRefundsGroup
+                .exchange(builder.toUriString(), HttpMethod.GET, createEntity(headers), RefundListDtoResponse.class);
+
+            refundListDtoResponse = refundListDtoResponseEntity.hasBody() ? refundListDtoResponseEntity.getBody() : null;
+
+        } catch (HttpClientErrorException e) {
+
+            LOG.error("client err ", e);
+
+            throw new InvalidRefundRequestException(e.getResponseBodyAsString());
+
+        }
+
+        return refundListDtoResponse;
+
+    }
+
+    private HttpEntity<HttpHeaders> createEntity(MultiValueMap<String, String> headers) {
+
+        MultiValueMap<String, String> headerMultiValueMap = new LinkedMultiValueMap<String, String>();
+
+        String serviceAuthorisation = authTokenGenerator.generate();
+
+        headerMultiValueMap.put("Content-Type", headers.get("content-type"));
+
+        String userAuthorization = headers.get("authorization") != null ? headers.get("authorization").get(0) : headers.get("Authorization").get(0);
+
+        headerMultiValueMap.put("Authorization", Collections.singletonList(userAuthorization.startsWith("Bearer ")
+            ? userAuthorization : "Bearer ".concat(userAuthorization)));
+
+        headerMultiValueMap.put("ServiceAuthorization", Collections.singletonList(serviceAuthorisation));
+
+        HttpHeaders httpHeaders = new HttpHeaders(headerMultiValueMap);
+
+        return new HttpEntity<>(httpHeaders);
     }
 
     public void updateRemissionAmount(Integer feeId, BigDecimal remissionAmount) {

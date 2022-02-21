@@ -1,8 +1,6 @@
 package uk.gov.hmcts.payment.api.service;
 
-import java.math.BigDecimal;
 import java.time.temporal.ChronoUnit;
-import java.util.Collections;
 import java.util.Date;
 import java.util.Optional;
 
@@ -11,18 +9,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
-import uk.gov.hmcts.payment.api.dto.PaymentGroupResponse;
-import uk.gov.hmcts.payment.api.dto.RefundListDtoResponse;
 import uk.gov.hmcts.payment.api.dto.idam.IdamUserIdResponse;
-import uk.gov.hmcts.payment.api.exception.InvalidRefundRequestException;
 import uk.gov.hmcts.payment.api.model.FeePayApportion;
 import uk.gov.hmcts.payment.api.model.FeePayApportionRepository;
 import uk.gov.hmcts.payment.api.model.Payment;
@@ -54,13 +45,6 @@ public class RefundRemissionEnableServiceImpl implements RefundRemissionEnableSe
     private LaunchDarklyFeatureToggler featureToggler;
     @Autowired
     RemissionRepository remissionRepository;
-    @Value("${refund.api.url}")
-    private String refundApiUrl;
-    @Autowired()
-    @Qualifier("restTemplateRefundsGroup")
-    private RestTemplate restTemplateRefundsGroup;
-    @Autowired
-    private AuthTokenGenerator authTokenGenerator;
 
     boolean isRoles=false;
 
@@ -127,104 +111,6 @@ public class RefundRemissionEnableServiceImpl implements RefundRemissionEnableSe
             }
         }
         return isRoles;
-    }
-
-    @Override
-    public PaymentGroupResponse checkRefundAgainstRemission(MultiValueMap<String, String> headers,
-                                                            PaymentGroupResponse paymentGroupResponse, String ccdCaseNumber) {
-
-        RefundListDtoResponse refundListDtoResponse = getRefundsFromRefundService(ccdCaseNumber, headers);
-
-        var lambdaContext = new Object() {
-            BigDecimal refundAmount = BigDecimal.ZERO;
-        };
-
-        paymentGroupResponse.getPaymentGroups().forEach(paymentGroup ->{
-
-            paymentGroup.getRemissions().forEach(remission -> {
-
-                remission.setAddRefund(true);
-
-                remission.setIssueRefund(false);
-
-                refundListDtoResponse.getRefundList().forEach(refundDto -> {
-
-                    if (refundDto.getRefundReference()!=null && !refundDto.getRefundReference().isBlank()){
-
-                        remission.setAddRefund(false);
-
-                        remission.setIssueRefund(true);
-
-                    }
-                });
-            });
-
-            paymentGroup.getPayments().forEach(paymentDto -> {
-
-                refundListDtoResponse.getRefundList().forEach(refundDto -> {
-
-                    lambdaContext.refundAmount = lambdaContext.refundAmount.add(refundDto.getAmount());
-
-                });
-
-                if(paymentDto.getAmount().subtract(lambdaContext.refundAmount).compareTo(BigDecimal.ZERO)==1)
-                    paymentDto.setIssueRefundAddRefundAddRemission(true);
-
-                else
-                    paymentDto.setIssueRefundAddRefundAddRemission(false);
-
-            });
-        });
-
-        return paymentGroupResponse;
-    }
-
-    private RefundListDtoResponse getRefundsFromRefundService(String ccdCaseNumber, MultiValueMap<String, String> headers) {
-
-
-        RefundListDtoResponse refundListDtoResponse;
-
-        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(refundApiUrl + REFUND_ENDPOINT).queryParam("ccdCaseNumber",ccdCaseNumber);
-
-        LOG.debug("builder.toUriString() : {}", builder.toUriString());
-
-        try {
-
-            ResponseEntity<RefundListDtoResponse> refundListDtoResponseEntity  = restTemplateRefundsGroup
-                .exchange(builder.toUriString(), HttpMethod.GET, createEntity(headers), RefundListDtoResponse.class);
-
-            refundListDtoResponse = refundListDtoResponseEntity.hasBody() ? refundListDtoResponseEntity.getBody() : null;
-
-        } catch (HttpClientErrorException e) {
-
-            LOG.error("client err ", e);
-
-            throw new InvalidRefundRequestException(e.getResponseBodyAsString());
-
-        }
-
-        return refundListDtoResponse;
-
-    }
-
-    private HttpEntity<HttpHeaders> createEntity(MultiValueMap<String, String> headers) {
-
-        MultiValueMap<String, String> headerMultiValueMap = new LinkedMultiValueMap<String, String>();
-
-        String serviceAuthorisation = authTokenGenerator.generate();
-
-        headerMultiValueMap.put("Content-Type", headers.get("content-type"));
-
-        String userAuthorization = headers.get("authorization") != null ? headers.get("authorization").get(0) : headers.get("Authorization").get(0);
-
-        headerMultiValueMap.put("Authorization", Collections.singletonList(userAuthorization.startsWith("Bearer ")
-            ? userAuthorization : "Bearer ".concat(userAuthorization)));
-
-        headerMultiValueMap.put("ServiceAuthorization", Collections.singletonList(serviceAuthorisation));
-
-        HttpHeaders httpHeaders = new HttpHeaders(headerMultiValueMap);
-
-        return new HttpEntity<>(httpHeaders);
     }
 
 }

@@ -9,9 +9,10 @@ import uk.gov.hmcts.payment.api.model.PaymentFee;
 public interface RefundRemissionEnableService {
 
     Boolean returnRefundEligible(Payment payment);
-    Boolean returnRemissionEligible(PaymentFee fee);
-     boolean isRolePresent(MultiValueMap<String, String> headers);
 
-    PaymentGroupResponse checkRefundAgainstRemission(MultiValueMap<String, String> headers, PaymentGroupResponse paymentGroupResponse, String ccdCaseNumber);
+    Boolean returnRemissionEligible(PaymentFee fee);
+
+    boolean isRolePresent(MultiValueMap<String, String> headers);
+
 }
 
