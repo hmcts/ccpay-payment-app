@@ -208,7 +208,7 @@ public class ServiceRequestBasedOnlineCardPayment {
             serviceRequestTestService.getAnOnlineCardPaymentForAnInternalReference(SERVICE_TOKEN,
                 initialPaymentDto.getInternalReference());
         PaymentDto getOnlineCardPaymentInitialDto = getOnlineCardPaymentResponseForInitialPaymentResponse.getBody().as(PaymentDto.class);
-        assertThat(getOnlineCardPaymentInitialDto.getStatus()).isEqualTo("Cancelled");
+        assertThat(getOnlineCardPaymentInitialDto.getStatus()).isEqualTo("Failed");
         //assertThat(getOnlineCardPaymentInitialDto.getReference()).isEqualTo(laterPaymentReference);
     }
 
