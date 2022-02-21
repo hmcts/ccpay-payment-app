@@ -108,7 +108,11 @@ public class CaseController {
             throw new PaymentGroupNotFoundException("No Service found for given CaseType or HMCTS Org Id");
         }
 
-        return new PaymentGroupResponse(paymentGroups);
+        PaymentGroupResponse paymentGroupResponse = new PaymentGroupResponse(paymentGroups);
+
+        paymentGroupResponse = refundRemissionEnableService.checkRefundAgainstRemission(headers, paymentGroupResponse, ccdCaseNumber);
+
+        return paymentGroupResponse;
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
