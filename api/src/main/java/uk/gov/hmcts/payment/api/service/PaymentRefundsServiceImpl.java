@@ -209,8 +209,6 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             BigDecimal refundAmount = BigDecimal.ZERO;
         };
 
-        if(paymentGroupResponse.getPaymentGroups()!=null){
-
             paymentGroupResponse.getPaymentGroups().forEach(paymentGroup ->{
 
                 paymentGroup.getRemissions().forEach(remission -> {
@@ -238,8 +236,6 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                     });
                 });
 
-                if(paymentGroup.getPayments()!=null){
-
                     paymentGroup.getPayments().forEach(paymentDto -> {
 
                         refundListDtoResponse.getRefundList().forEach(refundDto -> {
@@ -258,9 +254,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                             paymentDto.setIssueRefundAddRefundAddRemission(false);
 
                     });
-                }
             });
-        }
 
         return paymentGroupResponse;
     }
