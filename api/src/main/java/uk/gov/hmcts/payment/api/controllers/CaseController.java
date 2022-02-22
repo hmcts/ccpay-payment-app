@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.domain.service.ServiceRequestDomainService;
@@ -32,6 +33,8 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentGroupNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
+import java.math.BigDecimal;
+import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -107,7 +110,7 @@ public class CaseController {
         if (paymentGroups == null || paymentGroups.isEmpty()) {
             throw new PaymentGroupNotFoundException("No Service found for given CaseType or HMCTS Org Id");
         }
-
+        setOverpayment(paymentGroups);
         return new PaymentGroupResponse(paymentGroups);
     }
 
@@ -121,6 +124,23 @@ public class CaseController {
     @ExceptionHandler(PaymentGroupNotFoundException.class)
     public String notFound(PaymentGroupNotFoundException ex) {
         return ex.getMessage();
+    }
+
+    public List<PaymentGroupDto>  setOverpayment( List<PaymentGroupDto>  paymentGroups) {
+        Iterator<PaymentGroupDto> paymentGroupsIterator = paymentGroups.iterator();
+        while (paymentGroupsIterator.hasNext()) {
+            PaymentGroupDto PaymentGroupDto = paymentGroupsIterator.next();
+            Iterator<FeeDto> feeDtoIterator = PaymentGroupDto.getFees().iterator();
+            while (feeDtoIterator.hasNext()) {
+                FeeDto feeDto = feeDtoIterator.next();
+                if(feeDto.getApportionAmount()!=null && feeDto.getFeeAmount()!=null && feeDto.getVolume()!=null) {
+                    if (feeDto.getApportionAmount().intValue() > (feeDto.getFeeAmount().multiply(BigDecimal.valueOf(feeDto.getVolume()))).intValue()) {
+                        feeDto.setOverPayment(feeDto.getApportionAmount().subtract(feeDto.getFeeAmount().multiply(BigDecimal.valueOf(feeDto.getVolume()))));
+                    }
+                }
+            }
+        }
+        return paymentGroups;
     }
 
 }

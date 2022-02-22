@@ -6,7 +6,6 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import io.swagger.annotations.SwaggerDefinition;
 import io.swagger.annotations.Tag;
-import org.apache.commons.lang3.tuple.Pair;
 import org.ff4j.FF4j;
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormatter;
@@ -26,7 +25,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
-import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.UpdatePaymentRequest;
@@ -51,9 +49,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -218,6 +214,7 @@ public class PaymentController {
         if(iacPaymentAny.isPresent() && iacSupplementaryDetailsFeature){
             return iacService.getIacSupplementaryInfo(paymentDtos,paymentService.getServiceNameByCode("IAC"));
         }
+
         return new ResponseEntity(new PaymentsResponse(paymentDtos),HttpStatus.OK);
 
     }
@@ -361,8 +358,7 @@ public class PaymentController {
             }
         }
         //End of Apportion logic
-        PaymentDto paymentDto = paymentDtoMapper.toReconciliationResponseDtoForLibereta(payment, paymentReference, fees, ff4j, isPaymentAfterApportionment);
-        paymentDto = filterFeeCode(paymentDto);
+        final PaymentDto paymentDto = paymentDtoMapper.toReconciliationResponseDtoForLibereta(payment, paymentReference, fees, ff4j, isPaymentAfterApportionment);
         paymentDtos.add(paymentDto);
     }
 
@@ -426,41 +422,5 @@ public class PaymentController {
     @ExceptionHandler(PaymentException.class)
     public String return400(PaymentException ex) {
         return ex.getMessage();
-    }
-
-
-    private PaymentDto filterFeeCode(PaymentDto paymentDto) {
-        LOG.info("Start Function filterFeeCode: {}" , paymentDto);
-            List<List<FeeDto>> groupedFee = paymentDto.getFees().stream()
-                .collect(Collectors.groupingBy(o -> Pair.of(o.getCode(), o.getNaturalAccountCode())))
-                .entrySet().stream()
-                .map(Map.Entry::getValue).collect(Collectors.toList());
-        LOG.info("Groupedfee List size: {}" , groupedFee.size());
-        List<FeeDto> feeDTOList = new ArrayList<FeeDto>();
-            Iterator< List<FeeDto> > groupedFeeIterator = groupedFee.iterator();
-            while(groupedFeeIterator.hasNext()) {
-                List<FeeDto> feeDTOL  = groupedFeeIterator.next();
-                BigDecimal calculatedAmount = BigDecimal.ZERO, apportionedPayment = BigDecimal.ZERO;Integer volume = 0;
-                FeeDto feeDto = new FeeDto();
-                Iterator< FeeDto > feeDtoIterator = feeDTOL.iterator();
-                while(feeDtoIterator.hasNext()) {
-                    feeDto  = feeDtoIterator.next();
-                    LOG.info("NaturalAccountCode: FeeCode: {} ",feeDto.getNaturalAccountCode()+ feeDto.getCode());
-                    if(feeDto.getCalculatedAmount()!=null)
-                        calculatedAmount = calculatedAmount.add(feeDto.getCalculatedAmount());
-                    if(feeDto.getApportionedPayment()!=null)
-                        apportionedPayment = apportionedPayment.add(feeDto.getApportionedPayment());
-                    if(feeDto.getVolume()!=null)
-                        volume = volume + feeDto.getVolume();
-                    feeDto.setVolume(volume);
-                    feeDto.setApportionedPayment(apportionedPayment);
-                    feeDto.setCalculatedAmount(calculatedAmount);
-                }
-                LOG.info("feeDto: {}" ,feeDto);
-                feeDTOList.add(feeDto);
-            }
-            paymentDto.setFees(feeDTOList);
-        LOG.info("End Function filterFeeCode: {} " , paymentDto);
-        return paymentDto;
     }
 }
