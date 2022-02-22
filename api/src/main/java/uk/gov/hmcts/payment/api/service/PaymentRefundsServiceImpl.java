@@ -247,7 +247,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                         //When there are no available balance
                         //Then ISSUE REFUND/ADD REMISSION/ADD REFUND option should not be available
 
-                        if(paymentDto.getAmount().subtract(lambdaContext.refundAmount).compareTo(BigDecimal.ZERO)==1)
+                        if(paymentDto.getAmount().subtract(lambdaContext.refundAmount).compareTo(BigDecimal.ZERO)>0)
                             paymentDto.setIssueRefundAddRefundAddRemission(true);
 
                         else
