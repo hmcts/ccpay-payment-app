@@ -287,6 +287,8 @@ public class PaymentsDataUtil {
             .calculatedAmount(new BigDecimal("99.99"))
             .version("1")
             .code("FEE000" + number)
+            .feeAmount(new BigDecimal("99.99"))
+
             .volume(1)
             .allocatedAmount(new BigDecimal("99.99"))
             .apportionAmount(new BigDecimal("99.99")).build();
@@ -741,6 +743,7 @@ public class PaymentsDataUtil {
             .feeId(payment.getPaymentLink().getFees().get(0).getId())
             .paymentId(payment.getId())
             .paymentLink(payment.getPaymentLink())
+            .feeAmount(payment.getAmount())
             .feeAmount(payment.getPaymentLink().getFees().get(0).getCalculatedAmount())
             .build();
         payment.getPaymentLink().setApportions(Collections.singletonList(feePayApportion));
