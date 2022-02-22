@@ -72,9 +72,6 @@ public class FeeDto {
     private Date dateUpdated;
 
     private BigDecimal amountDue;
-
-    private BigDecimal overPayment;
-
     // The below 3 fields added as part of apportionment changes for Liberata
 
     private String paymentGroupReference;
@@ -84,5 +81,8 @@ public class FeeDto {
     private Date dateReceiptProcessed;
 
     private Boolean remissionEnable;
+
+    private BigDecimal overPayment;
+
 
 }
