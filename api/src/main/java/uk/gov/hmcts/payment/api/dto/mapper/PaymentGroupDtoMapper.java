@@ -175,6 +175,7 @@ public class PaymentGroupDtoMapper {
             .dateUpdated(fee.getDateUpdated())
             .dateApportioned(fee.getDateApportioned())
             .amountDue(fee.getAmountDue())
+            .netAmount(fee.getNetAmount())
             .build();
     }
 
