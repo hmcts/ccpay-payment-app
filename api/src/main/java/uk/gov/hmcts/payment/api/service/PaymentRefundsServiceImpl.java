@@ -200,8 +200,10 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
     @Override
     public PaymentGroupResponse checkRefundAgainstRemission(MultiValueMap<String, String> headers,
                                                             PaymentGroupResponse paymentGroupResponse, String ccdCaseNumber) {
-
+        //get the RefundListDtoResponse by calling refunds app
         RefundListDtoResponse refundListDtoResponse = getRefundsFromRefundService(ccdCaseNumber, headers);
+
+        LOG.info("refundListDtoResponse : {}", refundListDtoResponse);
 
         var lambdaContext = new Object() {
             BigDecimal refundAmount = BigDecimal.ZERO;
@@ -213,11 +215,18 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
                 paymentGroup.getRemissions().forEach(remission -> {
 
+                    //Given a full/partial remission is added but subsequent refund not submitted
+                    //Then only ADD REFUND needs to be enabled
+                    //and ISSUE REFUND option should not be available
+
                     remission.setAddRefund(true);
 
                     remission.setIssueRefund(false);
 
                     refundListDtoResponse.getRefundList().forEach(refundDto -> {
+
+                        //Given a refund is already added against a remission
+                        //Then ADD REFUND option should not be available
 
                         if (refundDto.getRefundReference()!=null && !refundDto.getRefundReference().isBlank()){
 
@@ -238,6 +247,9 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                             lambdaContext.refundAmount = lambdaContext.refundAmount.add(refundDto.getAmount());
 
                         });
+
+                        //When there are no available balance
+                        //Then ISSUE REFUND/ADD REMISSION/ADD REFUND option should not be available
 
                         if(paymentDto.getAmount().subtract(lambdaContext.refundAmount).compareTo(BigDecimal.ZERO)==1)
                             paymentDto.setIssueRefundAddRefundAddRemission(true);
@@ -260,10 +272,11 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(refundApiUrl + REFUND_ENDPOINT).queryParam("ccdCaseNumber",ccdCaseNumber);
 
-        LOG.debug("builder.toUriString() : {}", builder.toUriString());
+        LOG.info("builder.toUriString() : {}", builder.toUriString());
 
         try {
 
+            // call refund app
             ResponseEntity<RefundListDtoResponse> refundListDtoResponseEntity  = restTemplateRefundsGroup
                 .exchange(builder.toUriString(), HttpMethod.GET, createEntity(headers), RefundListDtoResponse.class);
 
