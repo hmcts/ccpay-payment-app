@@ -250,6 +250,7 @@ public class ServiceRequestController {
     @PaymentExternalAPI
     @GetMapping(value = "/card-payments/{internal-reference}/status")
     public PaymentDto retrieveStatusByInternalReference(@PathVariable("internal-reference") String internalReference) throws JsonProcessingException {
+        LOG.info("Entered /card-payments/{internal-reference}/status with internalReference: {}", internalReference);
         Payment payment = paymentService.findPayment(internalReference);
         List<FeePayApportion> feePayApportionList = paymentService.findByPaymentId(payment.getId());
         if(feePayApportionList.isEmpty()){
