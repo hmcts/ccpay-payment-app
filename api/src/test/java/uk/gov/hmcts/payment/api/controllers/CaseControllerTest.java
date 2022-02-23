@@ -628,7 +628,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
     @Transactional
     public void validateNewlyAddedFieldsInPaymentGroupResponse() throws Exception {
 
-        stubFor(get(urlPathMatching("/fees-register/fees"))
+         stubFor(get(urlPathMatching("/fees-register/fees"))
             .willReturn(aResponse()
                 .withStatus(200)
                 .withHeader("Content-Type", "application/json")
