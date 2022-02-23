@@ -110,7 +110,6 @@ public class CaseController {
         if (paymentGroups == null || paymentGroups.isEmpty()) {
             throw new PaymentGroupNotFoundException("No Service found for given CaseType or HMCTS Org Id");
         }
-        setOverpayment(paymentGroups);
         return new PaymentGroupResponse(paymentGroups);
     }
 
@@ -124,23 +123,6 @@ public class CaseController {
     @ExceptionHandler(PaymentGroupNotFoundException.class)
     public String notFound(PaymentGroupNotFoundException ex) {
         return ex.getMessage();
-    }
-
-    public List<PaymentGroupDto>  setOverpayment( List<PaymentGroupDto>  paymentGroups) {
-        Iterator<PaymentGroupDto> paymentGroupsIterator = paymentGroups.iterator();
-        while (paymentGroupsIterator.hasNext()) {
-            PaymentGroupDto PaymentGroupDto = paymentGroupsIterator.next();
-            Iterator<FeeDto> feeDtoIterator = PaymentGroupDto.getFees().iterator();
-            while (feeDtoIterator.hasNext()) {
-                FeeDto feeDto = feeDtoIterator.next();
-                if(feeDto.getApportionAmount()!=null && feeDto.getFeeAmount()!=null && feeDto.getVolume()!=null) {
-                    if (feeDto.getApportionAmount().intValue() > (feeDto.getFeeAmount().multiply(BigDecimal.valueOf(feeDto.getVolume()))).intValue()) {
-                        feeDto.setOverPayment(feeDto.getApportionAmount().subtract(feeDto.getFeeAmount().multiply(BigDecimal.valueOf(feeDto.getVolume()))));
-                    }
-                }
-            }
-        }
-        return paymentGroups;
     }
 
 }

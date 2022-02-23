@@ -72,6 +72,8 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
         }
     }
 
+
+
     @Override
     public void processApportion(Payment payment) {
         try {
