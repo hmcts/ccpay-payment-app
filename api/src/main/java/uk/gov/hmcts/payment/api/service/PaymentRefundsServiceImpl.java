@@ -209,7 +209,14 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             BigDecimal refundAmount = BigDecimal.ZERO;
         };
 
+
             paymentGroupResponse.getPaymentGroups().forEach(paymentGroup ->{
+
+                paymentGroup.getPayments().forEach(paymentDto -> {
+
+                    paymentDto.setIssueRefund(true);
+
+                });
 
                 paymentGroup.getRemissions().forEach(remission -> {
 
@@ -241,7 +248,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
                             paymentGroup.getPayments().forEach(paymentDto -> {
 
-                                if(remissionCount == refundCount)
+                                if(remissionCount <= refundCount)
                                     paymentDto.setIssueRefund(true);
 
                             });
