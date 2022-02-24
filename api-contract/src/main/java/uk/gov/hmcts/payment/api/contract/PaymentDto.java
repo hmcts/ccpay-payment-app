@@ -89,6 +89,8 @@ public class PaymentDto {
 
     private Boolean issueRefundAddRefundAddRemission;
 
+    private boolean issueRefund;
+
     //@JsonUnwrapped
     @NotNull
     private List<FeeDto> fees;

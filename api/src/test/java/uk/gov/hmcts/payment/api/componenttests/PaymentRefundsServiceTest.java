@@ -741,7 +741,8 @@ public class PaymentRefundsServiceTest {
     public void checkRefundAgainstRemissionTest(){
 
         RemissionDto remissionDto = RemissionDto.remissionDtoWith()
-            .ccdCaseNumber("1111222233334444").build();
+            .ccdCaseNumber("1111222233334444")
+            .feeId(50).build();
 
         List<RemissionDto> remissionDtoList = new ArrayList<>();
         remissionDtoList.add(remissionDto);
@@ -768,7 +769,10 @@ public class PaymentRefundsServiceTest {
 
         RefundDto refundDto = RefundDto.buildRefundListDtoWith()
             .refundReference("RC-1111-2222-3333-4444")
-            .amount(BigDecimal.valueOf(50)).build();
+            .feeIds("50")
+            .refundStatus(RefundStatus.buildRefundStatusWith().name("Accepted").build())
+            .reason("Retrospective remission")
+            .amount(BigDecimal.valueOf(1000)).build();
 
         List<RefundDto> refundDtoList = new ArrayList<>();
         refundDtoList.add(refundDto);

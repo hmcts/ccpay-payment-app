@@ -219,19 +219,28 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
                     remission.setAddRefund(true);
 
-                    remission.setIssueRefund(false);
+                    paymentGroup.getPayments().forEach(paymentDto -> {
+
+                        paymentDto.setIssueRefund(false);
+
+                    });
+
 
                     refundListDtoResponse.getRefundList().forEach(refundDto -> {
 
                         //Given a refund is already added against a remission
                         //Then ADD REFUND option should not be available
 
-                        if (refundDto.getRefundReference()!=null && !refundDto.getRefundReference().isBlank()){
+                        if (Arrays.stream(refundDto.getFeeIds().split(",")).anyMatch(remission.getFeeId().toString()::equals)
+                            && refundDto.getReason().equals("Retrospective remission")){
 
                             remission.setAddRefund(false);
 
-                            remission.setIssueRefund(true);
+                            paymentGroup.getPayments().forEach(paymentDto -> {
 
+                                paymentDto.setIssueRefund(true);
+
+                            });
                         }
                     });
                 });
@@ -240,19 +249,36 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
                         refundListDtoResponse.getRefundList().forEach(refundDto -> {
 
-                            lambdaContext.refundAmount = lambdaContext.refundAmount.add(refundDto.getAmount());
+                            if(refundDto.getRefundStatus().getName().equals("Accepted") || refundDto.getRefundStatus().getName().equals("Approved"))
+                                lambdaContext.refundAmount = lambdaContext.refundAmount.add(refundDto.getAmount());
 
                         });
 
-                        //When there are no available balance
+                        //When there is no available balance
                         //Then ISSUE REFUND/ADD REMISSION/ADD REFUND option should not be available
 
                         if(paymentDto.getAmount().subtract(lambdaContext.refundAmount).compareTo(BigDecimal.ZERO)>0)
+
                             paymentDto.setIssueRefundAddRefundAddRemission(true);
 
-                        else
+                        else{
+
                             paymentDto.setIssueRefundAddRefundAddRemission(false);
 
+                            boolean issueRefundFlag = paymentDto.isIssueRefund();
+
+                            paymentGroup.getRemissions().forEach(remissionDto -> {
+
+                                // If addRefund is false in all remissions then issueRefund should be false in case of no available balance
+
+                                if(!remissionDto.isAddRefund())
+                                    paymentDto.setIssueRefund(false);
+
+                                else
+                                    paymentDto.setIssueRefund(issueRefundFlag);
+
+                            });
+                        }
                     });
             });
 
