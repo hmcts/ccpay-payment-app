@@ -225,11 +225,14 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
                     });
 
+                    int remissionCount =  paymentGroup.getRemissions().size();
 
                     refundListDtoResponse.getRefundList().forEach(refundDto -> {
 
                         //Given a refund is already added against a remission
                         //Then ADD REFUND option should not be available
+
+                        int refundCount = refundListDtoResponse.getRefundList().size();
 
                         if (Arrays.stream(refundDto.getFeeIds().split(",")).anyMatch(remission.getFeeId().toString()::equals)
                             && refundDto.getReason().equals("Retrospective remission")){
@@ -238,7 +241,8 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
                             paymentGroup.getPayments().forEach(paymentDto -> {
 
-                                paymentDto.setIssueRefund(true);
+                                if(remissionCount == refundCount)
+                                    paymentDto.setIssueRefund(true);
 
                             });
                         }
