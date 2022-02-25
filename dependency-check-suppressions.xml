@@ -11,6 +11,7 @@
         <cve>CVE-2018-1258</cve>
     </suppress>
 
+
     <suppress until="2022-03-30">
         <notes>These CVE's are coming from Dhowden tag library and it impacts only MP3/MP4/OGG/FLAC metadata parsing
             library. Also it is declared as false positive in
@@ -22,10 +23,10 @@
         <cve>CVE-2020-29245</cve>
     </suppress>
 
-
     <suppress until="2022-03-30">
         <notes><![CDATA[False positive reported for Oauth2-oidc-sdk at (https://github.com/jeremylong/DependencyCheck/issues/1658) and
-            (https://github.com/jeremylong/DependencyCheck/issues/2866)]]></notes>
+            (https://github.com/jeremylong/DependencyCheck/issues/2866)]]>
+        </notes>
         <cve>CVE-2007-1651</cve>
         <cve>CVE-2007-1652</cve>
     </suppress>
@@ -33,8 +34,9 @@
     <!-- False Positive CVE supressions ends here-->
 
     <!-- Below are the supressions that are made for the CVEs which occur in the latest version -->
+
     <suppress until="2022-03-30">
-        <notes>
+       <notes>
             <![CDATA[This CVE appears in the latest version of wiremock, WireMock 2.27.2 JRE 8 embeds jquery-3.4.1.min.js. see(https://github.com/tomakehurst/wiremock/issues/1417)]]></notes>
         <cve>CVE-2020-11022</cve>
         <cve>CVE-2020-11023</cve>
@@ -68,6 +70,5 @@
         <cve>CVE-2021-42550</cve>
     </suppress>
     <!-- Supression Group ends here -->
-
 
 </suppressions>
