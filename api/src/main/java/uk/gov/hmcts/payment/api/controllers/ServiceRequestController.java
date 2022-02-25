@@ -250,7 +250,9 @@ public class ServiceRequestController {
     @PaymentExternalAPI
     @GetMapping(value = "/card-payments/{internal-reference}/status")
     public PaymentDto retrieveStatusByInternalReference(@PathVariable("internal-reference") String internalReference) throws JsonProcessingException {
+        LOG.info("Entered /card-payments/{internal-reference}/status using internalReference: {}", internalReference);
         Payment payment = paymentService.findPayment(internalReference);
+        LOG.info("internalReference: {} - Payment: {}", internalReference, payment);
         List<FeePayApportion> feePayApportionList = paymentService.findByPaymentId(payment.getId());
         if(feePayApportionList.isEmpty()){
             throw new PaymentNotSuccessException("Payment is not successful");
@@ -264,6 +266,7 @@ public class ServiceRequestController {
         ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
         Payment paymentNew = paymentService.findPayment(internalReference);
         String serviceRequestReference = paymentFeeLink.getPaymentReference();
+        LOG.info("Sending payment to Topic with internalReference: {}", paymentNew.getInternalReference());
         PaymentStatusDto paymentStatusDto = paymentDtoMapper.toPaymentStatusDto(serviceRequestReference, "", paymentNew);
         serviceRequestDomainService.sendMessageToTopic(paymentStatusDto, paymentFeeLink.getCallBackUrl());
         String jsonpaymentStatusDto = ow.writeValueAsString(paymentStatusDto);

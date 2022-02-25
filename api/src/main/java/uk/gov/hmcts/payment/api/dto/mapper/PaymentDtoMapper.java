@@ -206,6 +206,7 @@ public class PaymentDtoMapper {
     public PaymentDto toRetrieveCardPaymentResponseDtoWithoutExtReference(PaymentFeeLink paymentFeeLink) {
         LOG.info("paymentFeeLink.getPayments() {}",paymentFeeLink.getPayments());
         Payment payment = paymentFeeLink.getPayments().get(0);
+        LOG.info("internalReference: {} for the payment returned", payment.getInternalReference());
         LOG.info("payment status from gov uk - {}",payment.getPaymentStatus().getName());
         LOG.info("payment status from gov uk enum mapping - {}",PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus());
         return PaymentDto.payment2DtoWith()
