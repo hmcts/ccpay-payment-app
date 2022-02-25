@@ -22,6 +22,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Collections;
 
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+
 @RunWith(MockitoJUnitRunner.class)
 public class ServiceRequestDtoDomainMapperTest {
 
@@ -54,6 +56,8 @@ public class ServiceRequestDtoDomainMapperTest {
 
         serviceRequestDtoDomainMapper.toDomain(serviceRequestDto,organisationalServiceDto);
 
+        assertThat(serviceRequestDtoDomainMapper.toDomain(serviceRequestDto,organisationalServiceDto).getClass().getName().equals("ServiceRequestBo"));
+
     }
 
     @Test
@@ -73,6 +77,8 @@ public class ServiceRequestDtoDomainMapperTest {
 
         serviceRequestDtoDomainMapper.toDomain(onlineCardPaymentRequest,"http://returnUrl/","");
 
+        assertThat(serviceRequestDtoDomainMapper.toDomain(onlineCardPaymentRequest,"http://returnUrl/","").getClass().getName().equals("ServiceRequestOnlinePaymentBo"));
+
     }
 
     @Test
@@ -87,6 +93,8 @@ public class ServiceRequestDtoDomainMapperTest {
             .build();
 
         serviceRequestDtoDomainMapper.createGovPayRequest(serviceRequestOnlinePaymentBo);
+
+        assertThat(serviceRequestDtoDomainMapper.createGovPayRequest(serviceRequestOnlinePaymentBo).getClass().getName().equals("CreatePaymentRequest"));
 
     }
 
