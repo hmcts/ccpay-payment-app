@@ -529,7 +529,6 @@ databaseChangeLog:
             INSERT INTO site (site_id, name, sop_reference, service) VALUES ('Y433', 'BULK ISSUE CENTRE NORTHAMPTON CAPS', '10250500', 'CAPS');
             INSERT INTO site (site_id, name, sop_reference, service) VALUES ('Y687', 'BULK ISSUE CENTRE TEC', '10250500', 'TEC');
             INSERT INTO site (site_id, name, sop_reference, service) VALUES ('Y425', 'BOW COUNTY COURT', '10251213', 'COUNTY');
-            INSERT INTO site (site_id, name, sop_reference, service) VALUES ('Y613', 'NEATH COUNTY COURT', '10254136', 'COUNTY');
 
 - changeSet:
       id: 1529403181341-1
