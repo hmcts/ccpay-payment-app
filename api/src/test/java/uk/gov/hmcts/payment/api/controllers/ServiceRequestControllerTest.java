@@ -33,6 +33,7 @@ import uk.gov.hmcts.payment.api.domain.service.ServiceRequestDomainService;
 import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.dto.PaymentReference;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
+import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestFeeDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
@@ -90,6 +91,9 @@ public class ServiceRequestControllerTest {
 
     @MockBean
     private AuthTokenGenerator authTokenGenerator;
+
+    @MockBean
+    PaymentGroupDtoMapper paymentGroupDtoMapper;
 
     @Autowired
     private IdempotencyService idempotencyService;
@@ -747,6 +751,7 @@ public class ServiceRequestControllerTest {
             .paymentDtoWith().accountNumber("PBA12345")
             .amount(BigDecimal.valueOf(100))
             .idempotencyKey(UUID.randomUUID().toString())
+            .organisationName("sommin")
             .currency("INR") //instead of GBP
             .customerReference("testCustReference").
             build();
@@ -984,20 +989,10 @@ public class ServiceRequestControllerTest {
         List<Payment> paymentList = new ArrayList<>();
         paymentList.add(payment);
 
-        PaymentFee fee = PaymentFee.feeWith().feeAmount(new BigDecimal(300))
-            .code("TEST")
-            .netAmount(new BigDecimal(300))
-            .calculatedAmount(new BigDecimal(300))
-            .volume(1).build();
-        List<PaymentFee> feeList = new ArrayList<>();
-
-        feeList.add(fee);
-
         PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith().ccdCaseNumber("1234")
             .enterpriseServiceName("divorce")
             .payments(paymentList)
             .paymentReference("123456")
-            .fees(feeList)
             .build();
 
         PaymentReference paymentReference = PaymentReference.paymentReference()
@@ -1022,6 +1017,11 @@ public class ServiceRequestControllerTest {
             .build()));
         when(paymentFeeRepository.findById(anyInt())).thenReturn(Optional.of(PaymentFee.feeWith().paymentLink(paymentFeeLink).build()));
         when(delegatingPaymentService.retrieve(any(PaymentFeeLink.class) ,anyString())).thenReturn(paymentFeeLink);
+
+        PaymentGroupDto paymentGroupDto = new PaymentGroupDto();
+        paymentGroupDto.setServiceRequestStatus("Paid");
+        when(paymentGroupDtoMapper.toPaymentGroupDto(any())).thenReturn(paymentGroupDto);
+
         MvcResult result1 = restActions
             .get("/card-payments/" + payment.getInternalReference() + "/status")
             .andExpect(status().isOk())

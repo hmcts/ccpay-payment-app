@@ -63,6 +63,9 @@ public class ServiceRequestController {
     private IdempotencyService idempotencyService;
 
     @Autowired
+    private PaymentGroupDtoMapper paymentGroup;
+
+    @Autowired
     private CreditAccountDtoMapper creditAccountDtoMapper;
 
     @Autowired
@@ -264,7 +267,6 @@ public class ServiceRequestController {
         LOG.info("paymentFeeLink getEnterpriseServiceName {}",paymentFeeLink.getEnterpriseServiceName());
         LOG.info("paymentFeeLink getCcdCaseNumber {}",paymentFeeLink.getCcdCaseNumber());
         PaymentFeeLink  retrieveDelegatingPaymentService = delegatingPaymentService.retrieve(paymentFeeLink, payment.getReference());
-        PaymentGroupDtoMapper paymentGroup = new PaymentGroupDtoMapper();
         String serviceRequestStatus = paymentGroup.toPaymentGroupDto(retrieveDelegatingPaymentService).getServiceRequestStatus();
         ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
         Payment paymentNew = paymentService.findPayment(internalReference);
