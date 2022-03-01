@@ -632,6 +632,7 @@ public class ServiceRequestControllerTest {
             .paymentDtoWith().accountNumber("PBA1111")
             .amount(BigDecimal.valueOf(300))
             .currency("GBP")
+            .organisationName("sommin")
             .idempotencyKey(UUID.randomUUID().toString())
             .customerReference("testCustReference").
             build();
@@ -983,10 +984,20 @@ public class ServiceRequestControllerTest {
         List<Payment> paymentList = new ArrayList<>();
         paymentList.add(payment);
 
+        PaymentFee fee = PaymentFee.feeWith().feeAmount(new BigDecimal(300))
+            .code("TEST")
+            .netAmount(new BigDecimal(300))
+            .calculatedAmount(new BigDecimal(300))
+            .volume(1).build();
+        List<PaymentFee> feeList = new ArrayList<>();
+
+        feeList.add(fee);
+
         PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith().ccdCaseNumber("1234")
             .enterpriseServiceName("divorce")
             .payments(paymentList)
             .paymentReference("123456")
+            .fees(feeList)
             .build();
 
         PaymentReference paymentReference = PaymentReference.paymentReference()

@@ -81,6 +81,9 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     private ServiceRequestDomainDataEntityMapper serviceRequestDomainDataEntityMapper;
 
     @Autowired
+    private PaymentGroupDtoMapper paymentGroup;
+
+    @Autowired
     private ServiceRequestPaymentDtoDomainMapper serviceRequestPaymentDtoDomainMapper;
 
     @Autowired
@@ -226,7 +229,6 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         Payment payment = serviceRequestPaymentDomainDataEntityMapper.toEntity(serviceRequestPaymentBo, serviceRequest);
         payment.setPaymentLink(serviceRequest);
 
-        PaymentGroupDtoMapper paymentGroup = new PaymentGroupDtoMapper();
         String serviceRequestStatus = paymentGroup.toPaymentGroupDto(serviceRequest).getServiceRequestStatus();
 
         //2. Account check for PBA-Payment

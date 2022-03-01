@@ -23,6 +23,7 @@ import uk.gov.hmcts.payment.api.domain.model.ServiceRequestOnlinePaymentBo;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
 import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
+import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestFeeDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
@@ -95,6 +96,9 @@ public class ServiceRequestDomainServiceTest {
 
     @Mock
     AccountService accountService;
+
+    @Mock
+    PaymentGroupDtoMapper paymentGroupDtoMapper;
 
     @Spy
     PBAStatusErrorMapper pbaStatusErrorMapper;
@@ -272,6 +276,10 @@ public class ServiceRequestDomainServiceTest {
                      .build();
 
          when(accountService.retrieve(any())).thenReturn(accountDto);
+
+         PaymentGroupDto paymentGroupDto = new PaymentGroupDto();
+         paymentGroupDto.setServiceRequestStatus("Paid");
+         when(paymentGroupDtoMapper.toPaymentGroupDto(any())).thenReturn(paymentGroupDto);
 
          serviceRequestDomainService.addPayments(getPaymentFeeLink(),"123",serviceRequestPaymentDto);
 
