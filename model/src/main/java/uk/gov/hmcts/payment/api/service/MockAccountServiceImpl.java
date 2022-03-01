@@ -21,7 +21,7 @@ public class MockAccountServiceImpl implements AccountService<AccountDto, String
     @Override
     public AccountDto retrieve(String pbaCode) {
         LOG.info("Called mock liberata account service");
-        if ("PBAFUNC12345".equalsIgnoreCase(pbaCode) || "PBAFUNC345".equalsIgnoreCase(pbaCode)) {
+        if ("PBAFUNC12345".equalsIgnoreCase(pbaCode) || "PBAFUNC345".equalsIgnoreCase(pbaCode) || "PBAFUNC245".equalsIgnoreCase(pbaCode)) {
             return AccountDto.accountDtoWith()
                 .accountNumber("PBAFUNC12345")
                 .accountName("CAERPHILLY COUNTY BOROUGH COUNCIL")
@@ -29,7 +29,7 @@ public class MockAccountServiceImpl implements AccountService<AccountDto, String
                 .availableBalance(BigDecimal.valueOf(30000))
                 .status(AccountStatus.ACTIVE)
                 .build();
-        } else if ("PBAFUNC12350".equalsIgnoreCase(pbaCode) || "PBAFUNC350".equalsIgnoreCase(pbaCode)) {
+        } else if ("PBAFUNC12350".equalsIgnoreCase(pbaCode) || "PBAFUNC350".equalsIgnoreCase(pbaCode) || "PBAFUNC250".equalsIgnoreCase(pbaCode)) {
             return AccountDto.accountDtoWith()
                 .accountNumber("PBAFUNC12350")
                 .accountName("CAERPHILLY COUNTY BOROUGH COUNCIL")
@@ -37,7 +37,7 @@ public class MockAccountServiceImpl implements AccountService<AccountDto, String
                 .availableBalance(BigDecimal.valueOf(30000))
                 .status(AccountStatus.DELETED)
                 .build();
-        } else if ("PBAFUNC12355".equalsIgnoreCase(pbaCode) || "PBAFUNC355".equalsIgnoreCase(pbaCode)) {
+        } else if ("PBAFUNC12355".equalsIgnoreCase(pbaCode) || "PBAFUNC355".equalsIgnoreCase(pbaCode) || "PBAFUNC255".equalsIgnoreCase(pbaCode)) {
             return AccountDto.accountDtoWith()
                 .accountNumber("PBAFUNC12355")
                 .accountName("CAERPHILLY COUNTY BOROUGH COUNCIL")
@@ -45,7 +45,7 @@ public class MockAccountServiceImpl implements AccountService<AccountDto, String
                 .availableBalance(BigDecimal.valueOf(30000))
                 .status(AccountStatus.ON_HOLD)
                 .build();
-        } else if ("PBAFUNC360".equalsIgnoreCase(pbaCode)) {
+        } else if ("PBAFUNC360".equalsIgnoreCase(pbaCode) || "PBAFUNC260".equalsIgnoreCase(pbaCode)) {
             throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR,
                 "An Error for the purposes of testing an Error in Series 500...");
         }
