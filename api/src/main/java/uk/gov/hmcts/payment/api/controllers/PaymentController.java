@@ -267,7 +267,7 @@ public class PaymentController {
             @ApiResponse(code = 403, message = "Payment info forbidden"),
             @ApiResponse(code = 404, message = "Payment not found")
     })
-    @GetMapping(value = "/payments")
+    @GetMapping(value = "/refunds/payments")
     public List<PaymentDto> retrievePayments(@RequestParam List<String> paymentReferenceList) {
 
         List<Payment> paymentList = paymentService.retrievePayment(paymentReferenceList);
