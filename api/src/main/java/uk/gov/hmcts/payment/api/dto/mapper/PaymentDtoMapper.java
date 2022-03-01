@@ -156,12 +156,12 @@ public class PaymentDtoMapper {
     }
 
     public PaymentStatusDto toPaymentStatusDto(String serviceRequestReference, String accountNumber,
-                                               Payment payment) {
+                                               Payment payment, String serviceRequestStatus) {
         return PaymentStatusDto.paymentStatusDto()
             .serviceRequestReference(serviceRequestReference)
             .ccdCaseNumber(payment.getCcdCaseNumber())
             .serviceRequestAmount(payment.getAmount())
-            .serviceRequestStatus(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus())
+            .serviceRequestStatus(serviceRequestStatus)
             .payment(toPaymentReference(accountNumber, payment))
             .build();
     }

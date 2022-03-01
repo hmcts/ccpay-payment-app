@@ -45,6 +45,10 @@ public class ServiceRequestPaymentDto {
     @NotEmpty(message = "idempotency_key can't be Blank")
     private String idempotencyKey;
 
+    @JsonProperty("organisation_name")
+    @NotEmpty(message = "organisation_name can't be Blank")
+    private String organisationName;
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

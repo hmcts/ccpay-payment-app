@@ -30,6 +30,7 @@ import uk.gov.hmcts.payment.api.domain.model.ServiceRequestOnlinePaymentBo;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
 import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
+import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
 import uk.gov.hmcts.payment.api.dto.order.ServiceRequestCpoDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.DeadLetterDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
@@ -195,8 +196,8 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         serviceRequest.getPayments().add(paymentEntity);
         paymentRepository.save(paymentEntity);
 
-        PaymentStatusDto paymentStatusDto = paymentDtoMapper.toPaymentStatusDto(serviceRequestReference,
-            "", paymentEntity);
+//        PaymentStatusDto paymentStatusDto = paymentDtoMapper.toPaymentStatusDto(serviceRequestReference,
+//            "", paymentEntity);
 
         // Trigger Apportion based on the launch darkly feature flag
         boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature", false);
@@ -225,11 +226,15 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         Payment payment = serviceRequestPaymentDomainDataEntityMapper.toEntity(serviceRequestPaymentBo, serviceRequest);
         payment.setPaymentLink(serviceRequest);
 
+        PaymentGroupDtoMapper paymentGroup = new PaymentGroupDtoMapper();
+        String serviceRequestStatus = paymentGroup.toPaymentGroupDto(serviceRequest).getServiceRequestStatus();
+
         //2. Account check for PBA-Payment
         payment = accountCheckForPBAPayment(serviceRequest, serviceRequestPaymentDto, payment);
 
         PaymentStatusDto paymentStatusDto = paymentDtoMapper.toPaymentStatusDto(serviceRequestReference,
-            serviceRequestPaymentBo.getAccountNumber(), payment);
+            serviceRequestPaymentBo.getAccountNumber(), payment, serviceRequestStatus);
+
         PaymentFeeLink serviceRequestCallbackURL = paymentFeeLinkRepository.findByPaymentReference(serviceRequestReference)
             .orElseThrow(() -> new ServiceRequestReferenceNotFoundException("Order reference doesn't exist"));
         sendMessageToTopic(paymentStatusDto, serviceRequestCallbackURL.getCallBackUrl());
