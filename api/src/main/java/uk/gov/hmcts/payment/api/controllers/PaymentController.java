@@ -251,7 +251,7 @@ public class PaymentController {
     @GetMapping(value = "/payments/{reference}")
     public PaymentDto retrievePayment(@PathVariable("reference") String paymentReference) {
 
-        PaymentFeeLink paymentFeeLink = paymentService.retrieve(paymentReference);
+        PaymentFeeLink paymentFeeLink = paymentService.retrievePayment(paymentReference);
         Optional<Payment> payment = paymentFeeLink.getPayments().stream()
             .filter(p -> p.getReference().equals(paymentReference)).findAny();
         Payment payment1 = null;
@@ -259,6 +259,20 @@ public class PaymentController {
             payment1 = payment.get();
         }
         return paymentDtoMapper.toGetPaymentResponseDtos(payment1);
+    }
+
+    @ApiOperation(value = "Get payment details by multiple payment references", notes = "Get payment details for supplied list of payment references")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Payment retrieved"),
+            @ApiResponse(code = 403, message = "Payment info forbidden"),
+            @ApiResponse(code = 404, message = "Payment not found")
+    })
+    @GetMapping(value = "/payments")
+    public List<PaymentDto> retrievePayments(@RequestParam List<String> paymentReferenceList) {
+
+        List<Payment> paymentList = paymentService.retrievePayment(paymentReferenceList);
+
+        return paymentDtoMapper.toGetPaymentResponseDtos(paymentList);
     }
 
     private PaymentSearchCriteria getSearchCriteria(@RequestParam(name = "payment_method", required = false) Optional<String> paymentMethodType, @RequestParam(name = "service_name", required = false) Optional<String> serviceType, @RequestParam(name = "ccd_case_number", required = false) String ccdCaseNumber, @RequestParam(name = "pba_number", required = false) String pbaNumber, Date fromDateTime, Date toDateTime) {
@@ -294,7 +308,7 @@ public class PaymentController {
     }
 
     private Optional<Payment> getPaymentByReference(String reference) {
-        PaymentFeeLink paymentFeeLink = paymentService.retrieve(reference);
+        PaymentFeeLink paymentFeeLink = paymentService.retrievePayment(reference);
         return paymentFeeLink.getPayments().stream()
             .filter(p -> p.getReference().equals(reference)).findAny();
     }

@@ -259,6 +259,49 @@ public class PaymentDtoMapper {
         return enrichWithFeeData(paymentDto);
     }
 
+    public List<PaymentDto> toGetPaymentResponseDtos(List<Payment> paymentList) {
+
+        List<PaymentDto> paymentDtoList = null;
+        for (Payment payment : paymentList) {
+            PaymentDto paymentDto = PaymentDto.payment2DtoWith()
+                .paymentReference(payment.getReference())
+                .paymentGroupReference(payment.getPaymentLink() != null ? payment.getPaymentLink()
+                        .getPaymentReference() : null)
+                .serviceName(payment.getServiceType())
+                .siteId(payment.getSiteId())
+                .amount(payment.getAmount())
+                .caseReference(payment.getCaseReference())
+                .ccdCaseNumber(payment.getCcdCaseNumber())
+                .accountNumber(payment.getPbaNumber())
+                .organisationName(payment.getOrganisationName())
+                .customerReference(payment.getCustomerReference())
+                .channel(payment.getPaymentChannel().getName())
+                .currency(CurrencyCode.valueOf(payment.getCurrency()))
+                .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus())
+                .statusHistories(payment.getStatusHistories() != null ? toStatusHistoryDtos(
+                        payment.getStatusHistories()) : null)
+                .paymentAllocation(payment.getPaymentAllocation() != null ? toPaymentAllocationDtos(
+                        payment.getPaymentAllocation()) : null)
+                .dateCreated(payment.getDateCreated())
+                .dateUpdated(payment.getDateUpdated())
+                .method(payment.getPaymentMethod().getName())
+                .giroSlipNo(payment.getGiroSlipNo())
+                .externalProvider(payment.getPaymentProvider() != null ? payment.getPaymentProvider()
+                        .getName() : null)
+                .bankedDate(payment.getBankedDate())
+                .payerName(payment.getPayerName())
+                .documentControlNumber(payment.getDocumentControlNumber())
+                .externalReference(payment.getExternalReference())
+                .reportedDateOffline(payment.getReportedDateOffline())
+                .fees(toGetPaymentFeeDtos(payment.getPaymentLink() != null ? payment.getPaymentLink()
+                        .getFees() : new ArrayList<>()))
+                .build();
+
+            paymentDtoList.add(enrichWithFeeData(paymentDto));
+        }
+        return paymentDtoList;
+    }
+
     public PaymentDto toReconciliationResponseDto(PaymentFeeLink paymentFeeLink) {
         Payment payment = paymentFeeLink.getPayments().get(0);
         PaymentDto paymentDto = PaymentDto.payment2DtoWith()

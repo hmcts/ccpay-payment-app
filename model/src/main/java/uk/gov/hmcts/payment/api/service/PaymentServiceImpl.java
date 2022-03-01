@@ -29,13 +29,14 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import javax.validation.constraints.NotNull;
 
 
@@ -103,10 +104,36 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
     }
 
     @Override
-    public PaymentFeeLink retrieve(String reference) {
+    public PaymentFeeLink retrievePayment(String reference) {
         Payment payment = findSavedPayment(reference);
 
         return payment.getPaymentLink();
+    }
+
+    @Override
+    public List<Payment> retrievePayment(List<String> reference) {
+
+        List<Payment> payments = paymentRepository.findAllByReference(reference.toString()).orElseThrow(PaymentNotFoundException::new);
+
+        List<PaymentFeeLink> paymentFeeLinks = payments.stream()
+                .map(Payment::getPaymentLink)
+                .collect(Collectors.toList());
+
+        /*List<List<Payment>> paymentList = paymentFeeLinks.stream()
+                .filter(e -> e.getPayments().stream()
+                        .anyMatch(id -> reference.contains(id.getReference())))
+                .map(PaymentFeeLink::getPayments)
+                .collect(Collectors.toList());*/
+
+        List<Payment> paymentList = new ArrayList<>();
+        for (PaymentFeeLink paymentFeeLink : paymentFeeLinks) {
+            Optional<Payment> payment = paymentFeeLink.getPayments().stream()
+                .filter(p -> reference.contains(p.getReference())).findAny();
+            if (payment.isPresent()) {
+                paymentList.add(payment.get());
+            }
+        }
+         return paymentList;
     }
 
     @Override
