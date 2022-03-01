@@ -75,6 +75,7 @@ public class ServiceRequestPaymentFunctionalTest {
         ServiceRequestPaymentDto paymentDto = ServiceRequestPaymentDto.paymentDtoWith()
             .accountNumber("PBAFUNC12345")
             .amount(BigDecimal.valueOf(100))
+            .organisationName("TestOrg")
             .currency("GBP")
             .customerReference("123456")
             .idempotencyKey(randomUUID.toString())
