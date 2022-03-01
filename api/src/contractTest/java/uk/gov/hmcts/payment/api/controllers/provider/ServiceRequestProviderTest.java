@@ -18,16 +18,11 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.payment.api.controllers.ServiceRequestController;
-import uk.gov.hmcts.payment.api.domain.model.ServiceRequestBo;
 import uk.gov.hmcts.payment.api.domain.service.ServiceRequestDomainService;
-import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.ServiceRequestResponseDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
-import uk.gov.hmcts.payment.api.util.AccountStatus;
 
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.util.Date;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -70,6 +65,5 @@ public class ServiceRequestProviderTest {
         ServiceRequestResponseDto serviceRequestResponseDto
             = ServiceRequestResponseDto.serviceRequestResponseDtoWith().serviceRequestReference("2020-1234567890123").build();
         when(serviceRequestDomainServiceMock.create(any(ServiceRequestDto.class), any(MultiValueMap.class))).thenReturn(serviceRequestResponseDto);
-
     }
 }
