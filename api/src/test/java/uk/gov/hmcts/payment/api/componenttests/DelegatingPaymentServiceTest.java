@@ -40,7 +40,7 @@ public class DelegatingPaymentServiceTest extends TestUtil {
             .build());
     }
 
-   // @Test
+    @Test
     public void retireveCardPayments_forBetweenDates_WhereProviderIsGovPayTest() throws Exception {
         Date fromDate = new Date();
         MutableDateTime mFromDate = new MutableDateTime(fromDate);
@@ -70,7 +70,7 @@ public class DelegatingPaymentServiceTest extends TestUtil {
 
     }
 
-   // @Test
+    @Test
     public void retrieveCardPayments_forCMC() throws Exception {
         Date fromDate = new Date();
         MutableDateTime mFromDate = new MutableDateTime(fromDate);
