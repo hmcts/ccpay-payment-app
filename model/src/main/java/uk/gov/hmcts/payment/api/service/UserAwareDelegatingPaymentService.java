@@ -337,7 +337,16 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
             paymentService = govPayAuthUtil.getServiceName(serviceIdSupplier.get(), paymentService);
         } else {
             paymentService = serviceToTokenMap.getServiceKeyVaultName(serviceName);
+            LOG.error("1rst stauts check: {}", paymentService);
         }
+
+        if(paymentService == null){
+            paymentService = serviceToTokenMap.getServiceKeyVaultName(paymentFeeLink.getEnterpriseServiceName());
+            LOG.error("2nd stauts check: {}", paymentService);
+
+        }
+
+
 
         try {
             GovPayPayment govPayPayment = delegateGovPay.retrieve(payment.getExternalReference(), paymentService);
