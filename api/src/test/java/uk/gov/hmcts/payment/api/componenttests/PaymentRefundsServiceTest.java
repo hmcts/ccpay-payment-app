@@ -779,10 +779,19 @@ public class PaymentRefundsServiceTest {
             .feeIds("50")
             .refundStatus(RefundStatus.buildRefundStatusWith().name("Accepted").build())
             .reason("Retrospective remission")
+            .amount(BigDecimal.valueOf(50)).build();
+
+        RefundDto refundDto2 = RefundDto.buildRefundListDtoWith()
+            .refundReference("RF-1111-2222-3333-4444")
+            .paymentReference("RC-2222-3333-4444-5555")
+            .feeIds("50")
+            .refundStatus(RefundStatus.buildRefundStatusWith().name("Accepted").build())
+            .reason("Retrospective remission")
             .amount(BigDecimal.valueOf(1000)).build();
 
         List<RefundDto> refundDtoList = new ArrayList<>();
         refundDtoList.add(refundDto);
+        refundDtoList.add(refundDto2);
 
         RefundListDtoResponse mockRefundListDtoResponse = RefundListDtoResponse.buildRefundListWith()
             .refundList(refundDtoList).build();

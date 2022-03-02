@@ -264,50 +264,50 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                                 && (refundDto.getRefundStatus().getName().equals("Accepted") || refundDto.getRefundStatus().getName().equals("Approved")))
                                     lambdaContext.refundAmount = lambdaContext.refundAmount.add(refundDto.getAmount());
 
+                            //When there is no available balance
+                            //Then ISSUE REFUND/ADD REMISSION/ADD REFUND option should not be available
+
+                            if(paymentDto.getAmount().subtract(lambdaContext.refundAmount).compareTo(BigDecimal.ZERO)>0) {
+
+                                paymentDto.setIssueRefundAddRefundAddRemission(true);
+
+                                paymentGroup.getRemissions().forEach(remissionDto -> {
+                                    remissionDto.setIssueRefundAddRefundAddRemission(true);
+                                });
+
+                                paymentGroup.getFees().forEach(feeDto -> {
+                                    feeDto.setIssueRefundAddRefundAddRemission(true);
+                                });
+                            }
+
+                            else{
+
+                                paymentDto.setIssueRefundAddRefundAddRemission(false);
+
+                                paymentGroup.getRemissions().forEach(remissionDto -> {
+                                    remissionDto.setIssueRefundAddRefundAddRemission(false);
+                                });
+
+                                paymentGroup.getFees().forEach(feeDto -> {
+                                    feeDto.setIssueRefundAddRefundAddRemission(false);
+                                });
+
+                                boolean issueRefundFlag = paymentDto.isIssueRefund();
+
+                                paymentGroup.getRemissions().forEach(remissionDto -> {
+
+                                    // If addRefund is false in all remissions then issueRefund should be false in case of no available balance
+
+                                    if(!remissionDto.isAddRefund())
+                                        paymentDto.setIssueRefund(false);
+
+                                    else
+                                        paymentDto.setIssueRefund(issueRefundFlag);
+
+                                });
+                            }
+
                         });
-
-                        //When there is no available balance
-                        //Then ISSUE REFUND/ADD REMISSION/ADD REFUND option should not be available
-
-                        if(paymentDto.getAmount().subtract(lambdaContext.refundAmount).compareTo(BigDecimal.ZERO)>0) {
-
-                            paymentDto.setIssueRefundAddRefundAddRemission(true);
-
-                            paymentGroup.getRemissions().forEach(remissionDto -> {
-                                remissionDto.setIssueRefundAddRefundAddRemission(true);
-                            });
-
-                            paymentGroup.getFees().forEach(feeDto -> {
-                                feeDto.setIssueRefundAddRefundAddRemission(true);
-                            });
-                        }
-
-                        else{
-
-                            paymentDto.setIssueRefundAddRefundAddRemission(false);
-
-                            paymentGroup.getRemissions().forEach(remissionDto -> {
-                                remissionDto.setIssueRefundAddRefundAddRemission(false);
-                            });
-
-                            paymentGroup.getFees().forEach(feeDto -> {
-                                feeDto.setIssueRefundAddRefundAddRemission(false);
-                            });
-
-                            boolean issueRefundFlag = paymentDto.isIssueRefund();
-
-                            paymentGroup.getRemissions().forEach(remissionDto -> {
-
-                                // If addRefund is false in all remissions then issueRefund should be false in case of no available balance
-
-                                if(!remissionDto.isAddRefund())
-                                    paymentDto.setIssueRefund(false);
-
-                                else
-                                    paymentDto.setIssueRefund(issueRefundFlag);
-
-                            });
-                        }
                     });
             });
 
