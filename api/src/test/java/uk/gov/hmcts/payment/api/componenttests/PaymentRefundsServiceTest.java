@@ -754,9 +754,15 @@ public class PaymentRefundsServiceTest {
         List<PaymentDto> paymentDtoList = new ArrayList<>();
         paymentDtoList.add(paymentDto);
 
+        FeeDto feeDto = FeeDto.feeDtoWith().build();
+
+        List<FeeDto> feeDtoList = new ArrayList<>();
+        feeDtoList.add(feeDto);
+
         PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
             .remissions(remissionDtoList)
-            .payments(paymentDtoList).build();
+            .payments(paymentDtoList)
+            .fees(feeDtoList).build();
 
         List<PaymentGroupDto> paymentGroupDtoList = new ArrayList<>();
         paymentGroupDtoList.add(paymentGroupDto);
@@ -768,7 +774,8 @@ public class PaymentRefundsServiceTest {
         paymentGroupResponseList.add(paymentGroupResponse);
 
         RefundDto refundDto = RefundDto.buildRefundListDtoWith()
-            .refundReference("RC-1111-2222-3333-4444")
+            .refundReference("RF-1111-2222-3333-4444")
+            .paymentReference("RC-2222-3333-4444-5555")
             .feeIds("50")
             .refundStatus(RefundStatus.buildRefundStatusWith().name("Accepted").build())
             .reason("Retrospective remission")
@@ -791,7 +798,7 @@ public class PaymentRefundsServiceTest {
         paymentRefundsService.checkRefundAgainstRemission(header, paymentGroupResponse,"1111222233334444");
 
         assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
-        assertEquals(paymentGroupResponse.getPaymentGroups().get(0).getPayments().get(0).isIssueRefund(), false);
+        assertEquals(paymentGroupResponse.getPaymentGroups().get(0).getPayments().get(0).isIssueRefund(), true);
         assertEquals(paymentGroupResponse.getPaymentGroups().get(0).getRemissions().get(0).isAddRefund(), false);
 
     }
