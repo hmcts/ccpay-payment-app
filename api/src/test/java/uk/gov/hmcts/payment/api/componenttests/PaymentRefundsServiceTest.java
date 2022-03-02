@@ -748,7 +748,7 @@ public class PaymentRefundsServiceTest {
         remissionDtoList.add(remissionDto);
 
         PaymentDto paymentDto =  PaymentDto.payment2DtoWith()
-            .paymentReference("RC-1111-2222-3333-4444")
+            .paymentReference("RC-2222-3333-4444-5555")
             .amount(BigDecimal.valueOf(100)).build();
 
         List<PaymentDto> paymentDtoList = new ArrayList<>();
@@ -798,7 +798,7 @@ public class PaymentRefundsServiceTest {
         paymentRefundsService.checkRefundAgainstRemission(header, paymentGroupResponse,"1111222233334444");
 
         assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
-        assertEquals(paymentGroupResponse.getPaymentGroups().get(0).getPayments().get(0).isIssueRefund(), true);
+        assertEquals(paymentGroupResponse.getPaymentGroups().get(0).getPayments().get(0).isIssueRefund(), false);
         assertEquals(paymentGroupResponse.getPaymentGroups().get(0).getRemissions().get(0).isAddRefund(), false);
 
     }
