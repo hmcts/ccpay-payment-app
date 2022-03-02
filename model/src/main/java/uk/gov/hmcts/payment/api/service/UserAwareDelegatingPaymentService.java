@@ -334,17 +334,22 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
             LOG.error("Unable to determine the payment service which created this payment-Ref: {}", paymentReference);
         }
         if(serviceName == null) {
-            paymentService = govPayAuthUtil.getServiceName(serviceIdSupplier.get(), paymentService);
+            try {
+                paymentService = govPayAuthUtil.getServiceName(serviceIdSupplier.get(), paymentService);
+            }catch (RuntimeException e){
+                LOG.error("2nd stauts check: {}", paymentFeeLink.getEnterpriseServiceName());
+                paymentService = govPayAuthUtil.getServiceName(serviceIdSupplier.get(), paymentFeeLink.getEnterpriseServiceName());
+
+            }
         } else {
             paymentService = serviceToTokenMap.getServiceKeyVaultName(serviceName);
             LOG.error("1rst stauts check: {}", paymentService);
         }
 
-        if(paymentService == null){
-            paymentService = serviceToTokenMap.getServiceKeyVaultName(paymentFeeLink.getEnterpriseServiceName());
-            LOG.error("2nd stauts check: {}", paymentService);
-
-        }
+//        if(paymentService == null){
+//            paymentService = serviceToTokenMap.getServiceKeyVaultName(paymentFeeLink.getEnterpriseServiceName());
+//            LOG.error("2nd stauts check: {}", paymentService);
+//        }
 
 
 
