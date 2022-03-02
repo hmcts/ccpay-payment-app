@@ -290,6 +290,7 @@ public class ServiceRequestFunctionalTests {
         ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
             .paymentDtoWith().accountNumber("PBAFUNC12345")
             .amount(BigDecimal.valueOf(100.00))
+            .organisationName("TestOrg")
             .currency("GBP")
             .idempotencyKey(ServiceRequestFixture.generateUniqueCCDCaseReferenceNumber())
             .customerReference("123245677").
@@ -332,6 +333,7 @@ public class ServiceRequestFunctionalTests {
 
         final ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
             .paymentDtoWith().accountNumber("PBAFUNC12345")
+            .organisationName("TestOrg")
             .amount(BigDecimal.valueOf(100.01))
             .currency("GBP")
             .idempotencyKey(ServiceRequestFixture.generateUniqueCCDCaseReferenceNumber())
@@ -363,6 +365,7 @@ public class ServiceRequestFunctionalTests {
         final ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
             .paymentDtoWith().accountNumber("PBAFUNC12345")
             .amount(BigDecimal.valueOf(99.99))
+            .organisationName("TestOrg")
             .currency("GBP")
             .idempotencyKey(ServiceRequestFixture.generateUniqueCCDCaseReferenceNumber())
             .customerReference("123245677").
@@ -394,6 +397,7 @@ public class ServiceRequestFunctionalTests {
 
         final ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
             .paymentDtoWith().accountNumber("PBAFUNC12345")
+            .organisationName("TestOrg")
             .amount(BigDecimal.valueOf(100.00))
             .currency("GBP")
             .idempotencyKey(ServiceRequestFixture.generateUniqueCCDCaseReferenceNumber())
@@ -440,6 +444,7 @@ public class ServiceRequestFunctionalTests {
         final ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
             .paymentDtoWith().accountNumber("PBAFUNC12345")
             .amount(BigDecimal.valueOf(100.00))
+            .organisationName("TestOrg")
             .currency("GBP")
             .idempotencyKey(ServiceRequestFixture.generateUniqueCCDCaseReferenceNumber())
             .customerReference("123245677").
@@ -486,6 +491,7 @@ public class ServiceRequestFunctionalTests {
             .paymentDtoWith().accountNumber("PBAFUNC12350")
             .amount(BigDecimal.valueOf(100.00))
             .currency("GBP")
+            .organisationName("TestOrg")
             .idempotencyKey(ServiceRequestFixture.generateUniqueCCDCaseReferenceNumber())
             .customerReference("123245677").
                 build();
@@ -534,6 +540,7 @@ public class ServiceRequestFunctionalTests {
         final ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
             .paymentDtoWith().accountNumber("PBAFUNC12355")
             .amount(BigDecimal.valueOf(100.00))
+            .organisationName("TestOrg")
             .currency("GBP")
             .idempotencyKey(ServiceRequestFixture.generateUniqueCCDCaseReferenceNumber())
             .customerReference("123245677").
@@ -583,6 +590,7 @@ public class ServiceRequestFunctionalTests {
             .paymentDtoWith().accountNumber("PBAFUNC12345")
             .amount(BigDecimal.valueOf(35000.00))
             .currency("GBP")
+            .organisationName("TestOrg")
             .idempotencyKey(ServiceRequestFixture.generateUniqueCCDCaseReferenceNumber())
             .customerReference("123245677").
                 build();

@@ -7,6 +7,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
+import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestPaymentDomainDataEntityMapper;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
 import uk.gov.hmcts.payment.api.model.*;
@@ -37,6 +38,15 @@ public class ServiceRequestPaymentDomainDataEntityMapperTest {
     public void toEntityTest(){
         ServiceRequestPaymentBo serviceRequestPaymentBo = ServiceRequestPaymentBo.serviceRequestPaymentBoWith()
             .paymentReference("RC-ref")
+            .accountNumber("a")
+            .amount(new BigDecimal(20))
+            .currency(CurrencyCode.GBP)
+            .customerReference("s")
+            .accountNumber("pBa")
+            .organisationName("sommin")
+            .status("Success")
+            .customerReference("rnd")
+            .paymentReference("rnd")
             .build();
 
         Mockito.when(userIdSupplier.get()).thenReturn("userID");
@@ -63,12 +73,16 @@ public class ServiceRequestPaymentDomainDataEntityMapperTest {
 
     }
 
+
+
     private PaymentFeeLink getPaymentFeeLink() {
         return PaymentFeeLink.paymentFeeLinkWith()
             .id(1)
             .orgId("org-id")
             .enterpriseServiceName("enterprise-service-name")
             .paymentReference("payment-ref")
+            .caseReference("S")
+            .enterpriseServiceName("S")
             .ccdCaseNumber("1607065108455502")
             .fees(Arrays.asList(PaymentFee.feeWith().
                 amountDue(new BigDecimal(10)).

@@ -24,6 +24,7 @@ public class ServiceRequestPaymentDtoDomainMapper {
             .amount(paymentDto.getAmount())
             .currency(CurrencyCode.valueOf(paymentDto.getCurrency()))
             .customerReference(paymentDto.getCustomerReference())
+            .organisationName(paymentDto.getOrganisationName())
             .build();
     }
 }

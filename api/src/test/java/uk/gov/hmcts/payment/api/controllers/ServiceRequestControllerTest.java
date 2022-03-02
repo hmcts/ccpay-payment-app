@@ -33,6 +33,7 @@ import uk.gov.hmcts.payment.api.domain.service.ServiceRequestDomainService;
 import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.dto.PaymentReference;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
+import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestFeeDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
@@ -90,6 +91,9 @@ public class ServiceRequestControllerTest {
 
     @MockBean
     private AuthTokenGenerator authTokenGenerator;
+
+    @MockBean
+    PaymentGroupDtoMapper paymentGroupDtoMapper;
 
     @Autowired
     private IdempotencyService idempotencyService;
@@ -164,6 +168,7 @@ public class ServiceRequestControllerTest {
             .amount(BigDecimal.valueOf(300))
             .currency("GBP")
             .idempotencyKey(UUID.randomUUID().toString())
+            .organisationName("sommin")
             .customerReference("testCustReference").
             build();
 
@@ -267,6 +272,7 @@ public class ServiceRequestControllerTest {
             .amount(BigDecimal.valueOf(300))
             .currency("GBP")
             .idempotencyKey(UUID.randomUUID().toString())
+            .organisationName("sommin")
             .customerReference("testCustReference").
             build();
 
@@ -345,6 +351,7 @@ public class ServiceRequestControllerTest {
             .amount(BigDecimal.valueOf(300))
             .idempotencyKey(UUID.randomUUID().toString())
             .currency("GBP")
+            .organisationName("sommin")
             .customerReference("testCustReference").
             build();
 
@@ -428,6 +435,7 @@ public class ServiceRequestControllerTest {
             .paymentDtoWith().accountNumber("PBA12347")
             .amount(BigDecimal.valueOf(300))
             .idempotencyKey(UUID.randomUUID().toString())
+            .organisationName("sommin")
             .currency("GBP")
             .customerReference("testCustReference").
                 build();
@@ -496,6 +504,7 @@ public class ServiceRequestControllerTest {
             .paymentDtoWith().accountNumber("PBA12347")
             .amount(BigDecimal.valueOf(300))
             .idempotencyKey(UUID.randomUUID().toString())
+            .organisationName("sommin")
             .currency("GBP")
             .customerReference("testCustReference").
                 build();
@@ -563,6 +572,7 @@ public class ServiceRequestControllerTest {
         ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
             .paymentDtoWith().accountNumber("PBA12347")
             .amount(BigDecimal.valueOf(300))
+            .organisationName("sommin")
             .idempotencyKey(UUID.randomUUID().toString())
             .currency("GBP")
             .customerReference("testCustReference").
@@ -626,6 +636,7 @@ public class ServiceRequestControllerTest {
             .paymentDtoWith().accountNumber("PBA1111")
             .amount(BigDecimal.valueOf(300))
             .currency("GBP")
+            .organisationName("sommin")
             .idempotencyKey(UUID.randomUUID().toString())
             .customerReference("testCustReference").
             build();
@@ -679,6 +690,7 @@ public class ServiceRequestControllerTest {
             .amount(BigDecimal.valueOf(100))
             .currency("GBP")
             .idempotencyKey(UUID.randomUUID().toString())
+            .organisationName("sommin")
             .customerReference("testCustReference").
             build();
 
@@ -739,6 +751,7 @@ public class ServiceRequestControllerTest {
             .paymentDtoWith().accountNumber("PBA12345")
             .amount(BigDecimal.valueOf(100))
             .idempotencyKey(UUID.randomUUID().toString())
+            .organisationName("sommin")
             .currency("INR") //instead of GBP
             .customerReference("testCustReference").
             build();
@@ -758,6 +771,7 @@ public class ServiceRequestControllerTest {
             .paymentDtoWith().accountNumber("PBA12345")
             .amount(BigDecimal.valueOf(100))
             .currency("GBP")
+            .organisationName("sommin")
             .idempotencyKey(UUID.randomUUID().toString())
             .customerReference("testCustReference").
             build();
@@ -1003,6 +1017,11 @@ public class ServiceRequestControllerTest {
             .build()));
         when(paymentFeeRepository.findById(anyInt())).thenReturn(Optional.of(PaymentFee.feeWith().paymentLink(paymentFeeLink).build()));
         when(delegatingPaymentService.retrieve(any(PaymentFeeLink.class) ,anyString())).thenReturn(paymentFeeLink);
+
+        PaymentGroupDto paymentGroupDto = new PaymentGroupDto();
+        paymentGroupDto.setServiceRequestStatus("Paid");
+        when(paymentGroupDtoMapper.toPaymentGroupDto(any())).thenReturn(paymentGroupDto);
+
         MvcResult result1 = restActions
             .get("/card-payments/" + payment.getInternalReference() + "/status")
             .andExpect(status().isOk())
