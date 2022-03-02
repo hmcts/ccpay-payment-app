@@ -226,10 +226,16 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         Payment payment = serviceRequestPaymentDomainDataEntityMapper.toEntity(serviceRequestPaymentBo, serviceRequest);
         payment.setPaymentLink(serviceRequest);
 
-        String serviceRequestStatus = paymentGroup.toPaymentGroupDto(serviceRequest).getServiceRequestStatus();
 
         //2. Account check for PBA-Payment
         payment = accountCheckForPBAPayment(serviceRequest, serviceRequestPaymentDto, payment);
+
+        List <Payment> paymentList = new ArrayList<Payment>();
+        paymentList.add(payment);
+
+        PaymentFeeLink serviceRequestWithUpdatedPaymentStatus = serviceRequest;
+        serviceRequestWithUpdatedPaymentStatus.setPayments(paymentList);
+        String serviceRequestStatus = paymentGroup.toPaymentGroupDto(serviceRequestWithUpdatedPaymentStatus).getServiceRequestStatus();
 
         PaymentStatusDto paymentStatusDto = paymentDtoMapper.toPaymentStatusDto(serviceRequestReference,
             serviceRequestPaymentBo.getAccountNumber(), payment, serviceRequestStatus);
