@@ -44,7 +44,6 @@ import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackd
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import java.math.BigDecimal;
 import java.text.ParseException;
@@ -60,8 +59,6 @@ import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -102,9 +99,6 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     private ObjectMapper objectMapper;
     @MockBean
     private LaunchDarklyFeatureToggler featureToggler;
-
-    @Autowired
-    private PaymentController paymentController;
 
     @MockBean
     private PaymentServiceImpl paymentService;
@@ -1713,9 +1707,16 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         db.deletePayment(payment);
     }
 
+    private Date parseDate(String date) {
+        try {
+            return new SimpleDateFormat("dd.MM.yyyy").parse(date);
+        } catch (ParseException e) {
+            return null;
+        }
+    }
+
     @Test
-    public void retrievePaymentsWith1Payment() {
-        List<String> paymentReferenceList = Arrays.asList("dummy1", "dummy2");
+    public void retrievePaymentsWith1Payment() throws Exception {
         Payment payment = Payment.paymentWith()
                 .amount(new BigDecimal("11.99"))
                 .caseReference("caseReference")
@@ -1734,15 +1735,16 @@ public class PaymentControllerTest extends PaymentsDataUtil {
                 .build();
         List<Payment> paymentList = Arrays.asList(payment);
         when(paymentService.retrievePayment(anyList())).thenReturn(paymentList);
-        List<PaymentDto> paymentDtoList = paymentController.retrievePayments(paymentReferenceList);
-        assertNotNull(paymentDtoList);
-        assertEquals(1, paymentDtoList.size());
-        assertEquals("dummy1", paymentDtoList.get(0).getPaymentReference());
+
+        MvcResult result = restActions
+                .get("/refunds/payments?paymentReferenceList=dummy1")
+                .andExpect(status().isOk())
+                .andReturn();
+
     }
 
     @Test
-    public void retrievePaymentsWithMultiplePayments() {
-        List<String> paymentReferenceList = Arrays.asList("dummy1", "dummy2");
+    public void retrievePaymentsWithMultiplePayments() throws Exception {
         Payment payment1 = Payment.paymentWith()
                 .amount(new BigDecimal("11.99"))
                 .caseReference("caseReference")
@@ -1777,30 +1779,26 @@ public class PaymentControllerTest extends PaymentsDataUtil {
                 .build();
         List<Payment> paymentList = Arrays.asList(payment1, payment2);
         when(paymentService.retrievePayment(anyList())).thenReturn(paymentList);
-        List<PaymentDto> paymentDtoList = paymentController.retrievePayments(paymentReferenceList);
-        assertNotNull(paymentDtoList);
-        assertEquals(2, paymentDtoList.size());
-        assertEquals("dummy1", paymentDtoList.get(0).getPaymentReference());
-        assertEquals("dummy2", paymentDtoList.get(1).getPaymentReference());
+        MvcResult result = restActions
+                .get("/refunds/payments?paymentReferenceList=dummy1,dummy2")
+                .andExpect(status().isOk())
+                .andReturn();
     }
 
     @Test
-    public void retrievePaymentsWithEmptyList() {
-        List<String> paymentReferenceList = Arrays.asList();
-        Exception exception = assertThrows(
-                PaymentNotFoundException.class,
-                () -> paymentController.retrievePayments(paymentReferenceList)
-        );
-        String actualMessage = exception.getMessage();
-        assertTrue(actualMessage.contains(
-                "No Payment found"));
+    public void retrievePaymentsWithEmptyList() throws Exception {
+        MvcResult result = restActions
+                .get("/refunds/payments?paymentReferenceList=")
+                .andExpect(status().isNotFound())
+                .andReturn();
     }
 
-    private Date parseDate(String date) {
-        try {
-            return new SimpleDateFormat("dd.MM.yyyy").parse(date);
-        } catch (ParseException e) {
-            return null;
-        }
+    @Test
+    public void retrievePaymentsWithNoPaymentFound() throws Exception {
+        MvcResult result = restActions
+                .get("/refunds/payments?paymentReferenceList=aaaa,bbb,ccc")
+                .andExpect(status().isNotFound())
+                .andReturn();
     }
+
 }
