@@ -38,16 +38,17 @@ import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentMethod;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
+import uk.gov.hmcts.payment.api.service.PaymentServiceImpl;
 import uk.gov.hmcts.payment.api.servicebus.CallbackServiceImpl;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -59,6 +60,9 @@ import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -98,6 +102,12 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     private ObjectMapper objectMapper;
     @MockBean
     private LaunchDarklyFeatureToggler featureToggler;
+
+    @Autowired
+    private PaymentController paymentController;
+
+    @MockBean
+    private PaymentServiceImpl paymentService;
 
     protected CustomResultMatcher body() {
         return new CustomResultMatcher(objectMapper);
@@ -1701,6 +1711,89 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .patch("/payments/ccd_case_reference/"+ccdCaseNumber+"/lag_time/"+String.valueOf(4 * 24))
             .andExpect(status().isNoContent());
         db.deletePayment(payment);
+    }
+
+    @Test
+    public void retrievePaymentsWith1Payment() {
+        List<String> paymentReferenceList = Arrays.asList("dummy1", "dummy2");
+        Payment payment = Payment.paymentWith()
+                .amount(new BigDecimal("11.99"))
+                .caseReference("caseReference")
+                .ccdCaseNumber("ccdCaseNumber")
+                .description("Description1")
+                .serviceType("Probate")
+                .currency("GBP")
+                .siteId("AA01")
+                .userId(USER_ID)
+                .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+                .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
+                .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
+                .reference("dummy1")
+                .dateCreated(new Date())
+                .dateUpdated(new Date())
+                .build();
+        List<Payment> paymentList = Arrays.asList(payment);
+        when(paymentService.retrievePayment(anyList())).thenReturn(paymentList);
+        List<PaymentDto> paymentDtoList = paymentController.retrievePayments(paymentReferenceList);
+        assertNotNull(paymentDtoList);
+        assertEquals(1, paymentDtoList.size());
+        assertEquals("dummy1", paymentDtoList.get(0).getPaymentReference());
+    }
+
+    @Test
+    public void retrievePaymentsWithMultiplePayments() {
+        List<String> paymentReferenceList = Arrays.asList("dummy1", "dummy2");
+        Payment payment1 = Payment.paymentWith()
+                .amount(new BigDecimal("11.99"))
+                .caseReference("caseReference")
+                .ccdCaseNumber("ccdCaseNumber")
+                .description("Description1")
+                .serviceType("Probate")
+                .currency("GBP")
+                .siteId("AA01")
+                .userId(USER_ID)
+                .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+                .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
+                .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
+                .reference("dummy1")
+                .dateCreated(new Date())
+                .dateUpdated(new Date())
+                .build();
+        Payment payment2 = Payment.paymentWith()
+                .amount(new BigDecimal("11.99"))
+                .caseReference("caseReference")
+                .ccdCaseNumber("ccdCaseNumber")
+                .description("Description1")
+                .serviceType("Probate")
+                .currency("GBP")
+                .siteId("AA01")
+                .userId(USER_ID)
+                .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+                .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
+                .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
+                .reference("dummy2")
+                .dateCreated(new Date())
+                .dateUpdated(new Date())
+                .build();
+        List<Payment> paymentList = Arrays.asList(payment1, payment2);
+        when(paymentService.retrievePayment(anyList())).thenReturn(paymentList);
+        List<PaymentDto> paymentDtoList = paymentController.retrievePayments(paymentReferenceList);
+        assertNotNull(paymentDtoList);
+        assertEquals(2, paymentDtoList.size());
+        assertEquals("dummy1", paymentDtoList.get(0).getPaymentReference());
+        assertEquals("dummy2", paymentDtoList.get(1).getPaymentReference());
+    }
+
+    @Test
+    public void retrievePaymentsWithEmptyList() {
+        List<String> paymentReferenceList = Arrays.asList();
+        Exception exception = assertThrows(
+                PaymentNotFoundException.class,
+                () -> paymentController.retrievePayments(paymentReferenceList)
+        );
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains(
+                "No Payment found"));
     }
 
     private Date parseDate(String date) {

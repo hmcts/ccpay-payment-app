@@ -112,19 +112,23 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
 
     @Override
     public List<Payment> retrievePayment(List<String> referenceList) {
+
+        List<Payment> paymentList = new ArrayList<>();
+
         List<Payment> payments =
             paymentRepository.findByReferenceIn(referenceList).orElseThrow(PaymentNotFoundException::new);
 
-        List<PaymentFeeLink> paymentFeeLinks = payments.stream()
-            .map(Payment::getPaymentLink)
-            .collect(Collectors.toList());
+        if (null != payments && !payments.isEmpty()) {
+            List<PaymentFeeLink> paymentFeeLinks = payments.stream()
+                    .map(Payment::getPaymentLink)
+                    .collect(Collectors.toList());
 
-        List<Payment> paymentList = new ArrayList<>();
-        for (PaymentFeeLink paymentFeeLink : paymentFeeLinks) {
-            Optional<Payment> payment = paymentFeeLink.getPayments().stream()
-                    .filter(p -> referenceList.contains(p.getReference())).findAny();
-            if (payment.isPresent()) {
-                paymentList.add(payment.get());
+            for (PaymentFeeLink paymentFeeLink : paymentFeeLinks) {
+                Optional<Payment> payment = paymentFeeLink.getPayments().stream()
+                        .filter(p -> referenceList.contains(p.getReference())).findAny();
+                if (payment.isPresent()) {
+                    paymentList.add(payment.get());
+                }
             }
         }
         return paymentList;
