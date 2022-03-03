@@ -59,7 +59,6 @@ import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -99,9 +98,6 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     private ObjectMapper objectMapper;
     @MockBean
     private LaunchDarklyFeatureToggler featureToggler;
-
-    @MockBean
-    private PaymentServiceImpl paymentService;
 
     protected CustomResultMatcher body() {
         return new CustomResultMatcher(objectMapper);
@@ -1713,76 +1709,6 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         } catch (ParseException e) {
             return null;
         }
-    }
-
-    @Test
-    public void retrievePaymentsWith1Payment() throws Exception {
-        Payment payment = Payment.paymentWith()
-                .amount(new BigDecimal("11.99"))
-                .caseReference("caseReference")
-                .ccdCaseNumber("ccdCaseNumber")
-                .description("Description1")
-                .serviceType("Probate")
-                .currency("GBP")
-                .siteId("AA01")
-                .userId(USER_ID)
-                .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
-                .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
-                .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
-                .reference("dummy1")
-                .dateCreated(new Date())
-                .dateUpdated(new Date())
-                .build();
-        List<Payment> paymentList = Arrays.asList(payment);
-        when(paymentService.retrievePayment(anyList())).thenReturn(paymentList);
-
-        MvcResult result = restActions
-                .get("/refunds/payments?paymentReferenceList=dummy1")
-                .andExpect(status().isOk())
-                .andReturn();
-
-    }
-
-    @Test
-    public void retrievePaymentsWithMultiplePayments() throws Exception {
-        Payment payment1 = Payment.paymentWith()
-                .amount(new BigDecimal("11.99"))
-                .caseReference("caseReference")
-                .ccdCaseNumber("ccdCaseNumber")
-                .description("Description1")
-                .serviceType("Probate")
-                .currency("GBP")
-                .siteId("AA01")
-                .userId(USER_ID)
-                .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
-                .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
-                .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
-                .reference("dummy1")
-                .dateCreated(new Date())
-                .dateUpdated(new Date())
-                .build();
-        Payment payment2 = Payment.paymentWith()
-                .amount(new BigDecimal("11.99"))
-                .caseReference("caseReference")
-                .ccdCaseNumber("ccdCaseNumber")
-                .description("Description1")
-                .serviceType("Probate")
-                .currency("GBP")
-                .siteId("AA01")
-                .userId(USER_ID)
-                .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
-                .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
-                .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
-                .reference("dummy2")
-                .dateCreated(new Date())
-                .dateUpdated(new Date())
-                .build();
-        List<Payment> paymentList = Arrays.asList(payment1, payment2);
-        when(paymentService.retrievePayment(anyList())).thenReturn(paymentList);
-        MvcResult result = restActions
-                .get("/refunds/payments?paymentReferenceList=dummy1,dummy2")
-                .andExpect(status().isOk())
-                .andReturn();
     }
 
     @Test
