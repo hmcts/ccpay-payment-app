@@ -323,6 +323,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
     }
 
     private PaymentFeeLink retrieve(String paymentReference, boolean shouldCallBack, String serviceName ) {
+        LOG.info("User Aware Delegating: ");
 
         final Payment payment = findSavedPayment(paymentReference);
 
@@ -330,20 +331,21 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
 
         String paymentService = payment.getS2sServiceName();
 
+        if(payment.getInternalReference() != null){
+            paymentService = paymentFeeLink.getEnterpriseServiceName();
+        }
+
+
         if (null == paymentService || paymentService.trim().equals("")) {
             LOG.error("Unable to determine the payment service which created this payment-Ref: {}", paymentReference);
         }
         if(serviceName == null) {
-            try {
-                paymentService = govPayAuthUtil.getServiceName(serviceIdSupplier.get(), paymentService);
-            }catch (RuntimeException e){
-                LOG.error("2nd stauts check: {}", paymentFeeLink.getEnterpriseServiceName());
-                paymentService = govPayAuthUtil.getServiceName(serviceIdSupplier.get(), paymentFeeLink.getEnterpriseServiceName());
+            LOG.info("User Aware inside if: {}", paymentService);
+            paymentService = govPayAuthUtil.getServiceName(serviceIdSupplier.get(), paymentService);
 
-            }
         } else {
             paymentService = serviceToTokenMap.getServiceKeyVaultName(serviceName);
-            LOG.error("1rst stauts check: {}", paymentService);
+            LOG.info("1rst stauts check: {}", paymentService);
         }
 
 //        if(paymentService == null){
