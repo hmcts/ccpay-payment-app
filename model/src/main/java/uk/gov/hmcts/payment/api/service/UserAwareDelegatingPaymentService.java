@@ -362,6 +362,8 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
 
 
         try {
+            LOG.info("INSIDE USER AWARE DELEGATING SERVICE TRY BLOCK");
+
             GovPayPayment govPayPayment = delegateGovPay.retrieve(payment.getExternalReference(), paymentService);
 
             fillTransientDetails(payment, govPayPayment);
