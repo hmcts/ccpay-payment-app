@@ -269,7 +269,7 @@ public class ServiceRequestController {
         String jsonpaymentStatusDto = ow.writeValueAsString(paymentStatusDto);
         LOG.info("json format paymentStatusDto to Topic {}",jsonpaymentStatusDto);
         LOG.info("callback URL paymentStatusDto to Topic {}",paymentFeeLink.getCallBackUrl());
-        return paymentDtoMapper.toRetrieveCardPaymentResponseDtoWithoutExtReference( retrieveDelegatingPaymentService);
+        return paymentDtoMapper.toRetrieveCardPaymentResponseDtoWithoutExtReference( retrieveDelegatingPaymentService, internalReference);
     }
 
 
