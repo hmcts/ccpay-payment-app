@@ -335,24 +335,31 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
             LOG.info("INTERNALREF inside if: {}", payment.getInternalReference());
             LOG.info("INTERNALREF inside if 2: {}", paymentService);
 
-            paymentService = paymentFeeLink.getEnterpriseServiceName();
+            serviceName = paymentFeeLink.getEnterpriseServiceName();
 
-            LOG.info("User Aware inside if 2: {}", paymentService);
+            LOG.info("User Aware inside if 2: {}", serviceName);
 
-        }
-
-
-        if (null == paymentService || paymentService.trim().equals("")) {
-            LOG.error("Unable to determine the payment service which created this payment-Ref: {}", paymentReference);
-        }
-        if(serviceName == null) {
-            LOG.info("User Aware inside if: {}", paymentService);
-            paymentService = govPayAuthUtil.getServiceName(serviceIdSupplier.get(), paymentService);
-
-        } else {
             paymentService = serviceToTokenMap.getServiceKeyVaultName(serviceName);
-            LOG.info("1rst stauts check: {}", paymentService);
+            LOG.info("INTERNALREF inside if 3: {}", serviceName);
+
+        }else{
+
+            if (null == paymentService || paymentService.trim().equals("")) {
+                LOG.error("Unable to determine the payment service which created this payment-Ref: {}", paymentReference);
+            }
+            if(serviceName == null) {
+                LOG.info("User Aware inside if: {}", paymentService);
+                paymentService = govPayAuthUtil.getServiceName(serviceIdSupplier.get(), paymentService);
+
+            } else {
+                paymentService = serviceToTokenMap.getServiceKeyVaultName(serviceName);
+                LOG.info("1rst stauts check: {}", paymentService);
+            }
+
         }
+
+
+
 
 //        if(paymentService == null){
 //            paymentService = serviceToTokenMap.getServiceKeyVaultName(paymentFeeLink.getEnterpriseServiceName());
