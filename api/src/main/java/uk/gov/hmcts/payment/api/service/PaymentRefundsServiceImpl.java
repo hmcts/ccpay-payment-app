@@ -18,13 +18,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
-import uk.gov.hmcts.payment.api.dto.InternalRefundResponse;
-import uk.gov.hmcts.payment.api.dto.Notification;
-import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
-import uk.gov.hmcts.payment.api.dto.RefundRequestDto;
-import uk.gov.hmcts.payment.api.dto.RefundResponse;
-import uk.gov.hmcts.payment.api.dto.ResubmitRefundRemissionRequest;
-import uk.gov.hmcts.payment.api.dto.RetrospectiveRemissionRequest;
+import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.exception.InvalidPartialRefundRequestException;
 import uk.gov.hmcts.payment.api.exception.InvalidRefundRequestException;
 import uk.gov.hmcts.payment.api.model.*;
@@ -201,6 +195,174 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                     updateRemissionAmount(feeId, request.getAmount());
             }
         return new ResponseEntity<>(null, HttpStatus.OK);
+    }
+
+    @Override
+    public PaymentGroupResponse checkRefundAgainstRemission(MultiValueMap<String, String> headers,
+                                                            PaymentGroupResponse paymentGroupResponse, String ccdCaseNumber) {
+        //get the RefundListDtoResponse by calling refunds app
+        RefundListDtoResponse refundListDtoResponse = getRefundsFromRefundService(ccdCaseNumber, headers);
+
+        LOG.info("refundListDtoResponse : {}", refundListDtoResponse);
+
+        var lambdaContext = new Object() {
+            BigDecimal refundAmount = BigDecimal.ZERO;
+        };
+
+
+            paymentGroupResponse.getPaymentGroups().forEach(paymentGroup ->{
+
+                paymentGroup.getPayments().forEach(paymentDto -> {
+
+                    paymentDto.setIssueRefund(true);
+
+                });
+
+                paymentGroup.getRemissions().forEach(remission -> {
+
+                    //Given a full/partial remission is added but subsequent refund not submitted
+                    //Then only ADD REFUND needs to be enabled
+                    //and ISSUE REFUND option should not be available
+
+                    remission.setAddRefund(true);
+
+                    paymentGroup.getPayments().forEach(paymentDto -> {
+
+                        paymentDto.setIssueRefund(false);
+
+                    });
+
+                    int remissionCount =  paymentGroup.getRemissions().size();
+
+                    refundListDtoResponse.getRefundList().forEach(refundDto -> {
+
+                        //Given a refund is already added against a remission
+                        //Then ADD REFUND option should not be available
+
+                        int refundCount = refundListDtoResponse.getRefundList().size();
+
+                        if (Arrays.stream(refundDto.getFeeIds().split(",")).anyMatch(remission.getFeeId().toString()::equals)
+                            && refundDto.getReason().equals("Retrospective remission")){
+
+                            remission.setAddRefund(false);
+
+                            paymentGroup.getPayments().forEach(paymentDto -> {
+
+                                if(remissionCount <= refundCount)
+                                    paymentDto.setIssueRefund(true);
+
+                            });
+                        }
+                    });
+                });
+
+                    paymentGroup.getPayments().forEach(paymentDto -> {
+
+                        refundListDtoResponse.getRefundList().forEach(refundDto -> {
+
+                            if(refundDto.getPaymentReference().equals(paymentDto.getPaymentReference())
+                                && (refundDto.getRefundStatus().getName().equals("Accepted") || refundDto.getRefundStatus().getName().equals("Approved")))
+                                    lambdaContext.refundAmount = lambdaContext.refundAmount.add(refundDto.getAmount());
+
+                            //When there is no available balance
+                            //Then ISSUE REFUND/ADD REMISSION/ADD REFUND option should not be available
+
+                            if(paymentDto.getAmount().subtract(lambdaContext.refundAmount).compareTo(BigDecimal.ZERO)>0) {
+
+                                paymentDto.setIssueRefundAddRefundAddRemission(true);
+
+                                paymentGroup.getRemissions().forEach(remissionDto -> {
+                                    remissionDto.setIssueRefundAddRefundAddRemission(true);
+                                });
+
+                                paymentGroup.getFees().forEach(feeDto -> {
+                                    feeDto.setIssueRefundAddRefundAddRemission(true);
+                                });
+                            }
+
+                            else{
+
+                                paymentDto.setIssueRefundAddRefundAddRemission(false);
+
+                                paymentGroup.getRemissions().forEach(remissionDto -> {
+                                    remissionDto.setIssueRefundAddRefundAddRemission(false);
+                                });
+
+                                paymentGroup.getFees().forEach(feeDto -> {
+                                    feeDto.setIssueRefundAddRefundAddRemission(false);
+                                });
+
+                                boolean issueRefundFlag = paymentDto.isIssueRefund();
+
+                                paymentGroup.getRemissions().forEach(remissionDto -> {
+
+                                    // If addRefund is false in all remissions then issueRefund should be false in case of no available balance
+
+                                    if(!remissionDto.isAddRefund())
+                                        paymentDto.setIssueRefund(false);
+
+                                    else
+                                        paymentDto.setIssueRefund(issueRefundFlag);
+
+                                });
+                            }
+
+                        });
+                    });
+            });
+
+        return paymentGroupResponse;
+    }
+
+    private RefundListDtoResponse getRefundsFromRefundService(String ccdCaseNumber, MultiValueMap<String, String> headers) {
+
+
+        RefundListDtoResponse refundListDtoResponse;
+
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(refundApiUrl + REFUND_ENDPOINT).queryParam("ccdCaseNumber",ccdCaseNumber);
+
+        LOG.info("builder.toUriString() : {}", builder.toUriString());
+
+        try {
+
+            LOG.info("restTemplateRefundsGroup : {}", restTemplateRefundsGroup);
+
+            // call refund app
+            ResponseEntity<RefundListDtoResponse> refundListDtoResponseEntity  = restTemplateRefundsGroup
+                .exchange(builder.toUriString(), HttpMethod.GET, createEntity(headers), RefundListDtoResponse.class);
+
+            refundListDtoResponse = refundListDtoResponseEntity.hasBody() ? refundListDtoResponseEntity.getBody() : null;
+
+        } catch (HttpClientErrorException e) {
+
+            LOG.error("client err ", e);
+
+            throw new InvalidRefundRequestException(e.getResponseBodyAsString());
+
+        }
+
+        return refundListDtoResponse;
+
+    }
+
+    private HttpEntity<HttpHeaders> createEntity(MultiValueMap<String, String> headers) {
+
+        MultiValueMap<String, String> headerMultiValueMap = new LinkedMultiValueMap<String, String>();
+
+        String serviceAuthorisation = authTokenGenerator.generate();
+
+        headerMultiValueMap.put("Content-Type", headers.get("content-type"));
+
+        String userAuthorization = headers.get("authorization") != null ? headers.get("authorization").get(0) : headers.get("Authorization").get(0);
+
+        headerMultiValueMap.put("Authorization", Collections.singletonList(userAuthorization.startsWith("Bearer ")
+            ? userAuthorization : "Bearer ".concat(userAuthorization)));
+
+        headerMultiValueMap.put("ServiceAuthorization", Collections.singletonList(serviceAuthorisation));
+
+        HttpHeaders httpHeaders = new HttpHeaders(headerMultiValueMap);
+
+        return new HttpEntity<>(httpHeaders);
     }
 
     public void updateRemissionAmount(Integer feeId, BigDecimal remissionAmount) {

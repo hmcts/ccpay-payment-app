@@ -3,11 +3,15 @@ package uk.gov.hmcts.payment.api.service;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.Optional;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.dto.idam.IdamUserIdResponse;
 import uk.gov.hmcts.payment.api.model.FeePayApportion;
@@ -18,6 +22,7 @@ import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.Remission;
 import uk.gov.hmcts.payment.api.model.RemissionRepository;
 import uk.gov.hmcts.payment.api.util.RefundEligibilityUtil;
+import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 @Service
 public class RefundRemissionEnableServiceImpl implements RefundRemissionEnableService {
@@ -26,6 +31,7 @@ public class RefundRemissionEnableServiceImpl implements RefundRemissionEnableSe
     private static final String AUTHORISED_REFUNDS_ROLE = "payments-refund";
     private static final String AUTHORISED_REFUNDS_APPROVER_ROLE = "payments-refund-approver";
     private static final Logger LOG = LoggerFactory.getLogger(RefundRemissionEnableServiceImpl.class);
+    private static final String REFUND_ENDPOINT = "/refund";
 
     @Autowired
     private RefundEligibilityUtil refundEligibilityUtil;
