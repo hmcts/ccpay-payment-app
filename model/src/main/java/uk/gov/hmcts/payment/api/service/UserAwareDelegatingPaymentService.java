@@ -332,7 +332,13 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
         String paymentService = payment.getS2sServiceName();
 
         if(payment.getInternalReference() != null){
+            LOG.info("INTERNALREF inside if: {}", payment.getInternalReference());
+            LOG.info("INTERNALREF inside if 2: {}", paymentService);
+
             paymentService = paymentFeeLink.getEnterpriseServiceName();
+
+            LOG.info("User Aware inside if 2: {}", paymentService);
+
         }
 
 
