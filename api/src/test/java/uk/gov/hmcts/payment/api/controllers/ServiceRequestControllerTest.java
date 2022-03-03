@@ -1169,7 +1169,7 @@ public class ServiceRequestControllerTest {
         doNothing().when(serviceRequestDomainService).sendMessageToTopic(any(), anyString());
 
         PaymentDto paymentDTOx = PaymentDto.payment2DtoWith().paymentReference("AAA").caseReference("BBB").build();
-        when(paymentDtoMapper.toRetrieveCardPaymentResponseDtoWithoutExtReference(any())).thenReturn(paymentDTOx);
+        when(paymentDtoMapper.toRetrieveCardPaymentResponseDtoWithoutExtReference(any(), any())).thenReturn(paymentDTOx);
         assertNotNull(paymentDTOx);
     }
 

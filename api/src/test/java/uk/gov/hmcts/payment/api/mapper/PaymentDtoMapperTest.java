@@ -245,7 +245,7 @@ public class PaymentDtoMapperTest {
             .paymentReference("123456")
             .build();
 
-        PaymentDto paymentDto = paymentDtoMapper.toRetrieveCardPaymentResponseDtoWithoutExtReference(paymentFeeLink);
+        PaymentDto paymentDto = paymentDtoMapper.toRetrieveCardPaymentResponseDtoWithoutExtReference(paymentFeeLink, "abc");
         assertEquals(paymentDto.getCaseReference(), payment.getCaseReference());
     }
 

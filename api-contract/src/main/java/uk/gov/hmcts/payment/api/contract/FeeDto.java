@@ -83,4 +83,6 @@ public class FeeDto {
 
     private Boolean remissionEnable;
 
+    private Boolean issueRefundAddRefundAddRemission;
+
 }

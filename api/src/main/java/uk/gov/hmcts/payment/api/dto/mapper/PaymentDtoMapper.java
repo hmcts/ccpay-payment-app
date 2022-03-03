@@ -204,9 +204,22 @@ public class PaymentDtoMapper {
             .build();
     }
 
-    public PaymentDto toRetrieveCardPaymentResponseDtoWithoutExtReference(PaymentFeeLink paymentFeeLink) {
+    public PaymentDto toRetrieveCardPaymentResponseDtoWithoutExtReference(PaymentFeeLink paymentFeeLink,
+                                                                          String internalReference) {
         LOG.info("paymentFeeLink.getPayments() {}",paymentFeeLink.getPayments());
-        Payment payment = paymentFeeLink.getPayments().get(0);
+        LOG.info("Getting Payment with internalReference: {}", internalReference);
+        Optional<Payment> optionalPayment = paymentFeeLink.getPayments().stream()
+            .filter(payment -> (internalReference != null)
+                && internalReference.equalsIgnoreCase(payment.getInternalReference()))
+            .findFirst();
+        Payment payment;
+        if(optionalPayment.isEmpty()){
+            LOG.info("Payment not found for internalReference: {}", internalReference);
+            throw new PaymentNotFoundException("The internal Reference is not found");
+        } else {
+            payment = optionalPayment.get();
+            LOG.info("Payment found for internalReference: {}", internalReference);
+        }
         LOG.info("payment status from gov uk - {}",payment.getPaymentStatus().getName());
         LOG.info("payment status from gov uk enum mapping - {}",PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus());
         return PaymentDto.payment2DtoWith()
