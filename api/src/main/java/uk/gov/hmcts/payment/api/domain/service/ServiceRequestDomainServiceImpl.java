@@ -461,6 +461,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
 
             topicClientCPO = new TopicClientProxy(connectionString, topic);
             LOG.info("sending message started..");
+            LOG.info("Message sent: {}", msg);
             LOG.info("message content Action: {}",serviceRequestCpoDto.getAction() );
             LOG.info("message content case id: {}",serviceRequestCpoDto.getCase_id() );
             LOG.info("message content order reference: {}",serviceRequestCpoDto.getOrder_reference() );

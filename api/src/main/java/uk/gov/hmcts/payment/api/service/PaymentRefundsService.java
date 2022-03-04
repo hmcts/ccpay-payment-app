@@ -2,10 +2,7 @@ package uk.gov.hmcts.payment.api.service;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
-import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
-import uk.gov.hmcts.payment.api.dto.RefundResponse;
-import uk.gov.hmcts.payment.api.dto.ResubmitRefundRemissionRequest;
-import uk.gov.hmcts.payment.api.dto.RetrospectiveRemissionRequest;
+import uk.gov.hmcts.payment.api.dto.*;
 
 public interface PaymentRefundsService {
 
@@ -16,4 +13,5 @@ public interface PaymentRefundsService {
 
     ResponseEntity updateTheRemissionAmount(String paymentReference, ResubmitRefundRemissionRequest request);
 
+    PaymentGroupResponse checkRefundAgainstRemission(MultiValueMap<String, String> headers, PaymentGroupResponse paymentGroupResponse, String ccdCaseNumber);
 }

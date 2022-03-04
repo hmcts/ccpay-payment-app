@@ -57,7 +57,7 @@ allprojects {
         imports {
             mavenBom "org.springframework.boot:spring-boot-dependencies:${springBootVersion}"
             mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
-            mavenBom 'org.apache.logging.log4j:log4j-bom:2.16.0'
+            mavenBom 'org.apache.logging.log4j:log4j-bom:2.17.1'
         }
         dependencies {
             dependencySet(
@@ -184,6 +184,7 @@ def sonarExclusions = [
         '**/api/service/MockAccountServiceImpl.java',
         '**/api/service/MockCcdDataStoreClientServiceImpl.java',
         '**/api/controllers/mock/MockCallbackControllerForTesting.java',
+        '**/api/controllers/ServiceRequestController.java',
         '**/api/contract/**',
         '**/api/dto/mapper/**',
         '**/api/reports/config/**',

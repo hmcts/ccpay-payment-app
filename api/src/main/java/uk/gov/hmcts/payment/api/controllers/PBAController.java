@@ -89,7 +89,7 @@ public class PBAController {
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "PBA accounts retrieved"),
         @ApiResponse(code = 401, message = "Unauthorized"),
-        @ApiResponse(code = 404, message = "No PBA Accounts found."),
+        @ApiResponse(code = 204, message = "No PBA Accounts found."),
         @ApiResponse(code = 403, message = "Forbidden")
     })
     @GetMapping(value = "/pba-accounts")
@@ -112,9 +112,9 @@ public class PBAController {
                 throw new AccountServiceUnavailableException(httpClientErrorException.getMessage());
             }
         }
-        catch (Exception exception) {
-            throw new PaymentException(exception.getMessage());
-        }
+//         catch (Exception exception) {
+//             throw new PaymentException(exception.getMessage());
+//         }
     }
 
     private MultiValueMap<String, String> generateHeaders(MultiValueMap<String, String> headers, String emailId) {
@@ -158,9 +158,9 @@ public class PBAController {
             );
     }
 
-    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @ExceptionHandler(AccountNotFoundException.class)
-    public String return404(AccountNotFoundException ex) {
+    public String return204(AccountNotFoundException ex) {
         LOG.error("No PBA Accounts found:", ex);
         return ex.getMessage();
     }
