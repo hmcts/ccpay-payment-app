@@ -323,54 +323,39 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
     }
 
     private PaymentFeeLink retrieve(String paymentReference, boolean shouldCallBack, String serviceName ) {
-        LOG.info("User Aware Delegating: ");
-
         final Payment payment = findSavedPayment(paymentReference);
 
         final PaymentFeeLink paymentFeeLink = payment.getPaymentLink();
 
         String paymentService = payment.getS2sServiceName();
 
+        /**If block gets service name from paymentFeeLink table from enterprise service name column
+         * This is to get the right service name to pass to govpay
+         * Payments made via service request controller will trigger this if block
+         */
         if(payment.getInternalReference() != null){
-            LOG.info("INTERNALREF inside if: {}", payment.getInternalReference());
-            LOG.info("INTERNALREF inside if 2: {}", paymentService);
-
+            LOG.info("Inside NEW card/pba payment service mapper block");
             serviceName = paymentFeeLink.getEnterpriseServiceName();
-
-            LOG.info("User Aware inside if 2: {}", serviceName);
-
             paymentService = serviceToTokenMap.getServiceKeyVaultName(serviceName);
-            LOG.info("INTERNALREF inside if 3: {}", serviceName);
+            LOG.info("GovPay mapped service name: {}", paymentService);
+        }
 
-        }else{
-
+        else{
+            LOG.info("Inside OLD card/pba payment service mapper block: {}", paymentService);
             if (null == paymentService || paymentService.trim().equals("")) {
                 LOG.error("Unable to determine the payment service which created this payment-Ref: {}", paymentReference);
             }
             if(serviceName == null) {
-                LOG.info("User Aware inside if: {}", paymentService);
                 paymentService = govPayAuthUtil.getServiceName(serviceIdSupplier.get(), paymentService);
-
             } else {
                 paymentService = serviceToTokenMap.getServiceKeyVaultName(serviceName);
-                LOG.info("1rst stauts check: {}", paymentService);
             }
-
         }
 
 
 
 
-//        if(paymentService == null){
-//            paymentService = serviceToTokenMap.getServiceKeyVaultName(paymentFeeLink.getEnterpriseServiceName());
-//            LOG.error("2nd stauts check: {}", paymentService);
-//        }
-
-
-
         try {
-            LOG.info("INSIDE USER AWARE DELEGATING SERVICE TRY BLOCK");
-
             GovPayPayment govPayPayment = delegateGovPay.retrieve(payment.getExternalReference(), paymentService);
 
             fillTransientDetails(payment, govPayPayment);
