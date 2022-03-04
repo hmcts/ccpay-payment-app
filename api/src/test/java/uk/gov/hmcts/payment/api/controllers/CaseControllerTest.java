@@ -475,7 +475,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
     }
 
     @Test
-   @Transactional
+    @Transactional
     public void getAllPaymentGroupsHavingFeesAndPaymentsWithCcdCaseNumberShouldReturnRequiredFieldsWithApportionmentDetails() throws Exception {
 
         populateCardPaymentToDbWithApportionmentDetails("1");
