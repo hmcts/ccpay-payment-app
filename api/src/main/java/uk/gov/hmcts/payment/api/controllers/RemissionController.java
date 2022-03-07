@@ -54,11 +54,8 @@ public class RemissionController {
                                                         @RequestHeader(required = false) MultiValueMap<String, String> headers)
         throws CheckDigitException {
 
-//OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(creditAccountPaymentRequest.getCaseType(), headers);
-        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
-            .serviceCode("AA001")
-            .serviceDescription("DIVORCE")
-            .build();
+        OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(Optional.ofNullable(remissionRequest.getCaseType()),Optional.empty(), headers);
+
         RemissionServiceRequest remissionServiceRequest = populateRemissionServiceRequest(remissionRequest, organisationalServiceDto);
         remissionRequest.getFee().setCcdCaseNumber(remissionRequest.getCcdCaseNumber());
         remissionServiceRequest.setFee(remissionDtoMapper.toFee(remissionRequest.getFee()));
