@@ -8,6 +8,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import uk.gov.hmcts.payment.api.model.ContactDetails;
+import uk.gov.hmcts.payment.api.model.PaymentChannel;
+import uk.gov.hmcts.payment.api.model.PaymentMethod;
 
 import java.math.BigDecimal;
 
@@ -34,4 +36,8 @@ public class RefundRequestDto {
     private String serviceType;
 
     private ContactDetails contactDetails;
+
+    private PaymentChannel paymentChannel;
+
+    private PaymentMethod paymentMethod;
 }
