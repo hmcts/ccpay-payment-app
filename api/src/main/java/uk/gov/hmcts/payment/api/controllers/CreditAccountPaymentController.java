@@ -113,7 +113,11 @@ public class CreditAccountPaymentController {
 
         LOG.info("Case Type: {} ", creditAccountPaymentRequest.getCaseType());
         if (StringUtils.isNotBlank(creditAccountPaymentRequest.getCaseType())) {
-            OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(Optional.ofNullable(creditAccountPaymentRequest.getCaseType()),Optional.empty(), headers);
+//OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(creditAccountPaymentRequest.getCaseType(), headers);
+            OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+                .serviceCode("AA001")
+                .serviceDescription("DIVORCE")
+                .build();
             creditAccountPaymentRequest.setSiteId(organisationalServiceDto.getServiceCode());
             creditAccountPaymentRequest.setService(organisationalServiceDto.getServiceDescription());
         } else {
