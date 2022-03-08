@@ -50,6 +50,6 @@ public class RemissionDto {
 
     private boolean addRefund;
 
-    private Boolean issueRefundAddRefundAddRemission;
+    private boolean issueRefundAddRefundAddRemission;
 
 }
