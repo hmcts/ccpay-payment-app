@@ -87,7 +87,7 @@ public class PaymentDto {
 
     private Boolean refundEnable;
 
-    private Boolean issueRefundAddRefundAddRemission;
+    private boolean issueRefundAddRefundAddRemission;
 
     private boolean issueRefund;
 

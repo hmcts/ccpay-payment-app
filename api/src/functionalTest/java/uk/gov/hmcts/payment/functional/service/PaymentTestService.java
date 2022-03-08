@@ -39,6 +39,12 @@ public class PaymentTestService {
             .get("/card-payments/{reference}", paymentReference);
     }
 
+    public Response getPayments(String userToken, String serviceToken, String paymentReference) {
+        return givenWithAuthHeaders(userToken, serviceToken)
+            .when()
+            .get("/payments/{reference}", paymentReference);
+    }
+
     public Response postPbaPayment(String userToken, String serviceToken, CreditAccountPaymentRequest request) {
         return givenWithAuthHeaders(userToken, serviceToken)
             .contentType(ContentType.JSON)

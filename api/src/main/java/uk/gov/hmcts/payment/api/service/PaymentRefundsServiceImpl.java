@@ -9,6 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -204,14 +207,39 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
     @Override
     public PaymentGroupResponse checkRefundAgainstRemission(MultiValueMap<String, String> headers,
                                                             PaymentGroupResponse paymentGroupResponse, String ccdCaseNumber) {
-        //get the RefundListDtoResponse by calling refunds app
-        RefundListDtoResponse refundListDtoResponse = getRefundsFromRefundService(ccdCaseNumber, headers);
+        //check roles
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        LOG.info("refundListDtoResponse : {}", refundListDtoResponse);
+        boolean containsPaymentsRefundRole = false;
+        boolean containsPaymentsRefundApproverRole = false;
 
-        var lambdaContext = new Object() {
-            BigDecimal refundAmount = BigDecimal.ZERO;
-        };
+        Iterator<? extends GrantedAuthority> userRole =  authentication.getAuthorities().iterator();
+
+        while (userRole.hasNext()){
+
+            String nextUser = userRole.next().toString();
+
+            if(nextUser.equals("payments-refund")){
+                containsPaymentsRefundRole = true;
+                break;
+            }
+
+            if(nextUser.equals("payments-refund-approver")){
+                containsPaymentsRefundApproverRole = true;
+                break;
+            }
+        }
+
+        if(containsPaymentsRefundRole || containsPaymentsRefundApproverRole){
+
+            //get the RefundListDtoResponse by calling refunds app
+            RefundListDtoResponse refundListDtoResponse = getRefundsFromRefundService(ccdCaseNumber, headers);
+
+            LOG.info("refundListDtoResponse : {}", refundListDtoResponse);
+
+            var lambdaContext = new Object() {
+                BigDecimal refundAmount = BigDecimal.ZERO;
+            };
 
 
             paymentGroupResponse.getPaymentGroups().forEach(paymentGroup ->{
@@ -260,60 +288,61 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                     });
                 });
 
-                    paymentGroup.getPayments().forEach(paymentDto -> {
+                paymentGroup.getPayments().forEach(paymentDto -> {
 
-                        refundListDtoResponse.getRefundList().forEach(refundDto -> {
+                    refundListDtoResponse.getRefundList().forEach(refundDto -> {
 
-                            if(refundDto.getPaymentReference().equals(paymentDto.getPaymentReference())
-                                && (refundDto.getRefundStatus().getName().equals("Accepted") || refundDto.getRefundStatus().getName().equals("Approved")))
-                                    lambdaContext.refundAmount = lambdaContext.refundAmount.add(refundDto.getAmount());
+                        if(refundDto.getPaymentReference().equals(paymentDto.getPaymentReference())
+                            && (refundDto.getRefundStatus().getName().equals("Accepted") || refundDto.getRefundStatus().getName().equals("Approved")))
+                            lambdaContext.refundAmount = lambdaContext.refundAmount.add(refundDto.getAmount());
 
-                            //When there is no available balance
-                            //Then ISSUE REFUND/ADD REMISSION/ADD REFUND option should not be available
+                        //When there is no available balance
+                        //Then ISSUE REFUND/ADD REMISSION/ADD REFUND option should not be available
 
-                            if(paymentDto.getAmount().subtract(lambdaContext.refundAmount).compareTo(BigDecimal.ZERO)>0) {
+                        if(paymentDto.getAmount().subtract(lambdaContext.refundAmount).compareTo(BigDecimal.ZERO)>0) {
 
-                                paymentDto.setIssueRefundAddRefundAddRemission(true);
+                            paymentDto.setIssueRefundAddRefundAddRemission(true);
 
-                                paymentGroup.getRemissions().forEach(remissionDto -> {
-                                    remissionDto.setIssueRefundAddRefundAddRemission(true);
-                                });
+                            paymentGroup.getRemissions().forEach(remissionDto -> {
+                                remissionDto.setIssueRefundAddRefundAddRemission(true);
+                            });
 
-                                paymentGroup.getFees().forEach(feeDto -> {
-                                    feeDto.setIssueRefundAddRefundAddRemission(true);
-                                });
-                            }
+                            paymentGroup.getFees().forEach(feeDto -> {
+                                feeDto.setIssueRefundAddRefundAddRemission(true);
+                            });
+                        }
 
-                            else{
+                        else{
 
-                                paymentDto.setIssueRefundAddRefundAddRemission(false);
+                            paymentDto.setIssueRefundAddRefundAddRemission(false);
 
-                                paymentGroup.getRemissions().forEach(remissionDto -> {
-                                    remissionDto.setIssueRefundAddRefundAddRemission(false);
-                                });
+                            paymentGroup.getRemissions().forEach(remissionDto -> {
+                                remissionDto.setIssueRefundAddRefundAddRemission(false);
+                            });
 
-                                paymentGroup.getFees().forEach(feeDto -> {
-                                    feeDto.setIssueRefundAddRefundAddRemission(false);
-                                });
+                            paymentGroup.getFees().forEach(feeDto -> {
+                                feeDto.setIssueRefundAddRefundAddRemission(false);
+                            });
 
-                                boolean issueRefundFlag = paymentDto.isIssueRefund();
+                            boolean issueRefundFlag = paymentDto.isIssueRefund();
 
-                                paymentGroup.getRemissions().forEach(remissionDto -> {
+                            paymentGroup.getRemissions().forEach(remissionDto -> {
 
-                                    // If addRefund is false in all remissions then issueRefund should be false in case of no available balance
+                                // If addRefund is false in all remissions then issueRefund should be false in case of no available balance
 
-                                    if(!remissionDto.isAddRefund())
-                                        paymentDto.setIssueRefund(false);
+                                if(!remissionDto.isAddRefund())
+                                    paymentDto.setIssueRefund(false);
 
-                                    else
-                                        paymentDto.setIssueRefund(issueRefundFlag);
+                                else
+                                    paymentDto.setIssueRefund(issueRefundFlag);
 
-                                });
-                            }
+                            });
+                        }
 
-                        });
                     });
+                });
             });
+        }
 
         return paymentGroupResponse;
     }
