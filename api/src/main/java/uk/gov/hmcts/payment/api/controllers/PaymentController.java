@@ -268,6 +268,7 @@ public class PaymentController {
             @ApiResponse(code = 404, message = "Payment not found")
     })
     @GetMapping(value = "/refunds/payments")
+    @PaymentExternalAPI
     public List<PaymentDto> retrievePayments(@RequestParam List<String> paymentReferenceList) {
 
         List<Payment> paymentList = paymentService.retrievePayment(paymentReferenceList);
