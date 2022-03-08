@@ -112,6 +112,12 @@ public class PaymentTestService {
             .get("/reconciliation-payments?ccd_case_number={ccdCaseNumber}", ccdCaseNumber);
     }
 
+    public Response getPbaPaymentsByReferenceNumberList(String serviceToken, String paymentReferenceList) {
+        return givenWithServiceHeaders(serviceToken)
+                .when()
+                .get("/refunds/payments?paymentReferenceList={paymentReferenceList}", paymentReferenceList);
+    }
+
     public ValidatableResponse getLiberatePullPaymentsByStartAndEndDate(String serviceToken, String startDate, String endDate,
                                                                         Long responseTime) {
         return givenWithServiceHeaders(serviceToken)
