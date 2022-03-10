@@ -19,7 +19,7 @@ java:
     PBA_CONFIG1_SERVICE_NAMES: dummy
     PCI_PAL_API_URL: https://ip3cloud.com/clients/hmcts/payments/index.php
 
-    REFUND_API_URL: http://ccpay-refunds-api-pr-152.service.core-compute-preview.internal/
+    REFUND_API_URL: http://ccpay-refunds-api-pr-162.service.core-compute-preview.internal/
 
   keyVaults:
     "ccpay":
