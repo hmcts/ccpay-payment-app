@@ -15,6 +15,8 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.RemissionDto;
+import uk.gov.hmcts.payment.api.model.FeePayApportion;
+import uk.gov.hmcts.payment.api.model.FeePayApportionRepository;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentAllocation;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
@@ -48,6 +50,9 @@ public class PaymentGroupDtoMapper {
 
     @Autowired
     private RefundRemissionEnableService refundRemissionEnableService;
+
+    @Autowired
+    private FeePayApportionRepository feePayApportionRepository;
 
     public PaymentGroupDto toPaymentGroupDto(PaymentFeeLink paymentFeeLink) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -180,6 +185,7 @@ public class PaymentGroupDtoMapper {
             .dateUpdated(fee.getDateUpdated())
             .dateApportioned(fee.getDateApportioned())
             .amountDue(fee.getAmountDue())
+            .overPayment(setOverpayment(fee))
             .remissionEnable(toRemissionEnable(fee))
             .build();
     }
@@ -208,6 +214,19 @@ public class PaymentGroupDtoMapper {
     private Boolean toRemissionEnable(PaymentFee fee){
 
         return refundRemissionEnableService.returnRemissionEligible(fee);
+    }
+
+    public BigDecimal setOverpayment(PaymentFee fee) {
+        BigDecimal overpayment = BigDecimal.ZERO;
+        Optional<FeePayApportion> feePayApportion = feePayApportionRepository.findByFeeId(fee.getId());
+        if (feePayApportion.isPresent() && feePayApportion.get() != null) {
+            if (feePayApportion.get().getApportionAmount() != null && feePayApportion.get().getFeeAmount() != null && fee.getVolume() != null) {
+                if (feePayApportion.get().getApportionAmount().intValue() > (feePayApportion.get().getFeeAmount().multiply(BigDecimal.valueOf(fee.getVolume()))).intValue()) {
+                    overpayment = (feePayApportion.get().getApportionAmount().subtract(feePayApportion.get().getFeeAmount().multiply(BigDecimal.valueOf(fee.getVolume()))));
+                }
+            }
+        }
+        return overpayment;
     }
 
 }
