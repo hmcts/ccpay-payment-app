@@ -43,11 +43,9 @@ public class ServiceRequestTestService {
 
     public Response createPBAPaymentForAServiceRequest(final String userToken,
                                                        final String serviceToken,
-                                                       final String idempotencyKey,
                                                        final String serviceRequestReference,
                                                        final ServiceRequestPaymentDto serviceRequestPaymentDto) {
         return givenWithAuthHeaders(userToken, serviceToken)
-            .header("idempotency_key", idempotencyKey)
             .contentType(ContentType.JSON)
             .body(serviceRequestPaymentDto)
             .when()
@@ -59,7 +57,6 @@ public class ServiceRequestTestService {
                                                                 final String serviceRequestReference,
                                                                 final OnlineCardPaymentRequest onlineCardPaymentRequest) {
         return givenWithAuthHeaders(userToken, serviceToken)
-            .header("return-url", "http://localhost.hmcts.net")
             .contentType(ContentType.JSON)
             .body(onlineCardPaymentRequest)
             .when()

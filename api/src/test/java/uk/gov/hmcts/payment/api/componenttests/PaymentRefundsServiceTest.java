@@ -6,6 +6,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -14,6 +15,8 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.LinkedMultiValueMap;
@@ -22,6 +25,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
+import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.dto.InternalRefundResponse;
 import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
 import uk.gov.hmcts.payment.api.dto.RefundResponse;
@@ -34,15 +38,12 @@ import uk.gov.hmcts.payment.api.exception.InvalidRefundRequestException;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.IdamService;
 import uk.gov.hmcts.payment.api.service.PaymentRefundsService;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotSuccessException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.RemissionNotFoundException;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Optional;
+import java.util.*;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -738,4 +739,81 @@ public class PaymentRefundsServiceTest {
         String actualMessage = exception.getMessage();
         assertTrue(actualMessage.contains("Postal code should not be null or empty"));
     }
+
+    @Test
+    @WithMockUser(authorities = "payments-refund")
+    public void checkRefundAgainstRemissionTest(){
+
+        RemissionDto remissionDto = RemissionDto.remissionDtoWith()
+            .ccdCaseNumber("1111222233334444")
+            .feeId(50).build();
+
+        List<RemissionDto> remissionDtoList = new ArrayList<>();
+        remissionDtoList.add(remissionDto);
+
+        PaymentDto paymentDto =  PaymentDto.payment2DtoWith()
+            .paymentReference("RC-2222-3333-4444-5555")
+            .amount(BigDecimal.valueOf(100)).build();
+
+        List<PaymentDto> paymentDtoList = new ArrayList<>();
+        paymentDtoList.add(paymentDto);
+
+        FeeDto feeDto = FeeDto.feeDtoWith().build();
+
+        List<FeeDto> feeDtoList = new ArrayList<>();
+        feeDtoList.add(feeDto);
+
+        PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
+            .remissions(remissionDtoList)
+            .payments(paymentDtoList)
+            .fees(feeDtoList).build();
+
+        List<PaymentGroupDto> paymentGroupDtoList = new ArrayList<>();
+        paymentGroupDtoList.add(paymentGroupDto);
+
+        PaymentGroupResponse paymentGroupResponse = PaymentGroupResponse.paymentGroupResponseWith()
+            .paymentGroups(paymentGroupDtoList).build();
+
+        List<PaymentGroupResponse> paymentGroupResponseList = new ArrayList<>();
+        paymentGroupResponseList.add(paymentGroupResponse);
+
+        RefundDto refundDto = RefundDto.buildRefundListDtoWith()
+            .refundReference("RF-1111-2222-3333-4444")
+            .paymentReference("RC-2222-3333-4444-5555")
+            .feeIds("50")
+            .refundStatus(RefundStatus.buildRefundStatusWith().name("Accepted").build())
+            .reason("Retrospective remission")
+            .amount(BigDecimal.valueOf(50)).build();
+
+        RefundDto refundDto2 = RefundDto.buildRefundListDtoWith()
+            .refundReference("RF-1111-2222-3333-4444")
+            .paymentReference("RC-2222-3333-4444-5555")
+            .feeIds("50")
+            .refundStatus(RefundStatus.buildRefundStatusWith().name("Accepted").build())
+            .reason("Retrospective remission")
+            .amount(BigDecimal.valueOf(1000)).build();
+
+        List<RefundDto> refundDtoList = new ArrayList<>();
+        refundDtoList.add(refundDto);
+        refundDtoList.add(refundDto2);
+
+        RefundListDtoResponse mockRefundListDtoResponse = RefundListDtoResponse.buildRefundListWith()
+            .refundList(refundDtoList).build();
+
+        ResponseEntity<RefundListDtoResponse> responseEntity =
+            new ResponseEntity<>(mockRefundListDtoResponse, HttpStatus.OK);
+
+        when(authTokenGenerator.generate()).thenReturn("test-token");
+
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+            eq(RefundListDtoResponse.class))).thenReturn(responseEntity);
+
+        paymentRefundsService.checkRefundAgainstRemission(header, paymentGroupResponse,"1111222233334444");
+
+        assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
+        assertEquals(paymentGroupResponse.getPaymentGroups().get(0).getPayments().get(0).isIssueRefund(), false);
+        assertEquals(paymentGroupResponse.getPaymentGroups().get(0).getRemissions().get(0).isAddRefund(), false);
+
+    }
+
 }
