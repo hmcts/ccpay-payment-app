@@ -86,4 +86,15 @@ public class FeeDto {
 
     private Boolean issueRefundAddRefundAddRemission;
 
+    @Override
+    public String toString() {
+        return
+            "Fee DTO -  id='" + id + '\'' +
+                "code ='" + code + '\'' +
+                "apportionedPayment ='" + apportionedPayment + '\'' +
+                "naturalAccountCode ='" + naturalAccountCode + '\'' +
+                "volume ='" + volume + '\'' +
+                "calculatedAmount ='" + calculatedAmount + '\''
+                ;
+    }
 }
