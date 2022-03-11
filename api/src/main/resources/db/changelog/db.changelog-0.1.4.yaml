@@ -1,60 +1,60 @@
 databaseChangeLog:
-#  - changeSet:
-#      id: 1554989041418-25
-#      author: ayan
-#      changes:
-#        - createTable:
-#            tableName: fee_pay_apportion
-#            columns:
-#              - column:
-#                  name: id
-#                  type: INT
-#                  autoIncrement: true
-#                  constraints:
-#                    primaryKey: true
-#                    nullable: false
-#              - column:
-#                  constraints:
-#                    nullable: false
-#                  name: payment_id
-#                  type: INT
-#              - column:
-#                  constraints:
-#                    nullable: false
-#                  name: fee_id
-#                  type: INT
-#              - column:
-#                  constraints:
-#                    nullable: false
-#                  name: payment_link_id
-#                  type: INT
-#              - column:
-#                  name: fee_amount
-#                  type: numeric(19, 2)
-#              - column:
-#                  name: payment_amount
-#                  type: numeric(19, 2)
-#              - column:
-#                  name: apportion_amount
-#                  type: numeric(19, 2)
-#              - column:
-#                  name: ccd_case_number
-#                  type: varchar(255)
-#              - column:
-#                  name: apportion_type
-#                  type: varchar(10)
-#              - column:
-#                  name: call_surplus_amount
-#                  type: numeric(19, 2)
-#              - column:
-#                  name: created_by
-#                  type: varchar(255)
-#              - column:
-#                  name: date_created
-#                  type: TIMESTAMP WITHOUT TIME ZONE
-#              - column:
-#                  name: date_updated
-#                  type: TIMESTAMP WITHOUT TIME ZONE
+  - changeSet:
+      id: 1554989041418-25
+      author: ayan
+      changes:
+        - createTable:
+            tableName: fee_pay_apportion
+            columns:
+              - column:
+                  name: id
+                  type: INT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  constraints:
+                    nullable: false
+                  name: payment_id
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: fee_id
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: payment_link_id
+                  type: INT
+              - column:
+                  name: fee_amount
+                  type: numeric(19, 2)
+              - column:
+                  name: payment_amount
+                  type: numeric(19, 2)
+              - column:
+                  name: apportion_amount
+                  type: numeric(19, 2)
+              - column:
+                  name: ccd_case_number
+                  type: varchar(255)
+              - column:
+                  name: apportion_type
+                  type: varchar(10)
+              - column:
+                  name: call_surplus_amount
+                  type: numeric(19, 2)
+              - column:
+                  name: created_by
+                  type: varchar(255)
+              - column:
+                  name: date_created
+                  type: TIMESTAMP WITHOUT TIME ZONE
+              - column:
+                  name: date_updated
+                  type: TIMESTAMP WITHOUT TIME ZONE
   - changeSet:
       id: 1554989041418-30
       author: ayan
