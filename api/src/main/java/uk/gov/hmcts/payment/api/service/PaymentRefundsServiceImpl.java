@@ -402,6 +402,9 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         headerMultiValueMap.put("ServiceAuthorization", Collections.singletonList(serviceAuthorisation));
 
         HttpHeaders httpHeaders = new HttpHeaders(headerMultiValueMap);
+        
+        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+
 
         httpHeaders.setContentType(MediaType.APPLICATION_JSON);
 
