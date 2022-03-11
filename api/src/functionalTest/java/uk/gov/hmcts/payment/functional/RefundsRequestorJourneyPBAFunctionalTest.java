@@ -482,6 +482,54 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
     }
 
     @Test
+    public void checkRemissionIsAddedButRefundNotSubmitted(){
+        // Create a PBA payment
+        String accountNumber = testProps.existingAccountNumber;
+        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
+            .aPbaPaymentRequestForProbate("100.00",
+                "PROBATE", accountNumber);
+
+        String ccdCaseNumber = accountPaymentRequest.getCcdCaseNumber();
+
+        paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
+            .statusCode(CREATED.value()).body("status", equalTo("Success"));
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
+            ccdCaseNumber, "5");
+
+        // get payment groups
+        Response casePaymentGroupResponse
+            = cardTestService
+            .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN_PAYMENT, ccdCaseNumber);
+        PaymentGroupResponse paymentGroupResponse
+            = casePaymentGroupResponse.getBody().as(PaymentGroupResponse.class);
+        Optional<PaymentGroupDto> paymentDtoOptional
+            = paymentGroupResponse.getPaymentGroups().stream().findFirst();
+
+        // create retrospective remission
+        final String paymentGroupReference = paymentDtoOptional.get().getPaymentGroupReference();
+        final Integer feeId = paymentDtoOptional.get().getFees().stream().findFirst().get().getId();
+        Response response = dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .when().createRetrospectiveRemissionForRefund(getRetroRemissionRequest("100.00"), paymentGroupReference, feeId)
+            .then().getResponse();
+
+        // get payment groups after creating full remission
+        casePaymentGroupResponse
+            = cardTestService
+            .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN_PAYMENT, ccdCaseNumber);
+        paymentGroupResponse
+            = casePaymentGroupResponse.getBody().as(PaymentGroupResponse.class);
+        paymentDtoOptional
+            = paymentGroupResponse.getPaymentGroups().stream().findFirst();
+
+        // verify Given a full/partial remission is added but subsequent refund not submitted, AddRefund flag should be true
+        // and issueRefund should be false
+
+        assertThat(paymentDtoOptional.get().getPayments().get(0).isIssueRefund()==false);
+        assertThat(paymentDtoOptional.get().getRemissions().get(0).isAddRefund()==true);
+    }
+
+    @Test
     public void negative_add_remission_and_add_refund_for_a_pba_payment_unauthorised_user() {
         // Create a PBA payment
         String accountNumber = testProps.existingAccountNumber;
