@@ -394,6 +394,8 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
         HttpHeaders httpHeaders = new HttpHeaders(headerMultiValueMap);
 
+        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+
         return new HttpEntity<>(httpHeaders);
     }
 
