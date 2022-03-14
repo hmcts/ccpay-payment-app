@@ -221,11 +221,7 @@ public class PaymentGroupDtoMapper {
         BigDecimal overpayment = BigDecimal.ZERO;
         Optional<FeePayApportion> feePayApportion = feePayApportionRepository.findByFeeId(fee.getId());
         if (feePayApportion.isPresent() && feePayApportion.get() != null) {
-            if (feePayApportion.get().getApportionAmount() != null && feePayApportion.get().getFeeAmount() != null && fee.getVolume() != null) {
-                if (feePayApportion.get().getApportionAmount().intValue() > (feePayApportion.get().getFeeAmount().multiply(BigDecimal.valueOf(fee.getVolume()))).intValue()) {
-                    overpayment = (feePayApportion.get().getApportionAmount().subtract(feePayApportion.get().getFeeAmount().multiply(BigDecimal.valueOf(fee.getVolume()))));
-                }
-            }
+                    overpayment = feePayApportion.get().getCallSurplusAmount();
         }
         return overpayment;
     }
