@@ -481,6 +481,58 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
     }
 
     @Test
+    public void checkIssueRefundAddRefundAddRemissionFlagWithBalance(){
+        // Create a PBA payment
+        String accountNumber = testProps.existingAccountNumber;
+        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
+            .aPbaPaymentRequestForProbate("100.00",
+                "PROBATE", accountNumber);
+
+        String ccdCaseNumber = accountPaymentRequest.getCcdCaseNumber();
+
+        paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
+            .statusCode(CREATED.value()).body("status", equalTo("Success"));
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
+            ccdCaseNumber, "5");
+
+        // get payment groups
+        Response casePaymentGroupResponse
+            = cardTestService
+            .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN_PAYMENT, ccdCaseNumber);
+        PaymentGroupResponse paymentGroupResponse
+            = casePaymentGroupResponse.getBody().as(PaymentGroupResponse.class);
+        Optional<PaymentGroupDto> paymentDtoOptional
+            = paymentGroupResponse.getPaymentGroups().stream().findFirst();
+
+        // create retrospective remission
+        final String paymentGroupReference = paymentDtoOptional.get().getPaymentGroupReference();
+        final Integer feeId = paymentDtoOptional.get().getFees().stream().findFirst().get().getId();
+        Response response = dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .when().createRetrospectiveRemissionForRefund(getRetroRemissionRequest("50.00"), paymentGroupReference, feeId)
+            .then().getResponse();
+
+        // submit refund for remission
+        String remissionReference = response.getBody().jsonPath().getString("remission_reference");
+        RetrospectiveRemissionRequest retrospectiveRemissionRequest
+            = PaymentFixture.aRetroRemissionRequest(remissionReference);
+        Response refundResponse = paymentTestService.postSubmitRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            SERVICE_TOKEN_PAYMENT, retrospectiveRemissionRequest);
+
+        // get payment groups after creating partial remission and refund
+        casePaymentGroupResponse
+            = cardTestService
+            .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN_PAYMENT, ccdCaseNumber);
+        paymentGroupResponse
+            = casePaymentGroupResponse.getBody().as(PaymentGroupResponse.class);
+        paymentDtoOptional
+            = paymentGroupResponse.getPaymentGroups().stream().findFirst();
+
+        // verify that when there's no available balance, issueRefundAddRefundAddRemission flag should be false
+        assertThat(paymentDtoOptional.get().getPayments().get(0).isIssueRefundAddRefundAddRemission()==true);
+    }
+
+    @Test
     public void checkRemissionIsAddedButRefundNotSubmitted(){
         // Create a PBA payment
         String accountNumber = testProps.existingAccountNumber;
