@@ -32,6 +32,9 @@ public class PaymentFeeLink {
     @Column(name = "org_id")
     private String orgId;
 
+    @Column(name = "service_request_callback_url")
+    private String callBackUrl;
+
     @CreationTimestamp
     @Column(name = "date_created", nullable = false)
     private Date dateCreated;

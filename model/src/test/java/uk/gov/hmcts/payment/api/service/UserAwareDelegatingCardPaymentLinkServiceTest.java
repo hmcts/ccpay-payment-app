@@ -9,7 +9,7 @@ import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
 import uk.gov.hmcts.payment.api.external.client.dto.State;
 import uk.gov.hmcts.payment.api.model.*;
-import uk.gov.hmcts.payment.api.util.OrderCaseUtil;
+import uk.gov.hmcts.payment.api.util.ServiceRequestCaseUtil;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
@@ -50,12 +50,12 @@ public class UserAwareDelegatingCardPaymentLinkServiceTest {
     private PaymentFeeRepository paymentFeeRepository = mock(PaymentFeeRepository.class);
     private FeePayApportionService feePayApportionService = mock(FeePayApportionService.class);
     private LaunchDarklyFeatureToggler featureToggler = mock(LaunchDarklyFeatureToggler.class);
-    private OrderCaseUtil orderCaseUtil = mock(OrderCaseUtil.class);
+    private ServiceRequestCaseUtil serviceRequestCaseUtil = mock(ServiceRequestCaseUtil.class);
 
     private UserAwareDelegatingPaymentService cardPaymentService = new UserAwareDelegatingPaymentService(() -> USER_ID, paymentFeeLinkRepository,
         govPayDelegatingPaymentService, pciPalDelegatingPaymentService, paymentChannelRepository, paymentMethodRepository, paymentProviderRepository,
         paymentStatusRepository, paymentRespository, referenceUtil, govPayAuthUtil, serviceIdSupplier, auditRepository, callbackService,
-        feePayApportionRepository, paymentFeeRepository, feePayApportionService, featureToggler, orderCaseUtil);
+        feePayApportionRepository, paymentFeeRepository, feePayApportionService, featureToggler, serviceRequestCaseUtil);
 
     @Test
     public void testRetrieveWhenServiceCallbackUrlIsDefinedCallbackServiceIsInvoked() throws Exception {
@@ -113,7 +113,7 @@ public class UserAwareDelegatingCardPaymentLinkServiceTest {
         when(govPayAuthUtil.getServiceName(null, serviceName)).thenReturn(serviceName);
         String reference = referenceUtil.getNext("RC");
 
-        when(paymentFeeLinkRepository.findByPaymentReference("1")).thenReturn(Optional.of(PaymentFeeLink.paymentFeeLinkWith().id(1).paymentReference("payGroupRef")
+        when(paymentFeeLinkRepository.findByPaymentReference("1")).thenReturn(Optional.of(PaymentFeeLink.paymentFeeLinkWith().id(1).enterpriseServiceName("test service").paymentReference("payGroupRef")
             .payments(Arrays.asList(Payment.paymentWith().id(1)
                 .externalReference("govPayId")
                 .serviceType(serviceName)

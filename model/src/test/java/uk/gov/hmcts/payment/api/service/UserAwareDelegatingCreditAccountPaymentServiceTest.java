@@ -7,7 +7,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import uk.gov.hmcts.payment.api.model.*;
-import uk.gov.hmcts.payment.api.util.OrderCaseUtil;
+import uk.gov.hmcts.payment.api.util.ServiceRequestCaseUtil;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
@@ -49,7 +49,7 @@ public class UserAwareDelegatingCreditAccountPaymentServiceTest {
     private UserIdSupplier userIdSupplier;
 
     @Mock
-    private OrderCaseUtil orderCaseUtil;
+    private ServiceRequestCaseUtil serviceRequestCaseUtil;
 
     @InjectMocks
     private UserAwareDelegatingCreditAccountPaymentService creditAccountPaymentService;
@@ -81,7 +81,7 @@ public class UserAwareDelegatingCreditAccountPaymentServiceTest {
 
         when(paymentStatusRepository.findByNameOrThrow("success")).thenReturn(PaymentStatus.paymentStatusWith().name("success").build());
 
-        when(orderCaseUtil.enhanceWithOrderCaseDetails(any(PaymentFeeLink.class), any(Payment.class))).thenReturn(paymentFeeLink);
+        when(serviceRequestCaseUtil.enhanceWithServiceRequestCaseDetails(any(PaymentFeeLink.class), any(Payment.class))).thenReturn(paymentFeeLink);
         when(paymentFeeLinkRepository.save(paymentFeeLink)).thenReturn(PaymentFeeLink.paymentFeeLinkWith()
             .id(1)
             .paymentReference("2018-1234567890")

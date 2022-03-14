@@ -11,6 +11,7 @@ import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.State;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.govpay.GovPayAuthUtil;
 import uk.gov.hmcts.payment.api.v1.model.govpay.GovPayKeyRepository;
@@ -20,6 +21,7 @@ import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 public class GovPayDelegatingPaymentServiceTest {
@@ -35,6 +37,9 @@ public class GovPayDelegatingPaymentServiceTest {
 
     @Mock
     private GovPayAuthUtil govPayAuthUtil;
+
+    @Mock
+    ServiceToTokenMap serviceToTokenMap;
 
     @InjectMocks
     private GovPayDelegatingPaymentService govPayCardPaymentService;
@@ -70,7 +75,13 @@ public class GovPayDelegatingPaymentServiceTest {
                 Collections.singletonList(PaymentFee.feeWith().calculatedAmount(new BigDecimal("10000")).code("feeCode")
                     .version("1")
                     .build()), new BigDecimal("100"), null, null, null,"language"));
+
+        when(serviceToTokenMap.getServiceKeyVaultName(anyString())).thenReturn("divorce");
+
+        GovPayPayment govPayPayment2 = govPayCardPaymentService.create(createPaymentRequest,"divorce");
+
         assertNotNull(govPayPayment);
+        assertNotNull(govPayPayment2);
         assertEquals(govPayPayment.getAmount(), new Integer(10000));
         assertEquals(govPayPayment.getState().getStatus(), "created");
     }
@@ -94,6 +105,7 @@ public class GovPayDelegatingPaymentServiceTest {
         assertEquals(govPayPayment.getPaymentId(), "ia2mv22nl5o880rct0vqfa7k76");
         assertEquals(govPayPayment.getReference(), "RC-1518-9479-8089-4415");
     }
+
 
     @Test
     public void retrieveWithTargetServiceShouldRetrievePaymentFromAnyServiceTypeWhenOperationalServiceIsTheCaller() {
