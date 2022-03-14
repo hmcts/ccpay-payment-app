@@ -238,6 +238,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                 paymentGroup.getPayments().forEach(paymentDto -> {
 
                     paymentDto.setIssueRefundAddRefundAddRemission(true);
+                    paymentDto.setIssueRefund(true);
 
                     paymentGroup.getRemissions().forEach(remissionDto -> {
                         remissionDto.setIssueRefundAddRefundAddRemission(true);
