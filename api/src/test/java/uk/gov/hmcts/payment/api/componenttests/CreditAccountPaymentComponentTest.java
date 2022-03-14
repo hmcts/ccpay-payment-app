@@ -27,7 +27,8 @@ public class CreditAccountPaymentComponentTest extends TestUtil {
     @Autowired
     private Payment2Repository paymentRepository;
 
-    @Test @Ignore
+    @Ignore
+    @Test
     public void createCreditAccountPaymentTest() throws Exception {
         List<PaymentFee> fees = Arrays.asList(getFee());
         List<Payment> payments = new ArrayList<>(3);
@@ -42,7 +43,8 @@ public class CreditAccountPaymentComponentTest extends TestUtil {
         paymentFeeLinkRepository.save(paymentFeeLink);
     }
 
-    @Test @Ignore
+    @Ignore
+    @Test 
     public void retrieveCreditAccountPayment_byPaymentGroupReferenceTest() throws Exception {
         List<PaymentFee> fees = Arrays.asList(getFee());
         List<Payment> payments = new ArrayList<>(3);
