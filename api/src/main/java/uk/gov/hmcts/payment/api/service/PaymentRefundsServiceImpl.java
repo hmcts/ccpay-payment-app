@@ -233,6 +233,22 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
             LOG.info("refundListDtoResponse : {}", refundListDtoResponse);
 
+            paymentGroupResponse.getPaymentGroups().forEach(paymentGroup -> {
+
+                paymentGroup.getPayments().forEach(paymentDto -> {
+
+                    paymentDto.setIssueRefundAddRefundAddRemission(true);
+
+                    paymentGroup.getRemissions().forEach(remissionDto -> {
+                        remissionDto.setIssueRefundAddRefundAddRemission(true);
+                    });
+
+                    paymentGroup.getFees().forEach(feeDto -> {
+                        feeDto.setIssueRefundAddRefundAddRemission(true);
+                    });
+                });
+            });
+
             if (refundListDtoResponse != null){
 
                 var lambdaContext = new Object() {
