@@ -1181,7 +1181,7 @@ public class ServiceRequestControllerTest {
         when(feesService.getPaymentFee(anyInt())).thenReturn(paymentFee);
         when(paymentFeeRepository.findById(anyInt())).thenReturn(Optional.of(PaymentFee.feeWith().paymentLink(paymentFeeLink).build()));
         when(delegatingPaymentService.retrieve(any(PaymentFeeLink.class) ,anyString())).thenReturn(paymentFeeLink);
-        when(paymentDtoMapper.toPaymentStatusDto(anyString(), anyString(), any())).thenReturn(paymentStatusDto);
+        when(paymentDtoMapper.toPaymentStatusDto(anyString(), anyString(), any(), any())).thenReturn(paymentStatusDto);
 
         doNothing().when(serviceRequestDomainService).sendMessageToTopic(any(), anyString());
 
