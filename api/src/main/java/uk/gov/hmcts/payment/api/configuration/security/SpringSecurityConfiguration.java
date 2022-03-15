@@ -61,7 +61,7 @@ public class SpringSecurityConfiguration {
                 .antMatchers(  "/jobs/**")
                 .and()
                 .addFilter(authCheckerServiceOnlyFilter)
-                .csrf().disable()
+//                .csrf().disable()
                 .authorizeRequests()
                 .anyRequest().authenticated();
         }
@@ -118,7 +118,7 @@ public class SpringSecurityConfiguration {
             http.exceptionHandling().accessDeniedHandler(accessDeniedHandler());
             http.addFilter(authCheckerFilter)
                 .sessionManagement().sessionCreationPolicy(STATELESS).and()
-                .csrf().disable()
+//                .csrf().disable()
                 .formLogin().disable()
                 .logout().disable()
                 .authorizeRequests()
