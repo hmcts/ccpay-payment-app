@@ -182,6 +182,7 @@ def sonarExclusions = [
         '**/api/servicebus/TopicClientService.java',
         '**/referencedata/service/*Service.java',
         '**/api/service/MockAccountServiceImpl.java',
+        '**/api/configuration/SpringSecurityConfiguration.java',
         '**/api/service/MockCcdDataStoreClientServiceImpl.java',
         '**/api/controllers/mock/MockCallbackControllerForTesting.java',
         '**/api/controllers/ServiceRequestController.java',
