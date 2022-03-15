@@ -45,7 +45,10 @@ import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
 import uk.gov.hmcts.payment.api.external.client.dto.State;
 import uk.gov.hmcts.payment.api.model.*;
-import uk.gov.hmcts.payment.api.service.*;
+import uk.gov.hmcts.payment.api.service.AccountService;
+import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
+import uk.gov.hmcts.payment.api.service.PaymentService;
+import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.servicebus.TopicClientProxy;
 import uk.gov.hmcts.payment.api.servicebus.TopicClientService;
 import uk.gov.hmcts.payment.api.util.AccountStatus;
@@ -129,11 +132,7 @@ public class ServiceRequestControllerTest {
     @MockBean
     private TopicClientProxy topicClientProxy;
 
-    @MockBean
-    private FeesService feesService;
 
-    @MockBean
-    private PaymentDtoMapper paymentDtoMapper;
 
     @Before
     @Transactional
@@ -171,7 +170,7 @@ public class ServiceRequestControllerTest {
             .idempotencyKey(UUID.randomUUID().toString())
             .organisationName("sommin")
             .customerReference("testCustReference").
-            build();
+                build();
 
 
         AccountDto liberataAccountResponse = AccountDto.accountDtoWith()
@@ -196,10 +195,10 @@ public class ServiceRequestControllerTest {
             new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.CREATED);
 
         ResponseEntity<ServiceRequestPaymentBo> responseEntity2 =
-                    new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.CONFLICT);
+            new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.CONFLICT);
 
         ResponseEntity<ServiceRequestPaymentBo> responseEntity3 =
-                            new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.PRECONDITION_FAILED);
+            new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.PRECONDITION_FAILED);
 
         when(serviceRequestDomainService.addPayments(any(),any(),any())).thenReturn(serviceRequestPaymentBo);
 
@@ -275,7 +274,7 @@ public class ServiceRequestControllerTest {
             .idempotencyKey(UUID.randomUUID().toString())
             .organisationName("sommin")
             .customerReference("testCustReference").
-            build();
+                build();
 
         //ServiceRequest reference creation
 
@@ -354,7 +353,7 @@ public class ServiceRequestControllerTest {
             .currency("GBP")
             .organisationName("sommin")
             .customerReference("testCustReference").
-            build();
+                build();
 
         Error error = new Error();
         error.setErrorCode("CA-E0003");
@@ -640,7 +639,7 @@ public class ServiceRequestControllerTest {
             .organisationName("sommin")
             .idempotencyKey(UUID.randomUUID().toString())
             .customerReference("testCustReference").
-            build();
+                build();
 
         ServiceRequestPaymentBo serviceRequestPaymentBoSample = ServiceRequestPaymentBo.serviceRequestPaymentBoWith().
             paymentReference("reference").
@@ -653,7 +652,7 @@ public class ServiceRequestControllerTest {
             new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.NOT_FOUND);
 
         ResponseEntity<ServiceRequestPaymentBo> responseEntity2 =
-                    new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.GATEWAY_TIMEOUT);
+            new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.GATEWAY_TIMEOUT);
 
         when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any())).thenReturn(responseEntity,responseEntity2);
 
@@ -693,7 +692,7 @@ public class ServiceRequestControllerTest {
             .idempotencyKey(UUID.randomUUID().toString())
             .organisationName("sommin")
             .customerReference("testCustReference").
-            build();
+                build();
 
         ServiceRequestPaymentBo serviceRequestPaymentBoSample = ServiceRequestPaymentBo.serviceRequestPaymentBoWith().
             paymentReference("reference").
@@ -726,7 +725,7 @@ public class ServiceRequestControllerTest {
             .amount(BigDecimal.valueOf(100))
             .currency("GBP")
             .customerReference("testCustReference1").
-            build();
+                build();
 
         //assert not equal scenario
         assertFalse(serviceRequestPaymentDto.equals(serviceRequestPaymentDto2));
@@ -755,7 +754,7 @@ public class ServiceRequestControllerTest {
             .organisationName("sommin")
             .currency("INR") //instead of GBP
             .customerReference("testCustReference").
-            build();
+                build();
 
         restActions
             .post("/service-request/" + "2021-1621352112222" + "/pba-payments", serviceRequestPaymentDto)
@@ -775,7 +774,7 @@ public class ServiceRequestControllerTest {
             .organisationName("sommin")
             .idempotencyKey(UUID.randomUUID().toString())
             .customerReference("testCustReference").
-            build();
+                build();
 
         ServiceRequestPaymentBo serviceRequestPaymentBoSample = ServiceRequestPaymentBo.serviceRequestPaymentBoWith().
             paymentReference("reference").
@@ -812,8 +811,8 @@ public class ServiceRequestControllerTest {
             .build();
 
         OnlineCardPaymentResponse onlineCardPaymentResponse = OnlineCardPaymentResponse.onlineCardPaymentResponseWith()
-                .paymentReference("RC-ref")
-                    .build();
+            .paymentReference("RC-ref")
+            .build();
 
         when(serviceRequestDomainService.create(any(),any(),any(),any())).thenReturn(onlineCardPaymentResponse);
 
@@ -971,6 +970,7 @@ public class ServiceRequestControllerTest {
             .build();
     }
 
+
     @Test
     public void createSuccessOnlinePaymentAndValidateSuccessStatus() throws Exception {
 
@@ -1026,8 +1026,9 @@ public class ServiceRequestControllerTest {
             .get("/card-payments/" + payment.getInternalReference() + "/status")
             .andExpect(status().isOk())
             .andReturn();
-        PaymentDto paymentDto = PaymentDto.payment2DtoWith().paymentReference("AAA").caseReference("BBB").status("Success").build();
+        PaymentDto paymentDto =  objectMapper.readValue(result1.getResponse().getContentAsByteArray(),PaymentDto.class);
         assertEquals("Success",paymentDto.getStatus());
+
     }
 
     @Test
@@ -1134,62 +1135,4 @@ public class ServiceRequestControllerTest {
         return serviceRequestReferenceResult;
     }
 
-    @Test
-    public void testRetrieveStatusByInternalReference() throws Exception {
-        PaymentMethod paymentMethod = PaymentMethod.paymentMethodWith().name("online").build();
-
-        Payment payment = Payment.paymentWith().internalReference("abc")
-            .id(1)
-            .reference("RC-1632-3254-9172-5888")
-            .caseReference("123789")
-            .paymentMethod(paymentMethod )
-            .ccdCaseNumber("1234")
-            .amount(new BigDecimal(300))
-            .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
-            .build();
-
-        List<Payment> paymentList = new ArrayList<>();
-        paymentList.add(payment);
-
-        PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith().ccdCaseNumber("1234")
-            .enterpriseServiceName("divorce")
-            .payments(paymentList)
-            .paymentReference("123456")
-            .build();
-
-        PaymentReference paymentReference = PaymentReference.paymentReference()
-            .paymentAmount(new BigDecimal(300))
-            .paymentReference("123")
-            .paymentMethod("online")
-            .caseReference("123")
-            .accountNumber("123")
-            .build();
-
-        PaymentStatusDto paymentStatusDto = PaymentStatusDto.paymentStatusDto()
-            .serviceRequestReference("123")
-            .ccdCaseNumber("123456")
-            .serviceRequestAmount(new BigDecimal(300))
-            .serviceRequestStatus("Success")
-            .payment(paymentReference)
-            .build();
-
-        Optional<PaymentFee> paymentFee = Optional.of(PaymentFee.feeWith().paymentLink(paymentFeeLink).build());
-        when(paymentService.findPayment(anyString())).thenReturn(payment);
-        when(paymentService.findByPaymentId(anyInt())).thenReturn(Arrays.asList(FeePayApportion.feePayApportionWith()
-            .feeId(1)
-            .build()));
-        when(feesService.getPaymentFee(anyInt())).thenReturn(paymentFee);
-        when(paymentFeeRepository.findById(anyInt())).thenReturn(Optional.of(PaymentFee.feeWith().paymentLink(paymentFeeLink).build()));
-        when(delegatingPaymentService.retrieve(any(PaymentFeeLink.class) ,anyString())).thenReturn(paymentFeeLink);
-        when(paymentDtoMapper.toPaymentStatusDto(anyString(), anyString(), any(), any())).thenReturn(paymentStatusDto);
-
-        doNothing().when(serviceRequestDomainService).sendMessageToTopic(any(), anyString());
-
-        PaymentDto paymentDTOx = PaymentDto.payment2DtoWith().paymentReference("AAA").caseReference("BBB").build();
-        when(paymentDtoMapper.toRetrieveCardPaymentResponseDtoWithoutExtReference(any(), any())).thenReturn(paymentDTOx);
-        assertNotNull(paymentDTOx);
-    }
-
 }
-
-
