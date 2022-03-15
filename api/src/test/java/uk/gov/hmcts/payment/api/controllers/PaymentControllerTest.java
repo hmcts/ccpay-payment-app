@@ -38,6 +38,7 @@ import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentMethod;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
+import uk.gov.hmcts.payment.api.service.PaymentServiceImpl;
 import uk.gov.hmcts.payment.api.servicebus.CallbackServiceImpl;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
@@ -47,7 +48,6 @@ import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -1710,4 +1710,21 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             return null;
         }
     }
+
+    @Test
+    public void retrievePaymentsWithEmptyList() throws Exception {
+        MvcResult result = restActions
+                .get("/refunds/payments?paymentReferenceList=")
+                .andExpect(status().isNotFound())
+                .andReturn();
+    }
+
+    @Test
+    public void retrievePaymentsWithNoPaymentFound() throws Exception {
+        MvcResult result = restActions
+                .get("/refunds/payments?paymentReferenceList=aaaa,bbb,ccc")
+                .andExpect(status().isNotFound())
+                .andReturn();
+    }
+
 }

@@ -28,6 +28,7 @@ import uk.gov.hmcts.payment.functional.service.PaymentTestService;
 
 import javax.inject.Inject;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -1280,5 +1281,68 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
                 .build())
             .build();
 
+    }
+
+    @Test
+    public void positive_get_payments_for_2_pba_payments() throws JSONException {
+
+        // Create first PBA payment
+        String accountNumber = testProps.existingAccountNumber;
+        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
+                .aPbaPaymentRequestForProbate("90.00",
+                        "PROBATE", accountNumber);
+
+        String ccdCaseNumber = accountPaymentRequest.getCcdCaseNumber();
+
+        Response paymentCreationResponse =
+                paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest);
+
+        String paymentCreationResponseString = paymentCreationResponse.getBody().asString();
+
+        JSONObject paymentCreationResponseJsonObj = new JSONObject(paymentCreationResponseString);
+
+
+        paymentCreationResponse.then().statusCode(CREATED.value()).body("status", equalTo("Success"));
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
+                ccdCaseNumber, "5");
+
+        final String paymentReference = paymentCreationResponseJsonObj.getString("reference");
+
+        // Create second PBA payment
+//        String accountNumber1 = testProps.existingAccountNumber;
+        CreditAccountPaymentRequest accountPaymentRequest1 = PaymentFixture
+                .aPbaPaymentRequestForProbate("100.00",
+                        "PROBATE", "PBAFUNC12345");
+
+        String ccdCaseNumber1 = accountPaymentRequest1.getCcdCaseNumber();
+
+        Response paymentCreationResponse1 =
+                paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest1);
+
+        String paymentCreationResponseString1 = paymentCreationResponse1.getBody().asString();
+
+        JSONObject paymentCreationResponseJsonObj1 = new JSONObject(paymentCreationResponseString1);
+
+        paymentCreationResponse1.then().statusCode(CREATED.value()).body("status", equalTo("Success"));
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
+                ccdCaseNumber1, "5");
+
+        final String paymentReference1 = paymentCreationResponseJsonObj1.getString("reference");
+
+        String paymentReferenceList = paymentReference + "," + paymentReference1;
+
+        // Get payment list
+        Response pbaPaymentStatusesResponse =
+                paymentTestService.getPbaPaymentsByReferenceNumberList(SERVICE_TOKEN_PAYMENT, paymentReferenceList);
+        String pbaPaymentStatusesResponseString = pbaPaymentStatusesResponse.getBody().asString();
+        JSONArray pbaPaymentStatusesResponseJsonArr = new JSONArray(pbaPaymentStatusesResponseString);
+        List<String> paymentRefList = new ArrayList<>();
+        for (int i = 0; i < pbaPaymentStatusesResponseJsonArr.length(); i++) {
+            JSONObject curr = pbaPaymentStatusesResponseJsonArr.getJSONObject(i);
+
+            paymentRefList.add(curr.getString("payment_reference"));
+        }
+        assertThat(paymentRefList.contains(paymentReference));
+        assertThat(paymentRefList.contains(paymentReference1));
     }
 }

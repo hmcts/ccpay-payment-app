@@ -273,6 +273,17 @@ public class PaymentDtoMapper {
         return enrichWithFeeData(paymentDto);
     }
 
+    public List<PaymentDto> toGetPaymentResponseDtos(List<Payment> paymentList) {
+        if (null != paymentList && !paymentList.isEmpty()) {
+            List<PaymentDto> paymentDtoList = new ArrayList<>();
+            for (Payment payment : paymentList) {
+                paymentDtoList.add(toGetPaymentResponseDtos(payment));
+            }
+            return paymentDtoList;
+        }
+        throw new PaymentNotFoundException("No Payment found");
+    }
+
     public PaymentDto toReconciliationResponseDto(PaymentFeeLink paymentFeeLink) {
         Payment payment = paymentFeeLink.getPayments().get(0);
         PaymentDto paymentDto = PaymentDto.payment2DtoWith()

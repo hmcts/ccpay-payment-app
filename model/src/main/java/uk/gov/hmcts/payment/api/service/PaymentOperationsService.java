@@ -26,7 +26,12 @@ public class PaymentOperationsService implements PaymentService<Payment, String>
     }
 
     @Override
-    public Payment retrieve(final String s) {
+    public Payment retrievePayment(final String s) {
+        return null;
+    }
+
+    @Override
+    public List<Payment> retrievePayment(List<String> id) {
         return null;
     }
 

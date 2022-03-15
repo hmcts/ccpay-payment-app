@@ -65,7 +65,7 @@ public class FeePayApportionController {
     @GetMapping(value = "/payment-groups/fee-pay-apportion/{paymentreference}")
     public ResponseEntity<PaymentGroupDto> retrieveApportionDetails(@PathVariable("paymentreference") String paymentReference) {
         LOG.info("Invoking new API in FeePayApportionController");
-        PaymentFeeLink paymentFeeLink = paymentService.retrieve(paymentReference);
+        PaymentFeeLink paymentFeeLink = paymentService.retrievePayment(paymentReference);
         boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
         LOG.info("apportionFeature value in FeePayApportionController: {}", apportionFeature);
         Optional<Payment> payment = paymentFeeLink.getPayments().stream()
