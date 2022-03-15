@@ -26,6 +26,7 @@ import uk.gov.hmcts.payment.api.dto.PaymentStatusDto;
 import uk.gov.hmcts.payment.api.dto.ServiceRequestResponseDto;
 import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
+import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
 import uk.gov.hmcts.payment.api.exception.LiberataServiceTimeoutException;
@@ -60,6 +61,9 @@ public class ServiceRequestController {
 
     @Autowired
     private IdempotencyService idempotencyService;
+
+    @Autowired
+    private PaymentGroupDtoMapper paymentGroup;
 
     @Autowired
     private CreditAccountDtoMapper creditAccountDtoMapper;
@@ -250,7 +254,9 @@ public class ServiceRequestController {
     @PaymentExternalAPI
     @GetMapping(value = "/card-payments/{internal-reference}/status")
     public PaymentDto retrieveStatusByInternalReference(@PathVariable("internal-reference") String internalReference) throws JsonProcessingException {
+        LOG.info("Entered /card-payments/{internal-reference}/status using internalReference: {}", internalReference);
         Payment payment = paymentService.findPayment(internalReference);
+        LOG.info("internalReference: {} - Payment: {}", internalReference, payment);
         List<FeePayApportion> feePayApportionList = paymentService.findByPaymentId(payment.getId());
         if(feePayApportionList.isEmpty()){
             throw new PaymentNotSuccessException("Payment is not successful");
@@ -261,10 +267,12 @@ public class ServiceRequestController {
         LOG.info("paymentFeeLink getEnterpriseServiceName {}",paymentFeeLink.getEnterpriseServiceName());
         LOG.info("paymentFeeLink getCcdCaseNumber {}",paymentFeeLink.getCcdCaseNumber());
         PaymentFeeLink  retrieveDelegatingPaymentService = delegatingPaymentService.retrieve(paymentFeeLink, payment.getReference());
+        String serviceRequestStatus = paymentGroup.toPaymentGroupDto(retrieveDelegatingPaymentService).getServiceRequestStatus();
         ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
         Payment paymentNew = paymentService.findPayment(internalReference);
         String serviceRequestReference = paymentFeeLink.getPaymentReference();
-        PaymentStatusDto paymentStatusDto = paymentDtoMapper.toPaymentStatusDto(serviceRequestReference, "", paymentNew);
+        LOG.info("Sending payment to Topic with internalReference: {}", paymentNew.getInternalReference());
+        PaymentStatusDto paymentStatusDto = paymentDtoMapper.toPaymentStatusDto(serviceRequestReference, "", paymentNew, serviceRequestStatus);
         serviceRequestDomainService.sendMessageToTopic(paymentStatusDto, paymentFeeLink.getCallBackUrl());
         String jsonpaymentStatusDto = ow.writeValueAsString(paymentStatusDto);
         LOG.info("json format paymentStatusDto to Topic {}",jsonpaymentStatusDto);

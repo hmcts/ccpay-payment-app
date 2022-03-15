@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.api.componenttests;
 
 import org.junit.Test;
+import org.junit.Ignore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
@@ -26,6 +27,7 @@ public class CreditAccountPaymentComponentTest  {
     /*@Autowired
     private Payment2Repository paymentRepository;
 
+    @Ignore
     @Test
     public void createCreditAccountPaymentTest() throws Exception {
         List<PaymentFee> fees = Arrays.asList(getFee());
@@ -41,7 +43,8 @@ public class CreditAccountPaymentComponentTest  {
         paymentFeeLinkRepository.save(paymentFeeLink);
     }
 
-    @Test
+    @Ignore
+    @Test 
     public void retrieveCreditAccountPayment_byPaymentGroupReferenceTest() throws Exception {
         List<PaymentFee> fees = Arrays.asList(getFee());
         List<Payment> payments = new ArrayList<>(3);
