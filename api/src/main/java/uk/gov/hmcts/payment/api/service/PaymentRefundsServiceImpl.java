@@ -237,6 +237,23 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
             LOG.info("refundListDtoResponse : {}", refundListDtoResponse);
 
+            paymentGroupResponse.getPaymentGroups().forEach(paymentGroup -> {
+
+                paymentGroup.getPayments().forEach(paymentDto -> {
+
+                    paymentDto.setIssueRefundAddRefundAddRemission(true);
+                    paymentDto.setIssueRefund(true);
+
+                    paymentGroup.getRemissions().forEach(remissionDto -> {
+                        remissionDto.setIssueRefundAddRefundAddRemission(true);
+                    });
+
+                    paymentGroup.getFees().forEach(feeDto -> {
+                        feeDto.setIssueRefundAddRefundAddRemission(true);
+                    });
+                });
+            });
+
             if (refundListDtoResponse != null){
 
                 var lambdaContext = new Object() {
@@ -397,6 +414,8 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         headerMultiValueMap.put("ServiceAuthorization", Collections.singletonList(serviceAuthorisation));
 
         HttpHeaders httpHeaders = new HttpHeaders(headerMultiValueMap);
+
+        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
 
         return new HttpEntity<>(httpHeaders);
     }

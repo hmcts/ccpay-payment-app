@@ -43,4 +43,6 @@ public class ServiceRequestPaymentBo {
     private String dateCreated;
 
     private Error error;
+
+    private String organisationName;
 }

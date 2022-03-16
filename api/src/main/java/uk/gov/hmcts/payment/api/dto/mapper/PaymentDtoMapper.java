@@ -156,12 +156,12 @@ public class PaymentDtoMapper {
     }
 
     public PaymentStatusDto toPaymentStatusDto(String serviceRequestReference, String accountNumber,
-                                               Payment payment) {
+                                               Payment payment, String serviceRequestStatus) {
         return PaymentStatusDto.paymentStatusDto()
             .serviceRequestReference(serviceRequestReference)
             .ccdCaseNumber(payment.getCcdCaseNumber())
             .serviceRequestAmount(payment.getAmount())
-            .serviceRequestStatus(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus())
+            .serviceRequestStatus(serviceRequestStatus)
             .payment(toPaymentReference(accountNumber, payment))
             .build();
     }
@@ -220,6 +220,7 @@ public class PaymentDtoMapper {
             payment = optionalPayment.get();
             LOG.info("Payment found for internalReference: {}", internalReference);
         }
+        LOG.info("internalReference: {} for the payment returned", payment.getInternalReference());
         LOG.info("payment status from gov uk - {}",payment.getPaymentStatus().getName());
         LOG.info("payment status from gov uk enum mapping - {}",PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus());
         return PaymentDto.payment2DtoWith()

@@ -323,21 +323,37 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
     }
 
     private PaymentFeeLink retrieve(String paymentReference, boolean shouldCallBack, String serviceName ) {
-
         final Payment payment = findSavedPayment(paymentReference);
 
         final PaymentFeeLink paymentFeeLink = payment.getPaymentLink();
 
         String paymentService = payment.getS2sServiceName();
 
-        if (null == paymentService || paymentService.trim().equals("")) {
-            LOG.error("Unable to determine the payment service which created this payment-Ref: {}", paymentReference);
-        }
-        if(serviceName == null) {
-            paymentService = govPayAuthUtil.getServiceName(serviceIdSupplier.get(), paymentService);
-        } else {
+        /**If block gets service name from paymentFeeLink table from enterprise service name column
+         * This is to get the right service name to pass to govpay
+         * Payments made via service request controller will trigger this if block
+         */
+        if(payment.getInternalReference() != null){
+            LOG.info("Inside NEW card/pba payment service mapper block");
+            serviceName = paymentFeeLink.getEnterpriseServiceName();
             paymentService = serviceToTokenMap.getServiceKeyVaultName(serviceName);
+            LOG.info("GovPay mapped service name: {}", paymentService);
         }
+
+        else{
+            LOG.info("Inside OLD card/pba payment service mapper block: {}", paymentService);
+            if (null == paymentService || paymentService.trim().equals("")) {
+                LOG.error("Unable to determine the payment service which created this payment-Ref: {}", paymentReference);
+            }
+            if(serviceName == null) {
+                paymentService = govPayAuthUtil.getServiceName(serviceIdSupplier.get(), paymentService);
+            } else {
+                paymentService = serviceToTokenMap.getServiceKeyVaultName(serviceName);
+            }
+        }
+
+
+
 
         try {
             GovPayPayment govPayPayment = delegateGovPay.retrieve(payment.getExternalReference(), paymentService);
