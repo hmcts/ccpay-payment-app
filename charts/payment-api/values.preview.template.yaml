@@ -19,17 +19,16 @@ java:
     PBA_CONFIG1_SERVICE_NAMES: dummy
     PCI_PAL_API_URL: https://ip3cloud.com/clients/hmcts/payments/index.php
 
+
     REFUND_API_URL: http://ccpay-refunds-api-pr-169.service.core-compute-preview.internal/
 
   keyVaults:
     "ccpay":
       resourceGroup: ccpay
       secrets:
-        - ccpay-payment-status-connection-string
         - gov-pay-keys-cmc
         - launch-darkly-sdk-key
         - payment-s2s-secret
-        - sb-primary-connection-string
         - pci-pal-antenna-tenant-name
         - pci-pal-antenna-user-name
         - pci-pal-antenna-client-id

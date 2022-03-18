@@ -74,8 +74,10 @@ public class ServiceRequestPaymentFunctionalTest {
         ServiceRequestPaymentDto paymentDto = ServiceRequestPaymentDto.paymentDtoWith()
             .accountNumber("PBAFUNC12345")
             .amount(BigDecimal.valueOf(100))
+            .organisationName("TestOrg")
             .currency("GBP")
             .customerReference("123456")
+            .idempotencyKey(randomUUID.toString())
             .build();
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
@@ -90,7 +92,7 @@ public class ServiceRequestPaymentFunctionalTest {
             }
             dsl.given().userToken(USER_TOKEN)
                 .s2sToken(SERVICE_TOKEN)
-                .when().createServiceRequestCreditAccountPayment(paymentDto,serviceRequestReference.toString(),randomUUID.toString())
+                .when().createServiceRequestCreditAccountPayment(paymentDto,serviceRequestReference.toString())
                 .then().gotCreated(ServiceRequestPaymentBo.class, paymentBo->{
                 assertThat(paymentBo.getPaymentReference()).isNotNull();
                 assertThat(paymentBo.getStatus()).isEqualToIgnoringCase("success");
