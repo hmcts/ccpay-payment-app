@@ -499,7 +499,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
     private List<RefundFeesDto> getRefundFees(List<PaymentFee> paymentFees) {
         return paymentFees.stream()
             .map(fee -> RefundFeesDto.refundFeesDtoWith()
-                .id(fee.getId())
+                .fee_id(fee.getId())
                 .code(fee.getCode())
                 .version(fee.getVersion())
                 .volume(fee.getVolume())
