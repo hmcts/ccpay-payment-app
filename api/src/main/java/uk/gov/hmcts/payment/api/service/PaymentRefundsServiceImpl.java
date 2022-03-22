@@ -90,9 +90,11 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         RefundRequestDto refundRequest = RefundRequestDto.refundRequestDtoWith()
             .paymentReference(paymentRefundRequest.getPaymentReference())
             .refundAmount(paymentRefundRequest.getRefundAmount())
+            .paymentAmount(payment.getAmount())
             .ccdCaseNumber(payment.getCcdCaseNumber())
             .refundReason(paymentRefundRequest.getRefundReason())
             .feeIds(getFeeIds(payment.getPaymentLink().getFees()))
+            .refundFees(getRefundFees(payment.getPaymentLink().getFees()))
             .contactDetails(paymentRefundRequest.getContactDetails())
             .serviceType(payment.getServiceType())
             .build();
@@ -164,9 +166,11 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                 RefundRequestDto refundRequest = RefundRequestDto.refundRequestDtoWith()
                     .paymentReference(payment.getReference()) //RC reference
                     .refundAmount(remissionAmount) //Refund amount
+                    .paymentAmount(payment.getAmount())
                     .ccdCaseNumber(payment.getCcdCaseNumber()) // ccd case number
                     .refundReason("RR036")//Refund reason category would be other
                     .feeIds(getFeeIds(Collections.singletonList(paymentFee)))
+                    .refundFees(getRefundFees(Collections.singletonList(paymentFee)))
                     .serviceType(payment.getServiceType())
                     .contactDetails(retrospectiveRemissionRequest.getContactDetails())
                     .build();
@@ -490,6 +494,18 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         headerMultiValueMap.put("ServiceAuthorization", Collections.singletonList(serviceAuthorisation));
         HttpHeaders httpHeaders = new HttpHeaders(headerMultiValueMap);
         return new HttpEntity<>(refundRequest, httpHeaders);
+    }
+
+    private List<RefundFeesDto> getRefundFees(List<PaymentFee> paymentFees) {
+        return paymentFees.stream()
+            .map(fee -> RefundFeesDto.refundFeesDtoWith()
+                .fee_id(fee.getId())
+                .code(fee.getCode())
+                .version(fee.getVersion())
+                .volume(fee.getVolume())
+                .refundAmount(fee.getAmountDue())
+                .build())
+            .collect(Collectors.toList());
     }
 
     private String getFeeIds(List<PaymentFee> paymentFees) {
