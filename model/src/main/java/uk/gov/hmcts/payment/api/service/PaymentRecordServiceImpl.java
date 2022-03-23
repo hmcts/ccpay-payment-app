@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.payment.api.model.*;
-import uk.gov.hmcts.payment.api.util.OrderCaseUtil;
+import uk.gov.hmcts.payment.api.util.ServiceRequestCaseUtil;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
@@ -33,7 +33,7 @@ public class PaymentRecordServiceImpl implements PaymentRecordService<PaymentFee
     private final UserIdSupplier userIdSupplier;
     private final ServiceIdSupplier serviceIdSupplier;
 
-    private final OrderCaseUtil orderCaseUtil;
+    private final ServiceRequestCaseUtil serviceRequestCaseUtil;
 
     @Autowired
     public PaymentRecordServiceImpl(PaymentFeeLinkRepository paymentFeeLinkRepository,
@@ -42,7 +42,7 @@ public class PaymentRecordServiceImpl implements PaymentRecordService<PaymentFee
                                     PaymentMethodRepository paymentMethodRepository,
                                     PaymentStatusRepository paymentStatusRepository,
                                     ReferenceUtil referenceUtil,
-                                    UserIdSupplier userIdSupplier, ServiceIdSupplier serviceIdSupplier, OrderCaseUtil orderCaseUtil) {
+                                    UserIdSupplier userIdSupplier, ServiceIdSupplier serviceIdSupplier, ServiceRequestCaseUtil serviceRequestCaseUtil) {
         this.paymentFeeLinkRepository = paymentFeeLinkRepository;
         this.paymentChannelRepository = paymentChannelRepository;
         this.paymentMethodRepository = paymentMethodRepository;
@@ -50,7 +50,7 @@ public class PaymentRecordServiceImpl implements PaymentRecordService<PaymentFee
         this.referenceUtil = referenceUtil;
         this.userIdSupplier = userIdSupplier;
         this.serviceIdSupplier = serviceIdSupplier;
-        this.orderCaseUtil = orderCaseUtil;
+        this.serviceRequestCaseUtil = serviceRequestCaseUtil;
     }
 
 
@@ -61,7 +61,7 @@ public class PaymentRecordServiceImpl implements PaymentRecordService<PaymentFee
         PaymentFeeLink paymentFeeLink = populatePaymentDetails(recordPayment, fees, paymentGroupReference);
         paymentFeeLink.getPayments().get(0).setPaymentLink(paymentFeeLink);
 
-        return  paymentFeeLinkRepository.save(orderCaseUtil.enhanceWithOrderCaseDetails(paymentFeeLink, recordPayment));
+        return  paymentFeeLinkRepository.save(serviceRequestCaseUtil.enhanceWithServiceRequestCaseDetails(paymentFeeLink, recordPayment));
     }
 
     private PaymentFeeLink populatePaymentDetails(Payment payment, List<PaymentFee> fees, String paymentGroupRef) throws CheckDigitException {

@@ -111,7 +111,14 @@ public class RemissionControllerTest {
             .withUserId(USER_ID)
             .withReturnUrl("https://www.moneyclaims.service.gov.uk");
 
-        when(referenceDataService.getOrganisationalDetail(any(), any())).thenReturn(organisationalServiceDto);
+        when(referenceDataService.getOrganisationalDetail(any(), any(), any())).thenReturn(organisationalServiceDto);
+
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA001")
+            .serviceDescription("DIVORCE")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any(),any())).thenReturn(organisationalServiceDto);
 
     }
 
@@ -817,7 +824,8 @@ public class RemissionControllerTest {
             .fee(getFee())
             .build();
 
-        when(referenceDataService.getOrganisationalDetail(any(), any())).thenThrow(new NoServiceFoundException("Test Error"));
+        when(referenceDataService.getOrganisationalDetail(any(),any(),any())).thenThrow(new NoServiceFoundException("Test Error"));
+
         restActions
             .post("/remissions", remission)
             .andExpect(status().isNotFound())
@@ -836,7 +844,8 @@ public class RemissionControllerTest {
             .fee(getFee())
             .build();
 
-        when(referenceDataService.getOrganisationalDetail(any(), any())).thenThrow(new GatewayTimeoutException("Test Error"));
+        when(referenceDataService.getOrganisationalDetail(any(),any(),any())).thenThrow(new GatewayTimeoutException("Test Error"));
+
         restActions
             .post("/remissions", remission)
             .andExpect(status().isGatewayTimeout())
