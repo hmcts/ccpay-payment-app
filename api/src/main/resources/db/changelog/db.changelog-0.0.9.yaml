@@ -376,7 +376,6 @@ databaseChangeLog:
             INSERT INTO site (site_id, name, sop_reference, service) VALUES ('Y491', 'LAMBETH COUNTY COURT', '10251423', 'COUNTY');
             INSERT INTO site (site_id, name, sop_reference, service) VALUES ('Y492', 'LANCASTER COUNTY COURT', '10256634', 'COUNTY');
             INSERT INTO site (site_id, name, sop_reference, service) VALUES ('T235', 'LANDS TRIBUNAL', '10251150', 'LANDS TRIBUNAL');
-            INSERT INTO site (site_id, name, sop_reference, service) VALUES ('Y264', 'LEEDS COMBINED COURT- COUNTY', '10257217', 'COUNTY');
             INSERT INTO site (site_id, name, sop_reference, service) VALUES ('W814', 'LEEDS COMBINED COURT- CROWN', '10257324', 'CROWN');
             INSERT INTO site (site_id, name, sop_reference, service) VALUES ('P214', 'LEEDS DPR', '10251546', 'PROBATE');
             INSERT INTO site (site_id, name, sop_reference, service) VALUES ('Y493', 'LEICESTER COUNTY COURT', '10255115', 'COUNTY');
