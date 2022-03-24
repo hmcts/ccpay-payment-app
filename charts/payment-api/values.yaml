@@ -94,7 +94,6 @@ java:
       secrets:
         - api-POSTGRES-PASS
         - sb-primary-connection-string
-        - sb-cpo-primary-connection-string
         - ccpay-payment-status-connection-string
         - pci-pal-account-id-cmc
         - pci-pal-account-id-probate

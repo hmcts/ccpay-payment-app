@@ -113,7 +113,7 @@ public class UserAwareDelegatingCardPaymentLinkServiceTest {
         when(govPayAuthUtil.getServiceName(null, serviceName)).thenReturn(serviceName);
         String reference = referenceUtil.getNext("RC");
 
-        when(paymentFeeLinkRepository.findByPaymentReference("1")).thenReturn(Optional.of(PaymentFeeLink.paymentFeeLinkWith().id(1).paymentReference("payGroupRef")
+        when(paymentFeeLinkRepository.findByPaymentReference("1")).thenReturn(Optional.of(PaymentFeeLink.paymentFeeLinkWith().id(1).enterpriseServiceName("test service").paymentReference("payGroupRef")
             .payments(Arrays.asList(Payment.paymentWith().id(1)
                 .externalReference("govPayId")
                 .serviceType(serviceName)

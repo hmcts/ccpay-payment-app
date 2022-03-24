@@ -187,6 +187,7 @@ public class PaymentGroupDtoMapper {
             .amountDue(fee.getAmountDue())
             .overPayment(setOverpayment(fee))
             .remissionEnable(toRemissionEnable(fee))
+            .netAmount(fee.getNetAmount())
             .build();
     }
 

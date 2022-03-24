@@ -48,6 +48,7 @@ public class ServiceRequestPaymentDomainDataEntityMapper {
             .paymentMethod(paymentMethodRepository.findByNameOrThrow(PAYMENT_METHOD_BY_ACCOUNT))
             .paymentStatus(paymentStatusRepository.findByNameOrThrow(paymentBo.getStatus()))
             .reference(paymentBo.getPaymentReference())
+            .organisationName(paymentBo.getOrganisationName())
             .status(paymentBo.getStatus())
             .amount(paymentBo.getAmount())
             .pbaNumber(paymentBo.getAccountNumber())

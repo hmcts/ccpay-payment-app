@@ -32,6 +32,7 @@ import static uk.gov.hmcts.payment.functional.service.RefDataTestService.readFil
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
 @ActiveProfiles({"functional-tests", "liberataMock"})
+@Ignore("As all the tests are Ignored,Switching these tests off....")
 public class PBAAccountsFunctionalTest {
 
     @Autowired

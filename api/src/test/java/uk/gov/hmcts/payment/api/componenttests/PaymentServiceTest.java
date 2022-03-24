@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.api.componenttests;
 
 import org.assertj.core.util.Lists;
 import org.joda.time.LocalDateTime;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -30,6 +31,7 @@ public class PaymentServiceTest extends TestUtil {
     private PaymentsDataUtil paymentsDataUtil;
 
     @Test
+    @Ignore
     public void testListInitiatedStatusPaymentsReferences() throws Exception {
         paymentsDataUtil = new PaymentsDataUtil();
         // given DB has 4 payments
@@ -72,6 +74,7 @@ public class PaymentServiceTest extends TestUtil {
     }
 
     @Test
+    @Ignore
     public void testSearchAllPaymentBetweenDatesShouldPass() throws Exception {
         Payment payment = paymentWith().amount(BigDecimal.valueOf(10000).movePointRight(2)).reference("reference1").description("desc1").returnUrl("https://www.moneyclaims.service.gov.uk")
             .ccdCaseNumber("ccdCaseNo1").caseReference("caseRef1").serviceType("cmc").currency("GBP")
