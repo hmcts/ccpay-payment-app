@@ -120,6 +120,12 @@
          </notes>
          <cve>CVE-2020-36518</cve>
      </suppress>
+    <suppress until="2022-06-30">
+         <notes>
+             Improper Restriction of XML External Entity Reference in GitHub repository liquibase/liquibase prior to 4.8.0.
+         </notes>
+         <cve>CVE-CVE-2022-26336</cve>
+     </suppress>
 
 
 </suppressions>
