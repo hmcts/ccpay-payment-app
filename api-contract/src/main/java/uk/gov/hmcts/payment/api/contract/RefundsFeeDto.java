@@ -38,13 +38,16 @@ public class RefundsFeeDto {
     @Positive
     private Integer volume;
 
+    @Positive
+    private Integer updatedVolume;
+
     @NotNull
     @Digits(integer = 10, fraction = 2, message = "Fee calculated amount cannot have more than 2 decimal places")
     private BigDecimal calculatedAmount;
 
     private BigDecimal apportionAmount;
 
-    private BigDecimal feeRefundAmount;
+    private BigDecimal refundAmount;
 
     private String memoLine;
 

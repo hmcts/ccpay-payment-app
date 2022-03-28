@@ -504,8 +504,8 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                 .fee_id(fee.getId())
                 .code(fee.getCode())
                 .version(fee.getVersion())
-                .volume(fee.getVolume())
-                .refundAmount(fee.getFeeRefundAmount())
+                .volume(fee.getUpdatedVolume())
+                .refundAmount(fee.getRefundAmount())
                 .build())
             .collect(Collectors.toList());
     }
