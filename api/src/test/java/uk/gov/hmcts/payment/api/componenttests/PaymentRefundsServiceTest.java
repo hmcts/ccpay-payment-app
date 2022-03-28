@@ -813,12 +813,16 @@ public class PaymentRefundsServiceTest {
             .ccdCaseNumber("1111222233334444")
             .feeId(50).build();
 
+        Payment mockPaymentSuccess1 = Payment.paymentWith().reference("RC-2222-3333-4444-5555")
+            .amount(BigDecimal.valueOf(40))
+            .build();
+
         List<RemissionDto> remissionDtoList = new ArrayList<>();
         remissionDtoList.add(remissionDto);
 
         PaymentDto paymentDto =  PaymentDto.payment2DtoWith()
             .paymentReference("RC-2222-3333-4444-5555")
-            .amount(BigDecimal.valueOf(100)).build();
+            .amount(BigDecimal.valueOf(10)).build();
 
         List<PaymentDto> paymentDtoList = new ArrayList<>();
         paymentDtoList.add(paymentDto);
@@ -862,7 +866,7 @@ public class PaymentRefundsServiceTest {
             new ResponseEntity<>(mockRefundListDtoResponse, HttpStatus.OK);
 
         when(authTokenGenerator.generate()).thenReturn("test-token");
-        when(paymentRepository.findByReference(anyString())).thenReturn(Optional.of(mockPaymentSuccess));
+        when(paymentRepository.findByReference(anyString())).thenReturn(Optional.of(mockPaymentSuccess1));
 
         when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
             eq(RefundListDtoResponse.class))).thenReturn(responseEntity);

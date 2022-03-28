@@ -208,29 +208,9 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
     public PaymentGroupResponse checkRefundAgainstRemission(MultiValueMap<String, String> headers,
                                                             PaymentGroupResponse paymentGroupResponse, String ccdCaseNumber) {
         //check roles
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        boolean containsPaymentsRefundRole = false;
-        boolean containsPaymentsRefundApproverRole = false;
 
-        Iterator<? extends GrantedAuthority> userRole =  authentication.getAuthorities().iterator();
-
-        while (userRole.hasNext()){
-
-            String nextUser = userRole.next().toString();
-
-            if(nextUser.equals("payments-refund")){
-                containsPaymentsRefundRole = true;
-                break;
-            }
-
-            if(nextUser.equals("payments-refund-approver")){
-                containsPaymentsRefundApproverRole = true;
-                break;
-            }
-        }
-
-        if(containsPaymentsRefundRole || containsPaymentsRefundApproverRole){
+        if(isContainsPaymentsRefundRole()){
 
             //get the RefundListDtoResponse by calling refunds app
             RefundListDtoResponse refundListDtoResponse = getRefundsFromRefundService(ccdCaseNumber, headers);
@@ -550,29 +530,9 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
     public PaymentGroupDto checkRefundAgainstRemissionFeeApportion(MultiValueMap<String, String> headers,
                                                                    PaymentGroupDto paymentGroupDto, String paymentReference) {
         //check roles
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        boolean containsPaymentsRefundRole = false;
-        boolean containsPaymentsRefundApproverRole = false;
 
-        Iterator<? extends GrantedAuthority> userRole =  authentication.getAuthorities().iterator();
-
-        while (userRole.hasNext()){
-
-            String nextUser = userRole.next().toString();
-
-            if(nextUser.equals("payments-refund")){
-                containsPaymentsRefundRole = true;
-                break;
-            }
-
-            if(nextUser.equals("payments-refund-approver")){
-                containsPaymentsRefundApproverRole = true;
-                break;
-            }
-        }
-
-        if(containsPaymentsRefundRole || containsPaymentsRefundApproverRole){
+        if(isContainsPaymentsRefundRole()){
 
             //get the RefundListDtoResponse by calling refunds app
             Payment payment = paymentRepository.findByReference(paymentReference).orElseThrow(PaymentNotFoundException::new);
@@ -598,11 +558,6 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             var lambdaContext = new Object() {
                 BigDecimal refundAmount = BigDecimal.ZERO;
             };
-
-
-
-
-
 
             paymentGroupDto.getPayments().forEach(paymentDto -> {
 
@@ -709,5 +664,29 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         }
 
         return paymentGroupDto;
+    }
+
+    public boolean isContainsPaymentsRefundRole (){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        boolean containsPaymentsRefundRole = false;
+
+        Iterator<? extends GrantedAuthority> userRole =  authentication.getAuthorities().iterator();
+
+        while (userRole.hasNext()){
+
+            String nextUser = userRole.next().toString();
+
+            if(nextUser.equals("payments-refund")){
+                containsPaymentsRefundRole = true;
+                break;
+            }
+
+            if(nextUser.equals("payments-refund-approver")){
+                containsPaymentsRefundRole = true;
+                break;
+            }
+        }
+        return containsPaymentsRefundRole;
     }
 }
