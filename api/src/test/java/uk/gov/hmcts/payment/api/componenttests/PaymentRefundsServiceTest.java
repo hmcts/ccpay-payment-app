@@ -888,7 +888,7 @@ public class PaymentRefundsServiceTest {
 
         PaymentDto paymentDto =  PaymentDto.payment2DtoWith()
             .paymentReference("RC-2222-3333-4444-5555")
-            .amount(BigDecimal.valueOf(100)).build();
+            .amount(BigDecimal.valueOf(50)).build();
 
         List<PaymentDto> paymentDtoList = new ArrayList<>();
         paymentDtoList.add(paymentDto);
