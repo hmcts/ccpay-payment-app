@@ -90,9 +90,11 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         RefundRequestDto refundRequest = RefundRequestDto.refundRequestDtoWith()
             .paymentReference(paymentRefundRequest.getPaymentReference())
             .refundAmount(paymentRefundRequest.getRefundAmount())
+            .paymentAmount(payment.getAmount())
             .ccdCaseNumber(payment.getCcdCaseNumber())
             .refundReason(paymentRefundRequest.getRefundReason())
             .feeIds(getFeeIds(payment.getPaymentLink().getFees()))
+            .refundFees(getRefundFees(payment.getPaymentLink().getFees()))
             .contactDetails(paymentRefundRequest.getContactDetails())
             .serviceType(payment.getServiceType())
             .build();
@@ -164,9 +166,11 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                 RefundRequestDto refundRequest = RefundRequestDto.refundRequestDtoWith()
                     .paymentReference(payment.getReference()) //RC reference
                     .refundAmount(remissionAmount) //Refund amount
+                    .paymentAmount(payment.getAmount())
                     .ccdCaseNumber(payment.getCcdCaseNumber()) // ccd case number
                     .refundReason("RR036")//Refund reason category would be other
                     .feeIds(getFeeIds(Collections.singletonList(paymentFee)))
+                    .refundFees(getRefundFees(Collections.singletonList(paymentFee)))
                     .serviceType(payment.getServiceType())
                     .contactDetails(retrospectiveRemissionRequest.getContactDetails())
                     .build();
@@ -499,6 +503,18 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         return new HttpEntity<>(refundRequest, httpHeaders);
     }
 
+    private List<RefundFeesDto> getRefundFees(List<PaymentFee> paymentFees) {
+        return paymentFees.stream()
+            .map(fee -> RefundFeesDto.refundFeesDtoWith()
+                .fee_id(fee.getId())
+                .code(fee.getCode())
+                .version(fee.getVersion())
+                .volume(fee.getVolume())
+                .refundAmount(fee.getAmountDue())
+                .build())
+            .collect(Collectors.toList());
+    }
+
     private String getFeeIds(List<PaymentFee> paymentFees) {
         return paymentFees.stream()
             .map(fee -> fee.getId().toString())
@@ -525,11 +541,11 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                         throw new InvalidPartialRefundRequestException("The quantity you want to refund is more than the available quantity");
 
                     if(paymentRefundRequest.getRefundAmount().compareTo(BigDecimal.valueOf((long) feeDto.getCalculatedAmount().intValue() *feeDto.getVolume()))!=0
-                        && paymentFee.getVolume()>1)
+                        && feeDto.getVolume()>1)
                         throw new InvalidPartialRefundRequestException("The Amount to Refund should be equal to the product of Fee Amount and quantity");
 
                     if(paymentRefundRequest.getRefundAmount().compareTo(feeDto.getApportionAmount())==0 && feeDto.getVolume()<paymentFee.getVolume()
-                        && paymentFee.getVolume()>1)
+                        && feeDto.getVolume()>1)
                         throw new InvalidPartialRefundRequestException("The quantity you want to refund should be maximum in case of full refund");
 
                 }

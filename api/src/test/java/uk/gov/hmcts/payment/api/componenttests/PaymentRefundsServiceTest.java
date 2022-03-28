@@ -523,18 +523,6 @@ public class PaymentRefundsServiceTest {
 
         validateRefundException(expectedMessage);
 
-        paymentRefundRequest.setRefundAmount(BigDecimal.valueOf(1300));
-
-        paymentRefundRequest.getFees().get(0).setVolume(1);
-
-        paymentRefundRequest.getFees().get(0).setCalculatedAmount(BigDecimal.valueOf(1300));
-
-        paymentRefundRequest.getFees().get(0).setApportionAmount(BigDecimal.valueOf(1300));
-
-        expectedMessage = "The quantity you want to refund should be maximum in case of full refund";
-
-        validateRefundException(expectedMessage);
-
         mockPaymentSuccess.getPaymentLink().getFees().get(0).setVolume(1);
 
         paymentRefundRequest.setRefundAmount(BigDecimal.valueOf(550));
