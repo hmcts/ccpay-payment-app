@@ -254,7 +254,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                 });
             });
 
-
+            if (refundListDtoResponse != null){
 
                 var lambdaContext = new Object() {
                     BigDecimal refundAmount = BigDecimal.ZERO;
@@ -285,87 +285,83 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
                         int remissionCount =  paymentGroup.getRemissions().size();
 
-                        if (refundListDtoResponse != null) {
+                        refundListDtoResponse.getRefundList().forEach(refundDto -> {
 
-                            refundListDtoResponse.getRefundList().forEach(refundDto -> {
+                            //Given a refund is already added against a remission
+                            //Then ADD REFUND option should not be available
 
-                                //Given a refund is already added against a remission
-                                //Then ADD REFUND option should not be available
+                            int refundCount = refundListDtoResponse.getRefundList().size();
 
-                                int refundCount = refundListDtoResponse.getRefundList().size();
+                            if (Arrays.stream(refundDto.getFeeIds().split(",")).anyMatch(remission.getFeeId().toString()::equals)
+                                && refundDto.getReason().equals("Retrospective remission")){
 
-                                if (Arrays.stream(refundDto.getFeeIds().split(",")).anyMatch(remission.getFeeId().toString()::equals)
-                                    && refundDto.getReason().equals("Retrospective remission")) {
+                                remission.setAddRefund(false);
 
-                                    remission.setAddRefund(false);
+                                paymentGroup.getPayments().forEach(paymentDto -> {
 
-                                    paymentGroup.getPayments().forEach(paymentDto -> {
+                                    if(remissionCount <= refundCount)
+                                        paymentDto.setIssueRefund(true);
 
-                                        if (remissionCount <= refundCount)
-                                            paymentDto.setIssueRefund(true);
-
-                                    });
-                                }
-                            });
-                        }
+                                });
+                            }
+                        });
                     });
 
                     paymentGroup.getPayments().forEach(paymentDto -> {
 
-                        if (refundListDtoResponse != null) {
+                        refundListDtoResponse.getRefundList().forEach(refundDto -> {
 
-                            refundListDtoResponse.getRefundList().forEach(refundDto -> {
+                            if(refundDto.getPaymentReference().equals(paymentDto.getPaymentReference())
+                                && (refundDto.getRefundStatus().getName().equals("Accepted") || refundDto.getRefundStatus().getName().equals("Approved")))
+                                lambdaContext.refundAmount = lambdaContext.refundAmount.add(refundDto.getAmount());
 
-                                if (refundDto.getPaymentReference().equals(paymentDto.getReference())
-                                    && (refundDto.getRefundStatus().getName().equals("Accepted") || refundDto.getRefundStatus().getName().equals("Approved")))
-                                    lambdaContext.refundAmount = lambdaContext.refundAmount.add(refundDto.getAmount());
+                            //When there is no available balance
+                            //Then ISSUE REFUND/ADD REMISSION/ADD REFUND option should not be available
 
-                                //When there is no available balance
-                                //Then ISSUE REFUND/ADD REMISSION/ADD REFUND option should not be available
+                            if(paymentDto.getAmount().subtract(lambdaContext.refundAmount).compareTo(BigDecimal.ZERO)>0) {
 
-                                if (paymentDto.getAmount().subtract(lambdaContext.refundAmount).compareTo(BigDecimal.ZERO) > 0) {
+                                paymentDto.setIssueRefundAddRefundAddRemission(true);
 
-                                    paymentDto.setIssueRefundAddRefundAddRemission(true);
+                                paymentGroup.getRemissions().forEach(remissionDto -> {
+                                    remissionDto.setIssueRefundAddRefundAddRemission(true);
+                                });
 
-                                    paymentGroup.getRemissions().forEach(remissionDto -> {
-                                        remissionDto.setIssueRefundAddRefundAddRemission(true);
-                                    });
+                                paymentGroup.getFees().forEach(feeDto -> {
+                                    feeDto.setIssueRefundAddRefundAddRemission(true);
+                                });
+                            }
 
-                                    paymentGroup.getFees().forEach(feeDto -> {
-                                        feeDto.setIssueRefundAddRefundAddRemission(true);
-                                    });
-                                } else {
+                            else{
 
-                                    paymentDto.setIssueRefundAddRefundAddRemission(false);
+                                paymentDto.setIssueRefundAddRefundAddRemission(false);
 
-                                    paymentGroup.getRemissions().forEach(remissionDto -> {
-                                        remissionDto.setIssueRefundAddRefundAddRemission(false);
-                                    });
+                                paymentGroup.getRemissions().forEach(remissionDto -> {
+                                    remissionDto.setIssueRefundAddRefundAddRemission(false);
+                                });
 
-                                    paymentGroup.getFees().forEach(feeDto -> {
-                                        feeDto.setIssueRefundAddRefundAddRemission(false);
-                                    });
+                                paymentGroup.getFees().forEach(feeDto -> {
+                                    feeDto.setIssueRefundAddRefundAddRemission(false);
+                                });
 
-                                    boolean issueRefundFlag = paymentDto.isIssueRefund();
+                                boolean issueRefundFlag = paymentDto.isIssueRefund();
 
-                                    paymentGroup.getRemissions().forEach(remissionDto -> {
+                                paymentGroup.getRemissions().forEach(remissionDto -> {
 
-                                        // If addRefund is false in all remissions then issueRefund should be false in case of no available balance
+                                    // If addRefund is false in all remissions then issueRefund should be false in case of no available balance
 
-                                        if (!remissionDto.isAddRefund())
-                                            paymentDto.setIssueRefund(false);
+                                    if(!remissionDto.isAddRefund())
+                                        paymentDto.setIssueRefund(false);
 
-                                        else
-                                            paymentDto.setIssueRefund(issueRefundFlag);
+                                    else
+                                        paymentDto.setIssueRefund(issueRefundFlag);
 
-                                    });
-                                }
+                                });
+                            }
 
-                            });
-                        }
+                        });
                     });
                 });
-
+            }
         }
 
         return paymentGroupResponse;
@@ -418,9 +414,6 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         headerMultiValueMap.put("ServiceAuthorization", Collections.singletonList(serviceAuthorisation));
 
         HttpHeaders httpHeaders = new HttpHeaders(headerMultiValueMap);
-        
-        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-
 
         httpHeaders.setContentType(MediaType.APPLICATION_JSON);
 
