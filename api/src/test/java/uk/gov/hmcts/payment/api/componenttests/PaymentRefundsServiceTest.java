@@ -799,8 +799,8 @@ public class PaymentRefundsServiceTest {
         paymentRefundsService.checkRefundAgainstRemission(header, paymentGroupResponse,"1111222233334444");
 
         assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
-        assertEquals(true, paymentGroupResponse.getPaymentGroups().get(0).getPayments().get(0).isIssueRefund());
-        assertEquals(false, paymentGroupResponse.getPaymentGroups().get(0).getRemissions().get(0).isAddRefund());
+        assertEquals(paymentGroupResponse.getPaymentGroups().get(0).getPayments().get(0).isIssueRefund(), false);
+        assertEquals(paymentGroupResponse.getPaymentGroups().get(0).getRemissions().get(0).isAddRefund(), false);
 
     }
 
