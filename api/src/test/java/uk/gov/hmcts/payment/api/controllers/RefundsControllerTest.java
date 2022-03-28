@@ -19,7 +19,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
-import uk.gov.hmcts.payment.api.contract.FeeDto;
+import uk.gov.hmcts.payment.api.contract.RefundsFeeDto;
 import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
 import uk.gov.hmcts.payment.api.dto.RefundResponse;
 import uk.gov.hmcts.payment.api.dto.ResubmitRefundRemissionRequest;
@@ -59,13 +59,13 @@ public class RefundsControllerTest {
     PaymentRefundRequest paymentRefundRequest = PaymentRefundRequest.refundRequestWith()
         .paymentReference("RC-1234-1234-1234-1234")
         .refundReason("RESN1")
-        .refundAmount(BigDecimal.valueOf(550))
+        .totalRefundAmount(BigDecimal.valueOf(550))
         .fees(
             Arrays.asList(
-                FeeDto.feeDtoWith()
+                RefundsFeeDto.refundFeeDtoWith()
                     .calculatedAmount(new BigDecimal("550.00"))
                     .apportionAmount(new BigDecimal("550.00"))
-                    .feeAmount(new BigDecimal("550.00"))
+                    .refundAmount(new BigDecimal("550.00"))
                     .code("FEE0333")
                     .volume(1)
                     .id(1)
@@ -73,7 +73,6 @@ public class RefundsControllerTest {
                     .naturalAccountCode("21245654433")
                     .version("1")
                     .volume(1)
-                    .reference("REF_123")
                     .build()
             ))
         .contactDetails(ContactDetails.contactDetailsWith().build())
