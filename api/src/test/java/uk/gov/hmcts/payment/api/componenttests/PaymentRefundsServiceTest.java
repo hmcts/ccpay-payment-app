@@ -807,7 +807,7 @@ public class PaymentRefundsServiceTest {
 
     @Test
     @WithMockUser(authorities = "payments-refund")
-    public void checkRefundAgainstRemissionTest1(){
+    public void checkRefundAgainstRemissionFeePayApprotionTest(){
 
         RemissionDto remissionDto = RemissionDto.remissionDtoWith()
             .ccdCaseNumber("1111222233334444")
@@ -877,8 +877,7 @@ public class PaymentRefundsServiceTest {
         paymentRefundsService.checkRefundAgainstRemissionFeeApportion(header, paymentGroupDto,"1111222233334444");
 
         assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
-        //assertEquals(paymentGroupDto.getPayments().get(0).isIssueRefund(), false);
-       // assertEquals(paymentGroupDto.getRemissions().get(0).isIssueRefundAddRefundAddRemission()), false);
+
 
     }
 
