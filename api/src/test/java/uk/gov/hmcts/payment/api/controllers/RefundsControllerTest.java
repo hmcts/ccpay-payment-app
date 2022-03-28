@@ -73,6 +73,7 @@ public class RefundsControllerTest {
                     .naturalAccountCode("21245654433")
                     .version("1")
                     .volume(1)
+                    .updatedVolume(1)
                     .build()
             ))
         .contactDetails(ContactDetails.contactDetailsWith().build())
