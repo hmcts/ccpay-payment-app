@@ -11,9 +11,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
@@ -24,6 +26,7 @@ import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentFeeRepository;
+import uk.gov.hmcts.payment.api.service.PaymentRefundsService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
@@ -46,6 +49,9 @@ public class FeePayApportionController {
     @Autowired
     private LaunchDarklyFeatureToggler featureToggler;
 
+    @Autowired
+    private PaymentRefundsService paymentRefundsService;
+
     private static final Logger LOG = LoggerFactory.getLogger(FeePayApportionController.class);
 
     @Autowired
@@ -63,7 +69,7 @@ public class FeePayApportionController {
         @ApiResponse(code = 404, message = "Payment not found")
     })
     @GetMapping(value = "/payment-groups/fee-pay-apportion/{paymentreference}")
-    public ResponseEntity<PaymentGroupDto> retrieveApportionDetails(@PathVariable("paymentreference") String paymentReference) {
+    public ResponseEntity<PaymentGroupDto> retrieveApportionDetails(@PathVariable("paymentreference") String paymentReference,@RequestHeader(required = false) MultiValueMap<String, String> headers) {
         LOG.info("Invoking new API in FeePayApportionController");
         PaymentFeeLink paymentFeeLink = paymentService.retrieve(paymentReference);
         boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
@@ -96,7 +102,9 @@ public class FeePayApportionController {
             }
 
         }
-        return new ResponseEntity<>(paymentGroupDtoMapper.toPaymentGroupDto(paymentFeeLink), HttpStatus.OK);
+        PaymentGroupDto paymentGroupDto  = paymentGroupDtoMapper.toPaymentGroupDto(paymentFeeLink);
+        paymentGroupDto = paymentRefundsService.checkRefundAgainstRemissionFeeApportion(headers, paymentGroupDto, paymentReference);
+        return new ResponseEntity<>(paymentGroupDto, HttpStatus.OK);
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)

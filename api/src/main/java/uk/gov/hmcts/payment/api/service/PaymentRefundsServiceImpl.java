@@ -545,4 +545,169 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             }
         }
     }
+
+    @Override
+    public PaymentGroupDto checkRefundAgainstRemissionFeeApportion(MultiValueMap<String, String> headers,
+                                                                   PaymentGroupDto paymentGroupDto, String paymentReference) {
+        //check roles
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        boolean containsPaymentsRefundRole = false;
+        boolean containsPaymentsRefundApproverRole = false;
+
+        Iterator<? extends GrantedAuthority> userRole =  authentication.getAuthorities().iterator();
+
+        while (userRole.hasNext()){
+
+            String nextUser = userRole.next().toString();
+
+            if(nextUser.equals("payments-refund")){
+                containsPaymentsRefundRole = true;
+                break;
+            }
+
+            if(nextUser.equals("payments-refund-approver")){
+                containsPaymentsRefundApproverRole = true;
+                break;
+            }
+        }
+
+        if(containsPaymentsRefundRole || containsPaymentsRefundApproverRole){
+
+            //get the RefundListDtoResponse by calling refunds app
+            Payment payment = paymentRepository.findByReference(paymentReference).orElseThrow(PaymentNotFoundException::new);
+
+            RefundListDtoResponse refundListDtoResponse = getRefundsFromRefundService(payment.getCcdCaseNumber(), headers);
+
+            LOG.info("refundListDtoResponse : {}", refundListDtoResponse);
+
+            paymentGroupDto.getPayments().forEach(paymentDto -> {
+                paymentDto.setIssueRefundAddRefundAddRemission(true);
+                paymentDto.setIssueRefund(true);
+
+                paymentGroupDto.getRemissions().forEach(remissionDto -> {
+                    remissionDto.setIssueRefundAddRefundAddRemission(true);
+                });
+
+                paymentGroupDto.getFees().forEach(feeDto -> {
+                    feeDto.setIssueRefundAddRefundAddRemission(true);
+                });
+
+            });
+
+            var lambdaContext = new Object() {
+                BigDecimal refundAmount = BigDecimal.ZERO;
+            };
+
+
+
+
+
+
+            paymentGroupDto.getPayments().forEach(paymentDto -> {
+
+                paymentDto.setIssueRefund(true);
+
+            });
+
+            paymentGroupDto.getRemissions().forEach(remission -> {
+
+                //Given a full/partial remission is added but subsequent refund not submitted
+                //Then only ADD REFUND needs to be enabled
+                //and ISSUE REFUND option should not be available
+
+                remission.setAddRefund(true);
+
+                paymentGroupDto.getPayments().forEach(paymentDto -> {
+
+                    paymentDto.setIssueRefund(false);
+
+                });
+
+                int remissionCount =  paymentGroupDto.getRemissions().size();
+
+                if (refundListDtoResponse != null) {
+
+                    refundListDtoResponse.getRefundList().forEach(refundDto -> {
+
+                        //Given a refund is already added against a remission
+                        //Then ADD REFUND option should not be available
+
+                        int refundCount = refundListDtoResponse.getRefundList().size();
+
+                        if (Arrays.stream(refundDto.getFeeIds().split(",")).anyMatch(remission.getFeeId().toString()::equals)
+                            && refundDto.getReason().equals("Retrospective remission")) {
+
+                            remission.setAddRefund(false);
+
+                            paymentGroupDto.getPayments().forEach(paymentDto -> {
+
+                                if (remissionCount <= refundCount)
+                                    paymentDto.setIssueRefund(true);
+
+                            });
+                        }
+                    });
+                }
+            });
+
+            paymentGroupDto.getPayments().forEach(paymentDto -> {
+
+                if (refundListDtoResponse != null) {
+
+                    refundListDtoResponse.getRefundList().forEach(refundDto -> {
+
+                        if (refundDto.getPaymentReference().equals(paymentDto.getReference())
+                            && (refundDto.getRefundStatus().getName().equals("Accepted") || refundDto.getRefundStatus().getName().equals("Approved")))
+                            lambdaContext.refundAmount = lambdaContext.refundAmount.add(refundDto.getAmount());
+
+                        //When there is no available balance
+                        //Then ISSUE REFUND/ADD REMISSION/ADD REFUND option should not be available
+
+                        if (paymentDto.getAmount().subtract(lambdaContext.refundAmount).compareTo(BigDecimal.ZERO) > 0) {
+
+                            paymentDto.setIssueRefundAddRefundAddRemission(true);
+
+                            paymentGroupDto.getRemissions().forEach(remissionDto -> {
+                                remissionDto.setIssueRefundAddRefundAddRemission(true);
+                            });
+
+                            paymentGroupDto.getFees().forEach(feeDto -> {
+                                feeDto.setIssueRefundAddRefundAddRemission(true);
+                            });
+                        } else {
+
+                            paymentDto.setIssueRefundAddRefundAddRemission(false);
+
+                            paymentGroupDto.getRemissions().forEach(remissionDto -> {
+                                remissionDto.setIssueRefundAddRefundAddRemission(false);
+                            });
+
+                            paymentGroupDto.getFees().forEach(feeDto -> {
+                                feeDto.setIssueRefundAddRefundAddRemission(false);
+                            });
+
+                            boolean issueRefundFlag = paymentDto.isIssueRefund();
+
+                            paymentGroupDto.getRemissions().forEach(remissionDto -> {
+
+                                // If addRefund is false in all remissions then issueRefund should be false in case of no available balance
+
+                                if (!remissionDto.isAddRefund())
+                                    paymentDto.setIssueRefund(false);
+
+                                else
+                                    paymentDto.setIssueRefund(issueRefundFlag);
+
+                            });
+                        }
+
+                    });
+                }
+            });
+
+        }
+
+        return paymentGroupDto;
+    }
 }
