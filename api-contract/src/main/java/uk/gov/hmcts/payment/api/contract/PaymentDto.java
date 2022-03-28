@@ -203,5 +203,10 @@ public class PaymentDto {
         return toCreditAccountPaymentCsv();
     }
 
-
+    @Override
+    public String toString() {
+        return
+            "Payment DTO -{ id='" + id + '\'' +
+                "paymentReference ='" + paymentReference + '\''+ "feesList ='" + fees.size() + '\'';
+    }
 }
