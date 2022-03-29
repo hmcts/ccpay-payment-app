@@ -54,6 +54,10 @@ public class PaymentGroupDtoMapper {
     @Autowired
     private FeePayApportionRepository feePayApportionRepository;
 
+
+   // @Autowired
+   // private PaymentRepository paymentRepository;
+
     public PaymentGroupDto toPaymentGroupDto(PaymentFeeLink paymentFeeLink) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         boolean containsPaymentRole = false;
@@ -219,7 +223,7 @@ public class PaymentGroupDtoMapper {
 
     public BigDecimal setOverpayment(PaymentFee fee) {
         BigDecimal overpayment = BigDecimal.ZERO;
-        Optional<FeePayApportion> feePayApportion = feePayApportionRepository.findByFeeId(fee.getId());
+        Optional<FeePayApportion> feePayApportion = feePayApportionRepository.findByFeeId(fee.getPaymentLink().getId());
         if (feePayApportion.isPresent() && feePayApportion.get() != null) {
             overpayment = feePayApportion.get().getCallSurplusAmount();
         }
