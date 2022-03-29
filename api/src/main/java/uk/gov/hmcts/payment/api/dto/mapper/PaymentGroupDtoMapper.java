@@ -33,6 +33,7 @@ import java.sql.Timestamp;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Component
@@ -53,6 +54,8 @@ public class PaymentGroupDtoMapper {
 
     @Autowired
     private FeePayApportionRepository feePayApportionRepository;
+
+
 
 
    // @Autowired
@@ -222,12 +225,15 @@ public class PaymentGroupDtoMapper {
     }
 
     public BigDecimal setOverpayment(PaymentFee fee) {
-        BigDecimal overpayment = BigDecimal.ZERO;
-        Optional<FeePayApportion> feePayApportion = feePayApportionRepository.findByFeeId(fee.getPaymentLink().getId());
-        if (feePayApportion.isPresent() && feePayApportion.get() != null) {
-            overpayment = feePayApportion.get().getCallSurplusAmount();
+         AtomicReference<BigDecimal> overpayment = new AtomicReference<>(BigDecimal.ZERO);
+        Optional<List<FeePayApportion>> feePayApportion = feePayApportionRepository.findByFeeIdList(fee.getId());
+        if (feePayApportion.isPresent() && !feePayApportion.isEmpty()) {
+            feePayApportion.get().stream()
+                .forEach(feePayApportion1 -> {
+                    overpayment.set(feePayApportion1.getCallSurplusAmount());
+                });
         }
-        return overpayment;
+        return overpayment.get();
     }
 
 
