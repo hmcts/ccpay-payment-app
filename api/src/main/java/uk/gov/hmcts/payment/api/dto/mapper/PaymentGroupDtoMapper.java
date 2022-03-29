@@ -218,16 +218,13 @@ public class PaymentGroupDtoMapper {
     }
 
     public BigDecimal setOverpayment(PaymentFee fee) {
-        final BigDecimal[] overpayment = {BigDecimal.ZERO};
-        Optional<List<FeePayApportion>> feePayApportionList = feePayApportionRepository.findByFeeIdList(fee.getId());
-        if (feePayApportionList.isPresent()) {
-            feePayApportionList.get().stream()
-                .forEach(feePayApportion -> {
-               overpayment[0] = feePayApportion.getCallSurplusAmount();
-           });
+        BigDecimal overpayment = BigDecimal.ZERO;
+        Optional<FeePayApportion> feePayApportion = feePayApportionRepository.findByFeeId(fee.getId());
+        if (feePayApportion.isPresent() && feePayApportion.get() != null) {
+            overpayment = feePayApportion.get().getCallSurplusAmount();
         }
-        return overpayment[0];
-       }
+        return overpayment;
+    }
 
 
 
