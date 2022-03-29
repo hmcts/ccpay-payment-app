@@ -75,6 +75,8 @@ public class PaymentRefundsServiceTest {
                         .naturalAccountCode("21245654433")
                         .version("1")
                         .volume(1)
+                        .refundAmount(new BigDecimal("550.00"))
+                        .updatedVolume(1)
 //                        .reference("REF_123")
                         .build()
                 ))
@@ -504,11 +506,16 @@ public class PaymentRefundsServiceTest {
 
         paymentRefundRequest.setTotalRefundAmount(BigDecimal.valueOf(600));
 
+        paymentRefundRequest.getFees().get(0).setRefundAmount(BigDecimal.valueOf(600));
+
         expectedMessage = "The amount you want to refund is more than the amount paid";
 
         validateRefundException(expectedMessage);
 
         paymentRefundRequest.setTotalRefundAmount(BigDecimal.valueOf(550));
+
+        paymentRefundRequest.getFees().get(0).setRefundAmount(BigDecimal.valueOf(550));
+
 
         paymentRefundRequest.getFees().get(0).setVolume(2);
 
@@ -520,6 +527,9 @@ public class PaymentRefundsServiceTest {
 
         paymentRefundRequest.setTotalRefundAmount(BigDecimal.valueOf(500));
 
+        paymentRefundRequest.getFees().get(0).setRefundAmount(BigDecimal.valueOf(500));
+
+
         expectedMessage = "The Amount to Refund should be equal to the product of Fee Amount and quantity";
 
         validateRefundException(expectedMessage);
@@ -527,6 +537,9 @@ public class PaymentRefundsServiceTest {
         mockPaymentSuccess.getPaymentLink().getFees().get(0).setVolume(1);
 
         paymentRefundRequest.setTotalRefundAmount(BigDecimal.valueOf(550));
+
+        paymentRefundRequest.getFees().get(0).setRefundAmount(BigDecimal.valueOf(550));
+
 
         paymentRefundRequest.getFees().get(0).setCalculatedAmount(BigDecimal.valueOf(550));
 
