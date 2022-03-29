@@ -547,17 +547,17 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                     if(feeDto.getVolume()==0)
                         throw new InvalidPartialRefundRequestException("You need to enter a valid number");
 
-                    if(paymentRefundRequest.getTotalRefundAmount().compareTo(feeDto.getApportionAmount())>0)
+                    if(feeDto.getRefundAmount().compareTo(feeDto.getApportionAmount())>0)
                         throw new InvalidPartialRefundRequestException("The amount you want to refund is more than the amount paid");
 
                     if(feeDto.getVolume()>paymentFee.getVolume())
                         throw new InvalidPartialRefundRequestException("The quantity you want to refund is more than the available quantity");
 
-                    if(paymentRefundRequest.getTotalRefundAmount().compareTo(BigDecimal.valueOf((long) feeDto.getCalculatedAmount().intValue() *feeDto.getVolume()))!=0
+                    if(feeDto.getRefundAmount().compareTo(BigDecimal.valueOf((long) feeDto.getCalculatedAmount().intValue() *feeDto.getVolume()))!=0
                         && feeDto.getVolume()>1)
                         throw new InvalidPartialRefundRequestException("The Amount to Refund should be equal to the product of Fee Amount and quantity");
 
-                    if(paymentRefundRequest.getTotalRefundAmount().compareTo(feeDto.getApportionAmount())==0 && feeDto.getVolume()<paymentFee.getVolume()
+                    if(feeDto.getRefundAmount().compareTo(feeDto.getApportionAmount())==0 && feeDto.getVolume()<paymentFee.getVolume()
                         && feeDto.getVolume()>1)
                         throw new InvalidPartialRefundRequestException("The quantity you want to refund should be maximum in case of full refund");
 
