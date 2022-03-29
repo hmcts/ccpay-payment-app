@@ -36,7 +36,7 @@ public class RefundsFeeDto {
     private String version;
 
     @Positive
-    private Integer volume;
+//    private Integer volume;
 
     @Positive
     private Integer updatedVolume;
@@ -49,25 +49,25 @@ public class RefundsFeeDto {
 
     private BigDecimal refundAmount;
 
-    private String memoLine;
-
-    private String naturalAccountCode;
-
-    private String jurisdiction1;
-
-    private String jurisdiction2;
-
-    private String description;
-
-    // The below 3 fields added as part of apportionment changes for Liberata
-
-    private String paymentGroupReference;
-
-    private BigDecimal apportionedPayment;
-
-    private Date dateReceiptProcessed;
-
-    private Boolean remissionEnable;
-
-    private boolean issueRefundAddRefundAddRemission;
+//    private String memoLine;
+//
+//    private String naturalAccountCode;
+//
+//    private String jurisdiction1;
+//
+//    private String jurisdiction2;
+//
+//    private String description;
+//
+//    // The below 3 fields added as part of apportionment changes for Liberata
+//
+//    private String paymentGroupReference;
+//
+//    private BigDecimal apportionedPayment;
+//
+//    private Date dateReceiptProcessed;
+//
+//    private Boolean remissionEnable;
+//
+//    private boolean issueRefundAddRefundAddRemission;
 }

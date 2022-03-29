@@ -69,12 +69,12 @@ public class PaymentRefundsServiceTest {
                         .apportionAmount(new BigDecimal("550.00"))
 //                        .feeAmount(new BigDecimal("550.00"))
                         .code("FEE0333")
-                        .volume(1)
+//                        .volume(1)
                         .id(1)
-                        .memoLine("Bar Cash")
-                        .naturalAccountCode("21245654433")
+//                        .memoLine("Bar Cash")
+//                        .naturalAccountCode("21245654433")
                         .version("1")
-                        .volume(1)
+//                        .volume(1)
                         .refundAmount(new BigDecimal("550.00"))
                         .updatedVolume(1)
 //                        .reference("REF_123")
@@ -496,13 +496,13 @@ public class PaymentRefundsServiceTest {
 
         paymentRefundRequest.setTotalRefundAmount(BigDecimal.valueOf(550));
 
-        paymentRefundRequest.getFees().get(0).setVolume(0);
+        paymentRefundRequest.getFees().get(0).setUpdatedVolume(0);
 
         expectedMessage = "You need to enter a valid number";
 
         validateRefundException(expectedMessage);
 
-        paymentRefundRequest.getFees().get(0).setVolume(1);
+        paymentRefundRequest.getFees().get(0).setUpdatedVolume(1);
 
         paymentRefundRequest.setTotalRefundAmount(BigDecimal.valueOf(600));
 
@@ -517,7 +517,7 @@ public class PaymentRefundsServiceTest {
         paymentRefundRequest.getFees().get(0).setRefundAmount(BigDecimal.valueOf(550));
 
 
-        paymentRefundRequest.getFees().get(0).setVolume(2);
+        paymentRefundRequest.getFees().get(0).setUpdatedVolume(2);
 
         expectedMessage = "The quantity you want to refund is more than the available quantity";
 
