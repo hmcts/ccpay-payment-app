@@ -13,5 +13,11 @@ public interface FeePayApportionRepository extends CrudRepository<FeePayApportio
 
     Optional<List<FeePayApportion>> findByPaymentId(Integer paymentId);
 
+    Optional<FeePayApportion> findByPaymentLinkId(Integer paymentId);
+
+    Optional<List<FeePayApportion>> findByFeeIdList(Integer feeId);
+
+
+
 
 }
