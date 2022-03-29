@@ -21,6 +21,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
+import uk.gov.hmcts.payment.api.contract.RefundsFeeDto;
 import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.exception.InvalidPartialRefundRequestException;
 import uk.gov.hmcts.payment.api.exception.InvalidRefundRequestException;
@@ -83,24 +84,25 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
         Payment payment = paymentRepository.findByReference(paymentRefundRequest.getPaymentReference()).orElseThrow(PaymentNotFoundException::new);
 
+
         validateRefund(paymentRefundRequest,payment.getPaymentLink().getFees());
 
         validateThePaymentBeforeInitiatingRefund(payment,headers);
 
         RefundRequestDto refundRequest = RefundRequestDto.refundRequestDtoWith()
             .paymentReference(paymentRefundRequest.getPaymentReference())
-            .refundAmount(paymentRefundRequest.getRefundAmount())
+            .refundAmount(paymentRefundRequest.getTotalRefundAmount())
             .paymentAmount(payment.getAmount())
             .ccdCaseNumber(payment.getCcdCaseNumber())
             .refundReason(paymentRefundRequest.getRefundReason())
-            .feeIds(getFeeIds(payment.getPaymentLink().getFees()))
-            .refundFees(getRefundFees(payment.getPaymentLink().getFees()))
+            .feeIds(getFeeIds(paymentRefundRequest.getFees()))
+            .refundFees(getRefundFees(paymentRefundRequest.getFees()))
             .contactDetails(paymentRefundRequest.getContactDetails())
             .serviceType(payment.getServiceType())
             .build();
 
         RefundResponse refundResponse = RefundResponse.RefundResponseWith()
-            .refundAmount(paymentRefundRequest.getRefundAmount())
+            .refundAmount(paymentRefundRequest.getTotalRefundAmount())
             .refundReference(postToRefundService(refundRequest, headers)).build();
 
         return new ResponseEntity<>(refundResponse, HttpStatus.CREATED);
@@ -169,8 +171,8 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                     .paymentAmount(payment.getAmount())
                     .ccdCaseNumber(payment.getCcdCaseNumber()) // ccd case number
                     .refundReason("RR036")//Refund reason category would be other
-                    .feeIds(getFeeIds(Collections.singletonList(paymentFee)))
-                    .refundFees(getRefundFees(Collections.singletonList(paymentFee)))
+                    .feeIds(getFeeIdsUsingPaymentFees(Collections.singletonList(paymentFee)))
+                    .refundFees(getRefundFeesUsingPaymentFee(Collections.singletonList(paymentFee)))
                     .serviceType(payment.getServiceType())
                     .contactDetails(retrospectiveRemissionRequest.getContactDetails())
                     .build();
@@ -476,19 +478,37 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         return new HttpEntity<>(refundRequest, httpHeaders);
     }
 
-    private List<RefundFeesDto> getRefundFees(List<PaymentFee> paymentFees) {
+    private List<RefundFeesDto> getRefundFees(List<RefundsFeeDto> refundFees) {
+        return refundFees.stream()
+            .map(fee -> RefundFeesDto.refundFeesDtoWith()
+                .fee_id(fee.getId())
+                .code(fee.getCode())
+                .version(fee.getVersion())
+                .volume(fee.getUpdatedVolume())
+                .refundAmount(fee.getRefundAmount())
+                .build())
+            .collect(Collectors.toList());
+    }
+
+    private List<RefundFeesDto> getRefundFeesUsingPaymentFee(List<PaymentFee> paymentFees) {
         return paymentFees.stream()
             .map(fee -> RefundFeesDto.refundFeesDtoWith()
                 .fee_id(fee.getId())
                 .code(fee.getCode())
                 .version(fee.getVersion())
                 .volume(fee.getVolume())
-                .refundAmount(fee.getAmountDue())
+                .refundAmount(fee.getNetAmount())
                 .build())
             .collect(Collectors.toList());
     }
 
-    private String getFeeIds(List<PaymentFee> paymentFees) {
+    private String getFeeIds(List<RefundsFeeDto> refundFees) {
+        return refundFees.stream()
+            .map(fee -> fee.getId().toString())
+            .collect(Collectors.joining(","));
+    }
+
+    private String getFeeIdsUsingPaymentFees(List<PaymentFee> paymentFees) {
         return paymentFees.stream()
             .map(fee -> fee.getId().toString())
             .collect(Collectors.joining(","));
@@ -496,29 +516,29 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
     private void validateRefund(PaymentRefundRequest paymentRefundRequest, List<PaymentFee> paymentFeeList) {
 
-        if(paymentRefundRequest.getRefundAmount().compareTo(BigDecimal.valueOf(0))==0)
+        if(paymentRefundRequest.getTotalRefundAmount().compareTo(BigDecimal.valueOf(0))==0)
             throw new InvalidPartialRefundRequestException("You need to enter a refund amount");
 
         for(PaymentFee paymentFee : paymentFeeList){
-            for (FeeDto feeDto : paymentRefundRequest.getFees()) {
+            for (RefundsFeeDto feeDto : paymentRefundRequest.getFees()) {
 
                 if (feeDto.getId().intValue() == paymentFee.getId().intValue()){
 
-                    if(feeDto.getVolume()==0)
+                    if(feeDto.getUpdatedVolume()==0)
                         throw new InvalidPartialRefundRequestException("You need to enter a valid number");
 
-                    if(paymentRefundRequest.getRefundAmount().compareTo(feeDto.getApportionAmount())>0)
+                    if(feeDto.getRefundAmount().compareTo(feeDto.getApportionAmount())>0)
                         throw new InvalidPartialRefundRequestException("The amount you want to refund is more than the amount paid");
 
-                    if(feeDto.getVolume()>paymentFee.getVolume())
+                    if(feeDto.getUpdatedVolume()>paymentFee.getVolume())
                         throw new InvalidPartialRefundRequestException("The quantity you want to refund is more than the available quantity");
 
-                    if(paymentRefundRequest.getRefundAmount().compareTo(BigDecimal.valueOf((long) feeDto.getCalculatedAmount().intValue() *feeDto.getVolume()))!=0
-                        && feeDto.getVolume()>1)
+                    if(feeDto.getRefundAmount().compareTo(BigDecimal.valueOf((long) feeDto.getCalculatedAmount().intValue() *feeDto.getUpdatedVolume()))!=0
+                        && feeDto.getUpdatedVolume()>1)
                         throw new InvalidPartialRefundRequestException("The Amount to Refund should be equal to the product of Fee Amount and quantity");
 
-                    if(paymentRefundRequest.getRefundAmount().compareTo(feeDto.getApportionAmount())==0 && feeDto.getVolume()<paymentFee.getVolume()
-                        && feeDto.getVolume()>1)
+                    if(feeDto.getRefundAmount().compareTo(feeDto.getApportionAmount())==0 && feeDto.getUpdatedVolume()<paymentFee.getVolume()
+                        && feeDto.getUpdatedVolume()>1)
                         throw new InvalidPartialRefundRequestException("The quantity you want to refund should be maximum in case of full refund");
 
                 }
