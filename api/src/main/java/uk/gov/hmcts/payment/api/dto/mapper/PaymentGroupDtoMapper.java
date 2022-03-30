@@ -192,7 +192,7 @@ public class PaymentGroupDtoMapper {
             .dateUpdated(fee.getDateUpdated())
             .dateApportioned(fee.getDateApportioned())
             .amountDue(fee.getAmountDue())
-            .overPayment(BigDecimal.ZERO)
+            .overPayment(setOverpayment(fee))
             .remissionEnable(toRemissionEnable(fee))
             .netAmount(fee.getNetAmount())
             .build();
@@ -224,10 +224,11 @@ public class PaymentGroupDtoMapper {
         return refundRemissionEnableService.returnRemissionEligible(fee);
     }
 
-   /* public BigDecimal setOverpayment(Integer paymentLinkId) {
+    public BigDecimal setOverpayment(PaymentFee paymentFee) {
+        paymentFee.getPaymentLink().getPayments().get(0).getId();
 
          AtomicReference<BigDecimal> overpayment = new AtomicReference<>(BigDecimal.ZERO);
-        Optional<List<FeePayApportion>> feePayApportion = feePayApportionRepository.findByPaymentLinkId(paymentLinkId);
+        Optional<List<FeePayApportion>> feePayApportion = feePayApportionRepository.findByPaymentId(paymentFee.getPaymentLink().getPayments().get(0).getId());
         if (feePayApportion.isPresent() && !feePayApportion.isEmpty()) {
             feePayApportion.get().stream()
                 .forEach(feePayApportion1 -> {
@@ -235,7 +236,7 @@ public class PaymentGroupDtoMapper {
                 });
         }
         return overpayment.get();
-    }*/
+    }
 
 
 
