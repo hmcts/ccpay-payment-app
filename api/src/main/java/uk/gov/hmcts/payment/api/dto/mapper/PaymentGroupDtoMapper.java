@@ -222,18 +222,17 @@ public class PaymentGroupDtoMapper {
     public BigDecimal setOverpayment(PaymentFee paymentFee) {
         AtomicReference<BigDecimal> overpayment = new AtomicReference<>(BigDecimal.ZERO);
 
-        if(!paymentFee.getPaymentLink().getPayments().isEmpty()) {
-            paymentFee.getPaymentLink().getPayments().get(0).getId();
             Optional<List<FeePayApportion>> feePayApportion = feePayApportionRepository.findByFeeId(paymentFee.getId());
             if (feePayApportion.isPresent() && !feePayApportion.isEmpty()) {
                 feePayApportion.get().stream()
                     .forEach(feePayApportion1 -> {
                         overpayment.set(feePayApportion1.getCallSurplusAmount());
                     });
-            }
+
         }
         return overpayment.get();
     }
+
 
 
 
