@@ -530,6 +530,7 @@ public class PaymentRefundsServiceTest {
 
         paymentRefundRequest.setTotalRefundAmount(BigDecimal.valueOf(5000));
 
+        paymentRefundRequest.getFees().get(0).setApportionAmount(BigDecimal.valueOf(5000));
         paymentRefundRequest.getFees().get(0).setRefundAmount(BigDecimal.valueOf(5000));
 
 
