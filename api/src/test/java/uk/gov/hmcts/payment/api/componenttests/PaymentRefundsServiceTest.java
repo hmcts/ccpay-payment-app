@@ -234,6 +234,7 @@ public class PaymentRefundsServiceTest {
             .hwfAmount(amount)
             .hwfReference("poiuytrewq")
             .build();
+        List<FeePayApportion> feePayApportionList = new ArrayList<>();
 
         FeePayApportion feePayApportion = FeePayApportion.feePayApportionWith()
             .apportionAmount(amount)
@@ -262,9 +263,10 @@ public class PaymentRefundsServiceTest {
             .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
             .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
             .build();
+        feePayApportionList.add(feePayApportion);
         Mockito.when(remissionRepository.findByRemissionReference(any())).thenReturn(Optional.ofNullable(remission));
 
-        Mockito.when(feePayApportionRepository.findByFeeId(any())).thenReturn(Optional.ofNullable(feePayApportion));
+        Mockito.when(feePayApportionRepository.findByFeeId(any())).thenReturn(Optional.ofNullable(feePayApportionList));
 
         Mockito.when(paymentRepository.findById(any())).thenReturn(Optional.ofNullable(payment));
         when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
