@@ -56,11 +56,6 @@ public class PaymentGroupDtoMapper {
     private FeePayApportionRepository feePayApportionRepository;
 
 
-
-
-   // @Autowired
-   // private PaymentRepository paymentRepository;
-
     public PaymentGroupDto toPaymentGroupDto(PaymentFeeLink paymentFeeLink) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         boolean containsPaymentRole = false;
@@ -192,7 +187,7 @@ public class PaymentGroupDtoMapper {
             .dateUpdated(fee.getDateUpdated())
             .dateApportioned(fee.getDateApportioned())
             .amountDue(fee.getAmountDue())
-            .overPayment(BigDecimal.ZERO)
+            .overPayment(setOverpayment(fee))
             .remissionEnable(toRemissionEnable(fee))
             .netAmount(fee.getNetAmount())
             .build();
@@ -224,11 +219,12 @@ public class PaymentGroupDtoMapper {
         return refundRemissionEnableService.returnRemissionEligible(fee);
     }
 
-   /* public BigDecimal setOverpayment(PaymentFee paymentFee) {
+    public BigDecimal setOverpayment(PaymentFee paymentFee) {
+        AtomicReference<BigDecimal> overpayment = new AtomicReference<>(BigDecimal.ZERO);
+
         if(!paymentFee.getPaymentLink().getPayments().isEmpty()) {
             paymentFee.getPaymentLink().getPayments().get(0).getId();
-            AtomicReference<BigDecimal> overpayment = new AtomicReference<>(BigDecimal.ZERO);
-            Optional<List<FeePayApportion>> feePayApportion = feePayApportionRepository.findByPaymentId(paymentFee.getPaymentLink().getPayments().get(0).getId());
+            Optional<List<FeePayApportion>> feePayApportion = feePayApportionRepository.findByFeeId(paymentFee.getId());
             if (feePayApportion.isPresent() && !feePayApportion.isEmpty()) {
                 feePayApportion.get().stream()
                     .forEach(feePayApportion1 -> {
@@ -237,7 +233,7 @@ public class PaymentGroupDtoMapper {
             }
         }
         return overpayment.get();
-    }*/
+    }
 
 
 
