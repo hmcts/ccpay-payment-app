@@ -155,11 +155,11 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             //remissionAmount
             paymentFee = remission.get().getFee();
             //need to validate if multipleApportionment scenario present for single feeId validation needed
-            Optional<FeePayApportion> feePayApportion = feePayApportionRepository.findByFeeId(paymentFee.getId());
+            Optional<List<FeePayApportion>> feePayApportion = feePayApportionRepository.findByFeeId(paymentFee.getId());
 
 
             if (feePayApportion.isPresent() && feePayApportion.get() != null) {
-                paymentId = feePayApportion.get().getPaymentId();
+                paymentId = feePayApportion.stream().findFirst().get().get(0).getPaymentId();
 
                 Payment payment = paymentRepository
                     .findById(paymentId).orElseThrow(() -> new PaymentNotFoundException("Payment not found for given apportionment"));
@@ -198,7 +198,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         //Payment not found exception
         Payment payment = paymentRepository.findByReference(paymentReference).orElseThrow(PaymentNotFoundException::new);
 
-            if (payment.getAmount().compareTo(request.getAmount()) < 0) {
+            if (payment.getAmount().compareTo(request.getAmount()) < 0 && !request.getRefundReason().contains("RR037")) {
                 throw new InvalidRefundRequestException("Refund amount should not be more than Payment amount");
             }
 
