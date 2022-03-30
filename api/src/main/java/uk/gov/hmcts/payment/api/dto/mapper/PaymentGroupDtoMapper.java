@@ -192,7 +192,7 @@ public class PaymentGroupDtoMapper {
             .dateUpdated(fee.getDateUpdated())
             .dateApportioned(fee.getDateApportioned())
             .amountDue(fee.getAmountDue())
-            .overPayment(setOverpayment(fee))
+            .overPayment(BigDecimal.ZERO)
             .remissionEnable(toRemissionEnable(fee))
             .netAmount(fee.getNetAmount())
             .build();
