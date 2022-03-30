@@ -12,6 +12,7 @@ import uk.gov.hmcts.payment.api.model.PaymentChannel;
 import uk.gov.hmcts.payment.api.model.PaymentMethod;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
@@ -29,9 +30,13 @@ public class RefundRequestDto {
 
     private BigDecimal refundAmount;
 
+    private BigDecimal paymentAmount;
+
     private String ccdCaseNumber;
 
     private String feeIds;
+
+    private List<RefundFeesDto> refundFees;
 
     private String serviceType;
 

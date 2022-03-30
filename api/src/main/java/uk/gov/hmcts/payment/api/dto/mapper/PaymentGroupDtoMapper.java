@@ -181,6 +181,7 @@ public class PaymentGroupDtoMapper {
             .dateApportioned(fee.getDateApportioned())
             .amountDue(fee.getAmountDue())
             .remissionEnable(toRemissionEnable(fee))
+            .netAmount(fee.getNetAmount())
             .build();
     }
 

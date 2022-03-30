@@ -26,6 +26,7 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.contract.RefundsFeeDto;
 import uk.gov.hmcts.payment.api.dto.InternalRefundResponse;
 import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
 import uk.gov.hmcts.payment.api.dto.RefundResponse;
@@ -60,21 +61,23 @@ public class PaymentRefundsServiceTest {
     PaymentRefundRequest paymentRefundRequest = PaymentRefundRequest.refundRequestWith()
         .paymentReference("RC-1234-1234-1234-1234")
         .refundReason("RESN1")
-        .refundAmount(BigDecimal.valueOf(550))
+        .totalRefundAmount(BigDecimal.valueOf(550))
         .fees(
             Arrays.asList(
-                    FeeDto.feeDtoWith()
+                    RefundsFeeDto.refundFeeDtoWith()
                         .calculatedAmount(new BigDecimal("550.00"))
                         .apportionAmount(new BigDecimal("550.00"))
-                        .feeAmount(new BigDecimal("550.00"))
+//                        .feeAmount(new BigDecimal("550.00"))
                         .code("FEE0333")
-                        .volume(1)
+//                        .volume(1)
                         .id(1)
-                        .memoLine("Bar Cash")
-                        .naturalAccountCode("21245654433")
+//                        .memoLine("Bar Cash")
+//                        .naturalAccountCode("21245654433")
                         .version("1")
-                        .volume(1)
-                        .reference("REF_123")
+//                        .volume(1)
+                        .refundAmount(new BigDecimal("550.00"))
+                        .updatedVolume(1)
+//                        .reference("REF_123")
                         .build()
                 ))
         .contactDetails(ContactDetails.contactDetailsWith().notificationType(Notification.EMAIL.getNotification())
@@ -485,31 +488,36 @@ public class PaymentRefundsServiceTest {
 
         String expectedMessage;
 
-        paymentRefundRequest.setRefundAmount(BigDecimal.valueOf(0));
+        paymentRefundRequest.setTotalRefundAmount(BigDecimal.valueOf(0));
 
         expectedMessage = "You need to enter a refund amount";
 
         validateRefundException(expectedMessage);
 
-        paymentRefundRequest.setRefundAmount(BigDecimal.valueOf(550));
+        paymentRefundRequest.setTotalRefundAmount(BigDecimal.valueOf(550));
 
-        paymentRefundRequest.getFees().get(0).setVolume(0);
+        paymentRefundRequest.getFees().get(0).setUpdatedVolume(0);
 
         expectedMessage = "You need to enter a valid number";
 
         validateRefundException(expectedMessage);
 
-        paymentRefundRequest.getFees().get(0).setVolume(1);
+        paymentRefundRequest.getFees().get(0).setUpdatedVolume(1);
 
-        paymentRefundRequest.setRefundAmount(BigDecimal.valueOf(600));
+        paymentRefundRequest.setTotalRefundAmount(BigDecimal.valueOf(600));
+
+        paymentRefundRequest.getFees().get(0).setRefundAmount(BigDecimal.valueOf(600));
 
         expectedMessage = "The amount you want to refund is more than the amount paid";
 
         validateRefundException(expectedMessage);
 
-        paymentRefundRequest.setRefundAmount(BigDecimal.valueOf(550));
+        paymentRefundRequest.setTotalRefundAmount(BigDecimal.valueOf(550));
 
-        paymentRefundRequest.getFees().get(0).setVolume(2);
+        paymentRefundRequest.getFees().get(0).setRefundAmount(BigDecimal.valueOf(550));
+
+
+        paymentRefundRequest.getFees().get(0).setUpdatedVolume(2);
 
         expectedMessage = "The quantity you want to refund is more than the available quantity";
 
@@ -517,27 +525,21 @@ public class PaymentRefundsServiceTest {
 
         mockPaymentSuccess.getPaymentLink().getFees().get(0).setVolume(2);
 
-        paymentRefundRequest.setRefundAmount(BigDecimal.valueOf(500));
+        paymentRefundRequest.setTotalRefundAmount(BigDecimal.valueOf(500));
+
+        paymentRefundRequest.getFees().get(0).setRefundAmount(BigDecimal.valueOf(500));
+
 
         expectedMessage = "The Amount to Refund should be equal to the product of Fee Amount and quantity";
 
         validateRefundException(expectedMessage);
 
-        paymentRefundRequest.setRefundAmount(BigDecimal.valueOf(1300));
-
-        paymentRefundRequest.getFees().get(0).setVolume(1);
-
-        paymentRefundRequest.getFees().get(0).setCalculatedAmount(BigDecimal.valueOf(1300));
-
-        paymentRefundRequest.getFees().get(0).setApportionAmount(BigDecimal.valueOf(1300));
-
-        expectedMessage = "The quantity you want to refund should be maximum in case of full refund";
-
-        validateRefundException(expectedMessage);
-
         mockPaymentSuccess.getPaymentLink().getFees().get(0).setVolume(1);
 
-        paymentRefundRequest.setRefundAmount(BigDecimal.valueOf(550));
+        paymentRefundRequest.setTotalRefundAmount(BigDecimal.valueOf(550));
+
+        paymentRefundRequest.getFees().get(0).setRefundAmount(BigDecimal.valueOf(550));
+
 
         paymentRefundRequest.getFees().get(0).setCalculatedAmount(BigDecimal.valueOf(550));
 
@@ -815,5 +817,83 @@ public class PaymentRefundsServiceTest {
         assertEquals(paymentGroupResponse.getPaymentGroups().get(0).getRemissions().get(0).isAddRefund(), false);
 
     }
+
+
+    @Test
+    @WithMockUser(authorities = "payments-refund")
+    public void checkRefundAgainstRemissionFeePayApprotionTest(){
+
+        RemissionDto remissionDto = RemissionDto.remissionDtoWith()
+            .ccdCaseNumber("1111222233334444")
+            .feeId(50).build();
+
+
+        List<RemissionDto> remissionDtoList = new ArrayList<>();
+        remissionDtoList.add(remissionDto);
+
+        PaymentDto paymentDto =  PaymentDto.payment2DtoWith()
+            .paymentReference("RC-2222-3333-4444-5555")
+            .reference("RC-2222-3333-4444-5555")
+
+            .amount(BigDecimal.valueOf(100)).build();
+
+        List<PaymentDto> paymentDtoList = new ArrayList<>();
+        paymentDtoList.add(paymentDto);
+
+        FeeDto feeDto = FeeDto.feeDtoWith().build();
+
+        List<FeeDto> feeDtoList = new ArrayList<>();
+        feeDtoList.add(feeDto);
+
+        PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
+            .remissions(remissionDtoList)
+            .payments(paymentDtoList)
+            .fees(feeDtoList).build();
+
+
+
+        RefundDto refundDto = RefundDto.buildRefundListDtoWith()
+            .refundReference("RF-1111-2222-3333-4444")
+            .paymentReference("RC-2222-3333-4444-5555")
+            .feeIds("50")
+            .refundStatus(RefundStatus.buildRefundStatusWith().name("Accepted").build())
+            .reason("Retrospective remission")
+            .amount(BigDecimal.valueOf(50)).build();
+
+        RefundDto refundDto2 = RefundDto.buildRefundListDtoWith()
+            .refundReference("RF-1111-2222-3333-4444")
+            .paymentReference("RC-2222-3333-4444-5555")
+            .feeIds("50")
+            .refundStatus(RefundStatus.buildRefundStatusWith().name("Accepted").build())
+            .reason("Retrospective remission")
+            .amount(BigDecimal.valueOf(1000)).build();
+
+        List<RefundDto> refundDtoList = new ArrayList<>();
+        refundDtoList.add(refundDto);
+        refundDtoList.add(refundDto2);
+
+        RefundListDtoResponse mockRefundListDtoResponse = RefundListDtoResponse.buildRefundListWith()
+            .refundList(refundDtoList).build();
+
+        ResponseEntity<RefundListDtoResponse> responseEntity =
+            new ResponseEntity<>(mockRefundListDtoResponse, HttpStatus.OK);
+
+        when(authTokenGenerator.generate()).thenReturn("test-token");
+
+        Payment mockPaymentSuccess1 = Payment.paymentWith().reference("RC-2222-3333-4444-5555")
+            .amount(BigDecimal.valueOf(40))
+            .build();
+        when(paymentRepository.findByReference(anyString())).thenReturn(Optional.of(mockPaymentSuccess1));
+
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+            eq(RefundListDtoResponse.class))).thenReturn(responseEntity);
+
+        paymentRefundsService.checkRefundAgainstRemissionFeeApportion(header, paymentGroupDto,"1111222233334444");
+
+        assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
+
+
+    }
+
 
 }
