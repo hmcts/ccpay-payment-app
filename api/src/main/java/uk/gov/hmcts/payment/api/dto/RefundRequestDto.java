@@ -42,7 +42,7 @@ public class RefundRequestDto {
 
     private ContactDetails contactDetails;
 
-    private PaymentChannel paymentChannel;
+    private String paymentChannel;
 
-    private PaymentMethod paymentMethod;
+    private String paymentMethod;
 }
