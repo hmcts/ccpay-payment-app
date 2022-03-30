@@ -224,7 +224,7 @@ public class PaymentGroupDtoMapper {
         return refundRemissionEnableService.returnRemissionEligible(fee);
     }
 
-    public BigDecimal setOverpayment(PaymentFee paymentFee) {
+   /* public BigDecimal setOverpayment(PaymentFee paymentFee) {
         if(!paymentFee.getPaymentLink().getPayments().isEmpty()) {
             paymentFee.getPaymentLink().getPayments().get(0).getId();
             AtomicReference<BigDecimal> overpayment = new AtomicReference<>(BigDecimal.ZERO);
@@ -237,7 +237,7 @@ public class PaymentGroupDtoMapper {
             }
         }
         return overpayment.get();
-    }
+    }*/
 
 
 
