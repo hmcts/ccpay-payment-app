@@ -8,7 +8,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import uk.gov.hmcts.payment.api.contract.FeeDto;
+import uk.gov.hmcts.payment.api.contract.RefundsFeeDto;
 import uk.gov.hmcts.payment.api.model.ContactDetails;
 
 import javax.validation.Valid;
@@ -40,11 +40,11 @@ public class PaymentRefundRequest {
 
     @Digits(integer = 10, fraction = 2, message = "Please check the amount you want to refund")
     @NotNull(message = "You need to enter a refund amount")
-    private BigDecimal refundAmount;
+    private BigDecimal totalRefundAmount;
 
     @NotEmpty
     @Valid
-    private List<FeeDto>  fees;
+    private List<RefundsFeeDto>  fees;
 
     @NotNull(message = "Contact Details cannot be null")
     private ContactDetails contactDetails;

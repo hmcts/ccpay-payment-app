@@ -26,6 +26,7 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.contract.RefundsFeeDto;
 import uk.gov.hmcts.payment.api.dto.InternalRefundResponse;
 import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
 import uk.gov.hmcts.payment.api.dto.RefundResponse;
@@ -60,21 +61,23 @@ public class PaymentRefundsServiceTest {
     PaymentRefundRequest paymentRefundRequest = PaymentRefundRequest.refundRequestWith()
         .paymentReference("RC-1234-1234-1234-1234")
         .refundReason("RESN1")
-        .refundAmount(BigDecimal.valueOf(550))
+        .totalRefundAmount(BigDecimal.valueOf(550))
         .fees(
             Arrays.asList(
-                    FeeDto.feeDtoWith()
+                    RefundsFeeDto.refundFeeDtoWith()
                         .calculatedAmount(new BigDecimal("550.00"))
                         .apportionAmount(new BigDecimal("550.00"))
-                        .feeAmount(new BigDecimal("550.00"))
+//                        .feeAmount(new BigDecimal("550.00"))
                         .code("FEE0333")
-                        .volume(1)
+//                        .volume(1)
                         .id(1)
-                        .memoLine("Bar Cash")
-                        .naturalAccountCode("21245654433")
+//                        .memoLine("Bar Cash")
+//                        .naturalAccountCode("21245654433")
                         .version("1")
-                        .volume(1)
-                        .reference("REF_123")
+//                        .volume(1)
+                        .refundAmount(new BigDecimal("550.00"))
+                        .updatedVolume(1)
+//                        .reference("REF_123")
                         .build()
                 ))
         .contactDetails(ContactDetails.contactDetailsWith().notificationType(Notification.EMAIL.getNotification())
@@ -85,7 +88,7 @@ public class PaymentRefundsServiceTest {
         .id(1)
         .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
         .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
-        .paymentLink(PaymentFeeLink.paymentFeeLinkWith().fees(Arrays.asList(PaymentFee.feeWith().id(1).volume(1).build())).build())
+        .paymentLink(PaymentFeeLink.paymentFeeLinkWith().fees(Arrays.asList(PaymentFee.feeWith().id(1).feeAmount(new BigDecimal(550)).volume(1).build())).build())
         .build();
     RetrospectiveRemissionRequest retrospectiveRemissionRequest =
         RetrospectiveRemissionRequest.retrospectiveRemissionRequestWith()
@@ -157,7 +160,7 @@ public class PaymentRefundsServiceTest {
             .id(1)
             .paymentStatus(PaymentStatus.paymentStatusWith().name("failed").build())
             .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
-            .paymentLink(PaymentFeeLink.paymentFeeLinkWith().fees(Arrays.asList(PaymentFee.feeWith().id(1).volume(1).build())).build())
+            .paymentLink(PaymentFeeLink.paymentFeeLinkWith().fees(Arrays.asList(PaymentFee.feeWith().id(1).volume(1).feeAmount(new BigDecimal(100)).build())).build())
             .build();
 
         Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentFailed));
@@ -485,31 +488,36 @@ public class PaymentRefundsServiceTest {
 
         String expectedMessage;
 
-        paymentRefundRequest.setRefundAmount(BigDecimal.valueOf(0));
+        paymentRefundRequest.setTotalRefundAmount(BigDecimal.valueOf(0));
 
         expectedMessage = "You need to enter a refund amount";
 
         validateRefundException(expectedMessage);
 
-        paymentRefundRequest.setRefundAmount(BigDecimal.valueOf(550));
+        paymentRefundRequest.setTotalRefundAmount(BigDecimal.valueOf(550));
 
-        paymentRefundRequest.getFees().get(0).setVolume(0);
+        paymentRefundRequest.getFees().get(0).setUpdatedVolume(0);
 
         expectedMessage = "You need to enter a valid number";
 
         validateRefundException(expectedMessage);
 
-        paymentRefundRequest.getFees().get(0).setVolume(1);
+        paymentRefundRequest.getFees().get(0).setUpdatedVolume(1);
 
-        paymentRefundRequest.setRefundAmount(BigDecimal.valueOf(600));
+        paymentRefundRequest.setTotalRefundAmount(BigDecimal.valueOf(600));
+
+        paymentRefundRequest.getFees().get(0).setRefundAmount(BigDecimal.valueOf(600));
 
         expectedMessage = "The amount you want to refund is more than the amount paid";
 
         validateRefundException(expectedMessage);
 
-        paymentRefundRequest.setRefundAmount(BigDecimal.valueOf(550));
+        paymentRefundRequest.setTotalRefundAmount(BigDecimal.valueOf(550));
 
-        paymentRefundRequest.getFees().get(0).setVolume(2);
+        paymentRefundRequest.getFees().get(0).setRefundAmount(BigDecimal.valueOf(550));
+
+
+        paymentRefundRequest.getFees().get(0).setUpdatedVolume(2);
 
         expectedMessage = "The quantity you want to refund is more than the available quantity";
 
@@ -517,7 +525,10 @@ public class PaymentRefundsServiceTest {
 
         mockPaymentSuccess.getPaymentLink().getFees().get(0).setVolume(2);
 
-        paymentRefundRequest.setRefundAmount(BigDecimal.valueOf(500));
+        paymentRefundRequest.setTotalRefundAmount(BigDecimal.valueOf(500));
+
+        paymentRefundRequest.getFees().get(0).setRefundAmount(BigDecimal.valueOf(500));
+
 
         expectedMessage = "The Amount to Refund should be equal to the product of Fee Amount and quantity";
 
@@ -525,7 +536,10 @@ public class PaymentRefundsServiceTest {
 
         mockPaymentSuccess.getPaymentLink().getFees().get(0).setVolume(1);
 
-        paymentRefundRequest.setRefundAmount(BigDecimal.valueOf(550));
+        paymentRefundRequest.setTotalRefundAmount(BigDecimal.valueOf(550));
+
+        paymentRefundRequest.getFees().get(0).setRefundAmount(BigDecimal.valueOf(550));
+
 
         paymentRefundRequest.getFees().get(0).setCalculatedAmount(BigDecimal.valueOf(550));
 
