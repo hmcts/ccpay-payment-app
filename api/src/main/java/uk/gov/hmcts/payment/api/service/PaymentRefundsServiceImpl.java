@@ -98,8 +98,8 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             .refundFees(getRefundFees(paymentRefundRequest.getFees()))
             .contactDetails(paymentRefundRequest.getContactDetails())
             .serviceType(payment.getServiceType())
-            .paymentChannel(payment.getPaymentChannel())
-            .paymentMethod(payment.getPaymentMethod())
+            .paymentChannel(payment.getPaymentChannel().toString())
+            .paymentMethod(payment.getPaymentMethod().toString())
             .build();
 
         RefundResponse refundResponse = RefundResponse.RefundResponseWith()
@@ -176,8 +176,8 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                     .refundFees(getRefundFeesUsingPaymentFee(Collections.singletonList(paymentFee)))
                     .serviceType(payment.getServiceType())
                     .contactDetails(retrospectiveRemissionRequest.getContactDetails())
-                    .paymentChannel(payment.getPaymentChannel())
-                    .paymentMethod(payment.getPaymentMethod())
+                    .paymentChannel(payment.getPaymentChannel().toString())
+                    .paymentMethod(payment.getPaymentMethod().toString())
                     .build();
                 RefundResponse refundResponse = RefundResponse.RefundResponseWith()
                     .refundAmount(remissionAmount)
