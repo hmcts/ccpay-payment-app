@@ -160,7 +160,7 @@ public class PaymentRefundsServiceTest {
             .id(1)
             .paymentStatus(PaymentStatus.paymentStatusWith().name("failed").build())
             .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
-            .paymentLink(PaymentFeeLink.paymentFeeLinkWith().fees(Arrays.asList(PaymentFee.feeWith().id(1).volume(1).build())).build())
+            .paymentLink(PaymentFeeLink.paymentFeeLinkWith().fees(Arrays.asList(PaymentFee.feeWith().id(1).volume(1).feeAmount(new BigDecimal(100)).build())).build())
             .build();
 
         Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentFailed));
