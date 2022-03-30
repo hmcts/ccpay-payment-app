@@ -537,8 +537,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                     if(feeDto.getUpdatedVolume()>paymentFee.getVolume())
                         throw new InvalidPartialRefundRequestException("The quantity you want to refund is more than the available quantity");
 
-                    if(feeDto.getRefundAmount().compareTo(BigDecimal.valueOf((long) paymentFee.getFeeAmount().intValue() *feeDto.getUpdatedVolume()))!=0
-                        && feeDto.getUpdatedVolume()>1)
+                    if(feeDto.getRefundAmount().compareTo(BigDecimal.valueOf((long) paymentFee.getFeeAmount().intValue() *feeDto.getUpdatedVolume()))>0)
                         throw new InvalidPartialRefundRequestException("The Amount to Refund should be equal to the product of Fee Amount and quantity");
 
                     if(feeDto.getRefundAmount().compareTo(feeDto.getApportionAmount())==0 && feeDto.getUpdatedVolume()<paymentFee.getVolume()
