@@ -19,7 +19,6 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.RefundsFeeDto;
 import uk.gov.hmcts.payment.api.dto.*;
@@ -485,7 +484,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
     private List<RefundFeesDto> getRefundFees(List<RefundsFeeDto> refundFees) {
         return refundFees.stream()
             .map(fee -> RefundFeesDto.refundFeesDtoWith()
-                .fee_id(fee.getId())
+                .feeId(fee.getId())
                 .code(fee.getCode())
                 .version(fee.getVersion())
                 .volume(fee.getUpdatedVolume())
@@ -497,7 +496,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
     private List<RefundFeesDto> getRefundFeesUsingPaymentFee(List<PaymentFee> paymentFees) {
         return paymentFees.stream()
             .map(fee -> RefundFeesDto.refundFeesDtoWith()
-                .fee_id(fee.getId())
+                .feeId(fee.getId())
                 .code(fee.getCode())
                 .version(fee.getVersion())
                 .volume(fee.getVolume())

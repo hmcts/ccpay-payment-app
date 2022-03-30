@@ -18,7 +18,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @Builder(builderMethodName = "refundFeesDtoWith")
 public class RefundFeesDto {
 
-    private Integer fee_id;
+    private Integer feeId;
     private String code;
     private String version;
     private Integer volume;
