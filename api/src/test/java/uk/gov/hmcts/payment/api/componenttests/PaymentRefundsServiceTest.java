@@ -88,7 +88,7 @@ public class PaymentRefundsServiceTest {
         .id(1)
         .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
         .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
-        .paymentLink(PaymentFeeLink.paymentFeeLinkWith().fees(Arrays.asList(PaymentFee.feeWith().id(1).volume(1).build())).build())
+        .paymentLink(PaymentFeeLink.paymentFeeLinkWith().fees(Arrays.asList(PaymentFee.feeWith().id(1).feeAmount(new BigDecimal(550)).volume(1).build())).build())
         .build();
     RetrospectiveRemissionRequest retrospectiveRemissionRequest =
         RetrospectiveRemissionRequest.retrospectiveRemissionRequestWith()
