@@ -90,7 +90,7 @@ public class RefundRemissionEnableServiceImpl implements RefundRemissionEnableSe
             Optional<List<FeePayApportion>> FeePayApportion = FeePayApportionRepository.findByFeeId(
                 fee.getId());
 
-            if (FeePayApportion.isPresent()) {
+            if (!FeePayApportion.isEmpty()) {
                 Payment payment = paymentService.getPaymentById(FeePayApportion.stream().findFirst().get().get(0).getPaymentId());
                 remissionEligible = calculateLagDate(payment);
             }
