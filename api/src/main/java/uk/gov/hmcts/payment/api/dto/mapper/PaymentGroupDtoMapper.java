@@ -106,7 +106,7 @@ public class PaymentGroupDtoMapper {
         return payments.stream().map(p -> toPaymentDto(p)).collect(Collectors.toList());
     }
     //added missing pba account details
-    private PaymentDto toPaymentDto(Payment payment) {
+        private PaymentDto toPaymentDto(Payment payment) {
         return PaymentDto.payment2DtoWith()
             .reference(payment.getReference())
             .amount(payment.getAmount())
@@ -192,7 +192,7 @@ public class PaymentGroupDtoMapper {
             .dateUpdated(fee.getDateUpdated())
             .dateApportioned(fee.getDateApportioned())
             .amountDue(fee.getAmountDue())
-            .overPayment(setOverpayment(fee))
+            .overPayment(setOverpayment(fee.getPaymentLink().getId()))
             .remissionEnable(toRemissionEnable(fee))
             .netAmount(fee.getNetAmount())
             .build();
@@ -224,9 +224,10 @@ public class PaymentGroupDtoMapper {
         return refundRemissionEnableService.returnRemissionEligible(fee);
     }
 
-    public BigDecimal setOverpayment(PaymentFee fee) {
+    public BigDecimal setOverpayment(Integer paymentLinkId) {
+
          AtomicReference<BigDecimal> overpayment = new AtomicReference<>(BigDecimal.ZERO);
-        Optional<List<FeePayApportion>> feePayApportion = feePayApportionRepository.findByFeeIdList(fee.getId());
+        Optional<List<FeePayApportion>> feePayApportion = feePayApportionRepository.findByPaymentLinkId(paymentLinkId);
         if (feePayApportion.isPresent() && !feePayApportion.isEmpty()) {
             feePayApportion.get().stream()
                 .forEach(feePayApportion1 -> {
