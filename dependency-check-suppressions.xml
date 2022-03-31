@@ -56,6 +56,7 @@
     </suppress>
 
     <suppress until="2022-06-30">
+
         <notes>A vulnerability in all versions of adal4j, this library is an internal dependency in azure libraries. Hence this is suppressed</notes>
         <cve>CVE-2021-42306</cve>
     </suppress>
@@ -69,6 +70,7 @@
     </suppress>
 
     <suppress until="2022-03-30">
+
         <notes>Temporary suppression
         </notes>
         <cve>CVE-2020-29243</cve>
@@ -78,16 +80,12 @@
         <cve>CVE-2007-1652</cve>
         <cve>CVE-2007-1651</cve>
         <cve>CVE-2018-1258</cve>
-        <cve>CVE-2022-0839</cve>
-        <cve>CVE-2020-36518</cve>
     </suppress>
 
-
-    <suppress until="2022-06-25">
+    <suppress until="2022-06-30">
         <notes>A vulnerability in all versions of adal4j, this library is an internal dependency in azure libraries. Hence this is suppressed</notes>
         <cve>CVE-2021-42306</cve>
     </suppress>
-    <!-- Supression Group ends here -->
 
     <suppress until="2022-06-30">
         <notes>
@@ -120,7 +118,29 @@
          <cve>CVE-2022-0839</cve>
      </suppress>
     
-   
 
+
+    <suppress until="2022-06-30">
+        <notes>
+            Need to resolve Liquibase issue before updating the library
+        </notes>
+        <cve>CVE-2022-0839</cve>
+    </suppress>
+
+    <suppress until="2022-06-30">
+        <notes>
+            jackson-databind before 2.13.0 allows a Java StackOverflow exception and denial of service via a large depth of nested objects.
+        </notes>
+        <cve>CVE-2020-36518</cve>
+    </suppress>
+    <suppress until="2022-06-30">
+        <notes>
+            jackson-databind before 2.13.0 allows a Java StackOverflow exception and denial of service via a large depth of nested objects.
+        </notes>
+        <cve>CVE-2022-21724</cve>
+    </suppress>
+    
+    
+    <!-- Supression Group ends here -->
 
 </suppressions>
