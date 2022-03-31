@@ -6,6 +6,7 @@ import org.joda.time.DateTime;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
+import uk.gov.hmcts.payment.api.contract.RefundsFeeDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
 import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
@@ -404,16 +405,16 @@ public class PaymentFixture {
         return PaymentRefundRequest
             .refundRequestWith().paymentReference(paymentReference)
             .refundReason(refundReason)
-            .refundAmount(new BigDecimal(refundAmount))
+            .totalRefundAmount(new BigDecimal(refundAmount))
             .fees(Lists.newArrayList(
-                FeeDto.feeDtoWith()
+                RefundsFeeDto.refundFeeDtoWith()
                     .apportionAmount(BigDecimal.valueOf(0))
-                    .apportionedPayment(BigDecimal.valueOf(0))
+                    .apportionAmount(BigDecimal.valueOf(0))
                     .calculatedAmount(new BigDecimal(feeAmount))
                     .code("FEE0001")
                     .id(0)
                     .version("1")
-                    .volume(1)
+                    .updatedVolume(1)
                     .build())
             )
             .contactDetails(ContactDetails.contactDetailsWith().
