@@ -19,7 +19,6 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.RefundsFeeDto;
 import uk.gov.hmcts.payment.api.dto.*;
@@ -34,6 +33,7 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -149,19 +149,23 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
         Optional<Remission> remission = remissionRepository.findByRemissionReference(retrospectiveRemissionRequest.getRemissionReference());
         PaymentFee paymentFee;
-        Integer paymentId;
+        AtomicReference<Integer> paymentId = null;
 
         if (remission.isPresent()) {
             //remissionAmount
             paymentFee = remission.get().getFee();
             //need to validate if multipleApportionment scenario present for single feeId validation needed
-            Optional<List<FeePayApportion>> feePayApportion = feePayApportionRepository.findByFeeId(paymentFee.getId());
+            Optional<List<FeePayApportion>> feePayApportionList = feePayApportionRepository.findByFeeId(paymentFee.getId());
 
 
-            if (feePayApportion.isPresent() && feePayApportion.stream().findFirst().isPresent()) {
-                paymentId = feePayApportion.stream().findFirst().get().get(0).getPaymentId();
+            if (feePayApportionList.isPresent()) {
+                feePayApportionList.get().stream()
+                    .forEach(feePayApportion -> {
+                        paymentId.set(feePayApportion.getPaymentId());
+                    });
+            }
                 Payment payment = paymentRepository
-                    .findById(paymentId).orElseThrow(() -> new PaymentNotFoundException("Payment not found for given apportionment"));
+                    .findById(paymentId.get()).orElseThrow(() -> new PaymentNotFoundException("Payment not found for given apportionment"));
 
                 BigDecimal remissionAmount = remission.get().getHwfAmount();
                 validateThePaymentBeforeInitiatingRefund(payment,headers);
@@ -187,9 +191,6 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                 throw new PaymentNotSuccessException("Refund can be possible if payment is successful");
             }
 
-        }
-
-        throw new RemissionNotFoundException("Remission not found for given remission reference");
     }
 
     @Override
