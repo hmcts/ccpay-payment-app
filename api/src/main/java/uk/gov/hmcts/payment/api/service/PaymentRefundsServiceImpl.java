@@ -535,7 +535,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
                     if(feeDto.getRefundAmount().compareTo(BigDecimal.valueOf((long) paymentFee.getFeeAmount().intValue() *feeDto.getUpdatedVolume()))>0) {
                         LOG.info("Refund amount : {}", paymentFee.getFeeAmount().intValue());
-                        LOG.info("RefundxVolume : {}", BigDecimal.valueOf((long) paymentFee.getFeeAmount().intValue() *feeDto.getUpdatedVolume());
+                        LOG.info("RefundxVolume : {}", BigDecimal.valueOf((long) paymentFee.getFeeAmount().intValue() *feeDto.getUpdatedVolume()));
                         LOG.info("Volume : {}", feeDto.getUpdatedVolume());
                         throw new InvalidPartialRefundRequestException("The Amount to Refund should be equal to the product of Fee Amount and quantity");
                     }
