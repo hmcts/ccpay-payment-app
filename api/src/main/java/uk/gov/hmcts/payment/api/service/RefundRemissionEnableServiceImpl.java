@@ -2,7 +2,6 @@ package uk.gov.hmcts.payment.api.service;
 
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
-import java.util.List;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -87,13 +86,13 @@ public class RefundRemissionEnableServiceImpl implements RefundRemissionEnableSe
         LOG.info("RefundEnableFeature Flag Value in RefundRemissionEnableServiceImpl : {}", remissionLagTimeFeature);
 
         if(remissionLagTimeFeature){
-            Optional<List<FeePayApportion>> FeePayApportion = FeePayApportionRepository.findByFeeId(
+           /* Optional<FeePayApportion> FeePayApportion = FeePayApportionRepository.findByFeeId(
                 fee.getId());
 
-            if (FeePayApportion.isPresent() && FeePayApportion.stream().findFirst().isPresent()) {
-                Payment payment = paymentService.getPaymentById(FeePayApportion.stream().findFirst().get().get(0).getPaymentId());
+            if (FeePayApportion.isPresent()) {
+                Payment payment = paymentService.getPaymentById(FeePayApportion.get().getPaymentId());
                 remissionEligible = calculateLagDate(payment);
-            }
+            }*/
 
             return !isRemission && remissionEligible && isRoles;
         }

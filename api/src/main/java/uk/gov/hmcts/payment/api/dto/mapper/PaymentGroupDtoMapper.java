@@ -18,6 +18,7 @@ import uk.gov.hmcts.payment.api.dto.RemissionDto;
 import uk.gov.hmcts.payment.api.model.FeePayApportion;
 import uk.gov.hmcts.payment.api.model.FeePayApportionRepository;
 import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.Payment2Repository;
 import uk.gov.hmcts.payment.api.model.PaymentAllocation;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
@@ -55,6 +56,14 @@ public class PaymentGroupDtoMapper {
     @Autowired
     private FeePayApportionRepository feePayApportionRepository;
 
+    @Autowired
+    private Payment2Repository paymentRespository;
+
+
+
+
+   // @Autowired
+   // private PaymentRepository paymentRepository;
 
     public PaymentGroupDto toPaymentGroupDto(PaymentFeeLink paymentFeeLink) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -219,22 +228,28 @@ public class PaymentGroupDtoMapper {
         return refundRemissionEnableService.returnRemissionEligible(fee);
     }
 
-    public BigDecimal setOverpayment(PaymentFee paymentFee) {
-        AtomicReference<BigDecimal> overpayment = new AtomicReference<>(BigDecimal.ZERO);
-
-            Optional<List<FeePayApportion>> feePayApportion = feePayApportionRepository.findByFeeId(paymentFee.getId());
-            if (feePayApportion.isPresent() && !feePayApportion.isEmpty()) {
-                feePayApportion.get().stream()
-                    .forEach(feePayApportion1 -> {
-                        overpayment.set(feePayApportion1.getCallSurplusAmount());
-                    });
-
+    public BigDecimal setOverpayment(PaymentFee paymentFee ) {
+        Optional<List<Payment>>  payment =  paymentRespository.findByPaymentLinkId(paymentFee.getPaymentLink().getId());
+        BigDecimal overpayment = BigDecimal.valueOf(0);
+        if (payment.isPresent()) {
+            if(payment.get().stream().findFirst().isPresent())
+            {
+                Optional<FeePayApportion>  feeAppList =   feePayApportionRepository.findByFeeIdAndPaymentId(paymentFee.getId(),payment.get().stream().findFirst().get().getId());
+                if (feeAppList.isPresent()) {
+                   // if (feeAppList.get().stream().findFirst().isPresent()){
+                        overpayment = feeAppList.get().getCallSurplusAmount();
+                    //}
+                }
+            }
         }
-        return overpayment.get();
+
+        return overpayment;
+        }
+
+
     }
 
 
 
 
 
-}
