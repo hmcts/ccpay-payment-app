@@ -84,7 +84,6 @@
         </notes>
         <cve>CVE-2021-42550</cve>
     </suppress>
-    <!-- Supression Group ends here -->
 
     <suppress until="2022-06-30">
         <notes>
@@ -94,5 +93,12 @@
         <cve>CVE-2021-42550</cve>
     </suppress>
 
+    <suppress until="2022-06-30">
+        <notes>
+            jackson-databind before 2.13.0 allows a Java StackOverflow exception and denial of service via a large depth of nested objects.
+        </notes>
+        <cve>CVE-2020-36518</cve>
+    </suppress>
+    <!-- Supression Group ends here -->
 
 </suppressions>
