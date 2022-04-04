@@ -85,4 +85,3 @@ Liquibase is used to update the database changes. Perform following steps to cre
 The following environment variables are required:
 
 - `APPINSIGHTS_INSTRUMENTATIONKEY`, app insights key to send telemetry events.
-
