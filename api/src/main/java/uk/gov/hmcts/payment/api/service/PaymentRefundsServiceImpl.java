@@ -159,7 +159,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             if (feePayApportion.isPresent() && feePayApportion.get() != null && feePayApportion.get().stream().findFirst().isPresent() ) {
                 Optional<FeePayApportion> result = feePayApportion.get().stream().findFirst();
                 if(result.isPresent()) {
-                    paymentId = feePayApportion.get().stream().findFirst().get().getPaymentId();
+                    paymentId = result.get().getPaymentId();
 
                     Payment payment = paymentRepository
                         .findById(paymentId).orElseThrow(() -> new PaymentNotFoundException("Payment not found for given apportionment"));

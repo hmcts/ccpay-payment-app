@@ -87,12 +87,13 @@ public class RefundRemissionEnableServiceImpl implements RefundRemissionEnableSe
         LOG.info("RefundEnableFeature Flag Value in RefundRemissionEnableServiceImpl : {}", remissionLagTimeFeature);
 
         if(remissionLagTimeFeature){
-            Optional<List<FeePayApportion>> FeePayApportion = FeePayApportionRepository.findByFeeId(
+            Optional<List<FeePayApportion>> feePayApportion = FeePayApportionRepository.findByFeeId(
                 fee.getId());
 
-            if (FeePayApportion.isPresent()) {
-                if(FeePayApportion.get().stream().findFirst().isPresent()) {
-                    Payment payment = paymentService.getPaymentById(FeePayApportion.get().stream().findFirst().get().getPaymentId());
+            if (feePayApportion.isPresent()) {
+                Optional<FeePayApportion> result = feePayApportion.get().stream().findFirst();
+                if(result.isPresent()) {
+                    Payment payment = paymentService.getPaymentById(result.get().getPaymentId());
                     remissionEligible = calculateLagDate(payment);
                 }
             }
