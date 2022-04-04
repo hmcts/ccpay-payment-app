@@ -15,6 +15,8 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.RemissionDto;
+import uk.gov.hmcts.payment.api.model.FeePayApportion;
+import uk.gov.hmcts.payment.api.model.FeePayApportionRepository;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentAllocation;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
@@ -48,6 +50,10 @@ public class PaymentGroupDtoMapper {
 
     @Autowired
     private RefundRemissionEnableService refundRemissionEnableService;
+
+    @Autowired
+    private FeePayApportionRepository feePayApportionRepository;
+
 
     public PaymentGroupDto toPaymentGroupDto(PaymentFeeLink paymentFeeLink) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -180,7 +186,7 @@ public class PaymentGroupDtoMapper {
             .dateUpdated(fee.getDateUpdated())
             .dateApportioned(fee.getDateApportioned())
             .amountDue(fee.getAmountDue())
-            .overPayment(BigDecimal.ZERO)
+            .overPayment(setOverpayment(fee))
             .remissionEnable(toRemissionEnable(fee))
             .netAmount(fee.getNetAmount())
             .build();
@@ -210,6 +216,18 @@ public class PaymentGroupDtoMapper {
     private Boolean toRemissionEnable(PaymentFee fee){
 
         return refundRemissionEnableService.returnRemissionEligible(fee);
+    }
+
+    private BigDecimal setOverpayment(PaymentFee fee){
+         BigDecimal overpayment =  BigDecimal.ZERO;
+        Optional<List<FeePayApportion>> feepayapplist = feePayApportionRepository.findByFeeId(fee.getId());
+        if(feepayapplist.isPresent() && !feepayapplist.get().isEmpty() && feepayapplist.get().stream().findFirst().isPresent()){
+            Optional<FeePayApportion> feepayapp =  feePayApportionRepository.findByFeeIdAndPaymentId(fee.getId(),feepayapplist.get().stream().findFirst().get().getPaymentId());
+            if (feepayapp.isPresent()) {
+                overpayment= feepayapp.get().getCallSurplusAmount();
+            }
+        }
+        return overpayment;
     }
 
 }

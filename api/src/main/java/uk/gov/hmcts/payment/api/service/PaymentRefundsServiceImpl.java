@@ -154,11 +154,11 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             //remissionAmount
             paymentFee = remission.get().getFee();
             //need to validate if multipleApportionment scenario present for single feeId validation needed
-            Optional<FeePayApportion> feePayApportion = feePayApportionRepository.findByFeeId(paymentFee.getId());
+            Optional<List<FeePayApportion>> feePayApportion = feePayApportionRepository.findByFeeId(paymentFee.getId());
 
 
-            if (feePayApportion.isPresent() && feePayApportion.get() != null) {
-                paymentId = feePayApportion.get().getPaymentId();
+            if (feePayApportion.isPresent() && feePayApportion.get() != null && feePayApportion.get().stream().findFirst().isPresent() ) {
+                paymentId = feePayApportion.get().stream().findFirst().get().getPaymentId();
 
                 Payment payment = paymentRepository
                     .findById(paymentId).orElseThrow(() -> new PaymentNotFoundException("Payment not found for given apportionment"));
