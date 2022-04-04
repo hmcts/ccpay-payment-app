@@ -115,7 +115,6 @@ public class CaseController {
         PaymentGroupResponse paymentGroupResponse = new PaymentGroupResponse(paymentGroups);
 
         paymentGroupResponse = paymentRefundsService.checkRefundAgainstRemission(headers, paymentGroupResponse, ccdCaseNumber);
-        paymentGroupResponse = paymentRefundsService.setoverpayment(paymentGroupResponse);
 
         return paymentGroupResponse;
     }
