@@ -689,6 +689,22 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         return paymentGroupDto;
     }
 
+    @Override
+    public PaymentGroupResponse setoverpayment(PaymentGroupResponse paymentGroup) {
+        paymentGroup.getPaymentGroups().forEach(paymentGroupDto -> {
+            paymentGroupDto.getPayments().forEach(paymentDto -> {
+                paymentDto.getFees().forEach(feeDto -> {
+                    Optional<FeePayApportion> feepayapp = feePayApportionRepository.findByFeeIdAndPaymentId(feeDto.getId(), Integer.parseInt(paymentDto.getId()));
+                    if (feepayapp.isPresent()) {
+                        feeDto.setOverPayment(feepayapp.get().getCallSurplusAmount());
+                    }
+                });
+
+            });
+        });
+        return paymentGroup;
+    }
+
     public boolean isContainsPaymentsRefundRole (){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
