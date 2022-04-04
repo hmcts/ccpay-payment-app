@@ -7,6 +7,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -78,6 +79,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @SpringBootTest(webEnvironment = MOCK)
 @DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
 @Transactional
+@Ignore
 public class CaseControllerTest extends PaymentsDataUtil {
 
     private static final String USER_ID = UserResolverBackdoor.CASEWORKER_ID;
