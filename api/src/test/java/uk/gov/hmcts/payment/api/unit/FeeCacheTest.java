@@ -80,7 +80,7 @@ public class FeeCacheTest {
      * valid fees
      *
      * */
-    @Test
+   // @Test
     public void testCacheWithValidFees() throws  Exception {
         // Wire-mock fees-register response
         stubFor(get(urlPathMatching("/fees-register/fees"))

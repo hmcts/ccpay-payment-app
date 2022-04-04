@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.api.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.launchdarkly.shaded.kotlin.collections.ArrayDeque;
 import org.apache.commons.lang.math.RandomUtils;
 import org.joda.time.DateTime;
 import org.junit.After;
@@ -8,6 +9,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -49,6 +51,7 @@ import uk.gov.hmcts.payment.api.dto.RemissionRequest;
 import uk.gov.hmcts.payment.api.external.client.dto.State;
 import uk.gov.hmcts.payment.api.external.client.dto.TelephonyProviderAuthorisationResponse;
 import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.Payment2Repository;
 import uk.gov.hmcts.payment.api.model.PaymentAllocationStatus;
 import uk.gov.hmcts.payment.api.model.PaymentChannel;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
@@ -64,6 +67,7 @@ import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.GatewayTimeoutException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.NoServiceFoundException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.referencedata.dto.SiteDTO;
 import uk.gov.hmcts.payment.referencedata.model.Site;
 import uk.gov.hmcts.payment.referencedata.service.SiteService;
@@ -132,6 +136,8 @@ public class PaymentGroupControllerTest {
     private LaunchDarklyFeatureToggler featureToggler;
     @MockBean
     private RefundRemissionEnableService refundRemissionEnableService;
+    @Mock
+    Payment2Repository paymentRespository;
 
     protected CustomResultMatcher body() {
         return new CustomResultMatcher(objectMapper);
@@ -602,6 +608,11 @@ public class PaymentGroupControllerTest {
             .serviceCode("AAD7")
             .serviceDescription("Divorce")
             .build();
+        List<Payment> paymntList = new ArrayList();
+        Payment Payment = new Payment();
+        paymntList.add(Payment);
+        when(paymentRespository.findByPaymentLinkId(any())).thenReturn(Optional.of(paymntList));
+
 
         when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenReturn(organisationalServiceDto);
 

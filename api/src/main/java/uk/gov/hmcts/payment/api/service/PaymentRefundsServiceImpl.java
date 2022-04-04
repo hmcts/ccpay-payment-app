@@ -19,7 +19,6 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.RefundsFeeDto;
 import uk.gov.hmcts.payment.api.dto.*;
@@ -34,6 +33,7 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -116,50 +116,47 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         if (null != contactDetails && null != contactDetails.getEmail())
             matcher = EMAIL_ID_REGEX.matcher(contactDetails.getEmail());
         if (null == contactDetails ||
-            contactDetails.toString().equals("{}")) {
+                contactDetails.toString().equals("{}")) {
             throw new InvalidRefundRequestException("Contact Details should not be null or empty");
         } else if (null == contactDetails.getNotificationType() ||
-            contactDetails.getNotificationType().isEmpty()) {
+                contactDetails.getNotificationType().isEmpty()) {
             throw new InvalidRefundRequestException("Notification Type should not be null or empty");
         } else if (!EnumUtils
-            .isValidEnum(Notification.class, contactDetails.getNotificationType())) {
+                .isValidEnum(Notification.class, contactDetails.getNotificationType())) {
             throw new InvalidRefundRequestException("Notification Type should be EMAIL or LETTER");
         } else if (Notification.EMAIL.getNotification()
-            .equals(contactDetails.getNotificationType())
-            && (null == contactDetails.getEmail() ||
-            contactDetails.getEmail().isEmpty())) {
+                .equals(contactDetails.getNotificationType())
+                && (null == contactDetails.getEmail() ||
+                contactDetails.getEmail().isEmpty())) {
             throw new InvalidRefundRequestException("Email id should not be null or empty");
         } else if (Notification.LETTER.getNotification()
-            .equals(contactDetails.getNotificationType())
-            && (null == contactDetails.getPostalCode() ||
-            contactDetails.getPostalCode().isEmpty())) {
+                .equals(contactDetails.getNotificationType())
+                && (null == contactDetails.getPostalCode() ||
+                contactDetails.getPostalCode().isEmpty())) {
             throw new InvalidRefundRequestException("Postal code should not be null or empty");
         } else if (Notification.EMAIL.getNotification()
-            .equals(contactDetails.getNotificationType())
-            && null != matcher && !matcher.find()) {
+                .equals(contactDetails.getNotificationType())
+                && null != matcher && !matcher.find()) {
             throw new InvalidRefundRequestException("Email id is not valid");
         }
     }
 
     @Override
     public ResponseEntity<RefundResponse> createAndValidateRetrospectiveRemissionRequest(
-        RetrospectiveRemissionRequest retrospectiveRemissionRequest, MultiValueMap<String, String> headers) {
+            RetrospectiveRemissionRequest retrospectiveRemissionRequest, MultiValueMap<String, String> headers) {
 
         validateContactDetails(retrospectiveRemissionRequest.getContactDetails());
 
         Optional<Remission> remission = remissionRepository.findByRemissionReference(retrospectiveRemissionRequest.getRemissionReference());
         PaymentFee paymentFee;
-        Integer paymentId;
 
         if (remission.isPresent()) {
             //remissionAmount
             paymentFee = remission.get().getFee();
             //need to validate if multipleApportionment scenario present for single feeId validation needed
-            Optional<FeePayApportion> feePayApportion = feePayApportionRepository.findByFeeId(paymentFee.getId());
+            Optional<FeePayApportion> feePayApportionList = feePayApportionRepository.findByFeeId(paymentFee.getId());
 
-
-            if (feePayApportion.isPresent() && feePayApportion.get() != null) {
-                paymentId = feePayApportion.get().getPaymentId();
+                       Integer paymentId= feePayApportionList.get().getPaymentId();
 
                 Payment payment = paymentRepository
                     .findById(paymentId).orElseThrow(() -> new PaymentNotFoundException("Payment not found for given apportionment"));
@@ -188,9 +185,6 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                 throw new PaymentNotSuccessException("Refund can be possible if payment is successful");
             }
 
-        }
-
-        throw new RemissionNotFoundException("Remission not found for given remission reference");
     }
 
     @Override
@@ -198,15 +192,15 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         //Payment not found exception
         Payment payment = paymentRepository.findByReference(paymentReference).orElseThrow(PaymentNotFoundException::new);
 
-        if (payment.getAmount().compareTo(request.getAmount()) < 0) {
-            throw new InvalidRefundRequestException("Refund amount should not be more than Payment amount");
-        }
+            if (payment.getAmount().compareTo(request.getAmount()) < 0 && !request.getRefundReason().contains("RR037")) {
+                throw new InvalidRefundRequestException("Refund amount should not be more than Payment amount");
+            }
 
-        //If refund reason is retro-remission
-        if (request.getRefundReason().contains("RR036")) {
-            Integer feeId = Integer.parseInt(request.getFeeId());
-            updateRemissionAmount(feeId, request.getAmount());
-        }
+            //If refund reason is retro-remission
+            if (request.getRefundReason().contains("RR036")) {
+                    Integer feeId = Integer.parseInt(request.getFeeId());
+                    updateRemissionAmount(feeId, request.getAmount());
+            }
         return new ResponseEntity<>(null, HttpStatus.OK);
     }
 
@@ -226,7 +220,6 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             paymentGroupResponse.getPaymentGroups().forEach(paymentGroup -> {
 
                 paymentGroup.getPayments().forEach(paymentDto -> {
-
                     paymentDto.setIssueRefundAddRefundAddRemission(true);
                     paymentDto.setIssueRefund(true);
 
@@ -408,18 +401,18 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
     public void updateRemissionAmount(Integer feeId, BigDecimal remissionAmount) {
 //        if (feeId != null) {
-        //Remission against fee
-        Optional<Remission> remission = remissionRepository.findByFeeId(feeId);
+            //Remission against fee
+            Optional<Remission> remission = remissionRepository.findByFeeId(feeId);
 
-        if (remission.isPresent()) {
-            if (remission.get().getFee().getCalculatedAmount().compareTo(remissionAmount) < 0) {
-                throw new InvalidRefundRequestException("Remission Amount should not be more than Fee amount");
-            } else {
-                //update remissionAmount
-                remission.get().setHwfAmount(remissionAmount);
-                remissionRepository.save(remission.get());
+            if (remission.isPresent()) {
+                if (remission.get().getFee().getCalculatedAmount().compareTo(remissionAmount) < 0) {
+                    throw new InvalidRefundRequestException("Remission Amount should not be more than Fee amount");
+                } else {
+                    //update remissionAmount
+                    remission.get().setHwfAmount(remissionAmount);
+                    remissionRepository.save(remission.get());
+                }
             }
-        }
 
 //        }
     }
@@ -690,6 +683,19 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         return paymentGroupDto;
     }
 
+    @Override
+    public PaymentGroupDto setOverpaymnt(MultiValueMap<String, String> headers, PaymentGroupDto paymentGroupDto, String paymentRef) {
+        paymentGroupDto.getPayments().forEach(paymentDto -> {
+            paymentDto.getFees().forEach(feeDTO -> {
+                Optional<FeePayApportion> feePayApportion =   feePayApportionRepository.findByFeeIdAndPaymentId(feeDTO.getId(),Integer.parseInt(paymentDto.getId()));
+                feeDTO.setOverPayment(feePayApportion.get().getCallSurplusAmount());
+            });
+        });
+
+        return paymentGroupDto;
+    }
+
+
     public boolean isContainsPaymentsRefundRole (){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
@@ -713,4 +719,5 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         }
         return containsPaymentsRefundRole;
     }
+
 }

@@ -22,6 +22,7 @@ import uk.gov.hmcts.payment.api.model.Payment2Repository;
 import uk.gov.hmcts.payment.api.model.PaymentAllocation;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
 import uk.gov.hmcts.payment.api.model.PaymentFeeRepository;
 import uk.gov.hmcts.payment.api.model.Remission;
 import uk.gov.hmcts.payment.api.reports.FeesService;
@@ -59,21 +60,22 @@ public class PaymentGroupDtoMapper {
     @Autowired
     private Payment2Repository paymentRespository;
 
+    @Autowired
+    private PaymentFeeLinkRepository paymentFeeLinkRepository;
 
 
-
-   // @Autowired
-   // private PaymentRepository paymentRepository;
+    // @Autowired
+    // private PaymentRepository paymentRepository;
 
     public PaymentGroupDto toPaymentGroupDto(PaymentFeeLink paymentFeeLink) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         boolean containsPaymentRole = false;
         ServiceRequestUtil serviceRequestUtil = new ServiceRequestUtil();
 
-        Iterator<? extends GrantedAuthority> userRole =  authentication.getAuthorities().iterator();
+        Iterator<? extends GrantedAuthority> userRole = authentication.getAuthorities().iterator();
 
-        while (userRole.hasNext()){
-            if(userRole.next().toString().equals("payments")){
+        while (userRole.hasNext()) {
+            if (userRole.next().toString().equals("payments")) {
                 containsPaymentRole = true;
                 break;
             }
@@ -93,7 +95,7 @@ public class PaymentGroupDtoMapper {
 
         String serviceRequestStatus = serviceRequestUtil.getServiceRequestStatus(paymentGroupDto);
 
-        if(!containsPaymentRole){
+        if (!containsPaymentRole) {
             paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
                 .paymentGroupReference(paymentFeeLink.getPaymentReference())
                 .dateCreated(paymentFeeLink.getDateCreated())
@@ -109,8 +111,9 @@ public class PaymentGroupDtoMapper {
     private List<PaymentDto> toPaymentDtos(List<Payment> payments) {
         return payments.stream().map(p -> toPaymentDto(p)).collect(Collectors.toList());
     }
+
     //added missing pba account details
-        private PaymentDto toPaymentDto(Payment payment) {
+    private PaymentDto toPaymentDto(Payment payment) {
         return PaymentDto.payment2DtoWith()
             .reference(payment.getReference())
             .amount(payment.getAmount())
@@ -133,8 +136,8 @@ public class PaymentGroupDtoMapper {
             .documentControlNumber(payment.getDocumentControlNumber())
             .bankedDate(payment.getBankedDate())
             .payerName(payment.getPayerName())
-            .refundEnable(payment.getDateUpdated() != null ? toRefundEligible(payment):false)
-            .paymentAllocation(payment.getPaymentAllocation() !=null ? toPaymentAllocationDtos(payment.getPaymentAllocation()) : null)
+            .refundEnable(payment.getDateUpdated() != null ? toRefundEligible(payment) : false)
+            .paymentAllocation(payment.getPaymentAllocation() != null ? toPaymentAllocationDtos(payment.getPaymentAllocation()) : null)
             .build();
     }
 
@@ -146,11 +149,12 @@ public class PaymentGroupDtoMapper {
         return paymentAllocation.stream().map(pa -> toPaymentAllocationDto(pa)).collect(Collectors.toList());
     }
 
-    public PaymentAllocationDto toPaymentAllocationDto(PaymentAllocation paymentAllocation){
+    public PaymentAllocationDto toPaymentAllocationDto(PaymentAllocation paymentAllocation) {
         return PaymentAllocationDto.paymentAllocationDtoWith()
             .allocationStatus(paymentAllocation.getPaymentAllocationStatus().getName())
             .build();
     }
+
     private BigDecimal getTotalHwfRemission(List<Remission> remissions) {
         return remissions != null ? remissions.stream().map(Remission::getHwfAmount).reduce(BigDecimal.ZERO, BigDecimal::add) : new BigDecimal("0.00");
     }
@@ -189,22 +193,21 @@ public class PaymentGroupDtoMapper {
             .id(fee.getId())
             .memoLine(optionalFeeVersionDto.isPresent() ? optionalFeeVersionDto.get().getMemoLine() : null)
             .naturalAccountCode(optionalFeeVersionDto.isPresent() ? optionalFeeVersionDto.get().getNaturalAccountCode() : null)
-            .description( optionalFeeVersionDto.isPresent() ? optionalFeeVersionDto.get().getDescription() : null)
+            .description(optionalFeeVersionDto.isPresent() ? optionalFeeVersionDto.get().getDescription() : null)
             .allocatedAmount(fee.getAllocatedAmount())
             .apportionAmount(fee.getApportionAmount())
             .dateCreated(fee.getDateCreated())
             .dateUpdated(fee.getDateUpdated())
             .dateApportioned(fee.getDateApportioned())
             .amountDue(fee.getAmountDue())
-            .overPayment(setOverpayment(fee))
             .remissionEnable(toRemissionEnable(fee))
             .netAmount(fee.getNetAmount())
             .build();
     }
 
-    public PaymentFee toPaymentFee(FeeDto feeDto){
+    public PaymentFee toPaymentFee(FeeDto feeDto) {
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
+        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature", false);
         return PaymentFee.feeWith()
             .code(feeDto.getCode())
             .version(feeDto.getVersion())
@@ -214,7 +217,7 @@ public class PaymentGroupDtoMapper {
             .feeAmount(feeDto.getFeeAmount())
             .netAmount(feeDto.getCalculatedAmount())
             .reference(feeDto.getReference())
-            .dateCreated(apportionFeature ? timestamp: null)
+            .dateCreated(apportionFeature ? timestamp : null)
             .build();
     }
 
@@ -223,31 +226,11 @@ public class PaymentGroupDtoMapper {
         return refundRemissionEnableService.returnRefundEligible(payment);
     }
 
-    private Boolean toRemissionEnable(PaymentFee fee){
+    private Boolean toRemissionEnable(PaymentFee fee) {
 
         return refundRemissionEnableService.returnRemissionEligible(fee);
     }
-
-    public BigDecimal setOverpayment(PaymentFee paymentFee ) {
-        Optional<List<Payment>>  payment =  paymentRespository.findByPaymentLinkId(paymentFee.getPaymentLink().getId());
-        BigDecimal overpayment = BigDecimal.valueOf(0);
-        if (payment.isPresent()) {
-            if(payment.get().stream().findFirst().isPresent())
-            {
-                Optional<FeePayApportion>  feeAppList =   feePayApportionRepository.findByFeeIdAndPaymentId(paymentFee.getId(),payment.get().stream().findFirst().get().getId());
-                if (feeAppList.isPresent()) {
-                   // if (feeAppList.get().stream().findFirst().isPresent()){
-                        overpayment = feeAppList.get().getCallSurplusAmount();
-                    //}
-                }
-            }
-        }
-
-        return overpayment;
-        }
-
-
-    }
+}
 
 
 
