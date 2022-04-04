@@ -16,6 +16,5 @@ public interface PaymentRefundsService {
     PaymentGroupResponse checkRefundAgainstRemission(MultiValueMap<String, String> headers, PaymentGroupResponse paymentGroupResponse, String ccdCaseNumber);
 
     PaymentGroupDto checkRefundAgainstRemissionFeeApportion(MultiValueMap<String, String> headers, PaymentGroupDto paymentGroupDto, String paymentRef);
-    PaymentGroupResponse setoverpayment(PaymentGroupResponse paymentGroupDto);
 
 }

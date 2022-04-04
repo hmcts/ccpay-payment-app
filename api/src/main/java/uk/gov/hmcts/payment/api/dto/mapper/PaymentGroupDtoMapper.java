@@ -15,8 +15,6 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.RemissionDto;
-import uk.gov.hmcts.payment.api.model.FeePayApportion;
-import uk.gov.hmcts.payment.api.model.FeePayApportionRepository;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentAllocation;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
@@ -33,7 +31,6 @@ import java.sql.Timestamp;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Component
@@ -51,15 +48,6 @@ public class PaymentGroupDtoMapper {
 
     @Autowired
     private RefundRemissionEnableService refundRemissionEnableService;
-
-    @Autowired
-    private FeePayApportionRepository feePayApportionRepository;
-
-
-
-
-   // @Autowired
-   // private PaymentRepository paymentRepository;
 
     public PaymentGroupDto toPaymentGroupDto(PaymentFeeLink paymentFeeLink) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -106,7 +94,7 @@ public class PaymentGroupDtoMapper {
         return payments.stream().map(p -> toPaymentDto(p)).collect(Collectors.toList());
     }
     //added missing pba account details
-        private PaymentDto toPaymentDto(Payment payment) {
+    private PaymentDto toPaymentDto(Payment payment) {
         return PaymentDto.payment2DtoWith()
             .reference(payment.getReference())
             .amount(payment.getAmount())
@@ -223,23 +211,5 @@ public class PaymentGroupDtoMapper {
 
         return refundRemissionEnableService.returnRemissionEligible(fee);
     }
-
-   /* public BigDecimal setOverpayment(PaymentFee paymentFee) {
-        if(!paymentFee.getPaymentLink().getPayments().isEmpty()) {
-            paymentFee.getPaymentLink().getPayments().get(0).getId();
-            AtomicReference<BigDecimal> overpayment = new AtomicReference<>(BigDecimal.ZERO);
-            Optional<List<FeePayApportion>> feePayApportion = feePayApportionRepository.findByPaymentId(paymentFee.getPaymentLink().getPayments().get(0).getId());
-            if (feePayApportion.isPresent() && !feePayApportion.isEmpty()) {
-                feePayApportion.get().stream()
-                    .forEach(feePayApportion1 -> {
-                        overpayment.set(feePayApportion1.getCallSurplusAmount());
-                    });
-            }
-        }
-        return overpayment.get();
-    }*/
-
-
-
 
 }
