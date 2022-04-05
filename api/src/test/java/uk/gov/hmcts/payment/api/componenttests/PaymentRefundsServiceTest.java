@@ -896,4 +896,81 @@ public class PaymentRefundsServiceTest {
     }
 
 
+    @Test
+    public void createUnSuccessfulRetroRemissionRefund() throws Exception {
+
+        BigDecimal amount = new BigDecimal("11.99");
+        PaymentFee fee = PaymentFee.feeWith().id(1).calculatedAmount(new BigDecimal("11.99")).code("X0001").version("1").build();
+        PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith()
+            .id(1)
+            .paymentReference("2018-15202505035")
+            .fees(Arrays.asList(fee))
+            .build();
+
+        Remission remission = Remission.remissionWith()
+            .paymentFeeLink(paymentFeeLink)
+            .remissionReference("qwerty")
+            .fee(fee)
+            .hwfAmount(amount)
+            .hwfReference("poiuytrewq")
+            .build();
+        List<FeePayApportion>  feeAppList = new ArrayList();
+
+        FeePayApportion feePayApportion = FeePayApportion.feePayApportionWith()
+            .apportionAmount(amount)
+            .paymentAmount(amount)
+            .ccdCaseNumber("1234123412341234")
+            .paymentLink(paymentFeeLink)
+            .paymentId(1)
+            .feeId(1)
+            .id(1)
+            .feeAmount(amount).build();
+        feeAppList.add(feePayApportion);
+        Payment payment = Payment.paymentWith()
+            .id(1)
+            .amount(amount)
+            .caseReference("caseReference")
+            .description("retrieve payment mock test")
+            .serviceType("Civil Money Claims")
+            .siteId("siteID")
+            .currency("GBP")
+            .organisationName("organisationName")
+            .customerReference("customerReference")
+            .pbaNumber("pbaNumer")
+            .reference("RC-1520-2505-0381-8145")
+            .ccdCaseNumber("1234123412341234")
+            .paymentLink(paymentFeeLink)
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
+            .build();
+        Mockito.when(remissionRepository.findByRemissionReference(any())).thenReturn(Optional.ofNullable(remission));
+
+        Mockito.when(feePayApportionRepository.findByFeeId(any())).thenReturn((Optional.empty()));
+
+        Mockito.when(paymentRepository.findById(any())).thenReturn(Optional.ofNullable(payment));
+        when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
+        InternalRefundResponse mockRefundResponse = InternalRefundResponse.InternalRefundResponseWith().refundReference("RF-4321-4321-4321-4321").build();
+
+        ResponseEntity<InternalRefundResponse> responseEntity = new ResponseEntity<>(mockRefundResponse, HttpStatus.CREATED);
+
+        when(authTokenGenerator.generate()).thenReturn("test-token");
+
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+            eq(InternalRefundResponse.class))).thenReturn(responseEntity);
+
+
+        Exception exception = assertThrows(
+            PaymentNotSuccessException.class,
+            () -> paymentRefundsService.createAndValidateRetrospectiveRemissionRequest(
+                retrospectiveRemissionRequest, header)
+        );
+
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains("Refund can be possible if payment is successful"));
+
+    }
+
+
+
 }
