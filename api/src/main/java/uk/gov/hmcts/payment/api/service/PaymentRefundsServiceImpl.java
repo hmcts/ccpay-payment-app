@@ -165,7 +165,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                         .findById(paymentId).orElseThrow(() -> new PaymentNotFoundException("Payment not found for given apportionment"));
 
                     BigDecimal remissionAmount = remission.get().getHwfAmount();
-                    validateThePaymentBeforeInitiatingRefund(payment, headers);
+                     validateThePaymentBeforeInitiatingRefund(payment, headers);
 
                     RefundRequestDto refundRequest = RefundRequestDto.refundRequestDtoWith()
                         .paymentReference(payment.getReference()) //RC reference
