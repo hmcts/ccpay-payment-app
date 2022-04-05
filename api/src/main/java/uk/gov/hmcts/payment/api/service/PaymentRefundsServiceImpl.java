@@ -431,9 +431,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         if (!paymentSuccessCheck.test(payment)) {
             throw new PaymentNotSuccessException("Refund can not be processed for unsuccessful payment");
         }
-
         boolean refundLagTimefeature = featureToggler.getBooleanValue("refund-remission-lagtime-feature",false);
-
         LOG.info("RefundEnableFeature Flag Value in PaymentRefundsServiceImpl : {}", refundLagTimefeature);
 
         if(refundLagTimefeature){

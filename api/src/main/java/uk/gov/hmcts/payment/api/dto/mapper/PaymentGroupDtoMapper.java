@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.api.dto.mapper;
 
+import com.google.common.collect.Streams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -126,7 +127,7 @@ public class PaymentGroupDtoMapper {
             .payerName(payment.getPayerName())
             .refundEnable(payment.getDateUpdated() != null ? toRefundEligible(payment):false)
             .paymentAllocation(payment.getPaymentAllocation() !=null ? toPaymentAllocationDtos(payment.getPaymentAllocation()) : null)
-            .overpaymentFlag(setOverpaymentObj(payment.getId()))
+            .overPayment(setOverpaymentObj(payment.getId()))
             .build();
     }
 
@@ -237,8 +238,10 @@ public class PaymentGroupDtoMapper {
     private BigDecimal setOverpayment(PaymentFee fee){
          BigDecimal overpayment =  BigDecimal.ZERO;
         Optional<List<FeePayApportion>> feepayapplist = feePayApportionRepository.findByFeeId(fee.getId());
-        if(feepayapplist.isPresent() && !feepayapplist.get().isEmpty() && feepayapplist.get().stream().findFirst().isPresent()){
-            Optional<FeePayApportion> feepayapp =  feePayApportionRepository.findByFeeIdAndPaymentId(fee.getId(),feepayapplist.get().stream().findFirst().get().getPaymentId());
+        long count = feepayapplist.stream().count();
+        if(feepayapplist.isPresent() && !feepayapplist.get().isEmpty()){
+            FeePayApportion last = (FeePayApportion) feepayapplist.stream().skip(count - 1).findFirst().get();
+            Optional<FeePayApportion> feepayapp =  feePayApportionRepository.findByFeeIdAndPaymentId(last.getId(),feepayapplist.get().stream().findFirst().get().getPaymentId());
             if (feepayapp.isPresent()) {
                 overpayment= feepayapp.get().getCallSurplusAmount();
             }
