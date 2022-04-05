@@ -155,8 +155,6 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             paymentFee = remission.get().getFee();
             //need to validate if multipleApportionment scenario present for single feeId validation needed
             Optional<List<FeePayApportion>> feePayApportion = feePayApportionRepository.findByFeeId(paymentFee.getId());
-
-
             if (feePayApportion.isPresent()) {
                 Optional<FeePayApportion> result = feePayApportion.get().stream().findFirst();
                 if(result.isPresent()) {

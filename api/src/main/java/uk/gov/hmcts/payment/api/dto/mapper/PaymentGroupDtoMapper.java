@@ -33,6 +33,7 @@ import java.sql.Timestamp;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Component
@@ -125,8 +126,23 @@ public class PaymentGroupDtoMapper {
             .payerName(payment.getPayerName())
             .refundEnable(payment.getDateUpdated() != null ? toRefundEligible(payment):false)
             .paymentAllocation(payment.getPaymentAllocation() !=null ? toPaymentAllocationDtos(payment.getPaymentAllocation()) : null)
+            .overpaymentFlag(setOverpaymentObj(payment.getId()))
             .build();
     }
+
+    private BigDecimal setOverpaymentObj(Integer id) {
+        AtomicReference<BigDecimal> overpayment = new AtomicReference<>(BigDecimal.ZERO);
+        Optional<List<FeePayApportion>> feepayapplist = feePayApportionRepository.findByPaymentId(id);
+        if(feepayapplist.isPresent()){
+            feepayapplist.get().stream()
+                .forEach(feePayApportion -> {
+                    overpayment.set(feePayApportion.getCallSurplusAmount());
+                });
+                }
+        return overpayment.get();
+        }
+
+
 
     private List<RemissionDto> toRemissionDtos(List<Remission> remissions) {
         return remissions.stream().map(r -> toRemissionDto(r)).collect(Collectors.toList());
