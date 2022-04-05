@@ -196,6 +196,26 @@ public class PaymentRefundsServiceTest {
         assertTrue(actualMessage.contains(""));
     }
 
+    @Test
+    public void createRefundWithClientException1() throws Exception {
+        when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
+        Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentSuccess));
+        ResponseEntity<InternalRefundResponse> refundResponseResponseEntity = new ResponseEntity<>(null, HttpStatus.CREATED);
+
+        when(authTokenGenerator.generate()).thenReturn("test-token");
+
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+            eq(InternalRefundResponse.class))).thenReturn(refundResponseResponseEntity);
+
+        Exception exception = assertThrows(
+            HttpServerErrorException.class,
+            () -> paymentRefundsService.createRefund(paymentRefundRequest, header)
+        );
+
+        String actualMessage = exception.getMessage();
+       // assertTrue(actualMessage.contains(""));
+    }
+
 
     @Test
     public void createRefundWithServerException() throws Exception {
