@@ -156,7 +156,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             Optional<List<FeePayApportion>> feePayApportion = feePayApportionRepository.findByFeeId(paymentFee.getId());
 
 
-            if (feePayApportion.isPresent() && feePayApportion.get() != null && feePayApportion.get().stream().findFirst().isPresent() ) {
+            if (feePayApportion.isPresent()) {
                 Optional<FeePayApportion> result = feePayApportion.get().stream().findFirst();
                 if(result.isPresent()) {
                     paymentId = result.get().getPaymentId();
