@@ -103,6 +103,9 @@ public class PaymentDto {
 
     private String internalReference;
 
+    private BigDecimal overpaymentFlag;
+
+
     @JsonProperty("_links")
     private LinksDto links;
 
