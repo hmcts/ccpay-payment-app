@@ -22,7 +22,6 @@
         <cve>CVE-2020-29245</cve>
     </suppress>
 
-
     <suppress until="2022-06-30">
         <notes><![CDATA[False positive reported for Oauth2-oidc-sdk at (https://github.com/jeremylong/DependencyCheck/issues/1658) and
             (https://github.com/jeremylong/DependencyCheck/issues/2866)]]></notes>
@@ -47,7 +46,7 @@
         <cve>CVE-2021-28170</cve>
     </suppress>
 
-    <suppress until="2022-06-30">
+     <suppress until="2022-06-30">
         <notes>A vulnerability in all versions of Nim-lang allows unauthenticated attackers to write files to
             arbitrary directories via a crafted zip file with dot-slash characters included in the name of the
             crafted file
@@ -56,20 +55,6 @@
     </suppress>
 
     <suppress until="2022-06-30">
-
-        <notes>A vulnerability in all versions of adal4j, this library is an internal dependency in azure libraries. Hence this is suppressed</notes>
-        <cve>CVE-2021-42306</cve>
-    </suppress>
-
-    <suppress until="2022-06-30">
-        <notes>
-            In logback version 1.2.7 and prior versions, an attacker with the required privileges to edit configurations
-            files could craft a malicious configuration allowing to execute arbitrary code loaded from LDAP servers.
-        </notes>
-        <cve>CVE-2021-42550</cve>
-    </suppress>
-
-    <suppress until="2022-03-30">
 
         <notes>Temporary suppression
         </notes>
@@ -95,31 +80,6 @@
         <cve>CVE-2021-42550</cve>
     </suppress>
 
-    
-    <suppress until="2022-06-30">
-         <notes>
-             In logback version 1.2.7 and prior versions, an attacker with the required privileges to edit configurations
-             files could craft a malicious configuration allowing to execute arbitrary code loaded from LDAP servers.
-         </notes>
-         <cve>CVE-2022-26336</cve>
-     </suppress>
-      <suppress until="2022-06-30">
-         <notes>
-             In logback version 1.2.7 and prior versions, an attacker with the required privileges to edit configurations
-             files could craft a malicious configuration allowing to execute arbitrary code loaded from LDAP servers.
-         </notes>
-         <cve>CVE-2020-36518</cve>
-     </suppress>
-          <suppress until="2022-06-30">
-         <notes>
-             In logback version 1.2.7 and prior versions, an attacker with the required privileges to edit configurations
-             files could craft a malicious configuration allowing to execute arbitrary code loaded from LDAP servers.
-         </notes>
-         <cve>CVE-2022-0839</cve>
-     </suppress>
-    
-
-
     <suppress until="2022-06-30">
         <notes>
             Need to resolve Liquibase issue before updating the library
@@ -133,11 +93,18 @@
         </notes>
         <cve>CVE-2020-36518</cve>
     </suppress>
+
     <suppress until="2022-06-30">
         <notes>
-            jackson-databind before 2.13.0 allows a Java StackOverflow exception and denial of service via a large depth of nested objects.
+            Need to resolve Liquibase issue before updating the library
         </notes>
-        <cve>CVE-2022-21724</cve>
+        <cve>CVE-2022-0839</cve>
+    </suppress>
+     <suppress until="2022-06-30">
+        <notes>
+            Need to resolve Liquibase issue before updating the library
+        </notes>
+        <cve>CVE-2022-22965</cve>
     </suppress>
     
     
