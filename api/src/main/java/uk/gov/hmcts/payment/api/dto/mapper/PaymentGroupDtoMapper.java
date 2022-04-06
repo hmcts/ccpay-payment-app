@@ -246,7 +246,7 @@ public class PaymentGroupDtoMapper {
                 .filter(c -> (c.getCallSurplusAmount() !=null && c.getCallSurplusAmount().intValue()> 0))
                 .collect(Collectors.toList());
             if (!feeList.isEmpty()) {
-                Optional<FeePayApportion> feepayapp = feePayApportionRepository.findByFeeIdAndPaymentId(feeList.get(0).getFeeId(), feepayapplist.get().stream().findFirst().get().getPaymentId());
+                Optional<FeePayApportion> feepayapp = feePayApportionRepository.findByFeeIdAndPaymentId(feeList.get(0).getFeeId(), feeList.get(0).getPaymentId());
                 if (feepayapp.isPresent()) {
                     overpayment = feepayapp.get().getCallSurplusAmount();
                 }
