@@ -1,6 +1,5 @@
 package uk.gov.hmcts.payment.api.dto.mapper;
 
-import com.google.common.collect.Streams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -236,16 +235,17 @@ public class PaymentGroupDtoMapper {
     }
 
     private BigDecimal setOverpayment(PaymentFee fee){
-         BigDecimal overpayment =  BigDecimal.ZERO;
+         AtomicReference<BigDecimal> overpayment = new AtomicReference<>(BigDecimal.ZERO);
         Optional<List<FeePayApportion>> feepayapplist = feePayApportionRepository.findByFeeId(fee.getId());
-        if(feepayapplist.isPresent() && !feepayapplist.get().isEmpty()){
-            feepayapplist.stream().reduce((first, second) -> second);
-            Optional<FeePayApportion> feepayapp =  feePayApportionRepository.findByFeeIdAndPaymentId(feepayapplist.get().stream().findFirst().get().getId(),feepayapplist.get().stream().findFirst().get().getPaymentId());
-            if (feepayapp.isPresent()) {
-                overpayment= feepayapp.get().getCallSurplusAmount();
-            }
+        if(feepayapplist.isPresent()){
+            feepayapplist.get().stream()
+                    .forEach(feePayApportion -> {
+                        if(feePayApportion.getCallSurplusAmount().intValue()>0) {
+                            overpayment.set(feePayApportion.getCallSurplusAmount());
+                        }
+            });
         }
-        return overpayment;
+        return overpayment.get();
     }
 
 }
