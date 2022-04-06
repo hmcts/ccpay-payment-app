@@ -240,15 +240,16 @@ public class PaymentGroupDtoMapper {
          BigDecimal overpayment =  BigDecimal.ZERO;
         Optional<List<FeePayApportion>> feepayapplist = feePayApportionRepository.findByFeeId(fee.getId());
 
-        if(feepayapplist.isPresent() && !feepayapplist.get().isEmpty()){
+        if(feepayapplist.isPresent() && !feepayapplist.get().isEmpty()) {
             List<FeePayApportion> feeList = feepayapplist.get()
                 .stream()
                 .filter(c -> c.getCallSurplusAmount().intValue() > 0)
                 .collect(Collectors.toList());
-
-            Optional<FeePayApportion> feepayapp =  feePayApportionRepository.findByFeeIdAndPaymentId(feeList.get(0).getFeeId(),feepayapplist.get().stream().findFirst().get().getPaymentId());
-            if (feepayapp.isPresent()) {
-                overpayment= feepayapp.get().getCallSurplusAmount();
+            if (!feeList.isEmpty()) {
+                Optional<FeePayApportion> feepayapp = feePayApportionRepository.findByFeeIdAndPaymentId(feeList.get(0).getFeeId(), feepayapplist.get().stream().findFirst().get().getPaymentId());
+                if (feepayapp.isPresent()) {
+                    overpayment = feepayapp.get().getCallSurplusAmount();
+                }
             }
         }
         return overpayment;
