@@ -194,7 +194,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         //Payment not found exception
         Payment payment = paymentRepository.findByReference(paymentReference).orElseThrow(PaymentNotFoundException::new);
 
-            if (payment.getAmount().compareTo(request.getAmount()) < 0) {
+            if (payment.getAmount().compareTo(request.getTotalRefundedAmount()) < 0) {
                 throw new InvalidRefundRequestException("Refund amount should not be more than Payment amount");
             }
 
