@@ -217,13 +217,19 @@ public class PaymentGroupDtoMapper {
         return refundRemissionEnableService.returnRemissionEligible(fee);
     }
 
-    public BigDecimal setOverpayment(PaymentFee fee) {
-        BigDecimal overpayment = BigDecimal.ZERO;
-        Optional<FeePayApportion> feePayApportion = feePayApportionRepository.findByFeeId(fee.getId());
-        if (feePayApportion.isPresent() && feePayApportion.get() != null) {
-            if (feePayApportion.get().getApportionAmount() != null && feePayApportion.get().getFeeAmount() != null && fee.getVolume() != null) {
-                if (feePayApportion.get().getApportionAmount().intValue() > (feePayApportion.get().getFeeAmount().multiply(BigDecimal.valueOf(fee.getVolume()))).intValue()) {
-                    overpayment = (feePayApportion.get().getApportionAmount().subtract(feePayApportion.get().getFeeAmount().multiply(BigDecimal.valueOf(fee.getVolume()))));
+    private BigDecimal setOverpayment(PaymentFee fee){
+        BigDecimal overpayment =  BigDecimal.ZERO;
+        Optional<List<FeePayApportion>> feepayapplist = feePayApportionRepository.findByFeeId(fee.getId());
+
+        if(feepayapplist.isPresent() && !feepayapplist.get().isEmpty()) {
+            List<FeePayApportion> feeList = feepayapplist.get()
+                .stream()
+                .filter(c -> (c.getCallSurplusAmount() !=null && c.getCallSurplusAmount().intValue()> 0))
+                .collect(Collectors.toList());
+            if (!feeList.isEmpty()) {
+                Optional<FeePayApportion> feepayapp = feePayApportionRepository.findByFeeIdAndPaymentId(feeList.get(0).getFeeId(), feeList.get(0).getPaymentId());
+                if (feepayapp.isPresent()) {
+                    overpayment = feepayapp.get().getCallSurplusAmount();
                 }
             }
         }
