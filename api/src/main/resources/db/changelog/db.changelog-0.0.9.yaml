@@ -284,6 +284,7 @@ databaseChangeLog:
             INSERT INTO site (site_id, name, sop_reference, service) VALUES ('Y424', 'BOSTON COUNTY COURT', '10255140', 'COUNTY');
             INSERT INTO site (site_id, name, sop_reference, service) VALUES ('Y254', 'BOURNEMOUTH COMBINED COURT - COUNTY', '10253321', 'COUNTY');
             INSERT INTO site (site_id, name, sop_reference, service) VALUES ('W804', 'BOURNEMOUTH COMBINED COURT - CROWN', '10253302', 'CROWN');
+            INSERT INTO site (site_id, name, sop_reference, service) VALUES ('Y425', 'BOW COUNTY COURT', '10251213', 'COUNTY');
             INSERT INTO site (site_id, name, sop_reference, service) VALUES ('Y255', 'BRADFORD COMBINED COURT - COUNTY', '10257216', 'COUNTY');
             INSERT INTO site (site_id, name, sop_reference, service) VALUES ('W805', 'BRADFORD COMBINED COURT - CROWN', '10257323', 'CROWN');
             INSERT INTO site (site_id, name, sop_reference, service) VALUES ('Y426', 'BRECKNOCK COUNTY COURT', '10254131', 'COUNTY');
@@ -295,6 +296,8 @@ databaseChangeLog:
             INSERT INTO site (site_id, name, sop_reference, service) VALUES ('Y430', 'BRISTOL COUNTY COURT', '10253015', 'COUNTY');
             INSERT INTO site (site_id, name, sop_reference, service) VALUES ('W843', 'BRISTOL CROWN COURT', '10253010', 'CROWN');
             INSERT INTO site (site_id, name, sop_reference, service) VALUES ('P206', 'BRISTOL DPR', '10251544', 'PROBATE');
+            INSERT INTO site (site_id, name, sop_reference, service) VALUES ('Y433', 'BULK ISSUE CENTRE NORTHAMPTON CAPS', '10250500', 'CAPS');
+            INSERT INTO site (site_id, name, sop_reference, service) VALUES ('Y687', 'BULK ISSUE CENTRE TEC', '10250500', 'TEC');
             INSERT INTO site (site_id, name, sop_reference, service) VALUES ('Y256', 'BURNLEY COMBINED COURT - COUNTY', '10256637', 'COUNTY');
             INSERT INTO site (site_id, name, sop_reference, service) VALUES ('W806', 'BURNLEY COMBINED COURT - CROWN', '10256603', 'CROWN');
             INSERT INTO site (site_id, name, sop_reference, service) VALUES ('Y435', 'BURY COUNTY COURT', '10256411', 'COUNTY');
@@ -525,9 +528,7 @@ databaseChangeLog:
             INSERT INTO site (site_id, name, sop_reference, service) VALUES ('Y683', 'YEOVIL COUNTY COURT', '10253121', 'COUNTY');
             INSERT INTO site (site_id, name, sop_reference, service) VALUES ('Y684', 'YORK COUNTY COURT', '10257203', 'COUNTY');
             INSERT INTO site (site_id, name, sop_reference, service) VALUES ('W880', 'YORK CROWN COURT', '10257302', 'CROWN');
-            INSERT INTO site (site_id, name, sop_reference, service) VALUES ('Y433', 'BULK ISSUE CENTRE NORTHAMPTON CAPS', '10250500', 'CAPS');
-            INSERT INTO site (site_id, name, sop_reference, service) VALUES ('Y687', 'BULK ISSUE CENTRE TEC', '10250500', 'TEC');
-            INSERT INTO site (site_id, name, sop_reference, service) VALUES ('Y425', 'BOW COUNTY COURT', '10251213', 'COUNTY');
+
 
 - changeSet:
       id: 1529403181341-1
