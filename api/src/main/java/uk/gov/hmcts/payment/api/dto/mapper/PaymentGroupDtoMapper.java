@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.api.dto.mapper;
 
+import com.google.common.collect.Streams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,9 +31,11 @@ import uk.gov.hmcts.payment.api.util.ServiceRequestUtil;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Component
@@ -53,6 +56,7 @@ public class PaymentGroupDtoMapper {
 
     @Autowired
     private FeePayApportionRepository feePayApportionRepository;
+
 
     public PaymentGroupDto toPaymentGroupDto(PaymentFeeLink paymentFeeLink) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -124,8 +128,23 @@ public class PaymentGroupDtoMapper {
             .payerName(payment.getPayerName())
             .refundEnable(payment.getDateUpdated() != null ? toRefundEligible(payment):false)
             .paymentAllocation(payment.getPaymentAllocation() !=null ? toPaymentAllocationDtos(payment.getPaymentAllocation()) : null)
+            .overPayment(setOverpaymentObj(payment.getId()))
             .build();
     }
+
+    private BigDecimal setOverpaymentObj(Integer id) {
+        AtomicReference<BigDecimal> overpayment = new AtomicReference<>(BigDecimal.ZERO);
+        Optional<List<FeePayApportion>> feepayapplist = feePayApportionRepository.findByPaymentId(id);
+        if(feepayapplist.isPresent()){
+            feepayapplist.get().stream()
+                .forEach(feePayApportion -> {
+                    overpayment.set(feePayApportion.getCallSurplusAmount());
+                });
+                }
+        return overpayment.get();
+        }
+
+
 
     private List<RemissionDto> toRemissionDtos(List<Remission> remissions) {
         return remissions.stream().map(r -> toRemissionDto(r)).collect(Collectors.toList());
@@ -218,7 +237,7 @@ public class PaymentGroupDtoMapper {
     }
 
     private BigDecimal setOverpayment(PaymentFee fee){
-        BigDecimal overpayment =  BigDecimal.ZERO;
+         BigDecimal overpayment =  BigDecimal.ZERO;
         Optional<List<FeePayApportion>> feepayapplist = feePayApportionRepository.findByFeeId(fee.getId());
 
         if(feepayapplist.isPresent() && !feepayapplist.get().isEmpty()) {
