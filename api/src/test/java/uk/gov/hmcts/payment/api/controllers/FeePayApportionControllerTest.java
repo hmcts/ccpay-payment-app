@@ -8,6 +8,7 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -23,6 +24,8 @@ import uk.gov.hmcts.payment.api.componenttests.PaymentDbBackdoor;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
+import uk.gov.hmcts.payment.api.model.FeePayApportion;
+import uk.gov.hmcts.payment.api.model.FeePayApportionRepository;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.PaymentService;
@@ -36,12 +39,15 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.referencedata.model.Site;
 import uk.gov.hmcts.payment.referencedata.service.SiteService;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -86,6 +92,9 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil {
     private LaunchDarklyFeatureToggler featureToggler;
     @MockBean
     private RefundRemissionEnableService refundRemissionEnableService;
+
+    @Mock
+    private FeePayApportionRepository feePayApportionRepository;
 
     protected CustomResultMatcher body() {
         return new CustomResultMatcher(objectMapper);
@@ -162,6 +171,8 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil {
         setupForPaymentRoleUser();
         Payment payment = populateCardPaymentToDb("1");
         populateApportionDetails(payment);
+        Optional<List<FeePayApportion>> feeAppList = Optional.of(Arrays.asList(populateApportionDetails(payment)));
+        when(feePayApportionRepository.findByFeeId(any())).thenReturn(feeAppList);
         when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
         when(
             refundRemissionEnableService.returnRemissionEligible(payment.getPaymentLink().getFees().get(0))).thenReturn(true);
@@ -198,9 +209,12 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil {
         setupForPaymentRoleUser();
         Payment payment = populateCardPaymentToDb("1");
         populateApportionDetails(payment);
+
+        Optional<List<FeePayApportion>> feeAppList = Optional.of(Arrays.asList( populateApportionDetails(payment)));
         when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(false);
         when(
             refundRemissionEnableService.returnRemissionEligible(payment.getPaymentLink().getFees().get(0))).thenReturn(true);
+        when(feePayApportionRepository.findByFeeId(any())).thenReturn(feeAppList);
         MvcResult result = restActions
             .get("/payment-groups/fee-pay-apportion/" + payment.getReference())
             .andExpect(status().isOk())

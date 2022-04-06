@@ -31,6 +31,7 @@ import uk.gov.hmcts.payment.api.util.ServiceRequestUtil;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
@@ -238,8 +239,14 @@ public class PaymentGroupDtoMapper {
     private BigDecimal setOverpayment(PaymentFee fee){
          BigDecimal overpayment =  BigDecimal.ZERO;
         Optional<List<FeePayApportion>> feepayapplist = feePayApportionRepository.findByFeeId(fee.getId());
+
         if(feepayapplist.isPresent() && !feepayapplist.get().isEmpty()){
-            Optional<FeePayApportion> feepayapp =  feePayApportionRepository.findByFeeIdAndPaymentId(feepayapplist.stream().reduce((first, second) -> second).get().stream().findFirst().get().getId(),feepayapplist.get().stream().findFirst().get().getPaymentId());
+            List<FeePayApportion> feeList = feepayapplist.get()
+                .stream()
+                .filter(c -> c.getCallSurplusAmount().intValue() > 0)
+                .collect(Collectors.toList());
+
+            Optional<FeePayApportion> feepayapp =  feePayApportionRepository.findByFeeIdAndPaymentId(feeList.get(0).getFeeId(),feepayapplist.get().stream().findFirst().get().getPaymentId());
             if (feepayapp.isPresent()) {
                 overpayment= feepayapp.get().getCallSurplusAmount();
             }
