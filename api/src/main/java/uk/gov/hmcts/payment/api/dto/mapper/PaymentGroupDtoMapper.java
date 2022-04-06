@@ -243,7 +243,7 @@ public class PaymentGroupDtoMapper {
         if(feepayapplist.isPresent() && !feepayapplist.get().isEmpty()) {
             List<FeePayApportion> feeList = feepayapplist.get()
                 .stream()
-                .filter(c -> c.getCallSurplusAmount().intValue() > 0)
+                .filter(c -> (c.getCallSurplusAmount() !=null && c.getCallSurplusAmount().intValue()> 0))
                 .collect(Collectors.toList());
             if (!feeList.isEmpty()) {
                 Optional<FeePayApportion> feepayapp = feePayApportionRepository.findByFeeIdAndPaymentId(feeList.get(0).getFeeId(), feepayapplist.get().stream().findFirst().get().getPaymentId());
