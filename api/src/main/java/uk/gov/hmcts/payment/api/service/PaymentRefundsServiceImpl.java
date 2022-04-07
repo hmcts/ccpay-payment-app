@@ -93,6 +93,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             .paymentReference(paymentRefundRequest.getPaymentReference())
             .refundAmount(paymentRefundRequest.getTotalRefundAmount())
             .paymentAmount(payment.getAmount())
+            .paymentMethod(payment.getPaymentMethod().toString())
             .ccdCaseNumber(payment.getCcdCaseNumber())
             .refundReason(paymentRefundRequest.getRefundReason())
             .feeIds(getFeeIds(paymentRefundRequest.getFees()))
