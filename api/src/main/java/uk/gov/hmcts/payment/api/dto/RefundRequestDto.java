@@ -40,6 +40,8 @@ public class RefundRequestDto {
 
     private String serviceType;
 
+    private String paymentMethod;
+
     private ContactDetails contactDetails;
 
     private PaymentChannel paymentChannel;
