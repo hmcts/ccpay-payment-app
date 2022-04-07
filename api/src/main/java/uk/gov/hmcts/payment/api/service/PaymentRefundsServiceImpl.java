@@ -21,6 +21,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
+import uk.gov.hmcts.payment.api.contract.RefundsFeeDto;
 import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.exception.InvalidPartialRefundRequestException;
 import uk.gov.hmcts.payment.api.exception.InvalidRefundRequestException;
@@ -83,18 +84,19 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
         Payment payment = paymentRepository.findByReference(paymentRefundRequest.getPaymentReference()).orElseThrow(PaymentNotFoundException::new);
 
+
         validateRefund(paymentRefundRequest,payment.getPaymentLink().getFees());
 
         validateThePaymentBeforeInitiatingRefund(payment,headers);
 
         RefundRequestDto refundRequest = RefundRequestDto.refundRequestDtoWith()
             .paymentReference(paymentRefundRequest.getPaymentReference())
-            .refundAmount(paymentRefundRequest.getRefundAmount())
+            .refundAmount(paymentRefundRequest.getTotalRefundAmount())
             .paymentAmount(payment.getAmount())
             .ccdCaseNumber(payment.getCcdCaseNumber())
             .refundReason(paymentRefundRequest.getRefundReason())
-            .feeIds(getFeeIds(payment.getPaymentLink().getFees()))
-            .refundFees(getRefundFees(payment.getPaymentLink().getFees()))
+            .feeIds(getFeeIds(paymentRefundRequest.getFees()))
+            .refundFees(getRefundFees(paymentRefundRequest.getFees()))
             .contactDetails(paymentRefundRequest.getContactDetails())
             .serviceType(payment.getServiceType())
             .paymentChannel(payment.getPaymentChannel())
@@ -102,7 +104,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             .build();
 
         RefundResponse refundResponse = RefundResponse.RefundResponseWith()
-            .refundAmount(paymentRefundRequest.getRefundAmount())
+            .refundAmount(paymentRefundRequest.getTotalRefundAmount())
             .refundReference(postToRefundService(refundRequest, headers)).build();
 
         return new ResponseEntity<>(refundResponse, HttpStatus.CREATED);
@@ -171,8 +173,8 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                     .paymentAmount(payment.getAmount())
                     .ccdCaseNumber(payment.getCcdCaseNumber()) // ccd case number
                     .refundReason("RR036")//Refund reason category would be other
-                    .feeIds(getFeeIds(Collections.singletonList(paymentFee)))
-                    .refundFees(getRefundFees(Collections.singletonList(paymentFee)))
+                    .feeIds(getFeeIdsUsingPaymentFees(Collections.singletonList(paymentFee)))
+                    .refundFees(getRefundFeesUsingPaymentFee(Collections.singletonList(paymentFee)))
                     .serviceType(payment.getServiceType())
                     .contactDetails(retrospectiveRemissionRequest.getContactDetails())
                     .paymentChannel(payment.getPaymentChannel())
@@ -196,7 +198,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         //Payment not found exception
         Payment payment = paymentRepository.findByReference(paymentReference).orElseThrow(PaymentNotFoundException::new);
 
-            if (payment.getAmount().compareTo(request.getAmount()) < 0) {
+            if (payment.getAmount().compareTo(request.getTotalRefundedAmount()) < 0) {
                 throw new InvalidRefundRequestException("Refund amount should not be more than Payment amount");
             }
 
@@ -212,29 +214,9 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
     public PaymentGroupResponse checkRefundAgainstRemission(MultiValueMap<String, String> headers,
                                                             PaymentGroupResponse paymentGroupResponse, String ccdCaseNumber) {
         //check roles
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        boolean containsPaymentsRefundRole = false;
-        boolean containsPaymentsRefundApproverRole = false;
 
-        Iterator<? extends GrantedAuthority> userRole =  authentication.getAuthorities().iterator();
-
-        while (userRole.hasNext()){
-
-            String nextUser = userRole.next().toString();
-
-            if(nextUser.equals("payments-refund")){
-                containsPaymentsRefundRole = true;
-                break;
-            }
-
-            if(nextUser.equals("payments-refund-approver")){
-                containsPaymentsRefundApproverRole = true;
-                break;
-            }
-        }
-
-        if(containsPaymentsRefundRole || containsPaymentsRefundApproverRole){
+        if(isContainsPaymentsRefundRole()){
 
             //get the RefundListDtoResponse by calling refunds app
             RefundListDtoResponse refundListDtoResponse = getRefundsFromRefundService(ccdCaseNumber, headers);
@@ -504,19 +486,37 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         return new HttpEntity<>(refundRequest, httpHeaders);
     }
 
-    private List<RefundFeesDto> getRefundFees(List<PaymentFee> paymentFees) {
+    private List<RefundFeesDto> getRefundFees(List<RefundsFeeDto> refundFees) {
+        return refundFees.stream()
+            .map(fee -> RefundFeesDto.refundFeesDtoWith()
+                .fee_id(fee.getId())
+                .code(fee.getCode())
+                .version(fee.getVersion())
+                .volume(fee.getUpdatedVolume())
+                .refundAmount(fee.getRefundAmount())
+                .build())
+            .collect(Collectors.toList());
+    }
+
+    private List<RefundFeesDto> getRefundFeesUsingPaymentFee(List<PaymentFee> paymentFees) {
         return paymentFees.stream()
             .map(fee -> RefundFeesDto.refundFeesDtoWith()
                 .fee_id(fee.getId())
                 .code(fee.getCode())
                 .version(fee.getVersion())
                 .volume(fee.getVolume())
-                .refundAmount(fee.getAmountDue())
+                .refundAmount(fee.getNetAmount())
                 .build())
             .collect(Collectors.toList());
     }
 
-    private String getFeeIds(List<PaymentFee> paymentFees) {
+    private String getFeeIds(List<RefundsFeeDto> refundFees) {
+        return refundFees.stream()
+            .map(fee -> fee.getId().toString())
+            .collect(Collectors.joining(","));
+    }
+
+    private String getFeeIdsUsingPaymentFees(List<PaymentFee> paymentFees) {
         return paymentFees.stream()
             .map(fee -> fee.getId().toString())
             .collect(Collectors.joining(","));
@@ -524,33 +524,200 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
     private void validateRefund(PaymentRefundRequest paymentRefundRequest, List<PaymentFee> paymentFeeList) {
 
-        if(paymentRefundRequest.getRefundAmount().compareTo(BigDecimal.valueOf(0))==0)
+        if(paymentRefundRequest.getTotalRefundAmount().compareTo(BigDecimal.valueOf(0))==0)
             throw new InvalidPartialRefundRequestException("You need to enter a refund amount");
 
         for(PaymentFee paymentFee : paymentFeeList){
-            for (FeeDto feeDto : paymentRefundRequest.getFees()) {
+            for (RefundsFeeDto feeDto : paymentRefundRequest.getFees()) {
 
                 if (feeDto.getId().intValue() == paymentFee.getId().intValue()){
 
-                    if(feeDto.getVolume()==0)
+                    if(feeDto.getUpdatedVolume()==0)
                         throw new InvalidPartialRefundRequestException("You need to enter a valid number");
 
-                    if(paymentRefundRequest.getRefundAmount().compareTo(feeDto.getApportionAmount())>0)
+                    if(feeDto.getRefundAmount().compareTo(feeDto.getApportionAmount())>0)
                         throw new InvalidPartialRefundRequestException("The amount you want to refund is more than the amount paid");
 
-                    if(feeDto.getVolume()>paymentFee.getVolume())
+                    if(feeDto.getUpdatedVolume()>paymentFee.getVolume())
                         throw new InvalidPartialRefundRequestException("The quantity you want to refund is more than the available quantity");
 
-                    if(paymentRefundRequest.getRefundAmount().compareTo(BigDecimal.valueOf((long) feeDto.getCalculatedAmount().intValue() *feeDto.getVolume()))!=0
-                        && feeDto.getVolume()>1)
+                    if(feeDto.getRefundAmount().compareTo(paymentFee.getFeeAmount().multiply(new BigDecimal(feeDto.getUpdatedVolume())))>0) {
+                        LOG.info("Refund amount : {}", paymentFee.getFeeAmount().intValue());
+                        LOG.info("RefundxVolume : {}", BigDecimal.valueOf((long) paymentFee.getFeeAmount().intValue() *feeDto.getUpdatedVolume()));
+                        LOG.info("Volume : {}", feeDto.getUpdatedVolume());
                         throw new InvalidPartialRefundRequestException("The Amount to Refund should be equal to the product of Fee Amount and quantity");
+                    }
 
-                    if(paymentRefundRequest.getRefundAmount().compareTo(feeDto.getApportionAmount())==0 && feeDto.getVolume()<paymentFee.getVolume()
-                        && feeDto.getVolume()>1)
+                    if(feeDto.getRefundAmount().compareTo(feeDto.getApportionAmount())==0 && feeDto.getUpdatedVolume()<paymentFee.getVolume()
+                        && feeDto.getUpdatedVolume()>1)
                         throw new InvalidPartialRefundRequestException("The quantity you want to refund should be maximum in case of full refund");
 
                 }
             }
         }
+    }
+
+    @Override
+    public PaymentGroupDto checkRefundAgainstRemissionFeeApportion(MultiValueMap<String, String> headers,
+                                                                   PaymentGroupDto paymentGroupDto, String paymentReference) {
+        //check roles
+
+
+        if(isContainsPaymentsRefundRole()){
+
+            //get the RefundListDtoResponse by calling refunds app
+            Payment payment = paymentRepository.findByReference(paymentReference).orElseThrow(PaymentNotFoundException::new);
+
+            RefundListDtoResponse refundListDtoResponse = getRefundsFromRefundService(payment.getCcdCaseNumber(), headers);
+
+            LOG.info("refundListDtoResponse : {}", refundListDtoResponse);
+
+            paymentGroupDto.getPayments().forEach(paymentDto -> {
+                paymentDto.setIssueRefundAddRefundAddRemission(true);
+                paymentDto.setIssueRefund(true);
+
+                paymentGroupDto.getRemissions().forEach(remissionDto -> {
+                    remissionDto.setIssueRefundAddRefundAddRemission(true);
+                });
+
+                paymentGroupDto.getFees().forEach(feeDto -> {
+                    feeDto.setIssueRefundAddRefundAddRemission(true);
+                });
+
+            });
+
+            var lambdaContext = new Object() {
+                BigDecimal refundAmount = BigDecimal.ZERO;
+            };
+
+            paymentGroupDto.getPayments().forEach(paymentDto -> {
+
+                paymentDto.setIssueRefund(true);
+
+            });
+
+            paymentGroupDto.getRemissions().forEach(remission -> {
+
+                //Given a full/partial remission is added but subsequent refund not submitted
+                //Then only ADD REFUND needs to be enabled
+                //and ISSUE REFUND option should not be available
+
+                remission.setAddRefund(true);
+
+                paymentGroupDto.getPayments().forEach(paymentDto -> {
+
+                    paymentDto.setIssueRefund(false);
+
+                });
+
+                int remissionCount =  paymentGroupDto.getRemissions().size();
+
+                if (refundListDtoResponse != null) {
+
+                    refundListDtoResponse.getRefundList().forEach(refundDto -> {
+
+                        //Given a refund is already added against a remission
+                        //Then ADD REFUND option should not be available
+
+                        int refundCount = refundListDtoResponse.getRefundList().size();
+
+                        if (Arrays.stream(refundDto.getFeeIds().split(",")).anyMatch(remission.getFeeId().toString()::equals)
+                            && refundDto.getReason().equals("Retrospective remission")) {
+
+                            remission.setAddRefund(false);
+
+                            paymentGroupDto.getPayments().forEach(paymentDto -> {
+
+                                if (remissionCount <= refundCount)
+                                    paymentDto.setIssueRefund(true);
+
+                            });
+                        }
+                    });
+                }
+            });
+
+            paymentGroupDto.getPayments().forEach(paymentDto -> {
+
+                if (refundListDtoResponse != null) {
+
+                    refundListDtoResponse.getRefundList().forEach(refundDto -> {
+
+                        if (refundDto.getPaymentReference().equals(paymentDto.getReference())
+                            && (refundDto.getRefundStatus().getName().equals("Accepted") || refundDto.getRefundStatus().getName().equals("Approved")))
+                            lambdaContext.refundAmount = lambdaContext.refundAmount.add(refundDto.getAmount());
+
+                        //When there is no available balance
+                        //Then ISSUE REFUND/ADD REMISSION/ADD REFUND option should not be available
+
+                        if (paymentDto.getAmount().subtract(lambdaContext.refundAmount).compareTo(BigDecimal.ZERO) > 0) {
+
+                            paymentDto.setIssueRefundAddRefundAddRemission(true);
+
+                            paymentGroupDto.getRemissions().forEach(remissionDto -> {
+                                remissionDto.setIssueRefundAddRefundAddRemission(true);
+                            });
+
+                            paymentGroupDto.getFees().forEach(feeDto -> {
+                                feeDto.setIssueRefundAddRefundAddRemission(true);
+                            });
+                        } else {
+
+                            paymentDto.setIssueRefundAddRefundAddRemission(false);
+
+                            paymentGroupDto.getRemissions().forEach(remissionDto -> {
+                                remissionDto.setIssueRefundAddRefundAddRemission(false);
+                            });
+
+                            paymentGroupDto.getFees().forEach(feeDto -> {
+                                feeDto.setIssueRefundAddRefundAddRemission(false);
+                            });
+
+                            boolean issueRefundFlag = paymentDto.isIssueRefund();
+
+                            paymentGroupDto.getRemissions().forEach(remissionDto -> {
+
+                                // If addRefund is false in all remissions then issueRefund should be false in case of no available balance
+
+                                if (!remissionDto.isAddRefund())
+                                    paymentDto.setIssueRefund(false);
+
+                                else
+                                    paymentDto.setIssueRefund(issueRefundFlag);
+
+                            });
+                        }
+
+                    });
+                }
+            });
+
+        }
+
+        return paymentGroupDto;
+    }
+
+    public boolean isContainsPaymentsRefundRole (){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        boolean containsPaymentsRefundRole = false;
+
+        Iterator<? extends GrantedAuthority> userRole =  authentication.getAuthorities().iterator();
+
+        while (userRole.hasNext()){
+
+            String nextUser = userRole.next().toString();
+
+            if(nextUser.equals("payments-refund")){
+                containsPaymentsRefundRole = true;
+                break;
+            }
+
+            if(nextUser.equals("payments-refund-approver")){
+                containsPaymentsRefundRole = true;
+                break;
+            }
+        }
+        return containsPaymentsRefundRole;
     }
 }

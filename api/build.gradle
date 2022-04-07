@@ -204,7 +204,7 @@ functionalTest.finalizedBy(aggregate)
 
 project.ext {
     pactVersion = getCheckedOutGitCommitHash()
-    pacticipant = 'payment_App'
+    pacticipant = 'no'
     pacticipantVersion = getCheckedOutGitCommitHash()
 }
 

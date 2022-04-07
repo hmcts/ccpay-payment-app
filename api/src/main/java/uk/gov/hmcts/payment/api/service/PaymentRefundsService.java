@@ -14,4 +14,7 @@ public interface PaymentRefundsService {
     ResponseEntity updateTheRemissionAmount(String paymentReference, ResubmitRefundRemissionRequest request);
 
     PaymentGroupResponse checkRefundAgainstRemission(MultiValueMap<String, String> headers, PaymentGroupResponse paymentGroupResponse, String ccdCaseNumber);
+
+    PaymentGroupDto checkRefundAgainstRemissionFeeApportion(MultiValueMap<String, String> headers, PaymentGroupDto paymentGroupDto, String paymentRef);
+
 }

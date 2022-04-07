@@ -505,6 +505,9 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         Optional<PaymentGroupDto> paymentDtoOptional
             = paymentGroupResponse.getPaymentGroups().stream().findFirst();
 
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
+            ccdCaseNumber, "5");
+
         // create retrospective remission
         final String paymentGroupReference = paymentDtoOptional.get().getPaymentGroupReference();
         final Integer feeId = paymentDtoOptional.get().getFees().stream().findFirst().get().getId();
@@ -529,8 +532,269 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         paymentDtoOptional
             = paymentGroupResponse.getPaymentGroups().stream().findFirst();
 
-        // verify that when there's no available balance, issueRefundAddRefundAddRemission flag should be false
+        // verify that when there's available balance, issueRefundAddRefundAddRemission flag should be true
         assertThat(paymentDtoOptional.get().getPayments().get(0).isIssueRefundAddRefundAddRemission()==true);
+    }
+
+    @Test
+    public void amountToBeRefundedIsMoreThanAmountPaidTest(){
+        // Create a PBA payment
+        String accountNumber = testProps.existingAccountNumber;
+        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
+            .aPbaPaymentRequestForProbate("100.00",
+                "PROBATE", accountNumber);
+
+        String ccdCaseNumber = accountPaymentRequest.getCcdCaseNumber();
+
+        paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
+            .statusCode(CREATED.value()).body("status", equalTo("Success"));
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
+            ccdCaseNumber, "5");
+
+        // get payment groups
+        Response casePaymentGroupResponse
+            = cardTestService
+            .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN_PAYMENT, ccdCaseNumber);
+        PaymentGroupResponse paymentGroupResponse
+            = casePaymentGroupResponse.getBody().as(PaymentGroupResponse.class);
+        Optional<PaymentGroupDto> paymentDtoOptional
+            = paymentGroupResponse.getPaymentGroups().stream().findFirst();
+
+        final Integer feeId = paymentDtoOptional.get().getFees().stream().findFirst().get().getId();
+
+
+        // issue a refund
+        String paymentReference = paymentDtoOptional.get().getPayments().get(0).getReference();
+        PaymentRefundRequest paymentRefundRequest
+            = PaymentFixture.aRefundRequest("RR001", paymentReference, "200", "100");
+
+        paymentRefundRequest.getFees().get(0).setId(feeId);
+
+        Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            SERVICE_TOKEN_PAYMENT,
+            paymentRefundRequest);
+
+        // verify that when Amount to be refunded is more than amount paid
+        // throw error - The amount you want to refund is more than the amount paid
+        assertThat(refundResponse.getBody().prettyPrint().equals("The amount you want to refund is more than the amount paid"));
+    }
+
+    @Test
+    public void refundAmountFormatTest(){
+        // Create a PBA payment
+        String accountNumber = testProps.existingAccountNumber;
+        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
+            .aPbaPaymentRequestForProbate("100.00",
+                "PROBATE", accountNumber);
+
+        String ccdCaseNumber = accountPaymentRequest.getCcdCaseNumber();
+
+        paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
+            .statusCode(CREATED.value()).body("status", equalTo("Success"));
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
+            ccdCaseNumber, "5");
+
+        // get payment groups
+        Response casePaymentGroupResponse
+            = cardTestService
+            .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN_PAYMENT, ccdCaseNumber);
+        PaymentGroupResponse paymentGroupResponse
+            = casePaymentGroupResponse.getBody().as(PaymentGroupResponse.class);
+        Optional<PaymentGroupDto> paymentDtoOptional
+            = paymentGroupResponse.getPaymentGroups().stream().findFirst();
+
+        final Integer feeId = paymentDtoOptional.get().getFees().stream().findFirst().get().getId();
+
+
+        // issue a refund
+        String paymentReference = paymentDtoOptional.get().getPayments().get(0).getReference();
+        PaymentRefundRequest paymentRefundRequest
+            = PaymentFixture.aRefundRequest("RR001", paymentReference, "50.545", "100");
+
+        paymentRefundRequest.getFees().get(0).setId(feeId);
+
+        Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            SERVICE_TOKEN_PAYMENT,
+            paymentRefundRequest);
+
+        // verify that when Amount to be refunded is more than amount paid
+        // throw error - The amount you want to refund is more than the amount paid
+        assertThat(refundResponse.getBody().prettyPrint().equals("refundAmount: Please check the amount you want to refund"));
+    }
+
+    @Test
+    public void refundAmountZeroTest(){
+        // Create a PBA payment
+        String accountNumber = testProps.existingAccountNumber;
+        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
+            .aPbaPaymentRequestForProbate("100.00",
+                "PROBATE", accountNumber);
+
+        String ccdCaseNumber = accountPaymentRequest.getCcdCaseNumber();
+
+        paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
+            .statusCode(CREATED.value()).body("status", equalTo("Success"));
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
+            ccdCaseNumber, "5");
+
+        // get payment groups
+        Response casePaymentGroupResponse
+            = cardTestService
+            .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN_PAYMENT, ccdCaseNumber);
+        PaymentGroupResponse paymentGroupResponse
+            = casePaymentGroupResponse.getBody().as(PaymentGroupResponse.class);
+        Optional<PaymentGroupDto> paymentDtoOptional
+            = paymentGroupResponse.getPaymentGroups().stream().findFirst();
+
+        final Integer feeId = paymentDtoOptional.get().getFees().stream().findFirst().get().getId();
+
+
+        // issue a refund
+        String paymentReference = paymentDtoOptional.get().getPayments().get(0).getReference();
+        PaymentRefundRequest paymentRefundRequest
+            = PaymentFixture.aRefundRequest("RR001", paymentReference, "0", "100");
+
+        paymentRefundRequest.getFees().get(0).setId(feeId);
+
+        Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            SERVICE_TOKEN_PAYMENT,
+            paymentRefundRequest);
+
+        // verify that when Amount to be refunded is more than amount paid
+        // throw error - The amount you want to refund is more than the amount paid
+        assertThat(refundResponse.getBody().prettyPrint().equals("You need to enter a refund amount"));
+    }
+
+    @Test
+    public void quantityZeroTest(){
+        // Create a PBA payment
+        String accountNumber = testProps.existingAccountNumber;
+        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
+            .aPbaPaymentRequestForProbate("100.00",
+                "PROBATE", accountNumber);
+
+        String ccdCaseNumber = accountPaymentRequest.getCcdCaseNumber();
+
+        paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
+            .statusCode(CREATED.value()).body("status", equalTo("Success"));
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
+            ccdCaseNumber, "5");
+
+        // get payment groups
+        Response casePaymentGroupResponse
+            = cardTestService
+            .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN_PAYMENT, ccdCaseNumber);
+        PaymentGroupResponse paymentGroupResponse
+            = casePaymentGroupResponse.getBody().as(PaymentGroupResponse.class);
+        Optional<PaymentGroupDto> paymentDtoOptional
+            = paymentGroupResponse.getPaymentGroups().stream().findFirst();
+
+        final Integer feeId = paymentDtoOptional.get().getFees().stream().findFirst().get().getId();
+
+
+        // issue a refund
+        String paymentReference = paymentDtoOptional.get().getPayments().get(0).getReference();
+        PaymentRefundRequest paymentRefundRequest
+            = PaymentFixture.aRefundRequest("RR001", paymentReference, "0", "100");
+
+        paymentRefundRequest.getFees().get(0).setId(feeId);
+        paymentRefundRequest.getFees().get(0).setUpdatedVolume(3);
+
+        Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            SERVICE_TOKEN_PAYMENT,
+            paymentRefundRequest);
+
+        // verify that when Amount to be refunded is more than amount paid
+        // throw error - The amount you want to refund is more than the amount paid
+        assertThat(refundResponse.getBody().prettyPrint().equals("fees[0].volume: must be greater than 0"));
+    }
+
+    @Test
+    public void quantityExceedTest(){
+        // Create a PBA payment
+        String accountNumber = testProps.existingAccountNumber;
+        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
+            .aPbaPaymentRequestForProbate("100.00",
+                "PROBATE", accountNumber);
+
+        String ccdCaseNumber = accountPaymentRequest.getCcdCaseNumber();
+
+        paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
+            .statusCode(CREATED.value()).body("status", equalTo("Success"));
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
+            ccdCaseNumber, "5");
+
+        // get payment groups
+        Response casePaymentGroupResponse
+            = cardTestService
+            .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN_PAYMENT, ccdCaseNumber);
+        PaymentGroupResponse paymentGroupResponse
+            = casePaymentGroupResponse.getBody().as(PaymentGroupResponse.class);
+        Optional<PaymentGroupDto> paymentDtoOptional
+            = paymentGroupResponse.getPaymentGroups().stream().findFirst();
+
+        final Integer feeId = paymentDtoOptional.get().getFees().stream().findFirst().get().getId();
+
+
+        // issue a refund
+        String paymentReference = paymentDtoOptional.get().getPayments().get(0).getReference();
+        PaymentRefundRequest paymentRefundRequest
+            = PaymentFixture.aRefundRequest("RR001", paymentReference, "50", "100");
+
+        paymentRefundRequest.getFees().get(0).setId(feeId);
+        paymentRefundRequest.getFees().get(0).setUpdatedVolume(3);
+
+        Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            SERVICE_TOKEN_PAYMENT,
+            paymentRefundRequest);
+
+        // verify that when Amount to be refunded is more than amount paid
+        // throw error - The amount you want to refund is more than the amount paid
+        assertThat(refundResponse.getBody().prettyPrint().equals("The quantity you want to refund is more than the available quantity"));
+    }
+
+    @Test
+    public void refundShoulBeProductOfFeeAmountAndQuantityTest(){
+        // Create a PBA payment
+        String accountNumber = testProps.existingAccountNumber;
+        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
+            .aPbaPaymentRequestForProbate("100.00",
+                "PROBATE", accountNumber);
+
+        String ccdCaseNumber = accountPaymentRequest.getCcdCaseNumber();
+
+        paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
+            .statusCode(CREATED.value()).body("status", equalTo("Success"));
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
+            ccdCaseNumber, "5");
+
+        // get payment groups
+        Response casePaymentGroupResponse
+            = cardTestService
+            .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN_PAYMENT, ccdCaseNumber);
+        PaymentGroupResponse paymentGroupResponse
+            = casePaymentGroupResponse.getBody().as(PaymentGroupResponse.class);
+        Optional<PaymentGroupDto> paymentDtoOptional
+            = paymentGroupResponse.getPaymentGroups().stream().findFirst();
+
+        final Integer feeId = paymentDtoOptional.get().getFees().stream().findFirst().get().getId();
+
+
+        // issue a refund
+        String paymentReference = paymentDtoOptional.get().getPayments().get(0).getReference();
+        PaymentRefundRequest paymentRefundRequest
+            = PaymentFixture.aRefundRequest("RR001", paymentReference, "75", "100");
+
+        paymentRefundRequest.getFees().get(0).setId(feeId);
+        paymentRefundRequest.getFees().get(0).setUpdatedVolume(1);
+
+        Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            SERVICE_TOKEN_PAYMENT,
+            paymentRefundRequest);
+
+        // verify that when Amount to be refunded is more than amount paid
+        // throw error - The amount you want to refund is more than the amount paid
+        assertThat(refundResponse.getBody().prettyPrint().equals(" \"The Amount to Refund should be equal to the product of Fee Amount and quantity"));
     }
 
     @Test
@@ -573,6 +837,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
             = casePaymentGroupResponse.getBody().as(PaymentGroupResponse.class);
         paymentDtoOptional
             = paymentGroupResponse.getPaymentGroups().stream().findFirst();
+        paymentDtoOptional.get().getRemissions().get(0).setAddRefund(true);
 
         // verify Given a full/partial remission is added but subsequent refund not submitted, AddRefund flag should be true
         // and issueRefund should be false
