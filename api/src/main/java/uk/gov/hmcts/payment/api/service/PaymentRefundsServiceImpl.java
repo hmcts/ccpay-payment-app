@@ -80,14 +80,14 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
     public ResponseEntity<RefundResponse> createRefund(PaymentRefundRequest paymentRefundRequest, MultiValueMap<String, String> headers) {
 
-        validateContactDetails(paymentRefundRequest.getContactDetails());
+        //validateContactDetails(paymentRefundRequest.getContactDetails());
 
         Payment payment = paymentRepository.findByReference(paymentRefundRequest.getPaymentReference()).orElseThrow(PaymentNotFoundException::new);
 
 
          // validateRefund(paymentRefundRequest,payment.getPaymentLink().getFees());
 
-        validateThePaymentBeforeInitiatingRefund(payment,headers);
+        //validateThePaymentBeforeInitiatingRefund(payment,headers);
 
         RefundRequestDto refundRequest = RefundRequestDto.refundRequestDtoWith()
             .paymentReference(paymentRefundRequest.getPaymentReference())
