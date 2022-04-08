@@ -518,7 +518,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
     private void validateRefund(PaymentRefundRequest paymentRefundRequest, List<PaymentFee> paymentFeeList) {
 
-        if(paymentRefundRequest.getRefundReason()!="RR037") {
+        if(!paymentRefundRequest.getRefundReason().equalsIgnoreCase("RR037")) {
 
             if (paymentRefundRequest.getTotalRefundAmount().compareTo(BigDecimal.valueOf(0)) == 0)
                 throw new InvalidPartialRefundRequestException("You need to enter a refund amount");
