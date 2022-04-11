@@ -155,6 +155,7 @@ public class RefundsControllerTest {
             .resubmitRefundRemissionRequestWith()
             .amount(BigDecimal.valueOf(100))
             .refundReason("RR036")
+            .totalRefundedAmount(BigDecimal.valueOf(100))
             .build();
 
 
@@ -177,6 +178,7 @@ public class RefundsControllerTest {
             .amount(BigDecimal.valueOf(100))
             .refundReason("RR036")
             .feeId("100")
+            .totalRefundedAmount(BigDecimal.valueOf(200))
             .build();
         when(paymentRefundsService.updateTheRemissionAmount("RC-1111-2222-5555-2222",resubmitRefundRemissionRequest))
             .thenThrow(new InvalidRefundRequestException("Amount should not be more than Remission amount"));

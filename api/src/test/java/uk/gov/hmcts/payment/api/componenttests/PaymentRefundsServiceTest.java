@@ -356,6 +356,7 @@ public class PaymentRefundsServiceTest {
             .amount(BigDecimal.valueOf(5))
             .refundReason("RR036")
             .feeId("100")
+            .totalRefundedAmount(BigDecimal.valueOf(15))
             .build();
         ResponseEntity responseEntity = paymentRefundsService.updateTheRemissionAmount("RC-1234-1234-1234-1234",resubmitRefundRemissionRequest);
         assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
@@ -405,6 +406,7 @@ public class PaymentRefundsServiceTest {
             .amount(BigDecimal.valueOf(70))
             .refundReason("RR003")
             .feeId("100")
+            .totalRefundedAmount(BigDecimal.valueOf(80))
             .build();
         Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentSuccess));
         ResponseEntity responseEntity = paymentRefundsService.updateTheRemissionAmount("RC-1234-1234-1234-1234",resubmitRefundRemissionRequest);
@@ -447,6 +449,7 @@ public class PaymentRefundsServiceTest {
             .amount(BigDecimal.valueOf(70))
             .refundReason("RR036")
             .feeId("100")
+            .totalRefundedAmount(BigDecimal.valueOf(0))
             .build();
         ResponseEntity responseEntity = paymentRefundsService.updateTheRemissionAmount("RC-1234-1234-1234-1234",resubmitRefundRemissionRequest);
         assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
@@ -484,6 +487,7 @@ public class PaymentRefundsServiceTest {
             .amount(BigDecimal.valueOf(70))
             .refundReason("RR036")
             .feeId("100")
+            .totalRefundedAmount(BigDecimal.valueOf(100))
             .build();
 
         Mockito.when(remissionRepository.findByFeeId(anyInt())).thenReturn(Optional.of(remission));
