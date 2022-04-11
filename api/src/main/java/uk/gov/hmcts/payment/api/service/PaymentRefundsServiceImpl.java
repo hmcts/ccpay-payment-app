@@ -79,6 +79,8 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
 
     public ResponseEntity<RefundResponse> createRefund(PaymentRefundRequest paymentRefundRequest, MultiValueMap<String, String> headers) {
+        
+        LOG.info("inside create refund");
 
         // validateContactDetails(paymentRefundRequest.getContactDetails());
 
