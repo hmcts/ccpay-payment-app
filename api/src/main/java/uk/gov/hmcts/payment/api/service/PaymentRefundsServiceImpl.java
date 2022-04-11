@@ -84,7 +84,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
         Payment payment = paymentRepository.findByReference(paymentRefundRequest.getPaymentReference()).orElseThrow(PaymentNotFoundException::new);
 
-
+        LOG.info("paymentobject");
          // validateRefund(paymentRefundRequest,payment.getPaymentLink().getFees());
 
         // validateThePaymentBeforeInitiatingRefund(payment,headers);
@@ -101,6 +101,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             .contactDetails(paymentRefundRequest.getContactDetails())
             .serviceType(payment.getServiceType())
             .build();
+         LOG.info("RefundRequestDto");
 
         RefundResponse refundResponse = RefundResponse.RefundResponseWith()
             .refundAmount(paymentRefundRequest.getTotalRefundAmount())
