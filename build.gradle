@@ -193,7 +193,8 @@ def sonarExclusions = [
         '**/api/external/client/dto/**',
         '**/api/external/client/exceptions/**',
         '**/api/jpaaudit/listner/**',
-        '**/api/service/PaymentRefundsServiceImpl',
+        '**/api/service/PaymentRefundsServiceImpl.java',
+        '**/api/service/RefundRemissionEnableServiceImpl.java',
         '**/api/jpaaudit/model/**'
 ]
 
