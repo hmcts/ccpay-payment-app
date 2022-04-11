@@ -765,7 +765,7 @@ public class PaymentRefundsServiceTest {
         assertTrue(actualMessage.contains("Postal code should not be null or empty"));*/
     }
 
-    // @Test
+    @Test
     @WithMockUser(authorities = "payments-refund")
     public void checkRefundAgainstRemissionTest(){
 
@@ -786,6 +786,7 @@ public class PaymentRefundsServiceTest {
         FeeDto feeDto = FeeDto.feeDtoWith().build();
 
         List<FeeDto> feeDtoList = new ArrayList<>();
+        feeDto.setCcdCaseNumber("1111222233334444");
         feeDtoList.add(feeDto);
 
         PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
@@ -808,6 +809,7 @@ public class PaymentRefundsServiceTest {
             .feeIds("50")
             .refundStatus(RefundStatus.buildRefundStatusWith().name("Accepted").build())
             .reason("Retrospective remission")
+            .ccdCaseNumber("1111222233334444")
             .amount(BigDecimal.valueOf(50)).build();
 
         RefundDto refundDto2 = RefundDto.buildRefundListDtoWith()
@@ -816,6 +818,7 @@ public class PaymentRefundsServiceTest {
             .feeIds("50")
             .refundStatus(RefundStatus.buildRefundStatusWith().name("Accepted").build())
             .reason("Retrospective remission")
+            .ccdCaseNumber("1111222233334444")
             .amount(BigDecimal.valueOf(1000)).build();
 
         List<RefundDto> refundDtoList = new ArrayList<>();
@@ -841,7 +844,7 @@ public class PaymentRefundsServiceTest {
 
     }
 
-    //@Test
+    @Test
     @WithMockUser(authorities = "payments-refund-approver")
     public void checkRefundAgainstRemissionTest1(){
 
@@ -860,6 +863,7 @@ public class PaymentRefundsServiceTest {
         paymentDtoList.add(paymentDto);
 
         FeeDto feeDto = FeeDto.feeDtoWith().build();
+        feeDto.setCcdCaseNumber("1111222233334444");
 
         List<FeeDto> feeDtoList = new ArrayList<>();
         feeDtoList.add(feeDto);
@@ -881,6 +885,7 @@ public class PaymentRefundsServiceTest {
         RefundDto refundDto = RefundDto.buildRefundListDtoWith()
             .refundReference("RF-1111-2222-3333-4444")
             .paymentReference("RC-2222-3333-4444-5555")
+            .ccdCaseNumber("1111222233334444")
             .feeIds("50")
             .refundStatus(RefundStatus.buildRefundStatusWith().name("Accepted").build())
             .reason("Retrospective remission")
@@ -889,6 +894,7 @@ public class PaymentRefundsServiceTest {
         RefundDto refundDto2 = RefundDto.buildRefundListDtoWith()
             .refundReference("RF-1111-2222-3333-4444")
             .paymentReference("RC-2222-3333-4444-5555")
+            .ccdCaseNumber("1111222233334444")
             .feeIds("50")
             .refundStatus(RefundStatus.buildRefundStatusWith().name("Accepted").build())
             .reason("Retrospective remission")
