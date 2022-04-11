@@ -19,7 +19,6 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.RefundsFeeDto;
 import uk.gov.hmcts.payment.api.dto.*;
@@ -34,6 +33,7 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -206,6 +206,110 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             }
         return new ResponseEntity<>(null, HttpStatus.OK);
     }
+
+
+
+    @Override
+    public PaymentGroupResponse checkRefundAgainstRemissionV2(MultiValueMap<String, String> headers,
+                                                            PaymentGroupResponse paymentGroupResponse, String ccdCaseNumber) {
+        //check roles
+
+
+        if(isContainsPaymentsRefundRole()){
+
+            AtomicReference<Boolean> remissionInProgress = new AtomicReference<>(false);
+
+            //get the RefundListDtoResponse by calling refunds app
+            RefundListDtoResponse refundListDtoResponse = getRefundsFromRefundService(ccdCaseNumber, headers);
+
+            LOG.info("refundListDtoResponse : {}", refundListDtoResponse);
+
+
+            if (refundListDtoResponse != null){
+
+                var lambdaContext = new Object() {
+                    BigDecimal refundAmount = BigDecimal.ZERO;
+                };
+
+
+
+                paymentGroupResponse.getPaymentGroups().forEach(paymentGroup ->{
+
+                    //CHECK 1: Check if a remission is refunded or not
+                    paymentGroup.getRemissions().forEach(remission -> {
+
+                        //Given a full/partial remission is added but subsequent refund not submitted
+                        //Then only ADD REFUND needs to be enabled
+                        //and ISSUE REFUND option should not be available
+
+                        int remissionCount =  paymentGroup.getRemissions().size();
+
+                        refundListDtoResponse.getRefundList().forEach(refundDto -> {
+
+                            //Given a refund is already added against a remission
+                            //Then ADD REFUND option should not be available
+
+                            int refundCount = refundListDtoResponse.getRefundList().size();
+
+                            if (Arrays.stream(refundDto.getFeeIds().split(",")).anyMatch(remission.getFeeId().toString()::equals)
+                                && refundDto.getReason().equals("Retrospective remission")){
+                                //Remission has been refunded
+                                remission.setAddRefund(false);
+                            }
+                            else{
+                                //Remission still in progress
+                                remission.setAddRefund(true);
+                                remissionInProgress.set(true);
+                            }
+                        });
+                    });
+
+
+                    //Check 2: Available balance is bigger than zero
+                    paymentGroup.getPayments().forEach(paymentDto -> {
+
+                        refundListDtoResponse.getRefundList().forEach(refundDto -> {
+
+                            if(refundDto.getPaymentReference().equals(paymentDto.getPaymentReference())
+                                && (refundDto.getRefundStatus().getName().equals("Accepted") || refundDto.getRefundStatus().getName().equals("Approved")))
+                                lambdaContext.refundAmount = lambdaContext.refundAmount.add(refundDto.getAmount());
+
+                        });
+                            //When there is no available balance
+                            //Then ISSUE REFUND/ADD REMISSION/ADD REFUND option should not be available
+
+                            if(paymentDto.getAmount().compareTo(lambdaContext.refundAmount) >0) {
+
+                                if(remissionInProgress.getAcquire()) {
+                                    paymentDto.setIssueRefund(true);
+                                }
+
+                                paymentGroup.getFees().forEach(feeDto -> {
+                                    if(!remissionInProgress.getAcquire()) {
+                                        feeDto.setIssueRefundAddRefundAddRemission(true);
+                                    }
+                                });
+                            }
+
+                            else{
+                                paymentDto.setIssueRefund(false);
+
+                                paymentGroup.getFees().forEach(feeDto -> {
+                                    feeDto.setIssueRefundAddRefundAddRemission(false);
+                                });
+
+                            }
+                    });
+
+
+                });
+            }
+        }
+
+        return paymentGroupResponse;
+    }
+
+
 
     @Override
     public PaymentGroupResponse checkRefundAgainstRemission(MultiValueMap<String, String> headers,
