@@ -252,6 +252,11 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
                     });
 
+
+
+
+
+
                     paymentGroup.getRemissions().forEach(remission -> {
 
                         //Given a full/partial remission is added but subsequent refund not submitted
@@ -346,6 +351,21 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
                         });
                     });
+
+
+
+                    paymentGroup.getFees().forEach(feeDto -> {
+
+                        refundListDtoResponse.getRefundList().forEach(refundDto -> {
+
+                            if(refundDto.getCcdCaseNumber().equals(feeDto.getCcdCaseNumber())
+                                && (refundDto.getRefundStatus().getName().equals("Accepted") || refundDto.getRefundStatus().getName().equals("Approved"))) {
+                                feeDto.setOverPayment(BigDecimal.ZERO);
+                            }
+                        });
+                    });
+
+
                 });
             }
         }
