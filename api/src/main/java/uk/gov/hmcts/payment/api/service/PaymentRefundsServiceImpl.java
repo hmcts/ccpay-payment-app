@@ -300,21 +300,36 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                 if(refundRole && balanceAvailable.compareTo(BigDecimal.ZERO) > 0){
 
                     //check if there is a remission and has not been refunded
-                    if(!checkRemissionInProgress(paymentGroupDto, refundListDtoResponse)) {
+//                    if(!checkRemissionInProgress(paymentGroupDto, refundListDtoResponse)) {
 
-                        for (PaymentDto payment : paymentGroupDto.getPayments()) {
-                            payment.setIssueRefund(true);
-                        }
+
 
                         for (FeeDto fee : paymentGroupDto.getFees()) {
                             //check if the fee already has a processed refund or  not
                             for (RefundDto refundDto : refundListDtoResponse.getRefundList()) {
-                                //check if retro-remission has been refunded
-                                if (Arrays.stream(refundDto.getFeeIds().split(",")).anyMatch(fee.getId().toString()::equals)
-                                    && refundDto.getReason().equals("Retrospective remission")) {
-                                    fee.setAddRemission(false);
-                                }else{
-                                    fee.setAddRemission(true);
+                                //check if retro-remission has been refunded or not
+
+                                for (RemissionDto remission : paymentGroupDto.getRemissions()) {
+
+                                    if (!Arrays.stream(refundDto.getFeeIds().split(",")).anyMatch(fee.getId().toString()::equals)
+                                        && fee.getId() == remission.getFeeId()) {
+                                        fee.setAddRemission(false);
+                                        for (PaymentDto payment : paymentGroupDto.getPayments()) {
+                                            payment.setIssueRefund(false);
+                                        }
+                                    } else if(Arrays.stream(refundDto.getFeeIds().split(",")).anyMatch(fee.getId().toString()::equals)
+                                        && refundDto.getReason().equals("Retrospective remission")){
+                                        fee.setAddRemission(false);
+                                        for (PaymentDto payment : paymentGroupDto.getPayments()) {
+                                            payment.setIssueRefund(true);
+                                        }
+                                    }
+                                    else{
+                                        fee.setAddRemission(true);
+                                        for (PaymentDto payment : paymentGroupDto.getPayments()) {
+                                            payment.setIssueRefund(true);
+                                        }
+                                    }
                                 }
                             }
 
@@ -324,17 +339,17 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                             remission.setAddRefund(false);
                         }
 
-                    }else{
-
-                        for (RemissionDto remission : paymentGroupDto.getRemissions()) {
-                            remission.setAddRefund(true);
-                        }
-
-                        for (PaymentDto payment : paymentGroupDto.getPayments()) {
-                            payment.setIssueRefund(false);
-                        }
-
-                    }
+//                    }else{
+//
+//                        for (RemissionDto remission : paymentGroupDto.getRemissions()) {
+//                            remission.setAddRefund(true);
+//                        }
+//
+//                        for (PaymentDto payment : paymentGroupDto.getPayments()) {
+//                            payment.setIssueRefund(false);
+//                        }
+//
+//                    }
 
                 }
 
