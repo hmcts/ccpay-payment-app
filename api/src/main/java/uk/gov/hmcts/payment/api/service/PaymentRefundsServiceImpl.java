@@ -79,14 +79,14 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
 
     public ResponseEntity<RefundResponse> createRefund(PaymentRefundRequest paymentRefundRequest, MultiValueMap<String, String> headers) {
-        
+
         LOG.info("inside create refund");
 
         // validateContactDetails(paymentRefundRequest.getContactDetails());
 
         Payment payment = paymentRepository.findByReference(paymentRefundRequest.getPaymentReference()).orElseThrow(PaymentNotFoundException::new);
 
-        LOG.info("paymentobject");
+        LOG.info("paymentobject",payment.getCcdCaseNumber());
          // validateRefund(paymentRefundRequest,payment.getPaymentLink().getFees());
 
         // validateThePaymentBeforeInitiatingRefund(payment,headers);
@@ -102,7 +102,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             .contactDetails(paymentRefundRequest.getContactDetails())
             .serviceType(payment.getServiceType())
             .build();
-         LOG.info("RefundRequestDto");
+         LOG.info("RefundRequestDto", refundRequest.toString());
 
         RefundResponse refundResponse = RefundResponse.RefundResponseWith()
             .refundAmount(paymentRefundRequest.getTotalRefundAmount())
