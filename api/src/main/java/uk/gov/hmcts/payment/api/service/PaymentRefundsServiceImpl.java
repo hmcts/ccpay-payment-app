@@ -19,7 +19,6 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.RefundsFeeDto;
 import uk.gov.hmcts.payment.api.dto.*;
@@ -44,8 +43,6 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
     private static final Logger LOG = LoggerFactory.getLogger(PaymentRefundsServiceImpl.class);
     private static final String REFUND_ENDPOINT = "/refund";
-    private static final String AUTHORISED_REFUNDS_ROLE = "payments-refund";
-    private static final String AUTHORISED_REFUNDS_APPROVER_ROLE = "payments-refund-approver";
     private static final Pattern EMAIL_ID_REGEX = Pattern.compile("^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}$", Pattern.CASE_INSENSITIVE);
 
     final Predicate<Payment> paymentSuccessCheck =
