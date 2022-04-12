@@ -30,22 +30,22 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @Builder(builderMethodName = "refundRequestWith")
 public class PaymentRefundRequest {
 
-    @NotNull(message = "Payment Reference cannot be null")
-    @NotEmpty(message = "Payment Reference cannot be blank")
+   // @NotNull(message = "Payment Reference cannot be null")
+   // @NotEmpty(message = "Payment Reference cannot be blank")
     private String paymentReference;
 
-    @NotNull(message = "Refund Reason cannot be null")
-    @NotEmpty(message = "Refund Reason cannot be blank")
+   // @NotNull(message = "Refund Reason cannot be null")
+   // @NotEmpty(message = "Refund Reason cannot be blank")
     private String refundReason;
 
-    @Digits(integer = 10, fraction = 2, message = "Please check the amount you want to refund")
-    @NotNull(message = "You need to enter a refund amount")
+   // @Digits(integer = 10, fraction = 2, message = "Please check the amount you want to refund")
+   // @NotNull(message = "You need to enter a refund amount")
     private BigDecimal totalRefundAmount;
 
-    @NotEmpty
-    @Valid
+   // @NotEmpty
+   // @Valid
     private List<RefundsFeeDto>  fees;
 
-    @NotNull(message = "Contact Details cannot be null")
+   // @NotNull(message = "Contact Details cannot be null")
     private ContactDetails contactDetails;
 }

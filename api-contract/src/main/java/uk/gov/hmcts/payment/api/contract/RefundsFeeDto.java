@@ -29,20 +29,20 @@ public class RefundsFeeDto {
 
     private Integer id;
 
-    @NotEmpty
+    //@NotEmpty
     private String code;
 
-    @NotEmpty
+   // @NotEmpty
     private String version;
 
-    @Positive
+   // @Positive
 //    private Integer volume;
 
-    @Positive
+   // @Positive
     private Integer updatedVolume;
 
-    @NotNull
-    @Digits(integer = 10, fraction = 2, message = "Fee calculated amount cannot have more than 2 decimal places")
+   // @NotNull
+    //@Digits(integer = 10, fraction = 2, message = "Fee calculated amount cannot have more than 2 decimal places")
     private BigDecimal calculatedAmount;
 
     private BigDecimal apportionAmount;
