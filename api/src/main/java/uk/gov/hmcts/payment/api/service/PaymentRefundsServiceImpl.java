@@ -225,9 +225,6 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             LOG.info("refundListDtoResponse : {}", refundListDtoResponse);
 
 
-            if (refundListDtoResponse == null) {
-                refundListDtoResponse = new RefundListDtoResponse();
-            }
 
                 var lambdaContext = new Object() {
                     BigDecimal refundAmount = BigDecimal.ZERO;
@@ -253,7 +250,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                         LOG.info("REMISSION COUNT: {}", remissionCount);
 
 
-                        if(!refundListDtoResponse.getRefundList().isEmpty()) {
+                        if(refundListDtoResponse != null) {
                             refundListDtoResponse.getRefundList().forEach(refundDto -> {
                                 LOG.info("INSIDE REFUNDS LOOP");
 
