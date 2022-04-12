@@ -83,32 +83,39 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         LOG.info("inside create refund");
 
         // validateContactDetails(paymentRefundRequest.getContactDetails());
+        RefundResponse refundResponse = new RefundResponse();
+        try {
 
-        Payment payment = paymentRepository.findByReference(paymentRefundRequest.getPaymentReference()).orElseThrow(PaymentNotFoundException::new);
+            Payment payment = paymentRepository.findByReference(paymentRefundRequest.getPaymentReference()).orElseThrow(PaymentNotFoundException::new);
 
-        LOG.info("paymentobject",payment.getCcdCaseNumber());
-         // validateRefund(paymentRefundRequest,payment.getPaymentLink().getFees());
+            LOG.info("paymentobject", payment.getCcdCaseNumber());
+            // validateRefund(paymentRefundRequest,payment.getPaymentLink().getFees());
 
-        // validateThePaymentBeforeInitiatingRefund(payment,headers);
+            // validateThePaymentBeforeInitiatingRefund(payment,headers);
 
-        RefundRequestDto refundRequest = RefundRequestDto.refundRequestDtoWith()
-            .paymentReference(paymentRefundRequest.getPaymentReference())
-            .refundAmount(paymentRefundRequest.getTotalRefundAmount())
-            .paymentAmount(payment.getAmount())
-            .paymentMethod(payment.getPaymentMethod().toString())
-            .ccdCaseNumber(payment.getCcdCaseNumber())
-            .refundReason(paymentRefundRequest.getRefundReason())
-            .feeIds(getFeeIds(paymentRefundRequest.getFees()))
-            .refundFees(getRefundFees(paymentRefundRequest.getFees()))
-            .contactDetails(paymentRefundRequest.getContactDetails())
-            .serviceType(payment.getServiceType())
-            .build();
-         LOG.info("RefundRequestDto", refundRequest.toString());
+            RefundRequestDto refundRequest = RefundRequestDto.refundRequestDtoWith()
+                .paymentReference(paymentRefundRequest.getPaymentReference())
+                .refundAmount(paymentRefundRequest.getTotalRefundAmount())
+                .paymentAmount(payment.getAmount())
+                .paymentMethod(payment.getPaymentMethod().toString())
+                .ccdCaseNumber(payment.getCcdCaseNumber())
+                .refundReason(paymentRefundRequest.getRefundReason())
+                .feeIds(getFeeIds(paymentRefundRequest.getFees()))
+                .refundFees(getRefundFees(paymentRefundRequest.getFees()))
+                .contactDetails(paymentRefundRequest.getContactDetails())
+                .serviceType(payment.getServiceType())
+                .build();
+            LOG.info("RefundRequestDto", refundRequest.toString());
 
-        RefundResponse refundResponse = RefundResponse.RefundResponseWith()
-            .refundAmount(paymentRefundRequest.getTotalRefundAmount())
-            .refundReference(postToRefundService(refundRequest, headers)).build();
+             refundResponse = RefundResponse.RefundResponseWith()
+                .refundAmount(paymentRefundRequest.getTotalRefundAmount())
+                .refundReference(postToRefundService(refundRequest, headers)).build();
 
+
+            return new ResponseEntity<>(refundResponse, HttpStatus.CREATED);
+        }catch(Exception e){
+            LOG.error(e.getMessage());
+        }
         return new ResponseEntity<>(refundResponse, HttpStatus.CREATED);
 
     }
