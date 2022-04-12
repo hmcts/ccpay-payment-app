@@ -2,6 +2,8 @@ package uk.gov.hmcts.payment.api.controllers;
 
 
 import io.swagger.annotations.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +31,8 @@ import javax.validation.Valid;
 @SwaggerDefinition(tags = {@Tag(name = "RefundsController", description = "Refunds REST API")})
 public class RefundsController {
 
+    private static final Logger LOG = LoggerFactory.getLogger(RefundsController.class);
+
     @Autowired
     private PaymentRefundsService paymentRefundsService;
 
@@ -44,6 +48,7 @@ public class RefundsController {
     @ResponseBody
     @Transactional(rollbackFor = Exception.class)
     public ResponseEntity<RefundResponse> createRefundPayment(@Valid @RequestBody PaymentRefundRequest paymentRefundRequest, @RequestHeader(required = false) MultiValueMap<String, String> headers) {
+        LOG.info("Inside Refund Controller");
         return paymentRefundsService.createRefund(paymentRefundRequest, headers);
     }
 
