@@ -311,21 +311,28 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
                                 for (RemissionDto remission : paymentGroupDto.getRemissions()) {
 
+                                    //IF THERE IS NO PROCESSED REFUND FOR THE FEE BUT THERE IS AN ACTIVE REMISSION
                                     if (!Arrays.stream(refundDto.getFeeIds().split(",")).anyMatch(fee.getId().toString()::equals)
                                         && fee.getId() == remission.getFeeId()) {
                                         fee.setAddRemission(false);
+                                        remission.setAddRefund(true);
                                         for (PaymentDto payment : paymentGroupDto.getPayments()) {
                                             payment.setIssueRefund(false);
                                         }
-                                    } else if(Arrays.stream(refundDto.getFeeIds().split(",")).anyMatch(fee.getId().toString()::equals)
+                                    }
+                                    //IF THERE IS A PROCESSED REFUND FOR THE FEE
+                                    else if(Arrays.stream(refundDto.getFeeIds().split(",")).anyMatch(fee.getId().toString()::equals)
                                         && refundDto.getReason().equals("Retrospective remission")){
                                         fee.setAddRemission(false);
+                                        remission.setAddRefund(false);
                                         for (PaymentDto payment : paymentGroupDto.getPayments()) {
                                             payment.setIssueRefund(true);
                                         }
                                     }
-                                    else{
+                                    else if(!Arrays.stream(refundDto.getFeeIds().split(",")).anyMatch(fee.getId().toString()::equals)
+                                        && fee.getId() != remission.getFeeId()){
                                         fee.setAddRemission(true);
+                                        remission.setAddRefund(false);
                                         for (PaymentDto payment : paymentGroupDto.getPayments()) {
                                             payment.setIssueRefund(true);
                                         }
@@ -334,10 +341,10 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                             }
 
                         }
-
-                        for (RemissionDto remission : paymentGroupDto.getRemissions()) {
-                            remission.setAddRefund(false);
-                        }
+//
+//                        for (RemissionDto remission : paymentGroupDto.getRemissions()) {
+//                            remission.setAddRefund(false);
+//                        }
 
 //                    }else{
 //
