@@ -225,7 +225,9 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             LOG.info("refundListDtoResponse : {}", refundListDtoResponse);
 
 
-            if (refundListDtoResponse != null){
+            if (refundListDtoResponse == null) {
+                refundListDtoResponse = new RefundListDtoResponse();
+            }
 
                 var lambdaContext = new Object() {
                     BigDecimal refundAmount = BigDecimal.ZERO;
@@ -251,39 +253,50 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                         LOG.info("REMISSION COUNT: {}", remissionCount);
 
 
-                        refundListDtoResponse.getRefundList().forEach(refundDto -> {
-                            LOG.info("INSIDE REFUNDS LOOP");
+                        if(!refundListDtoResponse.getRefundList().isEmpty()) {
+                            refundListDtoResponse.getRefundList().forEach(refundDto -> {
+                                LOG.info("INSIDE REFUNDS LOOP");
 
-                            //Given a refund is already added against a remission
-                            //Then ADD REFUND option should not be available
+                                //Given a refund is already added against a remission
+                                //Then ADD REFUND option should not be available
 
-                            int refundCount = refundListDtoResponse.getRefundList().size();
+                                int refundCount = refundListDtoResponse.getRefundList().size();
 
-                            if(remissionCount >0) {
-                                LOG.info("INSIDE REMISSION COUNT IF");
+                                if (remissionCount > 0) {
+                                    LOG.info("INSIDE REMISSION COUNT IF");
 
-                                if (Arrays.stream(refundDto.getFeeIds().split(",")).anyMatch(remission.getFeeId().toString()::equals)
-                                    && refundDto.getReason().equals("Retrospective remission")) {
-                                    LOG.info("INSIDE REFUND PROCESSED IF");
+                                    if (Arrays.stream(refundDto.getFeeIds().split(",")).anyMatch(remission.getFeeId().toString()::equals)
+                                        && refundDto.getReason().equals("Retrospective remission")) {
+                                        LOG.info("INSIDE REFUND PROCESSED IF");
 
-                                    //Remission has been refunded
+                                        //Remission has been refunded
+                                        remission.setAddRefund(false);
+                                        remissionInProgress.set(false);
+
+                                    } else {
+                                        LOG.info("INSIDE REFUND NOT PROCESSED IF");
+
+                                        //Remission still in progress
+                                        remission.setAddRefund(true);
+                                        remissionInProgress.set(true);
+                                    }
+                                } else {
+                                    LOG.info("INSIDE REMISSION COUNT ELSE IF");
+
                                     remission.setAddRefund(false);
                                     remissionInProgress.set(false);
-
-                                } else {
-                                    LOG.info("INSIDE REFUND NOT PROCESSED IF");
-
-                                    //Remission still in progress
-                                    remission.setAddRefund(true);
-                                    remissionInProgress.set(true);
                                 }
-                            }else{
-                                LOG.info("INSIDE REMISSION COUNT ELSE IF");
+                            });
+                        }else{
+                            LOG.info("INSIDE empty refunds ELSE IF");
 
-                                remission.setAddRefund(false);
-                                remissionInProgress.set(false);
+                            if (remissionCount > 0) {
+                                remission.setAddRefund(true);
+                                remissionInProgress.set(true);
+
                             }
-                        });
+
+                        }
                     });
 
 
@@ -334,7 +347,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
 
                 });
-            }
+//            }
         }
 
         return paymentGroupResponse;
@@ -506,7 +519,8 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
         } catch (HttpClientErrorException e) {
 
-            LOG.error("client err ", e);
+            LOG.error("client err ", e.getStatusText());
+
 
             refundListDtoResponse = null;
 
