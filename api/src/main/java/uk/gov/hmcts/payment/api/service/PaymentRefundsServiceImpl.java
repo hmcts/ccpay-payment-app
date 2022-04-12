@@ -733,6 +733,28 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                             });
                         }
 
+
+
+                    });
+
+                    paymentGroupDto.getFees().forEach(feeDto -> {
+
+                        refundListDtoResponse.getRefundList().forEach(refundDto -> {
+
+                            if(refundDto.getCcdCaseNumber().equals(feeDto.getCcdCaseNumber())) {
+                                feeDto.setOverPayment(BigDecimal.ZERO);
+                            }
+                        });
+                    });
+
+                    paymentGroupDto.getPayments().forEach(paymentDto1 -> {
+
+                        refundListDtoResponse.getRefundList().forEach(refundDto -> {
+
+                            if(refundDto.getCcdCaseNumber().equals(paymentDto1.getCcdCaseNumber())) {
+                                paymentDto.setOverPayment(BigDecimal.ZERO);
+                            }
+                        });
                     });
                 }
             });
