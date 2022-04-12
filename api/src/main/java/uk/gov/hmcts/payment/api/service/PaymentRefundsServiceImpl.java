@@ -373,6 +373,16 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                         });
                     });
 
+                    paymentGroup.getPayments().forEach(paymentDto -> {
+
+                        refundListDtoResponse.getRefundList().forEach(refundDto -> {
+
+                            if(refundDto.getCcdCaseNumber().equals(paymentDto.getCcdCaseNumber())) {
+                                paymentDto.setOverPayment(BigDecimal.ZERO);
+                            }
+                        });
+                    });
+
 
                 });
             }
