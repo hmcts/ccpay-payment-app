@@ -71,6 +71,7 @@ public class RefundsController {
         @RequestHeader("Authorization") String authorization,
         @PathVariable("payment-reference") String paymentReference,
         @RequestBody @Valid ResubmitRefundRemissionRequest request) {
+        LOG.info("Inside updateRemissionAmountResubmitRefund with paymentReference: {}", paymentReference);
         return paymentRefundsService.updateTheRemissionAmount(paymentReference, request);
     }
 
