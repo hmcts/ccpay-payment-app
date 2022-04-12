@@ -2,6 +2,8 @@ package uk.gov.hmcts.payment.api.controllers;
 
 
 import io.swagger.annotations.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,6 +30,8 @@ import javax.validation.Valid;
 @Api(tags = {"Refund group"})
 @SwaggerDefinition(tags = {@Tag(name = "RefundsController", description = "Refunds REST API")})
 public class RefundsController {
+
+    private static final Logger LOG = LoggerFactory.getLogger(RefundsController.class);
 
     @Autowired
     private PaymentRefundsService paymentRefundsService;
@@ -73,23 +77,27 @@ public class RefundsController {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler({PaymentNotSuccessException.class, NonPBAPaymentException.class, RemissionNotFoundException.class, InvalidRefundRequestException.class, InvalidPartialRefundRequestException.class})
     public String return400(Exception ex) {
+        LOG.error(ex.getMessage(), ex);
         return ex.getMessage();
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(PaymentNotFoundException.class)
     public String notFound(PaymentNotFoundException ex) {
+        LOG.error(ex.getMessage(), ex);
         return ex.getMessage();
     }
 
     @ExceptionHandler(HttpClientErrorException.class)
     public ResponseEntity returnClientException(HttpClientErrorException ex) {
+        LOG.error(ex.getMessage(), ex);
         return new ResponseEntity<>(ex.getResponseBodyAsString(), ex.getStatusCode());
     }
 
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(HttpServerErrorException.class)
     public String returnServerException(HttpServerErrorException ex) {
+        LOG.error(ex.getMessage(), ex);
         return ex.getResponseBodyAsString();
     }
 }
