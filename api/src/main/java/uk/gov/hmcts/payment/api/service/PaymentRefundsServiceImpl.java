@@ -309,6 +309,11 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                                 paymentDto.setOverPayment(BigDecimal.ZERO);
                             }
 
+
+                            if(refundDto.getPaymentReference().equals(paymentDto.getPaymentReference())) {
+                                paymentDto.setOverPayment(BigDecimal.ZERO);
+                            }
+
                             //When there is no available balance
                             //Then ISSUE REFUND/ADD REMISSION/ADD REFUND option should not be available
 
@@ -361,8 +366,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
                         refundListDtoResponse.getRefundList().forEach(refundDto -> {
 
-                            if(refundDto.getCcdCaseNumber().equals(feeDto.getCcdCaseNumber())
-                                && (refundDto.getRefundStatus().getName().equals("Accepted") || refundDto.getRefundStatus().getName().equals("Approved"))) {
+                            if(refundDto.getCcdCaseNumber().equals(feeDto.getCcdCaseNumber())) {
                                 feeDto.setOverPayment(BigDecimal.ZERO);
                             }
                         });
