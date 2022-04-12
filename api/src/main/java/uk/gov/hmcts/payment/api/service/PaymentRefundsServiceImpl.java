@@ -234,9 +234,13 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
 
                 paymentGroupResponse.getPaymentGroups().forEach(paymentGroup ->{
+                    LOG.info("INSIDE PAYMENT GROUP LOOP");
+
 
                     //CHECK 1: Check if a remission is refunded or not
                     paymentGroup.getRemissions().forEach(remission -> {
+                        LOG.info("INSIDE REMISSION LOOP");
+
 
                         //Given a full/partial remission is added but subsequent refund not submitted
                         //Then only ADD REFUND needs to be enabled
@@ -244,22 +248,40 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
                         int remissionCount =  paymentGroup.getRemissions().size();
 
+                        LOG.info("REMISSION COUNT: {}", remissionCount);
+
+
                         refundListDtoResponse.getRefundList().forEach(refundDto -> {
+                            LOG.info("INSIDE REFUNDS LOOP");
 
                             //Given a refund is already added against a remission
                             //Then ADD REFUND option should not be available
 
                             int refundCount = refundListDtoResponse.getRefundList().size();
 
-                            if (Arrays.stream(refundDto.getFeeIds().split(",")).anyMatch(remission.getFeeId().toString()::equals)
-                                && refundDto.getReason().equals("Retrospective remission")){
-                                //Remission has been refunded
+                            if(remissionCount >0) {
+                                LOG.info("INSIDE REMISSION COUNT IF");
+
+                                if (Arrays.stream(refundDto.getFeeIds().split(",")).anyMatch(remission.getFeeId().toString()::equals)
+                                    && refundDto.getReason().equals("Retrospective remission")) {
+                                    LOG.info("INSIDE REFUND PROCESSED IF");
+
+                                    //Remission has been refunded
+                                    remission.setAddRefund(false);
+                                    remissionInProgress.set(false);
+
+                                } else {
+                                    LOG.info("INSIDE REFUND NOT PROCESSED IF");
+
+                                    //Remission still in progress
+                                    remission.setAddRefund(true);
+                                    remissionInProgress.set(true);
+                                }
+                            }else{
+                                LOG.info("INSIDE REMISSION COUNT ELSE IF");
+
                                 remission.setAddRefund(false);
-                            }
-                            else{
-                                //Remission still in progress
-                                remission.setAddRefund(true);
-                                remissionInProgress.set(true);
+                                remissionInProgress.set(false);
                             }
                         });
                     });
@@ -278,21 +300,30 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                             //When there is no available balance
                             //Then ISSUE REFUND/ADD REMISSION/ADD REFUND option should not be available
 
-                            if(paymentDto.getAmount().compareTo(lambdaContext.refundAmount) >0) {
+                        LOG.info("OUTSIDE AMOUNT COMPARISON IF");
 
-                                if(remissionInProgress.getAcquire()) {
-                                    paymentDto.setIssueRefund(true);
+                        if(paymentDto.getAmount().compareTo(lambdaContext.refundAmount) >0) {
+                            LOG.info("INSIDE AMOUNT COMPARISON IF");
+
+
+                            if(remissionInProgress.getAcquire()) {
+                                LOG.info("INSIDE GET ACQUIRE IF 1");
+
+                                paymentDto.setIssueRefund(true);
                                 }
 
                                 paymentGroup.getFees().forEach(feeDto -> {
                                     if(!remissionInProgress.getAcquire()) {
+                                        LOG.info("INSIDE GET ACQUIRE IF 2");
                                         feeDto.setIssueRefundAddRefundAddRemission(true);
                                     }
                                 });
                             }
 
                             else{
-                                paymentDto.setIssueRefund(false);
+                            LOG.info("INSIDE AMOUNT COMPARISON ELSE IF");
+
+                            paymentDto.setIssueRefund(false);
 
                                 paymentGroup.getFees().forEach(feeDto -> {
                                     feeDto.setIssueRefundAddRefundAddRemission(false);
