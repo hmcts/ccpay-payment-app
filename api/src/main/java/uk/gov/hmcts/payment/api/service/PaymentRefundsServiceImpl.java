@@ -300,13 +300,15 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                     //Check 2: Available balance is bigger than zero
                     paymentGroup.getPayments().forEach(paymentDto -> {
 
-                        refundListDtoResponse.getRefundList().forEach(refundDto -> {
+                        if(refundListDtoResponse != null) {
+                            refundListDtoResponse.getRefundList().forEach(refundDto -> {
 
-                            if(refundDto.getPaymentReference().equals(paymentDto.getPaymentReference())
-                                && (refundDto.getRefundStatus().getName().equals("Accepted") || refundDto.getRefundStatus().getName().equals("Approved")))
-                                lambdaContext.refundAmount = lambdaContext.refundAmount.add(refundDto.getAmount());
+                                if (refundDto.getPaymentReference().equals(paymentDto.getPaymentReference())
+                                    && (refundDto.getRefundStatus().getName().equals("Accepted") || refundDto.getRefundStatus().getName().equals("Approved")))
+                                    lambdaContext.refundAmount = lambdaContext.refundAmount.add(refundDto.getAmount());
 
-                        });
+                            });
+                        }
                             //When there is no available balance
                             //Then ISSUE REFUND/ADD REMISSION/ADD REFUND option should not be available
 
