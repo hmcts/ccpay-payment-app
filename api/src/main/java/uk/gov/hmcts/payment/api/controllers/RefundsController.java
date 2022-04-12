@@ -48,6 +48,7 @@ public class RefundsController {
     @ResponseBody
     @Transactional(rollbackFor = Exception.class)
     public ResponseEntity<RefundResponse> createRefundPayment(@Valid @RequestBody PaymentRefundRequest paymentRefundRequest, @RequestHeader(required = false) MultiValueMap<String, String> headers) {
+        LOG.info("Inside Refund Controller");
         return paymentRefundsService.createRefund(paymentRefundRequest, headers);
     }
 

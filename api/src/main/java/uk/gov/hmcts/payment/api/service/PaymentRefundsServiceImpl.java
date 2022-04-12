@@ -80,14 +80,16 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
     public ResponseEntity<RefundResponse> createRefund(PaymentRefundRequest paymentRefundRequest, MultiValueMap<String, String> headers) {
 
-        validateContactDetails(paymentRefundRequest.getContactDetails());
+        LOG.info("inside create refund");
+
+        // validateContactDetails(paymentRefundRequest.getContactDetails());
 
         Payment payment = paymentRepository.findByReference(paymentRefundRequest.getPaymentReference()).orElseThrow(PaymentNotFoundException::new);
 
+        LOG.info("paymentobject",payment.getCcdCaseNumber());
+         // validateRefund(paymentRefundRequest,payment.getPaymentLink().getFees());
 
-          validateRefund(paymentRefundRequest,payment.getPaymentLink().getFees());
-
-        validateThePaymentBeforeInitiatingRefund(payment,headers);
+        // validateThePaymentBeforeInitiatingRefund(payment,headers);
 
         RefundRequestDto refundRequest = RefundRequestDto.refundRequestDtoWith()
             .paymentReference(paymentRefundRequest.getPaymentReference())
@@ -100,6 +102,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             .contactDetails(paymentRefundRequest.getContactDetails())
             .serviceType(payment.getServiceType())
             .build();
+         LOG.info("RefundRequestDto", refundRequest.toString());
 
         RefundResponse refundResponse = RefundResponse.RefundResponseWith()
             .refundAmount(paymentRefundRequest.getTotalRefundAmount())
@@ -252,6 +255,11 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
                     });
 
+
+
+
+
+
                     paymentGroup.getRemissions().forEach(remission -> {
 
                         //Given a full/partial remission is added but subsequent refund not submitted
@@ -294,9 +302,17 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
                         refundListDtoResponse.getRefundList().forEach(refundDto -> {
 
+
                             if(refundDto.getPaymentReference().equals(paymentDto.getPaymentReference())
-                                && (refundDto.getRefundStatus().getName().equals("Accepted") || refundDto.getRefundStatus().getName().equals("Approved")))
+                                && (refundDto.getRefundStatus().getName().equals("Accepted") || refundDto.getRefundStatus().getName().equals("Approved"))) {
                                 lambdaContext.refundAmount = lambdaContext.refundAmount.add(refundDto.getAmount());
+                                paymentDto.setOverPayment(BigDecimal.ZERO);
+                            }
+
+
+                            if(refundDto.getPaymentReference().equals(paymentDto.getPaymentReference())) {
+                                paymentDto.setOverPayment(BigDecimal.ZERO);
+                            }
 
                             //When there is no available balance
                             //Then ISSUE REFUND/ADD REMISSION/ADD REFUND option should not be available
@@ -343,6 +359,20 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
                         });
                     });
+
+
+
+                    paymentGroup.getFees().forEach(feeDto -> {
+
+                        refundListDtoResponse.getRefundList().forEach(refundDto -> {
+
+                            if(refundDto.getCcdCaseNumber().equals(feeDto.getCcdCaseNumber())) {
+                                feeDto.setOverPayment(BigDecimal.ZERO);
+                            }
+                        });
+                    });
+
+
                 });
             }
         }
@@ -518,7 +548,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
     private void validateRefund(PaymentRefundRequest paymentRefundRequest, List<PaymentFee> paymentFeeList) {
 
-        if(paymentRefundRequest.getRefundReason()!="RR037") {
+
 
             if (paymentRefundRequest.getTotalRefundAmount().compareTo(BigDecimal.valueOf(0)) == 0)
                 throw new InvalidPartialRefundRequestException("You need to enter a refund amount");
@@ -552,7 +582,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                 }
             }
         }
-    }
+
 
     @Override
     public PaymentGroupDto checkRefundAgainstRemissionFeeApportion(MultiValueMap<String, String> headers,
