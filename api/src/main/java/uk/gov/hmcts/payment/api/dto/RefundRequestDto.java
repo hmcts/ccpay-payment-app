@@ -46,5 +46,4 @@ public class RefundRequestDto {
 
     private PaymentChannel paymentChannel;
 
-    private PaymentMethod paymentMethod;
 }
