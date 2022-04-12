@@ -82,8 +82,10 @@ public class FeeDto {
     private Date dateReceiptProcessed;
 
     private Boolean remissionEnable;
-  
+
     private boolean issueRefundAddRefundAddRemission;
+
+    private boolean addRemission;
 
     @Override
     public String toString() {
