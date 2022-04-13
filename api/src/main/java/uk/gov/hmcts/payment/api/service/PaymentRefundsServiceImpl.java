@@ -384,7 +384,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
                         refundListDtoResponse.getRefundList().forEach(refundDto -> {
 
-                            if(refundDto.getCcdCaseNumber().equals(paymentDto.getCcdCaseNumber())) {
+                            if(refundDto.getPaymentReference().equals(paymentDto.getReference())) {
                                 paymentDto.setOverPayment(BigDecimal.ZERO);
                             }
                         });
