@@ -204,17 +204,21 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
     @Override
     public ResponseEntity updateTheRemissionAmount(String paymentReference, ResubmitRefundRemissionRequest request) {
         //Payment not found exception
+        LOG.info("Inside updateTheRemissionAmount");
         Payment payment = paymentRepository.findByReference(paymentReference).orElseThrow(PaymentNotFoundException::new);
-
+        LOG.info("Found paymentByReference");
             if (payment.getAmount().compareTo(request.getTotalRefundedAmount()) < 0) {
+                LOG.info("throwing InvalidRefundRequestException since Refund amount is more than Payment amount");
                 throw new InvalidRefundRequestException("Refund amount should not be more than Payment amount");
             }
 
             //If refund reason is retro-remission
             if (request.getRefundReason().contains("RR036")) {
+                    LOG.info("Going to updateRemissionAmount");
                     Integer feeId = Integer.parseInt(request.getFeeId());
                     updateRemissionAmount(feeId, request.getAmount());
             }
+        LOG.info("Returning status OK from updateTheRemissionAmount");
         return new ResponseEntity<>(null, HttpStatus.OK);
     }
 
@@ -566,40 +570,41 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
     private void validateRefund(PaymentRefundRequest paymentRefundRequest, List<PaymentFee> paymentFeeList) {
 
+        if(paymentRefundRequest.getTotalRefundAmount().compareTo(BigDecimal.valueOf(0))==0)
+            throw new InvalidPartialRefundRequestException("You need to enter a refund amount");
 
+        for(PaymentFee paymentFee : paymentFeeList){
+            for (RefundsFeeDto feeDto : paymentRefundRequest.getFees()) {
 
-            if (paymentRefundRequest.getTotalRefundAmount().compareTo(BigDecimal.valueOf(0)) == 0)
-                throw new InvalidPartialRefundRequestException("You need to enter a refund amount");
+                if (feeDto.getId().intValue() == paymentFee.getId().intValue()){
 
-            for (PaymentFee paymentFee : paymentFeeList) {
-                for (RefundsFeeDto feeDto : paymentRefundRequest.getFees()) {
+                    if(feeDto.getUpdatedVolume()==0)
+                        throw new InvalidPartialRefundRequestException("You need to enter a valid number");
 
-                    if (feeDto.getId().intValue() == paymentFee.getId().intValue()) {
+                    if(feeDto.getRefundAmount().compareTo(feeDto.getApportionAmount())>0)
+                        throw new InvalidPartialRefundRequestException("The amount you want to refund is more than the amount paid");
 
-                        if (feeDto.getUpdatedVolume() == 0)
-                            throw new InvalidPartialRefundRequestException("You need to enter a valid number");
+                    if(feeDto.getUpdatedVolume()>paymentFee.getVolume())
+                        throw new InvalidPartialRefundRequestException("The quantity you want to refund is more than the available quantity");
 
-                        if (feeDto.getRefundAmount().compareTo(feeDto.getApportionAmount()) > 0)
-                            throw new InvalidPartialRefundRequestException("The amount you want to refund is more than the amount paid");
-
-                        if (feeDto.getUpdatedVolume() > paymentFee.getVolume())
-                            throw new InvalidPartialRefundRequestException("The quantity you want to refund is more than the available quantity");
-
-                        if (feeDto.getRefundAmount().compareTo(paymentFee.getFeeAmount().multiply(new BigDecimal(feeDto.getUpdatedVolume()))) > 0) {
-                            LOG.info("Refund amount : {}", paymentFee.getFeeAmount().intValue());
-                            LOG.info("RefundxVolume : {}", BigDecimal.valueOf((long) paymentFee.getFeeAmount().intValue() * feeDto.getUpdatedVolume()));
-                            LOG.info("Volume : {}", feeDto.getUpdatedVolume());
-                            throw new InvalidPartialRefundRequestException("The Amount to Refund should be equal to the product of Fee Amount and quantity");
-                        }
-
-                        if (feeDto.getRefundAmount().compareTo(feeDto.getApportionAmount()) == 0 && feeDto.getUpdatedVolume() < paymentFee.getVolume()
-                            && feeDto.getUpdatedVolume() > 1)
-                            throw new InvalidPartialRefundRequestException("The quantity you want to refund should be maximum in case of full refund");
-
+                    LOG.info("feeDto.getRefundAmount(): {}", feeDto.getRefundAmount());
+                    LOG.info("paymentFee.getFeeAmount(): {}", paymentFee.getFeeAmount());
+                    LOG.info("feeDto.getUpdatedVolume(): {}", feeDto.getUpdatedVolume());
+                    if(feeDto.getRefundAmount().compareTo(paymentFee.getFeeAmount().multiply(new BigDecimal(feeDto.getUpdatedVolume())))>0) {
+                        LOG.info("Refund amount : {}", paymentFee.getFeeAmount().intValue());
+                        LOG.info("RefundxVolume : {}", BigDecimal.valueOf((long) paymentFee.getFeeAmount().intValue() *feeDto.getUpdatedVolume()));
+                        LOG.info("Volume : {}", feeDto.getUpdatedVolume());
+                        throw new InvalidPartialRefundRequestException("The Amount to Refund should be equal to the product of Fee Amount and quantity");
                     }
+
+                    if(feeDto.getRefundAmount().compareTo(feeDto.getApportionAmount())==0 && feeDto.getUpdatedVolume()<paymentFee.getVolume()
+                        && feeDto.getUpdatedVolume()>1)
+                        throw new InvalidPartialRefundRequestException("The quantity you want to refund should be maximum in case of full refund");
+
                 }
             }
         }
+    }
 
 
     @Override

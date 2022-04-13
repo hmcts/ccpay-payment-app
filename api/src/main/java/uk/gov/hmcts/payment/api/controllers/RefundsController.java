@@ -72,29 +72,34 @@ public class RefundsController {
         @RequestHeader("Authorization") String authorization,
         @PathVariable("payment-reference") String paymentReference,
         @RequestBody @Valid ResubmitRefundRemissionRequest request) {
+        LOG.info("Inside updateRemissionAmountResubmitRefund with paymentReference: {}", paymentReference);
         return paymentRefundsService.updateTheRemissionAmount(paymentReference, request);
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler({PaymentNotSuccessException.class, NonPBAPaymentException.class, RemissionNotFoundException.class, InvalidRefundRequestException.class, InvalidPartialRefundRequestException.class})
     public String return400(Exception ex) {
+        LOG.error(ex.getMessage(), ex);
         return ex.getMessage();
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(PaymentNotFoundException.class)
     public String notFound(PaymentNotFoundException ex) {
+        LOG.error(ex.getMessage(), ex);
         return ex.getMessage();
     }
 
     @ExceptionHandler(HttpClientErrorException.class)
     public ResponseEntity returnClientException(HttpClientErrorException ex) {
+        LOG.error(ex.getMessage(), ex);
         return new ResponseEntity<>(ex.getResponseBodyAsString(), ex.getStatusCode());
     }
 
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(HttpServerErrorException.class)
     public String returnServerException(HttpServerErrorException ex) {
+        LOG.error(ex.getMessage(), ex);
         return ex.getResponseBodyAsString();
     }
 }
