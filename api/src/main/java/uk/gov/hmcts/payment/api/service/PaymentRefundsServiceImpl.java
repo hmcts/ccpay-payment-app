@@ -324,6 +324,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 //                            for (RefundDto refundDto : refundListDtoResponse.getRefundList()) {
                                 //check if retro-remission has been refunded or not
 
+                            if(!paymentGroupDto.getRemissions().isEmpty()){
                                 for (RemissionDto remission : paymentGroupDto.getRemissions()) {
                                     if (fee.getId() == remission.getFeeId()) {
 
@@ -361,7 +362,13 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                                         }
                                     }
                                 }
-//                            }
+                            }
+                            else{
+                                for (PaymentDto payment : paymentGroupDto.getPayments()) {
+                                    payment.setIssueRefund(true);
+                                }
+                                fee.setAddRemission(true);
+                            }
 
                         }
 //
