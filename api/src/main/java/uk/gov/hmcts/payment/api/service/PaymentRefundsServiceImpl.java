@@ -193,17 +193,21 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
     @Override
     public ResponseEntity updateTheRemissionAmount(String paymentReference, ResubmitRefundRemissionRequest request) {
         //Payment not found exception
+        LOG.info("Inside updateTheRemissionAmount");
         Payment payment = paymentRepository.findByReference(paymentReference).orElseThrow(PaymentNotFoundException::new);
-
+        LOG.info("Found paymentByReference");
             if (payment.getAmount().compareTo(request.getTotalRefundedAmount()) < 0) {
+                LOG.info("throwing InvalidRefundRequestException since Refund amount is more than Payment amount");
                 throw new InvalidRefundRequestException("Refund amount should not be more than Payment amount");
             }
 
             //If refund reason is retro-remission
             if (request.getRefundReason().contains("RR036")) {
+                    LOG.info("Going to updateRemissionAmount");
                     Integer feeId = Integer.parseInt(request.getFeeId());
                     updateRemissionAmount(feeId, request.getAmount());
             }
+        LOG.info("Returning status OK from updateTheRemissionAmount");
         return new ResponseEntity<>(null, HttpStatus.OK);
     }
 
@@ -538,6 +542,9 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                     if(feeDto.getUpdatedVolume()>paymentFee.getVolume())
                         throw new InvalidPartialRefundRequestException("The quantity you want to refund is more than the available quantity");
 
+                    LOG.info("feeDto.getRefundAmount(): {}", feeDto.getRefundAmount());
+                    LOG.info("paymentFee.getFeeAmount(): {}", paymentFee.getFeeAmount());
+                    LOG.info("feeDto.getUpdatedVolume(): {}", feeDto.getUpdatedVolume());
                     if(feeDto.getRefundAmount().compareTo(paymentFee.getFeeAmount().multiply(new BigDecimal(feeDto.getUpdatedVolume())))>0) {
                         LOG.info("Refund amount : {}", paymentFee.getFeeAmount().intValue());
                         LOG.info("RefundxVolume : {}", BigDecimal.valueOf((long) paymentFee.getFeeAmount().intValue() *feeDto.getUpdatedVolume()));
