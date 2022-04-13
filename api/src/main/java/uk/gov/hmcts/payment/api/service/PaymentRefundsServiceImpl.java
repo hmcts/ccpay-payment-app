@@ -343,7 +343,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                                         else if (refundedFees.stream().anyMatch(fee.getId().toString()::equals)) {
                                             LOG.info("ENTERED PROCESSED REFUND ELSEIF");
 
-                                            fee.setAddRemission(false);
+                                            fee.setAddRemission(true);
                                             remission.setAddRefund(false);
                                             for (PaymentDto payment : paymentGroupDto.getPayments()) {
                                                 payment.setIssueRefund(true);
