@@ -230,7 +230,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                 totalPaymentAmount = totalPaymentAmount.add(payment.getAmount());
 
                 //if theres a refund available for this payment, get the total refund amount
-                if (refundListDtoResponse.getRefundList() != null) {
+                if (refundListDtoResponse != null) {
                     for (RefundDto refundDto : refundListDtoResponse.getRefundList()) {
 
                         //Condition to check that a valid refund corresponding with the payment reference is considered only
@@ -269,7 +269,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
     public List<String> getAllRefundedFeeIds(RefundListDtoResponse refundListDtoResponse){
         List<String> refundedFees = new ArrayList<String>();
 
-        if(refundListDtoResponse.getRefundList() !=null) {
+        if(refundListDtoResponse !=null) {
             for (RefundDto refundDto : refundListDtoResponse.getRefundList()) {
                 if (refundDto.getReason().equals("Retrospective remission")) {
                     refundedFees = Arrays.asList(refundDto.getFeeIds().split(","));
@@ -302,9 +302,9 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
 
             //When there is no refund found for the ccdcasenumber, create an empty refundList
-            if(refundListDtoResponse ==null){
-                refundListDtoResponse = new RefundListDtoResponse();
-            }
+//            if(refundListDtoResponse ==null){
+//                refundListDtoResponse = new RefundListDtoResponse();
+//            }
 
             for(PaymentGroupDto paymentGroupDto : paymentGroupResponse.getPaymentGroups()){
 
