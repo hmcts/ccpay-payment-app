@@ -269,9 +269,11 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
     public List<String> getAllRefundedFeeIds(RefundListDtoResponse refundListDtoResponse){
         List<String> refundedFees = new ArrayList<String>();
 
-        for (RefundDto refundDto : refundListDtoResponse.getRefundList()) {
-            if(refundDto.getReason().equals("Retrospective remission")) {
-                refundedFees = Arrays.asList(refundDto.getFeeIds().split(","));
+        if(refundListDtoResponse !=null) {
+            for (RefundDto refundDto : refundListDtoResponse.getRefundList()) {
+                if (refundDto.getReason().equals("Retrospective remission")) {
+                    refundedFees = Arrays.asList(refundDto.getFeeIds().split(","));
+                }
             }
         }
         return refundedFees;
