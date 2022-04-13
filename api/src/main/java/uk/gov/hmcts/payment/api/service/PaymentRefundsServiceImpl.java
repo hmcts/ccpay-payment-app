@@ -266,6 +266,17 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         return true;
     }
 
+    public List<String> getAllRefundedFeeIds(RefundListDtoResponse refundListDtoResponse){
+        List<String> refundedFees = new ArrayList<String>();
+
+        for (RefundDto refundDto : refundListDtoResponse.getRefundList()) {
+            if(refundDto.getReason().equals("Retrospective remission")) {
+                refundedFees = Arrays.asList(refundDto.getFeeIds().split(","));
+            }
+        }
+        return refundedFees;
+    }
+
 
     @Override
     public PaymentGroupResponse checkRefundAgainstRemissionV2(MultiValueMap<String, String> headers,
@@ -284,6 +295,8 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             //get the RefundListDtoResponse by calling refunds app
             RefundListDtoResponse refundListDtoResponse = getRefundsFromRefundService(ccdCaseNumber, headers);
             LOG.info("refundListDtoResponse : {}", refundListDtoResponse);
+
+            List<String> refundedFees= getAllRefundedFeeIds(refundListDtoResponse);
 
 
             //When there is no refund found for the ccdcasenumber, create an empty refundList
@@ -306,46 +319,47 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
                         for (FeeDto fee : paymentGroupDto.getFees()) {
                             //check if the fee already has a processed refund or  not
-                            for (RefundDto refundDto : refundListDtoResponse.getRefundList()) {
+//                            for (RefundDto refundDto : refundListDtoResponse.getRefundList()) {
                                 //check if retro-remission has been refunded or not
 
                                 for (RemissionDto remission : paymentGroupDto.getRemissions()) {
+                                    if (fee.getId() == remission.getFeeId()) {
 
-                                    //IF THERE IS NO PROCESSED REFUND FOR THE FEE BUT THERE IS AN ACTIVE REMISSION
-                                    if (!Arrays.stream(refundDto.getFeeIds().split(",")).anyMatch(fee.getId().toString()::equals)
-                                        && fee.getId() == remission.getFeeId()) {
-                                        LOG.info("ENTERED NO PROCESSED REFUND IF");
+                                        //IF THERE IS NO PROCESSED REFUND FOR THE FEE BUT THERE IS AN ACTIVE REMISSION
+                                        if (!refundedFees.stream().anyMatch(fee.getId().toString()::equals)
+                                            && fee.getId() == remission.getFeeId()) {
+                                            LOG.info("ENTERED NO PROCESSED REFUND IF");
 
-                                        fee.setAddRemission(false);
-                                        remission.setAddRefund(true);
-                                        for (PaymentDto payment : paymentGroupDto.getPayments()) {
-                                            payment.setIssueRefund(false);
+                                            fee.setAddRemission(false);
+                                            remission.setAddRefund(true);
+                                            for (PaymentDto payment : paymentGroupDto.getPayments()) {
+                                                payment.setIssueRefund(false);
+                                            }
                                         }
-                                    }
-                                    //IF THERE IS A PROCESSED REFUND FOR THE FEE
-                                    else if(Arrays.stream(refundDto.getFeeIds().split(",")).anyMatch(fee.getId().toString()::equals)
-                                        && refundDto.getReason().equals("Retrospective remission")){
-                                        LOG.info("ENTERED PROCESSED REFUND ELSEIF");
+                                        //IF THERE IS A PROCESSED REFUND FOR THE FEE
+                                        else if (refundedFees.stream().anyMatch(fee.getId().toString()::equals)) {
+                                            LOG.info("ENTERED PROCESSED REFUND ELSEIF");
 
-                                        fee.setAddRemission(false);
-                                        remission.setAddRefund(false);
-                                        for (PaymentDto payment : paymentGroupDto.getPayments()) {
-                                            payment.setIssueRefund(true);
+                                            fee.setAddRemission(false);
+                                            remission.setAddRefund(false);
+                                            for (PaymentDto payment : paymentGroupDto.getPayments()) {
+                                                payment.setIssueRefund(true);
+                                            }
                                         }
-                                    }
-                                    //NO PROCESSED OR OUTSTANDING REMISSION
-                                    else if(!Arrays.stream(refundDto.getFeeIds().split(",")).anyMatch(fee.getId().toString()::equals)
-                                        && fee.getId() != remission.getFeeId()){
-                                        LOG.info("ENTERED NO PROCESSED OR OUTSTANDING REFUND ELSEIF");
+                                        //NO PROCESSED OR OUTSTANDING REMISSION
+                                        else if (!refundedFees.stream().anyMatch(fee.getId().toString()::equals)
+                                            && fee.getId() != remission.getFeeId()) {
+                                            LOG.info("ENTERED NO PROCESSED OR OUTSTANDING REFUND ELSEIF");
 
-                                        fee.setAddRemission(true);
-                                        remission.setAddRefund(false);
-                                        for (PaymentDto payment : paymentGroupDto.getPayments()) {
-                                            payment.setIssueRefund(true);
+                                            fee.setAddRemission(true);
+                                            remission.setAddRefund(false);
+                                            for (PaymentDto payment : paymentGroupDto.getPayments()) {
+                                                payment.setIssueRefund(true);
+                                            }
                                         }
                                     }
                                 }
-                            }
+//                            }
 
                         }
 //
