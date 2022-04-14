@@ -286,7 +286,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                     LOG.info("BALANCE IS AVAILABLE");
 
                     //Goes through each fee in a paymentGroupDto
-                    for (FeeDto fee : paymentDto.getFees()) {
+                    for (FeeDto fee : paymentGroupDto.getFees()) {
                         LOG.info("INSIDE FEE LOOP");
 
                         //Check that there is a remission object
