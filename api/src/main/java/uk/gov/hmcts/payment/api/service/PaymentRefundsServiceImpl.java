@@ -227,8 +227,10 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
         //Goes through each payment in this paymentDto, and get the total payment amount
             for (PaymentDto payment : paymentGroupDto.getPayments()) {
-                totalPaymentAmount = totalPaymentAmount.add(payment.getAmount());
 
+                if(payment.getStatus() == "Success") {
+                    totalPaymentAmount = totalPaymentAmount.add(payment.getAmount());
+                }
                 //if theres a refund available for this payment, get the total refund amount
                 if (refundListDtoResponse != null) {
                     for (RefundDto refundDto : refundListDtoResponse.getRefundList()) {
