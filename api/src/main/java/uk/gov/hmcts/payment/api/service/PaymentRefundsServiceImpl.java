@@ -316,7 +316,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                                     else if (refundedFees.stream().anyMatch(fee.getId().toString()::equals)) {
                                         LOG.info("ENTERED PROCESSED REFUND ELSEIF");
 
-                                        fee.setAddRemission(true);
+                                        fee.setAddRemission(false);
                                         remission.setAddRefund(false);
                                         paymentDto.setIssueRefund(true);
 
@@ -332,14 +332,14 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                                     }
                                 }
                                 //If the fee does not have a remission, check if theres any other active remissions in this payment group
-//                                else{
-//                                    LOG.info("FEE ID DOESNT MATCH REMISSION FEE ID");
-//                                    if(activeRemission){
-//                                        fee.setAddRemission(false);
-//                                    }else {
-//                                        fee.setAddRemission(true);
-//                                    }
-//                                }
+                                else{
+                                    LOG.info("FEE ID DOESNT MATCH REMISSION FEE ID");
+                                    if(activeRemission){
+                                        fee.setAddRemission(false);
+                                    }else {
+                                        fee.setAddRemission(true);
+                                    }
+                                }
                             }
                         }
                         else{
@@ -430,13 +430,13 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                                         }
                                     }
                                     //If the fee does not have a remission, check if theres any other active remissions in this payment group
-//                                    else{
-//                                        if(activeRemission){
-//                                            fee.setAddRemission(false);
-//                                        }else {
-//                                            fee.setAddRemission(true);
-//                                        }
-//                                    }
+                                    else{
+                                        if(activeRemission){
+                                            fee.setAddRemission(false);
+                                        }else {
+                                            fee.setAddRemission(true);
+                                        }
+                                    }
                                 }
                             }
                             else{
