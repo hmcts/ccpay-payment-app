@@ -243,29 +243,6 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         return totalPaymentAmount.subtract(totalRefundAmount);
     }
 
-    public boolean checkRemissionInProgress(PaymentGroupDto paymentGroupDto, RefundListDtoResponse refundListDtoResponse) {
-
-
-        if(paymentGroupDto.getRemissions().size() > 0) {
-            for (RemissionDto remission : paymentGroupDto.getRemissions()) {
-
-                //if theres a refund available for this payment, get the total refund amount
-                if (refundListDtoResponse != null) {
-                    for (RefundDto refundDto : refundListDtoResponse.getRefundList()) {
-
-                        //check if retro-remission has been refunded
-                        if (Arrays.stream(refundDto.getFeeIds().split(",")).anyMatch(remission.getFeeId().toString()::equals)
-                            && refundDto.getReason().equals("Retrospective remission")) {
-                            return false;
-                        }
-                    }
-                }
-            }
-            return true;
-        }
-        return true;
-    }
-
     public List<String> getAllRefundedFeeIds(RefundListDtoResponse refundListDtoResponse){
         List<String> refundedFees = new ArrayList<String>();
 
@@ -284,27 +261,17 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
     public PaymentGroupResponse checkRefundAgainstRemissionV2(MultiValueMap<String, String> headers,
                                                             PaymentGroupResponse paymentGroupResponse, String ccdCaseNumber) {
         //check roles
-
-
         if(isContainsPaymentsRefundRole()) {
 
-
             BigDecimal balanceAvailable;
-            Boolean remissionInProgress;
             Boolean refundRole;
-            BigDecimal totalRefundAmount = new BigDecimal(BigInteger.ZERO);
 
             //get the RefundListDtoResponse by calling refunds app
             RefundListDtoResponse refundListDtoResponse = getRefundsFromRefundService(ccdCaseNumber, headers);
             LOG.info("refundListDtoResponse : {}", refundListDtoResponse);
 
+            //gets a list of all the refunded fee ids for this case
             List<String> refundedFees= getAllRefundedFeeIds(refundListDtoResponse);
-
-
-            //When there is no refund found for the ccdcasenumber, create an empty refundList
-//            if(refundListDtoResponse ==null){
-//                refundListDtoResponse = new RefundListDtoResponse();
-//            }
 
             for(PaymentGroupDto paymentGroupDto : paymentGroupResponse.getPaymentGroups()){
 
@@ -314,10 +281,6 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
                 //Main check: if the payment has refund role and there is available balance
                 if(refundRole && balanceAvailable.compareTo(BigDecimal.ZERO) > 0){
-
-                    //check if there is a remission and has not been refunded
-//                    if(!checkRemissionInProgress(paymentGroupDto, refundListDtoResponse)) {
-
 
                     //Goes through each fee in a paymentGroupDto
                         for (FeeDto fee : paymentGroupDto.getFees()) {
@@ -362,11 +325,10 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                                             }
                                         }
                                     }
-                                    //If the fee does not have a remission yet check if theres any other active remissions in this payment group
+                                    //If the fee does not have a remission, check if theres any other active remissions in this payment group
                                     else{
                                         if(activeRemission){
                                             fee.setAddRemission(false);
-
                                         }else {
                                             fee.setAddRemission(true);
                                         }
@@ -379,158 +341,10 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                                 }
                                 fee.setAddRemission(true);
                             }
-
                         }
-//
-//                        for (RemissionDto remission : paymentGroupDto.getRemissions()) {
-//                            remission.setAddRefund(false);
-//                        }
-
-//                    }else{
-//
-//                        for (RemissionDto remission : paymentGroupDto.getRemissions()) {
-//                            remission.setAddRefund(true);
-//                        }
-//
-//                        for (PaymentDto payment : paymentGroupDto.getPayments()) {
-//                            payment.setIssueRefund(false);
-//                        }
-//
-//                    }
-
                 }
-
-
             }
-
-
         }
-
-
-//
-//                var lambdaContext = new Object() {
-//                    BigDecimal refundAmount = BigDecimal.ZERO;
-//                };
-//
-//
-//
-//                paymentGroupResponse.getPaymentGroups().forEach(paymentGroup ->{
-//                    LOG.info("INSIDE PAYMENT GROUP LOOP");
-//
-//
-//                    //CHECK 1: Check if a remission is refunded or not
-//                    paymentGroup.getRemissions().forEach(remission -> {
-//                        LOG.info("INSIDE REMISSION LOOP");
-//
-//
-//                        //Given a full/partial remission is added but subsequent refund not submitted
-//                        //Then only ADD REFUND needs to be enabled
-//                        //and ISSUE REFUND option should not be available
-//
-//                        int remissionCount =  paymentGroup.getRemissions().size();
-//
-//                        LOG.info("REMISSION COUNT: {}", remissionCount);
-//
-//
-//                        if(refundListDtoResponse != null) {
-//                            refundListDtoResponse.getRefundList().forEach(refundDto -> {
-//                                LOG.info("INSIDE REFUNDS LOOP");
-//
-//                                //Given a refund is already added against a remission
-//                                //Then ADD REFUND option should not be available
-//
-//                                int refundCount = refundListDtoResponse.getRefundList().size();
-//
-//                                if (remissionCount > 0) {
-//                                    LOG.info("INSIDE REMISSION COUNT IF");
-//
-//                                    if (Arrays.stream(refundDto.getFeeIds().split(",")).anyMatch(remission.getFeeId().toString()::equals)
-//                                        && refundDto.getReason().equals("Retrospective remission")) {
-//                                        LOG.info("INSIDE REFUND PROCESSED IF");
-//
-//                                        //Remission has been refunded
-//                                        remission.setAddRefund(false);
-//                                        remissionInProgress.set(false);
-//
-//                                    } else {
-//                                        LOG.info("INSIDE REFUND NOT PROCESSED IF");
-//
-//                                        //Remission still in progress
-//                                        remission.setAddRefund(true);
-//                                        remissionInProgress.set(true);
-//                                    }
-//                                } else {
-//                                    LOG.info("INSIDE REMISSION COUNT ELSE IF");
-//
-//                                    remission.setAddRefund(false);
-//                                    remissionInProgress.set(false);
-//                                }
-//                            });
-//                        }else{
-//                            LOG.info("INSIDE empty refunds ELSE IF");
-//
-//                            if (remissionCount > 0) {
-//                                remission.setAddRefund(true);
-//                                remissionInProgress.set(true);
-//
-//                            }
-//
-//                        }
-//                    });
-//
-//
-//                    //Check 2: Available balance is bigger than zero
-//                    paymentGroup.getPayments().forEach(paymentDto -> {
-//
-//                        if(refundListDtoResponse != null) {
-//                            refundListDtoResponse.getRefundList().forEach(refundDto -> {
-//
-//                                if (refundDto.getPaymentReference().equals(paymentDto.getPaymentReference())
-//                                    && (refundDto.getRefundStatus().getName().equals("Accepted") || refundDto.getRefundStatus().getName().equals("Approved")))
-//                                    lambdaContext.refundAmount = lambdaContext.refundAmount.add(refundDto.getAmount());
-//
-//                            });
-//                        }
-//                            //When there is no available balance
-//                            //Then ISSUE REFUND/ADD REMISSION/ADD REFUND option should not be available
-//
-//                        LOG.info("OUTSIDE AMOUNT COMPARISON IF");
-//
-//                        if(paymentDto.getAmount().compareTo(lambdaContext.refundAmount) >0) {
-//                            LOG.info("INSIDE AMOUNT COMPARISON IF");
-//
-//
-//                            if(remissionInProgress.getAcquire()) {
-//                                LOG.info("INSIDE GET ACQUIRE IF 1");
-//
-//                                paymentDto.setIssueRefund(false);
-//                                }
-//
-//                                paymentGroup.getFees().forEach(feeDto -> {
-//                                    if(!remissionInProgress.getAcquire()) {
-//                                        LOG.info("INSIDE GET ACQUIRE IF 2");
-//                                        feeDto.setIssueRefundAddRefundAddRemission(true);
-//                                    }
-//                                });
-//                            }
-//
-//                            else{
-//                            LOG.info("INSIDE AMOUNT COMPARISON ELSE IF");
-//
-//                            paymentDto.setIssueRefund(false);
-//
-//                                paymentGroup.getFees().forEach(feeDto -> {
-//                                    feeDto.setIssueRefundAddRefundAddRemission(false);
-//                                });
-//
-//                            }
-//                    });
-//
-//
-//                });
-////            }
-//        }
-
         return paymentGroupResponse;
     }
 
