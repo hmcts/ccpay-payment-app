@@ -275,6 +275,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             List<String> refundedFees= getAllRefundedFeeIds(refundListDtoResponse);
 
             for(PaymentDto paymentDto : paymentGroupDto.getPayments()){
+                LOG.info("INSIDE MAIN LOOP");
 
                 boolean activeRemission = false;
                 refundRole = checkRefundsRole(paymentGroupDto);
@@ -282,15 +283,24 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
                 //Main check: if the payment has refund role and there is available balance
                 if(refundRole && balanceAvailable.compareTo(BigDecimal.ZERO) > 0){
+                    LOG.info("BALANCE IS AVAILABLE");
 
                     //Goes through each fee in a paymentGroupDto
                     for (FeeDto fee : paymentDto.getFees()) {
+                        LOG.info("INSIDE FEE LOOP");
+
                         //Check that there is a remission object
                         if(!paymentGroupDto.getRemissions().isEmpty()){
+                            LOG.info("THERE IS A REMISSION");
+
                             //Goes through each remission in paymentGroupDto
                             for (RemissionDto remission : paymentGroupDto.getRemissions()) {
+                                LOG.info("INSIDE REMISSION LOOP");
+
                                 //Makes sure that the fee ID matches with the fee ID in remission
                                 if (fee.getId() == remission.getFeeId()) {
+                                    LOG.info("FEE ID MATCHES REMISSION FEE ID");
+
 
                                     //IF THERE IS NO PROCESSED REFUND FOR THE FEE BUT THERE IS AN ACTIVE REMISSION
                                     if (!refundedFees.stream().anyMatch(fee.getId().toString()::equals)
@@ -323,6 +333,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                                 }
                                 //If the fee does not have a remission, check if theres any other active remissions in this payment group
                                 else{
+                                    LOG.info("FEE ID DOESNT MATCH REMISSION FEE ID");
                                     if(activeRemission){
                                         fee.setAddRemission(false);
                                     }else {
@@ -332,6 +343,8 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                             }
                         }
                         else{
+                            LOG.info("THERE IS NO REMISSION");
+
                             paymentDto.setIssueRefund(true);
                             fee.setAddRemission(true);
                         }
