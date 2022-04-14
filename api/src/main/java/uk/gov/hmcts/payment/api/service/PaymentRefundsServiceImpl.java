@@ -759,7 +759,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                         refundListDtoResponse.getRefundList().forEach(refundDto -> {
 
                             if(refundDto.getPaymentReference().equals(paymentDto1.getReference())) {
-                                paymentDto.setOverPayment(BigDecimal.ZERO);
+                                paymentDto1.setOverPayment(BigDecimal.ZERO);
                             }
                         });
                     });
