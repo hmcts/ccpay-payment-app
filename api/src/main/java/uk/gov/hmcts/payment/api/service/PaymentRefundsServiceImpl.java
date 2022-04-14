@@ -371,9 +371,10 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             //gets a list of all the refunded fee ids for this case
             List<String> refundedFees= getAllRefundedFeeIds(refundListDtoResponse);
 
+            boolean activeRemission = false;
+
             for(PaymentGroupDto paymentGroupDto : paymentGroupResponse.getPaymentGroups()){
 
-                boolean activeRemission = false;
                 refundRole = checkRefundsRole(paymentGroupDto);
                 balanceAvailable = getAvailableBalance(paymentGroupDto, refundListDtoResponse);
 
