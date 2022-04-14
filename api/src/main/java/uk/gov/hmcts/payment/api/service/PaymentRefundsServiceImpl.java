@@ -257,6 +257,91 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
     }
 
 
+
+    public PaymentGroupDto checkRefundAgainstRemissionFeeApportionV2(MultiValueMap<String, String> headers,
+                                                              PaymentGroupDto paymentGroupDto, String paymentReference) {
+        //check roles
+        if(isContainsPaymentsRefundRole()) {
+
+            Payment payment = paymentRepository.findByReference(paymentReference).orElseThrow(PaymentNotFoundException::new);
+            BigDecimal balanceAvailable;
+            Boolean refundRole;
+
+            //get the RefundListDtoResponse by calling refunds app
+            RefundListDtoResponse refundListDtoResponse = getRefundsFromRefundService(payment.getCcdCaseNumber(), headers);
+            LOG.info("refundListDtoResponse : {}", refundListDtoResponse);
+
+            //gets a list of all the refunded fee ids for this case
+            List<String> refundedFees= getAllRefundedFeeIds(refundListDtoResponse);
+
+            for(PaymentDto paymentDto : paymentGroupDto.getPayments()){
+
+                boolean activeRemission = false;
+                refundRole = checkRefundsRole(paymentGroupDto);
+                balanceAvailable = getAvailableBalance(paymentGroupDto, refundListDtoResponse);
+
+                //Main check: if the payment has refund role and there is available balance
+                if(refundRole && balanceAvailable.compareTo(BigDecimal.ZERO) > 0){
+
+                    //Goes through each fee in a paymentGroupDto
+                    for (FeeDto fee : paymentDto.getFees()) {
+                        //Check that there is a remission object
+                        if(!paymentGroupDto.getRemissions().isEmpty()){
+                            //Goes through each remission in paymentGroupDto
+                            for (RemissionDto remission : paymentGroupDto.getRemissions()) {
+                                //Makes sure that the fee ID matches with the fee ID in remission
+                                if (fee.getId() == remission.getFeeId()) {
+
+                                    //IF THERE IS NO PROCESSED REFUND FOR THE FEE BUT THERE IS AN ACTIVE REMISSION
+                                    if (!refundedFees.stream().anyMatch(fee.getId().toString()::equals)
+                                        && fee.getId() == remission.getFeeId()) {
+                                        LOG.info("ENTERED NO PROCESSED REFUND IF");
+
+                                        activeRemission =true;
+                                        fee.setAddRemission(false);
+                                        remission.setAddRefund(true);
+                                        paymentDto.setIssueRefund(false);
+                                    }
+                                    //IF THERE IS A PROCESSED REFUND FOR THE FEE
+                                    else if (refundedFees.stream().anyMatch(fee.getId().toString()::equals)) {
+                                        LOG.info("ENTERED PROCESSED REFUND ELSEIF");
+
+                                        fee.setAddRemission(false);
+                                        remission.setAddRefund(false);
+                                        paymentDto.setIssueRefund(true);
+
+                                    }
+                                    //NO PROCESSED OR OUTSTANDING REMISSION
+                                    else if (!refundedFees.stream().anyMatch(fee.getId().toString()::equals)
+                                        && fee.getId() != remission.getFeeId()) {
+                                        LOG.info("ENTERED NO PROCESSED OR OUTSTANDING REFUND ELSEIF");
+
+                                        fee.setAddRemission(true);
+                                        remission.setAddRefund(false);
+                                        paymentDto.setIssueRefund(true);
+                                    }
+                                }
+                                //If the fee does not have a remission, check if theres any other active remissions in this payment group
+                                else{
+                                    if(activeRemission){
+                                        fee.setAddRemission(false);
+                                    }else {
+                                        fee.setAddRemission(true);
+                                    }
+                                }
+                            }
+                        }
+                        else{
+                            paymentDto.setIssueRefund(true);
+                            fee.setAddRemission(true);
+                        }
+                    }
+                }
+            }
+        }
+        return paymentGroupDto;
+    }
+
     @Override
     public PaymentGroupResponse checkRefundAgainstRemissionV2(MultiValueMap<String, String> headers,
                                                             PaymentGroupResponse paymentGroupResponse, String ccdCaseNumber) {

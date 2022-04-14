@@ -20,4 +20,7 @@ public interface PaymentRefundsService {
 
     PaymentGroupDto checkRefundAgainstRemissionFeeApportion(MultiValueMap<String, String> headers, PaymentGroupDto paymentGroupDto, String paymentRef);
 
+    PaymentGroupDto checkRefundAgainstRemissionFeeApportionV2(MultiValueMap<String, String> headers, PaymentGroupDto paymentGroupDto, String paymentRef);
+
+
 }
