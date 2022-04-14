@@ -332,14 +332,14 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                                     }
                                 }
                                 //If the fee does not have a remission, check if theres any other active remissions in this payment group
-                                else{
-                                    LOG.info("FEE ID DOESNT MATCH REMISSION FEE ID");
-                                    if(activeRemission){
-                                        fee.setAddRemission(false);
-                                    }else {
-                                        fee.setAddRemission(true);
-                                    }
-                                }
+//                                else{
+//                                    LOG.info("FEE ID DOESNT MATCH REMISSION FEE ID");
+//                                    if(activeRemission){
+//                                        fee.setAddRemission(false);
+//                                    }else {
+//                                        fee.setAddRemission(true);
+//                                    }
+//                                }
                             }
                         }
                         else{
@@ -347,6 +347,12 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
                             paymentDto.setIssueRefund(true);
                             fee.setAddRemission(true);
+                        }
+                    }
+
+                    for (FeeDto fee : paymentGroupDto.getFees()) {
+                        if(activeRemission){
+                            fee.setAddRemission(false);
                         }
                     }
                 }
@@ -371,10 +377,9 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             //gets a list of all the refunded fee ids for this case
             List<String> refundedFees= getAllRefundedFeeIds(refundListDtoResponse);
 
-            boolean activeRemission = false;
-
             for(PaymentGroupDto paymentGroupDto : paymentGroupResponse.getPaymentGroups()){
 
+                boolean activeRemission = false;
                 refundRole = checkRefundsRole(paymentGroupDto);
                 balanceAvailable = getAvailableBalance(paymentGroupDto, refundListDtoResponse);
 
@@ -425,13 +430,13 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                                         }
                                     }
                                     //If the fee does not have a remission, check if theres any other active remissions in this payment group
-                                    else{
-                                        if(activeRemission){
-                                            fee.setAddRemission(false);
-                                        }else {
-                                            fee.setAddRemission(true);
-                                        }
-                                    }
+//                                    else{
+//                                        if(activeRemission){
+//                                            fee.setAddRemission(false);
+//                                        }else {
+//                                            fee.setAddRemission(true);
+//                                        }
+//                                    }
                                 }
                             }
                             else{
@@ -441,6 +446,12 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                                 fee.setAddRemission(true);
                             }
                         }
+
+                    for (FeeDto fee : paymentGroupDto.getFees()) {
+                        if(activeRemission){
+                            fee.setAddRemission(false);
+                        }
+                    }
                 }
             }
         }
