@@ -308,6 +308,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
             for(PaymentGroupDto paymentGroupDto : paymentGroupResponse.getPaymentGroups()){
 
+                boolean activeRemission = false;
                 refundRole = checkRefundsRole(paymentGroupDto);
                 balanceAvailable = getAvailableBalance(paymentGroupDto, refundListDtoResponse);
 
@@ -318,14 +319,13 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 //                    if(!checkRemissionInProgress(paymentGroupDto, refundListDtoResponse)) {
 
 
-
+                    //Goes through each fee in a paymentGroupDto
                         for (FeeDto fee : paymentGroupDto.getFees()) {
-                            //check if the fee already has a processed refund or  not
-//                            for (RefundDto refundDto : refundListDtoResponse.getRefundList()) {
-                                //check if retro-remission has been refunded or not
-
+                            //Check that there is a remission object
                             if(!paymentGroupDto.getRemissions().isEmpty()){
+                                //Goes through each remission in paymentGroupDto
                                 for (RemissionDto remission : paymentGroupDto.getRemissions()) {
+                                    //Makes sure that the fee ID matches with the fee ID in remission
                                     if (fee.getId() == remission.getFeeId()) {
 
                                         //IF THERE IS NO PROCESSED REFUND FOR THE FEE BUT THERE IS AN ACTIVE REMISSION
@@ -333,6 +333,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                                             && fee.getId() == remission.getFeeId()) {
                                             LOG.info("ENTERED NO PROCESSED REFUND IF");
 
+                                            activeRemission =true;
                                             fee.setAddRemission(false);
                                             remission.setAddRefund(true);
                                             for (PaymentDto payment : paymentGroupDto.getPayments()) {
@@ -343,7 +344,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                                         else if (refundedFees.stream().anyMatch(fee.getId().toString()::equals)) {
                                             LOG.info("ENTERED PROCESSED REFUND ELSEIF");
 
-                                            fee.setAddRemission(true);
+                                            fee.setAddRemission(false);
                                             remission.setAddRefund(false);
                                             for (PaymentDto payment : paymentGroupDto.getPayments()) {
                                                 payment.setIssueRefund(true);
@@ -359,6 +360,15 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                                             for (PaymentDto payment : paymentGroupDto.getPayments()) {
                                                 payment.setIssueRefund(true);
                                             }
+                                        }
+                                    }
+                                    //If the fee does not have a remission yet check if theres any other active remissions in this payment group
+                                    else{
+                                        if(activeRemission){
+                                            fee.setAddRemission(false);
+
+                                        }else {
+                                            fee.setAddRemission(true);
                                         }
                                     }
                                 }
