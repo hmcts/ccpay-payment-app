@@ -378,7 +378,8 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
                         refundListDtoResponse.getRefundList().forEach(refundDto -> {
 
-                            if(refundDto.getCcdCaseNumber().equals(feeDto.getCcdCaseNumber())) {
+                            if(refundDto.getCcdCaseNumber().equals(feeDto.getCcdCaseNumber()) &&
+                                refundDto.getFeeIds().equals(feeDto.getId())) {
                                 feeDto.setOverPayment(BigDecimal.ZERO);
                             }
                         });
@@ -746,7 +747,8 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
                         refundListDtoResponse.getRefundList().forEach(refundDto -> {
 
-                            if(refundDto.getCcdCaseNumber().equals(feeDto.getCcdCaseNumber())) {
+                            if(refundDto.getCcdCaseNumber().equals(feeDto.getCcdCaseNumber()) &&
+                                refundDto.getFeeIds().equals(feeDto.getId())) {
                                 feeDto.setOverPayment(BigDecimal.ZERO);
                             }
                         });
@@ -756,7 +758,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
                         refundListDtoResponse.getRefundList().forEach(refundDto -> {
 
-                            if(refundDto.getCcdCaseNumber().equals(paymentDto1.getCcdCaseNumber())) {
+                            if(refundDto.getPaymentReference().equals(paymentDto1.getReference())) {
                                 paymentDto.setOverPayment(BigDecimal.ZERO);
                             }
                         });
