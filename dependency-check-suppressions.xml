@@ -109,6 +109,13 @@
         </notes>
         <cve>CVE-2022-22965</cve>
     </suppress>
+
+    <suppress until="2022-06-30">
+        <notes>In Spring Framework versions 5.3.0 - 5.3.16 and older unsupported versions, it is possible for a user to
+            provide a specially crafted SpEL expression that may cause a denial of service condition.
+        </notes>
+        <cve>CVE-2022-22950</cve>
+    </suppress>
     <!-- Supression Group ends here -->
 
 </suppressions>
