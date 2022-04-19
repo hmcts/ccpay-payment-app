@@ -214,57 +214,6 @@ public class PaymentGroupController {
         return new ResponseEntity<>(paymentGroupDtoMapper.toPaymentGroupDto(paymentFeeLink), HttpStatus.OK);
     }
 
-    @ApiOperation(value = "Create card payment in Payment Group", notes = "Create card payment in Payment Group")
-    @ApiResponses(value = {
-        @ApiResponse(code = 201, message = "Payment created"),
-        @ApiResponse(code = 400, message = "Payment creation failed"),
-        @ApiResponse(code = 422, message = "Invalid or missing attribute"),
-        @ApiResponse(code = 404, message = "No Service found for given CaseType"),
-        @ApiResponse(code = 504, message = "Unable to retrieve service information. Please try again later")
-    })
-    @PostMapping(value = "/payment-groups/{payment-group-reference}/card-payments")
-    @ResponseBody
-    @Transactional
-    public ResponseEntity<PaymentDto> createCardPayment(
-        @RequestHeader(value = "return-url") String returnURL,
-        @RequestHeader(value = "service-callback-url", required = false) String serviceCallbackUrl,
-        @PathVariable("payment-group-reference") String paymentGroupReference,
-        @RequestHeader(required = false) MultiValueMap<String, String> headers,
-        @Valid @RequestBody TelephonyPaymentRequest request) throws CheckDigitException, MethodNotSupportedException {
-
-        OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(request.getCaseType(), headers);
-
-        PaymentServiceRequest paymentServiceRequest = PaymentServiceRequest.paymentServiceRequestWith()
-            .description(request.getDescription())
-            .paymentGroupReference(paymentGroupReference)
-            .paymentReference(referenceUtil.getNext("RC"))
-            .returnUrl(returnURL)
-            .ccdCaseNumber(request.getCcdCaseNumber())
-            .caseReference(request.getCaseReference())
-            .currency(request.getCurrency().getCode())
-            .siteId(organisationalServiceDto.getServiceCode())
-            .serviceType(organisationalServiceDto.getServiceDescription())
-            .amount(request.getAmount())
-            .serviceCallbackUrl(serviceCallbackUrl)
-            .channel(request.getChannel())
-            .provider(request.getProvider())
-            .build();
-        LOG.info("Inside createCardPayment");
-
-        PaymentFeeLink paymentLink = delegatingPaymentService.update(paymentServiceRequest);
-        Payment payment = getPayment(paymentLink, paymentServiceRequest.getPaymentReference());
-        PaymentDto paymentDto = paymentDtoMapper.toCardPaymentDto(payment, paymentGroupReference);
-
-        // trigger Apportion based on the launch darkly feature flag
-        boolean apportionFeature = featureToggler.getBooleanValue(APPORTION_FEATURE, false);
-        LOG.info("ApportionFeature Flag Value in CardPaymentController : {}", apportionFeature);
-        if (apportionFeature) {
-            feePayApportionService.processApportion(payment);
-        }
-
-        return new ResponseEntity<>(paymentDto, HttpStatus.CREATED);
-    }
-
     @ApiOperation(value = "Record a Bulk Scan Payment", notes = "Record a Bulk Scan Payment")
     @ApiResponses(value = {
         @ApiResponse(code = 201, message = "Bulk Scan Payment created"),

@@ -20,10 +20,7 @@ import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.componenttests.PaymentDbBackdoor;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
-import uk.gov.hmcts.payment.api.contract.FeeDto;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
-import uk.gov.hmcts.payment.api.contract.TelephonyPaymentRequest;
+import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
@@ -283,144 +280,6 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
         assertEquals(updatedTsForFirstReq, updatedTsForSecondReq);
     }
 
-    @Test
-    public void updateTelephonyPaymentStatusWithSuccess_Apportionment() throws Exception {
-        String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
-
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
-
-        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
-            .fees( Arrays.asList(getNewFee(ccdCaseNumber)))
-            .build();
-
-        MvcResult result = restActions
-            .post("/payment-groups", request)
-            .andExpect(status().isCreated())
-            .andReturn();
-
-        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
-
-        BigDecimal amount = new BigDecimal("101.99");
-
-        TelephonyPaymentRequest telephonyPaymentRequest = TelephonyPaymentRequest.createTelephonyPaymentRequestDtoWith()
-            .amount(amount)
-            .currency(CurrencyCode.GBP)
-            .description("Test cross field validation")
-            .caseType("tax_exception")
-            .ccdCaseNumber(ccdCaseNumber)
-            .provider("pci pal")
-            .channel("telephony")
-            .build();
-
-        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
-            .serviceCode("AA001")
-            .serviceDescription("DIVORCE")
-            .build();
-
-        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
-
-        MvcResult result2 = restActions
-            .withReturnUrl("https://www.moneyclaims.service.gov.uk")
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", telephonyPaymentRequest)
-            .andExpect(status().isCreated())
-            .andReturn();
-
-        PaymentDto paymentDtoResult = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentDto.class);
-
-        String paymentReference = paymentDtoResult.getReference();
-
-        String rawFormData = "orderCurrency=&orderAmount=100&orderReference=" +
-            paymentReference +
-            "&ppAccountID=1210&" +
-            "transactionResult=SUCCESS&transactionAuthCode=test123&transactionID=3045021106&transactionResponseMsg=&" +
-            "avsAddress=&avsPostcode=&avsCVN=&cardExpiry=1220&cardLast4=9999&cardType=MASTERCARD&ppCallID=820782890&" +
-            "customData1=MOJTest120190124123432&customData2=MASTERCARD&customData3=CreditCard&customData4=";
-
-        restActions
-            .postWithFormData("/telephony/callback", rawFormData)
-            .andExpect(status().isNoContent());
-
-        PaymentFeeLink savedPaymentGroup = db.findByReference(paymentGroupDto.getPaymentGroupReference());
-        List<Payment> payments = savedPaymentGroup.getPayments();
-
-        assertThat(payments.size()).isEqualTo(1);
-        assertEquals(payments.get(0).getReference(), paymentReference);
-        assertThat("success".equalsIgnoreCase(payments.get(0).getStatus()));
-
-        List<PaymentFee> fees = savedPaymentGroup.getFees();
-
-        assertThat(BigDecimal.valueOf(0.00).equals(fees.get(0).getAmountDue()));
-    }
-
-    @Test
-    public void updateTelephonyPaymentStatusWithFailed_Apportionment() throws Exception {
-        String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
-
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
-
-        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
-            .fees( Arrays.asList(getNewFee(ccdCaseNumber)))
-            .build();
-
-        MvcResult result = restActions
-            .post("/payment-groups", request)
-            .andExpect(status().isCreated())
-            .andReturn();
-
-        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
-
-        BigDecimal amount = new BigDecimal("101.99");
-
-        TelephonyPaymentRequest telephonyPaymentRequest = TelephonyPaymentRequest.createTelephonyPaymentRequestDtoWith()
-            .amount(amount)
-            .currency(CurrencyCode.GBP)
-            .description("Test cross field validation")
-            .caseType("tax_exception")
-            .ccdCaseNumber(ccdCaseNumber)
-            .provider("pci pal")
-            .channel("telephony")
-            .build();
-
-        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
-            .serviceCode("AA001")
-            .serviceDescription("DIVORCE")
-            .build();
-
-        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
-
-        MvcResult result2 = restActions
-            .withReturnUrl("https://www.moneyclaims.service.gov.uk")
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", telephonyPaymentRequest)
-            .andExpect(status().isCreated())
-            .andReturn();
-
-        PaymentDto paymentDtoResult = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentDto.class);
-
-        String paymentReference = paymentDtoResult.getReference();
-
-        String rawFormData = "orderCurrency=&orderAmount=100&orderReference=" +
-            paymentReference +
-            "&ppAccountID=1210&" +
-            "transactionResult=FAILED&transactionAuthCode=test123&transactionID=3045021106&transactionResponseMsg=&" +
-            "avsAddress=&avsPostcode=&avsCVN=&cardExpiry=1220&cardLast4=9999&cardType=MASTERCARD&ppCallID=820782890&" +
-            "customData1=MOJTest120190124123432&customData2=MASTERCARD&customData3=CreditCard&customData4=";
-
-        restActions
-            .postWithFormData("/telephony/callback", rawFormData)
-            .andExpect(status().isNoContent());
-
-        PaymentFeeLink savedPaymentGroup = db.findByReference(paymentGroupDto.getPaymentGroupReference());
-        List<Payment> payments = savedPaymentGroup.getPayments();
-        assertThat(payments.size()).isEqualTo(1);
-        assertEquals(payments.get(0).getReference(), paymentReference);
-        assertThat("failed".equalsIgnoreCase(payments.get(0).getStatus()));
-
-        List<PaymentFee> fees = savedPaymentGroup.getFees();
-
-        assertThat(BigDecimal.valueOf(101.99).equals(fees.get(0).getAmountDue()));
-
-    }
-
     private FeeDto getNewFee(String ccdCaseNumber){
         return FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("101.99"))
@@ -432,6 +291,5 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
             .build();
 
     }
-
 
 }

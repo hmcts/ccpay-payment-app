@@ -53,21 +53,6 @@ public class PaymentDtoMapper {
             .build();
     }
 
-    public PaymentDto toCardPaymentDto(Payment payment, String paymentGroupReference) {
-
-        return PaymentDto.payment2DtoWith()
-            .status(PayStatusToPayHubStatus.valueOf(payment.getStatus().toLowerCase()).getMappedStatus())
-            .reference(payment.getReference())
-            .paymentGroupReference(paymentGroupReference)
-            .dateCreated(payment.getDateCreated())
-            .externalReference(payment.getExternalReference())
-            .links(new PaymentDto.LinksDto(
-                payment.getNextUrl() == null ? null : new PaymentDto.LinkDto(payment.getNextUrl(), "GET"),
-                null, null
-            ))
-            .build();
-    }
-
     public PaymentDto toBulkScanPaymentDto(Payment payment, String paymentGroupReference) {
 
         return PaymentDto.payment2DtoWith()
