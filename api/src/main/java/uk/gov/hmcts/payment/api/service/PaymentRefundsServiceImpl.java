@@ -743,16 +743,6 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
                     });
 
-                    paymentGroupDto.getFees().forEach(feeDto -> {
-
-                        refundListDtoResponse.getRefundList().forEach(refundDto -> {
-
-                            if(refundDto.getCcdCaseNumber().equals(feeDto.getCcdCaseNumber())
-                            ) {
-                                feeDto.setOverPayment(BigDecimal.ZERO);
-                            }
-                        });
-                    });
 
                     paymentGroupDto.getPayments().forEach(paymentDto1 -> {
 
@@ -763,6 +753,20 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                             }
                         });
                     });
+
+                    paymentGroupDto.getFees().forEach(feeDto -> {
+
+                        refundListDtoResponse.getRefundList().forEach(refundDto -> {
+
+                            if(refundDto.getCcdCaseNumber().equals(feeDto.getCcdCaseNumber()) &&
+                                (Arrays.stream(refundDto.getFeeIds().split(",")).anyMatch(feeDto.getId().toString()::equals) )
+                            ) {
+                                feeDto.setOverPayment(BigDecimal.ZERO);
+                            }
+                        });
+                    });
+
+
                 }
             });
 
