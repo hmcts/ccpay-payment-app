@@ -1012,8 +1012,8 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                     //overpayment
 
                     paymentGroupDto.getFees().forEach(feeDto -> {
-                    if(refundListDtoResponse!=null) {
-                        refundListDtoResponse.getRefundList().forEach(refundDto -> {
+                        if (refundListDtoResponse != null) {
+                            refundListDtoResponse.getRefundList().forEach(refundDto -> {
 
                             if (refundDto.getCcdCaseNumber().equals(feeDto.getCcdCaseNumber())
                             ) {
@@ -1024,8 +1024,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                     });
 
                     paymentGroupDto.getPayments().forEach(paymentDto -> {
-                        if(refundListDtoResponse!=null) {
-
+                        if (refundListDtoResponse != null) {
 
                             refundListDtoResponse.getRefundList().forEach(refundDto -> {
 
