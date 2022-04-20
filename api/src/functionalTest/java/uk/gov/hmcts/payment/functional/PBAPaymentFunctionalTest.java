@@ -94,7 +94,7 @@ public class PBAPaymentFunctionalTest {
     @Test
     public void makeAndRetrievePBAPaymentByProbateTestShouldReturnAutoApportionedFees() {
 
-        String accountNumber = testProps.existingAccountNumber;;
+        String accountNumber = "PBAFUNC123456";;
 
         System.out.println("account number-->"+accountNumber);
         String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
