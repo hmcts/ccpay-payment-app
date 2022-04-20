@@ -87,6 +87,8 @@ public class FeeDto {
 
     private BigDecimal overPayment;
 
+    private boolean addRemission;
+
 
     @Override
     public String toString() {
