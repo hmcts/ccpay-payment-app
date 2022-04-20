@@ -99,6 +99,8 @@ public class PBAPaymentFunctionalTest {
 
         int randomNum = (int)(Math.random()*(max-min+1)+min);
         String accountNumber = "PBA"+randomNum;
+
+        System.out.println("account number-->"+accountNumber);
         String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
         // create card payment
         List<FeeDto> fees = new ArrayList<>();
@@ -118,7 +120,11 @@ public class PBAPaymentFunctionalTest {
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
                 .statusCode(CREATED.value()).body("status", equalTo("Success"));
 
-
+        try {
+            TimeUnit.SECONDS.sleep(10);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         // Get pba payments by accountNumber
         PaymentsResponse paymentsResponse = paymentTestService
                 .getPbaPaymentsByAccountNumber(USER_TOKEN, SERVICE_TOKEN, testProps.existingAccountNumber).then()
