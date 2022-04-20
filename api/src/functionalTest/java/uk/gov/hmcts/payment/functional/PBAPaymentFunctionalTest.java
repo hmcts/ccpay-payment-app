@@ -94,11 +94,7 @@ public class PBAPaymentFunctionalTest {
     @Test
     public void makeAndRetrievePBAPaymentByProbateTestShouldReturnAutoApportionedFees() {
 
-        int min = 1;
-        int max = 100000;
-
-        int randomNum = (int)(Math.random()*(max-min+1)+min);
-        String accountNumber = "PBA"+randomNum;
+        String accountNumber = testProps.existingAccountNumber;;
 
         System.out.println("account number-->"+accountNumber);
         String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
