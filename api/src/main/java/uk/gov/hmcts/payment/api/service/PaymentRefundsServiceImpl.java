@@ -87,9 +87,9 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         Payment payment = paymentRepository.findByReference(paymentRefundRequest.getPaymentReference()).orElseThrow(PaymentNotFoundException::new);
 
 
-        validateRefund(paymentRefundRequest,payment.getPaymentLink().getFees());
+        ///validateRefund(paymentRefundRequest,payment.getPaymentLink().getFees());
 
-        validateThePaymentBeforeInitiatingRefund(payment,headers);
+        //validateThePaymentBeforeInitiatingRefund(payment,headers);
 
         RefundRequestDto refundRequest = RefundRequestDto.refundRequestDtoWith()
             .paymentReference(paymentRefundRequest.getPaymentReference())
@@ -300,7 +300,6 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                             if(refundDto.getPaymentReference().equals(paymentDto.getPaymentReference())
                                 && (refundDto.getRefundStatus().getName().equals("Accepted") || refundDto.getRefundStatus().getName().equals("Approved"))) {
                                 lambdaContext.refundAmount = lambdaContext.refundAmount.add(refundDto.getAmount());
-                                paymentDto.setOverPayment(BigDecimal.ZERO);
                             }
 
 
@@ -888,6 +887,29 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                             fee.setAddRemission(false);
                         }
                     }
+
+
+                    paymentGroupDto.getPayments().forEach(paymentDto1 -> {
+
+                        refundListDtoResponse.getRefundList().forEach(refundDto -> {
+
+                            if(refundDto.getPaymentReference().equals(paymentDto1.getReference())) {
+                                paymentDto1.setOverPayment(BigDecimal.ZERO);
+                            }
+                        });
+                    });
+
+                    paymentGroupDto.getFees().forEach(feeDto -> {
+
+                        refundListDtoResponse.getRefundList().forEach(refundDto -> {
+
+                            if(refundDto.getCcdCaseNumber().equals(feeDto.getCcdCaseNumber()) &&
+                                (Arrays.stream(refundDto.getFeeIds().split(",")).anyMatch(feeDto.getId().toString()::equals) )
+                            ) {
+                                feeDto.setOverPayment(BigDecimal.ZERO);
+                            }
+                        });
+                    });
                 }
             }
         }
@@ -985,6 +1007,30 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                             fee.setAddRemission(false);
                         }
                     }
+
+
+                    //overpayment
+
+                    paymentGroupDto.getFees().forEach(feeDto -> {
+
+                        refundListDtoResponse.getRefundList().forEach(refundDto -> {
+
+                            if(refundDto.getCcdCaseNumber().equals(feeDto.getCcdCaseNumber())
+                            ) {
+                                feeDto.setOverPayment(BigDecimal.ZERO);
+                            }
+                        });
+                    });
+
+                    paymentGroupDto.getPayments().forEach(paymentDto -> {
+
+                        refundListDtoResponse.getRefundList().forEach(refundDto -> {
+
+                            if(refundDto.getPaymentReference().equals(paymentDto.getReference())) {
+                                paymentDto.setOverPayment(BigDecimal.ZERO);
+                            }
+                        });
+                    });
                 }
             }
         }
