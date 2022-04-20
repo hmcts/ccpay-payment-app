@@ -25,6 +25,7 @@ import uk.gov.hmcts.payment.functional.service.PaymentTestService;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -111,6 +112,12 @@ public class PBAPaymentFunctionalTest {
 
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
                 .statusCode(CREATED.value()).body("status", equalTo("Success"));
+
+        try {
+            TimeUnit.SECONDS.sleep(10);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
         // Get pba payments by accountNumber
         PaymentsResponse paymentsResponse = paymentTestService
