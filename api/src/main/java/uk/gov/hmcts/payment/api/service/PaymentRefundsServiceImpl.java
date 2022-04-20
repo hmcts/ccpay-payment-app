@@ -890,25 +890,29 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
 
                     paymentGroupDto.getPayments().forEach(paymentDto1 -> {
+                        if(refundListDtoResponse != null) {
 
-                        refundListDtoResponse.getRefundList().forEach(refundDto -> {
+                            refundListDtoResponse.getRefundList().forEach(refundDto -> {
 
-                            if(refundDto.getPaymentReference().equals(paymentDto1.getReference())) {
-                                paymentDto1.setOverPayment(BigDecimal.ZERO);
-                            }
-                        });
+                                if (refundDto.getPaymentReference().equals(paymentDto1.getReference())) {
+                                    paymentDto1.setOverPayment(BigDecimal.ZERO);
+                                }
+                            });
+                        }
                     });
 
                     paymentGroupDto.getFees().forEach(feeDto -> {
 
+                    if(refundListDtoResponse != null) {
                         refundListDtoResponse.getRefundList().forEach(refundDto -> {
 
-                            if(refundDto.getCcdCaseNumber().equals(feeDto.getCcdCaseNumber()) &&
-                                (Arrays.stream(refundDto.getFeeIds().split(",")).anyMatch(feeDto.getId().toString()::equals) )
+                            if (refundDto.getCcdCaseNumber().equals(feeDto.getCcdCaseNumber()) &&
+                                (Arrays.stream(refundDto.getFeeIds().split(",")).anyMatch(feeDto.getId().toString()::equals))
                             ) {
                                 feeDto.setOverPayment(BigDecimal.ZERO);
                             }
                         });
+                    }
                     });
                 }
             }
