@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.util.ServiceRequestCaseUtil;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
@@ -120,6 +121,13 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
         LOG.info("Search for payments between " + startDate + " and " + endDate);
         List<PaymentFeeLink> paymentFeeLinks = paymentFeeLinkRepository.findAll(findCreditAccountPaymentsByBetweenDates(startDate, endDate));
         return paymentFeeLinks;
+    }
+
+    @Override
+    @Transactional
+    public void deleteByPaymentReference(String paymentReference) {
+        LOG.info("Delete payment for reference " + paymentReference);
+        paymentRespository.deleteByReference(paymentReference);
     }
 
     private Payment findSavedPayment(@NotNull String paymentReference) {

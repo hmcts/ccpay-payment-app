@@ -12,6 +12,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
+import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.functional.config.LaunchDarklyFeature;
@@ -25,7 +26,6 @@ import uk.gov.hmcts.payment.functional.service.PaymentTestService;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -94,9 +94,8 @@ public class PBAPaymentFunctionalTest {
     @Test
     public void makeAndRetrievePBAPaymentByProbateTestShouldReturnAutoApportionedFees() {
 
-        String accountNumber = "PBAFUNC123456";;
+        String accountNumber = testProps.existingAccountNumber;
 
-        System.out.println("account number-->"+accountNumber);
         String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
         // create card payment
         List<FeeDto> fees = new ArrayList<>();
@@ -113,28 +112,23 @@ public class PBAPaymentFunctionalTest {
                 .service("PROBATE").currency(CurrencyCode.GBP).siteId("ABA6").customerReference("CUST101")
                 .organisationName("ORG101").accountNumber(accountNumber).fees(fees).build();
 
-        paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
-                .statusCode(CREATED.value()).body("status", equalTo("Success"));
+        PaymentDto paymentDto = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
+                .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
 
-        try {
-            TimeUnit.SECONDS.sleep(10);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        // Get pba payments by accountNumber
-        PaymentsResponse paymentsResponse = paymentTestService
-                .getPbaPaymentsByAccountNumber(USER_TOKEN, SERVICE_TOKEN, testProps.existingAccountNumber).then()
-                .statusCode(OK.value()).extract().as(PaymentsResponse.class);
+        // Get pba payment by reference
+        PaymentDto paymentsResponse =
+                paymentTestService.getPbaPayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then()
+                        .statusCode(OK.value()).extract().as(PaymentDto.class);
 
-        assertThat(paymentsResponse.getPayments().get(0).getAccountNumber()).isEqualTo(accountNumber);
+        assertThat(paymentsResponse.getAccountNumber()).isEqualTo(accountNumber);
 
         // TEST retrieve payments, remissions and fees by payment-group-reference
         dsl.given().userToken(USER_TOKEN_PAYMENT).s2sToken(SERVICE_TOKEN).when()
-                .getPaymentGroups(paymentsResponse.getPayments().get(0).getCcdCaseNumber()).then()
+                .getPaymentGroups(paymentsResponse.getCcdCaseNumber()).then()
                 .getPaymentGroups((paymentGroupsResponse -> {
                     paymentGroupsResponse.getPaymentGroups().stream()
                             .filter(paymentGroupDto -> paymentGroupDto.getPayments().get(0).getReference()
-                                    .equalsIgnoreCase(paymentsResponse.getPayments().get(0).getReference()))
+                                    .equalsIgnoreCase(paymentsResponse.getReference()))
                             .forEach(paymentGroupDto -> {
 
                                 boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature", false);
