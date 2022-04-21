@@ -109,6 +109,23 @@
         </notes>
         <cve>CVE-2022-22965</cve>
     </suppress>
+
+    <suppress until="2022-06-30">
+        <notes>In Spring Framework versions 5.3.0 - 5.3.16 and older unsupported versions, it is possible for a user to
+            provide a specially crafted SpEL expression that may cause a denial of service condition.
+        </notes>
+        <cve>CVE-2022-22950</cve>
+    </suppress>
+
+    <suppress until="2022-06-30">
+        <notes>Pivotal Spring Framework through 5.3.16 suffers from a potential remote code execution (RCE) issue if used
+            for Java deserialization of untrusted data. Depending on how the library is implemented within a product, this
+            issue may or not occur, and authentication may be required. NOTE: the vendor's position is that untrusted data is
+            not an intended use case. The product's behavior will not be changed because some users rely on deserialization of
+            trusted data.
+        </notes>
+        <cve>CVE-2016-1000027</cve>
+    </suppress>
     <!-- Supression Group ends here -->
 
 </suppressions>
