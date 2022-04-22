@@ -80,15 +80,15 @@ public class PBAPaymentFunctionalTest {
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequestForProbate("90.00",
                 "PROBATE",accountNumber);
         accountPaymentRequest.setAccountNumber(accountNumber);
-        paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
-                .statusCode(CREATED.value()).body("status", equalTo("Success"));
+        PaymentDto paymentDto = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
+                .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
 
-        // Get pba payments by accountNumber
-        PaymentsResponse paymentsResponse = paymentTestService
-                .getPbaPaymentsByAccountNumber(USER_TOKEN, SERVICE_TOKEN, testProps.existingAccountNumber).then()
-                .statusCode(OK.value()).extract().as(PaymentsResponse.class);
+        // Get pba payment by reference
+        PaymentDto paymentsResponse =
+                paymentTestService.getPbaPayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then()
+                        .statusCode(OK.value()).extract().as(PaymentDto.class);
 
-        assertThat(paymentsResponse.getPayments().get(0).getAccountNumber()).isEqualTo(accountNumber);
+        assertThat(paymentsResponse.getAccountNumber()).isEqualTo(accountNumber);
     }
 
     @Test
@@ -160,15 +160,15 @@ public class PBAPaymentFunctionalTest {
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
                 .aPbaPaymentRequestForProbateForSuccessLiberataValidation("215.00", "PROBATE");
         accountPaymentRequest.setAccountNumber(accountNumber);
-        paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
-                .statusCode(CREATED.value()).body("status", equalTo("Success"));
+        PaymentDto paymentDto = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
+                .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
 
-        // Get pba payments by accountNumber
-        PaymentsResponse paymentsResponse = paymentTestService
-                .getPbaPaymentsByAccountNumber(USER_TOKEN, SERVICE_TOKEN, testProps.existingAccountNumber).then()
-                .statusCode(OK.value()).extract().as(PaymentsResponse.class);
+        // Get pba payment by reference
+        PaymentDto paymentsResponse =
+                paymentTestService.getPbaPayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then()
+                        .statusCode(OK.value()).extract().as(PaymentDto.class);
 
-        assertThat(paymentsResponse.getPayments().get(0).getAccountNumber()).isEqualTo(accountNumber);
+        assertThat(paymentsResponse.getAccountNumber()).isEqualTo(accountNumber);
 
         // Get pba payments by ccdCaseNumber
         PaymentsResponse liberataResponse = paymentTestService
@@ -206,15 +206,15 @@ public class PBAPaymentFunctionalTest {
                 .service("PROBATE").currency(CurrencyCode.GBP).siteId("ABA6").customerReference("CUST101")
                 .organisationName("ORG101").accountNumber(accountNumber).fees(fees).build();
 
-        paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
-                .statusCode(CREATED.value()).body("status", equalTo("Success"));
+        PaymentDto paymentDto = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
+                .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
 
-        // Get pba payments by accountNumber
-        PaymentsResponse paymentsResponse = paymentTestService
-                .getPbaPaymentsByAccountNumber(USER_TOKEN, SERVICE_TOKEN, testProps.existingAccountNumber).then()
-                .statusCode(OK.value()).extract().as(PaymentsResponse.class);
+        // Get pba payment by reference
+        PaymentDto paymentsResponse =
+                paymentTestService.getPbaPayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then()
+                        .statusCode(OK.value()).extract().as(PaymentDto.class);
 
-        assertThat(paymentsResponse.getPayments().get(0).getAccountNumber()).isEqualTo(accountNumber);
+        assertThat(paymentsResponse.getAccountNumber()).isEqualTo(accountNumber);
 
         // Get pba payments by ccdCaseNumber
         PaymentsResponse liberataResponse = paymentTestService
@@ -224,7 +224,6 @@ public class PBAPaymentFunctionalTest {
         assertThat(liberataResponse.getPayments().get(0).getAccountNumber()).isEqualTo(accountNumber);
 
         if (liberataResponse.getPayments().get(0).getFees().get(0).getCode().equalsIgnoreCase("FEE0271")) {
-            System.out.println("here ya go " + liberataResponse.getPayments().get(0).getFees().get(0).getMemoLine());
             assertThat(liberataResponse.getPayments().get(0).getFees().get(0).getApportionedPayment())
                     .isEqualTo("20.00");
             assertThat(liberataResponse.getPayments().get(0).getFees().get(0).getCalculatedAmount()).isEqualTo("20.00");
