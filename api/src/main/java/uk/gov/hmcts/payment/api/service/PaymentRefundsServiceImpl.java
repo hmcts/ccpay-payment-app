@@ -775,17 +775,20 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         return totalPaymentAmount.subtract(totalRefundAmount);
     }
 
-    public List<String> getAllRefundedFeeIds(RefundListDtoResponse refundListDtoResponse){
+    public List<List<String>>  getAllRefundedFeeIds(RefundListDtoResponse refundListDtoResponse){
         List<String> refundedFees = new ArrayList<String>();
+        List<List<String>> refundsFeeList = new ArrayList<>();
 
         if(refundListDtoResponse !=null) {
             for (RefundDto refundDto : refundListDtoResponse.getRefundList()) {
                 if (refundDto.getReason().equals("Retrospective remission")) {
-                    refundedFees = Arrays.asList(refundDto.getFeeIds().split(","));
+                  refundedFees =  Arrays.asList(refundDto.getFeeIds().split(","));
+                    refundsFeeList.add(refundedFees);
                 }
+
             }
         }
-        return refundedFees;
+        return refundsFeeList;
     }
 
 
@@ -804,7 +807,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             LOG.info("refundListDtoResponse : {}", refundListDtoResponse);
 
             //gets a list of all the refunded fee ids for this case
-            List<String> refundedFees= getAllRefundedFeeIds(refundListDtoResponse);
+            List<List<String>> refundedFees= getAllRefundedFeeIds(refundListDtoResponse);
 
             for(PaymentDto paymentDto : paymentGroupDto.getPayments()){
                 LOG.info("INSIDE MAIN LOOP");
@@ -835,7 +838,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
 
                                     //IF THERE IS NO PROCESSED REFUND FOR THE FEE BUT THERE IS AN ACTIVE REMISSION
-                                    if (!refundedFees.stream().anyMatch(fee.getId().toString()::equals)
+                                    if (!refundedFees.stream().flatMap(List::stream).anyMatch(fee.getId().toString()::equals)
                                         && fee.getId() == remission.getFeeId()) {
                                         LOG.info("ENTERED NO PROCESSED REFUND IF");
 
@@ -845,7 +848,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                                         paymentDto.setIssueRefund(false);
                                     }
                                     //IF THERE IS A PROCESSED REFUND FOR THE FEE
-                                    else if (refundedFees.stream().anyMatch(fee.getId().toString()::equals)) {
+                                    else if (refundedFees.stream().flatMap(List::stream).anyMatch(fee.getId().toString()::equals)) {
                                         LOG.info("ENTERED PROCESSED REFUND ELSEIF");
 
                                         fee.setAddRemission(false);
@@ -854,7 +857,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
                                     }
                                     //NO PROCESSED OR OUTSTANDING REMISSION
-                                    else if (!refundedFees.stream().anyMatch(fee.getId().toString()::equals)
+                                    else if (!refundedFees.stream().flatMap(List::stream).anyMatch(fee.getId().toString()::equals)
                                         && fee.getId() != remission.getFeeId()) {
                                         LOG.info("ENTERED NO PROCESSED OR OUTSTANDING REFUND ELSEIF");
 
@@ -934,7 +937,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             LOG.info("refundListDtoResponse : {}", refundListDtoResponse);
 
             //gets a list of all the refunded fee ids for this case
-            List<String> refundedFees= getAllRefundedFeeIds(refundListDtoResponse);
+            List<List<String>> refundedFees= getAllRefundedFeeIds(refundListDtoResponse);
 
             for(PaymentGroupDto paymentGroupDto : paymentGroupResponse.getPaymentGroups()){
 
@@ -955,7 +958,8 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                                 if (fee.getId() == remission.getFeeId()) {
 
                                     //IF THERE IS NO PROCESSED REFUND FOR THE FEE BUT THERE IS AN ACTIVE REMISSION
-                                    if (!refundedFees.stream().anyMatch(fee.getId().toString()::equals)
+
+                                    if (!refundedFees.stream().flatMap(List::stream).anyMatch(fee.getId().toString()::equals)
                                         && fee.getId() == remission.getFeeId()) {
                                         LOG.info("ENTERED NO PROCESSED REFUND IF");
 
@@ -967,7 +971,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                                         }
                                     }
                                     //IF THERE IS A PROCESSED REFUND FOR THE FEE
-                                    else if (refundedFees.stream().anyMatch(fee.getId().toString()::equals)) {
+                                    else if (refundedFees.stream().flatMap(List::stream).anyMatch(fee.getId().toString()::equals)) {
                                         LOG.info("ENTERED PROCESSED REFUND ELSEIF");
 
                                         fee.setAddRemission(false);
@@ -977,7 +981,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                                         }
                                     }
                                     //NO PROCESSED OR OUTSTANDING REMISSION
-                                    else if (!refundedFees.stream().anyMatch(fee.getId().toString()::equals)
+                                    else if (!refundedFees.stream().flatMap(List::stream).anyMatch(fee.getId().toString()::equals)
                                         && fee.getId() != remission.getFeeId()) {
                                         LOG.info("ENTERED NO PROCESSED OR OUTSTANDING REFUND ELSEIF");
 
