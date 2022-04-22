@@ -408,7 +408,9 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
 
         String subName = "serviceRequestCpoUpdateSubscription";
         String topic = "ccpay-service-request-cpo-update-topic";
-        IMessageReceiver subscriptionClient = ClientFactory.createMessageReceiverFromConnectionStringBuilder(new ConnectionStringBuilder(connectionString, topic+"/subscriptions/" + subName+"/$deadletterqueue"), ReceiveMode.RECEIVEANDDELETE);
+        IMessageReceiver subscriptionClient = ClientFactory.createMessageReceiverFromConnectionStringBuilder(new ConnectionStringBuilder(connectionString, topic+"/subscriptions/" + subName+"/$deadletterqueue"));
+        LOG.info("connectionString {}", connectionString);
+        LOG.info("Complete Topic name : " +topic+"/subscriptions/" + subName+"/$deadletterqueue");
         return subscriptionClient;
     }
 
@@ -416,16 +418,15 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     @Override
 
     public void deadLetterProcess(IMessageReceiver subscriptionClient) throws ServiceBusException, InterruptedException, IOException {
-
-
         int receivedMessages =0;
 
         TopicClientProxy topicClientCPO = topicClientService.getTopicClientProxy();
         LOG.info("topicClientCPO : " + topicClientCPO );
+        LOG.info("subscriptionClient: {}", subscriptionClient);
         while (true)
         {
             IMessage receivedMessage = subscriptionClient.receive();
-            LOG.info("receivedMessage\n", receivedMessage);
+            LOG.info("receivedMessage: {}", receivedMessage);
             if (receivedMessage != null) {
                 String  msgProperties = receivedMessage.getProperties().toString();
                 boolean isFound500 =  msgProperties.indexOf("500") !=-1? true: false;
