@@ -452,7 +452,6 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         LOG.info("Received messages from subscription.\n {}", receivedMessages);
     }
 
-
     @Override
     public void sendMessageTopicCPO(ServiceRequestDto serviceRequestDto, String serviceRequestReference){
 
