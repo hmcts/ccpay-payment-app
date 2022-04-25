@@ -430,6 +430,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
             if (receivedMessage != null) {
                 String  msgProperties = receivedMessage.getProperties().toString();
                 boolean isFound500 =  msgProperties.indexOf("500") !=-1? true: false;
+                LOG.info("500 Errors found in message read from DLQ {}", isFound500);
                 if (isFound500) {
                     byte[] body = receivedMessage.getBody();
                     ObjectMapper objectMapper = new ObjectMapper();
@@ -437,6 +438,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
                     ObjectMapper objectMapper1 = new ObjectMapper();
                     Message msg = new Message(objectMapper1.writeValueAsString(deadLetterDto));
                     msg.setContentType(MSGCONTENTTYPE);
+                    LOG.info("Message to be sent back to Topic from DLQ {}", msg.getBody());
                     topicClientCPO.send(msg);
                 }
             }
@@ -447,7 +449,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
                 break;
             }
         }
-        LOG.info("Received %s messages from subscription.\n", receivedMessages);
+        LOG.info("Received messages from subscription.\n {}", receivedMessages);
     }
 
 
