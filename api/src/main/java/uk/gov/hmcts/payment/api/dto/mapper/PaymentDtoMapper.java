@@ -376,9 +376,11 @@ public class PaymentDtoMapper {
 
 
     private PaymentDto enrichWithFeeData(PaymentDto paymentDto) {
+        LOG.info("Start of enrichWithFeeData!!!");
         paymentDto.getFees().forEach(fee -> {
             Optional<Map<String, Fee2Dto>> optFrFeeMap = Optional.ofNullable(feesService.getFeesDtoMap());
             if (optFrFeeMap.isPresent()) {
+                LOG.info("Fee details retrieved from fees-register!!!");
                 Map<String, Fee2Dto> frFeeMap = optFrFeeMap.get();
 
                 if (frFeeMap.containsKey(fee.getCode())) {
@@ -391,6 +393,7 @@ public class PaymentDtoMapper {
                         fee.setMemoLine(optionalFeeVersionDto.get().getMemoLine());
                         fee.setNaturalAccountCode(optionalFeeVersionDto.get().getNaturalAccountCode());
                     }
+                    LOG.info("End of enrichWithFeeData!!!");
                 } else {
                     LOG.info("No fee found with the code: {}", fee.getCode());
                 }
@@ -445,6 +448,8 @@ public class PaymentDtoMapper {
             .dateCreated(apportionFeature ? timestamp: null)
             .build();
     }
+
+
 
 
     private FeeDto toFeeDto(PaymentFee fee) {

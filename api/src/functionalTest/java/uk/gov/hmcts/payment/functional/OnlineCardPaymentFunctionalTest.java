@@ -8,7 +8,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.RestTemplate;
@@ -424,35 +428,6 @@ public class OnlineCardPaymentFunctionalTest {
                 });
         }));
     }
-
-    // TO BE IMPLEMENTED IN THE CARD PAYMENT SCOPE
-//    @Ignore("This is now a valid scenario")
-//    @Test
-//    public void negative_issue_refund_for_card_payment() {
-//
-//        /*
-//        Refund response returns "Refund can not be processed for unsuccessful payment" for a card payment
-//        Expected :"Refund currently supported for PBA Payment Channel only"
-//         */
-//
-//        PaymentDto paymentDto = paymentsTestDsl.given().userToken(USER_TOKEN_CMC_CITIZEN)
-//            .s2sToken(SERVICE_TOKEN)
-//            .returnUrl("https://www.moneyclaims.service.gov.uk")
-//            .when().createCardPayment(PaymentFixture.aCardPaymentRequest("20.99"))
-//            .then().getByStatusCode(201);
-//
-//        String paymentReference = paymentDto.getReference();
-//        assertNotNull(paymentReference);
-//        assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
-//
-//        PaymentRefundRequest paymentRefundRequest
-//            = PaymentFixture.aRefundRequest("RR001", paymentReference);
-//        Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
-//            SERVICE_TOKEN_PAYMENT,
-//            paymentRefundRequest);
-//        assertThat(refundResponse.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
-//        assertThat(refundResponse.getBody().print()).isEqualTo("Refund currently supported for PBA Payment Channel only");
-//    }
 
     private CardPaymentRequest getCardPaymentRequest() {
         return PaymentFixture.aCardPaymentRequest("20.99");

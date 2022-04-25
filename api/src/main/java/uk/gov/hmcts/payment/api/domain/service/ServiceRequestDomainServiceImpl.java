@@ -31,7 +31,7 @@ import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
 import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
-import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestCpoDto;
+import uk.gov.hmcts.payment.api.dto.order.ServiceRequestCpoDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.DeadLetterDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
@@ -408,9 +408,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
 
         String subName = "serviceRequestCpoUpdateSubscription";
         String topic = "ccpay-service-request-cpo-update-topic";
-        IMessageReceiver subscriptionClient = ClientFactory.createMessageReceiverFromConnectionStringBuilder(new ConnectionStringBuilder(connectionString, topic+"/subscriptions/" + subName+"/$deadletterqueue"));
-        LOG.info("connectionString {}", connectionString);
-        LOG.info("Complete Topic name : " +topic+"/subscriptions/" + subName+"/$deadletterqueue");
+        IMessageReceiver subscriptionClient = ClientFactory.createMessageReceiverFromConnectionStringBuilder(new ConnectionStringBuilder(connectionString, topic+"/subscriptions/" + subName+"/$deadletterqueue"), ReceiveMode.RECEIVEANDDELETE);
         return subscriptionClient;
     }
 
@@ -418,19 +416,19 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     @Override
 
     public void deadLetterProcess(IMessageReceiver subscriptionClient) throws ServiceBusException, InterruptedException, IOException {
+
+
         int receivedMessages =0;
 
         TopicClientProxy topicClientCPO = topicClientService.getTopicClientProxy();
         LOG.info("topicClientCPO : " + topicClientCPO );
-        LOG.info("subscriptionClient: {}", subscriptionClient);
         while (true)
         {
             IMessage receivedMessage = subscriptionClient.receive();
-            LOG.info("receivedMessage: {}", receivedMessage);
+            LOG.info("receivedMessage\n", receivedMessage);
             if (receivedMessage != null) {
                 String  msgProperties = receivedMessage.getProperties().toString();
                 boolean isFound500 =  msgProperties.indexOf("500") !=-1? true: false;
-                LOG.info("500 Errors found in message read from DLQ {}", isFound500);
                 if (isFound500) {
                     byte[] body = receivedMessage.getBody();
                     ObjectMapper objectMapper = new ObjectMapper();
@@ -438,7 +436,6 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
                     ObjectMapper objectMapper1 = new ObjectMapper();
                     Message msg = new Message(objectMapper1.writeValueAsString(deadLetterDto));
                     msg.setContentType(MSGCONTENTTYPE);
-                    LOG.info("Message to be sent back to Topic from DLQ {}", msg.getBody());
                     topicClientCPO.send(msg);
                 }
             }
@@ -449,7 +446,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
                 break;
             }
         }
-        LOG.info("Received messages from subscription.\n {}", receivedMessages);
+        LOG.info("Received %s messages from subscription.\n", receivedMessages);
     }
 
 
@@ -486,7 +483,6 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
                 msg.setProperties(Collections.singletonMap("serviceCallbackUrl",
                     callBackUrl+"/case-payment-orders"));
                 topicClientCPO.send(msg);
-                LOG.info("Message sent: {}", msg);
                 topicClientCPO.close();
             }
         } catch (Exception e) {

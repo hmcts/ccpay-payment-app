@@ -157,7 +157,7 @@ public class PbaControllerTest extends PaymentsDataUtil {
             .fullName("ccd-full-name")
             .build();
 
-        when(idamService.getUserDetails(any())).thenReturn(IDAM_EMAIL_ID);
+        when(idamService.getUserId(any())).thenReturn(IDAM_EMAIL_ID);
         when(idamService.getUserIdentityData(any(), any())).thenReturn(userIdentityDataDto);
 
         PBAResponse mockIdamUserIdResponse = PBAResponse.pbaDtoWith().organisationEntityResponse(null)
@@ -187,7 +187,7 @@ public class PbaControllerTest extends PaymentsDataUtil {
             .fullName("ccd-full-name")
             .build();
 
-        when(idamService.getUserDetails(any())).thenReturn(IDAM_EMAIL_ID);
+        when(idamService.getUserId(any())).thenReturn(IDAM_EMAIL_ID);
         when(idamService.getUserIdentityData(any(), any())).thenReturn(userIdentityDataDto);
         when(restTemplateRefData.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
             eq(PBAResponse.class)
@@ -208,7 +208,7 @@ public class PbaControllerTest extends PaymentsDataUtil {
             .fullName("ccd-full-name")
             .build();
 
-        when(idamService.getUserDetails(any())).thenReturn(IDAM_EMAIL_ID);
+        when(idamService.getUserId(any())).thenReturn(IDAM_EMAIL_ID);
         when(idamService.getUserIdentityData(any(), any())).thenReturn(userIdentityDataDto);
         when(restTemplateRefData.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
             eq(PBAResponse.class)
@@ -230,7 +230,7 @@ public class PbaControllerTest extends PaymentsDataUtil {
             .fullName("ccd-full-name")
             .build();
 
-        when(idamService.getUserDetails(any())).thenReturn(IDAM_EMAIL_ID);
+        when(idamService.getUserId(any())).thenReturn(IDAM_EMAIL_ID);
         when(idamService.getUserIdentityData(any(), any())).thenReturn(userIdentityDataDto);
         when(restTemplateRefData.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
             eq(PBAResponse.class)

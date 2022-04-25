@@ -10,6 +10,7 @@ import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
 import uk.gov.hmcts.payment.api.external.client.dto.RefundPaymentRequest;
+import uk.gov.hmcts.payment.api.service.govpay.GovPayDelegatingPaymentService;
 import uk.gov.hmcts.payment.api.v1.model.PaymentService;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 

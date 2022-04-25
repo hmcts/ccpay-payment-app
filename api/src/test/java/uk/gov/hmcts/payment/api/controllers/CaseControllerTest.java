@@ -12,7 +12,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Answers;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.annotation.DirtiesContext;
@@ -21,8 +20,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.WebApplicationContext;
+import org.testcontainers.shaded.okhttp3.Response;
 import uk.gov.hmcts.payment.api.componenttests.PaymentDbBackdoor;
 import uk.gov.hmcts.payment.api.componenttests.PaymentFeeDbBackdoor;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
@@ -30,7 +29,10 @@ import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.domain.service.ServiceRequestDomainService;
-import uk.gov.hmcts.payment.api.dto.*;
+import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
+import uk.gov.hmcts.payment.api.dto.PaymentGroupResponse;
+import uk.gov.hmcts.payment.api.dto.RemissionRequest;
+import uk.gov.hmcts.payment.api.external.client.dto.Error;
 import uk.gov.hmcts.payment.api.model.FeePayApportion;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentChannel;
@@ -41,9 +43,7 @@ import uk.gov.hmcts.payment.api.model.PaymentProvider;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.model.StatusHistory;
 import uk.gov.hmcts.payment.api.reports.FeesService;
-import uk.gov.hmcts.payment.api.service.PaymentRefundsService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataServiceImpl;
-import uk.gov.hmcts.payment.api.service.RefundRemissionEnableService;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
@@ -52,7 +52,6 @@ import uk.gov.hmcts.payment.referencedata.service.SiteService;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -66,7 +65,6 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -87,8 +85,6 @@ public class CaseControllerTest extends PaymentsDataUtil {
     public static WireMockClassRule wireMockRule = new WireMockClassRule(9190);
     static FeeDto feeRequest = FeeDto.feeDtoWith()
         .calculatedAmount(new BigDecimal("92.19"))
-        .apportionAmount(BigDecimal.valueOf(99.99))
-        .allocatedAmount(BigDecimal.valueOf(99.99))
         .code("FEE312")
         .version("1")
         .volume(2)
@@ -114,15 +110,6 @@ public class CaseControllerTest extends PaymentsDataUtil {
     protected PaymentDbBackdoor paymentDbBackdoor;
     @Autowired
     protected PaymentFeeDbBackdoor paymentFeeDbBackdoor;
-    @MockBean
-    private RefundRemissionEnableService refundRemissionEnableService;
-    @MockBean
-    private PaymentRefundsService paymentRefundsService;
-    @MockBean
-    @Autowired()
-    @Qualifier("restTemplateRefundsGroup")
-    private RestTemplate restTemplateRefundsGroup;
-
     RestActions restActions;
     MockMvc mvc;
     List<Site> serviceReturn = Arrays.asList(Site.siteWith()
@@ -383,12 +370,6 @@ public class CaseControllerTest extends PaymentsDataUtil {
         setupForFinanceManagerUser();
         populateCardPaymentToDbWithPaymentWithCreatedstatus("1");
 
-        PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
-            .remissions(null)
-            .payments(null).build();
-
-        commonMock(paymentGroupDto, 1);
-
         MvcResult result = restActions
             .withAuthorizedUser(UserResolverBackdoor.FINANCE_MANAGER_ID)
             .withUserId(UserResolverBackdoor.FINANCE_MANAGER_ID)
@@ -410,11 +391,6 @@ public class CaseControllerTest extends PaymentsDataUtil {
 
         populateCardPaymentToDbWithPaymentWithCreatedstatus("1");
 
-        PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
-            .serviceRequestStatus("Not paid").build();
-
-        commonMock(paymentGroupDto, 1);
-
         MvcResult result = restActions
             .withAuthorizedUser(USER_ID)
             .withUserId(USER_ID)
@@ -433,11 +409,6 @@ public class CaseControllerTest extends PaymentsDataUtil {
     public void searchAllPaymentGroupsWithUnderPaidFees() throws Exception {
 
         populateCardPaymentToDbWithPartiallyPaidPayment("1");
-
-        PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
-            .serviceRequestStatus("Partially paid").build();
-
-        commonMock(paymentGroupDto, 1);
 
         MvcResult result = restActions
             .withAuthorizedUser(USER_ID)
@@ -458,12 +429,6 @@ public class CaseControllerTest extends PaymentsDataUtil {
     public void searchAllPaymentGroupsWithCcdCaseNumberShouldReturnRequiredFields() throws Exception {
 
         populateCardPaymentToDb("1");
-
-        PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
-            .remissions(null)
-            .payments(null).build();
-
-        commonMock(paymentGroupDto, 1);
 
         MvcResult result = restActions
             .withAuthorizedUser(USER_ID)
@@ -493,8 +458,6 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .post("/payment-groups", paymentGroupDto)
             .andReturn();
 
-        commonMock(paymentGroupDto, 2);
-
         MvcResult result = restActions
             .withAuthorizedUser(USER_ID)
             .withUserId(USER_ID)
@@ -518,12 +481,10 @@ public class CaseControllerTest extends PaymentsDataUtil {
         PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(feeRequest))
             .build();
-        when(refundRemissionEnableService.returnRemissionEligible(any())).thenReturn(true);
+
         restActions
             .post("/payment-groups", paymentGroupDto)
             .andReturn();
-
-        commonMock(paymentGroupDto, 2);
 
         MvcResult result = restActions
             .withAuthorizedUser(USER_ID)
@@ -566,8 +527,6 @@ public class CaseControllerTest extends PaymentsDataUtil {
         MvcResult result2 = restActions
             .put("/payment-groups/" + paymentGroupFeeDto.getPaymentGroupReference(), consecutivePaymentGroupDto)
             .andReturn();
-
-        commonMock(paymentGroupDto, 2);
 
         MvcResult result = restActions
             .withAuthorizedUser(USER_ID)
@@ -642,9 +601,6 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .put("/payment-groups/" + paymentGroupFeeDto.getPaymentGroupReference(), paymentGroupDto)
             .andReturn();
 
-
-        commonMock(paymentGroupDto, 3);
-
         MvcResult result = restActions
             .withAuthorizedUser(USER_ID)
             .withUserId(USER_ID)
@@ -679,7 +635,6 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .volume(2)
             .reference("BXsd1123")
             .ccdCaseNumber("ccdCaseNumber1")
-            .description("Application for a charging order")
             .build();
 
         RemissionRequest remissionRequest = RemissionRequest.createRemissionRequestWith()
@@ -691,12 +646,8 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .fee(feeRequest)
             .build();
 
-        List<RemissionDto> remissionDtoList = new ArrayList<>();
-        remissionDtoList.add(RemissionDto.remissionDtoWith().dateCreated(new Date()).build());
-
         PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(feeRequest))
-            .remissions(remissionDtoList)
             .build();
 
         MvcResult result1 = restActions
@@ -717,8 +668,6 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .andExpect(status().isCreated())
             .andReturn();
 
-        commonMock(paymentGroupDto, 1);
-
         MvcResult result = restActions
             .withAuthorizedUser(USER_ID)
             .withUserId(USER_ID)
@@ -732,7 +681,9 @@ public class CaseControllerTest extends PaymentsDataUtil {
         assertThat(paymentGroups.getPaymentGroups().size()).isEqualTo(1);
         assertThat(paymentGroups.getPaymentGroups().get(0)
             .getFees().get(0).getDescription()).isEqualTo("Application for a charging order");
-
+        System.out.println(paymentGroups.getPaymentGroups().get(0)
+            .getRemissions().get(0).getDateCreated());
+        System.out.println(new Date());
         assertThat(paymentGroups.getPaymentGroups().get(0)
             .getRemissions().get(0).getDateCreated().getDate()).isEqualTo(new Date().getDate());
     }
@@ -770,24 +721,6 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .ccdCaseNumber("1607065108455502")
             .fees(Arrays.asList(PaymentFee.feeWith().calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE0001").volume(1).build()))
             .build();
-    }
-
-    private void commonMock(PaymentGroupDto paymentGroupDto, int size) {
-
-        List<PaymentGroupDto> paymentGroupDtoList = new ArrayList<>();
-
-        for (int i = 0; i < size; i++) {
-            paymentGroupDtoList.add(paymentGroupDto);
-        }
-
-        PaymentGroupResponse paymentGroupResponse = PaymentGroupResponse.paymentGroupResponseWith()
-            .paymentGroups(paymentGroupDtoList).build();
-
-        List<PaymentGroupResponse> paymentGroupResponseList = new ArrayList<>();
-        paymentGroupResponseList.add(paymentGroupResponse);
-
-        when(paymentRefundsService.checkRefundAgainstRemission(any(),any(PaymentGroupResponse.class),anyString()))
-            .thenReturn(paymentGroupResponse);
     }
 
 }

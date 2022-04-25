@@ -27,7 +27,6 @@ import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
-import uk.gov.hmcts.payment.api.service.RefundRemissionEnableService;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
@@ -84,8 +83,6 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil {
     private PaymentService<PaymentFeeLink, String> paymentService;
     @MockBean
     private LaunchDarklyFeatureToggler featureToggler;
-    @MockBean
-    private RefundRemissionEnableService refundRemissionEnableService;
 
     protected CustomResultMatcher body() {
         return new CustomResultMatcher(objectMapper);
@@ -145,8 +142,6 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil {
         Payment payment = populateCardPaymentToDb("1");
         populateApportionDetails(payment);
         when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
-        when(
-            refundRemissionEnableService.returnRemissionEligible(payment.getPaymentLink().getFees().get(0))).thenReturn(true);
         MvcResult result = restActions
             .get("/payment-groups/fee-pay-apportion/" + payment.getReference())
             .andExpect(status().isOk())
@@ -163,8 +158,6 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil {
         Payment payment = populateCardPaymentToDb("1");
         populateApportionDetails(payment);
         when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
-        when(
-            refundRemissionEnableService.returnRemissionEligible(payment.getPaymentLink().getFees().get(0))).thenReturn(true);
         MvcResult result = restActions
             .get("/payment-groups/fee-pay-apportion/" + payment.getReference())
             .andExpect(status().isOk())
@@ -181,8 +174,6 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil {
         Payment payment = populateCardPaymentToDb("1");
         populateApportionDetails(payment);
         when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
-        when(
-            refundRemissionEnableService.returnRemissionEligible(payment.getPaymentLink().getFees().get(0))).thenReturn(true);
         MvcResult result = restActions
             .get("/payment-groups/fee-pay-apportion/" + payment.getReference())
             .andExpect(status().isOk())
@@ -199,8 +190,6 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil {
         Payment payment = populateCardPaymentToDb("1");
         populateApportionDetails(payment);
         when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(false);
-        when(
-            refundRemissionEnableService.returnRemissionEligible(payment.getPaymentLink().getFees().get(0))).thenReturn(true);
         MvcResult result = restActions
             .get("/payment-groups/fee-pay-apportion/" + payment.getReference())
             .andExpect(status().isOk())
@@ -216,8 +205,6 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil {
         Payment payment = populateCardPaymentToDb("1");
         populateApportionDetails(payment);
         when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(false);
-        when(
-            refundRemissionEnableService.returnRemissionEligible(payment.getPaymentLink().getFees().get(0))).thenReturn(true);
         MvcResult result = restActions
             .get("/payment-groups/fee-pay-apportion/" + "123")
             .andExpect(status().isNotFound())
@@ -237,8 +224,6 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil {
         Payment payment = populateCardPaymentToDb("1");
         populateApportionDetails(payment);
         when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
-        when(
-            refundRemissionEnableService.returnRemissionEligible(payment.getPaymentLink().getFees().get(0))).thenReturn(true);
         MvcResult result = restActions
             .get("/payment-groups/fee-pay-apportion/" + payment.getReference())
             .andExpect(status().isOk())

@@ -57,6 +57,7 @@ public class CardPaymentProviderTestConfiguration {
     @MockBean
     private ReferenceDataService referenceDataServiceImp;
 
+
     @Bean
     @Primary
     public PaymentDtoMapper paymentDtoMapper() {

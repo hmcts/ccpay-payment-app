@@ -3,7 +3,6 @@ package uk.gov.hmcts.payment.api.contract;
 
 import org.joda.time.DateTime;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 
@@ -13,7 +12,6 @@ import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Ignore
 public class PaymentDtoTest {
 
     private final String feeWithVolumeCode;
@@ -64,8 +62,6 @@ public class PaymentDtoTest {
     private BigDecimal apportionedPayment;
     private Date dateReceiptProcessed;
     private Date dateApportioned;
-    private Boolean refundEnable;
-    private Boolean remissionEnable;
     private String internalReference;
 
     public PaymentDtoTest() {
@@ -92,12 +88,13 @@ public class PaymentDtoTest {
         paymentGroupReference = "paymentGroupReference";
         apportionedPayment = new BigDecimal(1);
         dateReceiptProcessed = currentDateTime.toDate();
+        internalReference = "12345";
 
-        /*feeWithVolumeDto = new FeeDto(1, feeWithVolumeCode, feeVersion, volume, calculatedAmountForFeeWithVolume,
-            feeAmount, memoLine, naturalAccountCode, null, null, null, jurisdiction1, jurisdiction2, feeDescription,caseReference,apportionAmount,allocatedAmount,dateApportioned,dateCreated,dateUpdated,amountDue,paymentGroupReference,apportionedPayment,dateReceiptProcessed,remissionEnable);
+        feeWithVolumeDto = new FeeDto(1, feeWithVolumeCode, feeVersion, volume, calculatedAmountForFeeWithVolume,
+            feeAmount, memoLine, naturalAccountCode, null, null, null, jurisdiction1, jurisdiction2, feeDescription,caseReference,apportionAmount,allocatedAmount,dateApportioned,dateCreated,dateUpdated,amountDue,paymentGroupReference,apportionedPayment,dateReceiptProcessed);
 
         feeNoVolumeDto = new FeeDto(1, feeNoVolumeCode, feeVersion, volume, calculatedAmountForFeeNoVolume,
-            feeAmount, memoLine, naturalAccountCode, null, null, null, jurisdiction1, jurisdiction2, feeDescription,caseReference,apportionAmount,allocatedAmount,dateApportioned,dateCreated,dateUpdated,amountDue,paymentGroupReference,apportionedPayment,dateReceiptProcessed,remissionEnable);*/
+            feeAmount, memoLine, naturalAccountCode, null, null, null, jurisdiction1, jurisdiction2, feeDescription,caseReference,apportionAmount,allocatedAmount,dateApportioned,dateCreated,dateUpdated,amountDue,paymentGroupReference,apportionedPayment,dateReceiptProcessed);
     }
 
     @Before
@@ -135,15 +132,13 @@ public class PaymentDtoTest {
         documentControlNumber = "12345";
         bankedDate = new Date();
         payerName = "test";
-        refundEnable = true;
-        remissionEnable=true;
 
 
-        /*testDto = new PaymentDto(id, amount, description, reference, dateCreated, dateUpdated,
+        testDto = new PaymentDto(id, amount, description, reference, dateCreated, dateUpdated,
             gbp, ccdNumber, caseReference, paymentReference, channel, method, externalProvider,
             status, externalReference, siteId, serviceName, customerReference, accountNumber,
-            organisationName, paymentGroupReference, reportedDateOffline,documentControlNumber,bankedDate,payerName,true,
-            null, statusHistories, paymentAllocations,giroSlipNo, internalReference,links);*/
+            organisationName, paymentGroupReference, reportedDateOffline,documentControlNumber,bankedDate,payerName,
+            null, statusHistories, paymentAllocations,giroSlipNo, internalReference,links);
     }
 
     @Test

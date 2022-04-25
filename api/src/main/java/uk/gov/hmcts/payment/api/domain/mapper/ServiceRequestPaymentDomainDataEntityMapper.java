@@ -57,7 +57,6 @@ public class ServiceRequestPaymentDomainDataEntityMapper {
             .caseReference(serviceRequest.getCaseReference())
             .ccdCaseNumber(serviceRequest.getCcdCaseNumber())
             .siteId(serviceRequest.getOrgId())
-            .dateCreated(serviceRequest.getDateCreated())
             .serviceType(serviceRequest.getEnterpriseServiceName())
             .build();
     }
