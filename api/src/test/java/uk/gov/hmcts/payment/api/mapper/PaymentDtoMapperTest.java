@@ -223,4 +223,30 @@ public class PaymentDtoMapperTest {
         assertEquals("Transferred",paymentAllocationDto.getAllocationStatus());
     }
 
+    @Test
+    public void testToRetrieveCardPaymentResponseDtoWithoutExtReference() {
+        PaymentMethod paymentMethod = PaymentMethod.paymentMethodWith().name("online").build();
+
+        Payment payment = Payment.paymentWith().internalReference("abc")
+            .id(1)
+            .reference("RC-1632-3254-9172-5888")
+            .caseReference("123789")
+            .paymentMethod(paymentMethod )
+            .ccdCaseNumber("1234")
+            .amount(new BigDecimal(300))
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
+            .build();
+
+        List<Payment> paymentList = new ArrayList<>();
+        paymentList.add(payment);
+        PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith().ccdCaseNumber("1234")
+            .enterpriseServiceName("divorce")
+            .payments(paymentList)
+            .paymentReference("123456")
+            .build();
+
+        PaymentDto paymentDto = paymentDtoMapper.toRetrieveCardPaymentResponseDtoWithoutExtReference(paymentFeeLink, "abc");
+        assertEquals(paymentDto.getCaseReference(), payment.getCaseReference());
+    }
+
 }

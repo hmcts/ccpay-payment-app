@@ -19,11 +19,13 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
+import uk.gov.hmcts.payment.api.contract.RefundsFeeDto;
 import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
 import uk.gov.hmcts.payment.api.dto.RefundResponse;
 import uk.gov.hmcts.payment.api.dto.ResubmitRefundRemissionRequest;
-import uk.gov.hmcts.payment.api.dto.RetroSpectiveRemissionRequest;
+import uk.gov.hmcts.payment.api.dto.RetrospectiveRemissionRequest;
 import uk.gov.hmcts.payment.api.exception.InvalidRefundRequestException;
+import uk.gov.hmcts.payment.api.model.ContactDetails;
 import uk.gov.hmcts.payment.api.service.PaymentRefundsServiceImpl;
 import uk.gov.hmcts.payment.api.service.PaymentServiceImpl;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
@@ -35,6 +37,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotSuccessException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.RemissionNotFoundException;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 
 import static java.lang.String.format;
 import static org.junit.Assert.assertEquals;
@@ -56,10 +59,26 @@ public class RefundsControllerTest {
     PaymentRefundRequest paymentRefundRequest = PaymentRefundRequest.refundRequestWith()
         .paymentReference("RC-1234-1234-1234-1234")
         .refundReason("RESN1")
+        .totalRefundAmount(BigDecimal.valueOf(550))
+        .fees(
+            Arrays.asList(
+                RefundsFeeDto.refundFeeDtoWith()
+                    .calculatedAmount(new BigDecimal("550.00"))
+                    .apportionAmount(new BigDecimal("550.00"))
+                    .refundAmount(new BigDecimal("550.00"))
+                    .code("FEE0333")
+                    .id(1)
+                    .version("1")
+                    .updatedVolume(1)
+                    .build()
+            ))
+        .contactDetails(ContactDetails.contactDetailsWith().build())
         .build();
 
-    RetroSpectiveRemissionRequest retroSpectiveRemissionRequest = RetroSpectiveRemissionRequest.retroSpectiveRemissionRequestWith()
-        .remissionReference("qwerty").build();
+    RetrospectiveRemissionRequest retrospectiveRemissionRequest = RetrospectiveRemissionRequest.retrospectiveRemissionRequestWith()
+        .remissionReference("qwerty")
+        .contactDetails(ContactDetails.contactDetailsWith().build())
+        .build();
     MockMvc mvc;
     @Autowired
     private WebApplicationContext webApplicationContext;
@@ -136,6 +155,7 @@ public class RefundsControllerTest {
             .resubmitRefundRemissionRequestWith()
             .amount(BigDecimal.valueOf(100))
             .refundReason("RR036")
+            .totalRefundedAmount(BigDecimal.valueOf(100))
             .build();
 
 
@@ -158,6 +178,7 @@ public class RefundsControllerTest {
             .amount(BigDecimal.valueOf(100))
             .refundReason("RR036")
             .feeId("100")
+            .totalRefundedAmount(BigDecimal.valueOf(200))
             .build();
         when(paymentRefundsService.updateTheRemissionAmount("RC-1111-2222-5555-2222",resubmitRefundRemissionRequest))
             .thenThrow(new InvalidRefundRequestException("Amount should not be more than Remission amount"));
@@ -186,10 +207,10 @@ public class RefundsControllerTest {
             .refundReference("RF-4321-4321-4321-4321")
             .build(), HttpStatus.CREATED);
 
-        when(paymentRefundsService.createAndValidateRetroSpectiveRemissionRequest(any(), any())).thenReturn(mockRefundResponse);
+        when(paymentRefundsService.createAndValidateRetrospectiveRemissionRequest(any(), any())).thenReturn(mockRefundResponse);
 
         MvcResult result = restActions
-            .post("/refund-retro-remission", retroSpectiveRemissionRequest)
+            .post("/refund-retro-remission", retrospectiveRemissionRequest)
             .andExpect(status().isCreated())
             .andReturn();
 
@@ -203,10 +224,10 @@ public class RefundsControllerTest {
     @Test
     public void createRetroRemissionRefundWithInvalidRequestReturnsNonPbaPaymentException() throws Exception {
 
-        when(paymentRefundsService.createAndValidateRetroSpectiveRemissionRequest(any(), any())).thenThrow(new NonPBAPaymentException("test 123"));
+        when(paymentRefundsService.createAndValidateRetrospectiveRemissionRequest(any(), any())).thenThrow(new NonPBAPaymentException("test 123"));
 
         MvcResult result = restActions
-            .post("/refund-retro-remission", retroSpectiveRemissionRequest)
+            .post("/refund-retro-remission", retrospectiveRemissionRequest)
             .andExpect(status().isBadRequest())
             .andReturn();
 
@@ -215,10 +236,10 @@ public class RefundsControllerTest {
     @Test
     public void createRetroRemissionRefundWithInvalidRequestReturnsRemissionNotFoundException() throws Exception {
 
-        when(paymentRefundsService.createAndValidateRetroSpectiveRemissionRequest(any(), any())).thenThrow(new RemissionNotFoundException("test 123"));
+        when(paymentRefundsService.createAndValidateRetrospectiveRemissionRequest(any(), any())).thenThrow(new RemissionNotFoundException("test 123"));
 
         MvcResult result = restActions
-            .post("/refund-retro-remission", retroSpectiveRemissionRequest)
+            .post("/refund-retro-remission", retrospectiveRemissionRequest)
             .andExpect(status().isBadRequest())
             .andReturn();
 
@@ -227,10 +248,10 @@ public class RefundsControllerTest {
     @Test
     public void createRetroRemissionRefundWithInvalidRequestReturnsPaymentNotSuccessException() throws Exception {
 
-        when(paymentRefundsService.createAndValidateRetroSpectiveRemissionRequest(any(), any())).thenThrow(new PaymentNotSuccessException("test 123"));
+        when(paymentRefundsService.createAndValidateRetrospectiveRemissionRequest(any(), any())).thenThrow(new PaymentNotSuccessException("test 123"));
 
         MvcResult result = restActions
-            .post("/refund-retro-remission", retroSpectiveRemissionRequest)
+            .post("/refund-retro-remission", retrospectiveRemissionRequest)
             .andExpect(status().isBadRequest())
             .andReturn();
 

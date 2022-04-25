@@ -20,12 +20,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-@DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
-public class CreditAccountPaymentComponentTest extends TestUtil {
+public class CreditAccountPaymentComponentTest  {
 
     private final static String PAYMENT_REFERENCE_REFEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
 
-    @Autowired
+    /*@Autowired
     private Payment2Repository paymentRepository;
 
     @Ignore
@@ -67,7 +66,7 @@ public class CreditAccountPaymentComponentTest extends TestUtil {
         assertEquals(result.getFees().size(), 1);
         assertEquals(result.getFees().get(0).getCode(), "X0123");
         assertTrue(result.getPayments().get(1).getReference().matches(PAYMENT_REFERENCE_REFEX));
-    }
+    }*/
 
 
     private Payment getPayment(int number) {
