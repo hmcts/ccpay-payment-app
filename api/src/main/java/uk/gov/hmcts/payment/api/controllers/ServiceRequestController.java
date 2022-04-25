@@ -109,16 +109,7 @@ public class ServiceRequestController {
     @Transactional
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<ServiceRequestResponseDto> create(@Valid @RequestBody ServiceRequestDto serviceRequestDto,
-                                                            @RequestHeader(required = false) MultiValueMap<String, String> headers,
-                                                            BindingResult result){
-
-        List<FieldError> errors = result.getFieldErrors();
-        LOG.info("Validation Errors in Service Request {}", errors);
-        if(!CollectionUtils.isEmpty(errors)) {
-            for (FieldError error : errors ) {
-                LOG.error(error.getDefaultMessage());
-            }
-        }
+                                                            @RequestHeader(required = false) MultiValueMap<String, String> headers){
 
         ResponseEntity<ServiceRequestResponseDto> serviceRequestResponseDto = new ResponseEntity<>(serviceRequestDomainService.
             create(serviceRequestDto, headers), HttpStatus.CREATED);
