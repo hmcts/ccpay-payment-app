@@ -96,7 +96,7 @@ public class PBAController {
     @PaymentExternalAPI
     public ResponseEntity<PBAResponse> retrievePBADetails(@RequestHeader(required = false) MultiValueMap<String, String> headers) {
 
-        String emailIdFromIdam = idamService.getUserDetails(headers);
+        String emailIdFromIdam = idamService.getUserId(headers);
 
         MultiValueMap<String, String> headerMultiValueMapForRefData = generateHeaders(headers, emailIdFromIdam);
 

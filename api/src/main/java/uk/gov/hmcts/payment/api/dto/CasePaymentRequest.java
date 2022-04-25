@@ -18,9 +18,9 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @Setter
 public class CasePaymentRequest {
 
-    @NotBlank(message = "action should not be blank")
+    @NotBlank
     private String action;
 
-    @NotBlank(message = "responsibleParty should not be blank")
+    @NotBlank
     private String responsibleParty;
 }

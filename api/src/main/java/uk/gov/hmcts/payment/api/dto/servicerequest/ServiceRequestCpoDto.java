@@ -1,4 +1,4 @@
-package uk.gov.hmcts.payment.api.dto.servicerequest;
+package uk.gov.hmcts.payment.api.dto.order;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;

@@ -14,10 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.MultiValueMap;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
@@ -108,17 +105,7 @@ public class ServiceRequestController {
     @PostMapping(value = "/service-request")
     @Transactional
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<ServiceRequestResponseDto> create(@Valid @RequestBody ServiceRequestDto serviceRequestDto,
-                                                            @RequestHeader(required = false) MultiValueMap<String, String> headers,
-                                                            BindingResult result){
-
-        List<FieldError> errors = result.getFieldErrors();
-        LOG.info("Validation Errors in Service Request {}", errors);
-        if(!CollectionUtils.isEmpty(errors)) {
-            for (FieldError error : errors ) {
-                LOG.error(error.getDefaultMessage());
-            }
-        }
+    public ResponseEntity<ServiceRequestResponseDto> create(@Valid @RequestBody ServiceRequestDto serviceRequestDto, @RequestHeader(required = false) MultiValueMap<String, String> headers){
 
         ResponseEntity<ServiceRequestResponseDto> serviceRequestResponseDto = new ResponseEntity<>(serviceRequestDomainService.
             create(serviceRequestDto, headers), HttpStatus.CREATED);

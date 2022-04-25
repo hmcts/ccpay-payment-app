@@ -7,10 +7,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import uk.gov.hmcts.payment.api.model.ContactDetails;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
@@ -28,17 +26,7 @@ public class RefundRequestDto {
 
     private BigDecimal refundAmount;
 
-    private BigDecimal paymentAmount;
-
     private String ccdCaseNumber;
 
     private String feeIds;
-
-    private List<RefundFeesDto> refundFees;
-
-    private String serviceType;
-
-    private String paymentMethod;
-
-    private ContactDetails contactDetails;
 }

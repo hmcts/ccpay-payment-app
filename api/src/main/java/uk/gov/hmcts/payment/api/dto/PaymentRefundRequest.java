@@ -8,16 +8,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import uk.gov.hmcts.payment.api.contract.RefundsFeeDto;
-import uk.gov.hmcts.payment.api.model.ContactDetails;
 
-import javax.validation.Valid;
-import javax.validation.constraints.Digits;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-
-import java.math.BigDecimal;
-import java.util.List;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
@@ -38,14 +31,4 @@ public class PaymentRefundRequest {
     @NotEmpty(message = "Refund Reason cannot be blank")
     private String refundReason;
 
-    @Digits(integer = 10, fraction = 2, message = "Please check the amount you want to refund")
-    @NotNull(message = "You need to enter a refund amount")
-    private BigDecimal totalRefundAmount;
-
-    @NotEmpty
-    @Valid
-    private List<RefundsFeeDto>  fees;
-
-    @NotNull(message = "Contact Details cannot be null")
-    private ContactDetails contactDetails;
 }

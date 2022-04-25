@@ -1,7 +1,6 @@
 package uk.gov.hmcts.payment.api.componenttests;
 
 
-import org.junit.Ignore;
 import org.junit.Test;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.model.*;
@@ -18,9 +17,9 @@ import static org.junit.Assert.assertNotNull;
 import static uk.gov.hmcts.payment.api.model.Payment.paymentWith;
 import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 
-public class CardPaymentComponentTest  {
+public class CardPaymentComponentTest extends TestUtil {
 
-    /*@Test
+    @Test
     public void testSaveOfSinglePaymentWithSingleFee() {
         PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.save(paymentFeeLinkWith().paymentReference("00000001")
             .payments(Arrays.asList(getPaymentsData().get(0)))
@@ -74,7 +73,7 @@ public class CardPaymentComponentTest  {
 
 
     @Test
-    public void testRetrieveCardPaymentWithPaymentReference()  {
+    public void testRetrieveCardPaymentWithPaymentReference() throws Exception {
 
         PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.save(PaymentFeeLink.paymentFeeLinkWith().paymentReference("00000004")
             .payments(Arrays.asList(getPaymentsData().get(2)))
@@ -97,7 +96,9 @@ public class CardPaymentComponentTest  {
             .build());
 
         PaymentFeeLink foundPayment = paymentFeeLinkRepository.findByPaymentReference("00000006").orElseThrow(PaymentNotFoundException::new);
-    }*/
+    }
+
+
     public static List<Payment> getPaymentsData() {
         List<Payment> payments = new ArrayList<>();
         payments.add(paymentWith().amount(BigDecimal.valueOf(10000).movePointRight(2)).reference("reference1").description("desc1").returnUrl("https://www.moneyclaims.service.gov.uk")

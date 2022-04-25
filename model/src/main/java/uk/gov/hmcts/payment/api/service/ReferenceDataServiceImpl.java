@@ -55,6 +55,7 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
         return SiteDTO.fromSiteList(siteService.getAllSites());
     }
 
+
     @Override
     public OrganisationalServiceDto getOrganisationalDetail(Optional<String> caseType, Optional<String> serviceCode, MultiValueMap<String, String> headers) {
 
