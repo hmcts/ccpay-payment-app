@@ -914,6 +914,23 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                                     }
                                 }
                             });
+                        }else {
+                            if(paymentDto.getOverPayment().compareTo(BigDecimal.ZERO)>0){
+
+                                paymentDto.setIssueRefund(true);
+                                paymentGroupDto.getFees().forEach(feeDto -> {
+                                    feeDto.setAddRemission(false);
+                                    feeDto.setRemissionEnable(false);
+                                });
+                                if(!paymentGroupDto.getRemissions().isEmpty()) {
+                                    paymentGroupDto.getRemissions().forEach(remissionDto -> {
+                                        remissionDto.setAddRefund(false);
+
+                                    });
+                                }
+
+                            }
+
                         }
                     });
 
@@ -1065,7 +1082,26 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                                     }
                                 }
                             });
-                        }});
+                        } else {
+                            if(paymentDto.getOverPayment().compareTo(BigDecimal.ZERO)>0){
+
+                                paymentDto.setIssueRefund(true);
+                                paymentGroupDto.getFees().forEach(feeDto -> {
+                                    feeDto.setAddRemission(false);
+                                    feeDto.setRemissionEnable(false);
+                                });
+                                if(!paymentGroupDto.getRemissions().isEmpty()) {
+                                    paymentGroupDto.getRemissions().forEach(remissionDto -> {
+                                        remissionDto.setAddRefund(false);
+
+                                    });
+                                }
+
+                            }
+
+                        }
+                    }
+                    );
 
                 }
             }
