@@ -900,19 +900,6 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                                 if (refundDto.getPaymentReference().equals(paymentDto1.getReference())) {
                                     paymentDto1.setOverPayment(BigDecimal.ZERO);
                                 }
-                                else {
-                                    paymentDto.setIssueRefund(true);
-                                    paymentGroupDto.getFees().forEach(feeDto -> {
-                                        feeDto.setAddRemission(false);
-                                        feeDto.setRemissionEnable(false);
-                                    });
-                                    if(!paymentGroupDto.getRemissions().isEmpty()) {
-                                        paymentGroupDto.getRemissions().forEach(remissionDto -> {
-                                            remissionDto.setAddRefund(false);
-
-                                        });
-                                    }
-                                }
                             });
                         }else {
                             if(paymentDto.getOverPayment().compareTo(BigDecimal.ZERO)>0){
@@ -1068,18 +1055,6 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
                                 if (refundDto.getPaymentReference().equals(paymentDto.getReference())) {
                                     paymentDto.setOverPayment(BigDecimal.ZERO);
-                                } else{
-                                    paymentDto.setIssueRefund(true);
-                                    paymentGroupDto.getFees().forEach(feeDto -> {
-                                        feeDto.setAddRemission(false);
-                                        feeDto.setRemissionEnable(false);
-                                    });
-                                    if(!paymentGroupDto.getRemissions().isEmpty()) {
-                                        paymentGroupDto.getRemissions().forEach(remissionDto -> {
-                                            remissionDto.setAddRefund(false);
-
-                                        });
-                                    }
                                 }
                             });
                         } else {
