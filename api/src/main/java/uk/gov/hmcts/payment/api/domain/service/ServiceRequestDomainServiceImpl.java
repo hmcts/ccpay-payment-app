@@ -172,12 +172,14 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         //find service request
         PaymentFeeLink serviceRequest = paymentFeeLinkRepository.findByPaymentReference(serviceRequestReference).orElseThrow(() -> new ServiceRequestReferenceNotFoundException("Order reference doesn't exist"));
 
-        LOG.info("returnURL {}",returnURL);
+        LOG.info("Creation of Online Card payment starts with service request reference {}",serviceRequestReference);
 
         //General business validation
+        LOG.info("Going for businessValidationForOnlinePaymentServiceRequestOrder");
         businessValidationForOnlinePaymentServiceRequestOrder(serviceRequest, onlineCardPaymentRequest);
 
         //If exist, will cancel existing payment channel session with gov pay
+        LOG.info("Going for checkOnlinePaymentAlreadyExistWithCreatedState");
         checkOnlinePaymentAlreadyExistWithCreatedState(serviceRequest);
 
         //Payment - Boundary Object
@@ -185,20 +187,20 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
 
         // GovPay - Request and creation
         CreatePaymentRequest createGovPayRequest = serviceRequestDtoDomainMapper.createGovPayRequest(requestOnlinePaymentBo);
-        LOG.info("Reaching card payment");
         GovPayPayment govPayPayment = delegateGovPay.create(createGovPayRequest, serviceRequest.getEnterpriseServiceName());
+        LOG.info("GovPayPayment created {}", govPayPayment.getReference());
         if(govPayPayment != null){
             if(!(govPayPayment.getAmount().toString().equals(onlineCardPaymentRequest.getAmount().toString()))){
                 govPayPayment.setAmount(onlineCardPaymentRequest.getAmount().intValue());
             }
         }
-
+        LOG.info("Payment Entity being saved with payment reference {}", serviceRequest.getPaymentReference());
         //Payment - Entity creation
         Payment paymentEntity = serviceRequestDomainDataEntityMapper.toPaymentEntity(requestOnlinePaymentBo, govPayPayment, serviceRequest);
         paymentEntity.setPaymentLink(serviceRequest);
         serviceRequest.getPayments().add(paymentEntity);
         paymentRepository.save(paymentEntity);
-
+        LOG.info("Payment Entity save success !");
         // Trigger Apportion based on the launch darkly feature flag
         boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature", false);
         LOG.info("ApportionFeature Flag Value in online card payment : {}", apportionFeature);
@@ -206,7 +208,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
             //Apportion payment
             feePayApportionService.processApportion(paymentEntity);
         }
-
+        LOG.info("Apportion success and returning response !");
         return OnlineCardPaymentResponse.onlineCardPaymentResponseWith()
             .dateCreated(paymentEntity.getDateCreated())
             .externalReference(paymentEntity.getExternalReference())
@@ -220,13 +222,13 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     public ServiceRequestPaymentBo addPayments(PaymentFeeLink serviceRequest, String serviceRequestReference,
                                                ServiceRequestPaymentDto serviceRequestPaymentDto) throws CheckDigitException {
 
-        LOG.info("PBA add payment started");
+        LOG.info("PBA add payment started for service request reference {}", serviceRequestReference);
         ServiceRequestPaymentBo serviceRequestPaymentBo = serviceRequestPaymentDtoDomainMapper.toDomain(serviceRequestPaymentDto);
         serviceRequestPaymentBo.setStatus(PaymentStatus.CREATED.getName());
         Payment payment = serviceRequestPaymentDomainDataEntityMapper.toEntity(serviceRequestPaymentBo, serviceRequest);
         payment.setPaymentLink(serviceRequest);
 
-
+        LOG.info("Account check with Liberata");
         //2. Account check for PBA-Payment
         payment = accountCheckForPBAPayment(serviceRequest, serviceRequestPaymentDto, payment);
 
@@ -239,7 +241,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
 
         PaymentStatusDto paymentStatusDto = paymentDtoMapper.toPaymentStatusDto(serviceRequestReference,
             serviceRequestPaymentBo.getAccountNumber(), payment, serviceRequestStatus);
-
+        LOG.info("Checking Payment within PaymentFeeLink table against serviceRequestReference {}", serviceRequestReference);
         PaymentFeeLink serviceRequestCallbackURL = paymentFeeLinkRepository.findByPaymentReference(serviceRequestReference)
             .orElseThrow(() -> new ServiceRequestReferenceNotFoundException("Order reference doesn't exist"));
         sendMessageToTopic(paymentStatusDto, serviceRequestCallbackURL.getCallBackUrl());
@@ -363,7 +365,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
                 && payment.getDateCreated().compareTo(ninetyMinAgo) >= 0)
             .sorted(Comparator.comparing(Payment::getDateCreated).reversed())
             .findFirst();
-
+        LOG.info("Payment Exists with Created State {}", !existedPayment.isEmpty());
         if (!existedPayment.isEmpty()) {
             delegatingPaymentService.cancel(existedPayment.get(), paymentFeeLink.getCcdCaseNumber(),paymentFeeLink.getEnterpriseServiceName());
         }
@@ -408,32 +410,31 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
 
         String subName = "serviceRequestCpoUpdateSubscription";
         String topic = "ccpay-service-request-cpo-update-topic";
-        IMessageReceiver subscriptionClient = ClientFactory.createMessageReceiverFromConnectionStringBuilder(new ConnectionStringBuilder(connectionString, topic+"/subscriptions/" + subName+"/$deadletterqueue"), ReceiveMode.RECEIVEANDDELETE);
+        IMessageReceiver subscriptionClient = ClientFactory.createMessageReceiverFromConnectionStringBuilder
+            (new ConnectionStringBuilder(connectionString, topic+"/subscriptions/" + subName+"/$deadletterqueue"));
         return subscriptionClient;
     }
 
-
     @Override
-
     public void deadLetterProcess(IMessageReceiver subscriptionClient) throws ServiceBusException, InterruptedException, IOException {
-
-
         int receivedMessages =0;
-
         TopicClientProxy topicClientCPO = topicClientService.getTopicClientProxy();
         LOG.info("topicClientCPO : " + topicClientCPO );
         while (true)
         {
             IMessage receivedMessage = subscriptionClient.receive();
-            LOG.info("receivedMessage\n", receivedMessage);
+            LOG.info("receivedMessage {}", receivedMessage);
             if (receivedMessage != null) {
+                LOG.info("receivedMessage byte array {}", receivedMessage.getBody());
                 String  msgProperties = receivedMessage.getProperties().toString();
+                LOG.info("msgProperties {}", msgProperties);
                 boolean isFound500 =  msgProperties.indexOf("500") !=-1? true: false;
                 if (isFound500) {
                     byte[] body = receivedMessage.getBody();
                     ObjectMapper objectMapper = new ObjectMapper();
                     DeadLetterDto deadLetterDto = objectMapper.readValue(body, DeadLetterDto.class);
                     ObjectMapper objectMapper1 = new ObjectMapper();
+                    LOG.info("Message Content as posted to CPO topic {}", objectMapper1.writeValueAsString(deadLetterDto));
                     Message msg = new Message(objectMapper1.writeValueAsString(deadLetterDto));
                     msg.setContentType(MSGCONTENTTYPE);
                     topicClientCPO.send(msg);

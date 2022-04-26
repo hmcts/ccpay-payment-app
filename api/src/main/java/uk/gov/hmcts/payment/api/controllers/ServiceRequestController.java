@@ -106,7 +106,7 @@ public class ServiceRequestController {
     @Transactional
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<ServiceRequestResponseDto> create(@Valid @RequestBody ServiceRequestDto serviceRequestDto, @RequestHeader(required = false) MultiValueMap<String, String> headers){
-
+        LOG.info("Service Request processing started for CCd Case Number {}", serviceRequestDto.getCcdCaseNumber());
         ResponseEntity<ServiceRequestResponseDto> serviceRequestResponseDto = new ResponseEntity<>(serviceRequestDomainService.
             create(serviceRequestDto, headers), HttpStatus.CREATED);
 
@@ -114,7 +114,7 @@ public class ServiceRequestController {
 
         if(serviceRequestResponseDtoBody!=null)
             serviceRequestReference = serviceRequestResponseDtoBody.getServiceRequestReference();
-
+        LOG.info("Sending message to CPO topic {}", serviceRequestReference);
         serviceRequestDomainService.sendMessageTopicCPO(serviceRequestDto, serviceRequestReference);
 
         return serviceRequestResponseDto;
@@ -140,7 +140,7 @@ public class ServiceRequestController {
                                                                                                @Valid @RequestBody ServiceRequestPaymentDto serviceRequestPaymentDto) throws CheckDigitException, JsonProcessingException {
 
         idempotencyKey = serviceRequestPaymentDto.getIdempotencyKey();
-        LOG.info("PBA payment started");
+        LOG.info("PBA payment started for serviceRequestReference {}", serviceRequestReference);
         ObjectMapper objectMapper = new ObjectMapper();
         Function<String, Optional<IdempotencyKeys>> getIdempotencyKey = idempotencyKeyToCheck -> idempotencyService.findTheRecordByIdempotencyKey(idempotencyKeyToCheck);
 
@@ -165,9 +165,9 @@ public class ServiceRequestController {
             return new ResponseEntity<>(responseBO, HttpStatus.valueOf(idempotencyKeys.getResponseCode())); // if hashcode matched
         };
 
-
         //Idempotency Check
         Optional<IdempotencyKeys> idempotencyKeysRow = getIdempotencyKey.apply(idempotencyKey);
+        LOG.info("Idempotency Check {}", idempotencyKeysRow.isPresent());
         if (idempotencyKeysRow.isPresent()) {
             ResponseEntity responseEntity = validateHashcodeForRequest.apply(idempotencyKeysRow.get());
             return responseEntity;

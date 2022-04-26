@@ -82,7 +82,8 @@ public class ServiceRequestDtoDomainMapper {
     }
 
     public CreatePaymentRequest createGovPayRequest(ServiceRequestOnlinePaymentBo requestOnlinePaymentBo) {
-        LOG.info("requestOnlinePaymentBo.getLanguage() {}",requestOnlinePaymentBo.getLanguage());
+        LOG.info("Creating GovPayRequest in ServiceRequestDtoDomainMapper with payment reference {}",
+            requestOnlinePaymentBo.getPaymentReference());
         return new CreatePaymentRequest(requestOnlinePaymentBo.getAmount().movePointRight(2).intValue(),
             requestOnlinePaymentBo.getPaymentReference(), requestOnlinePaymentBo.getDescription(),
             requestOnlinePaymentBo.getReturnUrl(),

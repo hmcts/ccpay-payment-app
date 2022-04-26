@@ -474,7 +474,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
 
     @Override
     public void cancel(Payment payment, String ccdCaseNumber, String serviceName) {
-        LOG.info("NEW cancel received");
+        LOG.info("NEW cancel received for payment reference {}", payment.getReference());
         delegateGovPay.cancel(govpayUrl + "/" + payment.getExternalReference() + "/cancel",serviceName);
         Map<String, String> properties = new ImmutableMap.Builder<String, String>()
             .put("paymentReference", payment.getReference())
