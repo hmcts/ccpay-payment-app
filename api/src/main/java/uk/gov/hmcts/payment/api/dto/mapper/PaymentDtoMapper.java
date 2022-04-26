@@ -16,14 +16,20 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.StatusHistoryDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.controllers.CardPaymentController;
+import uk.gov.hmcts.payment.api.dto.PaymentStatusDto;
+import uk.gov.hmcts.payment.api.dto.PaymentReference;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.reports.FeesService;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
@@ -123,6 +129,17 @@ public class PaymentDtoMapper {
             .build();
     }
 
+    public PaymentStatusDto toPaymentStatusDto(String serviceRequestReference, String accountNumber,
+                                               Payment payment, String serviceRequestStatus) {
+        return PaymentStatusDto.paymentStatusDto()
+            .serviceRequestReference(serviceRequestReference)
+            .ccdCaseNumber(payment.getCcdCaseNumber())
+            .serviceRequestAmount(payment.getAmount())
+            .serviceRequestStatus(serviceRequestStatus)
+            .payment(toPaymentReference(accountNumber, payment))
+            .build();
+    }
+
     public PaymentDto toRetrieveCardPaymentResponseDto(PaymentFeeLink paymentFeeLink) {
         Payment payment = paymentFeeLink.getPayments().get(0);
         List<PaymentFee> fees = paymentFeeLink.getFees();
@@ -141,6 +158,7 @@ public class PaymentDtoMapper {
             .externalReference(payment.getExternalReference())
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
             .externalProvider(payment.getPaymentProvider() != null ? payment.getPaymentProvider().getName() : null)
+            .internalReference(payment.getInternalReference())
             .fees(toFeeDtos(fees))
             .links(payment.getReference() != null ? new PaymentDto.LinksDto(null,
                 retrieveCardPaymentLink(payment.getReference()),
@@ -160,6 +178,34 @@ public class PaymentDtoMapper {
             .build();
     }
 
+    public PaymentDto toRetrieveCardPaymentResponseDtoWithoutExtReference(PaymentFeeLink paymentFeeLink,
+                                                                          String internalReference) {
+        LOG.info("paymentFeeLink.getPayments() {}",paymentFeeLink.getPayments());
+        LOG.info("Getting Payment with internalReference: {}", internalReference);
+        Optional<Payment> optionalPayment = paymentFeeLink.getPayments().stream()
+            .filter(payment -> (internalReference != null)
+                && internalReference.equalsIgnoreCase(payment.getInternalReference()))
+            .findFirst();
+        Payment payment;
+        if(optionalPayment.isEmpty()){
+            LOG.info("Payment not found for internalReference: {}", internalReference);
+            throw new PaymentNotFoundException("The internal Reference is not found");
+        } else {
+            payment = optionalPayment.get();
+            LOG.info("Payment found for internalReference: {}", internalReference);
+        }
+        LOG.info("internalReference: {} for the payment returned", payment.getInternalReference());
+        LOG.info("payment status from gov uk - {}",payment.getPaymentStatus().getName());
+        LOG.info("payment status from gov uk enum mapping - {}",PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus());
+        return PaymentDto.payment2DtoWith()
+            .reference(payment.getReference())
+            .caseReference(payment.getCaseReference())
+            .ccdCaseNumber(payment.getCcdCaseNumber())
+            .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus())
+            .paymentGroupReference(paymentFeeLink.getPaymentReference())
+            .internalReference(payment.getInternalReference())
+            .build();
+    }
     public PaymentDto toPaymentStatusesDto(Payment payment) {
         return PaymentDto.payment2DtoWith()
             .reference(payment.getReference())
@@ -351,6 +397,17 @@ public class PaymentDtoMapper {
         return feeDtos.stream().map(this::toFee).collect(Collectors.toList());
     }
 
+    private PaymentReference toPaymentReference(String accountNumber,
+                                               Payment payment) {
+        return PaymentReference.paymentReference()
+            .paymentAmount(payment.getAmount())
+            .paymentReference(payment.getReference())
+            .paymentMethod(payment.getPaymentMethod().getName())
+            .caseReference(payment.getCaseReference())
+            .accountNumber(accountNumber)
+            .build();
+    }
+
     public PaymentFee toFee(FeeDto feeDto) {
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
         boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
@@ -365,6 +422,8 @@ public class PaymentDtoMapper {
             .dateCreated(apportionFeature ? timestamp: null)
             .build();
     }
+
+
 
 
     private FeeDto toFeeDto(PaymentFee fee) {

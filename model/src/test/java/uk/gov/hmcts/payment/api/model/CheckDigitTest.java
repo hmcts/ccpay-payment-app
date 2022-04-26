@@ -15,7 +15,7 @@ public class CheckDigitTest {
 
     private static final String[] referenceNumbers = {"RC-1518-7779-6767-2175", "RC-1518-7780-1507-0475", "RC-1518-7780-5837-1355",
                                                             "RC-1518-7808-1810-9215", "RC-1518-7810-2720-8545"};
-
+//
     @Test
     public void validatePaymentReferenceNumber_forValidCheckDigitTest() throws Exception {
 

@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
-import uk.gov.hmcts.payment.api.domain.service.OrderDomainService;
+import uk.gov.hmcts.payment.api.domain.service.ServiceRequestDomainService;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupResponse;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
@@ -46,7 +46,7 @@ public class CaseController {
     private final PaymentGroupDtoMapper paymentGroupDtoMapper;
 
     @Autowired
-    private OrderDomainService orderDomainService;
+    private ServiceRequestDomainService orderDomainService;
 
     @Autowired
     public CaseController(PaymentService<PaymentFeeLink, String> paymentService, PaymentGroupService paymentGroupService,
@@ -97,7 +97,7 @@ public class CaseController {
             .collect(Collectors.toList());
 
         if (paymentGroups == null || paymentGroups.isEmpty()) {
-            throw new PaymentGroupNotFoundException();
+            throw new PaymentGroupNotFoundException("No Service found for given CaseType or HMCTS Org Id");
         }
 
         return new PaymentGroupResponse(paymentGroups);

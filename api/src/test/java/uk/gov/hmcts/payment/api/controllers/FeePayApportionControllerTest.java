@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.api.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -20,7 +22,6 @@ import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.componenttests.PaymentDbBackdoor;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
-import uk.gov.hmcts.payment.api.controllers.FeePayApportionController;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
@@ -31,6 +32,11 @@ import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
+import uk.gov.hmcts.payment.referencedata.model.Site;
+import uk.gov.hmcts.payment.referencedata.service.SiteService;
+
+import java.util.Arrays;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -44,47 +50,39 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "componenttest"})
 @SpringBootTest(webEnvironment = MOCK)
+@DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
 @Transactional
-public class FeePayApportionControllerTest extends PaymentsDataUtil{
+public class FeePayApportionControllerTest extends PaymentsDataUtil {
+    private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;
+    private static final String USER_ID_PAYMENT_ROLE = UserResolverBackdoor.CASEWORKER_ID;
     @ClassRule
     public static WireMockClassRule wireMockRule = new WireMockClassRule(9190);
-
     @Rule
     public WireMockClassRule instanceRule = wireMockRule;
-
-    @Autowired
-    private ConfigurableListableBeanFactory configurableListableBeanFactory;
-
-    @Autowired
-    private WebApplicationContext webApplicationContext;
-
     @Autowired
     protected ServiceResolverBackdoor serviceRequestAuthorizer;
-
     @Autowired
     protected UserResolverBackdoor userRequestAuthorizer;
-
-    @Autowired
-    private FeePayApportionController feePayApportionController;
-
     @Autowired
     protected PaymentDbBackdoor db;
-
-    private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;
-
     RestActions restActions;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @Autowired
-    private PaymentService<PaymentFeeLink, String> paymentService;
-
-    @MockBean
-    private LaunchDarklyFeatureToggler featureToggler;
-
     @MockBean
     ReferenceDataService referenceDataService;
+    MockMvc mvc;
+    @Autowired
+    private SiteService<Site, String> siteServiceMock;
+    @Autowired
+    private ConfigurableListableBeanFactory configurableListableBeanFactory;
+    @Autowired
+    private WebApplicationContext webApplicationContext;
+    @Autowired
+    private FeePayApportionController feePayApportionController;
+    @Autowired
+    private ObjectMapper objectMapper;
+    @Autowired
+    private PaymentService<PaymentFeeLink, String> paymentService;
+    @MockBean
+    private LaunchDarklyFeatureToggler featureToggler;
 
     protected CustomResultMatcher body() {
         return new CustomResultMatcher(objectMapper);
@@ -92,7 +90,7 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil{
 
     @Before
     public void setup() {
-        MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
+        mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
         this.restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
 
         restActions
@@ -102,12 +100,48 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil{
             .withReturnUrl("https://www.gooooogle.com");
     }
 
+    public void setupForPaymentRoleUser() {
+        MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
+        this.restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
+
+        restActions
+            .withAuthorizedService("divorce")
+            .withAuthorizedUser(USER_ID_PAYMENT_ROLE)
+            .withUserId(USER_ID_PAYMENT_ROLE)
+            .withReturnUrl("https://www.moneyclaims.service.gov.uk");
+
+        List<Site> serviceReturn = Arrays.asList(Site.siteWith()
+                .sopReference("sop")
+                .siteId("AA99")
+                .name("name")
+                .service("service")
+                .id(1)
+                .build(),
+            Site.siteWith()
+                .sopReference("sop")
+                .siteId("AA001")
+                .name("name")
+                .service("service")
+                .id(1)
+                .build()
+        );
+
+        when(siteServiceMock.getAllSites()).thenReturn(serviceReturn);
+    }
+
+    @After
+    public void tearDown() {
+        this.restActions=null;
+        mvc=null;
+    }
+
     @Test
     @Transactional
     public void retrieveApportionDetailsWithReferenceForCardPayments() throws Exception {
+        setupForPaymentRoleUser();
         Payment payment = populateCardPaymentToDb("1");
         populateApportionDetails(payment);
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
         MvcResult result = restActions
             .get("/payment-groups/fee-pay-apportion/" + payment.getReference())
             .andExpect(status().isOk())
@@ -120,9 +154,10 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil{
 
     @Test
     public void retrieveApportionDetailsWithReferenceNumber() throws Exception {
+        setupForPaymentRoleUser();
         Payment payment = populateCardPaymentToDb("1");
         populateApportionDetails(payment);
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
         MvcResult result = restActions
             .get("/payment-groups/fee-pay-apportion/" + payment.getReference())
             .andExpect(status().isOk())
@@ -135,9 +170,10 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil{
 
     @Test
     public void retrieveApportionDetailsWithReferenceWhenFeeIdIsDifferent() throws Exception {
+        setupForPaymentRoleUser();
         Payment payment = populateCardPaymentToDb("1");
         populateApportionDetails(payment);
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
         MvcResult result = restActions
             .get("/payment-groups/fee-pay-apportion/" + payment.getReference())
             .andExpect(status().isOk())
@@ -150,9 +186,10 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil{
 
     @Test
     public void retrieveApportionDetailsWithReferenceWhenFeeIdIsSame() throws Exception {
+        setupForPaymentRoleUser();
         Payment payment = populateCardPaymentToDb("1");
         populateApportionDetails(payment);
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(false);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(false);
         MvcResult result = restActions
             .get("/payment-groups/fee-pay-apportion/" + payment.getReference())
             .andExpect(status().isOk())
@@ -167,7 +204,7 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil{
     public void retrunEmptyListWhenPaymentIsNotPresent() throws Exception {
         Payment payment = populateCardPaymentToDb("1");
         populateApportionDetails(payment);
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(false);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(false);
         MvcResult result = restActions
             .get("/payment-groups/fee-pay-apportion/" + "123")
             .andExpect(status().isNotFound())
@@ -183,9 +220,10 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil{
 
     @Test
     public void retrieveApportionDetailsWithReference() throws Exception {
+        setupForPaymentRoleUser();
         Payment payment = populateCardPaymentToDb("1");
         populateApportionDetails(payment);
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
         MvcResult result = restActions
             .get("/payment-groups/fee-pay-apportion/" + payment.getReference())
             .andExpect(status().isOk())

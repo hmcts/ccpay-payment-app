@@ -88,12 +88,12 @@ public class FeePayApportionController {
                         LOG.info("apportion amount value in FeePayApportionController: {}", feePayApportion.getApportionAmount());
                         fee.setApportionAmount(feePayApportion.getApportionAmount());
                         feeList.add(fee);
-                                }
-                            }
+                    }
+                }
                 paymentFeeLink.setFees(feeList);
             }
 
-    }
+        }
         return new ResponseEntity<>(paymentGroupDtoMapper.toPaymentGroupDto(paymentFeeLink), HttpStatus.OK);
     }
 

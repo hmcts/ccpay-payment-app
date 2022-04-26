@@ -1,38 +1,35 @@
 package uk.gov.hmcts.payment.api.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.lang3.RandomUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
+import org.testcontainers.shaded.org.apache.commons.lang.math.RandomUtils;
 import uk.gov.hmcts.payment.api.componenttests.PaymentDbBackdoor;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
-import uk.gov.hmcts.payment.api.contract.*;
+import uk.gov.hmcts.payment.api.contract.FeeDto;
+import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
+import uk.gov.hmcts.payment.api.contract.TelephonyPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
-import uk.gov.hmcts.payment.api.model.Payment;
-import uk.gov.hmcts.payment.api.model.PaymentChannel;
-import uk.gov.hmcts.payment.api.model.PaymentFee;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.model.PaymentMethod;
-import uk.gov.hmcts.payment.api.model.PaymentProvider;
-import uk.gov.hmcts.payment.api.model.PaymentStatus;
-import uk.gov.hmcts.payment.api.model.TelephonyCallback;
-import uk.gov.hmcts.payment.api.model.TelephonyRepository;
+import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.servicebus.CallbackServiceImpl;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
@@ -49,10 +46,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -62,35 +56,41 @@ import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "componenttest", "mockcallbackservice"})
 @SpringBootTest(webEnvironment = MOCK)
+@DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
 @Transactional
 public class TelephonyControllerTest extends PaymentsDataUtil {
 
-    @Autowired
-    private WebApplicationContext webApplicationContext;
-
+    private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;
+    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormat.forPattern("yyyy-MM-dd");
     @Autowired
     protected ServiceResolverBackdoor serviceRequestAuthorizer;
-
     @MockBean
     protected CallbackServiceImpl callbackServiceImplMock;
-
     @Autowired
     protected PaymentDbBackdoor db;
+    RestActions restActions;
+    OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+        .serviceCode("AA001")
+        .serviceDescription("DIVORCE")
+        .build();
+    TelephonyPaymentRequest telephonyPaymentRequest = TelephonyPaymentRequest.createTelephonyPaymentRequestDtoWith()
+        .amount(new BigDecimal("101.99"))
+        .currency(CurrencyCode.GBP)
+        .description("Test cross field validation")
+        .caseType("tax_exception")
+        .ccdCaseNumber("1234123412341234")
+        .provider("pci pal")
+        .channel("telephony")
+        .build();
+    MockMvc mvc;
+    @Autowired
+    private WebApplicationContext webApplicationContext;
     @Autowired
     private TelephonyRepository telephonyRepository;
-
-    private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;
-
-    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormat.forPattern("yyyy-MM-dd");
-
-    RestActions restActions;
-
     @MockBean
     private ReferenceDataService referenceDataService;
-
     @Autowired
     private ObjectMapper objectMapper;
-
     @MockBean
     private LaunchDarklyFeatureToggler featureToggler;
 
@@ -100,12 +100,18 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
 
     @Before
     public void setup() {
-        MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
+        mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
         this.restActions = new RestActions(mvc, serviceRequestAuthorizer, null, objectMapper);
 
         restActions
             .withAuthorizedService("divorce")
             .withReturnUrl("https://www.moneyclaims.service.gov.uk");
+    }
+
+    @After
+    public void tearDown() {
+        this.restActions = null;
+        mvc = null;
     }
 
     @Test
@@ -126,7 +132,7 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
         String endDate = LocalDate.now().toString(DATE_FORMAT);
 
         MvcResult result = restActions
-            .get("/payments?ccd_case_number=" + dbPayment.getCcdCaseNumber()+"&start_date=" + startDate + "&end_date=" + endDate)
+            .get("/payments?ccd_case_number=" + dbPayment.getCcdCaseNumber() + "&start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
             .andReturn();
 
@@ -218,8 +224,7 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
             "avsAddress=&avsPostcode=&avsCVN=&cardExpiry=1220&cardLast4=9999&cardType=MASTERCARD&ppCallID=820782890&" +
             "customData1=MOJTest120190124123432&customData2=MASTERCARD&customData3=CreditCard&customData4=";
 
-        String paymentReference = "RC-1519-9028-1909-1435";
-        Payment dbPayment = populateTelephonyPaymentToDb(paymentReference, false);
+        Payment dbPayment = populateTelephonyPaymentToDb("RC-1519-9028-1909-1435", false);
 
         restActions
             .postWithFormData("/telephony/callback", rawFormData)
@@ -235,9 +240,8 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
             "avsAddress=&avsPostcode=&avsCVN=&cardExpiry=1220&cardLast4=9999&cardType=MASTERCARD&ppCallID=820782890&" +
             "customData1=MOJTest120190124123432&customData2=MASTERCARD&customData3=CreditCard&customData4=";
 
-        String paymentReference = "RC-1519-9028-1909-1435";
         //Create Telephony Payment
-        Payment dbPayment = populateTelephonyPaymentToDb(paymentReference, false);
+        Payment dbPayment = populateTelephonyPaymentToDb("RC-1519-9028-1909-1435", false);
 
         //Update Telephony Payment Status from PCI PAL - 1st time
         restActions
@@ -249,14 +253,14 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
         String endDate = LocalDate.now().toString(DATE_FORMAT);
 
         MvcResult result = restActions
-            .get("/payments?ccd_case_number=" + dbPayment.getCcdCaseNumber()+"&start_date=" + startDate + "&end_date=" + endDate)
+            .get("/payments?ccd_case_number=" + dbPayment.getCcdCaseNumber() + "&start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
             .andReturn();
 
         PaymentsResponse response = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentsResponse.class);
         List<PaymentDto> payments = response.getPayments();
         assertThat(payments.size()).isEqualTo(1);
-        assertEquals(payments.get(0).getPaymentReference(), paymentReference);
+        assertEquals(payments.get(0).getPaymentReference(), "RC-1519-9028-1909-1435");
         Date updatedTsForFirstReq = payments.get(0).getDateUpdated();
 
         //Update Telephony Payment Status from PCI PAL - 2nd time(Duplicate)
@@ -266,21 +270,21 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
 
         //Validate & capture Update_timestamp - After 2nd PCI PAL Callback Request(Duplicate)
         result = restActions
-            .get("/payments?ccd_case_number=" + dbPayment.getCcdCaseNumber()+"&start_date=" + startDate + "&end_date=" + endDate)
+            .get("/payments?ccd_case_number=" + dbPayment.getCcdCaseNumber() + "&start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
             .andReturn();
 
         response = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentsResponse.class);
         payments = response.getPayments();
         assertThat(payments.size()).isEqualTo(1);
-        assertEquals(payments.get(0).getPaymentReference(), paymentReference);
+        assertEquals(payments.get(0).getPaymentReference(), "RC-1519-9028-1909-1435");
         Date updatedTsForSecondReq = payments.get(0).getDateUpdated();
 
         //UpdateTimeStamp should not be changed after 2nd Request(Duplicate)
         assertEquals(updatedTsForFirstReq, updatedTsForSecondReq);
     }
 
-    private FeeDto getNewFee(String ccdCaseNumber){
+    private FeeDto getNewFee(String ccdCaseNumber) {
         return FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("101.99"))
             .code("FEE312")
@@ -291,5 +295,6 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
             .build();
 
     }
+
 
 }

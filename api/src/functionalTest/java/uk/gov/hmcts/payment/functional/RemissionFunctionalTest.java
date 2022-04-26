@@ -37,6 +37,7 @@ public class RemissionFunctionalTest {
     private static final String PAYMENT_REFERENCE_REGEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
     private static final String REMISSION_REFERENCE_REGEX = "^[RM-]{3}(\\w{4}-){3}(\\w{4})";
     private static String USER_TOKEN;
+    private static String USER_TOKEN_PAYMENT;
     private static String SERVICE_TOKEN;
     private static boolean TOKENS_INITIALIZED = false;
     @Autowired
@@ -52,6 +53,7 @@ public class RemissionFunctionalTest {
     public void setUp() throws Exception {
         if (!TOKENS_INITIALIZED) {
             USER_TOKEN = idamService.createUserWith(CMC_CITIZEN_GROUP, "citizen").getAuthorisationToken();
+            USER_TOKEN_PAYMENT = idamService.createUserWith(CMC_CITIZEN_GROUP, "payments").getAuthorisationToken();
             SERVICE_TOKEN = s2sTokenService.getS2sToken(testProps.s2sServiceName, testProps.s2sServiceSecret);
            TOKENS_INITIALIZED = true;
         }
@@ -85,10 +87,64 @@ public class RemissionFunctionalTest {
                 .code("feeCode")
                 .version("1")
                 .calculatedAmount(new BigDecimal("100.1"))
+                .feeAmount(new BigDecimal("100.1"))
                 .build()))
             .channel("telephony")
             .provider("pci pal")
             .build();
+
+        // TEST create telephony card payment
+        dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .when().addNewFeeAndPaymentGroup(getPaymentFeeGroupRequest())
+            .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
+            assertThat(paymentGroupFeeDto).isNotNull();
+            assertThat(paymentGroupFeeDto.getPaymentGroupReference()).isNotNull();
+            assertThat(paymentGroupFeeDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(getPaymentFeeGroupRequest());
+
+            String paymentGroupReference = paymentGroupFeeDto.getPaymentGroupReference();
+            FeeDto feeDto = paymentGroupFeeDto.getFees().get(0);
+            Integer feeId = feeDto.getId();
+
+            dsl.given().userToken(USER_TOKEN)
+                .s2sToken(SERVICE_TOKEN)
+                .returnUrl("https://www.moneyclaims.service.gov.uk")
+                .when().createTelephonyCardPayment(telephonyPaymentRequest, paymentGroupReference)
+                .then().created(paymentDto -> {
+                assertTrue(paymentDto.getReference().matches(PAYMENT_REFERENCE_REGEX));
+                assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
+                String[] schemes = {"https"};
+                UrlValidator urlValidator = new UrlValidator(schemes);
+                assertNotNull(paymentDto.getLinks().getNextUrl());
+                assertTrue(urlValidator.isValid(paymentDto.getLinks().getNextUrl().getHref()));
+            });
+
+            // TEST create retrospective remission
+            dsl.given().userToken(USER_TOKEN)
+                .s2sToken(SERVICE_TOKEN)
+                .when().createRetrospectiveRemission(getRemissionRequest(), paymentGroupReference, feeId)
+                .then().gotCreated(RemissionDto.class, remissionDto -> {
+                assertThat(remissionDto).isNotNull();
+                assertThat(remissionDto.getPaymentGroupReference()).isEqualTo(paymentGroupReference);
+                assertThat(remissionDto.getRemissionReference().matches(REMISSION_REFERENCE_REGEX)).isTrue();
+            });
+
+            // TEST retrieve payments, remissions and fees by payment-group-reference
+            dsl.given().userToken(USER_TOKEN_PAYMENT)
+                .s2sToken(SERVICE_TOKEN)
+                .when().getRemissions(paymentGroupReference)
+                .then().got(PaymentGroupDto.class, paymentGroupDto -> {
+                assertThat(paymentGroupDto).isNotNull();
+                assertThat(paymentGroupDto.getPayments().get(0)).isEqualToComparingOnlyGivenFields(telephonyPaymentRequest);
+                assertThat(paymentGroupDto.getRemissions().get(0)).isEqualToComparingOnlyGivenFields(getRemissionRequest());
+                assertThat(paymentGroupDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(getFee());
+
+                BigDecimal netAmount = paymentGroupDto.getFees().get(0).getCalculatedAmount()
+                    .subtract(paymentGroupDto.getRemissions().get(0).getHwfAmount());
+                assertThat(netAmount).isEqualTo(paymentGroupDto.getFees().get(0).getNetAmount());
+            });
+
+        });
     }
 
 

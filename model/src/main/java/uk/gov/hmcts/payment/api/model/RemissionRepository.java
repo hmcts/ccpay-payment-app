@@ -14,5 +14,7 @@ public interface RemissionRepository extends CrudRepository<Remission, Integer>,
 
     <S extends Remission> S save(S entity);
 
+    Optional<Remission> findByFeeId(Integer feeid);
+
     void delete(Remission entity);
 }

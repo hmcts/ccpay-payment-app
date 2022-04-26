@@ -39,6 +39,7 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Optional;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
@@ -112,7 +113,7 @@ public class CreditAccountPaymentController {
 
         LOG.info("Case Type: {} ", creditAccountPaymentRequest.getCaseType());
         if (StringUtils.isNotBlank(creditAccountPaymentRequest.getCaseType())) {
-            OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(creditAccountPaymentRequest.getCaseType(), headers);
+            OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(Optional.ofNullable(creditAccountPaymentRequest.getCaseType()),Optional.empty(), headers);
             creditAccountPaymentRequest.setSiteId(organisationalServiceDto.getServiceCode());
             creditAccountPaymentRequest.setService(organisationalServiceDto.getServiceDescription());
         } else {
@@ -234,21 +235,9 @@ public class CreditAccountPaymentController {
         return ex.getMessage();
     }
 
-    @ResponseStatus(HttpStatus.GATEWAY_TIMEOUT)
-    @ExceptionHandler(AccountServiceUnavailableException.class)
-    public String return504(AccountServiceUnavailableException ex) {
-        return ex.getMessage();
-    }
-
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(value = {NoServiceFoundException.class})
     public String return404(NoServiceFoundException ex) {
-        return ex.getMessage();
-    }
-
-    @ResponseStatus(HttpStatus.GATEWAY_TIMEOUT)
-    @ExceptionHandler(GatewayTimeoutException.class)
-    public String return504(GatewayTimeoutException ex) {
         return ex.getMessage();
     }
 

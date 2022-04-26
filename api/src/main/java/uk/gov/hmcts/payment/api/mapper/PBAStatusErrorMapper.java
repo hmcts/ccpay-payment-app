@@ -56,7 +56,7 @@ public class PBAStatusErrorMapper {
         }
     }
 
-    public void setOrderPaymentStatus(BigDecimal amount, Payment payment, AccountDto accountDetails) {
+    public void setServiceRequestPaymentStatus(BigDecimal amount, Payment payment, AccountDto accountDetails) {
         setPaymentStatus(CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith().amount(amount).build(), payment, accountDetails);
     }
 

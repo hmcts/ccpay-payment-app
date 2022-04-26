@@ -1,4 +1,5 @@
 target/
+api/target/
 api/out/
 gov-pay-client/out/
 !.mvn/wrapper/maven-wrapper.jar
