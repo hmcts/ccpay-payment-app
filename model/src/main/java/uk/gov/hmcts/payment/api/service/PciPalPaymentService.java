@@ -31,7 +31,6 @@ import uk.gov.hmcts.payment.api.external.client.dto.TelephonyProviderLinkIdRespo
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.model.Payment;
-
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URISyntaxException;
@@ -202,7 +201,6 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
             return objectMapper.readValue(response1.getEntity().getContent(), TelephonyProviderAuthorisationResponse.class);
         });
     }
-
     private Header authorizationHeader(String authorizationKey) {
         return new BasicHeader(HttpHeaders.AUTHORIZATION, "Bearer " + authorizationKey);
 
