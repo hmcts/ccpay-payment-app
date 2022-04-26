@@ -111,6 +111,7 @@ public class ServiceRequestController {
     public ResponseEntity<ServiceRequestResponseDto> create(@Valid @RequestBody ServiceRequestDto serviceRequestDto,
                                                             @RequestHeader(required = false) MultiValueMap<String, String> headers){
 
+        LOG.info("Service Request processing started");
         ResponseEntity<ServiceRequestResponseDto> serviceRequestResponseDto = new ResponseEntity<>(serviceRequestDomainService.
             create(serviceRequestDto, headers), HttpStatus.CREATED);
 
