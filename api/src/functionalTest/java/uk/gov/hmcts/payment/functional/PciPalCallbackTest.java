@@ -10,10 +10,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
-import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
-import uk.gov.hmcts.payment.api.contract.FeeDto;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.contract.TelephonyPaymentRequest;
+import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
@@ -122,14 +119,12 @@ public class PciPalCallbackTest {
         fees.add(FeeDto.feeDtoWith().code("FEE0273").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
             .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
 
-        TelephonyPaymentRequest telephonyPaymentRequest = TelephonyPaymentRequest.createTelephonyPaymentRequestDtoWith()
-            .amount(new BigDecimal("120"))
+        TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
+            .amount(new BigDecimal("110"))
             .ccdCaseNumber(ccdCaseNumber)
-            .channel("telephony")
-            .caseType("DIVORCE")
             .currency(CurrencyCode.GBP)
-            .description("A test telephony payment")
-            .provider("pci pal")
+            .caseType("DIVORCE")
+            .returnURL("https://google.co.uk")
             .build();
 
         PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
@@ -148,7 +143,7 @@ public class PciPalCallbackTest {
             dsl.given().userToken(USER_TOKEN)
                 .s2sToken(SERVICE_TOKEN)
                 .returnUrl("https://www.moneyclaims.service.gov.uk")
-                .when().createTelephonyCardPayment(telephonyPaymentRequest, paymentGroupReference)
+                .when().createTelephonyPayment(telephonyPaymentRequest, paymentGroupReference)
                 .then().gotCreated(PaymentDto.class, paymentDto -> {
                     Assertions.assertThat(paymentDto).isNotNull();
                     Assertions.assertThat(paymentDto.getReference().matches(PAYMENT_REFERENCE_REGEX)).isTrue();
@@ -228,14 +223,12 @@ public class PciPalCallbackTest {
         fees.add(FeeDto.feeDtoWith().code("FEE0273").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
             .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
 
-        TelephonyPaymentRequest telephonyPaymentRequest = TelephonyPaymentRequest.createTelephonyPaymentRequestDtoWith()
-            .amount(new BigDecimal("120"))
+        TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
+            .amount(new BigDecimal("110"))
             .ccdCaseNumber(ccdCaseNumber)
-            .channel("telephony")
             .currency(CurrencyCode.GBP)
-            .description("A test telephony payment")
-            .provider("pci pal")
             .caseType("DIVORCE")
+            .returnURL("https://google.co.uk")
             .build();
 
         PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
@@ -254,7 +247,7 @@ public class PciPalCallbackTest {
             dsl.given().userToken(USER_TOKEN)
                 .s2sToken(SERVICE_TOKEN)
                 .returnUrl("https://www.moneyclaims.service.gov.uk")
-                .when().createTelephonyCardPayment(telephonyPaymentRequest, paymentGroupReference)
+                .when().createTelephonyPayment(telephonyPaymentRequest, paymentGroupReference)
                 .then().gotCreated(PaymentDto.class, paymentDto -> {
                 Assertions.assertThat(paymentDto).isNotNull();
                 Assertions.assertThat(paymentDto.getReference().matches(PAYMENT_REFERENCE_REGEX)).isTrue();

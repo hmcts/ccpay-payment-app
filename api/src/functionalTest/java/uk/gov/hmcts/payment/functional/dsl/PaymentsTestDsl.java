@@ -121,11 +121,6 @@ public class PaymentsTestDsl {
             return this;
         }
 
-        public PaymentWhenDsl createTelephonyCardPayment(TelephonyPaymentRequest telephonyPaymentRequest, String paymentGroupReference) {
-            response = newRequest().contentType(ContentType.JSON).body(telephonyPaymentRequest).post("/payment-groups/{payment-group-reference}/card-payments", paymentGroupReference);
-            return this;
-        }
-
         public PaymentWhenDsl createTelephonyPayment(TelephonyCardPaymentsRequest telephonyCardPaymentsRequest, String paymentGroupReference) {
             response = newRequest().contentType(ContentType.JSON).body(telephonyCardPaymentsRequest).post("/payment-groups/{payment-group-reference}/telephony-card-payments", paymentGroupReference);
             return this;

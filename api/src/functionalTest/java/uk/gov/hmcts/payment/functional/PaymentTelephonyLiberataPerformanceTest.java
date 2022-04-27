@@ -11,10 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
-import uk.gov.hmcts.payment.api.contract.FeeDto;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
-import uk.gov.hmcts.payment.api.contract.TelephonyPaymentRequest;
+import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.TelephonyCallbackDto;
@@ -86,16 +83,14 @@ public class PaymentTelephonyLiberataPerformanceTest {
             .description("Application for a third party debt order")
             .build();
 
-        TelephonyPaymentRequest telephonyPaymentRequest = TelephonyPaymentRequest.createTelephonyPaymentRequestDtoWith()
-            .amount(new BigDecimal("550.00"))
+        TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
+            .amount(new BigDecimal("110"))
             .ccdCaseNumber(ccdCaseNumber)
-            .caseReference("ref124586")
             .currency(CurrencyCode.GBP)
-            .description("Filing an application for a divorce, nullity or civil partnership dissolution")
             .caseType("DIVORCE")
-            .channel("telephony")
-            .provider("pci pal")
+            .returnURL("https://google.co.uk")
             .build();
+
 
         PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(feeDto)).build();
@@ -113,7 +108,7 @@ public class PaymentTelephonyLiberataPerformanceTest {
             dsl.given().userToken(USER_TOKEN)
                 .s2sToken(SERVICE_TOKEN)
                 .returnUrl("https://www.moneyclaims.service.hmcts.net")
-                .when().createTelephonyCardPayment(telephonyPaymentRequest, paymentGroupReference)
+                .when().createTelephonyPayment(telephonyPaymentRequest, paymentGroupReference)
                 .then().gotCreated(PaymentDto.class, paymentDto -> {
                 assertThat(paymentDto).isNotNull();
                 assertThat(paymentDto.getReference().matches(PAYMENT_REFERENCE_REGEX)).isTrue();
