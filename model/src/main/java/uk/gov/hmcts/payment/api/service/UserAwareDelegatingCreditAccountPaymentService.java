@@ -126,8 +126,11 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
     @Override
     @Transactional
     public void deleteByPaymentReference(String paymentReference) {
-        LOG.info("Delete payment for reference " + paymentReference);
-        paymentRespository.deleteByReference(paymentReference);
+        long records = paymentRespository.deleteByReference(paymentReference);
+        LOG.info("Number of deleted records are: {}", records);
+        if (records == 0) {
+            throw new PaymentNotFoundException("Payment reference not found in database for delete");
+        }
     }
 
     private Payment findSavedPayment(@NotNull String paymentReference) {
