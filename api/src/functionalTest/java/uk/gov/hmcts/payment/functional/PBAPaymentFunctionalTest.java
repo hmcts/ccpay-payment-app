@@ -338,6 +338,26 @@ public class PBAPaymentFunctionalTest {
     }
 
     @Test
+    public void makeAndRetrievePbaPaymentBySpecifiedClaims() throws InterruptedException {
+
+        String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
+        String accountNumber = testProps.existingAccountNumber;
+        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequestForSPEC("90.00", "SPEC");
+        accountPaymentRequest.setAccountNumber(accountNumber);
+        paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
+            .statusCode(CREATED.value()).body("status", equalTo("Success"));
+
+        Thread.sleep(2000);
+        String endDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
+
+        dsl.given().userToken(USER_TOKEN).s2sToken(SERVICE_TOKEN).when()
+            .searchPaymentsByServiceBetweenDates("Specified Claim", startDate, endDate).then()
+            .getPayments((paymentsResponse -> {
+                Assertions.assertThat(paymentsResponse.getPayments().size()).isEqualTo(1);
+            }));
+    }
+
+    @Test
     public void shouldRejectDuplicatePayment() {
         String accountNumber = testProps.existingAccountNumber;
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequestForProbate("550.50",
