@@ -84,7 +84,7 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
         serviceNameMap.put("CIVIL", "Civil");
         serviceNameMap.put("ADOPTION", "Adoption");
         serviceNameMap.put("PRL", "Family Private Law");
-        serviceNameMap.put("SPEC", "Specified Claim");
+        serviceNameMap.put("SPEC", "Specified Money Claims");
     }
 
     @Override
