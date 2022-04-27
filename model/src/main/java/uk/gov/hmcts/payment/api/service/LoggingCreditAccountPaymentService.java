@@ -80,5 +80,7 @@ public class LoggingCreditAccountPaymentService implements CreditAccountPaymentS
 
     @Override
     public void deleteByPaymentReference(String paymentReference) {
+        LOG.info("Deleting payment for reference: {}", paymentReference);
+        delegate.deleteByPaymentReference(paymentReference);
     }
 }
