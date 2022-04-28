@@ -46,10 +46,9 @@ allprojects {
     repositories {
         mavenLocal()
         mavenCentral()
-        maven { url 'https://jitpack.io' }
         jcenter()
-        maven { url "https://dl.bintray.com/hmcts/hmcts-maven" }
         maven { url 'https://repo.spring.io/libs-milestone' }
+        maven { url 'https://jitpack.io' }
     }
 
     apply from: "${rootDir}/cve-resolution-strategy.gradle"
@@ -58,7 +57,7 @@ allprojects {
         imports {
             mavenBom "org.springframework.boot:spring-boot-dependencies:${springBootVersion}"
             mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
-            mavenBom 'org.apache.logging.log4j:log4j-bom:2.15.0'
+            mavenBom 'org.apache.logging.log4j:log4j-bom:2.17.1'
         }
         dependencies {
             dependencySet(
@@ -121,7 +120,7 @@ subprojects {
         compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version:'2.10.0'
         compile group: 'joda-time', name: 'joda-time', version: '2.10.5'
         compile group: 'org.jboss.aerogear', name: 'aerogear-otp-java', version:'1.0.0'
-        compile group:'org.apache.poi', name: 'poi-ooxml', version: '4.1.2'
+        compile group:'org.apache.poi', name: 'poi-ooxml', version: '5.2.1'
         compile group: 'uk.gov.hmcts.reform', name: 'properties-volume-spring-boot-starter', version: '0.0.4'
         testCompile group: 'junit', name: 'junit', version: '4.12'
         testCompile group: 'org.assertj', name: 'assertj-core', version: '3.8.0'
@@ -176,14 +175,19 @@ def sonarExclusions = [
         '**/v1/**',
         '**/OtpBootstrap.java',
         '**/api/model/**',
+        '**/api/configuration/security/SpringSecurityConfiguration.java',
         '**/referencedata/model/**',
         '**/api/dto/*.java',
         '**/referencedata/dto/*.java',
         '**/api/service/*Service.java',
         '**/referencedata/service/*Service.java',
         '**/api/service/MockAccountServiceImpl.java',
+        '**/api/service/PaymentServiceImpl.java',
         '**/api/service/MockCcdDataStoreClientServiceImpl.java',
         '**/api/controllers/mock/MockCallbackControllerForTesting.java',
+        '**/api/controllers/ServiceRequestController.java',
+        '**/api/domain/mapper/**',
+        '**/api/domain/service/**',
         '**/api/contract/**',
         '**/api/dto/mapper/**',
         '**/api/reports/config/**',

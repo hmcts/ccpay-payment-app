@@ -40,7 +40,7 @@ import uk.gov.hmcts.payment.api.service.CallbackService;
 import uk.gov.hmcts.payment.api.service.IacService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.util.DateUtil;
-import uk.gov.hmcts.payment.api.util.OrderCaseUtil;
+import uk.gov.hmcts.payment.api.util.ServiceRequestCaseUtil;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
@@ -73,7 +73,7 @@ public class PaymentController {
     private final LaunchDarklyFeatureToggler featureToggler;
 
     @Autowired
-    private OrderCaseUtil orderCaseUtil;
+    private ServiceRequestCaseUtil serviceRequestCaseUtil;
 
     @Autowired
     private IacService iacService;
@@ -114,12 +114,21 @@ public class PaymentController {
                 payment.get().setCcdCaseNumber(request.getCcdCaseNumber());
             }
 
-            orderCaseUtil.updateOrderCaseDetails(payment.get().getPaymentLink(), payment.get());
+            serviceRequestCaseUtil.updateServiceRequestCaseDetails(payment.get().getPaymentLink(), payment.get());
 
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
 
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+
+    @RequestMapping(value = "/payments/ccd_case_reference/{ccd_case_number}", method = PATCH)
+    @Transactional
+    public ResponseEntity
+        updatePaymentsForCCDCaseNumberByCertainDays(@PathVariable("ccd_case_number")
+                                                        String ccd_case_number) {
+        paymentService.updatePaymentsForCCDCaseNumberByCertainDays(ccd_case_number);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @ApiOperation(value = "Get payments for between dates", notes = "Get list of payments. You can optionally provide start date and end dates which can include times as well. Following are the supported date/time formats. These are yyyy-MM-dd, dd-MM-yyyy," +
