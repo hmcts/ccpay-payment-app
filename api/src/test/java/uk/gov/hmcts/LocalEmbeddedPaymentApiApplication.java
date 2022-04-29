@@ -11,5 +11,6 @@ public class LocalEmbeddedPaymentApiApplication {
                 .sources(PaymentApiApplication.class)
                 .profiles("local")
                 .run();
+        
     }
 }
