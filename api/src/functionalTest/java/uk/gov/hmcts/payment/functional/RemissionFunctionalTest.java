@@ -10,6 +10,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
+import uk.gov.hmcts.payment.api.contract.TelephonyCardPaymentsRequest;
 import uk.gov.hmcts.payment.api.contract.TelephonyPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
@@ -74,7 +75,7 @@ public class RemissionFunctionalTest {
     @Test
     public void createRetrospectiveRemissionAndRetrieveRemissionByPaymentGroupTest() throws Exception {
 
-        TelephonyPaymentRequest telephonyPaymentRequest = TelephonyPaymentRequest.createTelephonyPaymentRequestDtoWith()
+/*        TelephonyPaymentRequest telephonyPaymentRequest = TelephonyPaymentRequest.createTelephonyPaymentRequestDtoWith()
             .amount(new BigDecimal("99.99"))
             .description("telephonyPayment")
             .caseReference("caseRef")
@@ -91,6 +92,14 @@ public class RemissionFunctionalTest {
                 .build()))
             .channel("telephony")
             .provider("pci pal")
+            .build();*/
+
+        TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
+            .amount(new BigDecimal("99.99"))
+            .ccdCaseNumber("1234")
+            .currency(CurrencyCode.GBP)
+            .caseType("DIVORCE")
+            .returnURL("https://google.co.uk")
             .build();
 
         // TEST create telephony card payment
@@ -109,7 +118,7 @@ public class RemissionFunctionalTest {
             dsl.given().userToken(USER_TOKEN)
                 .s2sToken(SERVICE_TOKEN)
                 .returnUrl("https://www.moneyclaims.service.gov.uk")
-                .when().createTelephonyCardPayment(telephonyPaymentRequest, paymentGroupReference)
+                .when().createTelephonyPayment(telephonyPaymentRequest, paymentGroupReference)
                 .then().created(paymentDto -> {
                 assertTrue(paymentDto.getReference().matches(PAYMENT_REFERENCE_REGEX));
                 assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
@@ -143,7 +152,6 @@ public class RemissionFunctionalTest {
                     .subtract(paymentGroupDto.getRemissions().get(0).getHwfAmount());
                 assertThat(netAmount).isEqualTo(paymentGroupDto.getFees().get(0).getNetAmount());
             });
-
         });
     }
 
