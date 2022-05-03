@@ -83,7 +83,6 @@ public class PBAPaymentFunctionalTest {
         PaymentDto paymentDto = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
                 .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
 
-        System.out.println("paymentDto.getReference():::::: " + paymentDto.getReference());
         // Get pba payment by reference
         PaymentDto paymentsResponse =
                 paymentTestService.getPbaPayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then()
