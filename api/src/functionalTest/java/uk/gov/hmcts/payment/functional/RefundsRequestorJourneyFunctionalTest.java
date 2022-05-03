@@ -107,17 +107,8 @@ public class RefundsRequestorJourneyFunctionalTest {
         PaymentDto paymentDto = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
 
-        // Get pba payment by reference
-        PaymentDto paymentsResponse =
-                paymentTestService.getPbaPayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then()
-                        .statusCode(OK.value()).extract().as(PaymentDto.class);
-
-        assertThat(paymentsResponse.getAccountNumber()).isEqualTo(accountNumber);
-        assertThat(paymentsResponse.getAmount()).isEqualTo(new BigDecimal("90.00"));
-        assertThat(paymentsResponse.getCcdCaseNumber()).isEqualTo(accountPaymentRequest.getCcdCaseNumber());
-        String paymentReference = paymentsResponse.getPaymentReference();
         PaymentRefundRequest paymentRefundRequest
-            = PaymentFixture.aRefundRequest("RR001", paymentReference);
+            = PaymentFixture.aRefundRequest("RR001", paymentDto.getReference());
         Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentRefundRequest);
@@ -175,17 +166,8 @@ public class RefundsRequestorJourneyFunctionalTest {
         PaymentDto paymentDto = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
 
-        // Get pba payment by reference
-        PaymentDto paymentsResponse =
-                paymentTestService.getPbaPayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then()
-                        .statusCode(OK.value()).extract().as(PaymentDto.class);
-
-        assertThat(paymentsResponse.getAccountNumber()).isEqualTo(accountNumber);
-        assertThat(paymentsResponse.getAmount()).isEqualTo(new BigDecimal("90.00"));
-        assertThat(paymentsResponse.getCcdCaseNumber()).isEqualTo(accountPaymentRequest.getCcdCaseNumber());
-        String paymentReference = paymentsResponse.getPaymentReference();
         PaymentRefundRequest paymentRefundRequest
-            = PaymentFixture.aRefundRequest("RR001", paymentReference);
+            = PaymentFixture.aRefundRequest("RR001", paymentDto.getReference());
 
         Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
@@ -223,17 +205,8 @@ public class RefundsRequestorJourneyFunctionalTest {
         PaymentDto paymentDto1 = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest2).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
 
-        // Get pba payment by reference
-        PaymentDto paymentsResponse =
-                paymentTestService.getPbaPayment(USER_TOKEN, SERVICE_TOKEN, paymentDto1.getReference()).then()
-                        .statusCode(OK.value()).extract().as(PaymentDto.class);
-
-        assertThat(paymentsResponse.getAccountNumber()).isEqualTo(accountNumber);
-        assertThat(paymentsResponse.getAmount()).isEqualTo(new BigDecimal("550.00"));
-        assertThat(paymentsResponse.getCcdCaseNumber()).isEqualTo(accountPaymentRequest2.getCcdCaseNumber());
-        String paymentReference = paymentsResponse.getPaymentReference();
         PaymentRefundRequest paymentRefundRequest
-            = PaymentFixture.aRefundRequest("RR001", paymentReference);
+            = PaymentFixture.aRefundRequest("RR001", paymentDto1.getReference());
         Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentRefundRequest);
@@ -260,18 +233,8 @@ public class RefundsRequestorJourneyFunctionalTest {
         PaymentDto paymentDto = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
 
-        // Get pba payment by reference
-        PaymentDto paymentsResponse =
-                paymentTestService.getPbaPayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then()
-                        .statusCode(OK.value()).extract().as(PaymentDto.class);
-
-
-        assertThat(paymentsResponse.getAccountNumber()).isEqualTo(accountNumber);
-        assertThat(paymentsResponse.getAmount()).isEqualTo(new BigDecimal("640.00"));
-        assertThat(paymentsResponse.getCcdCaseNumber()).isEqualTo(accountPaymentRequest.getCcdCaseNumber());
-        String paymentReference = paymentsResponse.getPaymentReference();
         PaymentRefundRequest paymentRefundRequest
-            = PaymentFixture.aRefundRequest("RR001", paymentReference);
+            = PaymentFixture.aRefundRequest("RR001", paymentDto.getReference());
         Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentRefundRequest);
@@ -565,19 +528,9 @@ public class RefundsRequestorJourneyFunctionalTest {
             .when().createRetrospectiveRemissionForRefund(getRetroRemissionRequest("5.00"), paymentGroupReference, feeId)
             .then().getResponse();
         assertThat(response.getStatusCode()).isEqualTo(CREATED.value());
-        String remissionReference = response.getBody().jsonPath().getString("remission_reference");
 
-        // Get pba payment by reference
-        PaymentDto paymentsResponse =
-                paymentTestService.getPbaPayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then()
-                        .statusCode(OK.value()).extract().as(PaymentDto.class);
-
-        assertThat(paymentsResponse.getAccountNumber()).isEqualTo(accountNumber);
-        assertThat(paymentsResponse.getAmount()).isEqualTo(new BigDecimal("90.00"));
-        assertThat(paymentsResponse.getCcdCaseNumber()).isEqualTo(accountPaymentRequest.getCcdCaseNumber());
-        String paymentReference = paymentsResponse.getPaymentReference();
         PaymentRefundRequest paymentRefundRequest
-            = PaymentFixture.aRefundRequest("RR001", paymentReference);
+            = PaymentFixture.aRefundRequest("RR001", paymentDto.getReference());
         Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentRefundRequest);
@@ -626,17 +579,8 @@ public class RefundsRequestorJourneyFunctionalTest {
         assertThat(refundResponseFromPost.getRefundAmount()).isEqualTo(new BigDecimal("5.00"));
         assertThat(REFUNDS_REGEX_PATTERN.matcher(refundResponseFromPost.getRefundReference()).matches()).isEqualTo(true);
 
-        // Get pba payment by reference
-        PaymentDto paymentsResponse =
-                paymentTestService.getPbaPayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then()
-                        .statusCode(OK.value()).extract().as(PaymentDto.class);
-
-        assertThat(paymentsResponse.getAccountNumber()).isEqualTo(accountNumber);
-        assertThat(paymentsResponse.getAmount()).isEqualTo(new BigDecimal("90.00"));
-        assertThat(paymentsResponse.getCcdCaseNumber()).isEqualTo(accountPaymentRequest.getCcdCaseNumber());
-        String paymentReference = paymentsResponse.getPaymentReference();
         PaymentRefundRequest paymentRefundRequest
-            = PaymentFixture.aRefundRequest("RR001", paymentReference);
+            = PaymentFixture.aRefundRequest("RR001", paymentDto.getReference());
         Response refundInitiatedResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentRefundRequest);
