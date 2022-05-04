@@ -759,11 +759,11 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         BigDecimal totalRefundAmount = new BigDecimal(BigInteger.ZERO);
 
         //Goes through each payment in this paymentDto, and get the total payment amount
-        if(null != paymentGroupDto.getPayments()) {
+        if(null != paymentGroupDto.getPayments()){
             for (PaymentDto payment : paymentGroupDto.getPayments()) {
 
-                if (payment.getStatus() == "Success") {
-                    totalPaymentAmount = totalPaymentAmount.add(payment.getAmougetRefundsFromRefundServicent());
+                if(payment.getStatus() == "Success") {
+                    totalPaymentAmount = totalPaymentAmount.add(payment.getAmount());
                 }
                 //if theres a refund available for this payment, get the total refund amount
                 if (refundListDtoResponse != null) {
