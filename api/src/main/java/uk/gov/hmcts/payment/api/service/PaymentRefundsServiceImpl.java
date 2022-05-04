@@ -759,19 +759,21 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         BigDecimal totalRefundAmount = new BigDecimal(BigInteger.ZERO);
 
         //Goes through each payment in this paymentDto, and get the total payment amount
-        for (PaymentDto payment : paymentGroupDto.getPayments()) {
+        if(null != paymentGroupDto.getPayments()) {
+            for (PaymentDto payment : paymentGroupDto.getPayments()) {
 
-            if(payment.getStatus() == "Success") {
-                totalPaymentAmount = totalPaymentAmount.add(payment.getAmount());
-            }
-            //if theres a refund available for this payment, get the total refund amount
-            if (refundListDtoResponse != null) {
-                for (RefundDto refundDto : refundListDtoResponse.getRefundList()) {
+                if (payment.getStatus() == "Success") {
+                    totalPaymentAmount = totalPaymentAmount.add(payment.getAmougetRefundsFromRefundServicent());
+                }
+                //if theres a refund available for this payment, get the total refund amount
+                if (refundListDtoResponse != null) {
+                    for (RefundDto refundDto : refundListDtoResponse.getRefundList()) {
 
-                    //Condition to check that a valid refund corresponding with the payment reference is considered only
-                    if (refundDto.getPaymentReference().equals(payment.getPaymentReference())
-                        && (refundDto.getRefundStatus().getName().equals("Accepted") || refundDto.getRefundStatus().getName().equals("Approved")))
-                        totalRefundAmount = totalRefundAmount.add(refundDto.getAmount());
+                        //Condition to check that a valid refund corresponding with the payment reference is considered only
+                        if (refundDto.getPaymentReference().equals(payment.getPaymentReference())
+                            && (refundDto.getRefundStatus().getName().equals("Accepted") || refundDto.getRefundStatus().getName().equals("Approved")))
+                            totalRefundAmount = totalRefundAmount.add(refundDto.getAmount());
+                    }
                 }
             }
         }
