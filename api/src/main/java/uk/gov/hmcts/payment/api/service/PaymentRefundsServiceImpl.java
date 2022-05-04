@@ -742,9 +742,13 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
 
     public boolean checkRefundsRole(PaymentGroupDto paymentGroupDto){
-        for(PaymentDto payment : paymentGroupDto.getPayments()){
-            if(payment.getRefundEnable()!=null && payment.getRefundEnable()){
-                return true;
+        if(paymentGroupDto.getPayments()!=null) {
+          
+            for (PaymentDto payment : paymentGroupDto.getPayments()) {
+
+                if (payment.getRefundEnable() != null && payment.getRefundEnable()) {
+                    return true;
+                }
             }
         }
         return false;
