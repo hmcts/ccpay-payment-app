@@ -41,7 +41,6 @@ import javax.validation.Valid;
 import java.util.List;
 import java.util.Optional;
 
-import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 @RestController
@@ -216,7 +215,7 @@ public class CreditAccountPaymentController {
             @ApiResponse(code = 204, message = "Payment deleted successfully"),
             @ApiResponse(code = 404, message = "Payment not found for the given reference")
     })
-    @RequestMapping(value = "/credit-account-payments/{paymentReference}", method = DELETE)
+    @DeleteMapping(value = "/credit-account-payments/{paymentReference}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteByPaymentReference(@PathVariable("paymentReference") String paymentReference) {
         creditAccountPaymentService.deleteByPaymentReference(paymentReference);
