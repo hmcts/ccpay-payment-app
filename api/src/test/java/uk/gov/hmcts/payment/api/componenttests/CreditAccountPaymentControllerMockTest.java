@@ -97,10 +97,4 @@ public class CreditAccountPaymentControllerMockTest {
 
     }
 
-    @Test
-    public void testDeletePayment() {
-        creditAccountPaymentController.deleteByPaymentReference("");
-        verify(creditAccountPaymentService, times(1));
-    }
-
 }
