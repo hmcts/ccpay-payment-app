@@ -162,8 +162,6 @@ public class PaymentControllerPerformanceTest extends PaymentsDataUtil {
 
         long durationOfSearch = System.currentTimeMillis() - timestamp;
 
-        System.out.println("Search took " + durationOfSearch + " milliseconds");
-
         PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
 
         assertThat(paymentsResponse.getPayments().size()).isGreaterThan(PAYMENTS_TODAY - 1);

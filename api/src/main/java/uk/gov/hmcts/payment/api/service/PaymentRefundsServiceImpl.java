@@ -199,7 +199,8 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
     private String postToRefundService(RefundRequestDto refundRequest, MultiValueMap<String, String> headers) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(refundApiUrl + REFUND_ENDPOINT);
-        LOG.debug("builder.toUriString() : {}", builder.toUriString());
+        LOG.info("builder.toUriString() : {}", builder.toUriString());
+        LOG.info("refundRequest: {}", refundRequest);
         try {
             ResponseEntity<InternalRefundResponse> refundResponseResponseEntity = restTemplateRefundsGroup
                 .exchange(builder.toUriString(), HttpMethod.POST, createEntity(headers, refundRequest), InternalRefundResponse.class);

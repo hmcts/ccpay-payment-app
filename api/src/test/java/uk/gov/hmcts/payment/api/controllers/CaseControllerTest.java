@@ -681,9 +681,6 @@ public class CaseControllerTest extends PaymentsDataUtil {
         assertThat(paymentGroups.getPaymentGroups().size()).isEqualTo(1);
         assertThat(paymentGroups.getPaymentGroups().get(0)
             .getFees().get(0).getDescription()).isEqualTo("Application for a charging order");
-        System.out.println(paymentGroups.getPaymentGroups().get(0)
-            .getRemissions().get(0).getDateCreated());
-        System.out.println(new Date());
         assertThat(paymentGroups.getPaymentGroups().get(0)
             .getRemissions().get(0).getDateCreated().getDate()).isEqualTo(new Date().getDate());
     }
