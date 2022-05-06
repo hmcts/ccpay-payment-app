@@ -372,6 +372,7 @@ public class PBAPaymentFunctionalTest {
         // delete payment record
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
 
+
     }
 
     @Test
@@ -392,6 +393,7 @@ public class PBAPaymentFunctionalTest {
             .getPayments((paymentsResponse -> {
                 Assertions.assertThat(paymentsResponse.getPayments().size()).isEqualTo(1);
             }));
+
     }
 
     @Test
