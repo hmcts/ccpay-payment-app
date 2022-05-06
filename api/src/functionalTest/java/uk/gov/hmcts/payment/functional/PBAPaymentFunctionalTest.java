@@ -372,6 +372,28 @@ public class PBAPaymentFunctionalTest {
         // delete payment record
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
 
+
+    }
+
+    @Test
+    public void makeAndRetrievePbaPaymentBySpecifiedClaims() throws InterruptedException {
+
+        String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
+        String accountNumber = testProps.existingAccountNumber;
+        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequestForSPEC("90.00", "SPEC");
+        accountPaymentRequest.setAccountNumber(accountNumber);
+        paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
+            .statusCode(CREATED.value()).body("status", equalTo("Success"));
+
+        Thread.sleep(2000);
+        String endDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
+
+        dsl.given().userToken(USER_TOKEN).s2sToken(SERVICE_TOKEN).when()
+            .searchPaymentsByServiceBetweenDates("Specified Money Claims", startDate, endDate).then()
+            .getPayments((paymentsResponse -> {
+                Assertions.assertThat(paymentsResponse.getPayments().size()).isEqualTo(1);
+            }));
+
     }
 
     @Test
