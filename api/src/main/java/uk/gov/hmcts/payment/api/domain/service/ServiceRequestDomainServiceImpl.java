@@ -408,7 +408,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
 
         String subName = "serviceRequestCpoUpdateSubscription";
         String topic = "ccpay-service-request-cpo-update-topic";
-        IMessageReceiver subscriptionClient = ClientFactory.createMessageReceiverFromConnectionStringBuilder(new ConnectionStringBuilder(connectionString, topic+"/subscriptions/" + subName+"/$deadletterqueue"), ReceiveMode.RECEIVEANDDELETE);
+        IMessageReceiver subscriptionClient = ClientFactory.createMessageReceiverFromConnectionStringBuilder(new ConnectionStringBuilder(connectionString, topic+"/subscriptions/" + subName+"/$deadletterqueue"));
         return subscriptionClient;
     }
 
@@ -428,6 +428,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
             LOG.info("receivedMessage\n", receivedMessage);
             if (receivedMessage != null) {
                 String  msgProperties = receivedMessage.getProperties().toString();
+                LOG.info("Dead letter process, msg properties: {}", msgProperties);
                 boolean isFound500 =  msgProperties.indexOf("500") !=-1? true: false;
                 if (isFound500) {
                     byte[] body = receivedMessage.getBody();
@@ -436,6 +437,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
                     ObjectMapper objectMapper1 = new ObjectMapper();
                     Message msg = new Message(objectMapper1.writeValueAsString(deadLetterDto));
                     msg.setContentType(MSGCONTENTTYPE);
+                    LOG.info("Dead letter process, message being sent: {}", msg);
                     topicClientCPO.send(msg);
                 }
             }
@@ -505,6 +507,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
                 msg.setContentType(MSGCONTENTTYPE);
                 msg.setLabel("Service Callback Message");
                 msg.setProperties(Collections.singletonMap("serviceCallbackUrl",callBackUrl));
+                LOG.info("Message being sent to topic: {}", msg);
                 topicClientCPO.send(msg);
                 topicClientCPO.close();
             }
