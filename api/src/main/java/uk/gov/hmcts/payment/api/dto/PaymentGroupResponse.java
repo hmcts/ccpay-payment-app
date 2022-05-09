@@ -7,7 +7,6 @@ import lombok.*;
 import java.util.List;
 
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-@Builder(builderMethodName = "paymentGroupResponseWith")
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter

@@ -49,13 +49,13 @@ public class PaymentServiceTest extends TestUtil {
             .fees(paymentsDataUtil.getFeesData())
             .build();
 
-        //paymentFeeLinkRepository.save(paymentFeeLink);
+        paymentFeeLinkRepository.save(paymentFeeLink);
 
         // when
-        //List<Reference> paymentsReferences = paymentService.listInitiatedStatusPaymentsReferences();
+        List<Reference> paymentsReferences = paymentService.listInitiatedStatusPaymentsReferences();
 
         // then
-        assertNotNull(payments);
+        assertThat(paymentsReferences).hasSize(2);
     }
 
     private Payment getPaymentWithStatus(String paymentStatus) {
@@ -85,8 +85,20 @@ public class PaymentServiceTest extends TestUtil {
             .build();
         PaymentFee fee = feeWith().code("FEE0111").version("1").build();
 
-        assertNotNull(fee);
-        //assertThat(paymentFeeLinks.get(0).getPayments().size()).isEqualTo(1);
+        PaymentFeeLink saved = paymentFeeLinkRepository.save(PaymentFeeLink.paymentFeeLinkWith().paymentReference("00000005")
+            .payments(Arrays.asList(payment))
+            .fees(Arrays.asList(fee))
+            .build());
+
+        List<PaymentFeeLink> paymentFeeLinks =
+            paymentService.search(
+                PaymentSearchCriteria.searchCriteriaWith()
+                    .startDate(LocalDateTime.now().minusMinutes(1).toDate())
+                    .endDate(LocalDateTime.now().toDate())
+                    .build()
+            );
+        assertNotNull(paymentFeeLinks);
+        assertThat(paymentFeeLinks.get(0).getPayments().size()).isEqualTo(1);
 
     }
 }

@@ -41,6 +41,7 @@ public class ServiceRequestPaymentFunctionalTest {
     private LaunchDarklyFeature featureToggler;
 
     private static String USER_TOKEN;
+
     private static String USER_TOKEN_PAYMENT;
     private static String SERVICE_TOKEN;
     private static boolean TOKENS_INITIALIZED = false;

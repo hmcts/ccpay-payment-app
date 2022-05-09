@@ -181,6 +181,9 @@ dependencies {
     functionalTestImplementation group: 'io.rest-assured', name: 'json-path', version: versions.restAssured
 }
 
+
+
+
 test {
     // Base test class for other tests - has no runnable test methods
     exclude 'uk/gov/hmcts/payment/api/v1/**'
@@ -204,7 +207,7 @@ functionalTest.finalizedBy(aggregate)
 
 project.ext {
     pactVersion = getCheckedOutGitCommitHash()
-    pacticipant = 'no'
+    pacticipant = 'payment_App'
     pacticipantVersion = getCheckedOutGitCommitHash()
 }
 
@@ -287,4 +290,3 @@ pitest {
     timestampedReports = true
     mutationThreshold = 90
 }
-

@@ -108,7 +108,7 @@ public class CreditAccountPaymentController {
         Following piece of code to be removed once all Services are on-boarded to PBA Config 2
          */
         LOG.info("PBA Old Config Service Names : {}", pbaConfig1ServiceNames);
-        Boolean isPBAConfig1Journey = pbaConfig1ServiceNames.contains(creditAccountPaymentRequest.getService())
+        boolean isPBAConfig1Journey = pbaConfig1ServiceNames.contains(creditAccountPaymentRequest.getService())
             ? true : false;
 
         LOG.info("Case Type: {} ", creditAccountPaymentRequest.getCaseType());
@@ -210,6 +210,17 @@ public class CreditAccountPaymentController {
         return new ResponseEntity<>(creditAccountDtoMapper.toRetrievePaymentStatusResponse(payment), HttpStatus.OK);
     }
 
+    @ApiOperation(value = "Delete credit account payment details by payment reference", notes = "Delete payment details for supplied payment reference")
+    @ApiResponses(value = {
+            @ApiResponse(code = 204, message = "Payment deleted successfully"),
+            @ApiResponse(code = 404, message = "Payment not found for the given reference")
+    })
+    @DeleteMapping(value = "/credit-account-payments/{paymentReference}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteByPaymentReference(@PathVariable("paymentReference") String paymentReference) {
+        creditAccountPaymentService.deleteByPaymentReference(paymentReference);
+    }
+
     @ExceptionHandler(value = {PaymentNotFoundException.class})
     public ResponseEntity httpClientErrorException() {
         return new ResponseEntity(HttpStatus.NOT_FOUND);
@@ -235,21 +246,9 @@ public class CreditAccountPaymentController {
         return ex.getMessage();
     }
 
-    @ResponseStatus(HttpStatus.GATEWAY_TIMEOUT)
-    @ExceptionHandler(AccountServiceUnavailableException.class)
-    public String return504(AccountServiceUnavailableException ex) {
-        return ex.getMessage();
-    }
-
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(value = {NoServiceFoundException.class})
     public String return404(NoServiceFoundException ex) {
-        return ex.getMessage();
-    }
-
-    @ResponseStatus(HttpStatus.GATEWAY_TIMEOUT)
-    @ExceptionHandler(GatewayTimeoutException.class)
-    public String return504(GatewayTimeoutException ex) {
         return ex.getMessage();
     }
 

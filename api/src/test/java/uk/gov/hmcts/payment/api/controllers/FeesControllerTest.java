@@ -21,7 +21,6 @@ import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.RemissionDto;
 import uk.gov.hmcts.payment.api.dto.RemissionRequest;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
-import uk.gov.hmcts.payment.api.service.RefundRemissionEnableService;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
@@ -67,8 +66,6 @@ public class FeesControllerTest {
     private AuthTokenGenerator authTokenGenerator;
     @Autowired
     private SiteService<Site, String> siteServiceMock;
-    @MockBean
-    private RefundRemissionEnableService refundRemissionEnableService;
     MockMvc mvc;
     protected CustomResultMatcher body() {
         return new CustomResultMatcher(objectMapper);
@@ -116,9 +113,8 @@ public class FeesControllerTest {
 
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(getNewFee()))
-            .remissions(Arrays.asList(getRemmision()))
             .build();
-        when(refundRemissionEnableService.returnRemissionEligible(any())).thenReturn(true);
+
         MvcResult result = restActions
             .post("/payment-groups", request)
             .andExpect(status().isCreated())
@@ -186,7 +182,6 @@ public class FeesControllerTest {
             .id(1)
             .reference("BXsd1123")
             .ccdCaseNumber("1111-2222-2222-1111")
-            .remissionEnable(true)
             .build();
     }
 
@@ -198,16 +193,6 @@ public class FeesControllerTest {
             .code("FEE0123")
             .build();
     }
-    private RemissionDto getRemmision(){
-        return RemissionDto.remissionDtoWith()
-            .beneficiaryName("beneficiary")
-            .caseReference("caseRef1234")
-            .ccdCaseNumber("CCD1234")
-            .hwfAmount(new BigDecimal("10.00"))
-            .hwfReference("HWFref")
-            .fee(getFee())
-            .feeId(1)
-            .build();
-    }
+
 
 }

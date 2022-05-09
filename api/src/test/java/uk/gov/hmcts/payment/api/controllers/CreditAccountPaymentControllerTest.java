@@ -5,6 +5,7 @@ import com.google.common.collect.Lists;
 import org.apache.commons.lang.math.RandomUtils;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -42,7 +43,6 @@ import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.model.StatusHistory;
 import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
-import uk.gov.hmcts.payment.api.service.RefundRemissionEnableService;
 import uk.gov.hmcts.payment.api.util.AccountStatus;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
@@ -66,7 +66,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
@@ -111,8 +110,6 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     private ObjectMapper objectMapper;
     @MockBean
     private LaunchDarklyFeatureToggler featureToggler;
-    @MockBean
-    private RefundRemissionEnableService refundRemissionEnableService;
 
     protected CustomResultMatcher body() {
         return new CustomResultMatcher(objectMapper);
@@ -169,7 +166,6 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         this.restActions=null;
         mvc=null;
     }
-
 
     @Test
     public void createCreditAccountPaymentTest() throws Exception {
@@ -724,6 +720,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     }
 
 
+    @Ignore
     @Test
     public void givenLiberataCheckOffAndCheckLiberataAccountForAllSericesOnThenAllServicesTriggerLiberataCheck() throws Exception {
 
@@ -1177,6 +1174,13 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         assertEquals(new BigDecimal(0), savedfees.get(0).getAmountDue());
         assertEquals(new BigDecimal(0), savedfees.get(1).getAmountDue());
         assertEquals(new BigDecimal(20), savedfees.get(2).getAmountDue());
+    }
+
+    @Test
+    public void testDeletePayment() throws Exception {
+        restActions.delete("/credit-account-payments/test")
+            .andExpect(status().isNotFound())
+            .andReturn();
     }
 
     private String jsonRequestWithoutCcdCaseRefAndCaseRef() {

@@ -27,13 +27,13 @@ import uk.gov.hmcts.payment.functional.idam.IdamService;
 import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
 import uk.gov.hmcts.payment.functional.service.ServiceRequestTestService;
 
-import javax.inject.Inject;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.Date;
 import java.util.regex.Pattern;
+import javax.inject.Inject;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -102,7 +102,6 @@ public class ServiceRequestFunctionalTests {
 
         ServiceRequestDto serviceRequestDto
             = ServiceRequestFixture.buildServiceRequestDTO("ABA6", null);
-        System.out.println("The Value of the CCD Case Number : " + serviceRequestDto.getCcdCaseNumber());
         Response createServiceRequestResponse
             = serviceRequestTestService.createServiceRequest(USER_TOKEN_PAYMENT, SERVICE_TOKEN,
             serviceRequestDto);
@@ -743,13 +742,10 @@ public class ServiceRequestFunctionalTests {
         paymentGroupResponse.getPaymentGroups().stream().forEach(paymentGroupDto -> {
             assertThat(paymentGroupDto.getPayments()).isNull();
             assertThat(paymentGroupDto.getRemissions()).isNullOrEmpty();
-            System.out
-                .println("The value of the Status : " + paymentGroupResponse.getPaymentGroups().get(0).getServiceRequestStatus());
             assertThat(paymentGroupDto.getPaymentGroupReference()).matches(SERVICE_REQUEST_REGEX_PATTERN);
             assertThat(paymentGroupDto.getFees().get(0).getCode().equals(serviceRequestDto.getFees().get(0).getCode())).isTrue();
             assertThat(paymentGroupDto.getServiceRequestStatus().equals(NOT_PAID)).isTrue();
             assertThat(paymentGroupDto.getDateCreated()).isNotNull();
-            System.out.println("The value of the Date Created" + paymentGroupDto.getDateCreated());
             try {
                 verifyDate(paymentGroupDto.getDateCreated());
                 verifyDate(paymentGroupDto.getDateUpdated());
@@ -805,6 +801,5 @@ public class ServiceRequestFunctionalTests {
         ConnectionStringBuilder connectionStringBuilder = new ConnectionStringBuilder(serviceConnectionString, topicName);
         TopicClient client = new TopicClient(connectionStringBuilder);
         IMessage message = client.peek();
-        System.out.println("The body of the message : " + message.getBody().toString());
     }
 }
