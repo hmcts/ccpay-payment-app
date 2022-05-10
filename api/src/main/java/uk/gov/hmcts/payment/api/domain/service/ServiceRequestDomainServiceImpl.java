@@ -415,7 +415,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
 
     @Override
 
-  public void deadLetterProcess(IMessageReceiver subscriptionClient) throws ServiceBusException, InterruptedException, IOException {
+ public void deadLetterProcess(IMessageReceiver subscriptionClient) throws ServiceBusException, InterruptedException, IOException {
 
 
         int receivedMessages =0;
@@ -430,11 +430,11 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
                 String  msgProperties = receivedMessage.getProperties().toString();
                 LOG.info("Dead letter process, msg properties: {}", msgProperties);
                 boolean isFound500 =  msgProperties.indexOf("500") !=-1? true: false;
-                
-                LOG.info("MSG CONTAINS 400: {}",  msgProperties.contains("400"));
-                
+
+                LOG.info("MSG CONTAINS 5xx: {}",  msgProperties.matches(".*[500-599].*"));
+
                 LOG.info("isFound500: {},", isFound500);
-                if ( msgProperties.contains("400")) {
+                if (msgProperties.matches(".*[500-599].*")) {
                     byte[] body = receivedMessage.getBody();
                     ObjectMapper objectMapper = new ObjectMapper();
                     DeadLetterDto deadLetterDto = objectMapper.readValue(body, DeadLetterDto.class);
