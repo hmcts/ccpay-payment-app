@@ -13,11 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
-import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
-import uk.gov.hmcts.payment.api.contract.FeeDto;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
-import uk.gov.hmcts.payment.api.contract.TelephonyPaymentRequest;
+import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
@@ -252,7 +248,17 @@ public class TelephonyPaymentsTest {
 
     @Test
     public void retrieveCorrectPciPalUrlWhenCreatingATelephonyCardPayment() {
-        TelephonyPaymentRequest paymentRequest = TelephonyPaymentRequest.createTelephonyPaymentRequestDtoWith()
+
+
+        TelephonyCardPaymentsRequest paymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
+            .amount(new BigDecimal(" 99.99"))
+            .ccdCaseNumber("1234")
+            .currency(CurrencyCode.GBP)
+            .caseType("LegacySearch")
+            .returnURL("https://www.moneyclaims.service.gov.uk")
+            .build();
+
+/*        TelephonyPaymentRequest paymentRequest = TelephonyPaymentRequest.createTelephonyPaymentRequestDtoWith()
             .amount(new BigDecimal("99.99"))
             .description("telephonyPayment")
             .caseReference("caseRef")
@@ -268,7 +274,7 @@ public class TelephonyPaymentsTest {
                 .build()))
             .channel("telephony")
             .provider("pci pal")
-            .build();
+            .build();*/
 
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
@@ -277,6 +283,19 @@ public class TelephonyPaymentsTest {
             assertThat(paymentGroupFeeDto).isNotNull();
             assertThat(paymentGroupFeeDto.getPaymentGroupReference()).isNotNull();
             assertThat(paymentGroupFeeDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(getPaymentFeeGroupRequest());
+
+            dsl.given().userToken(USER_TOKEN)
+                .s2sToken(SERVICE_TOKEN)
+                .returnUrl("https://www.moneyclaims.service.gov.uk")
+                .when().createTelephonyPayment(paymentRequest, paymentGroupFeeDto.getPaymentGroupReference())
+                .then().gotCreated(TelephonyCardPaymentsResponse.class, telephonyCardPaymentsResponse -> {
+                assertTrue(telephonyCardPaymentsResponse.getPaymentReference().matches(PAYMENT_REFERENCE_REGEX));
+                assertEquals("payment status is properly set", "Initiated", telephonyCardPaymentsResponse.getStatus());
+                String[] schemes = {"https"};
+                UrlValidator urlValidator = new UrlValidator(schemes);
+                assertNotNull(telephonyCardPaymentsResponse.getLinks().getNextUrl());
+                assertTrue(urlValidator.isValid(telephonyCardPaymentsResponse.getLinks().getNextUrl().getHref()));
+            });
 
         });
     }
