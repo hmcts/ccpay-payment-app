@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.payment.api.dto.servicerequest.PaymentStatusPingOneDto;
+import uk.gov.hmcts.payment.api.dto.servicerequest.PaymentStatusUpdateSecondDto;
 
 @RestController
 @Api(tags = {"Payment Status"})
@@ -25,5 +26,15 @@ public class PaymentStatusController {
 
         return new ResponseEntity<>(HttpStatus.OK);
     }
+
+    @PaymentExternalAPI
+    @PatchMapping(path = "/payment-failures/{failure_reference}")
+    public ResponseEntity PaymentStatusPingSecond(@RequestBody PaymentStatusUpdateSecondDto paymentStatusUpdateSecondDto,
+                                                  @PathVariable(value = "failure_reference") String failure_reference) {
+        LOG.info("Received payment status ping 2 request : {}", paymentStatusUpdateSecondDto);
+
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
 
 }
