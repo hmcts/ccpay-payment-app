@@ -73,7 +73,7 @@ public class RemissionFunctionalTest {
     public void createRetrospectiveRemissionAndRetrieveRemissionByPaymentGroupTest() throws Exception {
 
         TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
-            .amount(new BigDecimal(" 99.99"))
+            .amount(new BigDecimal("99.99"))
             .ccdCaseNumber("1234")
             .currency(CurrencyCode.GBP)
             .caseType("LegacySearch")
