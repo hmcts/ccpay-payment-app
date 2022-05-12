@@ -415,7 +415,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
 
     @Override
 
-    public void deadLetterProcess(IMessageReceiver subscriptionClient) throws ServiceBusException, InterruptedException, IOException {
+  public void deadLetterProcess(IMessageReceiver subscriptionClient) throws ServiceBusException, InterruptedException, IOException {
 
 
         int receivedMessages =0;
@@ -429,12 +429,12 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
             if (receivedMessage != null) {
                 String  msgProperties = receivedMessage.getProperties().toString();
                 LOG.info("Dead letter process, msg properties: {}", msgProperties);
-                boolean isFound500 =  msgProperties.indexOf("500") !=-1? true: false;
+                boolean isFound500 =  msgProperties.indexOf("503") !=-1? true: false;
 
-                LOG.info("MSG CONTAINS 5xx: {}",  msgProperties.matches("5[0-9][0-9]"));
+                LOG.info("MSG CONTAINS 503: {}", isFound500);
 
-                LOG.info("isFound500: {},", isFound500);
-                if (msgProperties.matches("5[0-9][0-9]")) {
+                LOG.info("isFound5033: {},", isFound500);
+                if (isFound500) {
                     byte[] body = receivedMessage.getBody();
                     ObjectMapper objectMapper = new ObjectMapper();
                     DeadLetterDto deadLetterDto = objectMapper.readValue(body, DeadLetterDto.class);
@@ -458,6 +458,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         }
         LOG.info("Received %s messages from subscription.\n", receivedMessages);
     }
+
 
     @Override
     public void sendMessageTopicCPO(ServiceRequestDto serviceRequestDto, String serviceRequestReference){
