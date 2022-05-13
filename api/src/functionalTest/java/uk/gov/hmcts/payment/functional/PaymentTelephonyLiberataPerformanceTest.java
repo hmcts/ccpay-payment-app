@@ -74,7 +74,7 @@ public class PaymentTelephonyLiberataPerformanceTest {
     @Test
     public void telephonyPaymentLiberataValidation() throws Exception {
 
-        String ccdCaseNumber = "11112212" + RandomUtils.nextInt();
+        String ccdCaseNumber = "1234567890123401";
         FeeDto feeDto = FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("550.00"))
             .ccdCaseNumber(ccdCaseNumber)

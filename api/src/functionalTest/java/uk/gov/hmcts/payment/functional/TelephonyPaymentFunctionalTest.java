@@ -71,7 +71,7 @@ public class TelephonyPaymentFunctionalTest {
     @Test
     public void telephonyPaymentLiberataValidation() throws Exception {
 
-        String ccdCaseNumber = "11112212" + RandomUtils.nextInt();
+        String ccdCaseNumber = "1111221233124412";
         FeeDto feeDto = FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("550.00"))
             .ccdCaseNumber(ccdCaseNumber)
@@ -79,17 +79,6 @@ public class TelephonyPaymentFunctionalTest {
             .code("FEE0002")
             .description("Application for a third party debt order")
             .build();
-
-/*        TelephonyPaymentRequest telephonyPaymentRequest = TelephonyPaymentRequest.createTelephonyPaymentRequestDtoWith()
-            .amount(new BigDecimal("550"))
-            .ccdCaseNumber(ccdCaseNumber)
-            .caseReference("ref124586")
-            .currency(CurrencyCode.GBP)
-            .description("Filing an application for a divorce, nullity or civil partnership dissolution")
-            .caseType("DIVORCE")
-            .channel("telephony")
-            .provider("pci pal")
-            .build();*/
 
         TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
             .amount(new BigDecimal("550"))

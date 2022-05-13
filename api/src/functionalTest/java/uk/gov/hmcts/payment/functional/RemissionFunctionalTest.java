@@ -74,40 +74,13 @@ public class RemissionFunctionalTest {
 
         TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
             .amount(new BigDecimal("99.99"))
-            .ccdCaseNumber("1234")
+            .ccdCaseNumber("1234567890123456")
             .currency(CurrencyCode.GBP)
             .caseType("LegacySearch")
             .returnURL("https://www.moneyclaims.service.gov.uk")
             .build();
 
-        /*FeeDto feeDto1 = FeeDto.feeDtoWith()
-            .calculatedAmount(new BigDecimal("100.1"))
-            .ccdCaseNumber("1234")
-            .version("1")
-            .code("feeCode")
-            .feeAmount(new BigDecimal("100.1"))
-            .build();*/
-
-/*        TelephonyPaymentRequest telephonyPaymentRequest = TelephonyPaymentRequest.createTelephonyPaymentRequestDtoWith()
-            .amount(new BigDecimal("99.99"))
-            .description("telephonyPayment")
-            .caseReference("caseRef")
-            .ccdCaseNumber("1234")
-            .currency(CurrencyCode.GBP)
-            .provider("pci pal")
-            .channel("telephony")
-            .caseType("LegacySearch")
-            .fees(Collections.singletonList(FeeDto.feeDtoWith()
-                .code("feeCode")
-                .version("1")
-                .calculatedAmount(new BigDecimal("100.1"))
-                .feeAmount(new BigDecimal("100.1"))
-                .build()))
-            .channel("telephony")
-            .provider("pci pal")
-            .build();*/
-
-        // TEST create telephony card payment
+        // TEST create telephony card payment8
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .when().addNewFeeAndPaymentGroup(getPaymentFeeGroupRequest())

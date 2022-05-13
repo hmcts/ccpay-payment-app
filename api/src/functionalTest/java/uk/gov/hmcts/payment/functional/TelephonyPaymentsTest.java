@@ -252,29 +252,11 @@ public class TelephonyPaymentsTest {
 
         TelephonyCardPaymentsRequest paymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
             .amount(new BigDecimal("99.99"))
-            .ccdCaseNumber("1234")
+            .ccdCaseNumber("1234432112344321")
             .currency(CurrencyCode.GBP)
             .caseType("LegacySearch")
             .returnURL("https://www.moneyclaims.service.gov.uk")
             .build();
-
-/*        TelephonyPaymentRequest paymentRequest = TelephonyPaymentRequest.createTelephonyPaymentRequestDtoWith()
-            .amount(new BigDecimal("99.99"))
-            .description("telephonyPayment")
-            .caseReference("caseRef")
-            .ccdCaseNumber("1234")
-            .currency(CurrencyCode.GBP)
-            .provider("pci pal")
-            .channel("telephony")
-            .caseType("LegacySearch")
-            .fees(Collections.singletonList(FeeDto.feeDtoWith()
-                .code("feeCode")
-                .version("1")
-                .calculatedAmount(new BigDecimal("100.1"))
-                .build()))
-            .channel("telephony")
-            .provider("pci pal")
-            .build();*/
 
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)

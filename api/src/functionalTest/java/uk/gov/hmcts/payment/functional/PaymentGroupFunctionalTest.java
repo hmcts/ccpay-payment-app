@@ -110,23 +110,11 @@ public class PaymentGroupFunctionalTest {
 
         TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
             .amount(new BigDecimal("550"))
-            .ccdCaseNumber("ccdCaseNumber")
+            .ccdCaseNumber("1234567890123003")
             .currency(CurrencyCode.GBP)
             .caseType("FinancialRemedyContested")
             .returnURL("https://www.moneyclaims.service.gov.uk")
             .build();
-
-        //TelephonyPaymentRequest telephonyPaymentRequest = TelephonyPaymentRequest.createTelephonyPaymentRequestDtoWith()
-           // .amount(new BigDecimal("550"))
-           // .ccdCaseNumber("ccdCaseNumber")
-           // .channel("telephony")
-           // .currency(CurrencyCode.GBP)
-           // .description("A test telephony payment")
-           // .provider("pci pal")
-           // .caseType("FinancialRemedyContested")
-           // .fees(Collections.singletonList(getFee()))
-           // .build();
-
 
         PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(FeeDto.feeDtoWith()
@@ -461,7 +449,7 @@ public class PaymentGroupFunctionalTest {
     @Test
     public void givenMultipleFeesAndRemissionWithPaymentInPG_WhenCaseIsSearchedShouldBeReturnedForFinrem() throws Exception {
 
-        String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
+        String ccdCaseNumber = "1234567890121001";
         FeeDto feeDto = FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("550.00"))
             .ccdCaseNumber(ccdCaseNumber)
@@ -485,17 +473,6 @@ public class PaymentGroupFunctionalTest {
             .caseType("FinancialRemedyContested")
             .returnURL("https://www.moneyclaims.service.gov.uk")
             .build();
-
-//        TelephonyPaymentRequest telephonyPaymentRequest = TelephonyPaymentRequest.createTelephonyPaymentRequestDtoWith()
-//            .amount(new BigDecimal("550"))
-//            .ccdCaseNumber(ccdCaseNumber)
-//            .channel("telephony")
-//            .currency(CurrencyCode.GBP)
-//            .description("A test telephony payment")
-//            .provider("pci pal")
-//            .caseType("FinancialRemedyContested")
-//            .fees(Collections.singletonList(feeDto))
-//            .build();
 
         PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(FeeDto.feeDtoWith()
@@ -550,8 +527,8 @@ public class PaymentGroupFunctionalTest {
                 dsl.given().userToken(USER_TOKEN)
                     .s2sToken(SERVICE_TOKEN)
                     .when().getPaymentGroups(ccdCaseNumber)
-                    .then().getPaymentGroups((paymentGroupsResponse -> {
-                    Assertions.assertThat(paymentGroupsResponse.getPaymentGroups().size()).isEqualTo(1);
+                    .then().getPaymentGroups((paymentGroupsRes -> {
+                    Assertions.assertThat(paymentGroupsRes.getPaymentGroups().size()).isEqualTo(1);
                 }));
 
             });
@@ -561,7 +538,7 @@ public class PaymentGroupFunctionalTest {
     @Test
     public void givenFeesWithPaymentInPG_WhenCaseIsSearchedShouldBeReturned() throws Exception {
 
-        String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
+        String ccdCaseNumber = "1234567890123002";
         FeeDto feeDto = FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("110.00"))
             .ccdCaseNumber(ccdCaseNumber)

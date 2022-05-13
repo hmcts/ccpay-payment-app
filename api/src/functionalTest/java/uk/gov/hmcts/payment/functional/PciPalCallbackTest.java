@@ -109,7 +109,7 @@ public class PciPalCallbackTest {
         final String[] reference = new String[1];
         // create card payment
 
-        String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
+        String ccdCaseNumber = "1111567890123456";
 
         List<FeeDto> fees = new ArrayList<>();
         fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
@@ -119,15 +119,6 @@ public class PciPalCallbackTest {
         fees.add(FeeDto.feeDtoWith().code("FEE0273").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
             .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
 
-/*        TelephonyPaymentRequest telephonyPaymentRequest = TelephonyPaymentRequest.createTelephonyPaymentRequestDtoWith()
-            .amount(new BigDecimal("120"))
-            .ccdCaseNumber(ccdCaseNumber)
-            .channel("telephony")
-            .caseType("DIVORCE")
-            .currency(CurrencyCode.GBP)
-            .description("A test telephony payment")
-            .provider("pci pal")
-            .build();*/
 
         TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
             .amount(new BigDecimal("120"))
@@ -222,7 +213,7 @@ public class PciPalCallbackTest {
         final String[] reference = new String[1];
         // create card payment
 
-        String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
+        String ccdCaseNumber = "1234567890623456";
 
         List<FeeDto> fees = new ArrayList<>();
         fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
@@ -232,15 +223,6 @@ public class PciPalCallbackTest {
         fees.add(FeeDto.feeDtoWith().code("FEE0273").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
             .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
 
-/*        TelephonyPaymentRequest telephonyPaymentRequest = TelephonyPaymentRequest.createTelephonyPaymentRequestDtoWith()
-            .amount(new BigDecimal("120"))
-            .ccdCaseNumber(ccdCaseNumber)
-            .channel("telephony")
-            .currency(CurrencyCode.GBP)
-            .description("A test telephony payment")
-            .provider("pci pal")
-            .caseType("DIVORCE")
-            .build();*/
 
         TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
             .amount(new BigDecimal("120"))
