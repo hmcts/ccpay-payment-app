@@ -429,12 +429,12 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
             if (receivedMessage != null) {
                 String  msgProperties = receivedMessage.getProperties().toString();
                 LOG.info("Dead letter process, msg properties: {}", msgProperties);
-                boolean isFound500 =  msgProperties.indexOf("503") !=-1? true: false;
+                boolean isFound503 =  msgProperties.indexOf("503") !=-1? true: false;
 
-                LOG.info("MSG CONTAINS 503: {}", isFound500);
+                LOG.info("MSG CONTAINS 503: {}", isFound503);
 
-                LOG.info("isFound5033: {},", isFound500);
-                if (isFound500) {
+                LOG.info("isFound503: {},", isFound503);
+                if (isFound503) {
                     byte[] body = receivedMessage.getBody();
                     ObjectMapper objectMapper = new ObjectMapper();
                     DeadLetterDto deadLetterDto = objectMapper.readValue(body, DeadLetterDto.class);
@@ -446,7 +446,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
                     LOG.info("Dead letter process, message properties.toString: {}", msg.getProperties().toString());
                     LOG.info("Dead letter process, message.getBody  {}", msg.getBody());
                     LOG.info("Dead letter process, message.getDeadLetterSource: {}", msg.getDeadLetterSource());
-                    topicClientCPO.send(msg);
+                    //topicClientCPO.send(msg);
                 }
             }
             else
