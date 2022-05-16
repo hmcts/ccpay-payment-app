@@ -412,14 +412,10 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         return subscriptionClient;
     }
 
-
     @Override
 
   public void deadLetterProcess(IMessageReceiver subscriptionClient) throws ServiceBusException, InterruptedException, IOException {
-
-
         int receivedMessages =0;
-
         TopicClientProxy topicClientCPO = topicClientService.getTopicClientProxy();
         LOG.info("topicClientCPO : " + topicClientCPO );
         while (true)
@@ -430,10 +426,8 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
                 String  msgProperties = receivedMessage.getProperties().toString();
                 LOG.info("Dead letter process, msg properties: {}", msgProperties);
                 boolean isFound503 =  msgProperties.indexOf("503") !=-1? true: false;
-
+                receivedMessages++;
                 LOG.info("MSG CONTAINS 503: {}", isFound503);
-
-                LOG.info("isFound503: {},", isFound503);
                 if (isFound503) {
                     byte[] body = receivedMessage.getBody();
                     ObjectMapper objectMapper = new ObjectMapper();
@@ -446,7 +440,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
                     LOG.info("Dead letter process, message properties.toString: {}", msg.getProperties().toString());
                     LOG.info("Dead letter process, message.getBody  {}", msg.getBody());
                     LOG.info("Dead letter process, message.getDeadLetterSource: {}", msg.getDeadLetterSource());
-                    //topicClientCPO.send(msg);
+                    topicClientCPO.send(msg);
                 }
             }
             else
