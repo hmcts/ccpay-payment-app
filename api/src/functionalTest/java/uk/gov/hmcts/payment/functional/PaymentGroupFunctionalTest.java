@@ -446,7 +446,7 @@ public class PaymentGroupFunctionalTest {
     @Test
     public void givenMultipleFeesAndRemissionWithPaymentInPG_WhenCaseIsSearchedShouldBeReturnedForFinrem() throws Exception {
 
-        String ccdCaseNumber = "123456789012" + new Random().nextInt(9999);
+        String ccdCaseNumber = "123456789012" + String.format("%04d", new Random().nextInt(10000));
         FeeDto feeDto = FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("550.00"))
             .ccdCaseNumber(ccdCaseNumber)
