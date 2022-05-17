@@ -28,4 +28,6 @@ public interface Payment2Repository extends CrudRepository<Payment, Integer>, Jp
     Optional<List<Payment>> findByPaymentLinkId(Integer id);
 
     Optional<Payment> findByInternalReference(String internalReference);
+
+    long deleteByReference(String reference);
 }
