@@ -8,6 +8,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -22,14 +23,13 @@ import org.testcontainers.shaded.org.apache.commons.lang.math.RandomUtils;
 import uk.gov.hmcts.payment.api.componenttests.PaymentDbBackdoor;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
-import uk.gov.hmcts.payment.api.contract.FeeDto;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
-import uk.gov.hmcts.payment.api.contract.TelephonyPaymentRequest;
+import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
-import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
-import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
+import uk.gov.hmcts.payment.api.dto.*;
+import uk.gov.hmcts.payment.api.external.client.dto.State;
+import uk.gov.hmcts.payment.api.external.client.dto.TelephonyProviderAuthorisationResponse;
 import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.service.PciPalPaymentService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.servicebus.CallbackServiceImpl;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
@@ -66,6 +66,8 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
     protected ServiceResolverBackdoor serviceRequestAuthorizer;
     @MockBean
     protected CallbackServiceImpl callbackServiceImplMock;
+    @MockBean
+    private PciPalPaymentService pciPalPaymentService;
     @Autowired
     protected PaymentDbBackdoor db;
     RestActions restActions;
@@ -284,6 +286,156 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
         assertEquals(updatedTsForFirstReq, updatedTsForSecondReq);
     }
 
+    @Test
+    public void updateTelephonyPaymentStatusWithSuccess_Apportionment() throws Exception {
+
+        String ccdCaseNumber = "1234567890123456";
+
+        when(featureToggler.getBooleanValue("pci-pal-antenna-feature", false)).thenReturn(true);
+
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(getNewFee("1234567890123456")))
+            .build();
+
+        MvcResult result = restActions
+            .post("/payment-groups", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AAD7")
+            .serviceDescription("Divorce")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenReturn(organisationalServiceDto);
+
+        when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
+            .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
+
+        when(pciPalPaymentService.getPaymentProviderAutorisationTokens()).thenReturn(getTelephonyProviderAuthorisationResponse());
+
+        when(pciPalPaymentService.getTelephonyProviderLink(any(PciPalPaymentRequest.class)
+            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
+
+        TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
+            .caseType("DIVORCE")
+            .amount(new BigDecimal("200"))
+            .ccdCaseNumber(ccdCaseNumber)
+            .returnURL("https://www.moneyclaims.service.gov.uk")
+            .currency(CurrencyCode.GBP)
+            .build();
+
+
+        MvcResult result2 = restActions
+            .withReturnUrl("https://www.moneyclaims.service.gov.uk")
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto paymentDtoResult = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentDto.class);
+
+        String paymentReference = paymentDtoResult.getPaymentReference();
+
+        String rawFormData = "orderCurrency=&orderAmount=100&orderReference=" +
+            paymentReference +
+            "&ppAccountID=1210&" +
+            "transactionResult=SUCCESS&transactionAuthCode=test123&transactionID=3045021106&transactionResponseMsg=&" +
+            "avsAddress=&avsPostcode=&avsCVN=&cardExpiry=1220&cardLast4=9999&cardType=MASTERCARD&ppCallID=820782890&" +
+            "customData1=MOJTest120190124123432&customData2=MASTERCARD&customData3=CreditCard&customData4=";
+
+        restActions
+            .postWithFormData("/telephony/callback", rawFormData)
+            .andExpect(status().isNoContent());
+
+        PaymentFeeLink savedPaymentGroup = db.findByReference(paymentGroupDto.getPaymentGroupReference());
+        List<Payment> payments = savedPaymentGroup.getPayments();
+
+        assertThat(payments.size()).isEqualTo(1);
+        assertEquals(payments.get(0).getReference(), paymentReference);
+        assertThat("success".equalsIgnoreCase(payments.get(0).getStatus()));
+
+        List<PaymentFee> fees = savedPaymentGroup.getFees();
+
+        assertThat(BigDecimal.valueOf(0.00).equals(fees.get(0).getAmountDue()));
+    }
+
+    @Test
+    public void updateTelephonyPaymentStatusWithFailed_Apportionment() throws Exception {
+
+        String ccdCaseNumber = "1234567890123456";
+
+        when(featureToggler.getBooleanValue("pci-pal-antenna-feature", false)).thenReturn(true);
+
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(getNewFee("1234567890123456")))
+            .build();
+
+        MvcResult result = restActions
+            .post("/payment-groups", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
+            .caseType("tax_exception")
+            .amount(new BigDecimal("101.99"))
+            .ccdCaseNumber(ccdCaseNumber)
+            .returnURL("https://www.moneyclaims.service.gov.uk")
+            .currency(CurrencyCode.GBP)
+            .build();
+
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA001")
+            .serviceDescription("DIVORCE")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any(),any())).thenReturn(organisationalServiceDto);
+
+        when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
+            .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
+
+        when(pciPalPaymentService.getPaymentProviderAutorisationTokens()).thenReturn(getTelephonyProviderAuthorisationResponse());
+
+        when(pciPalPaymentService.getTelephonyProviderLink(any(PciPalPaymentRequest.class)
+            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
+
+
+        MvcResult result2 = restActions
+            .withReturnUrl("https://www.moneyclaims.service.gov.uk")
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto paymentDtoResult = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentDto.class);
+
+        String paymentReference = paymentDtoResult.getPaymentReference();
+
+        String rawFormData = "orderCurrency=&orderAmount=100&orderReference=" +
+            paymentReference +
+            "&ppAccountID=1210&" +
+            "transactionResult=FAILED&transactionAuthCode=test123&transactionID=3045021106&transactionResponseMsg=&" +
+            "avsAddress=&avsPostcode=&avsCVN=&cardExpiry=1220&cardLast4=9999&cardType=MASTERCARD&ppCallID=820782890&" +
+            "customData1=MOJTest120190124123432&customData2=MASTERCARD&customData3=CreditCard&customData4=";
+
+        restActions
+            .postWithFormData("/telephony/callback", rawFormData)
+            .andExpect(status().isNoContent());
+
+        PaymentFeeLink savedPaymentGroup = db.findByReference(paymentGroupDto.getPaymentGroupReference());
+        List<Payment> payments = savedPaymentGroup.getPayments();
+        assertThat(payments.size()).isEqualTo(1);
+        assertEquals(payments.get(0).getReference(), paymentReference);
+        assertThat("failed".equalsIgnoreCase(payments.get(0).getStatus()));
+
+        List<PaymentFee> fees = savedPaymentGroup.getFees();
+
+        assertThat(BigDecimal.valueOf(101.99).equals(fees.get(0).getAmountDue()));
+
+    }
+
     private FeeDto getNewFee(String ccdCaseNumber) {
         return FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("101.99"))
@@ -294,6 +446,20 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
             .ccdCaseNumber(ccdCaseNumber)
             .build();
 
+    }
+
+    private TelephonyProviderAuthorisationResponse getTelephonyProviderAuthorisationResponse() {
+        return new TelephonyProviderAuthorisationResponse(
+            "accessToken",
+            "bearer",
+            "299",
+            "refreshTokeb",
+            "HMCTSStage",
+            "HMCTS",
+            "2021-06-23T12:57:10Z",
+            "2021-06-23T13:02:10Z",
+            "https://nextUrl.com"
+        );
     }
 
 }
