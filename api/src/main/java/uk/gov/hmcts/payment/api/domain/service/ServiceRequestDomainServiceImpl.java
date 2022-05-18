@@ -446,7 +446,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
                 break;
             }
         }
-        LOG.info("Number of received messages from subscrition: {}", receivedMessages);
+        LOG.info("Number of messages received from subscrition: {}", receivedMessages);
     }
 
 
