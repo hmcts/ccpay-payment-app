@@ -423,10 +423,10 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         while (true)
         {
             IMessage receivedMessage = subscriptionClient.receive();
-            LOG.info("Received message: {}", receivedMessage);
             LOG.info("receivedMessage\n", receivedMessage);
             if (receivedMessage != null) {
                 String  msgProperties = receivedMessage.getProperties().toString();
+                LOG.info("Received message properties: {}", msgProperties);
                 boolean isFound500 =  msgProperties.indexOf("500") !=-1? true: false;
                 if (isFound500) {
                     byte[] body = receivedMessage.getBody();
