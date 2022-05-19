@@ -38,5 +38,7 @@ public class PaymentGroupDto {
 
     @Valid
     private List<FeeDto> fees;
+    
+    private String test
 
 }
