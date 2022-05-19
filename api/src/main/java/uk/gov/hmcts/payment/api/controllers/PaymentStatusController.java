@@ -6,7 +6,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import uk.gov.hmcts.payment.api.dto.servicerequest.PaymentStatusPingOneDto;
+import uk.gov.hmcts.payment.api.dto.servicerequest.PaymentStatusBouncedCheque;
+import uk.gov.hmcts.payment.api.dto.servicerequest.PaymentStatusChargeBack;
+import uk.gov.hmcts.payment.api.dto.servicerequest.PaymentStatusUnprocessedPayment;
 import uk.gov.hmcts.payment.api.dto.servicerequest.PaymentStatusUpdateSecondDto;
 
 @RestController
@@ -20,9 +22,9 @@ public class PaymentStatusController {
         @ApiResponse(code = 400, message = "Bad request")
     })
     @PaymentExternalAPI
-    @PostMapping(path = "/payment-failures")
-    public ResponseEntity PaymentStatusPingOne(@RequestBody PaymentStatusPingOneDto paymentStatusPingOneDto) {
-        LOG.info("Received payment status ping 1 request : {}", paymentStatusPingOneDto);
+    @PostMapping(path = "/payment-failures/bounced-cheque")
+    public ResponseEntity PaymentStatusBouncedCheque(@RequestBody PaymentStatusBouncedCheque paymentStatusBouncedCheque) {
+        LOG.info("Received payment status ping 1 request : {}", paymentStatusBouncedCheque);
 
         return new ResponseEntity<>(HttpStatus.OK);
     }
@@ -36,5 +38,20 @@ public class PaymentStatusController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    @PaymentExternalAPI
+    @PostMapping(path = "/payment-failures/unprocessed-payment")
+    public ResponseEntity PaymentStatusUnprocessedPayment(@RequestBody PaymentStatusUnprocessedPayment paymentStatusUnprocessedPayment) {
+        LOG.info("Received payment status ping 1 request : {}", paymentStatusUnprocessedPayment);
+
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @PaymentExternalAPI
+    @PostMapping(path = "/payment-failures/chargeback")
+    public ResponseEntity PaymentStatusChargeBack(@RequestBody PaymentStatusChargeBack paymentStatusChargeBack) {
+        LOG.info("Received payment status ping 1 request : {}", paymentStatusChargeBack);
+
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
 
 }
