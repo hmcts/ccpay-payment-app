@@ -90,7 +90,7 @@ public class DelegatingPaymentServiceTest
             .build());
 
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).getPayments()).extracting("serviceType").contains("cmc");
-    }*/
+        assertThat(result.get(0).getPayments()).extracting("serviceType").contains("cmc");*/
+    }
 
 }
