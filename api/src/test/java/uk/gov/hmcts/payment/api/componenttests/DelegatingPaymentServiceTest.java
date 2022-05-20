@@ -18,12 +18,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 @DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
-public class DelegatingPaymentServiceTest extends TestUtil {
+public class DelegatingPaymentServiceTest 
+    //extends TestUtil 
+{
     private PaymentsDataUtil paymentsDataUtil;
 
 
-    @Before
-    public void setUp() {
+   // @Before
+    public void setUp() {/*
         paymentsDataUtil = new PaymentsDataUtil();
 
         PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith()
@@ -38,7 +40,7 @@ public class DelegatingPaymentServiceTest extends TestUtil {
             .payments(paymentsDataUtil.getCreditAccountPaymentsData())
             .fees(paymentsDataUtil.getFeesData())
             .build());
-    }
+    */}
 
     //@Test
     public void retireveCardPayments_forBetweenDates_WhereProviderIsGovPayTest() throws Exception {
