@@ -44,7 +44,7 @@ public class DelegatingPaymentServiceTest
 
     //@Test
     public void retireveCardPayments_forBetweenDates_WhereProviderIsGovPayTest() throws Exception {
-        Date fromDate = new Date();
+        /*Date fromDate = new Date();
         MutableDateTime mFromDate = new MutableDateTime(fromDate);
         mFromDate.addDays(-1);
         Date toDate = new Date();
@@ -68,13 +68,13 @@ public class DelegatingPaymentServiceTest
             g.getPayments().stream().forEach(p -> {
                 assertEquals(p.getPaymentMethod().getName(), "card");
             });
-        });
+        });*/
 
     }
 
     //@Test
     public void retrieveCardPayments_forCMC() throws Exception {
-        Date fromDate = new Date();
+       /* Date fromDate = new Date();
         MutableDateTime mFromDate = new MutableDateTime(fromDate);
         mFromDate.addDays(-1);
         Date toDate = new Date();
@@ -91,6 +91,6 @@ public class DelegatingPaymentServiceTest
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getPayments()).extracting("serviceType").contains("cmc");
-    }
+    }*/
 
 }
