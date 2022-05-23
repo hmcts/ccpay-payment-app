@@ -65,6 +65,7 @@
         <cve>CVE-2007-1652</cve>
         <cve>CVE-2007-1651</cve>
         <cve>CVE-2018-1258</cve>
+        <cve>CVE-2022-29885</cve>
     </suppress>
 
     <suppress until="2022-06-30">
