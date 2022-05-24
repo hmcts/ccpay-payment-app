@@ -26,6 +26,7 @@ import java.util.Arrays;
 
 import static org.hamcrest.core.Is.is;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -95,5 +96,9 @@ public class CreditAccountPaymentControllerMockTest {
 
     }
 
-
+    @Test
+    public void testDelete() throws Exception {
+        this.mockMvc.perform(delete("/credit-account-payments/RC-1520-2505-0381-8145"))
+                .andExpect(status().isNoContent());
+    }
 }

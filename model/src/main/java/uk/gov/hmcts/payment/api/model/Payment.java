@@ -149,7 +149,7 @@ public class Payment extends Auditable<String> {
     private Date reportedDateOffline;
 
     @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "payment_link_id", insertable = false, updatable = false)
     private PaymentFeeLink paymentLink;
 

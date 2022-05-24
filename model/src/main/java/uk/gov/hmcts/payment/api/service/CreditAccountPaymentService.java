@@ -16,4 +16,6 @@ public interface CreditAccountPaymentService<T, ID> {
     T retrieveByPaymentReference(ID id);
 
     List<T> search(Date startDate, Date endDate);
+
+    void deleteByPaymentReference(String paymentReference);
 }
