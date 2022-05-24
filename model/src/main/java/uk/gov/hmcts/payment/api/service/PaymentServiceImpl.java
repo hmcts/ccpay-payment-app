@@ -67,12 +67,13 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
 
     @Autowired
     public PaymentServiceImpl(
-        @Qualifier("loggingPaymentService") DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService,
-        Payment2Repository paymentRepository, CallbackService callbackService, PaymentStatusRepository paymentStatusRepository,
-        TelephonyRepository telephonyRepository, AuditRepository paymentAuditRepository,
-        FeePayApportionService feePayApportionService,
-        FeePayApportionRepository feePayApportionRepository,
-        LaunchDarklyFeatureToggler featureToggler) {
+            @Qualifier("loggingPaymentService") DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService,
+            Payment2Repository paymentRepository, CallbackService callbackService,
+            PaymentStatusRepository paymentStatusRepository,
+            TelephonyRepository telephonyRepository, AuditRepository paymentAuditRepository,
+            FeePayApportionService feePayApportionService,
+            FeePayApportionRepository feePayApportionRepository,
+            LaunchDarklyFeatureToggler featureToggler) {
         this.paymentRepository = paymentRepository;
         this.delegatingPaymentService = delegatingPaymentService;
         this.callbackService = callbackService;
@@ -100,7 +101,7 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
         serviceNameMap.put("CIVIL", "Civil");
         serviceNameMap.put("ADOPTION", "Adoption");
         serviceNameMap.put("PRL", "Family Private Law");
-        serviceNameMap.put("SPEC", "Specified Claim");
+        serviceNameMap.put("SPEC", "Specified Money Claims");
     }
 
     @Override

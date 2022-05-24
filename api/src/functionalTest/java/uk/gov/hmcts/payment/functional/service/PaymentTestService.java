@@ -162,4 +162,9 @@ public class PaymentTestService {
             .header("ServiceAuthorization", serviceToken);
     }
 
+    public Response deletePayment(String userToken, String serviceToken, String paymentReference) {
+        return givenWithAuthHeaders(userToken, serviceToken)
+                .when()
+                .delete("/credit-account-payments/{paymentReference}", paymentReference);
+    }
 }

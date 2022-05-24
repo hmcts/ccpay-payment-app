@@ -136,6 +136,21 @@
         </notes>
         <cve>CVE-2022-22968</cve>
     </suppress>
+
+    <suppress until="2022-06-30">
+        <notes>In spring framework versions prior to 5.3.20+, 5.2.22+ and old unsupported versions, applications that
+            handle file uploads are vulnerable to DoS attack if they rely on data binding to set a MultipartFile or
+            javax.servlet.Part to a field in a model object.
+        </notes>
+        <cve>CVE-2022-22970</cve>
+    </suppress>
+
+    <suppress until="2022-06-30">
+        <notes>In spring framework versions prior to 5.3.20+, 5.2.22+ and old unsupported versions, application with a
+            STOMP over WebSocket endpoint is vulnerable to a denial of service attack by an authenticated user.
+        </notes>
+        <cve>CVE-2022-22971</cve>
+    </suppress>
     <!-- Supression Group ends here -->
     <suppress until="2022-06-30">
         <notes>
