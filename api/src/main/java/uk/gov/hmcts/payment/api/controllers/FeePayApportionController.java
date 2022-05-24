@@ -103,7 +103,7 @@ public class FeePayApportionController {
 
         }
         PaymentGroupDto paymentGroupDto  = paymentGroupDtoMapper.toPaymentGroupDto(paymentFeeLink);
-        paymentGroupDto = paymentRefundsService.checkRefundAgainstRemissionFeeApportion(headers, paymentGroupDto, paymentReference);
+        paymentGroupDto = paymentRefundsService.checkRefundAgainstRemissionFeeApportionV2(headers, paymentGroupDto, paymentReference);
         return new ResponseEntity<>(paymentGroupDto, HttpStatus.OK);
     }
 
