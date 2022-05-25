@@ -177,6 +177,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                         .feeIds(getFeeIdsUsingPaymentFees(Collections.singletonList(paymentFee)))
                         .refundFees(getRefundFeesUsingPaymentFee(Collections.singletonList(paymentFee)))
                         .serviceType(payment.getServiceType())
+                        .paymentMethod(payment.getPaymentMethod().toString())
                         .contactDetails(retrospectiveRemissionRequest.getContactDetails())
                         .build();
                     RefundResponse refundResponse = RefundResponse.RefundResponseWith()
