@@ -22,7 +22,6 @@
         <cve>CVE-2020-29245</cve>
     </suppress>
 
-
     <suppress until="2022-06-30">
         <notes><![CDATA[False positive reported for Oauth2-oidc-sdk at (https://github.com/jeremylong/DependencyCheck/issues/1658) and
             (https://github.com/jeremylong/DependencyCheck/issues/2866)]]></notes>
@@ -46,8 +45,7 @@
             <![CDATA[This CVE appears in the latest version of jakarta]]></notes>
         <cve>CVE-2021-28170</cve>
     </suppress>
-
-    <suppress until="2022-06-30">
+     <suppress until="2022-06-30">
         <notes>A vulnerability in all versions of Nim-lang allows unauthenticated attackers to write files to
             arbitrary directories via a crafted zip file with dot-slash characters included in the name of the
             crafted file
@@ -68,33 +66,6 @@
         <cve>CVE-2018-1258</cve>
         <cve>CVE-2022-26336</cve>
     </suppress>
-
-
-    <suppress until="2022-06-30">
-
-
-
-        <notes>A vulnerability in all versions of adal4j, this library is an internal dependency in azure libraries. Hence this is suppressed</notes>
-        <cve>CVE-2021-42306</cve>
-    </suppress>
-
-    <suppress until="2022-06-30">
-        <notes>
-            In logback version 1.2.7 and prior versions, an attacker with the required privileges to edit configurations
-            files could craft a malicious configuration allowing to execute arbitrary code loaded from LDAP servers.
-        </notes>
-        <cve>CVE-2021-42550</cve>
-    </suppress>
-    <!-- Supression Group ends here -->
-
-    <suppress until="2022-06-30">
-        <notes>
-            In logback version 1.2.7 and prior versions, an attacker with the required privileges to edit configurations
-            files could craft a malicious configuration allowing to execute arbitrary code loaded from LDAP servers.
-        </notes>
-        <cve>CVE-2021-42550</cve>
-    </suppress>
-
     <suppress until="2022-06-30">
         <notes>A vulnerability in all versions of adal4j, this library is an internal dependency in azure libraries. Hence this is suppressed</notes>
         <cve>CVE-2021-42306</cve>
@@ -115,11 +86,68 @@
         <cve>CVE-2022-0839</cve>
     </suppress>
 
+    <suppress until="2022-06-30">        <notes>A vulnerability in all versions of adal4j, this library is an internal dependency in azure libraries. Hence this is suppressed</notes>
+        <cve>CVE-2021-42306</cve>
+    </suppress>
+
+    <suppress until="2022-06-30">
+        <notes>
+            In logback version 1.2.7 and prior versions, an attacker with the required privileges to edit configurations
+            files could craft a malicious configuration allowing to execute arbitrary code loaded from LDAP servers.
+        </notes>
+        <cve>CVE-2021-42550</cve>
+        <notes>
+            jackson-databind before 2.13.0 allows a Java StackOverflow exception and denial of service via a large depth of nested objects.
+        </notes>
+        <cve>CVE-2020-36518</cve>
+    </suppress>
+
+    <suppress until="2022-06-30">
+        <notes>
+            Need to resolve Liquibase issue before updating the library
+        </notes>
+        <cve>CVE-2022-0839</cve>
+    </suppress>
+
     <suppress until="2022-06-30">
         <notes>
             jackson-databind before 2.13.0 allows a Java StackOverflow exception and denial of service via a large depth of nested objects.
         </notes>
         <cve>CVE-2020-36518</cve>
     </suppress>
+        <notes>A Spring MVC or Spring WebFlux application running on JDK 9+ may be vulnerable to remote code execution (RCE)
+            via data binding. The specific exploit requires the application to run on Tomcat as a WAR deployment. If the
+            application is deployed as a Spring Boot executable jar, i.e. the default, it is not vulnerable to the exploit.
+            However, the nature of the vulnerability is more general, and there may be other ways to exploit it.
+        </notes>
+        <cve>CVE-2022-22965</cve>
+    </suppress>
+
+    <suppress until="2022-06-30">
+        <notes>In Spring Framework versions 5.3.0 - 5.3.16 and older unsupported versions, it is possible for a user to
+            provide a specially crafted SpEL expression that may cause a denial of service condition.
+        </notes>
+        <cve>CVE-2022-22950</cve>
+    </suppress>
+
+    <suppress until="2022-06-30">
+        <notes>Pivotal Spring Framework through 5.3.16 suffers from a potential remote code execution (RCE) issue if used
+            for Java deserialization of untrusted data. Depending on how the library is implemented within a product, this
+            issue may or not occur, and authentication may be required. NOTE: the vendor's position is that untrusted data is
+            not an intended use case. The product's behavior will not be changed because some users rely on deserialization of
+            trusted data.
+        </notes>
+        <cve>CVE-2016-1000027</cve>
+    </suppress>
+
+    <suppress until="2022-06-30">
+        <notes>In Spring Framework versions 5.3.0 - 5.3.18, 5.2.0 - 5.2.20, and older unsupported versions, the patterns for
+            disallowedFields on a DataBinder are case sensitive which means a field is not effectively protected unless it is
+            listed with both upper and lower case for the first character of the field, including upper and lower case for the
+            first character of all nested fields within the property path.
+        </notes>
+        <cve>CVE-2022-22968</cve>
+    </suppress>
+    <!-- Supression Group ends here -->
 
 </suppressions>

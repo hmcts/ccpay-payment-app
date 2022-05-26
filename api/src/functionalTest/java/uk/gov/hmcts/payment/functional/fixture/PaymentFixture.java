@@ -253,6 +253,29 @@ public class PaymentFixture {
             .build();
     }
 
+    public static CreditAccountPaymentRequest aPbaPaymentRequestForSPEC(String amountString, String service) {
+        String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
+        return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
+            .amount(new BigDecimal(amountString))
+            .description("New passport application")
+            .ccdCaseNumber(ccdCaseNumber)
+            .caseReference("aCaseReference")
+            .service(service)
+            .currency(CurrencyCode.GBP)
+            .siteId("AAA6")
+            .customerReference("CUST101")
+            .organisationName("ORG101")
+            .accountNumber("PBAFUNC12345")
+            .fees(Lists.newArrayList(
+                FeeDto.feeDtoWith()
+                    .calculatedAmount(new BigDecimal(amountString))
+                    .code("FEE0209")
+                    .version("1")
+                    .build())
+            )
+            .build();
+    }
+
     public static CreditAccountPaymentRequest aPbaPaymentRequestForProbate(
         final String amountString, final String service, final String pbaAccountNumber) {
         Random rand = new Random();
@@ -261,7 +284,6 @@ public class PaymentFixture {
             rand.nextInt(10000),
             rand.nextInt(10000),
             rand.nextInt(99));
-        System.out.println("The Correct CCD Case Number : " + ccdCaseNumber);
         return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
             .amount(new BigDecimal(amountString))
             .description("New passport application")
@@ -291,7 +313,6 @@ public class PaymentFixture {
             rand.nextInt(10000),
             rand.nextInt(10000),
             rand.nextInt(99));
-        System.out.println("The Correct CCD Case Number : " + ccdCaseNumber);
         return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
             .amount(new BigDecimal(amountString))
             .description("New passport application")
@@ -327,7 +348,6 @@ public class PaymentFixture {
             rand.nextInt(10000),
             rand.nextInt(10000),
             rand.nextInt(99));
-        System.out.println("The Correct CCD Case Number : " + ccdCaseNumber);
         return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
             .amount(new BigDecimal(amountString))
             .description("New passport application")
