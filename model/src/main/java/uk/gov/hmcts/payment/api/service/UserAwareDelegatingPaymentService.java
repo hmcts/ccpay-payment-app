@@ -388,17 +388,21 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
                         LOG.info(" Payment updated for failure Gov.uk : {}" ,payment.getCcdCaseNumber());
                         LOG.info(" Payment updated for failure Gov.uk : {}" ,payment.getExternalReference());
                         LOG.info(" Payment updated for failure Gov.uk : {}" ,payment.getPaymentStatus().getName());
-                        LOG.info("payment saved payment table succussfully for failure case");
                         paymentFeeLinkRepository.save(paymentFeeLink);
+                        LOG.info("payment fee link saved successfully");
                     }
                 }
 
                 if (shouldCallBack && payment.getServiceCallbackUrl() != null) {
+                    LOG.info("start callback to {}", payment.getServiceCallbackUrl());
                     callbackService.callback(paymentFeeLink, payment);
+                    LOG.info("callback completed successfully");
                 }
             }
-        } catch (GovPayPaymentNotFoundException | NullPointerException pnfe) {
-            LOG.error("Gov Pay payment not found id is:{} and govpay id is:{}", payment.getExternalReference(), paymentReference);
+        } catch (GovPayPaymentNotFoundException | NullPointerException | UnsupportedOperationException pnfe) {
+            LOG.error("Exception occurred while gov pay, saving or callback for externalReference:{} and paymentReference: {}",
+                payment.getExternalReference(), paymentReference);
+            LOG.error("Exception: {}", pnfe.getMessage());
         }
 
         LOG.info(" Payment updated for failure Gov.uk response : {}" ,paymentFeeLink.getCcdCaseNumber());
