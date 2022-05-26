@@ -24,7 +24,7 @@ public class PaymentStatusController {
     @PaymentExternalAPI
     @PostMapping(path = "/payment-failures/bounced-cheque")
     public ResponseEntity PaymentStatusBouncedCheque(@RequestBody PaymentStatusBouncedCheque paymentStatusBouncedCheque) {
-        LOG.info("Received payment status ping 1 request : {}", paymentStatusBouncedCheque);
+        LOG.info("Received payment status ping 1 request bounced-cheque : {}", paymentStatusBouncedCheque);
 
         return new ResponseEntity<>(HttpStatus.OK);
     }
@@ -41,7 +41,7 @@ public class PaymentStatusController {
     @PaymentExternalAPI
     @PostMapping(path = "/payment-failures/unprocessed-payment")
     public ResponseEntity PaymentStatusUnprocessedPayment(@RequestBody PaymentStatusUnprocessedPayment paymentStatusUnprocessedPayment) {
-        LOG.info("Received payment status ping 1 request : {}", paymentStatusUnprocessedPayment);
+        LOG.info("Received payment status ping 1 request unprocessed-payment : {}", paymentStatusUnprocessedPayment);
 
         return new ResponseEntity<>(HttpStatus.OK);
     }
@@ -49,7 +49,7 @@ public class PaymentStatusController {
     @PaymentExternalAPI
     @PostMapping(path = "/payment-failures/chargeback")
     public ResponseEntity PaymentStatusChargeBack(@RequestBody PaymentStatusChargeBack paymentStatusChargeBack) {
-        LOG.info("Received payment status ping 1 request : {}", paymentStatusChargeBack);
+        LOG.info("Received payment status ping 1 request chargeback : {}", paymentStatusChargeBack);
 
         return new ResponseEntity<>(HttpStatus.OK);
     }
