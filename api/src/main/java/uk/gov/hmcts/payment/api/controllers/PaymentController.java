@@ -138,7 +138,7 @@ public class PaymentController {
     public ResponseEntity
         updatePaymentsForCCDCaseNumberByCertainDays(@PathVariable("ccd_case_number")
                                                         final String ccd_case_number, @PathVariable("lag_time") final String lag_time) {
-        paymentService.updatePaymentsForCCDCaseNumberByCertainDays(ccd_case_number, lag_time);
+        //paymentService.updatePaymentsForCCDCaseNumberByCertainDays(ccd_case_number, lag_time);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
