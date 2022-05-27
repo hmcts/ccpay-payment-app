@@ -1,4 +1,4 @@
-package uk.gov.hmcts.payment.api.controllers.pcipal;
+package uk.gov.hmcts.payment.api.controllers;
 
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
@@ -6,7 +6,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import uk.gov.hmcts.payment.api.controllers.PaymentExternalAPI;
 import uk.gov.hmcts.payment.api.dto.servicerequest.PaymentStatusBouncedCheque;
 import uk.gov.hmcts.payment.api.dto.servicerequest.PaymentStatusChargeBack;
 import uk.gov.hmcts.payment.api.dto.servicerequest.PaymentStatusUnprocessedPayment;
