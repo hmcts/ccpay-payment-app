@@ -427,17 +427,18 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
             if (receivedMessage != null) {
                 String  msgProperties = receivedMessage.getProperties().toString();
                 LOG.info("Received message properties: {}", msgProperties);
-                boolean isFound500 =  msgProperties.indexOf("500") !=-1? true: false;
-                if (isFound500) {
+                boolean isFound503 =  msgProperties.indexOf("503") !=-1? true: false;
+                if (isFound503) {
                     byte[] body = receivedMessage.getBody();
                     ObjectMapper objectMapper = new ObjectMapper();
                     DeadLetterDto deadLetterDto = objectMapper.readValue(body, DeadLetterDto.class);
                     ObjectMapper objectMapper1 = new ObjectMapper();
                     Message msg = new Message(objectMapper1.writeValueAsString(deadLetterDto));
                     msg.setContentType(MSGCONTENTTYPE);
-                    topicClientCPO.send(msg);
-                    receivedMessages++;
+                    LOG.info("Message to be sent back to Topic from DLQ {}", msg.getBody());
+                    topicClientCPO.send(msg);                    
                 }
+                receivedMessages++;
             }
             else
             {
