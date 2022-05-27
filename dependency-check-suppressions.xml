@@ -135,6 +135,10 @@
         </notes>
         <cve>CVE-2022-22968</cve>
     </suppress>
+     <suppress until="2022-06-30">
+          <cve>CVE-2022-25647</cve>
+   
+          </suppress>
     <!-- Supression Group ends here -->
 
 </suppressions>
