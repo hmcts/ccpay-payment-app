@@ -58,8 +58,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static org.springframework.web.bind.annotation.RequestMethod.PATCH;
-
 @RestController
 @Api(tags = {"Payment"})
 @SwaggerDefinition(tags = {@Tag(name = "PaymentController", description = "Payment REST API")})
@@ -126,19 +124,12 @@ public class PaymentController {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    /*
-     * This API is used only for testing purposes mainly for the Refunds feature.
-     * There is a requirement for Testing mainly for the Front End Tests to rollback the
-     * payment made by the hours so that the payment can be eligible for a Refund.
-     * All the Refunds tests hinge on this requirement.
-     * Please do not use this for an Application  feature or build purposes.
-     */
-    @RequestMapping(value = "/payments/ccd_case_reference/{ccd_case_number}/lag_time/{lag_time}", method = PATCH)
+    @RequestMapping(value = "/payments/ccd_case_reference/{ccd_case_number}", method = PATCH)
     @Transactional
     public ResponseEntity
         updatePaymentsForCCDCaseNumberByCertainDays(@PathVariable("ccd_case_number")
-                                                        final String ccd_case_number, @PathVariable("lag_time") final String lag_time) {
-        paymentService.updatePaymentsForCCDCaseNumberByCertainDays(ccd_case_number, lag_time);
+                                                        String ccd_case_number) {
+        paymentService.updatePaymentsForCCDCaseNumberByCertainDays(ccd_case_number);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
@@ -218,6 +209,7 @@ public class PaymentController {
         if(iacPaymentAny.isPresent() && iacSupplementaryDetailsFeature){
             return iacService.getIacSupplementaryInfo(paymentDtos,paymentService.getServiceNameByCode("IAC"));
         }
+
         return new ResponseEntity(new PaymentsResponse(paymentDtos),HttpStatus.OK);
 
     }
@@ -363,7 +355,7 @@ public class PaymentController {
         //End of Apportion logic
         PaymentDto paymentDto = paymentDtoMapper.toReconciliationResponseDtoForLibereta(payment, paymentReference, fees, ff4j, isPaymentAfterApportionment);
         paymentDto = filterFeeCode(paymentDto);
-        paymentDtos.add(paymentDto);
+        paymentDtos.add(paymentDto)
     }
 
 
@@ -427,8 +419,7 @@ public class PaymentController {
     public String return400(PaymentException ex) {
         return ex.getMessage();
     }
-
-
+    
     private PaymentDto filterFeeCode(PaymentDto paymentDto) {
         LOG.info("Start Function filterFeeCode: {}" , paymentDto);
             List<List<FeeDto>> groupedFee = paymentDto.getFees().stream()
