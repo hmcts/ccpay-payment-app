@@ -761,7 +761,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
         List<PaymentGroupResponse> paymentGroupResponseList = new ArrayList<>();
         paymentGroupResponseList.add(paymentGroupResponse);
 
-        when(paymentRefundsService.checkRefundAgainstRemission(any(),any(PaymentGroupResponse.class),anyString()))
+        when(paymentRefundsService.checkRefundAgainstRemissionV2(any(),any(PaymentGroupResponse.class),anyString()))
             .thenReturn(paymentGroupResponse);
     }
 

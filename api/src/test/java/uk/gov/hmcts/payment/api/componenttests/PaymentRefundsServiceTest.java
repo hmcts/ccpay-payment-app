@@ -836,7 +836,7 @@ public class PaymentRefundsServiceTest {
         when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
             eq(RefundListDtoResponse.class))).thenReturn(responseEntity);
 
-        paymentRefundsService.checkRefundAgainstRemission(header, paymentGroupResponse,"1111222233334444");
+        paymentRefundsService.checkRefundAgainstRemissionV2(header, paymentGroupResponse,"1111222233334444");
 
         assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
         assertEquals(paymentGroupResponse.getPaymentGroups().get(0).getPayments().get(0).isIssueRefund(), false);
@@ -915,7 +915,7 @@ public class PaymentRefundsServiceTest {
         when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
             eq(RefundListDtoResponse.class))).thenReturn(responseEntity);
 
-        paymentRefundsService.checkRefundAgainstRemission(header, paymentGroupResponse,"1111222233334444");
+        paymentRefundsService.checkRefundAgainstRemissionV2(header, paymentGroupResponse,"1111222233334444");
 
         assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
 
@@ -992,7 +992,7 @@ public class PaymentRefundsServiceTest {
         when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
             eq(RefundListDtoResponse.class))).thenReturn(responseEntity);
 
-        paymentRefundsService.checkRefundAgainstRemissionFeeApportion(header, paymentGroupDto,"1111222233334444");
+        paymentRefundsService.checkRefundAgainstRemissionFeeApportionV2(header, paymentGroupDto,"1111222233334444");
 
         assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
 
