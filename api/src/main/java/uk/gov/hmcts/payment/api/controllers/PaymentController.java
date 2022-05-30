@@ -355,7 +355,7 @@ public class PaymentController {
         //End of Apportion logic
         PaymentDto paymentDto = paymentDtoMapper.toReconciliationResponseDtoForLibereta(payment, paymentReference, fees, ff4j, isPaymentAfterApportionment);
         paymentDto = filterFeeCode(paymentDto);
-        paymentDtos.add(paymentDto)
+        paymentDtos.add(paymentDto);
     }
 
 
