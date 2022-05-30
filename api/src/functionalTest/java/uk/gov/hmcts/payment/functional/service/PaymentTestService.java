@@ -167,4 +167,11 @@ public class PaymentTestService {
                 .when()
                 .delete("/credit-account-payments/{paymentReference}", paymentReference);
     }
+
+    public Response deleteRefund(final String userToken, final String serviceToken,
+                                 final String refundReference) {
+        return givenWithAuthHeaders(userToken, serviceToken)
+                .when()
+                .delete("/refund/{reference}", refundReference);
+    }
 }
