@@ -89,7 +89,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
         ///validateRefund(paymentRefundRequest,payment.getPaymentLink().getFees());
 
-        //validateThePaymentBeforeInitiatingRefund(payment,headers);
+        validateThePaymentBeforeInitiatingRefund(payment,headers);
 
         RefundRequestDto refundRequest = RefundRequestDto.refundRequestDtoWith()
             .paymentReference(paymentRefundRequest.getPaymentReference())
