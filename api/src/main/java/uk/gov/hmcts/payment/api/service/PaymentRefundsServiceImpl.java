@@ -19,7 +19,6 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.RefundsFeeDto;
 import uk.gov.hmcts.payment.api.dto.*;
@@ -695,6 +694,20 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         }
 
         return paymentGroupDto;
+    }
+
+    @Override
+    public void deleteByRefundReference(String refundReference, MultiValueMap<String, String> headers) {
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(refundApiUrl + REFUND_ENDPOINT + "/" + refundReference);
+        LOG.debug("builder.toUriString() : {}", builder.toUriString());
+        try {
+            ResponseEntity<InternalRefundResponse> refundResponseResponseEntity = restTemplateRefundsGroup
+                    .exchange(builder.toUriString(), HttpMethod.DELETE, createEntity(headers), InternalRefundResponse.class);
+            InternalRefundResponse refundResponse = refundResponseResponseEntity.hasBody() ? refundResponseResponseEntity.getBody() : null;
+        } catch (HttpClientErrorException e) {
+            LOG.error("client err ", e);
+            throw new InvalidRefundRequestException(e.getResponseBodyAsString());
+        }
     }
 
     public boolean isContainsPaymentsRefundRole (){

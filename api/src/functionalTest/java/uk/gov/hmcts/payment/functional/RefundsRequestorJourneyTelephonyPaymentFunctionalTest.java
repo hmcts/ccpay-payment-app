@@ -87,9 +87,7 @@ public class RefundsRequestorJourneyTelephonyPaymentFunctionalTest {
         if (!TOKENS_INITIALIZED) {
             USER_TOKEN = idamService.createUserWith(CMC_CASE_WORKER_GROUP, "caseworker-cmc-solicitor")
                 .getAuthorisationToken();
-            System.out.println("The value of the USER_TOKEN : " + USER_TOKEN);
             SERVICE_TOKEN = s2sTokenService.getS2sToken(testProps.s2sServiceName, testProps.s2sServiceSecret);
-            System.out.println("The value of the SERVICE_TOKEN : " + SERVICE_TOKEN);
 
             USER_TOKEN_CMC_CITIZEN = idamService.createUserWith(CMC_CITIZEN_GROUP, "citizen").getAuthorisationToken();
             USER_TOKEN_PAYMENT = idamService.createUserWith(CMC_CITIZEN_GROUP, "payments").getAuthorisationToken();
@@ -178,15 +176,10 @@ public class RefundsRequestorJourneyTelephonyPaymentFunctionalTest {
             SERVICE_TOKEN_PAYMENT,
             paymentRefundRequest);
 
-        System.out.println(refundResponse.getStatusLine());
-        System.out.println(refundResponse.getBody().prettyPrint());
         assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
         RefundResponse refundResponseFromPost = refundResponse.getBody().as(RefundResponse.class);
         assertThat(refundResponseFromPost.getRefundAmount()).isEqualTo(new BigDecimal("550.00"));
-        System.out.println(refundResponseFromPost.getRefundReference());
         assertThat(REFUNDS_REGEX_PATTERN.matcher(refundResponseFromPost.getRefundReference()).matches()).isEqualTo(true);
-
-
     }
 
     @Test
@@ -265,8 +258,6 @@ public class RefundsRequestorJourneyTelephonyPaymentFunctionalTest {
             SERVICE_TOKEN_PAYMENT,
             paymentRefundRequest);
 
-        System.out.println(refundResponse.getStatusLine());
-        System.out.println(refundResponse.getBody().prettyPrint());
         assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
         assertThat(refundResponse.getBody().asString()).isEqualTo("This payment is not yet eligible for refund");
 

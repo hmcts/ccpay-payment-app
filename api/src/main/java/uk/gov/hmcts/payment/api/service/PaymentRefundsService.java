@@ -17,4 +17,5 @@ public interface PaymentRefundsService {
 
     PaymentGroupDto checkRefundAgainstRemissionFeeApportion(MultiValueMap<String, String> headers, PaymentGroupDto paymentGroupDto, String paymentRef);
 
+    void deleteByRefundReference(String refundReference, MultiValueMap<String, String> headers);
 }
