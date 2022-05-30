@@ -57,6 +57,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import static org.springframework.web.bind.annotation.RequestMethod.PATCH;
+
 
 @RestController
 @Api(tags = {"Payment"})
