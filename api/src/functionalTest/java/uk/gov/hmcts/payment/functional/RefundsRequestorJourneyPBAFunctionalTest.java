@@ -35,6 +35,7 @@ import java.util.regex.Pattern;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.springframework.http.HttpStatus.*;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CASE_WORKER_GROUP;
@@ -150,6 +151,9 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
 
         // Delete payment record
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
+        // Delete refund record
+        paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN,
+                refundResponseFromPost.getRefundReference());
     }
 
     @Test
@@ -237,6 +241,9 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
 
         // Delete payment record
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
+        // Delete refund record
+        paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN,
+                refundResponseFromPost.getRefundReference());
     }
 
     @Test
@@ -290,6 +297,9 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         // Delete payment records
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto1.getReference()).then().statusCode(NO_CONTENT.value());
+        // Delete refund record
+        paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN,
+                refundResponseFromPost.getRefundReference());
     }
 
 
@@ -333,6 +343,9 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
 
         // Delete payment records
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
+        // Delete refund record
+        paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN,
+                refundResponseFromPost.getRefundReference());
     }
 
     @Test
@@ -395,7 +408,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
             = paymentGroupResponse.getPaymentGroups().stream().findFirst();
 
          // verify that after adding remission and refund for a payment, addRefund flag should be false
-         assertThat(paymentDtoOptional.get().getRemissions().get(0).isAddRefund()==false);
+         assertFalse(paymentDtoOptional.get().getRemissions().get(0).isAddRefund());
 
         // Delete payment record
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentCreationResponse.getReference()).then().statusCode(NO_CONTENT.value());
@@ -450,7 +463,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
             = paymentGroupResponse.getPaymentGroups().stream().findFirst();
 
         // verify that when there's no available balance, issueRefundAddRefundAddRemission flag should be false
-        assertThat(paymentDtoOptional.get().getPayments().get(0).isIssueRefundAddRefundAddRemission()==false);
+        assertFalse(paymentDtoOptional.get().getPayments().get(0).isIssueRefundAddRefundAddRemission());
 
         // Delete payment record
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
@@ -495,7 +508,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         String remissionReference = response.getBody().jsonPath().getString("remission_reference");
         RetrospectiveRemissionRequest retrospectiveRemissionRequest
             = PaymentFixture.aRetroRemissionRequest(remissionReference);
-        Response refundResponse = paymentTestService.postSubmitRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+        paymentTestService.postSubmitRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT, retrospectiveRemissionRequest);
 
         // get payment groups after creating partial remission and refund
@@ -508,7 +521,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
             = paymentGroupResponse.getPaymentGroups().stream().findFirst();
 
         // verify that when there's available balance, issueRefundAddRefundAddRemission flag should be true
-        assertThat(paymentDtoOptional.get().getPayments().get(0).isIssueRefundAddRefundAddRemission()==true);
+        assertTrue(paymentDtoOptional.get().getPayments().get(0).isIssueRefundAddRefundAddRemission());
 
         // Delete payment record
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
@@ -808,8 +821,8 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         // verify Given a full/partial remission is added but subsequent refund not submitted, AddRefund flag should be true
         // and issueRefund should be false
 
-        assertThat(paymentDtoOptional.get().getPayments().get(0).isIssueRefund()==false);
-        assertThat(paymentDtoOptional.get().getRemissions().get(0).isAddRefund()==true);
+        assertFalse(paymentDtoOptional.get().getPayments().get(0).isIssueRefund());
+        assertTrue(paymentDtoOptional.get().getRemissions().get(0).isAddRefund());
 
         // Delete payment record
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
@@ -1115,6 +1128,9 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
 
         // Delete payment record
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
+        // Delete refund record
+        paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN,
+                refundResponseFromPost.getRefundReference());
     }
 
     @Test
@@ -1165,14 +1181,18 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         String paymentReference = paymentDto.getReference();
         PaymentRefundRequest paymentRefundRequest
             = PaymentFixture.aRefundRequest("RR001", paymentReference, "9", "0");
-        Response refundInitiatedResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+        RefundResponse refundInitiatedResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
-            paymentRefundRequest);
-
-        assertThat(refundInitiatedResponse.getStatusCode()).isEqualTo(CREATED.value());
+            paymentRefundRequest).then()
+                .statusCode(CREATED.value()).extract().as(RefundResponse.class);
 
         // Delete payment record
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
+        // Delete refund record
+        paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN,
+                refundResponseFromPost.getRefundReference());
+        paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN,
+                refundInitiatedResponse.getRefundReference());
     }
 
     @Test
@@ -1237,14 +1257,18 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         String paymentReference = paymentDtoOptional.get().getPaymentReference();
         PaymentRefundRequest paymentRefundRequest
             = PaymentFixture.aRefundRequest("RR001", paymentReference, "90", "0");
-        Response refundInitiatedResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+        RefundResponse refundInitiatedResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
-            paymentRefundRequest);
-
-        assertThat(refundInitiatedResponse.getStatusCode()).isEqualTo(CREATED.value());
+            paymentRefundRequest).then()
+                .statusCode(CREATED.value()).extract().as(RefundResponse.class);
 
         // Delete payment record
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
+        // Delete refund record
+        paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN,
+                refundResponseFromPost.getRefundReference());
+        paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN,
+                refundInitiatedResponse.getRefundReference());
     }
 
     @Test
@@ -1287,9 +1311,8 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
             .statusCode(OK.value()).extract().as(PaymentsResponse.class);
 
         Optional<PaymentDto> paymentDtoOptional
-            = paymentsResponse.getPayments().stream().sorted((s1, s2) -> {
-            return s2.getDateCreated().compareTo(s1.getDateCreated());
-        }).findFirst();
+                = paymentsResponse.getPayments().stream()
+                .sorted((s1, s2) -> s2.getDateCreated().compareTo(s1.getDateCreated())).findFirst();
 
         assertThat(paymentDtoOptional.get().getAccountNumber()).isEqualTo(accountNumber);
         assertThat(paymentDtoOptional.get().getAmount()).isEqualTo(new BigDecimal(amount));
@@ -1371,9 +1394,8 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
             .statusCode(OK.value()).extract().as(PaymentsResponse.class);
 
         Optional<PaymentDto> paymentDtoOptional
-            = paymentsResponse.getPayments().stream().sorted((s1, s2) -> {
-            return s2.getDateCreated().compareTo(s1.getDateCreated());
-        }).findFirst();
+                = paymentsResponse.getPayments().stream()
+                .sorted((s1, s2) -> s2.getDateCreated().compareTo(s1.getDateCreated())).findFirst();
 
         assertThat(paymentDtoOptional.get().getAccountNumber()).isEqualTo(accountNumber);
         assertThat(paymentDtoOptional.get().getAmount()).isEqualTo(new BigDecimal(amount));
@@ -1461,13 +1483,13 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
 
         // Validate notification type EMAIL requirements
         List<String> invalidEmailList = Arrays.asList("", "persongmail.com", "person@gmailcom");
-        for (int i = 0; i < invalidEmailList.size(); i++) {
+        for (String s : invalidEmailList) {
 
             PaymentRefundRequest paymentRefundRequest
-                = aRefundRequestWithInvalidEmailInContactDetails("RR001", paymentReference, invalidEmailList.get(i));
+                    = aRefundRequestWithInvalidEmailInContactDetails("RR001", paymentReference, s);
             Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
-                SERVICE_TOKEN_PAYMENT,
-                paymentRefundRequest);
+                    SERVICE_TOKEN_PAYMENT,
+                    paymentRefundRequest);
 
             assertThat(refundResponse.getStatusCode()).isEqualTo(UNPROCESSABLE_ENTITY.value());
         }
@@ -1485,7 +1507,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
     }
 
-    private static final RetroRemissionRequest getRetroRemissionRequest(final String remissionAmount) {
+    private static RetroRemissionRequest getRetroRemissionRequest(final String remissionAmount) {
         return RetroRemissionRequest.createRetroRemissionRequestWith()
             .hwfAmount(new BigDecimal(remissionAmount))
             .hwfReference("HWF-A1B-23C")
