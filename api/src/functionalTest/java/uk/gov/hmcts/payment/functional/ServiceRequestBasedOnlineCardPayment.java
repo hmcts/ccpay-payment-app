@@ -185,9 +185,11 @@ public class ServiceRequestBasedOnlineCardPayment {
         assertThat(laterPaymentReference).matches(PAYMENTS_REGEX_PATTERN);
         assertThat(initialPaymentReference).isNotEqualTo(laterPaymentReference);
 
-        serviceRequestTestService.getAnOnlineCardPaymentForAnInternalReference(SERVICE_TOKEN,
-            initialPaymentDto.getInternalReference()).then()
-                .statusCode(INTERNAL_SERVER_ERROR.value());
+        Response getOnlineCardPaymentResponseForInitialPaymentResponse =
+            serviceRequestTestService.getAnOnlineCardPaymentForAnInternalReference(SERVICE_TOKEN,
+                initialPaymentDto.getInternalReference());
+        PaymentDto getOnlineCardPaymentInitialDto = getOnlineCardPaymentResponseForInitialPaymentResponse.getBody().as(PaymentDto.class);
+        assertThat(getOnlineCardPaymentInitialDto.getStatus()).isEqualTo("Failed");
     }
 
     @Test

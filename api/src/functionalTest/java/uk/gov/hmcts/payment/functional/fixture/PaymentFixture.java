@@ -429,12 +429,12 @@ public class PaymentFixture {
             .fees(Lists.newArrayList(
                 RefundsFeeDto.refundFeeDtoWith()
                     .apportionAmount(BigDecimal.valueOf(0))
-                    .apportionAmount(BigDecimal.valueOf(0))
                     .calculatedAmount(new BigDecimal(feeAmount))
                     .code("FEE0001")
                     .id(0)
                     .version("1")
                     .updatedVolume(1)
+                    .refundAmount(new BigDecimal(refundAmount))
                     .build())
             )
             .contactDetails(ContactDetails.contactDetailsWith().

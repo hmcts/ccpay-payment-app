@@ -408,37 +408,38 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
 
         String subName = "serviceRequestCpoUpdateSubscription";
         String topic = "ccpay-service-request-cpo-update-topic";
-        IMessageReceiver subscriptionClient = ClientFactory.createMessageReceiverFromConnectionStringBuilder(new ConnectionStringBuilder(connectionString, topic+"/subscriptions/" + subName+"/$deadletterqueue"));
-        LOG.info("connectionString {}", connectionString);
-        LOG.info("Complete Topic name : " +topic+"/subscriptions/" + subName+"/$deadletterqueue");
+        IMessageReceiver subscriptionClient = ClientFactory.createMessageReceiverFromConnectionStringBuilder(new ConnectionStringBuilder(connectionString, topic+"/subscriptions/" + subName+"/$deadletterqueue"), ReceiveMode.RECEIVEANDDELETE);
         return subscriptionClient;
     }
 
-
     @Override
 
-    public void deadLetterProcess(IMessageReceiver subscriptionClient) throws ServiceBusException, InterruptedException, IOException {
+  public void deadLetterProcess(IMessageReceiver subscriptionClient) throws ServiceBusException, InterruptedException, IOException {
         int receivedMessages =0;
-
         TopicClientProxy topicClientCPO = topicClientService.getTopicClientProxy();
         LOG.info("topicClientCPO : " + topicClientCPO );
-        LOG.info("subscriptionClient: {}", subscriptionClient);
         while (true)
         {
             IMessage receivedMessage = subscriptionClient.receive();
             LOG.info("receivedMessage: {}", receivedMessage);
             if (receivedMessage != null) {
                 String  msgProperties = receivedMessage.getProperties().toString();
-                boolean isFound500 =  msgProperties.indexOf("500") !=-1? true: false;
-                LOG.info("500 Errors found in message read from DLQ {}", isFound500);
-                if (isFound500) {
+                LOG.info("Dead letter process, msg properties: {}", msgProperties);
+                boolean isFound503 =  msgProperties.indexOf("503") !=-1? true: false;
+                receivedMessages++;
+                LOG.info("MSG CONTAINS 503: {}", isFound503);
+                if (isFound503) {
                     byte[] body = receivedMessage.getBody();
                     ObjectMapper objectMapper = new ObjectMapper();
                     DeadLetterDto deadLetterDto = objectMapper.readValue(body, DeadLetterDto.class);
                     ObjectMapper objectMapper1 = new ObjectMapper();
                     Message msg = new Message(objectMapper1.writeValueAsString(deadLetterDto));
                     msg.setContentType(MSGCONTENTTYPE);
-                    LOG.info("Message to be sent back to Topic from DLQ {}", msg.getBody());
+                    LOG.info("Dead letter process, message being sent: {}", msg);
+                    LOG.info("Dead letter process, message properties.keySet: {}", msg.getProperties().keySet());
+                    LOG.info("Dead letter process, message properties.toString: {}", msg.getProperties().toString());
+                    LOG.info("Dead letter process, message.getBody  {}", msg.getBody());
+                    LOG.info("Dead letter process, message.getDeadLetterSource: {}", msg.getDeadLetterSource());
                     topicClientCPO.send(msg);
                 }
             }
@@ -449,7 +450,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
                 break;
             }
         }
-        LOG.info("Received messages from subscription.\n {}", receivedMessages);
+        LOG.info("Received %s messages from subscription.\n", receivedMessages);
     }
 
 
@@ -486,7 +487,6 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
                 msg.setProperties(Collections.singletonMap("serviceCallbackUrl",
                     callBackUrl+"/case-payment-orders"));
                 topicClientCPO.send(msg);
-                LOG.info("Message sent: {}", msg);
                 topicClientCPO.close();
             }
         } catch (Exception e) {
@@ -510,6 +510,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
                 msg.setContentType(MSGCONTENTTYPE);
                 msg.setLabel("Service Callback Message");
                 msg.setProperties(Collections.singletonMap("serviceCallbackUrl",callBackUrl));
+                LOG.info("Message being sent to topic: {}", msg);
                 topicClientCPO.send(msg);
                 topicClientCPO.close();
             }

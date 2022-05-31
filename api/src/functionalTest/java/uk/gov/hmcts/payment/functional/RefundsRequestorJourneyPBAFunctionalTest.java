@@ -196,7 +196,6 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
     }
 
     @Test
-    @Ignore
     public void negative_duplicate_issue_refunds_for_a_pba_payment() {
         // create a PBA payment
         String accountNumber = testProps.existingAccountNumber;
@@ -221,7 +220,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         assertThat(paymentsResponse.getCcdCaseNumber()).isEqualTo(ccdCaseNumber);
 
         // create a refund request and initiate the refund
-        String paymentReference = paymentsResponse.getPaymentReference();
+        String paymentReference = paymentsResponse.getReference();
         PaymentRefundRequest paymentRefundRequest
             = PaymentFixture.aRefundRequest("RR001", paymentReference, "90.00", "0");
         Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
@@ -868,58 +867,6 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
             SERVICE_TOKEN_PAYMENT, retrospectiveRemissionRequest);
 
         assertThat(refundResponse.statusCode()).isEqualTo(FORBIDDEN.value());
-
-        // Delete payment record
-        paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
-    }
-
-    @Test
-    @Ignore
-    public void negative_add_remission_and_add_refund_and_a_duplicate_refund_for_a_pba_payment() {
-        // Create a PBA payment
-        String accountNumber = testProps.existingAccountNumber;
-        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
-            .aPbaPaymentRequestForProbate("90.00",
-                "PROBATE", accountNumber);
-
-        String ccdCaseNumber = accountPaymentRequest.getCcdCaseNumber();
-
-        PaymentDto paymentDto = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
-            .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
-        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
-            ccdCaseNumber, "5");
-
-        // Get pba payment by reference
-        PaymentDto paymentsResponse =
-                paymentTestService.getPbaPayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then()
-                        .statusCode(OK.value()).extract().as(PaymentDto.class);
-
-        //create retrospective remission
-        final String paymentGroupReference = paymentsResponse.getPaymentGroupReference();
-        final Integer feeId = paymentsResponse.getFees().stream().findFirst().get().getId();
-        Response response = dsl.given().userToken(USER_TOKEN)
-            .s2sToken(SERVICE_TOKEN)
-            .when().createRetrospectiveRemissionForRefund(getRetroRemissionRequest("5.00"), paymentGroupReference, feeId)
-            .then().getResponse();
-        String remissionReference = response.getBody().jsonPath().getString("remission_reference");
-
-        // submit refund on created remission
-        RetrospectiveRemissionRequest retrospectiveRemissionRequest
-            = PaymentFixture.aRetroRemissionRequest(remissionReference);
-        Response refundResponse = paymentTestService.postSubmitRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
-            SERVICE_TOKEN_PAYMENT, retrospectiveRemissionRequest);
-
-        assertThat(refundResponse.statusCode()).isEqualTo(HttpStatus.CREATED.value());
-        RefundResponse refundResponseFromPost = refundResponse.getBody().as(RefundResponse.class);
-        assertThat(refundResponseFromPost.getRefundAmount()).isEqualTo(new BigDecimal("5.00"));
-        assertTrue(REFUNDS_REGEX_PATTERN.matcher(refundResponseFromPost.getRefundReference()).matches());
-
-        // issue a duplicate refund on the same remission
-        Response refundResponseDuplicate = paymentTestService.postSubmitRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
-            SERVICE_TOKEN_PAYMENT, retrospectiveRemissionRequest);
-
-        assertThat(refundResponseDuplicate.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
-        assertThat(refundResponseDuplicate.getBody().asString()).isEqualTo("Refund is already requested for this payment");
 
         // Delete payment record
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
