@@ -2,7 +2,6 @@ package uk.gov.hmcts.payment.functional;
 
 import io.restassured.response.Response;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,8 +28,7 @@ import java.time.LocalDate;
 import java.util.regex.Pattern;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CASE_WORKER_GROUP;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
 
@@ -187,11 +185,9 @@ public class ServiceRequestBasedOnlineCardPayment {
         assertThat(laterPaymentReference).matches(PAYMENTS_REGEX_PATTERN);
         assertThat(initialPaymentReference).isNotEqualTo(laterPaymentReference);
 
-        Response getOnlineCardPaymentResponseForInitialPaymentResponse =
-            serviceRequestTestService.getAnOnlineCardPaymentForAnInternalReference(SERVICE_TOKEN,
-                initialPaymentDto.getInternalReference());
-        PaymentDto getOnlineCardPaymentInitialDto = getOnlineCardPaymentResponseForInitialPaymentResponse.getBody().as(PaymentDto.class);
-        assertThat(getOnlineCardPaymentInitialDto.getStatus()).isEqualTo("Failed");
+        serviceRequestTestService.getAnOnlineCardPaymentForAnInternalReference(SERVICE_TOKEN,
+            initialPaymentDto.getInternalReference()).then()
+                .statusCode(INTERNAL_SERVER_ERROR.value());
     }
 
     @Test

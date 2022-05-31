@@ -121,7 +121,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
                         .statusCode(OK.value()).extract().as(PaymentDto.class);
 
         // create a refund request on payment and initiate the refund
-        String paymentReference = paymentsResponse.getPaymentReference();
+        String paymentReference = paymentsResponse.getReference();
 
         // refund_enable flag should be false before lagTime applied and true after
         Response paymentGroupResponse = paymentTestService.getPaymentGroupsForCase(USER_TOKEN_PAYMENT,
@@ -129,7 +129,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         PaymentGroupResponse groupResponsefromPost = paymentGroupResponse.getBody().as(PaymentGroupResponse.class);
         assertThat(groupResponsefromPost.getPaymentGroups().get(0).getPayments().get(0).getRefundEnable()).isFalse();
 
-        Response rollbackPaymentResponse = paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
             accountPaymentRequest.getCcdCaseNumber(), "5");
 
         paymentGroupResponse = paymentTestService.getPaymentGroupsForCase(USER_TOKEN_PAYMENT,
@@ -275,7 +275,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         assertThat(paymentsResponse.getCcdCaseNumber()).isEqualTo(ccdCaseNumber2);
 
         // issuing refund using the reference for second payment
-        String paymentReference = paymentsResponse.getPaymentReference();
+        String paymentReference = paymentsResponse.getReference();
         PaymentRefundRequest paymentRefundRequest
             = PaymentFixture.aRefundRequest("RR001", paymentReference, "550.00", "0");
         Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
@@ -319,7 +319,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         assertThat(paymentsResponse.getCcdCaseNumber()).isEqualTo(ccdCaseNumber);
 
         // issue a refund
-        String paymentReference = paymentsResponse.getPaymentReference();
+        String paymentReference = paymentsResponse.getReference();
         PaymentRefundRequest paymentRefundRequest
             = PaymentFixture.aRefundRequest("RR001", paymentReference, "640.00", "640");
         Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
@@ -830,14 +830,18 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
             ccdCaseNumber, "5");
 
-        // Get pba payment by reference
-        PaymentDto paymentsResponse =
-                paymentTestService.getPbaPayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then()
-                        .statusCode(OK.value()).extract().as(PaymentDto.class);
+        // get payment groups
+        Response casePaymentGroupResponse
+                = cardTestService
+                .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN_PAYMENT, ccdCaseNumber);
+        PaymentGroupResponse paymentGroupResponse
+                = casePaymentGroupResponse.getBody().as(PaymentGroupResponse.class);
+        Optional<PaymentGroupDto> paymentDtoOptional
+                = paymentGroupResponse.getPaymentGroups().stream().findFirst();
 
         //create retrospective remission
-        final String paymentGroupReference = paymentsResponse.getPaymentGroupReference();
-        final Integer feeId = paymentsResponse.getFees().stream().findFirst().get().getId();
+        final String paymentGroupReference = paymentDtoOptional.get().getPaymentGroupReference();
+        final Integer feeId = paymentDtoOptional.get().getFees().stream().findFirst().get().getId();
         Response response = dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .when().createRetrospectiveRemissionForRefund(getRetroRemissionRequest("5.00"), paymentGroupReference, feeId)
@@ -923,14 +927,18 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
             ccdCaseNumber, "5");
 
-        // Get pba payment by reference
-        PaymentDto paymentsResponse =
-                paymentTestService.getPbaPayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then()
-                        .statusCode(OK.value()).extract().as(PaymentDto.class);
+        // get payment groups
+        Response casePaymentGroupResponse
+                = cardTestService
+                .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN_PAYMENT, ccdCaseNumber);
+        PaymentGroupResponse paymentGroupResponse
+                = casePaymentGroupResponse.getBody().as(PaymentGroupResponse.class);
+        Optional<PaymentGroupDto> paymentDtoOptional
+                = paymentGroupResponse.getPaymentGroups().stream().findFirst();
 
         // create retrospective remission
-        final String paymentGroupReference = paymentsResponse.getPaymentGroupReference();
-        final Integer feeId = paymentsResponse.getFees().stream().findFirst().get().getId();
+        final String paymentGroupReference = paymentDtoOptional.get().getPaymentGroupReference();
+        final Integer feeId = paymentDtoOptional.get().getFees().stream().findFirst().get().getId();
         Response response = dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .when().createRetrospectiveRemissionForRefund(getRetroRemissionRequest("5.00"), paymentGroupReference, feeId)
@@ -985,14 +993,18 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
             ccdCaseNumber2, "5");
 
-        // Get pba payment by reference
-        PaymentDto paymentsResponse =
-                paymentTestService.getPbaPayment(USER_TOKEN, SERVICE_TOKEN, paymentDto1.getReference()).then()
-                        .statusCode(OK.value()).extract().as(PaymentDto.class);
+        // get payment groups
+        Response casePaymentGroupResponse
+                = cardTestService
+                .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN_PAYMENT, ccdCaseNumber2);
+        PaymentGroupResponse paymentGroupResponse
+                = casePaymentGroupResponse.getBody().as(PaymentGroupResponse.class);
+        Optional<PaymentGroupDto> paymentDtoOptional
+                = paymentGroupResponse.getPaymentGroups().stream().findFirst();
 
         // create retrospective remission
-        final String paymentGroupReference = paymentsResponse.getPaymentGroupReference();
-        final Integer feeId = paymentsResponse.getFees().stream().findFirst().get().getId();
+        final String paymentGroupReference = paymentDtoOptional.get().getPaymentGroupReference();
+        final Integer feeId = paymentDtoOptional.get().getFees().stream().findFirst().get().getId();
         Response response = dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .when().createRetrospectiveRemissionForRefund(getRetroRemissionRequest("5.00"), paymentGroupReference, feeId)
@@ -1030,14 +1042,18 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
             ccdCaseNumber, "5");
 
-        // Get pba payment by reference
-        PaymentDto paymentsResponse =
-                paymentTestService.getPbaPayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then()
-                        .statusCode(OK.value()).extract().as(PaymentDto.class);
+        // get payment groups
+        Response casePaymentGroupResponse
+                = cardTestService
+                .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN_PAYMENT, ccdCaseNumber);
+        PaymentGroupResponse paymentGroupResponse
+                = casePaymentGroupResponse.getBody().as(PaymentGroupResponse.class);
+        Optional<PaymentGroupDto> paymentDtoOptional
+                = paymentGroupResponse.getPaymentGroups().stream().findFirst();
 
         // create retrospective remission
-        final String paymentGroupReference = paymentsResponse.getPaymentGroupReference();
-        final Integer feeId = paymentsResponse.getFees().stream().findFirst().get().getId();
+        final String paymentGroupReference = paymentDtoOptional.get().getPaymentGroupReference();
+        final Integer feeId = paymentDtoOptional.get().getFees().stream().findFirst().get().getId();
         Response response = dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .when().createRetrospectiveRemissionForRefund(getRetroRemissionRequest("100.00"), paymentGroupReference, feeId)
@@ -1065,14 +1081,18 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
             ccdCaseNumber, "5");
 
-        // Get pba payment by reference
-        PaymentDto paymentDtoResponse =
-                paymentTestService.getPbaPayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then()
-                        .statusCode(OK.value()).extract().as(PaymentDto.class);
+        // get payment groups
+        Response casePaymentGroupResponse
+                = cardTestService
+                .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN_PAYMENT, ccdCaseNumber);
+        PaymentGroupResponse paymentGroupResponse
+                = casePaymentGroupResponse.getBody().as(PaymentGroupResponse.class);
+        Optional<PaymentGroupDto> paymentGroupDtoOptional
+                = paymentGroupResponse.getPaymentGroups().stream().findFirst();
 
         // create retrospective remission
-        final String paymentGroupReference = paymentDtoResponse.getPaymentGroupReference();
-        final Integer feeId = paymentDtoResponse.getFees().stream().findFirst().get().getId();
+        final String paymentGroupReference = paymentGroupDtoOptional.get().getPaymentGroupReference();
+        final Integer feeId = paymentGroupDtoOptional.get().getFees().stream().findFirst().get().getId();
         Response response = dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .when().createRetrospectiveRemissionForRefund(getRetroRemissionRequest("5.00"), paymentGroupReference, feeId)
@@ -1080,12 +1100,8 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
 
         assertThat(response.getStatusCode()).isEqualTo(CREATED.value());
 
-        assertThat(paymentDtoResponse.getAccountNumber()).isEqualTo(accountNumber);
-        assertThat(paymentDtoResponse.getAmount()).isEqualTo(new BigDecimal("90.00"));
-        assertThat(paymentDtoResponse.getCcdCaseNumber()).isEqualTo(ccdCaseNumber);
-
         // initiate a refund for the payment
-        String paymentReference = paymentDtoResponse.getPaymentReference();
+        String paymentReference = paymentDto.getReference();
         PaymentRefundRequest paymentRefundRequest
             = PaymentFixture.aRefundRequest("RR001", paymentReference, "90.00", "0");
         Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
@@ -1116,14 +1132,18 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
             ccdCaseNumber, "5");
 
-        // Get pba payment by reference
-        PaymentDto paymentDtoResponse =
-                paymentTestService.getPbaPayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then()
-                        .statusCode(OK.value()).extract().as(PaymentDto.class);
+        // get payment group
+        Response casePaymentGroupResponse
+                = cardTestService
+                .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN_PAYMENT, ccdCaseNumber);
+        PaymentGroupResponse paymentGroupResponse
+                = casePaymentGroupResponse.getBody().as(PaymentGroupResponse.class);
+        Optional<PaymentGroupDto> paymentGroupDtoOptional
+                = paymentGroupResponse.getPaymentGroups().stream().findFirst();
 
         // create retrospective remission
-        final String paymentGroupReference = paymentDtoResponse.getPaymentGroupReference();
-        final Integer feeId = paymentDtoResponse.getFees().stream().findFirst().get().getId();
+        final String paymentGroupReference = paymentGroupDtoOptional.get().getPaymentGroupReference();
+        final Integer feeId = paymentGroupDtoOptional.get().getFees().stream().findFirst().get().getId();
         Response retrospectiveRemissionResponse = dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .when().createRetrospectiveRemissionForRefund(getRetroRemissionRequest("5.00"), paymentGroupReference, feeId)
@@ -1142,11 +1162,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         assertThat(refundResponseFromPost.getRefundAmount()).isEqualTo(new BigDecimal("5.00"));
         assertTrue(REFUNDS_REGEX_PATTERN.matcher(refundResponseFromPost.getRefundReference()).matches());
 
-        assertThat(paymentDtoResponse.getAccountNumber()).isEqualTo(accountNumber);
-        assertThat(paymentDtoResponse.getAmount()).isEqualTo(new BigDecimal("90.00"));
-        assertThat(paymentDtoResponse.getCcdCaseNumber()).isEqualTo(ccdCaseNumber);
-
-        String paymentReference = paymentDtoResponse.getPaymentReference();
+        String paymentReference = paymentDto.getReference();
         PaymentRefundRequest paymentRefundRequest
             = PaymentFixture.aRefundRequest("RR001", paymentReference, "90", "0");
         Response refundInitiatedResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
@@ -1174,14 +1190,18 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
             ccdCaseNumber, "5");
 
-        // Get pba payment by reference
-        PaymentDto paymentDtoResponse =
-                paymentTestService.getPbaPayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then()
-                        .statusCode(OK.value()).extract().as(PaymentDto.class);
+        // get payment groups
+        Response casePaymentGroupResponse
+                = cardTestService
+                .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN_PAYMENT, ccdCaseNumber);
+        PaymentGroupResponse paymentGroupResponse
+                = casePaymentGroupResponse.getBody().as(PaymentGroupResponse.class);
+        Optional<PaymentGroupDto> paymentGroupDtoOptional
+                = paymentGroupResponse.getPaymentGroups().stream().findFirst();
 
         // create retrospective remission
-        final String paymentGroupReference = paymentDtoResponse.getPaymentGroupReference();
-        final Integer feeId = paymentDtoResponse.getFees().stream().findFirst().get().getId();
+        final String paymentGroupReference = paymentGroupDtoOptional.get().getPaymentGroupReference();
+        final Integer feeId = paymentGroupDtoOptional.get().getFees().stream().findFirst().get().getId();
         Response retrospectiveRemissionResponse = dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .when().createRetrospectiveRemissionForRefund(getRetroRemissionRequest("50.00"), paymentGroupReference, feeId)
