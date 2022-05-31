@@ -1164,7 +1164,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
 
         String paymentReference = paymentDto.getReference();
         PaymentRefundRequest paymentRefundRequest
-            = PaymentFixture.aRefundRequest("RR001", paymentReference, "90", "0");
+            = PaymentFixture.aRefundRequest("RR001", paymentReference, "9", "0");
         Response refundInitiatedResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentRefundRequest);
