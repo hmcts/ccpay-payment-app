@@ -521,7 +521,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
             = paymentGroupResponse.getPaymentGroups().stream().findFirst();
 
         // verify that when there's available balance, issueRefundAddRefundAddRemission flag should be true
-        assertTrue(paymentDtoOptional.get().getPayments().get(0).isIssueRefundAddRefundAddRemission());
+        assertThat(paymentDtoOptional.get().getPayments().get(0).isIssueRefundAddRefundAddRemission()==true);
 
         // Delete payment record
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
