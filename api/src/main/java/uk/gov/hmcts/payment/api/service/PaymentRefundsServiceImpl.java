@@ -87,7 +87,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         Payment payment = paymentRepository.findByReference(paymentRefundRequest.getPaymentReference()).orElseThrow(PaymentNotFoundException::new);
 
 
-        ///validateRefund(paymentRefundRequest,payment.getPaymentLink().getFees());
+        validateRefund(paymentRefundRequest,payment.getPaymentLink().getFees());
 
         validateThePaymentBeforeInitiatingRefund(payment,headers);
 
@@ -646,7 +646,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         return paymentGroupDto;
     }
 
-  
+
     public PaymentGroupResponse checkRefundAgainstRemissionV2(MultiValueMap<String, String> headers,
                                                               PaymentGroupResponse paymentGroupResponse, String ccdCaseNumber) {
         //check roles
@@ -789,7 +789,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         }
         return paymentGroupResponse;
     }
-  
+
   public void deleteByRefundReference(String refundReference, MultiValueMap<String, String> headers) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(refundApiUrl + REFUND_ENDPOINT + "/" + refundReference);
         LOG.debug("builder.toUriString() : {}", builder.toUriString());
