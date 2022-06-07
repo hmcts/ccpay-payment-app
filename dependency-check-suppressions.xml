@@ -66,6 +66,9 @@
         <cve>CVE-2007-1651</cve>
         <cve>CVE-2018-1258</cve>
         <cve>CVE-2022-25647</cve>
+        <cve>CVE-2022-29885</cve>
+        <cve>CVE-2022-22971</cve>
+        <cve>CVE-2022-22970</cve>
     </suppress>
 
     <suppress until="2022-06-30">
@@ -163,21 +166,5 @@
         <cve>CVE-2021-43466</cve>
     </suppress>
     <!-- Supression Group ends here -->
-    <suppress until="2022-06-30">
-        <notes>
-            In Spring Framework versions 5.3.0 - 5.3.16 and older unsupported versions, it is possible for a user to
-            provide a specially crafted SpEL expression that may cause a denial of service condition.
-        </notes>
-        <cve>CVE-2016-1000027</cve>
-    </suppress>
-     <suppress until="2022-06-30">
-        <notes>
-            In Spring Framework versions 5.3.0 - 5.3.16 and older unsupported versions, it is possible for a user to
-            provide a specially crafted SpEL expression that may cause a denial of service condition.
-        </notes>
-        <cve>CVE-2022-22968</cve>
-    </suppress>
-    
-    
 
 </suppressions>

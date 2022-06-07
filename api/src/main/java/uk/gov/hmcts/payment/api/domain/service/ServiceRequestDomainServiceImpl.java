@@ -414,20 +414,19 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
 
     @Override
 
-  public void deadLetterProcess(IMessageReceiver subscriptionClient) throws ServiceBusException, InterruptedException, IOException {
+    public void deadLetterProcess(IMessageReceiver subscriptionClient) throws ServiceBusException, InterruptedException, IOException {
+
         int receivedMessages =0;
         TopicClientProxy topicClientCPO = topicClientService.getTopicClientProxy();
         LOG.info("topicClientCPO : " + topicClientCPO );
         while (true)
         {
             IMessage receivedMessage = subscriptionClient.receive();
-            LOG.info("receivedMessage: {}", receivedMessage);
+            LOG.info("receivedMessage\n", receivedMessage);
             if (receivedMessage != null) {
                 String  msgProperties = receivedMessage.getProperties().toString();
-                LOG.info("Dead letter process, msg properties: {}", msgProperties);
+                LOG.info("Received message properties: {}", msgProperties);
                 boolean isFound503 =  msgProperties.indexOf("503") !=-1? true: false;
-                receivedMessages++;
-                LOG.info("MSG CONTAINS 503: {}", isFound503);
                 if (isFound503) {
                     byte[] body = receivedMessage.getBody();
                     ObjectMapper objectMapper = new ObjectMapper();
@@ -435,13 +434,10 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
                     ObjectMapper objectMapper1 = new ObjectMapper();
                     Message msg = new Message(objectMapper1.writeValueAsString(deadLetterDto));
                     msg.setContentType(MSGCONTENTTYPE);
-                    LOG.info("Dead letter process, message being sent: {}", msg);
-                    LOG.info("Dead letter process, message properties.keySet: {}", msg.getProperties().keySet());
-                    LOG.info("Dead letter process, message properties.toString: {}", msg.getProperties().toString());
-                    LOG.info("Dead letter process, message.getBody  {}", msg.getBody());
-                    LOG.info("Dead letter process, message.getDeadLetterSource: {}", msg.getDeadLetterSource());
+                    LOG.info("Message to be sent back to Topic from DLQ {}", msg.getBody());
                     topicClientCPO.send(msg);
                 }
+                receivedMessages++;
             }
             else
             {
@@ -450,7 +446,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
                 break;
             }
         }
-        LOG.info("Received %s messages from subscription.\n", receivedMessages);
+        LOG.info("Number of messages received from subscrition: {}", receivedMessages);
     }
 
 
@@ -510,7 +506,6 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
                 msg.setContentType(MSGCONTENTTYPE);
                 msg.setLabel("Service Callback Message");
                 msg.setProperties(Collections.singletonMap("serviceCallbackUrl",callBackUrl));
-                LOG.info("Message being sent to topic: {}", msg);
                 topicClientCPO.send(msg);
                 topicClientCPO.close();
             }
