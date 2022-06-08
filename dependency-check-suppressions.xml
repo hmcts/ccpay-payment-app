@@ -46,7 +46,7 @@
         <cve>CVE-2021-28170</cve>
     </suppress>
 
-     <suppress until="2022-06-30">
+    <suppress until="2022-06-30">
         <notes>A vulnerability in all versions of Nim-lang allows unauthenticated attackers to write files to
             arbitrary directories via a crafted zip file with dot-slash characters included in the name of the
             crafted file
@@ -152,6 +152,18 @@
             STOMP over WebSocket endpoint is vulnerable to a denial of service attack by an authenticated user.
         </notes>
         <cve>CVE-2022-22971</cve>
+    </suppress>
+
+    <suppress until="2022-06-30">
+        <notes>Spring framework vulnaribilities
+        </notes>
+        <cve>CVE-2021-22044</cve>
+        <cve>CVE-2020-5408</cve>
+        <cve>CVE-2022-22976</cve>
+        <cve>CVE-2022-22969</cve>
+        <cve>CVE-2022-22978</cve>
+        <cve>CVE-2021-22060</cve>
+        <cve>CVE-2021-43466</cve>
     </suppress>
     <!-- Supression Group ends here -->
 
