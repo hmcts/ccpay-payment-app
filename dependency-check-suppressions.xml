@@ -153,6 +153,18 @@
         </notes>
         <cve>CVE-2022-22971</cve>
     </suppress>
+
+    <suppress until="2022-06-30">
+        <notes>Spring framework vulnaribilities
+        </notes>
+        <cve>CVE-2021-22044</cve>
+        <cve>CVE-2020-5408</cve>
+        <cve>CVE-2022-22976</cve>
+        <cve>CVE-2022-22969</cve>
+        <cve>CVE-2022-22978</cve>
+        <cve>CVE-2021-22060</cve>
+        <cve>CVE-2021-43466</cve>
+    </suppress>
     <!-- Supression Group ends here -->
 
 </suppressions>
