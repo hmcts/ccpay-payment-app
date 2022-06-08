@@ -87,7 +87,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         Payment payment = paymentRepository.findByReference(paymentRefundRequest.getPaymentReference()).orElseThrow(PaymentNotFoundException::new);
 
 
-        validateRefund(paymentRefundRequest,payment.getPaymentLink().getFees());
+        validateRefund(paymentRefundRequest,payment.getPaymentLink().getFees(), payment);
 
         validateThePaymentBeforeInitiatingRefund(payment,headers);
 
@@ -378,7 +378,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             .collect(Collectors.joining(","));
     }
 
-    private void validateRefund(PaymentRefundRequest paymentRefundRequest, List<PaymentFee> paymentFeeList) {
+    private void validateRefund(PaymentRefundRequest paymentRefundRequest, List<PaymentFee> paymentFeeList, Payment payment) {
 
         if(paymentRefundRequest.getTotalRefundAmount().compareTo(BigDecimal.valueOf(0))==0)
             throw new InvalidPartialRefundRequestException("You need to enter a refund amount");
@@ -391,7 +391,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                     if(feeDto.getUpdatedVolume()==0)
                         throw new InvalidPartialRefundRequestException("You need to enter a valid number");
 
-                    if(feeDto.getRefundAmount().compareTo(feeDto.getApportionAmount())>0)
+                    if(feeDto.getRefundAmount().compareTo(payment.getAmount())>0)
                         throw new InvalidPartialRefundRequestException("The amount you want to refund is more than the amount paid");
 
                     if(feeDto.getUpdatedVolume()>paymentFee.getVolume())
