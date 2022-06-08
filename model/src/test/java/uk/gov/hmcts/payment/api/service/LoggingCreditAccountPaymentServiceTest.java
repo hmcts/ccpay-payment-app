@@ -14,7 +14,8 @@ import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.when;
 
 public class LoggingCreditAccountPaymentServiceTest {
@@ -83,5 +84,10 @@ public class LoggingCreditAccountPaymentServiceTest {
             assertEquals(p.getStatus(), "Initiated");
             assertEquals(p.getReference(), "RC-1518-9479-8089-4415");
         });
+    }
+
+    @Test
+    public void testDelete() {
+        loggingCreditAccountPaymentService.deleteByPaymentReference("");
     }
 }
