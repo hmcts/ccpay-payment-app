@@ -462,13 +462,19 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         //Goes through each payment in this paymentDto, and get the total payment amount
         if(null != paymentGroupDto.getPayments()){
             for (PaymentDto payment : paymentGroupDto.getPayments()) {
+                LOG.info("INSIDE PAYMENT GROUP LOOP");
+
 
                 if(payment.getStatus() == "Success") {
                     totalPaymentAmount = totalPaymentAmount.add(payment.getAmount());
+                    LOG.info("PAYMENT IS SUCCESS");
+
                 }
                 //if theres a refund available for this payment, get the total refund amount
                 if (refundListDtoResponse != null) {
                     for (RefundDto refundDto : refundListDtoResponse.getRefundList()) {
+
+                        LOG.info("INSIDE REFUND GROUP LOOP");
 
                         //Condition to check that a valid refund corresponding with the payment reference is considered only
                         if (refundDto.getPaymentReference().equals(payment.getPaymentReference())
@@ -479,6 +485,9 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                 }
             }
         }
+        LOG.info("TOTAL PAYMENT {}", totalPaymentAmount);
+        LOG.info("TOTAL REFUND AMOUNT {}", totalRefundAmount);
+
         return totalPaymentAmount.subtract(totalRefundAmount);
     }
 
