@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.boot.context.properties.bind.DefaultValue;
 import uk.gov.hmcts.payment.api.contract.RefundsFeeDto;
 import uk.gov.hmcts.payment.api.model.ContactDetails;
 
@@ -48,4 +49,6 @@ public class PaymentRefundRequest {
 
     @NotNull(message = "Contact Details cannot be null")
     private ContactDetails contactDetails;
+
+    private boolean isOverPayment;
 }
