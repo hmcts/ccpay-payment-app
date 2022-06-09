@@ -183,6 +183,7 @@ def sonarExclusions = [
         '**/referencedata/service/*Service.java',
         '**/api/service/MockAccountServiceImpl.java',
         '**/api/service/PaymentServiceImpl.java',
+        '**/api/exception/FailureReferenceNotFoundException.java',
         '**/api/service/PaymentStatusUpdateServiceImpl.java',
         '**/api/service/PaymentStatusUpdateServiceImpl.java',
         '**/api/service/ServiceRequestDomainServiceImpl.java',
