@@ -472,7 +472,8 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
                         //Condition to check that a valid refund corresponding with the payment reference is considered only
                         if (refundDto.getPaymentReference().equals(payment.getPaymentReference())
-                            && (refundDto.getRefundStatus().getName().equals("Accepted") || refundDto.getRefundStatus().getName().equals("Approved")))
+                            && (refundDto.getRefundStatus().getName().equals("Accepted") || refundDto.getRefundStatus().getName().equals("Approved")
+                            || refundDto.getRefundStatus().getName().equalsIgnoreCase("Sent for approval")))
                             totalRefundAmount = totalRefundAmount.add(refundDto.getAmount());
                     }
                 }
