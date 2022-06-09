@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.payment.api.dto.PaymentReference;
 
 import java.math.BigDecimal;
 
@@ -15,11 +16,11 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
 @JsonNaming(SnakeCaseStrategy.class)
 @JsonInclude(NON_NULL)
-@Builder(builderMethodName = "paymentStatusDto")
+@Builder(builderMethodName = "paymentFailureStatusDto")
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class PaymentStatusDto {
+public class PaymentFailureStatusDto {
 
     @JsonProperty("service_request_reference")
     private String serviceRequestReference;
@@ -34,5 +35,6 @@ public class PaymentStatusDto {
     private String serviceRequestStatus;
 
     @JsonProperty("payment")
-    private PaymentReference payment;
+    private PaymentFailureReference payment;
+
 }

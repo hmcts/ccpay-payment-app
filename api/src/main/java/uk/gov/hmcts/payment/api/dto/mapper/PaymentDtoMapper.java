@@ -16,6 +16,8 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.StatusHistoryDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.controllers.CardPaymentController;
+import uk.gov.hmcts.payment.api.dto.PaymentFailureReference;
+import uk.gov.hmcts.payment.api.dto.PaymentFailureStatusDto;
 import uk.gov.hmcts.payment.api.dto.PaymentStatusDto;
 import uk.gov.hmcts.payment.api.dto.PaymentReference;
 import uk.gov.hmcts.payment.api.model.*;
@@ -597,5 +599,26 @@ public class PaymentDtoMapper {
             .allocationStatus(paymentAllocation.getPaymentAllocationStatus().getName())
             .build();
     }
+    public PaymentFailureStatusDto toPaymentFailureStatusDto(String serviceRequestReference, String accountNumber,
+                                                                Payment payment, String serviceRequestStatus, BigDecimal amount) {
+        return PaymentFailureStatusDto.paymentFailureStatusDto()
+            .serviceRequestReference(serviceRequestReference)
+            .ccdCaseNumber(payment.getCcdCaseNumber())
+            .serviceRequestAmount(payment.getAmount())
+            .serviceRequestStatus(serviceRequestStatus)
+            .payment(toPaymentFailureReference(accountNumber, payment, amount))
+            .build();
+    }
 
+    private PaymentFailureReference toPaymentFailureReference(String accountNumber,
+                                                Payment payment, BigDecimal amount) {
+        return PaymentFailureReference.paymentFailureReference()
+            .paymentAmount(payment.getAmount())
+            .paymentReference(payment.getReference())
+            .paymentMethod(payment.getPaymentMethod().getName())
+            .caseReference(payment.getCaseReference())
+            .accountNumber(accountNumber)
+            .disputedAmount(amount)
+            .build();
+    }
 }

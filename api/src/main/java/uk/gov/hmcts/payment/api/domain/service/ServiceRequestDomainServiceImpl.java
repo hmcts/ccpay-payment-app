@@ -513,4 +513,28 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
             Thread.currentThread().interrupt();
         }
     }
+
+    @Override
+    public void sendFailureMessageToTopic(PaymentFailureStatusDto payment, String callBackUrl){
+        try {
+            TopicClientProxy topicClientCPO = null;
+            Message msg = null;
+            ObjectMapper objectMapper = new ObjectMapper();
+
+            LOG.info("Callback URL: {}", callBackUrl);
+
+            if(payment!=null){
+                LOG.info("Connection String CardPBA: {}", connectionString);
+                msg = new Message(objectMapper.writeValueAsString(payment));
+                topicClientCPO = new TopicClientProxy(connectionString, topicCardPBA);
+                msg.setContentType(MSGCONTENTTYPE);
+                msg.setLabel("Service Callback Message");
+                msg.setProperties(Collections.singletonMap("serviceCallbackUrl",callBackUrl));
+                topicClientCPO.send(msg);
+                topicClientCPO.close();
+            }
+        } catch (Exception e) {
+            Thread.currentThread().interrupt();
+        }
+    }
 }

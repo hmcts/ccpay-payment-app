@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategies.SnakeCaseStrategy
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
@@ -15,24 +14,26 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
 @JsonNaming(SnakeCaseStrategy.class)
 @JsonInclude(NON_NULL)
-@Builder(builderMethodName = "paymentStatusDto")
+@Builder(builderMethodName = "paymentFailureReference")
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
-public class PaymentStatusDto {
+public class PaymentFailureReference {
 
-    @JsonProperty("service_request_reference")
-    private String serviceRequestReference;
+    @JsonProperty("payment_amount")
+    private BigDecimal paymentAmount;
 
-    @JsonProperty("ccd_case_number")
-    private String ccdCaseNumber;
+    @JsonProperty("payment_reference")
+    private String paymentReference;
 
-    @JsonProperty("service_request_amount")
-    private BigDecimal serviceRequestAmount;
+    @JsonProperty("payment_method")
+    private String paymentMethod;
 
-    @JsonProperty("service_request_status")
-    private String serviceRequestStatus;
+    @JsonProperty("case_reference")
+    private String caseReference;
 
-    @JsonProperty("payment")
-    private PaymentReference payment;
+    @JsonProperty("account_number")
+    private String accountNumber;
+
+    @JsonProperty("disputed_amount")
+    private BigDecimal disputedAmount;
 }

@@ -1,0 +1,62 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1554989041425-43
+      author: Ranjeet
+      changes:
+        - createTable:
+            tableName: payment_failures
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: failure_reference
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: reason
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: payment_reference
+                  type: varchar(255)
+              - column:
+                  name: ccd_case_number
+                  type: varchar(255)
+              - column:
+                  name: amount
+                  type: numeric(19, 2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: additional_reference
+                  type: varchar(255)
+              - column:
+                  name: po_box_number
+                  type: varchar(255)
+              - column:
+                  name: dcn
+                  type: varchar(255)
+              - column:
+                  name: failure_type
+                  type: varchar(255)
+              - column:
+                  name: has_amount_debited
+                  type: boolean
+              - column:
+                  name: representment_success
+                  type: boolean
+              - column:
+                  name: failure_event_date_time
+                  type: TIMESTAMP WITHOUT TIME ZONE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: representment_outcome_date
+                  type: TIMESTAMP WITHOUT TIME ZONE
