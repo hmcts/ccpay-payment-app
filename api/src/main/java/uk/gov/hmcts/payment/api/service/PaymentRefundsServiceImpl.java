@@ -479,7 +479,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                         LOG.info("REFUND PAYMENT REF: {}", refundDto.getPaymentReference());
 
                         //Condition to check that a valid refund corresponding with the payment reference is considered only
-                        if (refundDto.getPaymentReference().equalsIgnoreCase(payment.getPaymentReference())){
+                        if (refundDto.getPaymentReference().equalsIgnoreCase(payment.getPaymentReference()) || refundDto.getPaymentReference().equalsIgnoreCase(payment.getReference())){
                             LOG.info("IF REFUND PAYMENT REF MATCHES PAYMENT REF, REFUND STATUS: {}", refundDto.getRefundStatus().getName());
 
                             if((refundDto.getRefundStatus().getName().equalsIgnoreCase("Accepted") || refundDto.getRefundStatus().getName().equalsIgnoreCase("Approved")
