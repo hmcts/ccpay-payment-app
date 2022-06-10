@@ -3,6 +3,7 @@ package uk.gov.hmcts.payment.api.dto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -50,5 +51,6 @@ public class PaymentRefundRequest {
     @NotNull(message = "Contact Details cannot be null")
     private ContactDetails contactDetails;
 
+    @JsonProperty("is_over_payment")
     private boolean isOverPayment;
 }
