@@ -391,7 +391,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                     if(feeDto.getUpdatedVolume()==0)
                         throw new InvalidPartialRefundRequestException("You need to enter a valid number");
 
-                    if(feeDto.getRefundAmount().compareTo(payment.getAmount()) < 0 || feeDto.getRefundAmount().compareTo(payment.getAmount()) == 0)
+                    if(feeDto.getRefundAmount().compareTo(payment.getAmount())>0)
                         throw new InvalidPartialRefundRequestException("The amount you want to refund is more than the amount paid");
 
                     if(feeDto.getUpdatedVolume()>paymentFee.getVolume())
