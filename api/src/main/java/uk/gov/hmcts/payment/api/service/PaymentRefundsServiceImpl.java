@@ -475,9 +475,11 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                     for (RefundDto refundDto : refundListDtoResponse.getRefundList()) {
 
                         LOG.info("INSIDE REFUND GROUP LOOP");
+                        LOG.info("PAYMENT REF: {}", payment.getPaymentReference());
+                        LOG.info("REFUND PAYMENT REF: {}", refundDto.getPaymentReference());
 
                         //Condition to check that a valid refund corresponding with the payment reference is considered only
-                        if (refundDto.getPaymentReference().equals(payment.getPaymentReference())){
+                        if (refundDto.getPaymentReference().equalsIgnoreCase(payment.getPaymentReference())){
                             LOG.info("IF REFUND PAYMENT REF MATCHES PAYMENT REF, REFUND STATUS: {}", refundDto.getRefundStatus().getName());
 
                             if((refundDto.getRefundStatus().getName().equalsIgnoreCase("Accepted") || refundDto.getRefundStatus().getName().equalsIgnoreCase("Approved")
