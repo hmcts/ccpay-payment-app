@@ -46,7 +46,7 @@
         <cve>CVE-2021-28170</cve>
     </suppress>
 
-     <suppress until="2022-06-30">
+    <suppress until="2022-06-30">
         <notes>A vulnerability in all versions of Nim-lang allows unauthenticated attackers to write files to
             arbitrary directories via a crafted zip file with dot-slash characters included in the name of the
             crafted file
@@ -65,10 +65,9 @@
         <cve>CVE-2007-1652</cve>
         <cve>CVE-2007-1651</cve>
         <cve>CVE-2018-1258</cve>
-        <cve>CVE-2022-25647</cve>
-        <cve>CVE-2022-22950</cve>
-        <cve>CVE-2022-22968</cve>
-        <cve>CVE-2016-1000027</cve>
+        <cve>CVE-2022-29885</cve>
+        <cve>CVE-2022-22971</cve>
+        <cve>CVE-2022-22970</cve>
     </suppress>
 
     <suppress until="2022-06-30">
@@ -138,6 +137,33 @@
             first character of all nested fields within the property path.
         </notes>
         <cve>CVE-2022-22968</cve>
+    </suppress>
+
+    <suppress until="2022-06-30">
+        <notes>In spring framework versions prior to 5.3.20+, 5.2.22+ and old unsupported versions, applications that
+            handle file uploads are vulnerable to DoS attack if they rely on data binding to set a MultipartFile or
+            javax.servlet.Part to a field in a model object.
+        </notes>
+        <cve>CVE-2022-22970</cve>
+    </suppress>
+
+    <suppress until="2022-06-30">
+        <notes>In spring framework versions prior to 5.3.20+, 5.2.22+ and old unsupported versions, application with a
+            STOMP over WebSocket endpoint is vulnerable to a denial of service attack by an authenticated user.
+        </notes>
+        <cve>CVE-2022-22971</cve>
+    </suppress>
+
+    <suppress until="2022-06-30">
+        <notes>Spring framework vulnaribilities
+        </notes>
+        <cve>CVE-2021-22044</cve>
+        <cve>CVE-2020-5408</cve>
+        <cve>CVE-2022-22976</cve>
+        <cve>CVE-2022-22969</cve>
+        <cve>CVE-2022-22978</cve>
+        <cve>CVE-2021-22060</cve>
+        <cve>CVE-2021-43466</cve>
     </suppress>
     <!-- Supression Group ends here -->
 
