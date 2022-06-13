@@ -105,16 +105,12 @@ public class PaymentStatusControllerTest {
     private PaymentFailures paymentFailures;
     @MockBean
     private Payment2Repository paymentRepository;
-   /* @MockBean
-    private PaymentService paymentService;*/
+
    @MockBean
    private PaymentService<PaymentFeeLink, String> paymentService;
 
     @MockBean
     private DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService;
-
-    @MockBean
-    private FeesService feeService;
 
     @MockBean
     private PaymentFeeRepository paymentFeeRepository;
@@ -148,7 +144,7 @@ public class PaymentStatusControllerTest {
             .andExpect(status().isNotFound())
             .andReturn();
 
-        assertEquals(result.getResolvedException().getMessage(), "No Payments available for the given Payment reference");
+        assertEquals("No Payments available for the given Payment reference",result.getResolvedException().getMessage());
 
 
     }
@@ -168,7 +164,7 @@ public class PaymentStatusControllerTest {
             .andExpect(status().isTooManyRequests())
             .andReturn();
 
-        assertEquals(result.getResolvedException().getMessage(), "Request already received for this failure reference");
+        assertEquals("Request already received for this failure reference", result.getResolvedException().getMessage());
 
     }
 
@@ -212,31 +208,6 @@ public class PaymentStatusControllerTest {
             .payment(paymentReference)
             .build();
 
-      //  when(paymentService.findPayment(anyString())).thenReturn(payment);
-        //when(paymentService.findByPaymentId(anyInt())).thenReturn(Arrays.asList(FeePayApportion.feePayApportionWith()
-       //     .feeId(1)
-        //    .build()));
-        when(paymentFeeRepository.findById(anyInt())).thenReturn(Optional.of(PaymentFee.feeWith().paymentLink(paymentFeeLink).build()));
-        when(delegatingPaymentService.retrieve(any(PaymentFeeLink.class) ,anyString())).thenReturn(paymentFeeLink);
-
-        PaymentGroupDto paymentGroupDto = new PaymentGroupDto();
-        paymentGroupDto.setServiceRequestStatus("Paid");
-        when(paymentGroupDtoMapper.toPaymentGroupDto(any())).thenReturn(paymentGroupDto);
-        PaymentFee fee = PaymentFee.feeWith().id(1).calculatedAmount(new BigDecimal("11.99")).code("X0001").version("1").build();
-        /*PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith()
-            .id(1)
-            .paymentReference("2018-15202505035")
-            .fees(Arrays.asList(fee))
-            .build();*/
-        FeePayApportion feePayApportion = FeePayApportion.feePayApportionWith()
-            .apportionAmount(BigDecimal.valueOf(555))
-            .paymentAmount(BigDecimal.valueOf(555))
-            .ccdCaseNumber("1234123412341234")
-            .paymentLink(paymentFeeLink)
-            .paymentId(1)
-            .feeId(1)
-            .id(1)
-            .feeAmount(BigDecimal.valueOf(555)).build();
         PaymentFailures paymentFailures = getPaymentFailures();
         PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto =getPaymentStatusBouncedChequeDto();
         when(paymentStatusDtoMapper.bounceChequeRequestMapper(any())).thenReturn(paymentFailures);
@@ -244,10 +215,16 @@ public class PaymentStatusControllerTest {
         when(paymentStatusUpdateService.searchFailureReference(any())).thenReturn(Optional.empty());
         when(paymentFailureRepository.save(any())).thenReturn(paymentFailures);
         when(paymentRepository.findByReference(any())).thenReturn(Optional.of(payment));
-        when(paymentService.findSavedPayment(any())).thenReturn(getPayment());
-        when(paymentService.findByPaymentId(any())).thenReturn(List.of(feePayApportion));
+        when(paymentService.findSavedPayment(any())).thenReturn(payment1);
+        when(paymentService.findByPaymentId(anyInt())).thenReturn(Arrays.asList(FeePayApportion.feePayApportionWith()
+            .feeId(1)
+            .build()));
         when(paymentFeeRepository.findById(anyInt())).thenReturn(Optional.of(PaymentFee.feeWith().paymentLink(paymentFeeLink).build()));
-        //when(feeService.getPaymentFee(any())).thenReturn(Optional.of(fee));
+        when(delegatingPaymentService.retrieve(any(PaymentFeeLink.class) ,anyString())).thenReturn(paymentFeeLink);
+
+        PaymentGroupDto paymentGroupDto = new PaymentGroupDto();
+        paymentGroupDto.setServiceRequestStatus("Paid");
+        when(paymentGroupDtoMapper.toPaymentGroupDto(any())).thenReturn(paymentGroupDto);
         when(paymentStatusUpdateService.cancelFailurePaymentRefund(any())).thenReturn(true);
         when(authTokenGenerator.generate()).thenReturn("service auth token");
         when(this.restTemplateRefundCancel.exchange(anyString(),

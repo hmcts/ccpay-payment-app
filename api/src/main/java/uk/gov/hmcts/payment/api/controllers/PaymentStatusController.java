@@ -62,7 +62,7 @@ public class PaymentStatusController {
          PaymentFailures insertPaymentFailures =  paymentStatusUpdateService.insertBounceChequePaymentFailure(paymentStatusBouncedChequeDto);
 
           if(null != insertPaymentFailures.getId()){
-             // paymentStatusUpdateService.sendFailureMessageToServiceTopic(paymentStatusBouncedChequeDto);
+             paymentStatusUpdateService.sendFailureMessageToServiceTopic(paymentStatusBouncedChequeDto);
               refundStatusUpdate = paymentStatusUpdateService.cancelFailurePaymentRefund(paymentStatusBouncedChequeDto);
         }
           if (refundStatusUpdate){
