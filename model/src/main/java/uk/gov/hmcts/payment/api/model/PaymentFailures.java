@@ -16,7 +16,7 @@ import java.sql.Timestamp;
 @Getter
 @Setter
 @ToString
-@Builder(builderMethodName = "paymentFailuresBounceChequeWith")
+@Builder(builderMethodName = "paymentFailuresWith")
 @AllArgsConstructor
 @NoArgsConstructor
 //@Data

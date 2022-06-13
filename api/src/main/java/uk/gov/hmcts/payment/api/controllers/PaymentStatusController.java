@@ -9,13 +9,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.payment.api.dto.servicerequest.PaymentStatusBouncedChequeDto;
-import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.exception.FailureReferenceNotFoundException;
+import uk.gov.hmcts.payment.api.exception.RefundServiceUnavailableException;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.Payment2Repository;
 import uk.gov.hmcts.payment.api.model.PaymentFailures;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.service.PaymentStatusUpdateService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
@@ -46,6 +44,7 @@ public class PaymentStatusController {
     @PaymentExternalAPI
     @PostMapping(path = "/payment-failures/bounced-cheque")
     public ResponseEntity<String> PaymentStatusBouncedCheque(@Valid @RequestBody PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto) throws JsonProcessingException {
+
         LOG.info("Received payment status request bounced-cheque : {}", paymentStatusBouncedChequeDto);
         Boolean refundStatusUpdate= false;
         Optional<Payment> payment = paymentRepository.findByReference(paymentStatusBouncedChequeDto.getPaymentReference());
@@ -63,7 +62,7 @@ public class PaymentStatusController {
          PaymentFailures insertPaymentFailures =  paymentStatusUpdateService.insertBounceChequePaymentFailure(paymentStatusBouncedChequeDto);
 
           if(null != insertPaymentFailures.getId()){
-            //paymentStatusUpdateService.sendMessageToTopic(paymentStatusBouncedChequeDto);
+             // paymentStatusUpdateService.sendFailureMessageToServiceTopic(paymentStatusBouncedChequeDto);
               refundStatusUpdate = paymentStatusUpdateService.cancelFailurePaymentRefund(paymentStatusBouncedChequeDto);
         }
           if (refundStatusUpdate){
@@ -83,6 +82,13 @@ public class PaymentStatusController {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(PaymentNotFoundException.class)
     public String notFound(PaymentNotFoundException ex) {
+        return ex.getMessage();
+    }
+
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ExceptionHandler( RefundServiceUnavailableException.class)
+    public String return500( RefundServiceUnavailableException ex) {
+        LOG.error("Internal Server Error :", ex);
         return ex.getMessage();
     }
 

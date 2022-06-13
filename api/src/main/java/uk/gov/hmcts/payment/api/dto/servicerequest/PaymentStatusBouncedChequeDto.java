@@ -1,6 +1,6 @@
 package uk.gov.hmcts.payment.api.dto.servicerequest;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 
@@ -12,9 +12,11 @@ import lombok.Setter;
 
 import javax.validation.constraints.*;
 import java.math.BigDecimal;
-import java.sql.Timestamp;
 import java.util.Date;
 
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
+
+@JsonInclude(NON_NULL)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @Setter
 @Getter

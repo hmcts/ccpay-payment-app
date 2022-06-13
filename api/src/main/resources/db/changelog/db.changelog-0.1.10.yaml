@@ -46,6 +46,8 @@ databaseChangeLog:
               - column:
                   name: failure_type
                   type: varchar(255)
+                  constraints:
+                    nullable: false
               - column:
                   name: has_amount_debited
                   type: boolean
@@ -60,3 +62,11 @@ databaseChangeLog:
               - column:
                   name: representment_outcome_date
                   type: TIMESTAMP WITHOUT TIME ZONE
+  - changeSet:
+      id: 1554989041426-44
+      author: Ranjeet
+      changes:
+        - addUniqueConstraint:
+            columnNames: failure_reference
+            constraintName: FAILURE_REFERENCE_COL
+            tableName: payment_failures
