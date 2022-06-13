@@ -276,17 +276,35 @@ pact {
 }
 
 pitest {
-    targetClasses = ['uk.gov.hmcts.payment.api.*']
+    targetClasses = ['uk.gov.hmcts.payment.api.domain.*',
+                     'uk.gov.hmcts.payment.api.dto.*',
+                     'uk.gov.hmcts.payment.api.email.*',
+                     'uk.gov.hmcts.payment.api.exception.*',
+                     'uk.gov.hmcts.payment.api.logging.*',
+                     'uk.gov.hmcts.payment.api.model.*',
+                     'uk.gov.hmcts.payment.api.scheduler.*',
+                     'uk.gov.hmcts.payment.api.service.*',
+                     'uk.gov.hmcts.payment.api.servicebus.*',
+                     'uk.gov.hmcts.payment.api.util.*',
+                     'uk.gov.hmcts.payment.api.validators.*']
     excludedClasses = ['uk.gov.hmcts.payment.api.v1.*',
                        'uk.gov.hmcts.payment.api.configuration.*',
                        'uk.gov.hmcts.payment.api.dto.mapper.*',
                        'uk.gov.hmcts.payment.api.exception.*',
                        'uk.gov.hmcts.payment.api.reports.config.*']
-    threads = 10
     enableDefaultIncrementalAnalysis = true
     historyInputLocation = 'build/reports/pitest/fastermutationtesting'
     historyOutputLocation = 'build/reports/pitest/fastermutationtestingoutput'
-    outputFormats = ['XML', 'HTML']
-    timestampedReports = true
-    mutationThreshold = 90
+    threads = 15
+    testSourceSets = [sourceSets.test]
+    mainSourceSets = [sourceSets.main]
+    fileExtensionsToFilter.addAll('xml', 'json')
+    outputFormats = ['XML', 'HTML', 'CSV']
+    mutationThreshold = 0
+    coverageThreshold = 0
+    maxMutationsPerClass = 15
+    jvmArgs = ['-Xms1G', '-Xmx3G']
+    timestampedReports = false
+    failWhenNoMutations = false
+    detectInlinedCode = true
 }
