@@ -49,13 +49,13 @@ public class PaymentStatusController {
         Boolean refundStatusUpdate= false;
         Optional<Payment> payment = paymentRepository.findByReference(paymentStatusBouncedChequeDto.getPaymentReference());
 
-        if(!payment.isPresent() || payment.isEmpty()){
+        if(payment.isEmpty()){
             throw new PaymentNotFoundException("No Payments available for the given Payment reference");
         }
 
         Optional<PaymentFailures> paymentFailures = paymentStatusUpdateService.searchFailureReference(paymentStatusBouncedChequeDto);
 
-        if(paymentFailures.isPresent() || !paymentFailures.isEmpty()){
+        if(!paymentFailures.isEmpty()){
             throw new FailureReferenceNotFoundException("Request already received for this failure reference");
         }
 
