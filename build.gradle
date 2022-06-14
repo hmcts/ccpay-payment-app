@@ -17,7 +17,7 @@ def versions = [
         javaVersion: '11',
         jacocoVersion: '0.8.5'
 ]
-
+ 
 dependencies{
     testCompile 'com.github.hmcts:fortify-client:1.2.1:all'
 }
