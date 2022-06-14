@@ -161,10 +161,4 @@ public class PaymentTestService {
             .post("/payment-failures/bounced-cheque");
     }
 
-    public Response getPaymentFailure(String userToken, String serviceToken, String failureReference) {
-        return givenWithAuthHeaders(userToken, serviceToken)
-            .when()
-            .get("/payment-status/{failureReference}", failureReference);
-    }
-
 }
