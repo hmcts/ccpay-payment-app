@@ -127,7 +127,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         } catch (HttpClientErrorException httpClientErrorException) {
 
             if (httpClientErrorException.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
-                throw new PaymentNotFoundException("Refund does not exit for the payment.");
+                throw new PaymentNotFoundException("Refund does not exist for the payment.");
             }else{
                 throw new RefundServiceUnavailableException("Refund server unavailable. Please try again");
             }
