@@ -352,9 +352,6 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
             }
         }
 
-
-
-
         try {
             GovPayPayment govPayPayment = delegateGovPay.retrieve(payment.getExternalReference(), paymentService);
 
