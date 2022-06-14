@@ -9,9 +9,10 @@ import java.util.Optional;
 public interface PaymentStatusUpdateService {
 
     PaymentFailures insertBounceChequePaymentFailure(PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto);
-    Optional<PaymentFailures> searchFailureReference(PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto);
+    Optional<PaymentFailures> searchFailureReference(String failureReference);
 
     void sendFailureMessageToServiceTopic(PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto) throws JsonProcessingException;
 
     boolean cancelFailurePaymentRefund(PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto);
+
 }

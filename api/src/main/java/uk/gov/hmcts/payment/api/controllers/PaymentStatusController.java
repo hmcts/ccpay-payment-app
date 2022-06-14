@@ -8,17 +8,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.PaymentStatusBouncedChequeDto;
 import uk.gov.hmcts.payment.api.exception.FailureReferenceNotFoundException;
 import uk.gov.hmcts.payment.api.exception.RefundServiceUnavailableException;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.Payment2Repository;
 import uk.gov.hmcts.payment.api.model.PaymentFailures;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.PaymentStatusUpdateService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import javax.validation.Valid;
 import java.util.Optional;
+
+import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 
 @RestController
@@ -46,16 +50,16 @@ public class PaymentStatusController {
     public ResponseEntity<String> PaymentStatusBouncedCheque(@Valid @RequestBody PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto) throws JsonProcessingException {
 
         LOG.info("Received payment status request bounced-cheque : {}", paymentStatusBouncedChequeDto);
-        Boolean refundStatusUpdate= false;
+        boolean refundStatusUpdate= false;
         Optional<Payment> payment = paymentRepository.findByReference(paymentStatusBouncedChequeDto.getPaymentReference());
 
         if(payment.isEmpty()){
             throw new PaymentNotFoundException("No Payments available for the given Payment reference");
         }
 
-        Optional<PaymentFailures> paymentFailures = paymentStatusUpdateService.searchFailureReference(paymentStatusBouncedChequeDto);
+        Optional<PaymentFailures> paymentFailures = paymentStatusUpdateService.searchFailureReference(paymentStatusBouncedChequeDto.getFailureReference());
 
-        if(!paymentFailures.isEmpty()){
+        if(paymentFailures.isPresent()){
             throw new FailureReferenceNotFoundException("Request already received for this failure reference");
         }
 
@@ -66,10 +70,10 @@ public class PaymentStatusController {
               refundStatusUpdate = paymentStatusUpdateService.cancelFailurePaymentRefund(paymentStatusBouncedChequeDto);
         }
           if (refundStatusUpdate){
-            return new ResponseEntity<String>("successful operation",HttpStatus.OK);
+            return new ResponseEntity<>("successful operation", HttpStatus.OK);
         }
 
-        return new ResponseEntity<String>("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR);
 
     }
 

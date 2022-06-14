@@ -93,13 +93,13 @@ public class PaymentStatusUpdateServiceImplTest {
             .build();
 
          when(paymentFailureRepository.findByFailureReference(any())).thenReturn(Optional.of(paymentFailures));
-        Optional<PaymentFailures> paymentFailuresResult=  paymentStatusUpdateServiceImpl.searchFailureReference(paymentStatusBouncedChequeDto);
+        Optional<PaymentFailures> paymentFailuresResult=  paymentStatusUpdateServiceImpl.searchFailureReference(paymentStatusBouncedChequeDto.getFailureReference());
         assertThat(paymentFailuresResult).isNotNull();
         assertEquals(1,paymentFailuresResult.stream().findFirst().get().getId());
     }
 
     @Test
-    public void testSucessCanCelFailureRefund(){
+    public void testSucessCancelFailureRefund(){
 
         PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto =getPaymentStatusBouncedChequeDto();
         MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();

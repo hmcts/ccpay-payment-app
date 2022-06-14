@@ -11,6 +11,7 @@ import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
 import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
 import uk.gov.hmcts.payment.api.dto.RetroSpectiveRemissionRequest;
+import uk.gov.hmcts.payment.api.dto.servicerequest.PaymentStatusBouncedChequeDto;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -150,4 +151,20 @@ public class PaymentTestService {
                 .when()
                 .delete("/credit-account-payments/{paymentReference}", paymentReference);
     }
+
+    public Response postBounceCheque(String serviceToken,
+                                       PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto) {
+        return givenWithServiceHeaders(serviceToken)
+            .contentType(ContentType.JSON)
+            .body(paymentStatusBouncedChequeDto)
+            .when()
+            .post("/payment-failures/bounced-cheque");
+    }
+
+    public Response getPaymentFailure(String userToken, String serviceToken, String failureReference) {
+        return givenWithAuthHeaders(userToken, serviceToken)
+            .when()
+            .get("/payment-status/{failureReference}", failureReference);
+    }
+
 }

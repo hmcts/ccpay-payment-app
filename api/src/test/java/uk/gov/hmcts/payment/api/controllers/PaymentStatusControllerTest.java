@@ -242,7 +242,7 @@ public class PaymentStatusControllerTest {
     }
 
     @Test
-    public void retrun500WhenRefundServerNotAvilable() throws Exception {
+    public void return500WhenRefundServerNotAvailable() throws Exception {
 
         Payment payment = getPayment();
 

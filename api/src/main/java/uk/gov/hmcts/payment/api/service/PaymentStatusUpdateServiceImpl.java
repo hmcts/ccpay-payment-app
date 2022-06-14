@@ -83,11 +83,9 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
           return insertpaymentFailures;
     }
 
-    public Optional<PaymentFailures> searchFailureReference(PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto){
-        Optional<PaymentFailures> paymentFailures=  paymentFailureRepository.findByFailureReference(paymentStatusBouncedChequeDto.getFailureReference());
-
+    public Optional<PaymentFailures> searchFailureReference(String failureReference){
+        Optional<PaymentFailures> paymentFailures=  paymentFailureRepository.findByFailureReference(failureReference);
         return paymentFailures;
-
     }
 
     public void sendFailureMessageToServiceTopic(PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto) throws JsonProcessingException{
@@ -107,8 +105,9 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
         String serviceRequestReference = paymentFeeLink.getPaymentReference();
         PaymentFailureStatusDto paymentFailureStatusDto = paymentDtoMapper.toPaymentFailureStatusDto(serviceRequestReference, "", payment, serviceRequestStatus,paymentStatusBouncedChequeDto.getAmount() );
-        serviceRequestDomainService.sendFailureMessageToTopic(paymentFailureStatusDto, paymentFeeLink.getCallBackUrl());
-
+          if(null != paymentFeeLink.getCallBackUrl()){
+            serviceRequestDomainService.sendFailureMessageToTopic(paymentFailureStatusDto, paymentFeeLink.getCallBackUrl());
+        }
         String jsonpaymentStatusDto = ow.writeValueAsString(paymentFailureStatusDto);
         LOG.info("json format paymentFailureStatusDto to Topic {}",jsonpaymentStatusDto);
         LOG.info("callback URL paymentFailureStatusDto to Topic {}",paymentFeeLink.getCallBackUrl());
