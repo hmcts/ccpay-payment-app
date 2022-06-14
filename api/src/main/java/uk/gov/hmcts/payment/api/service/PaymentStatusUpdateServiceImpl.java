@@ -84,8 +84,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
     }
 
     public Optional<PaymentFailures> searchFailureReference(String failureReference){
-        Optional<PaymentFailures> paymentFailures=  paymentFailureRepository.findByFailureReference(failureReference);
-        return paymentFailures;
+           return paymentFailureRepository.findByFailureReference(failureReference);
     }
 
     public void sendFailureMessageToServiceTopic(PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto) throws JsonProcessingException{
@@ -118,9 +117,9 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
 
         try {
             LOG.info("Enter cancelFailurePaymentRefund method");
-            ResponseEntity<String> updateRefundStatus = CancelRefund(paymentStatusBouncedChequeDto.getPaymentReference());
+            ResponseEntity<String> updateRefundStatus = cancelRefund(paymentStatusBouncedChequeDto.getPaymentReference());
 
-           if (null != updateRefundStatus && updateRefundStatus.getStatusCode().is2xxSuccessful()) {
+           if (updateRefundStatus.getStatusCode().is2xxSuccessful()) {
                 return true;
             }
 
@@ -137,7 +136,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         return false;
     }
 
-    private ResponseEntity<String> CancelRefund(String paymentReference) throws RestClientException {
+    private ResponseEntity<String> cancelRefund(String paymentReference) throws RestClientException {
 
         List<String> serviceAuthTokenPaymentList = new ArrayList<>();
         serviceAuthTokenPaymentList.add(authTokenGenerator.generate());
