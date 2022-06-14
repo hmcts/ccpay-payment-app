@@ -141,7 +141,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         List<String> serviceAuthTokenPaymentList = new ArrayList<>();
         serviceAuthTokenPaymentList.add(authTokenGenerator.generate());
 
-        MultiValueMap<String, String> headerMultiValueMapForRefund = new LinkedMultiValueMap<String, String>();
+        MultiValueMap<String, String> headerMultiValueMapForRefund = new LinkedMultiValueMap<>();
         //Service token
         headerMultiValueMapForRefund.put("ServiceAuthorization", serviceAuthTokenPaymentList);
 

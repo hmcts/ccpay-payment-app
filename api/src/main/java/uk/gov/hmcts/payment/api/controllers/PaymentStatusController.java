@@ -20,8 +20,6 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import javax.validation.Valid;
 import java.util.Optional;
 
-import static org.springframework.web.bind.annotation.RequestMethod.GET;
-
 
 @RestController
 @Api(tags = {"Payment Status"})
