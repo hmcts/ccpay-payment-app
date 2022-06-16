@@ -101,7 +101,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         PaymentFeeLink paymentFeeLink = fees.get(0).getPaymentLink();
          LOG.info("paymentFeeLink getEnterpriseServiceName {}",paymentFeeLink.getEnterpriseServiceName());
          LOG.info("paymentFeeLink getCcdCaseNumber {}",paymentFeeLink.getCcdCaseNumber());
-        PaymentFeeLink  retrieveDelegatingPaymentService = delegatingPaymentService.retrieve(paymentFeeLink, payment.getReference());
+       /* PaymentFeeLink  retrieveDelegatingPaymentService = delegatingPaymentService.retrieve(paymentFeeLink, payment.getReference());
         String serviceRequestStatus = paymentGroup.toPaymentGroupDto(retrieveDelegatingPaymentService).getServiceRequestStatus();
         ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
         String serviceRequestReference = paymentFeeLink.getPaymentReference();
@@ -111,7 +111,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         }
         String jsonpaymentStatusDto = ow.writeValueAsString(paymentFailureStatusDto);
         LOG.info("json format paymentFailureStatusDto to Topic {}",jsonpaymentStatusDto);
-        LOG.info("callback URL paymentFailureStatusDto to Topic {}",paymentFeeLink.getCallBackUrl());
+        LOG.info("callback URL paymentFailureStatusDto to Topic {}",paymentFeeLink.getCallBackUrl());*/
 
     }
 

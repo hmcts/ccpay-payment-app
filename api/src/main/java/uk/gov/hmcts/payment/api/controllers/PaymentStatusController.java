@@ -63,7 +63,7 @@ public class PaymentStatusController {
          PaymentFailures insertPaymentFailures =  paymentStatusUpdateService.insertBounceChequePaymentFailure(paymentStatusBouncedChequeDto);
 
           if(null != insertPaymentFailures.getId()){
-            // paymentStatusUpdateService.sendFailureMessageToServiceTopic(paymentStatusBouncedChequeDto.getPaymentReference(),paymentStatusBouncedChequeDto.getAmount());
+              paymentStatusUpdateService.sendFailureMessageToServiceTopic(paymentStatusBouncedChequeDto.getPaymentReference(),paymentStatusBouncedChequeDto.getAmount());
               refundStatusUpdate = paymentStatusUpdateService.cancelFailurePaymentRefund(paymentStatusBouncedChequeDto.getPaymentReference());
         }
           if (refundStatusUpdate){
@@ -95,7 +95,7 @@ public class PaymentStatusController {
         PaymentFailures insertPaymentFailures = paymentStatusUpdateService.insertChargebackPaymentFailure(paymentStatusChargebackDto);
 
         if(null != insertPaymentFailures.getId()){
-           // paymentStatusUpdateService.sendFailureMessageToServiceTopic(paymentStatusChargebackDto.getPaymentReference(),paymentStatusChargebackDto.getAmount());
+            paymentStatusUpdateService.sendFailureMessageToServiceTopic(paymentStatusChargebackDto.getPaymentReference(),paymentStatusChargebackDto.getAmount());
             refundStatusUpdate = paymentStatusUpdateService.cancelFailurePaymentRefund(paymentStatusChargebackDto.getPaymentReference());
         }
         if (refundStatusUpdate){
