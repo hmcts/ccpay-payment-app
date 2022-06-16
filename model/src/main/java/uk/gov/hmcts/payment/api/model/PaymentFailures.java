@@ -2,24 +2,18 @@ package uk.gov.hmcts.payment.api.model;
 
 
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.TypeDef;
-import uk.gov.hmcts.payment.api.jpaaudit.listner.PaymentFeeEntityListener;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.util.Date;
-import java.sql.Timestamp;
 
 @Entity
-//@EntityListeners(PaymentFeeEntityListener.class)
 @Getter
 @Setter
 @ToString
 @Builder(builderMethodName = "paymentFailuresWith")
 @AllArgsConstructor
 @NoArgsConstructor
-//@Data
 @Table(name = "payment_failures")
 public class PaymentFailures {
 
@@ -63,10 +57,10 @@ public class PaymentFailures {
     private Date failureEventDateTime;
 
     @Column(name = "has_amount_debited")
-    private boolean hasAmountDebited;
+    private String hasAmountDebited;
 
     @Column(name = "representment_success")
-    private boolean representmentSuccess;
+    private String representmentSuccess;
 
     @Column(name = "representment_outcome_date")
     private Date representmentOutcomeDate;

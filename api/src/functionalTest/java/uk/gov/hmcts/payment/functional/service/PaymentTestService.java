@@ -8,10 +8,7 @@ import io.restassured.specification.RequestSpecification;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
-import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
-import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
-import uk.gov.hmcts.payment.api.dto.RetroSpectiveRemissionRequest;
-import uk.gov.hmcts.payment.api.dto.servicerequest.PaymentStatusBouncedChequeDto;
+import uk.gov.hmcts.payment.api.dto.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -159,6 +156,15 @@ public class PaymentTestService {
             .body(paymentStatusBouncedChequeDto)
             .when()
             .post("/payment-failures/bounced-cheque");
+    }
+
+    public Response postChargeback(String serviceToken,
+                                     PaymentStatusChargebackDto paymentStatusChargebackDto) {
+        return givenWithServiceHeaders(serviceToken)
+            .contentType(ContentType.JSON)
+            .body(paymentStatusChargebackDto)
+            .when()
+            .post("/payment-failures/chargeback");
     }
 
 }

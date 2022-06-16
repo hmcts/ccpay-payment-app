@@ -1,4 +1,4 @@
-package uk.gov.hmcts.payment.api.dto.servicerequest;
+package uk.gov.hmcts.payment.api.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
@@ -42,5 +42,5 @@ public class PaymentStatusBouncedChequeDto {
 
     private String additionalReference;
 
-    private Date failure_event_date_time;
+    private Date failureEventDateTime;
 }

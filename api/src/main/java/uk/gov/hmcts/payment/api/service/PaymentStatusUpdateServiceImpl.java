@@ -17,16 +17,18 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.payment.api.domain.service.ServiceRequestDomainService;
 import uk.gov.hmcts.payment.api.dto.PaymentFailureStatusDto;
+import uk.gov.hmcts.payment.api.dto.PaymentStatusChargebackDto;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentStatusDtoMapper;
-import uk.gov.hmcts.payment.api.dto.servicerequest.PaymentStatusBouncedChequeDto;
+import uk.gov.hmcts.payment.api.dto.PaymentStatusBouncedChequeDto;
 import uk.gov.hmcts.payment.api.exception.RefundServiceUnavailableException;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotSuccessException;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -87,9 +89,9 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
            return paymentFailureRepository.findByFailureReference(failureReference);
     }
 
-    public void sendFailureMessageToServiceTopic(PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto) throws JsonProcessingException{
+    public void sendFailureMessageToServiceTopic(String paymentReference, BigDecimal amount) throws JsonProcessingException{
 
-        Payment payment = paymentService.findSavedPayment(paymentStatusBouncedChequeDto.getPaymentReference());
+        Payment payment = paymentService.findSavedPayment(paymentReference);
         List<FeePayApportion> feePayApportionList = paymentService.findByPaymentId(payment.getId());
         if(feePayApportionList.isEmpty()){
             throw new PaymentNotSuccessException("Payment is not successful");
@@ -103,7 +105,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         String serviceRequestStatus = paymentGroup.toPaymentGroupDto(retrieveDelegatingPaymentService).getServiceRequestStatus();
         ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
         String serviceRequestReference = paymentFeeLink.getPaymentReference();
-        PaymentFailureStatusDto paymentFailureStatusDto = paymentDtoMapper.toPaymentFailureStatusDto(serviceRequestReference, "", payment, serviceRequestStatus,paymentStatusBouncedChequeDto.getAmount() );
+        PaymentFailureStatusDto paymentFailureStatusDto = paymentDtoMapper.toPaymentFailureStatusDto(serviceRequestReference, "", payment, serviceRequestStatus, amount);
           if(null != paymentFeeLink.getCallBackUrl()){
             serviceRequestDomainService.sendFailureMessageToTopic(paymentFailureStatusDto, paymentFeeLink.getCallBackUrl());
         }
@@ -113,11 +115,11 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
 
     }
 
-    public boolean cancelFailurePaymentRefund(PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto){
+    public boolean cancelFailurePaymentRefund(String paymentReference){
 
         try {
             LOG.info("Enter cancelFailurePaymentRefund method");
-            ResponseEntity<String> updateRefundStatus = cancelRefund(paymentStatusBouncedChequeDto.getPaymentReference());
+            ResponseEntity<String> updateRefundStatus = cancelRefund(paymentReference);
 
            if (updateRefundStatus.getStatusCode().is2xxSuccessful()) {
                 return true;
@@ -152,4 +154,14 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         LOG.info("Calling Refund  api to cancel refund for failed payment");
         return restTemplateRefundCancel.exchange(refundApiUrl + "/payment/{paymentReference}/action/cancel", HttpMethod.PATCH, entity, String.class, params);
     }
+
+    public PaymentFailures insertChargebackPaymentFailure(PaymentStatusChargebackDto paymentStatusChargebackDto){
+
+        LOG.info("Begin Payment failure insert in payment_failure table",paymentStatusChargebackDto.getPaymentReference());
+        PaymentFailures paymentFailures = paymentStatusDtoMapper.ChargebackRequestMapper(paymentStatusChargebackDto);
+        PaymentFailures insertpaymentFailures=  paymentFailureRepository.save(paymentFailures);
+        LOG.info("Completed  Payment failure insert in payment_failure table",paymentStatusChargebackDto.getPaymentReference());
+        return insertpaymentFailures;
+    }
+
 }

@@ -50,10 +50,10 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: has_amount_debited
-                  type: boolean
+                  type: varchar(50)
               - column:
                   name: representment_success
-                  type: boolean
+                  type: varchar(50)
               - column:
                   name: failure_event_date_time
                   type: TIMESTAMP WITHOUT TIME ZONE

@@ -9,7 +9,8 @@ import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
 import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
-import uk.gov.hmcts.payment.api.dto.servicerequest.PaymentStatusBouncedChequeDto;
+import uk.gov.hmcts.payment.api.dto.PaymentStatusBouncedChequeDto;
+import uk.gov.hmcts.payment.api.dto.PaymentStatusChargebackDto;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 
 import java.math.BigDecimal;
@@ -433,11 +434,27 @@ public class PaymentFixture {
         return PaymentStatusBouncedChequeDto.paymentStatusBouncedChequeRequestWith()
             .reason("RR001")
             .paymentReference(paymentReference)
-            .failure_event_date_time(date)
+            .failureEventDateTime(date)
             .additionalReference("AR1234556")
             .amount(new BigDecimal(100))
             .failureReference(failureReference)
             .ccdCaseNumber(ccdCaseNumber)
+            .build();
+    }
+
+    public static PaymentStatusChargebackDto chargebackRequest(String paymentReference){
+        String ccdCaseNumber = "1111-CC13-" + RandomUtils.nextInt();
+        String failureReference = "FR-111-CC13-" + RandomUtils.nextInt();
+        java.sql.Date date=new java.sql.Date(System.currentTimeMillis());
+        return PaymentStatusChargebackDto.paymentStatusChargebackRequestWith()
+            .reason("RR001")
+            .paymentReference(paymentReference)
+            .failureEventDateTime(date)
+            .additionalReference("AR1234556")
+            .amount(new BigDecimal(100))
+            .failureReference(failureReference)
+            .ccdCaseNumber(ccdCaseNumber)
+            .hasAmountDebited("yes")
             .build();
     }
 }

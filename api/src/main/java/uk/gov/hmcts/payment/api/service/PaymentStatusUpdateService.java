@@ -1,9 +1,11 @@
 package uk.gov.hmcts.payment.api.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import uk.gov.hmcts.payment.api.dto.servicerequest.PaymentStatusBouncedChequeDto;
+import uk.gov.hmcts.payment.api.dto.PaymentStatusBouncedChequeDto;
+import uk.gov.hmcts.payment.api.dto.PaymentStatusChargebackDto;
 import uk.gov.hmcts.payment.api.model.PaymentFailures;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 
 public interface PaymentStatusUpdateService {
@@ -11,8 +13,10 @@ public interface PaymentStatusUpdateService {
     PaymentFailures insertBounceChequePaymentFailure(PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto);
     Optional<PaymentFailures> searchFailureReference(String failureReference);
 
-    void sendFailureMessageToServiceTopic(PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto) throws JsonProcessingException;
+    void sendFailureMessageToServiceTopic(String paymentReference, BigDecimal amount) throws JsonProcessingException;
 
-    boolean cancelFailurePaymentRefund(PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto);
+    boolean cancelFailurePaymentRefund(String paymentReference);
+
+    PaymentFailures insertChargebackPaymentFailure(PaymentStatusChargebackDto paymentStatusChargebackDto);
 
 }

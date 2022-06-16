@@ -8,7 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import uk.gov.hmcts.payment.api.dto.servicerequest.PaymentStatusBouncedChequeDto;
+import uk.gov.hmcts.payment.api.dto.PaymentStatusBouncedChequeDto;
+import uk.gov.hmcts.payment.api.dto.PaymentStatusChargebackDto;
 import uk.gov.hmcts.payment.api.exception.FailureReferenceNotFoundException;
 import uk.gov.hmcts.payment.api.exception.RefundServiceUnavailableException;
 import uk.gov.hmcts.payment.api.model.Payment;
@@ -62,8 +63,8 @@ public class PaymentStatusController {
          PaymentFailures insertPaymentFailures =  paymentStatusUpdateService.insertBounceChequePaymentFailure(paymentStatusBouncedChequeDto);
 
           if(null != insertPaymentFailures.getId()){
-             paymentStatusUpdateService.sendFailureMessageToServiceTopic(paymentStatusBouncedChequeDto);
-              refundStatusUpdate = paymentStatusUpdateService.cancelFailurePaymentRefund(paymentStatusBouncedChequeDto);
+             paymentStatusUpdateService.sendFailureMessageToServiceTopic(paymentStatusBouncedChequeDto.getPaymentReference(),paymentStatusBouncedChequeDto.getAmount());
+              refundStatusUpdate = paymentStatusUpdateService.cancelFailurePaymentRefund(paymentStatusBouncedChequeDto.getPaymentReference());
         }
           if (refundStatusUpdate){
             return new ResponseEntity<>("successful operation", HttpStatus.OK);
@@ -71,6 +72,37 @@ public class PaymentStatusController {
 
         return new ResponseEntity<>("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR);
 
+    }
+
+    @PaymentExternalAPI
+    @PostMapping(path = "/payment-failures/chargeback")
+    public ResponseEntity<String> paymentStatusChargeBack(@Valid @RequestBody PaymentStatusChargebackDto paymentStatusChargebackDto) throws JsonProcessingException {
+
+        LOG.info("Received payment status request bounced-cheque : {}", paymentStatusChargebackDto);
+        boolean refundStatusUpdate= false;
+        Optional<Payment> payment = paymentRepository.findByReference(paymentStatusChargebackDto.getPaymentReference());
+
+        if(payment.isEmpty()){
+            throw new PaymentNotFoundException("No Payments available for the given Payment reference");
+        }
+
+        Optional<PaymentFailures> paymentFailures = paymentStatusUpdateService.searchFailureReference(paymentStatusChargebackDto.getFailureReference());
+
+        if(paymentFailures.isPresent()){
+            throw new FailureReferenceNotFoundException("Request already received for this failure reference");
+        }
+
+        PaymentFailures insertPaymentFailures = paymentStatusUpdateService.insertChargebackPaymentFailure(paymentStatusChargebackDto);
+
+        if(null != insertPaymentFailures.getId()){
+            paymentStatusUpdateService.sendFailureMessageToServiceTopic(paymentStatusChargebackDto.getPaymentReference(),paymentStatusChargebackDto.getAmount());
+            refundStatusUpdate = paymentStatusUpdateService.cancelFailurePaymentRefund(paymentStatusChargebackDto.getPaymentReference());
+        }
+        if (refundStatusUpdate){
+            return new ResponseEntity<>("successful operation", HttpStatus.OK);
+        }
+
+        return new ResponseEntity<>("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ResponseStatus(HttpStatus.TOO_MANY_REQUESTS)

@@ -136,7 +136,7 @@ public class SpringSecurityConfiguration {
                 .antMatchers(HttpMethod.GET, "/reference-data/**").permitAll()
                 .antMatchers(HttpMethod.GET, "/case-payment-orders**").permitAll()
                 .antMatchers(HttpMethod.POST, "/api/**").permitAll()
-                .antMatchers(HttpMethod.POST, "/payment-failures/bounced-cheque").permitAll()
+                .antMatchers(HttpMethod.POST, "/payment-failures/**").permitAll()
                 .anyRequest().authenticated();
         }
     }
