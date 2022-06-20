@@ -166,8 +166,12 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
 
     public  PaymentFailures searchPaymentFailure(String failureReference){
 
-        Optional<PaymentFailures> paymentFailures = Optional.ofNullable(paymentFailureRepository.findByFailureReference(failureReference).orElseThrow(() -> new PaymentNotFoundException("The payment failure  is not found")));;
+        Optional<PaymentFailures> paymentFailures = Optional.empty();
+        paymentFailures = paymentFailureRepository.findByFailureReference(failureReference);
 
-        return paymentFailures.get();
+        if(paymentFailures.isPresent()){
+            return paymentFailures.get();
+        }
+           throw new PaymentNotFoundException("The payment failure  is not found");
     }
 }
