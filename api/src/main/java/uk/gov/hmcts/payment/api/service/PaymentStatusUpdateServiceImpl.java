@@ -128,7 +128,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         } catch (HttpClientErrorException httpClientErrorException) {
 
             if (httpClientErrorException.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
-                throw new PaymentNotFoundException("Refund does not exist for the payment.");
+                throw new PaymentNotFoundException("Refund does not exist for the payment");
             }else{
                 throw new RefundServiceUnavailableException("Refund server unavailable. Please try again");
             }
@@ -164,4 +164,10 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         return insertpaymentFailures;
     }
 
+    public  PaymentFailures searchPaymentFailure(String failureReference){
+
+        Optional<PaymentFailures> paymentFailures = Optional.ofNullable(paymentFailureRepository.findByFailureReference(failureReference).orElseThrow(() -> new PaymentNotFoundException("The payment failure  is not found")));;
+
+        return paymentFailures.get();
+    }
 }

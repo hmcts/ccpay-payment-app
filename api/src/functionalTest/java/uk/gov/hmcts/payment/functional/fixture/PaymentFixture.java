@@ -457,4 +457,33 @@ public class PaymentFixture {
             .hasAmountDebited("yes")
             .build();
     }
+
+    public static PaymentStatusBouncedChequeDto bouncedChequeRequestForFailureRef(String paymentReference, String failureReference){
+        String ccdCaseNumber = "1111-CC13-" + RandomUtils.nextInt();
+        java.sql.Date date=new java.sql.Date(System.currentTimeMillis());
+        return PaymentStatusBouncedChequeDto.paymentStatusBouncedChequeRequestWith()
+            .reason("RR001")
+            .paymentReference(paymentReference)
+            .failureEventDateTime(date)
+            .additionalReference("AR1234556")
+            .amount(new BigDecimal(100))
+            .failureReference(failureReference)
+            .ccdCaseNumber(ccdCaseNumber)
+            .build();
+    }
+
+    public static PaymentStatusChargebackDto chargebackRequestForFailureRef(String paymentReference, String failureReference){
+        String ccdCaseNumber = "1111-CC13-" + RandomUtils.nextInt();
+        java.sql.Date date=new java.sql.Date(System.currentTimeMillis());
+        return PaymentStatusChargebackDto.paymentStatusChargebackRequestWith()
+            .reason("RR001")
+            .paymentReference(paymentReference)
+            .failureEventDateTime(date)
+            .additionalReference("AR1234556")
+            .amount(new BigDecimal(100))
+            .failureReference(failureReference)
+            .ccdCaseNumber(ccdCaseNumber)
+            .hasAmountDebited("yes")
+            .build();
+    }
 }

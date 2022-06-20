@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.WebApplicationContext;
+import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.dto.PaymentReference;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
@@ -41,7 +42,7 @@ import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.*;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -49,6 +50,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
+import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "componenttest"})
@@ -368,6 +370,19 @@ public class PaymentStatusControllerTest {
 
         assertEquals(500, result.getResponse().getStatus());
 
+    }
+
+    @Test
+    public void retrievePaymentFailureByFailureReference() throws Exception {
+
+        when(paymentFailureRepository.findByFailureReference(any())).thenReturn(Optional.of(getPaymentFailures()));
+        MvcResult result = restActions
+            .get("/payment-status/RF12345")
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentFailures response = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentFailures.class);
+        assertNotNull(response);
     }
 
     private PaymentStatusBouncedChequeDto getPaymentStatusBouncedChequeDto() {

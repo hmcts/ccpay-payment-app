@@ -21,6 +21,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import javax.validation.Valid;
 import java.util.Optional;
 
+import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 @RestController
 @Api(tags = {"Payment Status"})
@@ -103,6 +104,16 @@ public class PaymentStatusController {
         }
 
         return new ResponseEntity<>("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+
+    @ApiOperation(value = "Get payment failure by failure reference for functional test", notes = "Get payment failure for supplied failure reference")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Payment failure retrieved")
+    })
+    @RequestMapping(value = "/payment-status/{failureReference}", method = GET)
+    public ResponseEntity<PaymentFailures>  retrievePaymentFailure(@PathVariable("failureReference") String failureReference) {
+        return new ResponseEntity<PaymentFailures>(paymentStatusUpdateService.searchPaymentFailure(failureReference), HttpStatus.OK);
     }
 
     @ResponseStatus(HttpStatus.TOO_MANY_REQUESTS)
