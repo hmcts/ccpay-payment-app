@@ -78,10 +78,10 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
 
     public PaymentFailures insertBounceChequePaymentFailure(PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto){
 
-          LOG.info("Begin Payment failure insert in payment_failure table",paymentStatusBouncedChequeDto.getPaymentReference());
+          LOG.info("Begin Payment failure insert in payment_failure table: {}",paymentStatusBouncedChequeDto.getPaymentReference());
           PaymentFailures paymentFailures = paymentStatusDtoMapper.bounceChequeRequestMapper(paymentStatusBouncedChequeDto);
           PaymentFailures insertpaymentFailures=  paymentFailureRepository.save(paymentFailures);
-          LOG.info("Completed  Payment failure insert in payment_failure table",paymentStatusBouncedChequeDto.getPaymentReference());
+          LOG.info("Completed  Payment failure insert in payment_failure table: {}",paymentStatusBouncedChequeDto.getPaymentReference());
           return insertpaymentFailures;
     }
 
@@ -101,7 +101,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         PaymentFeeLink paymentFeeLink = fees.get(0).getPaymentLink();
          LOG.info("paymentFeeLink getEnterpriseServiceName {}",paymentFeeLink.getEnterpriseServiceName());
          LOG.info("paymentFeeLink getCcdCaseNumber {}",paymentFeeLink.getCcdCaseNumber());
-       /* PaymentFeeLink  retrieveDelegatingPaymentService = delegatingPaymentService.retrieve(paymentFeeLink, payment.getReference());
+        PaymentFeeLink  retrieveDelegatingPaymentService = delegatingPaymentService.retrieve(paymentFeeLink, payment.getReference());
         String serviceRequestStatus = paymentGroup.toPaymentGroupDto(retrieveDelegatingPaymentService).getServiceRequestStatus();
         ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
         String serviceRequestReference = paymentFeeLink.getPaymentReference();
@@ -111,14 +111,14 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         }
         String jsonpaymentStatusDto = ow.writeValueAsString(paymentFailureStatusDto);
         LOG.info("json format paymentFailureStatusDto to Topic {}",jsonpaymentStatusDto);
-        LOG.info("callback URL paymentFailureStatusDto to Topic {}",paymentFeeLink.getCallBackUrl());*/
+        LOG.info("callback URL paymentFailureStatusDto to Topic {}",paymentFeeLink.getCallBackUrl());
 
     }
 
     public boolean cancelFailurePaymentRefund(String paymentReference){
 
         try {
-            LOG.info("Enter cancelFailurePaymentRefund method");
+            LOG.info("Enter cancelFailurePaymentRefund method:: {}");
             ResponseEntity<String> updateRefundStatus = cancelRefund(paymentReference);
 
            if (updateRefundStatus.getStatusCode().is2xxSuccessful()) {
@@ -151,16 +151,16 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         final HttpEntity<String> entity = new HttpEntity<>(headers);
         Map<String, String> params = new HashMap<>();
         params.put("paymentReference", paymentReference);
-        LOG.info("Calling Refund  api to cancel refund for failed payment");
+        LOG.info("Calling Refund  api to cancel refund for failed payment: {}");
         return restTemplateRefundCancel.exchange(refundApiUrl + "/payment/{paymentReference}/action/cancel", HttpMethod.PATCH, entity, String.class, params);
     }
 
     public PaymentFailures insertChargebackPaymentFailure(PaymentStatusChargebackDto paymentStatusChargebackDto){
 
-        LOG.info("Begin Payment failure insert in payment_failure table",paymentStatusChargebackDto.getPaymentReference());
+        LOG.info("Begin Payment failure insert in payment_failure table: {}",paymentStatusChargebackDto.getPaymentReference());
         PaymentFailures paymentFailures = paymentStatusDtoMapper.ChargebackRequestMapper(paymentStatusChargebackDto);
         PaymentFailures insertpaymentFailures=  paymentFailureRepository.save(paymentFailures);
-        LOG.info("Completed  Payment failure insert in payment_failure table",paymentStatusChargebackDto.getPaymentReference());
+        LOG.info("Completed  Payment failure insert in payment_failure table: {}",paymentStatusChargebackDto.getPaymentReference());
         return insertpaymentFailures;
     }
 

@@ -21,7 +21,6 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import javax.validation.Valid;
 import java.util.Optional;
 
-import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 @RestController
 @Api(tags = {"Payment Status"})
@@ -79,7 +78,7 @@ public class PaymentStatusController {
     @PostMapping(path = "/payment-failures/chargeback")
     public ResponseEntity<String> paymentStatusChargeBack(@Valid @RequestBody PaymentStatusChargebackDto paymentStatusChargebackDto) throws JsonProcessingException {
 
-        LOG.info("Received payment status request bounced-cheque : {}", paymentStatusChargebackDto);
+        LOG.info("Received payment status request chargeback : {}", paymentStatusChargebackDto);
         boolean refundStatusUpdate= false;
         Optional<Payment> payment = paymentRepository.findByReference(paymentStatusChargebackDto.getPaymentReference());
 
@@ -111,9 +110,10 @@ public class PaymentStatusController {
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Payment failure retrieved")
     })
-    @RequestMapping(value = "/payment-status/{failureReference}", method = GET)
+    @GetMapping
+    @RequestMapping(value = "/payment-status/{failureReference}")
     public ResponseEntity<PaymentFailures>  retrievePaymentFailure(@PathVariable("failureReference") String failureReference) {
-        return new ResponseEntity<PaymentFailures>(paymentStatusUpdateService.searchPaymentFailure(failureReference), HttpStatus.OK);
+        return new ResponseEntity<>(paymentStatusUpdateService.searchPaymentFailure(failureReference), HttpStatus.OK);
     }
 
     @ResponseStatus(HttpStatus.TOO_MANY_REQUESTS)
@@ -131,7 +131,6 @@ public class PaymentStatusController {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler( RefundServiceUnavailableException.class)
     public String return500( RefundServiceUnavailableException ex) {
-        LOG.error("Internal Server Error :", ex);
         return ex.getMessage();
     }
 
