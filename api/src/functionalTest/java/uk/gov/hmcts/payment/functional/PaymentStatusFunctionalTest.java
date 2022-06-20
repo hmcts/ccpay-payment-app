@@ -15,6 +15,7 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
 import uk.gov.hmcts.payment.api.dto.PaymentStatusBouncedChequeDto;
 import uk.gov.hmcts.payment.api.dto.PaymentStatusChargebackDto;
+import uk.gov.hmcts.payment.api.model.PaymentFailures;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
 import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
 import uk.gov.hmcts.payment.functional.fixture.PaymentFixture;
@@ -27,8 +28,7 @@ import javax.inject.Inject;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.NO_CONTENT;
+import static org.springframework.http.HttpStatus.*;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CASE_WORKER_GROUP;
 
 @RunWith(SpringIntegrationSerenityRunner.class)
@@ -102,6 +102,12 @@ public class PaymentStatusFunctionalTest {
             SERVICE_TOKEN_PAYMENT,
             paymentStatusBouncedChequeDto);
 
+        PaymentFailures paymentsFailureResponse =
+            paymentTestService.getFailurePayment(USER_TOKEN, SERVICE_TOKEN, paymentStatusBouncedChequeDto.getFailureReference()).then()
+                .statusCode(OK.value()).extract().as(PaymentFailures.class);
+
+        assertThat(paymentsFailureResponse.getFailureReference()).isEqualTo(paymentStatusBouncedChequeDto.getFailureReference());
+
         assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
         assertThat(bounceChequeResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
 
@@ -133,7 +139,6 @@ public class PaymentStatusFunctionalTest {
         Response bounceChequeResponse = paymentTestService.postBounceCheque(
             SERVICE_TOKEN_PAYMENT,
             paymentStatusBouncedChequeDto);
-
         assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
         assertThat(bounceChequeResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND.value());
 
@@ -223,6 +228,12 @@ public class PaymentStatusFunctionalTest {
             SERVICE_TOKEN_PAYMENT,
             paymentStatusChargebackDto);
 
+        PaymentFailures paymentsFailureResponse =
+            paymentTestService.getFailurePayment(USER_TOKEN, SERVICE_TOKEN, paymentStatusChargebackDto.getFailureReference()).then()
+                .statusCode(OK.value()).extract().as(PaymentFailures.class);
+
+        assertThat(paymentsFailureResponse.getFailureReference()).isEqualTo(paymentStatusChargebackDto.getFailureReference());
+
         assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
         assertThat(chargebackResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
 
@@ -254,7 +265,6 @@ public class PaymentStatusFunctionalTest {
         Response chargebackResponse = paymentTestService.postChargeback(
             SERVICE_TOKEN_PAYMENT,
             paymentStatusChargebackDto);
-
         assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
         assertThat(chargebackResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND.value());
 

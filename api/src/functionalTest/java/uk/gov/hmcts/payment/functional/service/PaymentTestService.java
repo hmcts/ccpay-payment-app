@@ -167,4 +167,10 @@ public class PaymentTestService {
             .post("/payment-failures/chargeback");
     }
 
+    public Response getFailurePayment(String userToken, String serviceToken, String failureReference) {
+        return givenWithAuthHeaders(userToken, serviceToken)
+            .when()
+            .get("/payment-status/{failureReference}", failureReference);
+    }
+
 }
