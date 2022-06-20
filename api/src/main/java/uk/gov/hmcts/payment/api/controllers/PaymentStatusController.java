@@ -110,8 +110,7 @@ public class PaymentStatusController {
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Payment failure retrieved")
     })
-    @GetMapping
-    @RequestMapping(value = "/payment-status/{failureReference}")
+    @GetMapping("/payment-status/{failureReference}")
     public ResponseEntity<PaymentFailures>  retrievePaymentFailure(@PathVariable("failureReference") String failureReference) {
         return new ResponseEntity<>(paymentStatusUpdateService.searchPaymentFailure(failureReference), HttpStatus.OK);
     }
