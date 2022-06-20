@@ -118,7 +118,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
     public boolean cancelFailurePaymentRefund(String paymentReference){
 
         try {
-            LOG.info("Enter cancelFailurePaymentRefund method:: {}");
+            LOG.info("Enter cancelFailurePaymentRefund method:: {}",paymentReference );
             ResponseEntity<String> updateRefundStatus = cancelRefund(paymentReference);
 
            if (updateRefundStatus.getStatusCode().is2xxSuccessful()) {
@@ -151,7 +151,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         final HttpEntity<String> entity = new HttpEntity<>(headers);
         Map<String, String> params = new HashMap<>();
         params.put("paymentReference", paymentReference);
-        LOG.info("Calling Refund  api to cancel refund for failed payment: {}");
+        LOG.info("Calling Refund  api to cancel refund for failed payment: {}",paymentReference);
         return restTemplateRefundCancel.exchange(refundApiUrl + "/payment/{paymentReference}/action/cancel", HttpMethod.PATCH, entity, String.class, params);
     }
 
@@ -166,7 +166,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
 
     public  PaymentFailures searchPaymentFailure(String failureReference){
 
-        Optional<PaymentFailures> paymentFailures = Optional.empty();
+        Optional<PaymentFailures> paymentFailures;
         paymentFailures = paymentFailureRepository.findByFailureReference(failureReference);
 
         if(paymentFailures.isPresent()){

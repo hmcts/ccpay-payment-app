@@ -121,6 +121,7 @@ public class PaymentStatusUpdateServiceImplTest {
     public void returnRefundServiceUnavailableExceptionWhenRefundReturnHttpServerErrorExceptionForBounceCheque(){
 
         PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto = getPaymentStatusBouncedChequeDto();
+        String PaymentReference = paymentStatusBouncedChequeDto.getPaymentReference();
 
         MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
         headers.add("ServiceAuthorization", "service-auth");
@@ -130,7 +131,7 @@ public class PaymentStatusUpdateServiceImplTest {
             any(HttpEntity.class),
             eq(String.class), any(Map.class)))
             .thenThrow(new HttpServerErrorException(HttpStatus.NOT_FOUND));
-        assertThrows(RefundServiceUnavailableException.class, () ->paymentStatusUpdateServiceImpl.cancelFailurePaymentRefund(paymentStatusBouncedChequeDto.getPaymentReference()));
+        assertThrows(RefundServiceUnavailableException.class, () ->paymentStatusUpdateServiceImpl.cancelFailurePaymentRefund(PaymentReference));
 
     }
 
@@ -138,7 +139,7 @@ public class PaymentStatusUpdateServiceImplTest {
     public void returnPaymentNotFoundExceptionWhenRefundReturnHttpClientErrorExceptionForBounceCheque(){
 
         PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto = getPaymentStatusBouncedChequeDto();
-
+        String PaymentReference = paymentStatusBouncedChequeDto.getPaymentReference();
         MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
         headers.add("ServiceAuthorization", "service-auth");
         when(authTokenGenerator.generate()).thenReturn("service auth token");
@@ -147,7 +148,7 @@ public class PaymentStatusUpdateServiceImplTest {
             any(HttpEntity.class),
             eq(String.class), any(Map.class)))
             .thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
-        assertThrows(PaymentNotFoundException.class, () ->paymentStatusUpdateServiceImpl.cancelFailurePaymentRefund(paymentStatusBouncedChequeDto.getPaymentReference()));
+        assertThrows(PaymentNotFoundException.class, () ->paymentStatusUpdateServiceImpl.cancelFailurePaymentRefund(PaymentReference));
 
     }
 
@@ -205,7 +206,7 @@ public class PaymentStatusUpdateServiceImplTest {
     public void returnRefundServiceUnavailableExceptionWhenRefundReturnHttpServerErrorExceptionForChargeback(){
 
         PaymentStatusChargebackDto paymentStatusChargebackDto =getPaymentStatusChargebackDto();
-
+          String paymentReference = paymentStatusChargebackDto.getPaymentReference();
         MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
         headers.add("ServiceAuthorization", "service-auth");
         when(authTokenGenerator.generate()).thenReturn("service auth token");
@@ -214,7 +215,7 @@ public class PaymentStatusUpdateServiceImplTest {
             any(HttpEntity.class),
             eq(String.class), any(Map.class)))
             .thenThrow(new HttpServerErrorException(HttpStatus.NOT_FOUND));
-        assertThrows(RefundServiceUnavailableException.class, () ->paymentStatusUpdateServiceImpl.cancelFailurePaymentRefund(paymentStatusChargebackDto.getPaymentReference()));
+        assertThrows(RefundServiceUnavailableException.class, () ->paymentStatusUpdateServiceImpl.cancelFailurePaymentRefund(paymentReference));
 
     }
 
@@ -222,7 +223,7 @@ public class PaymentStatusUpdateServiceImplTest {
     public void returnPaymentNotFoundExceptionWhenRefundReturnHttpClientErrorExceptionForChargeback(){
 
         PaymentStatusChargebackDto paymentStatusChargebackDto =getPaymentStatusChargebackDto();
-
+        String paymentReference = paymentStatusChargebackDto.getPaymentReference();
         MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
         headers.add("ServiceAuthorization", "service-auth");
         when(authTokenGenerator.generate()).thenReturn("service auth token");
@@ -231,7 +232,7 @@ public class PaymentStatusUpdateServiceImplTest {
             any(HttpEntity.class),
             eq(String.class), any(Map.class)))
             .thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
-        assertThrows(PaymentNotFoundException.class, () ->paymentStatusUpdateServiceImpl.cancelFailurePaymentRefund(paymentStatusChargebackDto.getPaymentReference()));
+        assertThrows(PaymentNotFoundException.class, () ->paymentStatusUpdateServiceImpl.cancelFailurePaymentRefund(paymentReference));
 
     }
 
