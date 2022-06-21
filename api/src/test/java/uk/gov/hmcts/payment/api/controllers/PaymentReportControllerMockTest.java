@@ -22,9 +22,7 @@ import java.util.Date;
 import java.util.Optional;
 
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -132,6 +130,6 @@ public class PaymentReportControllerMockTest {
             .param("service_name", "UNKNOWN"))
             .andExpect(status().isBadRequest());
 
-        verifyZeroInteractions(paymentsReportFacade);
+        verifyNoInteractions(paymentsReportFacade);
     }
 }

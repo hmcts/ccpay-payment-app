@@ -24,6 +24,7 @@ import uk.gov.hmcts.payment.api.servicebus.TopicClientProxy;
 
 import java.util.Arrays;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -76,7 +77,7 @@ public class CallbackServiceImplTest {
 
         callbackService.callback(paymentFeeLink, paymentFeeLink.getPayments().get(0));
 
-        verifyZeroInteractions(topicClient);
+        verifyNoInteractions(topicClient);
 
     }
 
@@ -94,12 +95,27 @@ public class CallbackServiceImplTest {
     }
 
     @Test
-    public void testThatWhenFeatureIsOffInPaymentFeeLinkBusIsNotCalled() throws ServiceBusException, InterruptedException {
+    public void testThatWhenFeatureIsOffInPaymentFeeLinkBusIsNotCalled() {
 
         when(ff4j.check(CallbackService.FEATURE)).thenReturn(false);
 
         callbackService.callback(paymentFeeLink, paymentFeeLink.getPayments().get(0));
 
-        verifyZeroInteractions(topicClient);
+        verifyNoInteractions(topicClient);
+    }
+
+    @Test
+    public void testThatWhenThreadInterruptedBusIsNotCalled() {
+
+        Thread.currentThread().interrupt();
+
+        paymentFeeLink.getPayments().get(0).setServiceCallbackUrl(null);
+        paymentFeeLink.setCallBackUrl("dummy");
+
+        when(paymentGroupDtoMapper.toPaymentGroupDto(any())).thenReturn(new PaymentGroupDto());
+
+        callbackService.callback(paymentFeeLink, paymentFeeLink.getPayments().get(0));
+
+        assertTrue(Thread.interrupted());
     }
 }
