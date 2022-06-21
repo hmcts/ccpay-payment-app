@@ -91,6 +91,15 @@ public class CallbackServiceImplTest {
         callbackService.callback(paymentFeeLink, paymentFeeLink.getPayments().get(0));
 
         verify((topicClient), times(1)).send(any(IMessage.class));
+    }
 
+    @Test
+    public void testThatWhenFeatureIsOffInPaymentFeeLinkBusIsNotCalled() throws ServiceBusException, InterruptedException {
+
+        when(ff4j.check(CallbackService.FEATURE)).thenReturn(false);
+
+        callbackService.callback(paymentFeeLink, paymentFeeLink.getPayments().get(0));
+
+        verifyZeroInteractions(topicClient);
     }
 }
