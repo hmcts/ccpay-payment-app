@@ -27,11 +27,20 @@ import uk.gov.hmcts.payment.api.componenttests.PaymentDbBackdoor;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.controllers.MaintenanceJobsController;
+import uk.gov.hmcts.payment.api.domain.service.ServiceRequestDomainService;
+import uk.gov.hmcts.payment.api.dto.CasePaymentRequest;
+import uk.gov.hmcts.payment.api.dto.ServiceRequestResponseDto;
+import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
+import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestFeeDto;
 import uk.gov.hmcts.payment.api.service.CallbackService;
 import uk.gov.hmcts.payment.api.servicebus.TopicClientProxy;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
+
+import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.List;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
@@ -81,6 +90,8 @@ public class MaintenanceJobsControllerTest extends PaymentsDataUtil {
     private MaintenanceJobsController controller;
     @Autowired
     private ObjectMapper objectMapper;
+    @Autowired
+    ServiceRequestDomainService serviceRequestDomainServiceMock;
 
     @Before
     public void setUp() {
@@ -164,8 +175,106 @@ public class MaintenanceJobsControllerTest extends PaymentsDataUtil {
 
     }
 
+    /*@Test
+    public void testThatCallbackIsInvokedWhenAStatusChangeIsDetectedOnGovPay() throws Exception {
+
+        // setup
+
+        stubFor(post(urlPathMatching("/v1/payments"))
+                .willReturn(aResponse()
+                        .withStatus(201)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(contentsOf("gov-pay-responses/create-payment-response.json"))));
+
+        stubFor(get(urlPathMatching("/v1/payments/ak8gtvb438drmp59cs7ijppr3i"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(contentsOf("gov-pay-responses/get-payment-response-created.json"))));
+
+        // Create a Service Request
+        ServiceRequestDto serviceRequestDto = ServiceRequestDto.serviceRequestDtoWith()
+                .caseReference("123245677")
+                .hmctsOrgId("MoneyClaimCase")
+                .ccdCaseNumber("8689869686968696")
+                .fees(getMultipleFees())
+                .callBackUrl("http://callback/url")
+                .casePaymentRequest(getCasePaymentRequest())
+                .build();
+        ServiceRequestResponseDto serviceRequestResponseDto
+                = ServiceRequestResponseDto.serviceRequestResponseDtoWith().serviceRequestReference("2020-1234567890123").build();
+        when(serviceRequestDomainServiceMock.create(serviceRequestDto, any())).thenReturn(serviceRequestResponseDto);
+
+        // Create Payment
+        MvcResult result = restActions
+                .withHeader("service-callback-url", "")
+                .post("/card-payments", cardPaymentRequest())
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        // Run status update => service callback is not invoked
+
+        restActions.
+                patch("/jobs/card-payments-status-update", null)
+                .andExpect(status().isOk());
+
+        verify(topicClientProxy, times(0)).send(any(IMessage.class));
+
+        // Update status in gov pay
+
+        stubFor(get(urlPathMatching("/v1/payments/ak8gtvb438drmp59cs7ijppr3i"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(contentsOf("gov-pay-responses/get-payment-response.json"))));
+
+        // Run status update => service callback is invoked
+
+        restActions.
+                patch("/jobs/card-payments-status-update", null)
+                .andExpect(status().isOk());
+
+        verify(topicClientProxy, times(1)).send(any(IMessage.class));
+
+
+        // Run status update again => Delegating service is not called
+
+        restActions.
+                patch("/jobs/card-payments-status-update", null)
+                .andExpect(status().isOk());
+
+        verify(topicClientProxy, times(1)).send(any(IMessage.class));
+
+    }*/
+
     private CardPaymentRequest cardPaymentRequest() throws Exception {
         return objectMapper.readValue(requestJson().getBytes(), CardPaymentRequest.class);
     }
 
+    private List<ServiceRequestFeeDto> getMultipleFees() {
+        ServiceRequestFeeDto fee1 = ServiceRequestFeeDto.feeDtoWith()
+                .calculatedAmount(new BigDecimal("100"))
+                .code("FEE100")
+                .version("1")
+                .volume(1)
+                .build();
+
+        ServiceRequestFeeDto fee2 = ServiceRequestFeeDto.feeDtoWith()
+                .calculatedAmount(new BigDecimal("200"))
+                .code("FEE102")
+                .version("1")
+                .volume(1)
+                .build();
+
+        return Arrays.asList(fee1, fee2);
+    }
+
+    private CasePaymentRequest getCasePaymentRequest(){
+        CasePaymentRequest casePaymentRequest = CasePaymentRequest.casePaymentRequestWith()
+                .action("action")
+                .responsibleParty("party")
+                .build();
+
+        return casePaymentRequest;
+    }
 }

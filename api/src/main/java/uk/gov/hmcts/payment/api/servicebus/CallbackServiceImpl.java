@@ -8,13 +8,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.dto.PaymentStatusDto;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
+import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.CallbackService;
 
 import java.util.Collections;
-
 
 @Service
 public class CallbackServiceImpl implements CallbackService {
@@ -28,6 +29,9 @@ public class CallbackServiceImpl implements CallbackService {
     private final FF4j ff4j;
 
     @Autowired
+    private PaymentGroupDtoMapper paymentGroup;
+
+    @Autowired
     public CallbackServiceImpl(PaymentDtoMapper paymentDtoMapper, ObjectMapper objectMapper, TopicClientProxy topicClient, FF4j ff4j) {
         this.paymentDtoMapper = paymentDtoMapper;
         this.objectMapper = objectMapper;
@@ -39,32 +43,46 @@ public class CallbackServiceImpl implements CallbackService {
 
     public synchronized void callback(PaymentFeeLink paymentFeeLink, Payment payment) {
 
-        if (payment.getServiceCallbackUrl() == null) {
-            LOG.warn("Service callback url is null");
-            return;
-        }
-
         if (!ff4j.check(CallbackService.FEATURE)) {
             LOG.warn("Service callback feature is disabled");
             return;
         }
 
-        PaymentDto dto = paymentDtoMapper.toResponseDto(paymentFeeLink, payment);
+        if (null != payment.getServiceCallbackUrl()) {
+            PaymentDto dto = paymentDtoMapper.toResponseDto(paymentFeeLink, payment);
+            try {
 
-        try {
+                Message msg = new Message(objectMapper.writeValueAsString(dto));
 
-            Message msg = new Message(objectMapper.writeValueAsString(dto));
+                msg.setContentType("application/json");
+                msg.setLabel("Service Callback Message");
+                msg.setProperties(Collections.singletonMap("serviceCallbackUrl", payment.getServiceCallbackUrl()));
 
-            msg.setContentType("application/json");
-            msg.setLabel("Service Callback Message");
-            msg.setProperties(Collections.singletonMap("serviceCallbackUrl", payment.getServiceCallbackUrl()));
+                topicClient.send(msg);
 
-            topicClient.send(msg);
+            } catch (Exception e) {
+                LOG.error("Error", e);
+            }
+        } else if (null == paymentFeeLink.getCallBackUrl()) {
+            String serviceRequestStatus =
+                    paymentGroup.toPaymentGroupDto(paymentFeeLink).getServiceRequestStatus();
+            PaymentStatusDto paymentStatusDto =
+                    paymentDtoMapper.toPaymentStatusDto(paymentFeeLink.getPaymentReference(), "", payment,
+                            serviceRequestStatus);
+            try {
 
-        } catch (Exception e) {
-            LOG.error("Error", e);
+                Message msg = new Message(objectMapper.writeValueAsString(paymentStatusDto));
+
+                msg.setContentType("application/json");
+                msg.setLabel("Service Callback Message");
+                msg.setProperties(Collections.singletonMap("serviceCallbackUrl", paymentFeeLink.getCallBackUrl()));
+
+                topicClient.send(msg);
+
+            } catch (Exception e) {
+                LOG.error("Error", e);
+            }
         }
-
     }
 
 }

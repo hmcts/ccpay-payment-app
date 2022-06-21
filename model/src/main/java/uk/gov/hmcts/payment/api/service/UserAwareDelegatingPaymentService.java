@@ -72,10 +72,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
     @Autowired
     private ServiceToTokenMap serviceToTokenMap;
 
-
     @Value("${gov.pay.url}") String govpayUrl;
-
-
 
     @Autowired
     public UserAwareDelegatingPaymentService(UserIdSupplier userIdSupplier,
@@ -352,9 +349,6 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
             }
         }
 
-
-
-
         try {
             GovPayPayment govPayPayment = delegateGovPay.retrieve(payment.getExternalReference(), paymentService);
 
@@ -385,26 +379,28 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
                     }
                     else {
                         payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name(govPayPayment.getState().getStatus().toLowerCase()).build());
-                        LOG.info(" Payment updated for failure Gov.uk : {}" ,payment.getCcdCaseNumber());
-                        LOG.info(" Payment updated for failure Gov.uk : {}" ,payment.getExternalReference());
-                        LOG.info(" Payment updated for failure Gov.uk : {}" ,payment.getPaymentStatus().getName());
-                        LOG.info("payment saved payment table succussfully for failure case");
+                        LOG.info(" CcdCaseNumber updated for failure Gov.uk : {}" ,payment.getCcdCaseNumber());
+                        LOG.info(" ExternalReference updated for failure Gov.uk : {}" ,payment.getExternalReference());
+                        LOG.info(" PaymentStatus updated for failure Gov.uk : {}" ,payment.getPaymentStatus().getName());
+                        LOG.info("payment saved payment table successfully for failure case");
                         paymentFeeLinkRepository.save(paymentFeeLink);
                     }
                 }
 
-                if (shouldCallBack && payment.getServiceCallbackUrl() != null) {
-                    callbackService.callback(paymentFeeLink, payment);
+                if (shouldCallBack && (null != payment.getServiceCallbackUrl() || null != paymentFeeLink.getCallBackUrl())) {
+                        callbackService.callback(paymentFeeLink, payment);
+                } else {
+                    LOG.warn("Service callback url is null!");
                 }
             }
         } catch (GovPayPaymentNotFoundException | NullPointerException pnfe) {
             LOG.error("Gov Pay payment not found id is:{} and govpay id is:{}", payment.getExternalReference(), paymentReference);
         }
 
-        LOG.info(" Payment updated for failure Gov.uk response : {}" ,paymentFeeLink.getCcdCaseNumber());
-        LOG.info(" Payment updated for failure Gov.uk response : {}" ,paymentFeeLink.getPaymentReference());
-        LOG.info(" Payment updated for failure Gov.uk response : {}" ,paymentFeeLink.getPayments());
-        LOG.info("payment saved payment table succussfully for failure case : Out");
+        LOG.info(" CcdCaseNumber updated for failure Gov.uk response : {}" ,paymentFeeLink.getCcdCaseNumber());
+        LOG.info(" PaymentReference updated for failure Gov.uk response : {}" ,paymentFeeLink.getPaymentReference());
+        LOG.info(" Payments updated for failure Gov.uk response : {}" ,paymentFeeLink.getPayments());
+        LOG.info("payment saved payment table successfully for failure case : Out");
 
         return paymentFeeLink;
     }
