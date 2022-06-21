@@ -63,7 +63,7 @@ public class CallbackServiceImpl implements CallbackService {
             } catch (Exception e) {
                 LOG.error("Error", e);
             }
-        } else if (null == paymentFeeLink.getCallBackUrl()) {
+        } else if (null != paymentFeeLink.getCallBackUrl()) {
             String serviceRequestStatus =
                     paymentGroup.toPaymentGroupDto(paymentFeeLink).getServiceRequestStatus();
             PaymentStatusDto paymentStatusDto =
