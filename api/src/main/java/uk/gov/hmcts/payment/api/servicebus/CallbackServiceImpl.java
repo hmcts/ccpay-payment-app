@@ -80,6 +80,10 @@ public class CallbackServiceImpl implements CallbackService {
 
                 topicClient.send(msg);
 
+            } catch (InterruptedException e) {
+                LOG.warn("Interrupted!", e);
+                // Restore interrupted state...
+                Thread.currentThread().interrupt();
             } catch (Exception e) {
                 LOG.error("Error", e);
             }
