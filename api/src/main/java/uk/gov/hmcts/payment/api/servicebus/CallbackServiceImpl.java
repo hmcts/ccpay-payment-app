@@ -28,15 +28,16 @@ public class CallbackServiceImpl implements CallbackService {
 
     private final FF4j ff4j;
 
-    @Autowired
-    private PaymentGroupDtoMapper paymentGroup;
+    private final PaymentGroupDtoMapper paymentGroupDtoMapper;
 
     @Autowired
-    public CallbackServiceImpl(PaymentDtoMapper paymentDtoMapper, ObjectMapper objectMapper, TopicClientProxy topicClient, FF4j ff4j) {
+    public CallbackServiceImpl(PaymentDtoMapper paymentDtoMapper, ObjectMapper objectMapper,
+                               TopicClientProxy topicClient, FF4j ff4j, PaymentGroupDtoMapper paymentGroupDtoMapper) {
         this.paymentDtoMapper = paymentDtoMapper;
         this.objectMapper = objectMapper;
         this.topicClient = topicClient;
         this.ff4j = ff4j;
+        this.paymentGroupDtoMapper = paymentGroupDtoMapper;
     }
 
     private static final Logger LOG = LoggerFactory.getLogger(CallbackServiceImpl.class);
@@ -65,7 +66,7 @@ public class CallbackServiceImpl implements CallbackService {
             }
         } else if (null != paymentFeeLink.getCallBackUrl()) {
             String serviceRequestStatus =
-                    paymentGroup.toPaymentGroupDto(paymentFeeLink).getServiceRequestStatus();
+                    paymentGroupDtoMapper.toPaymentGroupDto(paymentFeeLink).getServiceRequestStatus();
             PaymentStatusDto paymentStatusDto =
                     paymentDtoMapper.toPaymentStatusDto(paymentFeeLink.getPaymentReference(), "", payment,
                             serviceRequestStatus);
