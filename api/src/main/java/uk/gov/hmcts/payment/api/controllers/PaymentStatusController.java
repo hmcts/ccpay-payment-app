@@ -44,7 +44,7 @@ public class PaymentStatusController {
     })
     @PaymentExternalAPI
     @PostMapping(path = "/payment-failures/bounced-cheque")
-    public ResponseEntity<String> paymentStatusBouncedCheque(@Valid @RequestBody PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto) throws JsonProcessingException {
+    public ResponseEntity<String> paymentStatusBouncedCheque(@Valid @RequestBody PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto){
 
         LOG.info("Received payment status request bounced-cheque : {}", paymentStatusBouncedChequeDto);
         boolean refundStatusUpdate= false;
