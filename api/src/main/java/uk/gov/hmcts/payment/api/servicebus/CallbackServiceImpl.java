@@ -62,7 +62,7 @@ public class CallbackServiceImpl implements CallbackService {
                 topicClient.send(msg);
 
             } catch (Exception e) {
-                LOG.error("Error", e, e.getMessage());
+                Thread.currentThread().interrupt();
             }
         } else if (null != paymentFeeLink.getCallBackUrl()) {
             String serviceRequestStatus =
@@ -81,7 +81,7 @@ public class CallbackServiceImpl implements CallbackService {
                 topicClient.send(msg);
 
             } catch (Exception e) {
-                LOG.error("Error", e, e.getMessage());
+                Thread.currentThread().interrupt();
             }
         }
     }
