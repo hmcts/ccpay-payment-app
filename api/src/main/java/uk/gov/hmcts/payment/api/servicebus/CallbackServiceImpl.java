@@ -50,8 +50,9 @@ public class CallbackServiceImpl implements CallbackService {
         }
 
         if (null != payment.getServiceCallbackUrl()) {
-            PaymentDto dto = paymentDtoMapper.toResponseDto(paymentFeeLink, payment);
             try {
+                PaymentDto dto = paymentDtoMapper.toResponseDto(paymentFeeLink, payment);
+                LOG.info("PaymentDto: {}", dto);
 
                 Message msg = new Message(objectMapper.writeValueAsString(dto));
 
@@ -65,13 +66,13 @@ public class CallbackServiceImpl implements CallbackService {
                 Thread.currentThread().interrupt();
             }
         } else if (null != paymentFeeLink.getCallBackUrl()) {
-            String serviceRequestStatus =
-                    paymentGroupDtoMapper.toPaymentGroupDto(paymentFeeLink).getServiceRequestStatus();
-            PaymentStatusDto paymentStatusDto =
-                    paymentDtoMapper.toPaymentStatusDto(paymentFeeLink.getPaymentReference(), "", payment,
-                            serviceRequestStatus);
             try {
-
+                String serviceRequestStatus =
+                        paymentGroupDtoMapper.toPaymentGroupDto(paymentFeeLink).getServiceRequestStatus();
+                PaymentStatusDto paymentStatusDto =
+                        paymentDtoMapper.toPaymentStatusDto(paymentFeeLink.getPaymentReference(), "", payment,
+                                serviceRequestStatus);
+                LOG.info("PaymentStatusDto: {}", paymentStatusDto);
                 Message msg = new Message(objectMapper.writeValueAsString(paymentStatusDto));
 
                 msg.setContentType("application/json");

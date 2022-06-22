@@ -326,9 +326,9 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
 
         String paymentService = payment.getS2sServiceName();
 
-        /**If block gets service name from paymentFeeLink table from enterprise service name column
-         * This is to get the right service name to pass to govpay
-         * Payments made via service request controller will trigger this if block
+        /*If block gets service name from paymentFeeLink table from enterprise service name column
+          This is to get the right service name to pass to govpay
+          Payments made via service request controller will trigger this if block
          */
         if(payment.getInternalReference() != null){
             LOG.info("Inside NEW card/pba payment service mapper block");
@@ -373,7 +373,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
                 boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature", false);
                 LOG.info("ApportionFeature Flag Value in UserAwareDelegatingPaymentService : {}", apportionFeature);
                 if (apportionFeature) {
-                    if (govPayPayment.getState().getStatus().toLowerCase().equalsIgnoreCase("success")) {
+                    if (govPayPayment.getState().getStatus().equalsIgnoreCase("success")) {
                         LOG.info("Update Fee Amount Due as Payment Status received from GovPAY as SUCCESS!!!");
                         feePayApportionService.updateFeeAmountDue(payment);
                     }
