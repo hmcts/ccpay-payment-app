@@ -60,6 +60,9 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
     @Value("${refund.api.url}")
     private String refundApiUrl;
 
+    @Autowired
+    PaymentFailureRepository paymentFailureRepository;
+
     public ResponseEntity<RefundResponse> createRefund(PaymentRefundRequest paymentRefundRequest, MultiValueMap<String, String> headers) {
 
         Payment payment = paymentRepository.findByReference(paymentRefundRequest.getPaymentReference()).orElseThrow(PaymentNotFoundException::new);
@@ -180,6 +183,17 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
     }
 
     private void validateThePaymentBeforeInitiatingRefund(Payment payment) {
+
+        Optional<List<PaymentFailures>> paymentFailuresList;
+        paymentFailuresList = paymentFailureRepository.findByPaymentReference(payment.getReference());
+
+        if(paymentFailuresList.isPresent()){
+            boolean match = paymentFailuresList.get().stream().anyMatch(paymentFailuresList1 -> paymentFailuresList1.getRepresentmentSuccess() == null || paymentFailuresList1.getRepresentmentSuccess().equalsIgnoreCase("no"));
+           if(match) {
+               throw new PaymentNotSuccessException("Refund can be possible if payment is successful");
+           }
+        }
+
         //payment should be PBA check
         if (!checkIfPaymentIsPBA.test(payment)) {
             throw new NonPBAPaymentException("Refund currently supported for PBA Payment Channel only");
