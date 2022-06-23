@@ -63,6 +63,8 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
     @Autowired
     PaymentFailureRepository paymentFailureRepository;
 
+    private final static String  PAYMENTS_FAILURE = "Refund can be possible if payment is successful";
+
     public ResponseEntity<RefundResponse> createRefund(PaymentRefundRequest paymentRefundRequest, MultiValueMap<String, String> headers) {
 
         Payment payment = paymentRepository.findByReference(paymentRefundRequest.getPaymentReference()).orElseThrow(PaymentNotFoundException::new);
@@ -121,7 +123,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                     .refundReference(postToRefundService(refundRequest, headers)).build();
                 return new ResponseEntity<>(refundResponse, HttpStatus.CREATED);
             }else{
-                throw new PaymentNotSuccessException("Refund can be possible if payment is successful");
+                throw new PaymentNotSuccessException(PAYMENTS_FAILURE);
             }
 
         }
@@ -190,7 +192,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         if(paymentFailuresList.isPresent()){
             boolean match = paymentFailuresList.get().stream().anyMatch(paymentFailuresList1 -> paymentFailuresList1.getRepresentmentSuccess() == null || paymentFailuresList1.getRepresentmentSuccess().equalsIgnoreCase("no"));
            if(match) {
-               throw new PaymentNotSuccessException("Refund can be possible if payment is successful");
+               throw new PaymentNotSuccessException(PAYMENTS_FAILURE);
            }
         }
 
@@ -201,7 +203,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
         //payment success check
         if (!paymentSuccessCheck.test(payment)) {
-            throw new PaymentNotSuccessException("Refund can be possible if payment is successful");
+            throw new PaymentNotSuccessException(PAYMENTS_FAILURE);
         }
 
 
