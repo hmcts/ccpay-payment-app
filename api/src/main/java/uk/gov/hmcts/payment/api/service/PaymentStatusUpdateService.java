@@ -20,4 +20,5 @@ public interface PaymentStatusUpdateService {
     PaymentFailures insertChargebackPaymentFailure(PaymentStatusChargebackDto paymentStatusChargebackDto);
 
     PaymentFailures searchPaymentFailure(String failureReference);
+    void deleteByFailureReference(String failureReference);
 }

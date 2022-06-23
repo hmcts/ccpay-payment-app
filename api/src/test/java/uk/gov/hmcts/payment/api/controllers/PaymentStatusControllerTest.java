@@ -385,6 +385,13 @@ public class PaymentStatusControllerTest {
         assertNotNull(response);
     }
 
+    @Test
+    public void testDeletePayment() throws Exception {
+        restActions.delete("/payment-status-delete/test")
+            .andExpect(status().isNotFound())
+            .andReturn();
+    }
+
     private PaymentStatusBouncedChequeDto getPaymentStatusBouncedChequeDto() {
 
         PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto = PaymentStatusBouncedChequeDto.paymentStatusBouncedChequeRequestWith()

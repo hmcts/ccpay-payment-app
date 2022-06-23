@@ -236,6 +236,20 @@ public class PaymentStatusUpdateServiceImplTest {
 
     }
 
+    @Test(expected = PaymentNotFoundException.class)
+    public void testDeleteByPaymentReferenceWithException() {
+        long value = 0;
+        when(paymentFailureRepository.deleteByFailureReference(anyString())).thenReturn(value);
+        paymentStatusUpdateServiceImpl.deleteByFailureReference("");
+    }
+
+    @Test
+    public void testDeleteByPaymentReference() {
+        long value = 1;
+        when(paymentFailureRepository.deleteByFailureReference(anyString())).thenReturn(value);
+        paymentStatusUpdateServiceImpl.deleteByFailureReference("dummy");
+    }
+
     private PaymentStatusBouncedChequeDto getPaymentStatusBouncedChequeDto() {
 
         PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto = PaymentStatusBouncedChequeDto.paymentStatusBouncedChequeRequestWith()

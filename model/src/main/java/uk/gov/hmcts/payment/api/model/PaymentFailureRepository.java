@@ -10,5 +10,6 @@ public interface PaymentFailureRepository extends CrudRepository<PaymentFailures
 
     Optional<PaymentFailures> findByFailureReference(String failureReference);
     Optional<List<PaymentFailures>> findByPaymentReference(String paymentReference);
+    long deleteByFailureReference(String failureReference);
 
 }

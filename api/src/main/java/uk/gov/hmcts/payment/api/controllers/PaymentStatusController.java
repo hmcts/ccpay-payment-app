@@ -114,6 +114,18 @@ public class PaymentStatusController {
         return new ResponseEntity<>(paymentStatusUpdateService.searchPaymentFailure(failureReference), HttpStatus.OK);
     }
 
+    @ApiOperation(value = "Delete payment failure by failure reference for functional test", notes = "Delete payment details for supplied failure reference")
+    @ApiResponses(value = {
+        @ApiResponse(code = 204, message = "Payment status deleted successfully"),
+        @ApiResponse(code = 404, message = "Payment status not found for the given reference")
+    })
+    @DeleteMapping(value = "/payment-status-delete/{failureReference}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteByFailureReference(@PathVariable("failureReference") String failureReference) {
+        paymentStatusUpdateService.deleteByFailureReference(failureReference);
+    }
+
+
     @ResponseStatus(HttpStatus.TOO_MANY_REQUESTS)
     @ExceptionHandler(FailureReferenceNotFoundException.class)
     public String return429(FailureReferenceNotFoundException ex) {

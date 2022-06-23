@@ -37,6 +37,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
     private static final Logger LOG = LoggerFactory.getLogger(PaymentRefundsServiceImpl.class);
     private static final String REFUND_ENDPOINT = "/refund";
+    private static final String  PAYMENTS_FAILURE = "Refund can be possible if payment is successful";
 
     final Predicate<Payment> paymentSuccessCheck =
         payment -> payment.getPaymentStatus().getName().equals(PaymentStatus.SUCCESS.getName());
@@ -62,8 +63,6 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
     @Autowired
     PaymentFailureRepository paymentFailureRepository;
-
-    private final static String  PAYMENTS_FAILURE = "Refund can be possible if payment is successful";
 
     public ResponseEntity<RefundResponse> createRefund(PaymentRefundRequest paymentRefundRequest, MultiValueMap<String, String> headers) {
 

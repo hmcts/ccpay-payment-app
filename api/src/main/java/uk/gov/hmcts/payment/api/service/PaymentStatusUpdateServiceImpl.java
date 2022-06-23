@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
@@ -168,10 +169,19 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
 
         Optional<PaymentFailures> paymentFailures;
         paymentFailures = paymentFailureRepository.findByFailureReference(failureReference);
-
         if(paymentFailures.isPresent()){
             return paymentFailures.get();
         }
            throw new PaymentNotFoundException("The payment failure  is not found");
+    }
+
+    @Override
+    @Transactional
+    public void deleteByFailureReference(String failureReference) {
+        long records = paymentFailureRepository.deleteByFailureReference(failureReference);
+        LOG.info("Number of deleted records are: {}", records);
+        if (records == 0) {
+            throw new PaymentNotFoundException("Failure reference not found in database for delete");
+        }
     }
 }
