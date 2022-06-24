@@ -47,7 +47,6 @@ public class PaymentStatusController {
     public ResponseEntity<String> paymentStatusBouncedCheque(@Valid @RequestBody PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto){
 
         LOG.info("Received payment status request bounced-cheque : {}", paymentStatusBouncedChequeDto);
-        boolean refundStatusUpdate= false;
         Optional<Payment> payment = paymentRepository.findByReference(paymentStatusBouncedChequeDto.getPaymentReference());
 
         if(payment.isEmpty()){
@@ -63,10 +62,8 @@ public class PaymentStatusController {
          PaymentFailures insertPaymentFailures =  paymentStatusUpdateService.insertBounceChequePaymentFailure(paymentStatusBouncedChequeDto);
 
           if(null != insertPaymentFailures.getId()){
-              refundStatusUpdate = paymentStatusUpdateService.cancelFailurePaymentRefund(paymentStatusBouncedChequeDto.getPaymentReference());
-        }
-          if (refundStatusUpdate){
-            return new ResponseEntity<>("successful operation", HttpStatus.OK);
+              paymentStatusUpdateService.cancelFailurePaymentRefund(paymentStatusBouncedChequeDto.getPaymentReference());
+              return new ResponseEntity<>("successful operation", HttpStatus.OK);
         }
 
         return new ResponseEntity<>("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR);
@@ -78,7 +75,6 @@ public class PaymentStatusController {
     public ResponseEntity<String> paymentStatusChargeBack(@Valid @RequestBody PaymentStatusChargebackDto paymentStatusChargebackDto) throws JsonProcessingException {
 
         LOG.info("Received payment status request chargeback : {}", paymentStatusChargebackDto);
-        boolean refundStatusUpdate= false;
         Optional<Payment> payment = paymentRepository.findByReference(paymentStatusChargebackDto.getPaymentReference());
 
         if(payment.isEmpty()){
@@ -95,12 +91,9 @@ public class PaymentStatusController {
 
         if(null != insertPaymentFailures.getId()){
             paymentStatusUpdateService.sendFailureMessageToServiceTopic(paymentStatusChargebackDto.getPaymentReference(),paymentStatusChargebackDto.getAmount());
-            refundStatusUpdate = paymentStatusUpdateService.cancelFailurePaymentRefund(paymentStatusChargebackDto.getPaymentReference());
-        }
-        if (refundStatusUpdate){
+            paymentStatusUpdateService.cancelFailurePaymentRefund(paymentStatusChargebackDto.getPaymentReference());
             return new ResponseEntity<>("successful operation", HttpStatus.OK);
         }
-
         return new ResponseEntity<>("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 

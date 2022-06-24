@@ -123,20 +123,20 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
             ResponseEntity<String> updateRefundStatus = cancelRefund(paymentReference);
 
            if (updateRefundStatus.getStatusCode().is2xxSuccessful()) {
-                return true;
+               LOG.info("Refund canceled successfully:: {}",paymentReference );
             }
 
         } catch (HttpClientErrorException httpClientErrorException) {
 
             if (httpClientErrorException.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
-                throw new PaymentNotFoundException("Refund does not exist for the payment");
+                LOG.error("Refund does not exist for the payment:: {}",paymentReference);
             }else{
-                throw new RefundServiceUnavailableException("Refund server unavailable. Please try again");
+                LOG.error("Refund App unavailable. Please try again:: {}",paymentReference);
             }
         } catch (Exception exception) {
-            throw new RefundServiceUnavailableException("Refund server unavailable. Please try again");
+            LOG.error("Refund App unavailable. Please try again:: {}",paymentReference);
         }
-        return false;
+        return true;
     }
 
     private ResponseEntity<String> cancelRefund(String paymentReference) throws RestClientException {

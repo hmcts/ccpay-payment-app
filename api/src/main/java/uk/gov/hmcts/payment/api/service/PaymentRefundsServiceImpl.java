@@ -37,7 +37,6 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
     private static final Logger LOG = LoggerFactory.getLogger(PaymentRefundsServiceImpl.class);
     private static final String REFUND_ENDPOINT = "/refund";
-    private static final String  PAYMENTS_FAILURE = "Refund can be possible if payment is successful";
 
     final Predicate<Payment> paymentSuccessCheck =
         payment -> payment.getPaymentStatus().getName().equals(PaymentStatus.SUCCESS.getName());
@@ -122,7 +121,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                     .refundReference(postToRefundService(refundRequest, headers)).build();
                 return new ResponseEntity<>(refundResponse, HttpStatus.CREATED);
             }else{
-                throw new PaymentNotSuccessException(PAYMENTS_FAILURE);
+                throw new PaymentNotSuccessException("Refund can be possible if payment is successful");
             }
 
         }
@@ -191,7 +190,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         if(paymentFailuresList.isPresent()){
             boolean match = paymentFailuresList.get().stream().anyMatch(paymentFailuresList1 -> paymentFailuresList1.getRepresentmentSuccess() == null || paymentFailuresList1.getRepresentmentSuccess().equalsIgnoreCase("no"));
            if(match) {
-               throw new PaymentNotSuccessException(PAYMENTS_FAILURE);
+               throw new PaymentNotSuccessException("Refund can't be requested for failed payment");
            }
         }
 
@@ -202,7 +201,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
         //payment success check
         if (!paymentSuccessCheck.test(payment)) {
-            throw new PaymentNotSuccessException(PAYMENTS_FAILURE);
+            throw new PaymentNotSuccessException("Refund can be possible if payment is successful");
         }
 
 

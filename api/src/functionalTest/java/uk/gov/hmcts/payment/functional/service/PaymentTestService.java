@@ -173,4 +173,10 @@ public class PaymentTestService {
             .get("/payment-status/{failureReference}", failureReference);
     }
 
+    public Response deleteFailedPayment(String userToken, String serviceToken, String failureReference) {
+        return givenWithAuthHeaders(userToken, serviceToken)
+            .when()
+            .delete("/payment-status-delete/{failureReference}", failureReference);
+    }
+
 }

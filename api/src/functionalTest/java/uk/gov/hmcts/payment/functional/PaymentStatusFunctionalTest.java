@@ -114,36 +114,8 @@ public class PaymentStatusFunctionalTest {
         // delete payment record
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
 
-    }
-
-    @Test
-    public void negative_bounce_cheque_payment_failure_when_refund_not_found() {
-
-        String accountNumber = testProps.existingAccountNumber;
-        String paymentReference = "RC-111-1114-" + RandomUtils.nextInt();
-        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
-            .aPbaPaymentRequestForProbate("90.00",
-                "PROBATE", "PBAFUNC12345");
-        accountPaymentRequest.setAccountNumber(accountNumber);
-        PaymentDto paymentDto = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
-            .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
-
-        PaymentRefundRequest paymentRefundRequest
-            = PaymentFixture.aRefundRequest("RR001", paymentDto.getReference());
-        Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
-            SERVICE_TOKEN_PAYMENT,
-            paymentRefundRequest);
-        PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto
-            = PaymentFixture.bouncedChequeRequest(paymentReference);
-
-        Response bounceChequeResponse = paymentTestService.postBounceCheque(
-            SERVICE_TOKEN_PAYMENT,
-            paymentStatusBouncedChequeDto);
-        assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
-        assertThat(bounceChequeResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND.value());
-
-        // delete payment record
-        paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
+        //delete Payment Failure record
+        paymentTestService.deleteFailedPayment(USER_TOKEN, SERVICE_TOKEN, paymentStatusBouncedChequeDto.getFailureReference()).then().statusCode(NO_CONTENT.value());
 
     }
 
@@ -240,36 +212,8 @@ public class PaymentStatusFunctionalTest {
         // delete payment record
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
 
-    }
-
-    @Test
-    public void negative_chargeback_payment_failure_when_refund_not_found() {
-
-        String accountNumber = testProps.existingAccountNumber;
-        String paymentReference = "RC-111-1114-" + RandomUtils.nextInt();
-        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
-            .aPbaPaymentRequestForProbate("90.00",
-                "PROBATE", "PBAFUNC12345");
-        accountPaymentRequest.setAccountNumber(accountNumber);
-        PaymentDto paymentDto = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
-            .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
-
-        PaymentRefundRequest paymentRefundRequest
-            = PaymentFixture.aRefundRequest("RR001", paymentDto.getReference());
-        Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
-            SERVICE_TOKEN_PAYMENT,
-            paymentRefundRequest);
-        PaymentStatusChargebackDto paymentStatusChargebackDto
-            = PaymentFixture.chargebackRequest(paymentReference);
-
-        Response chargebackResponse = paymentTestService.postChargeback(
-            SERVICE_TOKEN_PAYMENT,
-            paymentStatusChargebackDto);
-        assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
-        assertThat(chargebackResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND.value());
-
-        // delete payment record
-        paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
+        //delete Payment Failure record
+        paymentTestService.deleteFailedPayment(USER_TOKEN, SERVICE_TOKEN, paymentStatusChargebackDto.getFailureReference()).then().statusCode(NO_CONTENT.value());
 
     }
 
