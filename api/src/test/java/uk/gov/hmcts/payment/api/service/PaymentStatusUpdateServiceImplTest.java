@@ -14,11 +14,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.payment.api.dto.PaymentStatusChargebackDto;
-import uk.gov.hmcts.payment.api.exception.RefundServiceUnavailableException;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -26,7 +24,6 @@ import java.util.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentStatusDtoMapper;
@@ -132,24 +129,8 @@ public class PaymentStatusUpdateServiceImplTest {
             any(HttpEntity.class),
             eq(String.class), any(Map.class)))
             .thenThrow(new HttpServerErrorException(HttpStatus.NOT_FOUND));
-        assertThrows(RefundServiceUnavailableException.class, () ->paymentStatusUpdateServiceImpl.cancelFailurePaymentRefund(PaymentReference));
-
-    }
-
-    @Test
-    public void returnPaymentNotFoundExceptionWhenRefundReturnHttpClientErrorExceptionForBounceCheque(){
-
-        PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto = getPaymentStatusBouncedChequeDto();
-        String PaymentReference = paymentStatusBouncedChequeDto.getPaymentReference();
-        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-        headers.add("ServiceAuthorization", "service-auth");
-        when(authTokenGenerator.generate()).thenReturn("service auth token");
-        when(this.restTemplateRefundCancel.exchange(anyString(),
-            eq(HttpMethod.PATCH),
-            any(HttpEntity.class),
-            eq(String.class), any(Map.class)))
-            .thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
-        assertThrows(PaymentNotFoundException.class, () ->paymentStatusUpdateServiceImpl.cancelFailurePaymentRefund(PaymentReference));
+        boolean refund = paymentStatusUpdateServiceImpl.cancelFailurePaymentRefund(PaymentReference);
+        assertTrue(refund);
 
     }
 
@@ -200,41 +181,6 @@ public class PaymentStatusUpdateServiceImplTest {
         boolean cancelRefund = paymentStatusUpdateServiceImpl.cancelFailurePaymentRefund(paymentStatusChargebackDto.getPaymentReference());
 
         assertTrue(cancelRefund);
-    }
-
-
-    @Test
-    public void returnRefundServiceUnavailableExceptionWhenRefundReturnHttpServerErrorExceptionForChargeback(){
-
-        PaymentStatusChargebackDto paymentStatusChargebackDto =getPaymentStatusChargebackDto();
-          String paymentReference = paymentStatusChargebackDto.getPaymentReference();
-        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-        headers.add("ServiceAuthorization", "service-auth");
-        when(authTokenGenerator.generate()).thenReturn("service auth token");
-        when(this.restTemplateRefundCancel.exchange(anyString(),
-            eq(HttpMethod.PATCH),
-            any(HttpEntity.class),
-            eq(String.class), any(Map.class)))
-            .thenThrow(new HttpServerErrorException(HttpStatus.NOT_FOUND));
-        assertThrows(RefundServiceUnavailableException.class, () ->paymentStatusUpdateServiceImpl.cancelFailurePaymentRefund(paymentReference));
-
-    }
-
-    @Test
-    public void returnPaymentNotFoundExceptionWhenRefundReturnHttpClientErrorExceptionForChargeback(){
-
-        PaymentStatusChargebackDto paymentStatusChargebackDto =getPaymentStatusChargebackDto();
-        String paymentReference = paymentStatusChargebackDto.getPaymentReference();
-        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-        headers.add("ServiceAuthorization", "service-auth");
-        when(authTokenGenerator.generate()).thenReturn("service auth token");
-        when(this.restTemplateRefundCancel.exchange(anyString(),
-            eq(HttpMethod.PATCH),
-            any(HttpEntity.class),
-            eq(String.class), any(Map.class)))
-            .thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
-        assertThrows(PaymentNotFoundException.class, () ->paymentStatusUpdateServiceImpl.cancelFailurePaymentRefund(paymentReference));
-
     }
 
     @Test(expected = PaymentNotFoundException.class)

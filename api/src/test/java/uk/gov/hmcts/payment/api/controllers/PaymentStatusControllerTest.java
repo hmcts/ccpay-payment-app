@@ -225,34 +225,6 @@ public class PaymentStatusControllerTest {
     }
 
     @Test
-    public void return500WhenRefundServerNotAvailableForBounceCheque() throws Exception {
-
-        Payment payment = getPayment();
-
-        PaymentFailures paymentFailures = getPaymentFailures();
-        PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto =getPaymentStatusBouncedChequeDto();
-        when(paymentStatusDtoMapper.bounceChequeRequestMapper(any())).thenReturn(paymentFailures);
-        when(paymentFailureRepository.findByFailureReference(any())).thenReturn(Optional.empty());
-        when(paymentStatusUpdateService.searchFailureReference(any())).thenReturn(Optional.empty());
-        when(paymentFailureRepository.save(any())).thenReturn(paymentFailures);
-        when(paymentRepository.findByReference(any())).thenReturn(Optional.of(payment));
-        when(paymentStatusUpdateService.cancelFailurePaymentRefund(any())).thenReturn(false);
-        when(authTokenGenerator.generate()).thenReturn("service auth token");
-        when(this.restTemplateRefundCancel.exchange(anyString(),
-            eq(HttpMethod.PATCH),
-            any(HttpEntity.class),
-            eq(String.class), any(Map.class)))
-            .thenThrow(new HttpServerErrorException(HttpStatus.NOT_FOUND));
-        MvcResult result = restActions
-            .post("/payment-failures/bounced-cheque", paymentStatusBouncedChequeDto)
-            .andExpect(status().is5xxServerError())
-            .andReturn();
-
-        assertEquals(500, result.getResponse().getStatus());
-
-    }
-
-    @Test
     public void returnsPaymentNotFoundExceptionWhenNoPaymentFoundForPaymentReferenceForChargeback() throws Exception {
 
         PaymentStatusChargebackDto paymentStatusChargebackDto =getPaymentStatusChargebackDto();
