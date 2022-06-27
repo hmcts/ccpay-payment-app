@@ -802,7 +802,7 @@ public class RefundsRequestorJourneyFunctionalTest {
             RetroSpectiveRemissionRequest.retroSpectiveRemissionRequestWith().remissionReference(remissionReference).build());
 
         assertThat(refundResponseFail.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
-        assertThat(refundResponseFail.getBody().print()).isEqualTo("Refund can be possible if payment is successful");
+        assertThat(refundResponseFail.getBody().print()).isEqualTo("Refund can't be requested for failed payment");
 
         // delete payment record
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
@@ -844,7 +844,7 @@ public class RefundsRequestorJourneyFunctionalTest {
             paymentRefundRequest1);
 
         assertThat(refundResponseFail.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
-        assertThat(refundResponseFail.getBody().print()).isEqualTo("Refund can be possible if payment is successful");
+        assertThat(refundResponseFail.getBody().print()).isEqualTo("Refund can't be requested for failed payment");
         // delete payment record
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
 
