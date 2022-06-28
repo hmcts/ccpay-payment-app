@@ -428,7 +428,6 @@ public class PaymentController {
         return ex.getMessage();
     }
 
-
     private PaymentDto filterFeeCode(PaymentDto paymentDto) {
         LOG.info("Start Function filterFeeCode: {}" , paymentDto);
             List<List<FeeDto>> groupedFee = paymentDto.getFees().stream()

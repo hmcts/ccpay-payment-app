@@ -107,7 +107,6 @@ public class PaymentDto {
 
     private BigDecimal overPayment;
 
-
     @JsonProperty("_links")
     private LinksDto links;
 
