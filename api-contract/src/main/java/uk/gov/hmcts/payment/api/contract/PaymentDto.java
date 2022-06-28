@@ -3,6 +3,7 @@ package uk.gov.hmcts.payment.api.contract;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies.SnakeCaseStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.AllArgsConstructor;
@@ -22,6 +23,7 @@ import java.util.TimeZone;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 @JsonNaming(SnakeCaseStrategy.class)
 @JsonInclude(NON_NULL)
 @Builder(builderMethodName = "payment2DtoWith")
@@ -195,5 +197,13 @@ public class PaymentDto {
 
     public String toPaymentCsv() {
         return toCreditAccountPaymentCsv();
+    }
+    
+    
+    @Override
+    public String toString() {
+        return
+            "Payment DTO -{ id='" + id + '\'' +
+                "paymentReference ='" + paymentReference + '\''+ "feesList ='" + fees.size() + '\'';
     }
 }
