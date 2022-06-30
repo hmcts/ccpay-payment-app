@@ -9,7 +9,7 @@ import java.util.Optional;
 public interface PaymentFailureRepository extends CrudRepository<PaymentFailures, Integer> {
 
     Optional<PaymentFailures> findByFailureReference(String failureReference);
+    Optional<List<PaymentFailures>> findByPaymentReferenceOrderByFailureEventDateTimeDesc(String paymentReference);
     Optional<List<PaymentFailures>> findByPaymentReference(String paymentReference);
     long deleteByFailureReference(String failureReference);
-
 }

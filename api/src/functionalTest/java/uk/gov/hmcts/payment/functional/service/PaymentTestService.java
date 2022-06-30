@@ -167,10 +167,10 @@ public class PaymentTestService {
             .post("/payment-failures/chargeback");
     }
 
-    public Response getFailurePayment(String userToken, String serviceToken, String failureReference) {
+    public Response getFailurePayment(String userToken, String serviceToken, String paymentReference) {
         return givenWithAuthHeaders(userToken, serviceToken)
             .when()
-            .get("/payment-status/{failureReference}", failureReference);
+            .get("/payment-failures/{paymentReference}", paymentReference);
     }
 
     public Response deleteFailedPayment(String userToken, String serviceToken, String failureReference) {

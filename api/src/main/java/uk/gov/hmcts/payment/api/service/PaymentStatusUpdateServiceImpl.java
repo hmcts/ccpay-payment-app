@@ -23,7 +23,6 @@ import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentStatusDtoMapper;
 import uk.gov.hmcts.payment.api.dto.PaymentStatusBouncedChequeDto;
-import uk.gov.hmcts.payment.api.exception.RefundServiceUnavailableException;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotSuccessException;
@@ -123,13 +122,13 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
             ResponseEntity<String> updateRefundStatus = cancelRefund(paymentReference);
 
            if (updateRefundStatus.getStatusCode().is2xxSuccessful()) {
-               LOG.info("Refund canceled successfully:: {}",paymentReference );
+               LOG.info("Refund cancelled successfully:: {}",paymentReference );
             }
 
         } catch (HttpClientErrorException httpClientErrorException) {
 
             if (httpClientErrorException.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
-                LOG.error("Refund does not exist for the payment:: {}",paymentReference);
+                LOG.info("Refund does not exist for the payment:: {}",paymentReference);
             }else{
                 LOG.error("Refund App unavailable. Please try again:: {}",paymentReference);
             }
@@ -165,14 +164,14 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         return insertpaymentFailures;
     }
 
-    public  PaymentFailures searchPaymentFailure(String failureReference){
+    public  List<PaymentFailures> searchPaymentFailure(String paymentReference){
 
-        Optional<PaymentFailures> paymentFailures;
-        paymentFailures = paymentFailureRepository.findByFailureReference(failureReference);
+        Optional<List<PaymentFailures>> paymentFailures;
+        paymentFailures = paymentFailureRepository.findByPaymentReferenceOrderByFailureEventDateTimeDesc(paymentReference);
         if(paymentFailures.isPresent()){
             return paymentFailures.get();
         }
-           throw new PaymentNotFoundException("The payment failure  is not found");
+           throw new PaymentNotFoundException("no record found");
     }
 
     @Override

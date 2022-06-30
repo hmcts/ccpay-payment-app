@@ -43,6 +43,7 @@ import java.sql.Timestamp;
 import java.util.*;
 
 import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -345,16 +346,28 @@ public class PaymentStatusControllerTest {
     }
 
     @Test
-    public void retrievePaymentFailureByFailureReference() throws Exception {
+    public void retrievePaymentFailureByPaymentReference() throws Exception {
 
-        when(paymentFailureRepository.findByFailureReference(any())).thenReturn(Optional.of(getPaymentFailures()));
+        when(paymentFailureRepository.findByPaymentReferenceOrderByFailureEventDateTimeDesc(any())).thenReturn(Optional.of(getPaymentFailuresList()));
         MvcResult result = restActions
-            .get("/payment-status/RF12345")
+            .get("/payment-failures/RC-1637-5072-9888-4233")
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentFailures response = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentFailures.class);
+        PaymentFailureResponseDto response = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentFailureResponseDto.class);
         assertNotNull(response);
+    }
+
+    @Test
+    public void return404WhenPaymentFailureNotFoundByPaymentReference() throws Exception {
+
+        when(paymentFailureRepository.findByPaymentReferenceOrderByFailureEventDateTimeDesc(any())).thenReturn(Optional.empty());
+        MvcResult result = restActions
+            .get("/payment-failures/RC-1637-5072-9888-4233")
+            .andExpect(status().isNotFound())
+            .andReturn();
+        assertEquals("no record found", result.getResolvedException().getMessage());
+        assertEquals(404,result.getResponse().getStatus());
     }
 
     @Test
@@ -430,6 +443,26 @@ public class PaymentStatusControllerTest {
             .build();
 
         return paymentStatusChargebackDto;
+    }
+
+    private List<PaymentFailures> getPaymentFailuresList(){
+
+        List<PaymentFailures> paymentFailuresList = new ArrayList<>();
+        PaymentFailures paymentFailures = PaymentFailures.paymentFailuresWith()
+            .id(1)
+            .reason("test")
+            .failureReference("Bounce Cheque")
+            .paymentReference("RC-1637-5072-9888-4233")
+            .ccdCaseNumber("123456")
+            .amount(BigDecimal.valueOf(555))
+            .representmentSuccess("yes")
+            .failureType("Chargeback")
+            .additionalReference("AR12345")
+            .build();
+
+        paymentFailuresList.add(paymentFailures);
+        return paymentFailuresList;
+
     }
 
 }

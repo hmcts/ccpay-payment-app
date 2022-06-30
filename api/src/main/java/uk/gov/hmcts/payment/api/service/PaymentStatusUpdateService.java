@@ -6,6 +6,7 @@ import uk.gov.hmcts.payment.api.dto.PaymentStatusChargebackDto;
 import uk.gov.hmcts.payment.api.model.PaymentFailures;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 
 public interface PaymentStatusUpdateService {
@@ -19,6 +20,6 @@ public interface PaymentStatusUpdateService {
 
     PaymentFailures insertChargebackPaymentFailure(PaymentStatusChargebackDto paymentStatusChargebackDto);
 
-    PaymentFailures searchPaymentFailure(String failureReference);
+    List<PaymentFailures> searchPaymentFailure(String failureReference);
     void deleteByFailureReference(String failureReference);
 }

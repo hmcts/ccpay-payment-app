@@ -8,8 +8,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import uk.gov.hmcts.payment.api.dto.PaymentStatusBouncedChequeDto;
-import uk.gov.hmcts.payment.api.dto.PaymentStatusChargebackDto;
+import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
+import uk.gov.hmcts.payment.api.dto.*;
+import uk.gov.hmcts.payment.api.dto.mapper.PaymentStatusResponseMapper;
 import uk.gov.hmcts.payment.api.exception.FailureReferenceNotFoundException;
 import uk.gov.hmcts.payment.api.exception.RefundServiceUnavailableException;
 import uk.gov.hmcts.payment.api.model.Payment;
@@ -19,7 +21,9 @@ import uk.gov.hmcts.payment.api.service.PaymentStatusUpdateService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import javax.validation.Valid;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 @RestController
@@ -33,6 +37,9 @@ public class PaymentStatusController {
 
     @Autowired
     private Payment2Repository paymentRepository;
+
+    @Autowired
+    private PaymentStatusResponseMapper paymentStatusResponseMapper;
 
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "successful operation"),
@@ -97,14 +104,22 @@ public class PaymentStatusController {
         return new ResponseEntity<>("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-
-    @ApiOperation(value = "Get payment failure by failure reference for functional test", notes = "Get payment failure for supplied failure reference")
+    @ApiOperation(value = "Get payment failure by payment reference", notes = "Get payment failure for supplied payment reference")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Payment failure retrieved")
+        @ApiResponse(code = 200, message = "Payment failure retrieved"),
+        @ApiResponse(code = 404, message = "No record found"),
+        @ApiResponse(code = 500, message = "Internal Server Error")
     })
-    @GetMapping("/payment-status/{failureReference}")
-    public ResponseEntity<PaymentFailures>  retrievePaymentFailure(@PathVariable("failureReference") String failureReference) {
-        return new ResponseEntity<>(paymentStatusUpdateService.searchPaymentFailure(failureReference), HttpStatus.OK);
+    @GetMapping("/payment-failures/{paymentReference}")
+    public PaymentFailureResponseDto retrievePaymentFailure(@PathVariable("paymentReference") String paymentReference) {
+
+        List<PaymentFailureDto> payments = paymentStatusUpdateService
+            .searchPaymentFailure(paymentReference)
+            .stream()
+            .map(paymentStatusResponseMapper::toPaymentFailure)
+            .collect(Collectors.toList());
+
+        return new PaymentFailureResponseDto(payments);
     }
 
     @ApiOperation(value = "Delete payment failure by failure reference for functional test", notes = "Delete payment details for supplied failure reference")

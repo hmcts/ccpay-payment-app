@@ -16,12 +16,16 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
+import uk.gov.hmcts.payment.api.dto.PaymentFailureResponseDto;
 import uk.gov.hmcts.payment.api.dto.PaymentStatusChargebackDto;
 
 import java.math.BigDecimal;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
@@ -183,11 +187,34 @@ public class PaymentStatusUpdateServiceImplTest {
         assertTrue(cancelRefund);
     }
 
-    @Test(expected = PaymentNotFoundException.class)
+    @Test
+    public void returnListOfPaymentFailureWhenPaymentReferencePassed(){
+
+        when(paymentFailureRepository.findByPaymentReferenceOrderByFailureEventDateTimeDesc(any())).thenReturn(Optional.of(getPaymentFailuresList()));
+        List<PaymentFailures> paymentFailures  =  paymentStatusUpdateServiceImpl.searchPaymentFailure("RC-1637-5072-9888-4233");
+
+        assertEquals("RC-1637-5072-9888-4233",paymentFailures.get(0).getPaymentReference());
+    }
+
+    @Test
+    public void return404WhenPaymentFailureNotFound(){
+
+        when(paymentFailureRepository.findByPaymentReferenceOrderByFailureEventDateTimeDesc(any())).thenReturn(Optional.empty());
+
+        assertThrows(
+            PaymentNotFoundException.class,
+            () -> paymentStatusUpdateServiceImpl.searchPaymentFailure("RC-1637-5072-9888-4233")
+        );
+    }
+
+    @Test
     public void testDeleteByPaymentReferenceWithException() {
         long value = 0;
         when(paymentFailureRepository.deleteByFailureReference(anyString())).thenReturn(value);
-        paymentStatusUpdateServiceImpl.deleteByFailureReference("");
+        assertThrows(
+            PaymentNotFoundException.class,
+            () -> paymentStatusUpdateServiceImpl.deleteByFailureReference("")
+        );
     }
 
     @Test
@@ -226,6 +253,26 @@ public class PaymentStatusUpdateServiceImplTest {
             .build();
 
         return paymentStatusChargebackDto;
+    }
+
+    private List<PaymentFailures> getPaymentFailuresList(){
+
+        List<PaymentFailures> paymentFailuresList = new ArrayList<>();
+        PaymentFailures paymentFailures = PaymentFailures.paymentFailuresWith()
+            .id(1)
+            .reason("test")
+            .failureReference("Bounce Cheque")
+            .paymentReference("RC-1637-5072-9888-4233")
+            .ccdCaseNumber("123456")
+            .amount(BigDecimal.valueOf(555))
+            .representmentSuccess("yes")
+            .failureType("Chargeback")
+            .additionalReference("AR12345")
+            .build();
+
+        paymentFailuresList.add(paymentFailures);
+        return paymentFailuresList;
+
     }
 
 }
