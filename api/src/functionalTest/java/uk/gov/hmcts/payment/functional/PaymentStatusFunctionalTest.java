@@ -107,7 +107,7 @@ public class PaymentStatusFunctionalTest {
             paymentTestService.getFailurePayment(USER_TOKEN, SERVICE_TOKEN, paymentStatusBouncedChequeDto.getPaymentReference()).then()
                 .statusCode(OK.value()).extract().as(PaymentFailureResponseDto.class);
 
-        assertThat(paymentsFailureResponse.getPaymentFailureList().get(0)).isEqualTo(paymentStatusBouncedChequeDto.getFailureReference());
+        assertThat(paymentsFailureResponse.getPaymentFailureList().get(0).getFailureReference()).isEqualTo(paymentStatusBouncedChequeDto.getFailureReference());
 
         assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
         assertThat(bounceChequeResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
@@ -205,7 +205,7 @@ public class PaymentStatusFunctionalTest {
             paymentTestService.getFailurePayment(USER_TOKEN, SERVICE_TOKEN, paymentStatusChargebackDto.getPaymentReference()).then()
                 .statusCode(OK.value()).extract().as(PaymentFailureResponseDto.class);
 
-        assertThat(paymentsFailureResponse.getPaymentFailureList().get(0)).isEqualTo(paymentStatusChargebackDto.getFailureReference());
+        assertThat(paymentsFailureResponse.getPaymentFailureList().get(0).getFailureReference()).isEqualTo(paymentStatusChargebackDto.getFailureReference());
 
         assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
         assertThat(chargebackResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
