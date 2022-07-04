@@ -12,11 +12,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.dto.PaymentFailureResponseDto;
-import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
-import uk.gov.hmcts.payment.api.dto.PaymentStatusBouncedChequeDto;
-import uk.gov.hmcts.payment.api.dto.PaymentStatusChargebackDto;
-import uk.gov.hmcts.payment.api.model.PaymentFailures;
+import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
 import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
 import uk.gov.hmcts.payment.functional.fixture.PaymentFixture;
@@ -103,11 +99,11 @@ public class PaymentStatusFunctionalTest {
             SERVICE_TOKEN_PAYMENT,
             paymentStatusBouncedChequeDto);
 
-        PaymentFailureResponseDto paymentsFailureResponse =
+        PaymentFailureResponse paymentsFailureResponse =
             paymentTestService.getFailurePayment(USER_TOKEN, SERVICE_TOKEN, paymentStatusBouncedChequeDto.getPaymentReference()).then()
-                .statusCode(OK.value()).extract().as(PaymentFailureResponseDto.class);
+                .statusCode(OK.value()).extract().as(PaymentFailureResponse.class);
 
-        assertThat(paymentsFailureResponse.getPaymentFailureList().get(0).getFailureReference()).isEqualTo(paymentStatusBouncedChequeDto.getFailureReference());
+        assertThat(paymentsFailureResponse.getPaymentFailureList().get(0).getPaymentFailureInitiated().getFailureReference()).isEqualTo(paymentStatusBouncedChequeDto.getFailureReference());
 
         assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
         assertThat(bounceChequeResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
@@ -201,11 +197,11 @@ public class PaymentStatusFunctionalTest {
             SERVICE_TOKEN_PAYMENT,
             paymentStatusChargebackDto);
 
-        PaymentFailureResponseDto paymentsFailureResponse =
+        PaymentFailureResponse paymentsFailureResponse =
             paymentTestService.getFailurePayment(USER_TOKEN, SERVICE_TOKEN, paymentStatusChargebackDto.getPaymentReference()).then()
-                .statusCode(OK.value()).extract().as(PaymentFailureResponseDto.class);
+                .statusCode(OK.value()).extract().as(PaymentFailureResponse.class);
 
-        assertThat(paymentsFailureResponse.getPaymentFailureList().get(0).getFailureReference()).isEqualTo(paymentStatusChargebackDto.getFailureReference());
+         assertThat(paymentsFailureResponse.getPaymentFailureList().get(0).getPaymentFailureInitiated().getFailureReference()).isEqualTo(paymentStatusChargebackDto.getFailureReference());
 
         assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
         assertThat(chargebackResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
