@@ -57,7 +57,7 @@ allprojects {
         imports {
             mavenBom "org.springframework.boot:spring-boot-dependencies:${springBootVersion}"
             mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
-            mavenBom 'org.apache.logging.log4j:log4j-bom:2.17.2'
+            mavenBom 'org.apache.logging.log4j:log4j-bom:2.17.1'
         }
         dependencies {
             dependencySet(
