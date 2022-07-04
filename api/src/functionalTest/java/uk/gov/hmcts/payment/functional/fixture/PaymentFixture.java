@@ -436,7 +436,7 @@ public class PaymentFixture {
             .paymentReference(paymentReference)
             .failureEventDateTime(date)
             .additionalReference("AR1234556")
-            .amount(new BigDecimal(100))
+            .amount(new BigDecimal(100.00))
             .failureReference(failureReference)
             .ccdCaseNumber(ccdCaseNumber)
             .build();
@@ -451,7 +451,7 @@ public class PaymentFixture {
             .paymentReference(paymentReference)
             .failureEventDateTime(date)
             .additionalReference("AR1234556")
-            .amount(new BigDecimal(100))
+            .amount(new BigDecimal(100.00))
             .failureReference(failureReference)
             .ccdCaseNumber(ccdCaseNumber)
             .hasAmountDebited("yes")

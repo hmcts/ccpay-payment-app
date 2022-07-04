@@ -272,5 +272,70 @@ public class PaymentStatusFunctionalTest {
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
     }
 
+    @Test
+    public void return_Success_Get_for_payment_failure() {
 
+        String accountNumber = testProps.existingAccountNumber;
+        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
+            .aPbaPaymentRequestForProbate("90.00",
+                "PROBATE", "PBAFUNC12345");
+        accountPaymentRequest.setAccountNumber(accountNumber);
+        PaymentDto paymentDto = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
+            .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
+
+        PaymentRefundRequest paymentRefundRequest
+            = PaymentFixture.aRefundRequest("RR001", paymentDto.getReference());
+        Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            SERVICE_TOKEN_PAYMENT,
+            paymentRefundRequest);
+        PaymentStatusChargebackDto paymentStatusChargebackDto
+            = PaymentFixture.chargebackRequest(paymentDto.getReference());
+
+        Response chargebackResponse = paymentTestService.postChargeback(
+            SERVICE_TOKEN_PAYMENT,
+            paymentStatusChargebackDto);
+
+        PaymentFailureResponse paymentsFailureResponse =
+            paymentTestService.getFailurePayment(USER_TOKEN, SERVICE_TOKEN, paymentStatusChargebackDto.getPaymentReference()).then()
+                .statusCode(OK.value()).extract().as(PaymentFailureResponse.class);
+
+        assertThat(paymentsFailureResponse.getPaymentFailureList().get(0).getPaymentFailureInitiated().getFailureReference()).isEqualTo(paymentStatusChargebackDto.getFailureReference());
+        assertThat(paymentsFailureResponse.getPaymentFailureList().get(0).getPaymentFailureInitiated().getPaymentReference()).isEqualTo(paymentStatusChargebackDto.getPaymentReference());
+        assertThat(paymentsFailureResponse.getPaymentFailureList().get(0).getPaymentFailureInitiated().getFailureType()).isEqualTo("Chargeback");
+        assertThat(paymentsFailureResponse.getPaymentFailureList().get(0).getPaymentFailureInitiated().getFailureEventDateTime()).isEqualTo(paymentStatusChargebackDto.getFailureEventDateTime());
+        assertThat(paymentsFailureResponse.getPaymentFailureList().get(0).getPaymentFailureInitiated().getAdditionalReference()).isEqualTo(paymentStatusChargebackDto.getAdditionalReference());
+        assertThat(paymentsFailureResponse.getPaymentFailureList().get(0).getPaymentFailureInitiated().getHasAmountDebited()).isEqualTo(paymentStatusChargebackDto.getHasAmountDebited());
+
+        assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
+        assertThat(chargebackResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+
+        // delete payment record
+        paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
+
+        //delete Payment Failure record
+        paymentTestService.deleteFailedPayment(USER_TOKEN, SERVICE_TOKEN, paymentStatusChargebackDto.getFailureReference()).then().statusCode(NO_CONTENT.value());
+
+    }
+
+    @Test
+    public void return_404_Get_for_payment_failure() {
+
+        String accountNumber = testProps.existingAccountNumber;
+        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
+            .aPbaPaymentRequestForProbate("90.00",
+                "PROBATE", "PBAFUNC12345");
+        accountPaymentRequest.setAccountNumber(accountNumber);
+        PaymentDto paymentDto = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
+            .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
+
+        Response paymentsFailureResponse =
+            paymentTestService.getFailurePayment(USER_TOKEN, SERVICE_TOKEN, "RC-1656-9291-1811-2800");
+        assertThat("no record found").isEqualTo(paymentsFailureResponse.body().prettyPrint());
+
+        assertThat(paymentsFailureResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND.value());
+
+        // delete payment record
+        paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
+
+    }
 }
