@@ -1,35 +1,55 @@
 package uk.gov.hmcts.payment.api.dto.mapper;
 
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.payment.api.dto.PaymentFailureDto;
+import uk.gov.hmcts.payment.api.dto.PaymentFailureClosedDto;
+import uk.gov.hmcts.payment.api.dto.PaymentFailureInitiatedDto;
+import uk.gov.hmcts.payment.api.dto.PaymentFailureResponseDto;
 import uk.gov.hmcts.payment.api.model.PaymentFailures;
 
 @Component
 public class PaymentStatusResponseMapper {
 
-    public PaymentFailureDto toPaymentFailure(PaymentFailures paymentFailures){
 
-        return PaymentFailureDto.paymentFailureResponseDtoWith()
-            .additionalReference(paymentFailures.getAdditionalReference())
-            .failureReference(paymentFailures.getFailureReference())
-            .failureReason(paymentFailures.getReason())
-            .paymentReference(paymentFailures.getPaymentReference())
-            .disputedAmount(paymentFailures.getAmount())
-            .failureType(paymentFailures.getFailureType())
-            .Status(toStatus(paymentFailures))
-            .hasAmountDebited(paymentFailures.getHasAmountDebited())
-            .representmentOutcomeDate(paymentFailures.getRepresentmentOutcomeDate())
-            .failureEventDateTime(paymentFailures.getFailureEventDateTime())
-            .representmentStatus(paymentFailures.getRepresentmentSuccess())
+    public PaymentFailureResponseDto toPaymentFailure(PaymentFailures paymentFailure){
+
+        PaymentFailureResponseDto paymentFailureResponseDto;
+        paymentFailureResponseDto = PaymentFailureResponseDto.paymentFailureResponseWith()
+            .paymentFailureInitiated(toPaymentFailureInitiated(paymentFailure))
+            .paymentFailureClosed((paymentFailure.getRepresentmentSuccess() != null ? toPaymentFailureClosed(paymentFailure) : null))
             .build();
+
+        return paymentFailureResponseDto;
     }
 
-    private String toStatus(PaymentFailures paymentFailures){
+    private PaymentFailureInitiatedDto toPaymentFailureInitiated(PaymentFailures paymentFailure){
 
-        if(null != paymentFailures.getRepresentmentSuccess()){
-            return "closed";
-        }
-        return "initiated";
+       return PaymentFailureInitiatedDto.paymentFailureInitiateResponseDtoWith()
+               .additionalReference(paymentFailure.getAdditionalReference())
+                   .failureReference(paymentFailure.getFailureReference())
+               .failureType(paymentFailure.getFailureType())
+               .paymentReference(paymentFailure.getPaymentReference())
+               .disputedAmount(paymentFailure.getAmount())
+               .failureEventDateTime(paymentFailure.getFailureEventDateTime())
+               .Status("initiated")
+               .hasAmountDebited(paymentFailure.getHasAmountDebited())
+           .build();
+    }
+
+    private PaymentFailureClosedDto toPaymentFailureClosed(PaymentFailures paymentFailure){
+
+             return PaymentFailureClosedDto.paymentFailureClosedResponseDtoWith()
+                     .additionalReference(paymentFailure.getAdditionalReference())
+                     .failureType(paymentFailure.getFailureType())
+                     .paymentReference(paymentFailure.getPaymentReference())
+                     .failureReference(paymentFailure.getFailureReference())
+                     .failureEventDateTime(paymentFailure.getFailureEventDateTime())
+                     .Status("closed")
+                     .representmentDate(paymentFailure.getRepresentmentOutcomeDate())
+                     .representmentStatus(paymentFailure.getRepresentmentSuccess())
+                     .disputedAmount(paymentFailure.getAmount())
+                     .failureReason(paymentFailure.getReason())
+                     .hasAmountDebited(paymentFailure.getHasAmountDebited())
+                 .build();
     }
 
 }

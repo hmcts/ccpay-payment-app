@@ -12,12 +12,12 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @JsonInclude(NON_NULL)
-@Builder(builderMethodName = "paymentFailureResponseDtoWith")
+@Builder(builderMethodName = "paymentFailureInitiateResponseDtoWith")
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
-public class PaymentFailureDto {
+public class PaymentFailureInitiatedDto {
 
     private String Status;
     private String paymentReference;
@@ -26,8 +26,6 @@ public class PaymentFailureDto {
     private String additionalReference;
     private Date failureEventDateTime;
     private String hasAmountDebited;
-    private Date representmentOutcomeDate;
     private String failureType;
     private String failureReference;
-    private String representmentStatus;
 }

@@ -109,15 +109,15 @@ public class PaymentStatusController {
         @ApiResponse(code = 500, message = "Internal Server Error")
     })
     @GetMapping("/payment-failures/{paymentReference}")
-    public PaymentFailureResponseDto retrievePaymentFailure(@PathVariable("paymentReference") String paymentReference) {
+    public PaymentFailureResponse retrievePaymentFailure(@PathVariable("paymentReference") String paymentReference) {
 
-        List<PaymentFailureDto> payments = paymentStatusUpdateService
+        List<PaymentFailureResponseDto> payments = paymentStatusUpdateService
             .searchPaymentFailure(paymentReference)
             .stream()
             .map(paymentStatusResponseMapper::toPaymentFailure)
             .collect(Collectors.toList());
 
-        return new PaymentFailureResponseDto(payments);
+        return new PaymentFailureResponse(payments);
     }
 
     @ApiOperation(value = "Delete payment failure by failure reference for functional test", notes = "Delete payment details for supplied failure reference")
