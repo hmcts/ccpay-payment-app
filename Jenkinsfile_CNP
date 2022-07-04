@@ -121,21 +121,12 @@ withPipeline(type, product, app) {
     after('functionalTest:preview') {
 
         publishHTML target: [
-            reportDir            : "api/build/reports/tests/functionalTest",
             allowMissing         : true,
             alwaysLinkToLastBuild: true,
             keepAll              : true,
+            reportDir            : "api/target/site/serenity",
             reportFiles          : "index.html",
-            reportName           : "Preview Functional Tests",
-            alwaysLinkToLastBuild: true,
-            reportName           : "CCPAY Payment App PREVIEW API Functional Test Report"
-        ]
-
-        publishHTML target: [
-            reportDir            : "api/target/site/serenity/",
-            reportFiles          : "index.html",
-            reportName           : "CCPAY Payment App PREVIEW Serenity Functional Tests",
-            alwaysLinkToLastBuild: true
+            reportName           : "CCPAY Payment App PREVIEW Serenity Functional Tests"
         ]
 
         steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
@@ -144,23 +135,13 @@ withPipeline(type, product, app) {
     after('functionalTest:aat') {
 
         publishHTML target: [
-            reportDir            : "api/build/reports/tests/functionalTest",
             allowMissing         : true,
             alwaysLinkToLastBuild: true,
             keepAll              : true,
+            reportDir            : "api/target/site/serenity",
             reportFiles          : "index.html",
-            reportName           : "Preview Functional Tests",
-            alwaysLinkToLastBuild: true,
-            reportName           : "CCPAY Payment App AAT API Functional Test Report"
+            reportName           : "CCPAY Payment App AAT Serenity Functional Tests"
         ]
-
-        publishHTML target: [
-            reportDir            : "api/target/site/serenity/",
-            reportFiles          : "index.html",
-            reportName           : "CCPAY Payment App AAT Serenity Functional Tests",
-            alwaysLinkToLastBuild: true
-        ]
-        steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
     }
 
     //enableDockerBuild()
