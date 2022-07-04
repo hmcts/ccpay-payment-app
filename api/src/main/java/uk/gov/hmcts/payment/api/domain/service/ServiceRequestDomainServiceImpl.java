@@ -30,6 +30,7 @@ import uk.gov.hmcts.payment.api.domain.model.ServiceRequestOnlinePaymentBo;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
 import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
+import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
 import uk.gov.hmcts.payment.api.dto.order.ServiceRequestCpoDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.DeadLetterDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
@@ -45,6 +46,7 @@ import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.*;
 import uk.gov.hmcts.payment.api.servicebus.TopicClientProxy;
 import uk.gov.hmcts.payment.api.servicebus.TopicClientService;
+import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentGroupNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoAmountDue;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoMatchingAmount;
@@ -77,6 +79,9 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
 
     @Autowired
     private ServiceRequestDomainDataEntityMapper serviceRequestDomainDataEntityMapper;
+
+    @Autowired
+    private PaymentGroupDtoMapper paymentGroup;
 
     @Autowired
     private ServiceRequestPaymentDtoDomainMapper serviceRequestPaymentDtoDomainMapper;
@@ -194,9 +199,6 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         serviceRequest.getPayments().add(paymentEntity);
         paymentRepository.save(paymentEntity);
 
-        PaymentStatusDto paymentStatusDto = paymentDtoMapper.toPaymentStatusDto(serviceRequestReference,
-            "", paymentEntity);
-
         // Trigger Apportion based on the launch darkly feature flag
         boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature", false);
         LOG.info("ApportionFeature Flag Value in online card payment : {}", apportionFeature);
@@ -210,7 +212,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
             .externalReference(paymentEntity.getExternalReference())
             .nextUrl(paymentEntity.getNextUrl())
             .paymentReference(paymentEntity.getReference())
-            .status(paymentEntity.getPaymentStatus().getName())
+            .status(PayStatusToPayHubStatus.valueOf(paymentEntity.getPaymentStatus().getName()).getMappedStatus())
             .build();
     }
 
@@ -224,11 +226,20 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         Payment payment = serviceRequestPaymentDomainDataEntityMapper.toEntity(serviceRequestPaymentBo, serviceRequest);
         payment.setPaymentLink(serviceRequest);
 
+
         //2. Account check for PBA-Payment
         payment = accountCheckForPBAPayment(serviceRequest, serviceRequestPaymentDto, payment);
 
+        List <Payment> paymentList = new ArrayList<Payment>();
+        paymentList.add(payment);
+
+        PaymentFeeLink serviceRequestWithUpdatedPaymentStatus = serviceRequest;
+        serviceRequestWithUpdatedPaymentStatus.setPayments(paymentList);
+        String serviceRequestStatus = paymentGroup.toPaymentGroupDto(serviceRequestWithUpdatedPaymentStatus).getServiceRequestStatus();
+
         PaymentStatusDto paymentStatusDto = paymentDtoMapper.toPaymentStatusDto(serviceRequestReference,
-            serviceRequestPaymentBo.getAccountNumber(), payment);
+            serviceRequestPaymentBo.getAccountNumber(), payment, serviceRequestStatus);
+
         PaymentFeeLink serviceRequestCallbackURL = paymentFeeLinkRepository.findByPaymentReference(serviceRequestReference)
             .orElseThrow(() -> new ServiceRequestReferenceNotFoundException("Order reference doesn't exist"));
         sendMessageToTopic(paymentStatusDto, serviceRequestCallbackURL.getCallBackUrl());
@@ -460,6 +471,11 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
 
             topicClientCPO = new TopicClientProxy(connectionString, topic);
             LOG.info("sending message started..");
+            LOG.info("Message sent: {}", msg);
+            LOG.info("message content Action: {}",serviceRequestCpoDto.getAction() );
+            LOG.info("message content case id: {}",serviceRequestCpoDto.getCase_id() );
+            LOG.info("message content order reference: {}",serviceRequestCpoDto.getOrder_reference() );
+            LOG.info("message content res party: {}",serviceRequestCpoDto.getResponsible_party() );
 
             if(msg!=null && topicClientCPO!=null){
                 msg.setContentType(MSGCONTENTTYPE);
@@ -467,11 +483,6 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
                 msg.setProperties(Collections.singletonMap("serviceCallbackUrl",
                     callBackUrl+"/case-payment-orders"));
                 topicClientCPO.send(msg);
-                LOG.info("Message sent: {}", msg);
-                LOG.info("message content Action: {}",serviceRequestCpoDto.getAction() );
-                LOG.info("message content case id: {}",serviceRequestCpoDto.getCase_id() );
-                LOG.info("message content order reference: {}",serviceRequestCpoDto.getOrder_reference() );
-                LOG.info("message content res party: {}",serviceRequestCpoDto.getResponsible_party() );
                 topicClientCPO.close();
             }
         } catch (Exception e) {

@@ -97,7 +97,7 @@ public class ServiceRequestFunctionalTests {
         }
     }
 
-    /*@Test
+    @Test
     public void positive_create_service_request_for_payments_user_hmcts() throws Exception {
 
         ServiceRequestDto serviceRequestDto
@@ -290,12 +290,14 @@ public class ServiceRequestFunctionalTests {
         ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
             .paymentDtoWith().accountNumber("PBAFUNC12345")
             .amount(BigDecimal.valueOf(100.00))
+            .organisationName("TestOrg")
             .currency("GBP")
+            .idempotencyKey(ServiceRequestFixture.generateUniqueCCDCaseReferenceNumber())
             .customerReference("123245677").
                 build();
         final Response pbaPaymentServiceRequestResponse
             = serviceRequestTestService.createPBAPaymentForAServiceRequest(USER_TOKEN_PAYMENT,
-            SERVICE_TOKEN, ServiceRequestFixture.generateUniqueCCDCaseReferenceNumber(),
+            SERVICE_TOKEN,
             serviceRequestReference, serviceRequestPaymentDto);
         assertThat(pbaPaymentServiceRequestResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
 
@@ -331,14 +333,15 @@ public class ServiceRequestFunctionalTests {
 
         final ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
             .paymentDtoWith().accountNumber("PBAFUNC12345")
+            .organisationName("TestOrg")
             .amount(BigDecimal.valueOf(100.01))
             .currency("GBP")
+            .idempotencyKey(ServiceRequestFixture.generateUniqueCCDCaseReferenceNumber())
             .customerReference("123245677").
                 build();
         final Response pbaPaymentServiceRequestResponse
             = serviceRequestTestService.createPBAPaymentForAServiceRequest(USER_TOKEN_PAYMENT,
-            SERVICE_TOKEN, ServiceRequestFixture.generateUniqueCCDCaseReferenceNumber(),
-            serviceRequestReference, serviceRequestPaymentDto);
+            SERVICE_TOKEN, serviceRequestReference, serviceRequestPaymentDto);
         assertThat(pbaPaymentServiceRequestResponse.getStatusCode()).isEqualTo(HttpStatus.EXPECTATION_FAILED.value());
         assertThat(pbaPaymentServiceRequestResponse.getBody().asString())
             .isEqualTo("The amount should be equal to serviceRequest balance");
@@ -362,13 +365,14 @@ public class ServiceRequestFunctionalTests {
         final ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
             .paymentDtoWith().accountNumber("PBAFUNC12345")
             .amount(BigDecimal.valueOf(99.99))
+            .organisationName("TestOrg")
             .currency("GBP")
+            .idempotencyKey(ServiceRequestFixture.generateUniqueCCDCaseReferenceNumber())
             .customerReference("123245677").
                 build();
         final Response pbaPaymentServiceRequestResponse
             = serviceRequestTestService.createPBAPaymentForAServiceRequest(USER_TOKEN_PAYMENT,
-            SERVICE_TOKEN, ServiceRequestFixture.generateUniqueCCDCaseReferenceNumber(),
-            serviceRequestReference, serviceRequestPaymentDto);
+            SERVICE_TOKEN, serviceRequestReference, serviceRequestPaymentDto);
         assertThat(pbaPaymentServiceRequestResponse.getStatusCode()).isEqualTo(HttpStatus.EXPECTATION_FAILED.value());
         assertThat(pbaPaymentServiceRequestResponse.getBody().asString())
             .isEqualTo("The amount should be equal to serviceRequest balance");
@@ -390,18 +394,19 @@ public class ServiceRequestFunctionalTests {
         final String serviceRequestReference = responseDTO.getServiceRequestReference();
         assertThat(serviceRequestReference).matches(SERVICE_REQUEST_REGEX_PATTERN);
 
-        final String idempotentKey = ServiceRequestFixture.generateUniqueCCDCaseReferenceNumber();
 
         final ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
             .paymentDtoWith().accountNumber("PBAFUNC12345")
+            .organisationName("TestOrg")
             .amount(BigDecimal.valueOf(100.00))
             .currency("GBP")
+            .idempotencyKey(ServiceRequestFixture.generateUniqueCCDCaseReferenceNumber())
             .customerReference("123245677").
                 build();
 
         final Response pbaPaymentServiceRequestResponse
             = serviceRequestTestService.createPBAPaymentForAServiceRequest(USER_TOKEN_PAYMENT,
-            SERVICE_TOKEN, idempotentKey,
+            SERVICE_TOKEN,
             serviceRequestReference, serviceRequestPaymentDto);
         assertThat(pbaPaymentServiceRequestResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
         ServiceRequestPaymentBo serviceRequestPaymentBo =
@@ -411,8 +416,7 @@ public class ServiceRequestFunctionalTests {
 
         final Response pbaPaymentServiceRequestResponseAgain
             = serviceRequestTestService.createPBAPaymentForAServiceRequest(USER_TOKEN_PAYMENT,
-            SERVICE_TOKEN, idempotentKey,
-            serviceRequestReference, serviceRequestPaymentDto);
+            SERVICE_TOKEN, serviceRequestReference, serviceRequestPaymentDto);
         assertThat(pbaPaymentServiceRequestResponseAgain.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
         ServiceRequestPaymentBo serviceRequestPaymentBoAgain =
             pbaPaymentServiceRequestResponseAgain.getBody().as(ServiceRequestPaymentBo.class);
@@ -437,18 +441,18 @@ public class ServiceRequestFunctionalTests {
         final String serviceRequestReference = responseDTO.getServiceRequestReference();
         assertThat(serviceRequestReference).matches(SERVICE_REQUEST_REGEX_PATTERN);
 
-        final String idempotentKey = ServiceRequestFixture.generateUniqueCCDCaseReferenceNumber();
-
         final ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
             .paymentDtoWith().accountNumber("PBAFUNC12345")
             .amount(BigDecimal.valueOf(100.00))
+            .organisationName("TestOrg")
             .currency("GBP")
+            .idempotencyKey(ServiceRequestFixture.generateUniqueCCDCaseReferenceNumber())
             .customerReference("123245677").
                 build();
 
         final Response pbaPaymentServiceRequestResponse
             = serviceRequestTestService.createPBAPaymentForAServiceRequest(USER_TOKEN_PAYMENT,
-            SERVICE_TOKEN, idempotentKey,
+            SERVICE_TOKEN,
             serviceRequestReference, serviceRequestPaymentDto);
         assertThat(pbaPaymentServiceRequestResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
         ServiceRequestPaymentBo serviceRequestPaymentBo =
@@ -456,9 +460,10 @@ public class ServiceRequestFunctionalTests {
         final String paymentReference = serviceRequestPaymentBo.getPaymentReference();
         assertThat(paymentReference).matches(PAYMENTS_REGEX_PATTERN);
 
+        serviceRequestPaymentDto.setIdempotencyKey(ServiceRequestFixture.generateUniqueCCDCaseReferenceNumber());
         final Response pbaPaymentServiceRequestResponseAgain
             = serviceRequestTestService.createPBAPaymentForAServiceRequest(USER_TOKEN_PAYMENT,
-            SERVICE_TOKEN, ServiceRequestFixture.generateUniqueCCDCaseReferenceNumber(),
+            SERVICE_TOKEN,
             serviceRequestReference, serviceRequestPaymentDto);
         assertThat(pbaPaymentServiceRequestResponseAgain.getStatusCode()).isEqualTo(HttpStatus.PRECONDITION_FAILED.value());
         assertThat(pbaPaymentServiceRequestResponseAgain.getBody().asString())
@@ -466,7 +471,7 @@ public class ServiceRequestFunctionalTests {
     }
 
     @Test
-    // @Ignore("Test Build")
+    @Ignore("Switching this test off as Liberata Mocking is not switched on when during a release in the AAT environment...hence a prevention of a failure...")
     public void positive_create_service_request_and_a_duplicate_service_request_post_failed_payment_account_deleted()
         throws Exception {
 
@@ -482,18 +487,18 @@ public class ServiceRequestFunctionalTests {
         final String serviceRequestReference = responseDTO.getServiceRequestReference();
         assertThat(serviceRequestReference).matches(SERVICE_REQUEST_REGEX_PATTERN);
 
-        final String idempotentKey = ServiceRequestFixture.generateUniqueCCDCaseReferenceNumber();
-
         final ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
             .paymentDtoWith().accountNumber("PBAFUNC12350")
             .amount(BigDecimal.valueOf(100.00))
             .currency("GBP")
+            .organisationName("TestOrg")
+            .idempotencyKey(ServiceRequestFixture.generateUniqueCCDCaseReferenceNumber())
             .customerReference("123245677").
                 build();
 
         final Response pbaPaymentServiceRequestResponse
             = serviceRequestTestService.createPBAPaymentForAServiceRequest(USER_TOKEN_PAYMENT,
-            SERVICE_TOKEN, idempotentKey,
+            SERVICE_TOKEN,
             serviceRequestReference, serviceRequestPaymentDto);
         assertThat(pbaPaymentServiceRequestResponse.getStatusCode()).isEqualTo(HttpStatus.GONE.value());
         ServiceRequestPaymentBo serviceRequestPaymentBo =
@@ -515,7 +520,7 @@ public class ServiceRequestFunctionalTests {
     }
 
     @Test
-    // @Ignore("Test Build")
+    @Ignore("Switching this test off as Liberata Mocking is not switched on when during a release in the AAT environment...hence a prevention of a failure...")
     public void positive_create_service_request_and_a_duplicate_service_request_post_failed_payment_account_on_hold()
         throws Exception {
 
@@ -531,18 +536,19 @@ public class ServiceRequestFunctionalTests {
         final String serviceRequestReference = responseDTO.getServiceRequestReference();
         assertThat(serviceRequestReference).matches(SERVICE_REQUEST_REGEX_PATTERN);
 
-        final String idempotentKey = ServiceRequestFixture.generateUniqueCCDCaseReferenceNumber();
 
         final ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
             .paymentDtoWith().accountNumber("PBAFUNC12355")
             .amount(BigDecimal.valueOf(100.00))
+            .organisationName("TestOrg")
             .currency("GBP")
+            .idempotencyKey(ServiceRequestFixture.generateUniqueCCDCaseReferenceNumber())
             .customerReference("123245677").
                 build();
 
         final Response pbaPaymentServiceRequestResponse
             = serviceRequestTestService.createPBAPaymentForAServiceRequest(USER_TOKEN_PAYMENT,
-            SERVICE_TOKEN, idempotentKey,
+            SERVICE_TOKEN,
             serviceRequestReference, serviceRequestPaymentDto);
         assertThat(pbaPaymentServiceRequestResponse.getStatusCode()).isEqualTo(HttpStatus.PRECONDITION_FAILED.value());
         ServiceRequestPaymentBo serviceRequestPaymentBo =
@@ -564,7 +570,6 @@ public class ServiceRequestFunctionalTests {
     }
 
     @Test
-    // @Ignore("Test Build")
     public void positive_create_service_request_and_a_duplicate_service_request_post_failed_payment_account_over_limit()
         throws Exception {
 
@@ -580,18 +585,18 @@ public class ServiceRequestFunctionalTests {
         final String serviceRequestReference = responseDTO.getServiceRequestReference();
         assertThat(serviceRequestReference).matches(SERVICE_REQUEST_REGEX_PATTERN);
 
-        final String idempotentKey = ServiceRequestFixture.generateUniqueCCDCaseReferenceNumber();
-
         final ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
             .paymentDtoWith().accountNumber("PBAFUNC12345")
             .amount(BigDecimal.valueOf(35000.00))
             .currency("GBP")
+            .organisationName("TestOrg")
+            .idempotencyKey(ServiceRequestFixture.generateUniqueCCDCaseReferenceNumber())
             .customerReference("123245677").
                 build();
 
         final Response pbaPaymentServiceRequestResponse
             = serviceRequestTestService.createPBAPaymentForAServiceRequest(USER_TOKEN_PAYMENT,
-            SERVICE_TOKEN, idempotentKey,
+            SERVICE_TOKEN,
             serviceRequestReference, serviceRequestPaymentDto);
         assertThat(pbaPaymentServiceRequestResponse.getStatusCode()).isEqualTo(HttpStatus.PAYMENT_REQUIRED.value());
         ServiceRequestPaymentBo serviceRequestPaymentBo =
@@ -611,10 +616,9 @@ public class ServiceRequestFunctionalTests {
         assertThat(serviceRequestReferenceAgain).isNotEqualTo(serviceRequestReference);
 
     }
-*/
 
     @Test
-//    @Ignore ("Card payment Failing on the amounts Decimal Point......")
+    //    @Ignore ("Card payment Failing on the amounts Decimal Point......")
     public void positive_create_service_request_and_a_full_card_payment_user_hmcts() throws Exception {
 
         ServiceRequestDto serviceRequestDto
@@ -632,6 +636,7 @@ public class ServiceRequestFunctionalTests {
             .amount(new BigDecimal(100.00))
             .currency(CurrencyCode.GBP)
             .language("cy")
+            .returnUrl("https://localhost.hmcts.net")
             .build();
         Response createOnlineCardPaymentResponse =
             serviceRequestTestService.createAnOnlineCardPaymentForAServiceRequest(USER_TOKEN_PAYMENT,
@@ -660,7 +665,7 @@ public class ServiceRequestFunctionalTests {
         verifyThePaymentGroupResponseForNoPaymentsOrRemisssions(serviceRequestDto, paymentGroupResponseForASolicitorUser);
     }
 
-    /*@Test
+    @Test
     //@Ignore("Test Build")
     public void positive_create_service_request_and_an_underpayment_full_card_payment_user_hmcts() throws Exception {
 
@@ -731,7 +736,7 @@ public class ServiceRequestFunctionalTests {
         assertThat(createServiceRequestResponse.getBody().asString())
             .isEqualTo("No Service found for given CaseType or HMCTS Org Id");
     }
-*/
+
     private void verifyThePaymentGroupResponseForNoPaymentsOrRemisssions(final ServiceRequestDto serviceRequestDto,
                                                                          final PaymentGroupResponse paymentGroupResponse)
         throws Exception {

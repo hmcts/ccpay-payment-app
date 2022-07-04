@@ -32,6 +32,7 @@ import static uk.gov.hmcts.payment.functional.service.RefDataTestService.readFil
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
 @ActiveProfiles({"functional-tests", "liberataMock"})
+@Ignore("As all the tests are Ignored,Switching these tests off....")
 public class PBAAccountsFunctionalTest {
 
     @Autowired
@@ -60,7 +61,7 @@ public class PBAAccountsFunctionalTest {
     }
 
     @Test
-    @Ignore
+    @Ignore("Leaving this Test Ignored as this creates an Organisation in AAT")
     public void perform_pba_accounts_lookup_for_valid_user_roles() throws Exception {
         this.performPbaAccountsVerification("pui-finance-manager");
         this.performPbaAccountsVerification("pui-organisation-manager");
@@ -78,7 +79,7 @@ public class PBAAccountsFunctionalTest {
     }
 
     @Test
-    @Ignore("The Error Code Reported should be 404")
+    @Ignore("Leaving this Test Ignored as this creates an Organisation in AAT")
     public void perform_pba_accounts_lookup_for_no_accounts_in_the_organisation() throws Exception {
         this.performOrganisationCreationWithNoAccounts("payments","CreateOrganisation_WithNoAccounts.json");
     }
@@ -182,17 +183,8 @@ public class PBAAccountsFunctionalTest {
             .toMillis(10)); //Sleep the Thread so that the newly created credentials are available after sometime...
         Response getPBAAccountsResponse =
             PBAAccountsTestService.getPBAAccounts(userPUIFinanceManagerToken, SERVICE_TOKEN_CCPAY_BUBBLE);
-        assertThat(getPBAAccountsResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND.value());
-        PBAResponse pbaResponseDTO = getPBAAccountsResponse.getBody().as(PBAResponse.class);
-        assertThat(pbaResponseDTO.getOrganisationEntityResponse().getOrganisationIdentifier()).isEqualTo(organisationIdentifier);
-        assertThat(pbaResponseDTO.getOrganisationEntityResponse().getName()).isEqualTo("OjNWEZXxZt");
-        assertThat(pbaResponseDTO.getOrganisationEntityResponse().getSuperUser().getFirstName())
-            .isEqualTo("John");//'firstName' is not matched as Ref Data are responding back with this value
-        assertThat(pbaResponseDTO.getOrganisationEntityResponse().getSuperUser().getLastName())
-            .isEqualTo("Smith");//'lastName' is not matched as Ref Data are responding back with this value
-        assertThat(pbaResponseDTO.getOrganisationEntityResponse().getSuperUser().getEmail())
-            .isEqualToIgnoringCase(user.getEmail());
-        assertThat(pbaResponseDTO.getOrganisationEntityResponse().getPaymentAccount().size()).isEqualTo(0);
+        assertThat(getPBAAccountsResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT.value());
+
     }
 
 

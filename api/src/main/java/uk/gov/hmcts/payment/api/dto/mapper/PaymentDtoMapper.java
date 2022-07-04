@@ -21,6 +21,7 @@ import uk.gov.hmcts.payment.api.dto.PaymentReference;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.reports.FeesService;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
@@ -155,12 +156,12 @@ public class PaymentDtoMapper {
     }
 
     public PaymentStatusDto toPaymentStatusDto(String serviceRequestReference, String accountNumber,
-                                               Payment payment) {
+                                               Payment payment, String serviceRequestStatus) {
         return PaymentStatusDto.paymentStatusDto()
             .serviceRequestReference(serviceRequestReference)
             .ccdCaseNumber(payment.getCcdCaseNumber())
             .serviceRequestAmount(payment.getAmount())
-            .serviceRequestStatus(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus())
+            .serviceRequestStatus(serviceRequestStatus)
             .payment(toPaymentReference(accountNumber, payment))
             .build();
     }
@@ -203,9 +204,25 @@ public class PaymentDtoMapper {
             .build();
     }
 
-    public PaymentDto toRetrieveCardPaymentResponseDtoWithoutExtReference(PaymentFeeLink paymentFeeLink) {
+    public PaymentDto toRetrieveCardPaymentResponseDtoWithoutExtReference(PaymentFeeLink paymentFeeLink,
+                                                                          String internalReference) {
         LOG.info("paymentFeeLink.getPayments() {}",paymentFeeLink.getPayments());
-        Payment payment = paymentFeeLink.getPayments().get(0);
+        LOG.info("Getting Payment with internalReference: {}", internalReference);
+        Optional<Payment> optionalPayment = paymentFeeLink.getPayments().stream()
+            .filter(payment -> (internalReference != null)
+                && internalReference.equalsIgnoreCase(payment.getInternalReference()))
+            .findFirst();
+        Payment payment;
+        if(optionalPayment.isEmpty()){
+            LOG.info("Payment not found for internalReference: {}", internalReference);
+            throw new PaymentNotFoundException("The internal Reference is not found");
+        } else {
+            payment = optionalPayment.get();
+            LOG.info("Payment found for internalReference: {}", internalReference);
+        }
+        LOG.info("internalReference: {} for the payment returned", payment.getInternalReference());
+        LOG.info("payment status from gov uk - {}",payment.getPaymentStatus().getName());
+        LOG.info("payment status from gov uk enum mapping - {}",PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus());
         return PaymentDto.payment2DtoWith()
             .reference(payment.getReference())
             .caseReference(payment.getCaseReference())

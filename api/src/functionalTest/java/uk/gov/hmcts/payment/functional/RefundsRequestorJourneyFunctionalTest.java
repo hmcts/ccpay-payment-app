@@ -45,7 +45,7 @@ import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP
 @RunWith(SpringIntegrationSerenityRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
 @ActiveProfiles({"functional-tests", "liberataMock"})
-@Ignore("Only to be activated after Refunds V1 is merged to master and that is the test that should be enabled.")
+// @Ignore("Only to be activated after Refunds V1 is merged to master and that is the test that should be enabled.")
 public class RefundsRequestorJourneyFunctionalTest {
 
     private static String USER_TOKEN;
@@ -707,17 +707,20 @@ public class RefundsRequestorJourneyFunctionalTest {
     }
 
     @Test
+    @Ignore("This test is Ignored as the liberataMock profile would be switched off in AAT")
     public void positive_issue_refunds_for_a_failed_pba_payment() {
         issue_refunds_for_a_failed_payment("350000.00", "PBAFUNC12345",
             "Payment request failed. PBA account CAERPHILLY COUNTY BOROUGH COUNCIL have insufficient funds available");
     }
 
     @Test
+    @Ignore("This test is Ignored as the liberataMock profile would be switched off in AAT")
     public void positive_issue_refunds_for_a_pba_account_deleted_payment() {
         issue_refunds_for_a_failed_payment("100.00", "PBAFUNC12350", "Your account is deleted");
     }
 
     @Test
+    @Ignore("This test is Ignored as the liberataMock profile would be switched off in AAT")
     public void positive_issue_refunds_for_a_pba_account_on_hold_payment() {
         issue_refunds_for_a_failed_payment("100.00", "PBAFUNC12355", "Your account is on hold");
     }
@@ -766,6 +769,7 @@ public class RefundsRequestorJourneyFunctionalTest {
     }
 
     @Test
+    @Ignore("This test is Ignored as the liberataMock profile would be switched off in AAT")
     public void negative_add_remission_and_submit_a_refund_for_a_pba_payment_more_than_the_account_limit() {
 
         // Create a PBA payment
@@ -775,6 +779,7 @@ public class RefundsRequestorJourneyFunctionalTest {
     }
 
     @Test
+    @Ignore("This test is Ignored as the liberataMock profile would be switched off in AAT")
     public void negative_add_remission_and_submit_a_refund_for_a_pba_payment_with_account_deleted() {
 
         // Create a PBA payment
@@ -784,6 +789,7 @@ public class RefundsRequestorJourneyFunctionalTest {
     }
 
     @Test
+    @Ignore("This test is Ignored as the liberataMock profile would be switched off in AAT")
     public void negative_add_remission_and_submit_a_refund_for_a_pba_payment_with_account_on_hold() {
 
         // Create a PBA payment
