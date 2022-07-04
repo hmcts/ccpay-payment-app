@@ -32,6 +32,7 @@ public class PaymentStatusResponseMapper {
                .failureEventDateTime(paymentFailure.getFailureEventDateTime())
                .Status("initiated")
                .hasAmountDebited(paymentFailure.getHasAmountDebited())
+              .failureReason(paymentFailure.getReason())
            .build();
     }
 
