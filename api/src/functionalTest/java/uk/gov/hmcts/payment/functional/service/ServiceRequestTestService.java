@@ -5,6 +5,7 @@ import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
+import net.serenitybdd.rest.SerenityRest;
 import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
@@ -73,13 +74,13 @@ public class ServiceRequestTestService {
     }
 
     public RequestSpecification givenWithAuthHeaders(String userToken, String serviceToken) {
-        return RestAssured.given()
+        return SerenityRest.given()
             .header(AUTHORIZATION, userToken)
             .header("ServiceAuthorization", serviceToken);
     }
 
     public RequestSpecification givenWithServiceHeaders(String serviceToken) {
-        return RestAssured.given()
+        return SerenityRest.given()
             .header("ServiceAuthorization", serviceToken);
     }
 }
