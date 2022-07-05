@@ -128,8 +128,6 @@ withPipeline(type, product, app) {
             reportFiles          : "index.html",
             reportName           : "CCPAY Payment App PREVIEW Serenity Functional Tests"
         ]
-
-        steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
     }
 
     after('functionalTest:aat') {
