@@ -16,14 +16,12 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
-import uk.gov.hmcts.payment.api.dto.PaymentFailureResponseDto;
 import uk.gov.hmcts.payment.api.dto.PaymentStatusChargebackDto;
 
 import java.math.BigDecimal;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.*;
@@ -37,7 +35,6 @@ import uk.gov.hmcts.payment.api.model.PaymentFailures;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
-import java.sql.Timestamp;
 import java.util.Optional;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -230,7 +227,7 @@ public class PaymentStatusUpdateServiceImplTest {
             .additionalReference("AR1234")
             .amount(BigDecimal.valueOf(555))
             .failureReference("FR12345")
-            .failureEventDateTime(Timestamp.valueOf("2021-10-10 10:10:10"))
+            .eventDateTime("2021-10-10 10:10:10")
             .ccdCaseNumber("123456")
             .reason("RR001")
             .paymentReference("RC1234")
@@ -245,7 +242,7 @@ public class PaymentStatusUpdateServiceImplTest {
             .additionalReference("AR1234")
             .amount(BigDecimal.valueOf(555))
             .failureReference("FR12345")
-            .failureEventDateTime(Timestamp.valueOf("2021-10-10 10:10:10"))
+            .eventDateTime("2021-10-10 10:10:10")
             .ccdCaseNumber("123456")
             .reason("RR001")
             .paymentReference("RC1234")

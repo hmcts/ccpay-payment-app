@@ -23,9 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.WebApplicationContext;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.dto.*;
-import uk.gov.hmcts.payment.api.dto.PaymentReference;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentStatusDtoMapper;
 import uk.gov.hmcts.payment.api.model.*;
@@ -39,7 +37,6 @@ import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.math.BigDecimal;
-import java.sql.Timestamp;
 import java.util.*;
 
 import static org.junit.Assert.*;
@@ -51,7 +48,6 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
-import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "componenttest"})
@@ -383,7 +379,7 @@ public class PaymentStatusControllerTest {
             .additionalReference("AR1234")
             .amount(BigDecimal.valueOf(555))
             .failureReference("FR12345")
-            .failureEventDateTime(Timestamp.valueOf("2021-10-10 10:10:10"))
+            .eventDateTime("2021-10-10 10:10:10")
             .ccdCaseNumber("123456")
             .reason("RR001")
             .paymentReference("RC1234")
@@ -435,7 +431,7 @@ public class PaymentStatusControllerTest {
             .additionalReference("AR1234")
             .amount(BigDecimal.valueOf(555))
             .failureReference("FR12345")
-            .failureEventDateTime(Timestamp.valueOf("2021-10-10 10:10:10"))
+            .eventDateTime("2021-10-10 10:10:10")
             .ccdCaseNumber("123456")
             .reason("RR001")
             .paymentReference("RC1234")
