@@ -151,7 +151,10 @@ public class IdamServiceImpl implements IdamService {
         LOG.info("getSecurityTokens");
         LOG.info("clientId {}", clientId);
         LOG.info("clientSecret {}", clientSecret);
-
+        LOG.info("grant_type {}", grantType);
+        LOG.info("password {}", password);
+        LOG.info("scope {}", scope);
+        LOG.info("username {}", username);
 
         UriComponentsBuilder builder = UriComponentsBuilder.newInstance()
             .fromUriString(idamBaseURL + TOKEN_ENDPOINT_PATH)
