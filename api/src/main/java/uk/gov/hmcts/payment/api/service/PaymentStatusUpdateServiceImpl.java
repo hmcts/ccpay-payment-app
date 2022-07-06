@@ -83,6 +83,8 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
     @Autowired
     private CasePaymentOrdersMapper casePaymentOrdersMapper;
 
+    public static final String BEARER = "Bearer ";
+
     @Autowired
     public PaymentStatusUpdateServiceImpl(
         ServiceRequestDomainService serviceRequestDomainService) {
@@ -208,7 +210,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
     private String getAccessToken() {
         IdamTokenResponse idamTokenResponse = idamService.getSecurityTokens();
         LOG.info("idamTokenResponse {}", idamTokenResponse.getAccessToken());
-        return idamTokenResponse.getAccessToken();
+        return BEARER + idamTokenResponse.getAccessToken();
     }
 
     private CasePaymentOrderDto filterCasePaymentOrdersDto(CasePaymentOrdersDto casePaymentOrdersDto, String serviceRequestReference) {
