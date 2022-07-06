@@ -29,19 +29,21 @@ public class ServiceRequestCpoServiceClient {
     protected static final String GET_CPO = "/case-payment-orders";
 
     private final String url;
-    private final RestTemplate restTemplateCpoClient;
+    private final RestTemplate restTemplateCpoClientServiceReq;
 
     @Autowired
     public ServiceRequestCpoServiceClient(@Value("${case-payment-orders.api.url}") String url,
-                                          @Qualifier("restTemplateCpoClient") RestTemplate restTemplateCpoClient) {
+                                          @Qualifier("restTemplateCpoClientServiceReq") RestTemplate restTemplateCpoClientServiceReq) {
         this.url = url;
-        this.restTemplateCpoClient = restTemplateCpoClient;
+        this.restTemplateCpoClientServiceReq = restTemplateCpoClientServiceReq;
     }
 
     public CpoGetResponse getCasePaymentOrdersForServiceReq(String caseIds,
                                                String userAuthToken, String s2sToken) {
 
         LOG.info("Inside getCasePaymentOrdersForServiceReq {}", caseIds);
+        LOG.info("Inside getCasePaymentOrdersForServiceReq  userAuthToken{}", userAuthToken);
+        LOG.info("Inside getCasePaymentOrdersForServiceReq s2sToken{}", s2sToken);
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url + GET_CPO);
 
         if (StringUtils.isNotBlank(caseIds)) {
@@ -52,7 +54,7 @@ public class ServiceRequestCpoServiceClient {
         HttpEntity<?> entity = new HttpEntity<>(headers);
 
         try {
-            HttpEntity<String> response = restTemplateCpoClient
+            HttpEntity<String> response = restTemplateCpoClientServiceReq
                 .exchange(builder.build().toUriString(),
                           HttpMethod.GET,
                           entity,

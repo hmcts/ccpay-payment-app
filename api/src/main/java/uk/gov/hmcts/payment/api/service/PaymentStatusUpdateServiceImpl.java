@@ -112,7 +112,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         String serviceRequestStatus = paymentGroup.toPaymentFailureGroupDto(retrieveDelegatingPaymentService).getServiceRequestStatus();
         ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
         String serviceRequestReference = paymentFeeLink.getPaymentReference();
-        CpoGetResponse casePaymentOrders = getCasePaymentOrders(paymentFeeLink.getCcdCaseNumber());
+        CpoGetResponse casePaymentOrders = getCasePaymentOrders(payment.getCcdCaseNumber());
         LOG.info("CpoGetResponse {}", casePaymentOrders);
         CasePaymentOrdersDto casePaymentOrdersDto;
         CasePaymentOrderDto filterCasePaymentOrdersDto =null;
