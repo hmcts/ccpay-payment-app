@@ -14,7 +14,7 @@ public interface PaymentStatusUpdateService {
     PaymentFailures insertBounceChequePaymentFailure(PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto);
     Optional<PaymentFailures> searchFailureReference(String failureReference);
 
-    void sendFailureMessageToServiceTopic(String paymentReference, BigDecimal amount) throws JsonProcessingException;
+    void sendFailureMessageToServiceTopic(String paymentReference, String failureReference) throws JsonProcessingException;
 
     boolean cancelFailurePaymentRefund(String paymentReference);
 

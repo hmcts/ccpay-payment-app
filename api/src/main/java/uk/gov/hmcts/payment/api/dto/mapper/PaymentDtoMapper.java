@@ -10,20 +10,15 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.fees2.register.api.contract.Fee2Dto;
 import uk.gov.hmcts.fees2.register.api.contract.FeeVersionDto;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
-import uk.gov.hmcts.payment.api.contract.FeeDto;
-import uk.gov.hmcts.payment.api.contract.PaymentAllocationDto;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.contract.StatusHistoryDto;
+import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.controllers.CardPaymentController;
-import uk.gov.hmcts.payment.api.dto.PaymentFailureReference;
-import uk.gov.hmcts.payment.api.dto.PaymentFailureStatusDto;
-import uk.gov.hmcts.payment.api.dto.PaymentStatusDto;
-import uk.gov.hmcts.payment.api.dto.PaymentReference;
+import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.reports.FeesService;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
+import uk.gov.hmcts.payment.casepaymentorders.client.dto.CpoGetResponse;
 
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
@@ -599,26 +594,53 @@ public class PaymentDtoMapper {
             .allocationStatus(paymentAllocation.getPaymentAllocationStatus().getName())
             .build();
     }
-    public PaymentFailureStatusDto toPaymentFailureStatusDto(String serviceRequestReference, String accountNumber,
-                                                                Payment payment, String serviceRequestStatus, BigDecimal amount) {
+
+    public PaymentFailureStatusDto toPaymentFailureStatusDto(String serviceRequestReference, PaymentFeeLink paymentFeeLink,  String serviceRequestStatus, CasePaymentOrderDto cpoGetResponse, PaymentFailures paymentFailure, Payment payment) {
         return PaymentFailureStatusDto.paymentFailureStatusDto()
             .serviceRequestReference(serviceRequestReference)
             .ccdCaseNumber(payment.getCcdCaseNumber())
             .serviceRequestAmount(payment.getAmount())
             .serviceRequestStatus(serviceRequestStatus)
-            .payment(toPaymentFailureReference(accountNumber, payment, amount))
+            .payment((!(paymentFeeLink.getPayments() == null) && !paymentFeeLink.getPayments().isEmpty()) ? toPaymentFailureDtos(paymentFeeLink.getPayments()) : null)
+            .dispute(toDisputeDto(paymentFailure))
+            .fees(toFailureFeeDtos(paymentFeeLink.getFees()))
+            .orgId(paymentFeeLink.getOrgId())
+            .responsibleParty(null != cpoGetResponse ? cpoGetResponse.getResponsibleParty():null)
+            .ccdAction(null != cpoGetResponse ? cpoGetResponse.getAction():null)
             .build();
     }
 
-    private PaymentFailureReference toPaymentFailureReference(String accountNumber,
-                                                Payment payment, BigDecimal amount) {
-        return PaymentFailureReference.paymentFailureReference()
+    private List<FeeServiceDto> toFailureFeeDtos(List<PaymentFee> paymentFees) {
+        return paymentFees.stream().map(f -> toFailureFeeServiceDto(f)).collect(Collectors.toList());
+    }
+
+    private FeeServiceDto toFailureFeeServiceDto(PaymentFee fee){
+
+        return FeeServiceDto.feeServiceDtoWith()
+            .feeAmount(fee.getFeeAmount())
+            .feeCode(fee.getCode())
+            .build();
+    }
+
+    private List<PaymentServiceDto> toPaymentFailureDtos(List<Payment> payments) {
+        return payments.stream().map(p -> toPaymentServiceReqDto(p)).collect(Collectors.toList());
+    }
+    private PaymentServiceDto toPaymentServiceReqDto(
+                                                Payment payment) {
+        return PaymentServiceDto.paymentServiceDtoWith()
             .paymentAmount(payment.getAmount())
             .paymentReference(payment.getReference())
-            .paymentMethod(payment.getPaymentMethod().getName())
             .caseReference(payment.getCaseReference())
-            .accountNumber(accountNumber)
-            .disputedAmount(amount)
+            .build();
+    }
+
+    private DisputeServiceDto toDisputeDto(PaymentFailures paymentFailure){
+
+        return DisputeServiceDto.paymentServiceDisputeDtoWith()
+            .disputeAmount(paymentFailure.getAmount())
+            .failureEventDate(paymentFailure.getFailureEventDateTime())
+            .hasAmountDebited(paymentFailure.getHasAmountDebited())
+            .representmentDate(paymentFailure.getRepresentmentOutcomeDate())
             .build();
     }
 }

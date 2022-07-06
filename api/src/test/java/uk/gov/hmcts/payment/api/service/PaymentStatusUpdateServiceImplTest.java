@@ -22,10 +22,12 @@ import java.math.BigDecimal;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
+
 import static org.mockito.Mockito.when;
 
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentStatusDtoMapper;
@@ -33,6 +35,9 @@ import uk.gov.hmcts.payment.api.dto.PaymentStatusBouncedChequeDto;
 import uk.gov.hmcts.payment.api.model.PaymentFailureRepository;
 import uk.gov.hmcts.payment.api.model.PaymentFailures;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
+
+import uk.gov.hmcts.payment.casepaymentorders.client.ServiceRequestCpoServiceClient;
+
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.util.Optional;
@@ -66,6 +71,13 @@ public class PaymentStatusUpdateServiceImplTest {
     @Mock
    private  PaymentFailures paymentFailures;
 
+    @Mock
+    private ServiceRequestCpoServiceClient cpoServiceClient;
+
+    public static final String S2S_TOKEN = "s2sToken";
+    public static final String AUTH_TOKEN = "authToken";
+    public static final String CASE_IDS = "caseId1, caseId2";
+
     @Test
      public void testPaymentFailureBounceChequeDBInsert(){
 
@@ -95,7 +107,7 @@ public class PaymentStatusUpdateServiceImplTest {
          when(paymentFailureRepository.findByFailureReference(any())).thenReturn(Optional.of(paymentFailures));
         Optional<PaymentFailures> paymentFailuresResult=  paymentStatusUpdateServiceImpl.searchFailureReference(paymentStatusBouncedChequeDto.getFailureReference());
         assertThat(paymentFailuresResult).isNotNull();
-        assertEquals(1,paymentFailuresResult.stream().findFirst().get().getId());
+        assertEquals(Optional.of(1),Optional.of(paymentFailuresResult.stream().findFirst().get().getId()));
     }
 
     @Test
@@ -164,7 +176,7 @@ public class PaymentStatusUpdateServiceImplTest {
         when(paymentFailureRepository.findByFailureReference(any())).thenReturn(Optional.of(paymentFailures));
         Optional<PaymentFailures> paymentFailuresResult=  paymentStatusUpdateServiceImpl.searchFailureReference(paymentStatusChargebackDto.getFailureReference());
         assertThat(paymentFailuresResult).isNotNull();
-        assertEquals(1,paymentFailuresResult.stream().findFirst().get().getId());
+        assertEquals(Optional.of(1),Optional.of(paymentFailuresResult.stream().findFirst().get().getId()));
     }
 
     @Test
@@ -227,7 +239,7 @@ public class PaymentStatusUpdateServiceImplTest {
             .additionalReference("AR1234")
             .amount(BigDecimal.valueOf(555))
             .failureReference("FR12345")
-            .eventDateTime("2021-10-10 10:10:10")
+            .eventDateTime("2021-10-10T10:10:10")
             .ccdCaseNumber("123456")
             .reason("RR001")
             .paymentReference("RC1234")
@@ -242,7 +254,7 @@ public class PaymentStatusUpdateServiceImplTest {
             .additionalReference("AR1234")
             .amount(BigDecimal.valueOf(555))
             .failureReference("FR12345")
-            .eventDateTime("2021-10-10 10:10:10")
+            .eventDateTime("2021-10-10T10:10:10")
             .ccdCaseNumber("123456")
             .reason("RR001")
             .paymentReference("RC1234")

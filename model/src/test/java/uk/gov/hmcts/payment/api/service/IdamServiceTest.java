@@ -19,6 +19,7 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.payment.api.dto.IdamFullNameRetrivalResponse;
+import uk.gov.hmcts.payment.api.dto.IdamTokenResponse;
 import uk.gov.hmcts.payment.api.dto.IdamUserIdResponse;
 import uk.gov.hmcts.payment.api.dto.UserIdentityDataDto;
 import uk.gov.hmcts.payment.api.exceptions.UserNotFoundException;
@@ -29,11 +30,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "componenttest"})
@@ -189,6 +193,22 @@ public class IdamServiceTest{
             eq(IdamFullNameRetrivalResponse[].class)
         )).thenReturn(responseForFullNameCCDUserId);
     }
+
+   /* @Test
+    void methodGetAccessTokenShouldMakeCallToIdamApi() {
+        IdamTokenResponse idamTokenResponse = IdamTokenResponse.idamFullNameRetrivalResponseWith()
+            .refreshToken("refresh-token")
+            .idToken("id-token")
+            .accessToken("access-token")
+            .expiresIn("10")
+            .scope("openid profile roles")
+            .tokenType("type")
+            .build();
+        when(restTemplateIdam.exchange(anyString(), eq(HttpMethod.POST), any(), eq(
+            IdamTokenResponse.class))).thenReturn(ResponseEntity.ok(idamTokenResponse));
+        IdamTokenResponse actualResponse = idamService.getSecurityTokens();
+       // assertThat(idamTokenResponse).usingRecursiveComparison().isEqualTo(actualResponse);
+    }*/
 
 }
 

@@ -95,7 +95,7 @@ public class PaymentStatusController {
         PaymentFailures insertPaymentFailures = paymentStatusUpdateService.insertChargebackPaymentFailure(paymentStatusChargebackDto);
 
         if(null != insertPaymentFailures.getId()){
-            paymentStatusUpdateService.sendFailureMessageToServiceTopic(paymentStatusChargebackDto.getPaymentReference(),paymentStatusChargebackDto.getAmount());
+            paymentStatusUpdateService.sendFailureMessageToServiceTopic(paymentStatusChargebackDto.getPaymentReference(),paymentStatusChargebackDto.getFailureReference());
             paymentStatusUpdateService.cancelFailurePaymentRefund(paymentStatusChargebackDto.getPaymentReference());
             return new ResponseEntity<>("successful operation", HttpStatus.OK);
         }

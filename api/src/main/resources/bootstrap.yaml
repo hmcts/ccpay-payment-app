@@ -49,3 +49,6 @@ spring:
         pci-pal-antenna-divorce-flow-id: pci-pal.antenna.divorce.flow.id
         pci-pal-antenna-financial-remedy-flow-id: pci-pal.antenna.financial.remedy.flow.id
         spring-mail-password: spring.mail.password
+        ccpay-cpo-client-id: ccpay-cpo-client-id
+        ccpay-cpo-client-secret: ccpay-cpo-client-secret
+        ccpay-cpo-user-password: ccpay-cpo-user-password

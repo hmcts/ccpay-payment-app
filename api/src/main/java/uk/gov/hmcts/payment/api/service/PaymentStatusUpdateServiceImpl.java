@@ -16,21 +16,25 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import uk.gov.hmcts.payment.api.contract.CasePaymentOrderDto;
+import uk.gov.hmcts.payment.api.contract.CasePaymentOrdersDto;
 import uk.gov.hmcts.payment.api.domain.service.ServiceRequestDomainService;
+import uk.gov.hmcts.payment.api.dto.IdamTokenResponse;
 import uk.gov.hmcts.payment.api.dto.PaymentFailureStatusDto;
 import uk.gov.hmcts.payment.api.dto.PaymentStatusChargebackDto;
+import uk.gov.hmcts.payment.api.dto.mapper.CasePaymentOrdersMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentStatusDtoMapper;
 import uk.gov.hmcts.payment.api.dto.PaymentStatusBouncedChequeDto;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotSuccessException;
+import uk.gov.hmcts.payment.casepaymentorders.client.ServiceRequestCpoServiceClient;
+import uk.gov.hmcts.payment.casepaymentorders.client.dto.CasePaymentOrder;
+import uk.gov.hmcts.payment.casepaymentorders.client.dto.CpoGetResponse;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
-import java.math.BigDecimal;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateService {
@@ -58,6 +62,12 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
     @Autowired
     private PaymentDtoMapper paymentDtoMapper;
 
+    @Autowired
+    private ServiceRequestCpoServiceClient cpoServiceClient;
+
+    @Autowired
+    private IdamService idamService;
+
     private final ServiceRequestDomainService serviceRequestDomainService;
 
     @Autowired()
@@ -71,69 +81,74 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
     private String refundApiUrl;
 
     @Autowired
+    private CasePaymentOrdersMapper casePaymentOrdersMapper;
+
+    @Autowired
     public PaymentStatusUpdateServiceImpl(
         ServiceRequestDomainService serviceRequestDomainService) {
         this.serviceRequestDomainService = serviceRequestDomainService;
     }
 
-    public PaymentFailures insertBounceChequePaymentFailure(PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto){
+    public PaymentFailures insertBounceChequePaymentFailure(PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto) {
 
-          LOG.info("Begin Payment failure insert in payment_failure table: {}",paymentStatusBouncedChequeDto.getPaymentReference());
-          PaymentFailures paymentFailures = paymentStatusDtoMapper.bounceChequeRequestMapper(paymentStatusBouncedChequeDto);
-          PaymentFailures insertpaymentFailures=  paymentFailureRepository.save(paymentFailures);
-          LOG.info("Completed  Payment failure insert in payment_failure table: {}",paymentStatusBouncedChequeDto.getPaymentReference());
-          return insertpaymentFailures;
+        LOG.info("Begin Payment failure insert in payment_failure table: {}", paymentStatusBouncedChequeDto.getPaymentReference());
+        PaymentFailures paymentFailures = paymentStatusDtoMapper.bounceChequeRequestMapper(paymentStatusBouncedChequeDto);
+        PaymentFailures insertpaymentFailures = paymentFailureRepository.save(paymentFailures);
+        LOG.info("Completed  Payment failure insert in payment_failure table: {}", paymentStatusBouncedChequeDto.getPaymentReference());
+        return insertpaymentFailures;
     }
 
-    public Optional<PaymentFailures> searchFailureReference(String failureReference){
-           return paymentFailureRepository.findByFailureReference(failureReference);
+    public Optional<PaymentFailures> searchFailureReference(String failureReference) {
+        return paymentFailureRepository.findByFailureReference(failureReference);
     }
 
-    public void sendFailureMessageToServiceTopic(String paymentReference, BigDecimal amount) throws JsonProcessingException{
+    public void sendFailureMessageToServiceTopic(String paymentReference, String failureReference) throws JsonProcessingException {
 
         Payment payment = paymentService.findSavedPayment(paymentReference);
-        List<FeePayApportion> feePayApportionList = paymentService.findByPaymentId(payment.getId());
-        if(feePayApportionList.isEmpty()){
-            throw new PaymentNotSuccessException("Payment is not successful");
-        }
-        List<PaymentFee> fees = feePayApportionList.stream().map(feePayApportion ->feeService.getPaymentFee(feePayApportion.getFeeId()).get())
-            .collect(Collectors.toSet()).stream().collect(Collectors.toList());
-        PaymentFeeLink paymentFeeLink = fees.get(0).getPaymentLink();
-         LOG.info("paymentFeeLink getEnterpriseServiceName {}",paymentFeeLink.getEnterpriseServiceName());
-         LOG.info("paymentFeeLink getCcdCaseNumber {}",paymentFeeLink.getCcdCaseNumber());
-        PaymentFeeLink  retrieveDelegatingPaymentService = delegatingPaymentService.retrieve(paymentFeeLink, payment.getReference());
-        String serviceRequestStatus = paymentGroup.toPaymentGroupDto(retrieveDelegatingPaymentService).getServiceRequestStatus();
+        PaymentFeeLink paymentFeeLink = payment.getPaymentLink();
+        LOG.info("paymentFeeLink getEnterpriseServiceName {}", paymentFeeLink.getEnterpriseServiceName());
+        LOG.info("paymentFeeLink getCcdCaseNumber {}", paymentFeeLink.getCcdCaseNumber());
+        PaymentFeeLink retrieveDelegatingPaymentService = delegatingPaymentService.retrieve(paymentFeeLink, payment.getReference());
+        String serviceRequestStatus = paymentGroup.toPaymentFailureGroupDto(retrieveDelegatingPaymentService).getServiceRequestStatus();
         ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
         String serviceRequestReference = paymentFeeLink.getPaymentReference();
-        PaymentFailureStatusDto paymentFailureStatusDto = paymentDtoMapper.toPaymentFailureStatusDto(serviceRequestReference, "", payment, serviceRequestStatus, amount);
-          if(null != paymentFeeLink.getCallBackUrl()){
+        CpoGetResponse casePaymentOrders = getCasePaymentOrders(paymentFeeLink.getCcdCaseNumber());
+        CasePaymentOrdersDto casePaymentOrdersDto;
+        CasePaymentOrderDto filterCasePaymentOrdersDto =null;
+        if (null != casePaymentOrders) {
+            casePaymentOrdersDto = casePaymentOrdersMapper.toCasePaymentOrdersDto(casePaymentOrders);
+            filterCasePaymentOrdersDto = filterCasePaymentOrdersDto(casePaymentOrdersDto,serviceRequestReference);
+        }
+        Optional<PaymentFailures> paymentFailure = searchFailureReference(failureReference);
+        PaymentFailureStatusDto paymentFailureStatusDto = paymentDtoMapper.toPaymentFailureStatusDto(serviceRequestReference, paymentFeeLink, serviceRequestStatus, filterCasePaymentOrdersDto, paymentFailure.get(), payment);
+        if (null != paymentFeeLink.getCallBackUrl()) {
             serviceRequestDomainService.sendFailureMessageToTopic(paymentFailureStatusDto, paymentFeeLink.getCallBackUrl());
         }
         String jsonpaymentStatusDto = ow.writeValueAsString(paymentFailureStatusDto);
-        LOG.info("json format paymentFailureStatusDto to Topic {}",jsonpaymentStatusDto);
-        LOG.info("callback URL paymentFailureStatusDto to Topic {}",paymentFeeLink.getCallBackUrl());
+        LOG.info("json format paymentFailureStatusDto to Topic {}", jsonpaymentStatusDto);
+        LOG.info("callback URL paymentFailureStatusDto to Topic {}", paymentFeeLink.getCallBackUrl());
 
     }
 
-    public boolean cancelFailurePaymentRefund(String paymentReference){
+    public boolean cancelFailurePaymentRefund(String paymentReference) {
 
         try {
-            LOG.info("Enter cancelFailurePaymentRefund method:: {}",paymentReference );
+            LOG.info("Enter cancelFailurePaymentRefund method:: {}", paymentReference);
             ResponseEntity<String> updateRefundStatus = cancelRefund(paymentReference);
 
-           if (updateRefundStatus.getStatusCode().is2xxSuccessful()) {
-               LOG.info("Refund cancelled successfully:: {}",paymentReference );
+            if (updateRefundStatus.getStatusCode().is2xxSuccessful()) {
+                LOG.info("Refund cancelled successfully:: {}", paymentReference);
             }
 
         } catch (HttpClientErrorException httpClientErrorException) {
 
             if (httpClientErrorException.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
-                LOG.info("Refund does not exist for the payment:: {}",paymentReference);
-            }else{
-                LOG.error("Refund App unavailable. Please try again:: {}",paymentReference);
+                LOG.info("Refund does not exist for the payment:: {}", paymentReference);
+            } else {
+                LOG.error("Refund App unavailable. Please try again:: {}", paymentReference);
             }
         } catch (Exception exception) {
-            LOG.error("Refund App unavailable. Please try again:: {}",paymentReference);
+            LOG.error("Refund App unavailable. Please try again:: {}", paymentReference);
         }
         return true;
     }
@@ -151,27 +166,27 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         final HttpEntity<String> entity = new HttpEntity<>(headers);
         Map<String, String> params = new HashMap<>();
         params.put("paymentReference", paymentReference);
-        LOG.info("Calling Refund  api to cancel refund for failed payment: {}",paymentReference);
+        LOG.info("Calling Refund  api to cancel refund for failed payment: {}", paymentReference);
         return restTemplateRefundCancel.exchange(refundApiUrl + "/payment/{paymentReference}/action/cancel", HttpMethod.PATCH, entity, String.class, params);
     }
 
-    public PaymentFailures insertChargebackPaymentFailure(PaymentStatusChargebackDto paymentStatusChargebackDto){
+    public PaymentFailures insertChargebackPaymentFailure(PaymentStatusChargebackDto paymentStatusChargebackDto) {
 
-        LOG.info("Begin Payment failure insert in payment_failure table: {}",paymentStatusChargebackDto.getPaymentReference());
+        LOG.info("Begin Payment failure insert in payment_failure table: {}", paymentStatusChargebackDto.getPaymentReference());
         PaymentFailures paymentFailures = paymentStatusDtoMapper.ChargebackRequestMapper(paymentStatusChargebackDto);
-        PaymentFailures insertpaymentFailures=  paymentFailureRepository.save(paymentFailures);
-        LOG.info("Completed  Payment failure insert in payment_failure table: {}",paymentStatusChargebackDto.getPaymentReference());
+        PaymentFailures insertpaymentFailures = paymentFailureRepository.save(paymentFailures);
+        LOG.info("Completed  Payment failure insert in payment_failure table: {}", paymentStatusChargebackDto.getPaymentReference());
         return insertpaymentFailures;
     }
 
-    public  List<PaymentFailures> searchPaymentFailure(String paymentReference){
+    public List<PaymentFailures> searchPaymentFailure(String paymentReference) {
 
         Optional<List<PaymentFailures>> paymentFailures;
         paymentFailures = paymentFailureRepository.findByPaymentReferenceOrderByFailureEventDateTimeDesc(paymentReference);
-        if(paymentFailures.isPresent()){
+        if (paymentFailures.isPresent()) {
             return paymentFailures.get();
         }
-           throw new PaymentNotFoundException("no record found");
+        throw new PaymentNotFoundException("no record found");
     }
 
     @Override
@@ -183,4 +198,23 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
             throw new PaymentNotFoundException("Failure reference not found in database for delete");
         }
     }
+
+    public CpoGetResponse getCasePaymentOrders(String caseIds) {
+        return cpoServiceClient.getCasePaymentOrdersForServiceReq(caseIds, getAccessToken(),
+            authTokenGenerator.generate());
+    }
+
+    private String getAccessToken() {
+        IdamTokenResponse idamTokenResponse = idamService.getSecurityTokens();
+        LOG.info("idamTokenResponse {}", idamTokenResponse.getAccessToken());
+        return idamTokenResponse.getAccessToken();
+    }
+
+    private CasePaymentOrderDto filterCasePaymentOrdersDto(CasePaymentOrdersDto casePaymentOrdersDto, String serviceRequestReference) {
+
+        CasePaymentOrderDto result1 = casePaymentOrdersDto.getContent().stream()
+        .filter(s -> serviceRequestReference.equalsIgnoreCase(s.getOrderReference())).findAny().orElse(null);
+
+    return result1;
+}
 }
