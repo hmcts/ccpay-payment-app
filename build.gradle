@@ -202,7 +202,8 @@ def sonarExclusions = [
         '**/api/exception/RefundServiceUnavailableException.java',
         '**/api/controllers/PaymentStatusController.java',
         '**/api/exception/FailureReferenceNotFoundException.java',
-        '**/payment.casepaymentorders.client/ServiceRequestCpoServiceClient.java'
+        '**/payment/casepaymentorders/client/ServiceRequestCpoServiceClient.java',
+        '**/api/configuration/RestTemplateConfiguration.java'
 ]
 
 sonarqube {
