@@ -27,7 +27,6 @@ import uk.gov.hmcts.payment.api.componenttests.PaymentDbBackdoor;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.controllers.MaintenanceJobsController;
-import uk.gov.hmcts.payment.api.domain.service.ServiceRequestDomainService;
 import uk.gov.hmcts.payment.api.service.CallbackService;
 import uk.gov.hmcts.payment.api.servicebus.TopicClientProxy;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
@@ -82,8 +81,6 @@ public class MaintenanceJobsControllerTest extends PaymentsDataUtil {
     private MaintenanceJobsController controller;
     @Autowired
     private ObjectMapper objectMapper;
-    @Autowired
-    ServiceRequestDomainService serviceRequestDomainServiceMock;
 
     @Before
     public void setUp() {
