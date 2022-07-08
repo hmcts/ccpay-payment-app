@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.api.unit;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.servicebus.IMessage;
+import com.microsoft.azure.servicebus.primitives.ServiceBusException;
 import org.ff4j.FF4j;
 import org.junit.After;
 import org.junit.Before;
@@ -13,7 +14,9 @@ import org.springframework.test.annotation.DirtiesContext;
 import uk.gov.hmcts.payment.api.componenttests.CardPaymentComponentTest;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
+import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.CallbackService;
 import uk.gov.hmcts.payment.api.servicebus.CallbackServiceImpl;
@@ -21,6 +24,7 @@ import uk.gov.hmcts.payment.api.servicebus.TopicClientProxy;
 
 import java.util.Arrays;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -40,9 +44,13 @@ public class CallbackServiceImplTest {
     private PaymentDtoMapper paymentDtoMapper;
     private ObjectMapper objectMapper = new ObjectMapper();
 
+    @Mock
+    private PaymentGroupDtoMapper paymentGroupDtoMapper;
+
     @Before
     public void init() {
-        callbackService = new CallbackServiceImpl(paymentDtoMapper, objectMapper, topicClient, ff4j);
+        callbackService = new CallbackServiceImpl(paymentDtoMapper, objectMapper, topicClient, ff4j,
+                paymentGroupDtoMapper);
         when(ff4j.check(CallbackService.FEATURE)).thenReturn(true);
     }
 
@@ -69,9 +77,45 @@ public class CallbackServiceImplTest {
 
         callbackService.callback(paymentFeeLink, paymentFeeLink.getPayments().get(0));
 
-        verifyZeroInteractions(topicClient);
+        verifyNoInteractions(topicClient);
 
     }
 
+    @Test
+    public void testThatWhenCallbackUrlIsProvidedInPaymentFeeLinkBusIsCalled() throws ServiceBusException, InterruptedException {
 
+        paymentFeeLink.getPayments().get(0).setServiceCallbackUrl(null);
+        paymentFeeLink.setCallBackUrl("dummy");
+
+        when(paymentGroupDtoMapper.toPaymentGroupDto(any())).thenReturn(new PaymentGroupDto());
+
+        callbackService.callback(paymentFeeLink, paymentFeeLink.getPayments().get(0));
+
+        verify((topicClient), times(1)).send(any(IMessage.class));
+    }
+
+    @Test
+    public void testThatWhenFeatureIsOffInPaymentFeeLinkBusIsNotCalled() {
+
+        when(ff4j.check(CallbackService.FEATURE)).thenReturn(false);
+
+        callbackService.callback(paymentFeeLink, paymentFeeLink.getPayments().get(0));
+
+        verifyNoInteractions(topicClient);
+    }
+
+    @Test
+    public void testThatWhenThreadInterruptedBusIsNotCalled() {
+
+        Thread.currentThread().interrupt();
+
+        paymentFeeLink.getPayments().get(0).setServiceCallbackUrl(null);
+        paymentFeeLink.setCallBackUrl("dummy");
+
+        when(paymentGroupDtoMapper.toPaymentGroupDto(any())).thenReturn(new PaymentGroupDto());
+
+        callbackService.callback(paymentFeeLink, paymentFeeLink.getPayments().get(0));
+
+        assertTrue(Thread.interrupted());
+    }
 }
