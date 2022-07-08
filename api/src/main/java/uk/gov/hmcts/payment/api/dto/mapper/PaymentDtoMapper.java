@@ -641,6 +641,7 @@ public class PaymentDtoMapper {
             .failureEventDate(paymentFailure.getFailureEventDateTime())
             .hasAmountDebited(paymentFailure.getHasAmountDebited())
             .representmentDate(paymentFailure.getRepresentmentOutcomeDate())
+            .representmentStatus(paymentFailure.getRepresentmentSuccess())
             .build();
     }
 }
