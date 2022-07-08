@@ -84,7 +84,6 @@ java:
     TIMEOUT_SERVER_SHUTDOWN_PHASE: 30s
     CPO_SELECT_ACCOUNT_GRANT_TYPE: password
     CPO_SELECT_ACCOUNT_SCOPE: openid profile roles
-    CPO_SELECT_ACCOUNT_USERNAME: idam.user.ccpayfunctionnode@hmcts.net
 
   keyVaults:
     "ccpay":
@@ -139,3 +138,4 @@ java:
         - ccpay-cpo-client-id
         - ccpay-cpo-client-secret
         - ccpay-cpo-user-password
+        - ccpay-cpo-user-id
