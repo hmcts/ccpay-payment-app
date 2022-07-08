@@ -52,3 +52,4 @@ spring:
         ccpay-cpo-client-id: idam.serviceAccount.clientId
         ccpay-cpo-client-secret: idam.serviceAccount.clientSecret
         ccpay-cpo-user-password: idam.serviceAccount.password
+        ccpay-cpo-user-id: idam.serviceAccount.username

@@ -48,5 +48,6 @@ java:
         - ccpay-cpo-client-id
         - ccpay-cpo-client-secret
         - ccpay-cpo-user-password
+        - ccpay-cpo-user-id
   postgresql:
     enabled: true
