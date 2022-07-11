@@ -54,8 +54,10 @@ public class PaymentStatusController {
     @PostMapping(path = "/payment-failures/bounced-cheque")
     public ResponseEntity<String> paymentStatusBouncedCheque(@Valid @RequestBody PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto){
 
-        if (featureToggler.getBooleanValue("payment-status-update-flag",false)) {
-            LOG.info("feature toggler enable for  bounced-cheque : {}");
+        boolean psuLockFeature = featureToggler.getBooleanValue("payment-status-update-flag",false);
+        LOG.info("feature toggler enable for  bounced-cheque : {}",psuLockFeature);
+
+        if(psuLockFeature){
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
         }
 
@@ -86,10 +88,13 @@ public class PaymentStatusController {
     @PostMapping(path = "/payment-failures/chargeback")
     public ResponseEntity<String> paymentStatusChargeBack(@Valid @RequestBody PaymentStatusChargebackDto paymentStatusChargebackDto) throws JsonProcessingException {
 
-        if (featureToggler.getBooleanValue("payment-status-update-flag",false)) {
-            LOG.info("feature toggler enable for  chargeback : {}");
+        boolean psuLockFeature = featureToggler.getBooleanValue("payment-status-update-flag",false);
+        LOG.info("feature toggler enable for  chargeback : {}",psuLockFeature);
+
+        if(psuLockFeature){
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
         }
+
         LOG.info("Received payment status request chargeback : {}", paymentStatusChargebackDto);
         Optional<Payment> payment = paymentRepository.findByReference(paymentStatusChargebackDto.getPaymentReference());
 
