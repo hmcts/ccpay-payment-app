@@ -149,15 +149,8 @@ public class IdamServiceImpl implements IdamService {
 
     public IdamTokenResponse getSecurityTokens() {
         LOG.info("getSecurityTokens");
-        LOG.info("clientId {}", clientId);
-        LOG.info("clientSecret {}", clientSecret);
-        LOG.info("grant_type {}", grantType);
-        LOG.info("password {}", password);
-        LOG.info("scope {}", scope);
-        LOG.info("username {}", username);
 
-        UriComponentsBuilder builder = UriComponentsBuilder.newInstance()
-            .fromUriString(idamBaseURL + TOKEN_ENDPOINT_PATH)
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(idamBaseURL + TOKEN_ENDPOINT_PATH)
             .queryParam("client_id", clientId)
             .queryParam("client_secret", clientSecret)
             .queryParam("grant_type", grantType)
@@ -183,4 +176,3 @@ public class IdamServiceImpl implements IdamService {
 
     }
 }
-

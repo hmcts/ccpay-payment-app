@@ -226,13 +226,6 @@ public class PaymentStatusUpdateServiceImplTest {
         );
     }
 
-    @Test
-    public void testDeleteByPaymentReference() {
-        long value = 1;
-        when(paymentFailureRepository.deleteByFailureReference(anyString())).thenReturn(value);
-        paymentStatusUpdateServiceImpl.deleteByFailureReference("dummy");
-    }
-
     private PaymentStatusBouncedChequeDto getPaymentStatusBouncedChequeDto() {
 
         PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto = PaymentStatusBouncedChequeDto.paymentStatusBouncedChequeRequestWith()

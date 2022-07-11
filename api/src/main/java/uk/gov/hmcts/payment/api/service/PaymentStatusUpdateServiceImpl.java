@@ -30,7 +30,6 @@ import uk.gov.hmcts.payment.api.dto.PaymentStatusBouncedChequeDto;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.casepaymentorders.client.ServiceRequestCpoServiceClient;
-import uk.gov.hmcts.payment.casepaymentorders.client.dto.CasePaymentOrder;
 import uk.gov.hmcts.payment.casepaymentorders.client.dto.CpoGetResponse;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
@@ -212,10 +211,8 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
 
     private CasePaymentOrderDto filterCasePaymentOrdersDto(CasePaymentOrdersDto casePaymentOrdersDto, String serviceRequestReference) {
 
-        CasePaymentOrderDto result = casePaymentOrdersDto.getContent().stream()
+        return casePaymentOrdersDto.getContent().stream()
         .filter(s -> serviceRequestReference.equalsIgnoreCase(s.getOrderReference())).findAny().orElse(null);
-
-    return result;
 }
 
 }

@@ -28,7 +28,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 @AutoConfigureWebClient(registerRestTemplate = true)
 @ContextConfiguration(classes = TestContextConfiguration.class)
 @RunWith(value = BlockJUnit4ClassRunner.class)
-public class ServiceRequestCpoServiceClientTest {
+class ServiceRequestCpoServiceClientTest {
 
     private static final String HOST_URL = "http://localhost:4457";
     private static final UUID CPO_ID = UUID.randomUUID();
@@ -57,7 +57,7 @@ public class ServiceRequestCpoServiceClientTest {
     }
 
     @Test
-    public void getCasePaymentOrders() throws Exception {
+    void getCasePaymentOrders() throws Exception {
         String json = this.objectMapper
             .writeValueAsString(createCpoGetResponse());
 
@@ -79,7 +79,7 @@ public class ServiceRequestCpoServiceClientTest {
     }
 
     @Test
-    public void getCasePaymentOrdersWithCaseIdsAndNoOtherParameters() throws Exception {
+    void getCasePaymentOrdersWithCaseIdsAndNoOtherParameters() throws Exception {
         String json = this.objectMapper
             .writeValueAsString(createCpoGetResponse());
 
