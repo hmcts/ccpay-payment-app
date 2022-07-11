@@ -25,6 +25,7 @@ import org.springframework.util.ResourceUtils;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.WebApplicationContext;
+import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentStatusDtoMapper;
@@ -56,6 +57,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
@@ -132,6 +134,9 @@ public class PaymentStatusControllerTest {
     private IdamService idamService;
     @MockBean
     private ServiceRequestCpoServiceClient cpoServiceClient;
+
+    @MockBean
+    private LaunchDarklyFeatureToggler featureToggler;
 
     private ServiceRequestCpoServiceClient client;
 
@@ -404,6 +409,26 @@ public class PaymentStatusControllerTest {
     public void testDeletePayment() throws Exception {
         restActions.delete("/payment-status-delete/test")
             .andExpect(status().isNotFound())
+            .andReturn();
+    }
+
+    @Test
+    public void lockedChargeBackShouldThrowServiceUnavailable() throws Exception {
+        PaymentStatusChargebackDto paymentStatusChargebackDto =getPaymentStatusChargebackDto();
+        when(featureToggler.getBooleanValue(eq("payment-status-update-flag"),anyBoolean())).thenReturn(true);
+        MvcResult result = restActions
+            .post("/payment-failures/chargeback", paymentStatusChargebackDto)
+            .andExpect(status().isServiceUnavailable())
+            .andReturn();
+    }
+
+    @Test
+    public void lockedBounceChequeShouldThrowServiceUnavailable() throws Exception {
+        PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto =getPaymentStatusBouncedChequeDto();
+        when(featureToggler.getBooleanValue(eq("payment-status-update-flag"),anyBoolean())).thenReturn(true);
+        MvcResult result = restActions
+            .post("/payment-failures/bounced-cheque", paymentStatusBouncedChequeDto)
+            .andExpect(status().isServiceUnavailable())
             .andReturn();
     }
 

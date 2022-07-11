@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentStatusResponseMapper;
 import uk.gov.hmcts.payment.api.exception.FailureReferenceNotFoundException;
@@ -38,6 +39,9 @@ public class PaymentStatusController {
     @Autowired
     private PaymentStatusResponseMapper paymentStatusResponseMapper;
 
+    @Autowired
+    private LaunchDarklyFeatureToggler featureToggler;
+
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "successful operation"),
         @ApiResponse(code = 400, message = "Bad request"),
@@ -49,6 +53,11 @@ public class PaymentStatusController {
     @PaymentExternalAPI
     @PostMapping(path = "/payment-failures/bounced-cheque")
     public ResponseEntity<String> paymentStatusBouncedCheque(@Valid @RequestBody PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto){
+
+        if (featureToggler.getBooleanValue("payment-status-update-flag",false)) {
+            LOG.info("feature toggler enable for  bounced-cheque : {}");
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+        }
 
         LOG.info("Received payment status request bounced-cheque : {}", paymentStatusBouncedChequeDto);
         Optional<Payment> payment = paymentRepository.findByReference(paymentStatusBouncedChequeDto.getPaymentReference());
@@ -67,10 +76,9 @@ public class PaymentStatusController {
 
           if(null != insertPaymentFailures.getId()){
               paymentStatusUpdateService.cancelFailurePaymentRefund(paymentStatusBouncedChequeDto.getPaymentReference());
-              return new ResponseEntity<>("successful operation", HttpStatus.OK);
-        }
+            }
 
-        return new ResponseEntity<>("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>("successful operation", HttpStatus.OK);
 
     }
 
@@ -78,6 +86,10 @@ public class PaymentStatusController {
     @PostMapping(path = "/payment-failures/chargeback")
     public ResponseEntity<String> paymentStatusChargeBack(@Valid @RequestBody PaymentStatusChargebackDto paymentStatusChargebackDto) throws JsonProcessingException {
 
+        if (featureToggler.getBooleanValue("payment-status-update-flag",false)) {
+            LOG.info("feature toggler enable for  chargeback : {}");
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+        }
         LOG.info("Received payment status request chargeback : {}", paymentStatusChargebackDto);
         Optional<Payment> payment = paymentRepository.findByReference(paymentStatusChargebackDto.getPaymentReference());
 
@@ -96,9 +108,8 @@ public class PaymentStatusController {
         if(null != insertPaymentFailures.getId()){
             paymentStatusUpdateService.sendFailureMessageToServiceTopic(payment.get(),insertPaymentFailures);
             paymentStatusUpdateService.cancelFailurePaymentRefund(paymentStatusChargebackDto.getPaymentReference());
-            return new ResponseEntity<>("successful operation", HttpStatus.OK);
         }
-        return new ResponseEntity<>("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>("successful operation", HttpStatus.OK);
     }
 
     @ApiOperation(value = "Get payment failure by payment reference", notes = "Get payment failure for supplied payment reference")
