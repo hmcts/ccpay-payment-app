@@ -3,6 +3,7 @@ package uk.gov.hmcts.payment.api.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import uk.gov.hmcts.payment.api.dto.PaymentStatusBouncedChequeDto;
 import uk.gov.hmcts.payment.api.dto.PaymentStatusChargebackDto;
+import uk.gov.hmcts.payment.api.dto.PaymentStatusUpdateSecond;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFailures;
 
@@ -23,4 +24,6 @@ public interface PaymentStatusUpdateService {
 
     List<PaymentFailures> searchPaymentFailure(String failureReference);
     void deleteByFailureReference(String failureReference);
+
+    PaymentFailures updatePaymentFailure(PaymentFailures paymentFailures, PaymentStatusUpdateSecond paymentStatusUpdateSecond);
 }

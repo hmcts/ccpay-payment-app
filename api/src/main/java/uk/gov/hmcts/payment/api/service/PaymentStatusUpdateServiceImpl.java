@@ -21,13 +21,17 @@ import uk.gov.hmcts.payment.api.contract.CasePaymentOrdersDto;
 import uk.gov.hmcts.payment.api.domain.service.ServiceRequestDomainService;
 import uk.gov.hmcts.payment.api.dto.IdamTokenResponse;
 import uk.gov.hmcts.payment.api.dto.PaymentFailureStatusDto;
+import uk.gov.hmcts.payment.api.dto.PaymentStatusBouncedChequeDto;
 import uk.gov.hmcts.payment.api.dto.PaymentStatusChargebackDto;
+import uk.gov.hmcts.payment.api.dto.PaymentStatusUpdateSecond;
 import uk.gov.hmcts.payment.api.dto.mapper.CasePaymentOrdersMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentStatusDtoMapper;
-import uk.gov.hmcts.payment.api.dto.PaymentStatusBouncedChequeDto;
-import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.PaymentFailures;
+import uk.gov.hmcts.payment.api.model.PaymentFailureRepository;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.casepaymentorders.client.ServiceRequestCpoServiceClient;
 import uk.gov.hmcts.payment.casepaymentorders.client.dto.CpoGetResponse;
@@ -196,6 +200,15 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         if (records == 0) {
             throw new PaymentNotFoundException("Failure reference not found in database for delete");
         }
+    }
+
+    @Override
+    public PaymentFailures updatePaymentFailure(PaymentFailures paymentFailure, PaymentStatusUpdateSecond paymentStatusUpdateSecond) {
+        paymentFailure.setRepresentmentSuccess(paymentStatusUpdateSecond.getRepresentmentStatus());
+        paymentFailure.setRepresentmentOutcomeDate(paymentStatusUpdateSecond.getRepresentmentDate());
+        PaymentFailures updatedpaymentFailure = paymentFailureRepository.save(paymentFailure);
+        LOG.info("Updated Payment failure record in payment_failure table: {}", paymentFailure.getPaymentReference());
+        return updatedpaymentFailure;
     }
 
     public CpoGetResponse getCasePaymentOrders(String caseIds) {
