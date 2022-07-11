@@ -5,6 +5,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -31,8 +32,9 @@ import java.util.List;
 import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 
@@ -194,8 +196,8 @@ public class IdamServiceTest{
         )).thenReturn(responseForFullNameCCDUserId);
     }
 
-   /* @Test
-    void methodGetAccessTokenShouldMakeCallToIdamApi() {
+    @Test
+    public void methodGetAccessTokenShouldMakeCallToIdamApi() {
         IdamTokenResponse idamTokenResponse = IdamTokenResponse.idamFullNameRetrivalResponseWith()
             .refreshToken("refresh-token")
             .idToken("id-token")
@@ -204,11 +206,11 @@ public class IdamServiceTest{
             .scope("openid profile roles")
             .tokenType("type")
             .build();
-        when(restTemplateIdam.exchange(anyString(), eq(HttpMethod.POST), any(), eq(
+        when(restTemplateIdam.exchange(anyString(), eq(HttpMethod.POST), Mockito.any(), eq(
             IdamTokenResponse.class))).thenReturn(ResponseEntity.ok(idamTokenResponse));
         IdamTokenResponse actualResponse = idamService.getSecurityTokens();
-       // assertThat(idamTokenResponse).usingRecursiveComparison().isEqualTo(actualResponse);
-    }*/
+        assertEquals(idamTokenResponse.getAccessToken(),actualResponse.getAccessToken());
+    }
 
 }
 

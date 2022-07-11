@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.api.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.SneakyThrows;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -13,16 +14,14 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ResourceUtils;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.WebApplicationContext;
@@ -40,12 +39,16 @@ import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 import uk.gov.hmcts.payment.casepaymentorders.client.ServiceRequestCpoServiceClient;
 
+import uk.gov.hmcts.payment.casepaymentorders.client.dto.CasePaymentOrder;
+import uk.gov.hmcts.payment.casepaymentorders.client.dto.CpoGetResponse;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.math.BigDecimal;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.util.*;
-
 import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
@@ -103,6 +106,10 @@ public class PaymentStatusControllerTest {
     private RestTemplate restTemplateRefundCancel;
 
     @MockBean
+    @Qualifier("restTemplateCpoClientServiceReq")
+    private RestTemplate restTemplateCpoClientServiceReq;
+
+    @MockBean
     private AuthTokenGenerator authTokenGenerator;
 
     @Mock
@@ -123,12 +130,17 @@ public class PaymentStatusControllerTest {
 
     @MockBean
     private IdamService idamService;
-    @Mock
+    @MockBean
     private ServiceRequestCpoServiceClient cpoServiceClient;
 
-    public static final String S2S_TOKEN = "s2sToken";
-    public static final String AUTH_TOKEN = "authToken";
-    public static final String CASE_IDS = "caseId1, caseId2";
+    private ServiceRequestCpoServiceClient client;
+
+    private static final UUID CPO_ID = UUID.randomUUID();
+    private static final LocalDateTime CREATED_TIMESTAMP = LocalDateTime.of(2020, 3, 13, 10, 0);
+    private static final long CASE_ID = 12345L;
+    private static final String ACTION = "action1";
+    private static final String RESPONDENT = "respondent";
+    private static final String ORDER_REFERENCE = "2018-15202505035";
 
     @Before
     public void setup() {
@@ -274,11 +286,11 @@ public class PaymentStatusControllerTest {
 
     }
 
-   /* @Test
+   @Test
     public void returnSuccessWhenPaymentFailureIsSucessfullOpertionForChargeback() throws Exception {
 
         Payment payment = getPayment();
-        PaymentMethod paymentMethod = PaymentMethod.paymentMethodWith().name("online").build();
+      PaymentMethod paymentMethod = PaymentMethod.paymentMethodWith().name("online").build();
         PaymentFee fee = PaymentFee.feeWith().id(1).calculatedAmount(new BigDecimal("11.99")).code("X0001").version("1").build();
         Payment payment2 = Payment.paymentWith().internalReference("abc")
             .id(1)
@@ -289,30 +301,12 @@ public class PaymentStatusControllerTest {
             .amount(new BigDecimal(300))
             .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
             .build();
-        PaymentFeeLink paymentFeeLink1 = PaymentFeeLink.paymentFeeLinkWith()
+        PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith()
             .id(1)
             .paymentReference("2018-15202505035")
             .fees(Arrays.asList(fee))
             .payments(Arrays.asList(payment2))
-            .build();
-        Payment payment1 = Payment.paymentWith().internalReference("abc")
-            .id(1)
-            .reference("RC-1632-3254-9172-5888")
-            .caseReference("123789")
-            .paymentMethod(paymentMethod )
-            .ccdCaseNumber("1234")
-            .amount(new BigDecimal(300))
-            .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
-            .paymentLink(paymentFeeLink1)
-            .build();
-
-        List<Payment> paymentList = new ArrayList<>();
-        paymentList.add(payment1);
-
-        PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith().ccdCaseNumber("1234")
-            .enterpriseServiceName("divorce")
-            .payments(paymentList)
-            .paymentReference("123456")
+            .callBackUrl("http//:test")
             .build();
 
         PaymentFailures paymentFailures = getPaymentFailures();
@@ -322,11 +316,9 @@ public class PaymentStatusControllerTest {
         when(paymentStatusUpdateService.searchFailureReference(any())).thenReturn(Optional.empty());
         when(paymentFailureRepository.save(any())).thenReturn(paymentFailures);
         when(paymentRepository.findByReference(any())).thenReturn(Optional.of(payment));
-        when(paymentService.findSavedPayment(any())).thenReturn(payment1);
         when(paymentService.findByPaymentId(anyInt())).thenReturn(Arrays.asList(FeePayApportion.feePayApportionWith()
             .feeId(1)
             .build()));
-        when(paymentFeeRepository.findById(anyInt())).thenReturn(Optional.of(PaymentFee.feeWith().paymentLink(paymentFeeLink).build()));
         when(delegatingPaymentService.retrieve(any(PaymentFeeLink.class) ,anyString())).thenReturn(paymentFeeLink);
 
         PaymentGroupDto paymentGroupDto = new PaymentGroupDto();
@@ -334,24 +326,27 @@ public class PaymentStatusControllerTest {
         when(paymentGroupDtoMapper.toPaymentFailureGroupDto(any())).thenReturn(paymentGroupDto);
         when(paymentStatusUpdateService.cancelFailurePaymentRefund(any())).thenReturn(true);
         when(authTokenGenerator.generate()).thenReturn("service auth token");
-        CpoGetResponse clientResponse = new CpoGetResponse();
-        given(cpoServiceClient.getCasePaymentOrdersForServiceReq(CASE_IDS, AUTH_TOKEN, S2S_TOKEN))
-            .willReturn(clientResponse);
-        when(idamService.getSecurityTokens()).thenReturn(idamTokenResponse);
+       when(idamService.getSecurityTokens()).thenReturn(idamTokenResponse);
+       when(cpoServiceClient.getCasePaymentOrdersForServiceReq(anyString(),anyString(),anyString())).thenReturn(createCpoGetResponse());
+       when(this.restTemplateCpoClientServiceReq.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
+           CpoGetResponse.class))).thenReturn(new ResponseEntity(HttpStatus.OK)
+       );
+       when(paymentStatusUpdateService.searchFailureReference(anyString())).thenReturn(Optional.of(getPaymentFailures()));
         when(this.restTemplateRefundCancel.exchange(anyString(),
             eq(HttpMethod.PATCH),
             any(HttpEntity.class),
             eq(String.class), any(Map.class)))
             .thenReturn(new ResponseEntity(HttpStatus.OK));
-        MvcResult result1 = restActions
+        MvcResult result = restActions
             .post("/payment-failures/chargeback", paymentStatusChargebackDto)
             .andExpect(status().isOk())
             .andReturn();
 
-        assertEquals(200, result1.getResponse().getStatus());
+        assertEquals(200, result.getResponse().getStatus());
 
     }
-*/
+
+
     @Test
     public void return500WhenRefundServerNotAvailableForForChargeback() throws Exception {
 
@@ -445,6 +440,20 @@ public class PaymentStatusControllerTest {
             .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
             .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
             .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
+            .paymentLink(PaymentFeeLink.paymentFeeLinkWith()
+                .id(1)
+                .paymentReference("2018-15202505035")
+                .fees(Arrays.asList(PaymentFee.feeWith().id(1).calculatedAmount(new BigDecimal("11.99")).code("X0001").version("1").build()))
+                .payments(Arrays.asList(Payment.paymentWith().internalReference("abc")
+                    .id(1)
+                    .reference("RC-1632-3254-9172-5888")
+                    .caseReference("123789")
+                    .ccdCaseNumber("1234")
+                    .amount(new BigDecimal(300))
+                    .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
+                    .build()))
+                .callBackUrl("http//:test")
+                .build())
             .build();
 
         return payment;
@@ -508,5 +517,35 @@ public class PaymentStatusControllerTest {
         .scope("openid profile roles")
         .tokenType("type")
         .build();
+
+    @SneakyThrows
+    protected String contentsOf(String fileName) {
+        String content = new String(Files.readAllBytes(Paths.get(ResourceUtils.getURL("classpath:" + fileName).toURI())));
+        return resolvePlaceholders(content);
+    }
+
+    protected String resolvePlaceholders(String content) {
+        return configurableListableBeanFactory.resolveEmbeddedValue(content);
+    }
+
+    private static CpoGetResponse createCpoGetResponse() {
+        CpoGetResponse response = new CpoGetResponse();
+        response.setContent(Collections.singletonList(createCasePaymentOrder()));
+        response.setTotalElements(3L);
+        response.setSize(2);
+        response.setNumber(1);
+        return response;
+    }
+
+    private static CasePaymentOrder createCasePaymentOrder() {
+        CasePaymentOrder cpo = new CasePaymentOrder();
+        cpo.setId(CPO_ID);
+        cpo.setCreatedTimestamp(CREATED_TIMESTAMP);
+        cpo.setCaseId(CASE_ID);
+        cpo.setAction(ACTION);
+        cpo.setResponsibleParty(RESPONDENT);
+        cpo.setOrderReference(ORDER_REFERENCE);
+        return cpo;
+    }
 
 }

@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentStatusResponseMapper;
 import uk.gov.hmcts.payment.api.exception.FailureReferenceNotFoundException;
-import uk.gov.hmcts.payment.api.exception.RefundServiceUnavailableException;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.Payment2Repository;
 import uk.gov.hmcts.payment.api.model.PaymentFailures;
@@ -95,7 +94,7 @@ public class PaymentStatusController {
         PaymentFailures insertPaymentFailures = paymentStatusUpdateService.insertChargebackPaymentFailure(paymentStatusChargebackDto);
 
         if(null != insertPaymentFailures.getId()){
-            paymentStatusUpdateService.sendFailureMessageToServiceTopic(paymentStatusChargebackDto.getPaymentReference(),paymentStatusChargebackDto.getFailureReference());
+            paymentStatusUpdateService.sendFailureMessageToServiceTopic(payment.get(),insertPaymentFailures);
             paymentStatusUpdateService.cancelFailurePaymentRefund(paymentStatusChargebackDto.getPaymentReference());
             return new ResponseEntity<>("successful operation", HttpStatus.OK);
         }
@@ -131,7 +130,6 @@ public class PaymentStatusController {
         paymentStatusUpdateService.deleteByFailureReference(failureReference);
     }
 
-
     @ResponseStatus(HttpStatus.TOO_MANY_REQUESTS)
     @ExceptionHandler(FailureReferenceNotFoundException.class)
     public String return429(FailureReferenceNotFoundException ex) {
@@ -141,12 +139,6 @@ public class PaymentStatusController {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(PaymentNotFoundException.class)
     public String notFound(PaymentNotFoundException ex) {
-        return ex.getMessage();
-    }
-
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    @ExceptionHandler( RefundServiceUnavailableException.class)
-    public String return500( RefundServiceUnavailableException ex) {
         return ex.getMessage();
     }
 

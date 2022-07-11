@@ -104,11 +104,9 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         return paymentFailureRepository.findByFailureReference(failureReference);
     }
 
-    public void sendFailureMessageToServiceTopic(String paymentReference, String failureReference) throws JsonProcessingException {
+    public void sendFailureMessageToServiceTopic(Payment payment, PaymentFailures paymentFailure) throws JsonProcessingException {
 
-        Payment payment = paymentService.findSavedPayment(paymentReference);
         PaymentFeeLink paymentFeeLink = payment.getPaymentLink();
-        LOG.info("paymentFeeLink getEnterpriseServiceName {}", paymentFeeLink.getEnterpriseServiceName());
         LOG.info("paymentFeeLink getCcdCaseNumber {}", paymentFeeLink.getCcdCaseNumber());
         PaymentFeeLink retrieveDelegatingPaymentService = delegatingPaymentService.retrieve(paymentFeeLink, payment.getReference());
         String serviceRequestStatus = paymentGroup.toPaymentFailureGroupDto(retrieveDelegatingPaymentService).getServiceRequestStatus();
@@ -122,8 +120,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
             casePaymentOrdersDto = casePaymentOrdersMapper.toCasePaymentOrdersDto(casePaymentOrders);
             filterCasePaymentOrdersDto = filterCasePaymentOrdersDto(casePaymentOrdersDto,serviceRequestReference);
         }
-        Optional<PaymentFailures> paymentFailure = searchFailureReference(failureReference);
-        PaymentFailureStatusDto paymentFailureStatusDto = paymentDtoMapper.toPaymentFailureStatusDto(serviceRequestReference, paymentFeeLink, serviceRequestStatus, filterCasePaymentOrdersDto, paymentFailure.get(), payment);
+        PaymentFailureStatusDto paymentFailureStatusDto = paymentDtoMapper.toPaymentFailureStatusDto(serviceRequestReference, paymentFeeLink, serviceRequestStatus, filterCasePaymentOrdersDto, paymentFailure, payment);
         if (null != paymentFeeLink.getCallBackUrl()) {
             serviceRequestDomainService.sendFailureMessageToTopic(paymentFailureStatusDto, paymentFeeLink.getCallBackUrl());
         }
@@ -215,9 +212,10 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
 
     private CasePaymentOrderDto filterCasePaymentOrdersDto(CasePaymentOrdersDto casePaymentOrdersDto, String serviceRequestReference) {
 
-        CasePaymentOrderDto result1 = casePaymentOrdersDto.getContent().stream()
+        CasePaymentOrderDto result = casePaymentOrdersDto.getContent().stream()
         .filter(s -> serviceRequestReference.equalsIgnoreCase(s.getOrderReference())).findAny().orElse(null);
 
-    return result1;
+    return result;
 }
+
 }

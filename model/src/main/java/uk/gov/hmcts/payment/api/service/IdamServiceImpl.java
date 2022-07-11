@@ -166,7 +166,7 @@ public class IdamServiceImpl implements IdamService {
             .queryParam("username", username);
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-        ResponseEntity<IdamTokenResponse> idamTokenResponse = null;
+        ResponseEntity<IdamTokenResponse> idamTokenResponse;
         try {
             idamTokenResponse = restTemplateIdam
                 .exchange(
@@ -178,8 +178,9 @@ public class IdamServiceImpl implements IdamService {
             return idamTokenResponse.getBody();
         } catch (HttpClientErrorException | HttpServerErrorException exception) {
             LOG.error("IDAM exception {}", exception.getMessage());
+            return null;
         }
-        return idamTokenResponse.getBody();
+
     }
 }
 

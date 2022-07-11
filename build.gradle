@@ -194,16 +194,7 @@ def sonarExclusions = [
         '**/api/external/client/dto/**',
         '**/api/external/client/exceptions/**',
         '**/api/jpaaudit/listner/**',
-        '**/api/jpaaudit/model/**',
-        '**/api/service/IdamServiceImpl.java',
-        '**/api/service/PaymentStatusUpdateServiceImpl.java',
-        '**/api/service/PaymentStatusUpdateServiceImpl.java',
-        '**/api/service/PaymentRefundsServiceImpl.java',
-        '**/api/exception/RefundServiceUnavailableException.java',
-        '**/api/controllers/PaymentStatusController.java',
-        '**/api/exception/FailureReferenceNotFoundException.java',
-        '**/payment/casepaymentorders/client/ServiceRequestCpoServiceClient.java',
-        '**/api/configuration/RestTemplateConfiguration.java'
+        '**/api/jpaaudit/model/**'
 ]
 
 sonarqube {
