@@ -57,7 +57,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
@@ -67,6 +66,8 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
 @Transactional
 public class PaymentStatusControllerTest {
+
+    private static final String USER_ID = UserResolverBackdoor.CASEWORKER_ID;
 
     @Before
     public void setUp() {
@@ -385,6 +386,8 @@ public class PaymentStatusControllerTest {
 
         when(paymentFailureRepository.findByPaymentReferenceOrderByFailureEventDateTimeDesc(any())).thenReturn(Optional.of(getPaymentFailuresList()));
         MvcResult result = restActions
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
             .get("/payment-failures/RC-1637-5072-9888-4233")
             .andExpect(status().isOk())
             .andReturn();
@@ -398,6 +401,8 @@ public class PaymentStatusControllerTest {
 
         when(paymentFailureRepository.findByPaymentReferenceOrderByFailureEventDateTimeDesc(any())).thenReturn(Optional.empty());
         MvcResult result = restActions
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
             .get("/payment-failures/RC-1637-5072-9888-4233")
             .andExpect(status().isNotFound())
             .andReturn();
