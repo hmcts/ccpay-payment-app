@@ -54,6 +54,7 @@ public class BarPaymentFunctionalTest {
     @Before
     public void setUp() throws Exception {
         if (!TOKENS_INITIALIZED) {
+            LOG.info("Initializing tokens");
             USER_TOKEN = idamService.createUserWith(CMC_CITIZEN_GROUP, "citizen").getAuthorisationToken();
             SERVICE_TOKEN = s2sTokenService.getS2sToken(testProps.s2sServiceName, testProps.s2sServiceSecret);
             TOKENS_INITIALIZED = true;
