@@ -58,7 +58,7 @@ public class PaymentStatusController {
         LOG.info("feature toggler enable for  bounced-cheque : {}",psuLockFeature);
 
         if(psuLockFeature){
-            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+            return new ResponseEntity<>("service unavailable", HttpStatus.SERVICE_UNAVAILABLE);
         }
 
         LOG.info("Received payment status request bounced-cheque : {}", paymentStatusBouncedChequeDto);
@@ -92,7 +92,7 @@ public class PaymentStatusController {
         LOG.info("feature toggler enable for  chargeback : {}",psuLockFeature);
 
         if(psuLockFeature){
-            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+            return new ResponseEntity<>("service unavailable", HttpStatus.SERVICE_UNAVAILABLE);
         }
 
         LOG.info("Received payment status request chargeback : {}", paymentStatusChargebackDto);
