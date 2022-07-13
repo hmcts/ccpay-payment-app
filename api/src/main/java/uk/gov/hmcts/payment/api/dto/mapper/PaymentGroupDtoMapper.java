@@ -195,22 +195,4 @@ public class PaymentGroupDtoMapper {
             .build();
     }
 
-    public PaymentGroupDto toPaymentFailureGroupDto(PaymentFeeLink paymentFeeLink) {
-        PaymentGroupDto paymentGroupDto;
-        ServiceRequestUtil serviceRequestUtil = new ServiceRequestUtil();
-        paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
-            .paymentGroupReference(paymentFeeLink.getPaymentReference())
-            .dateCreated(paymentFeeLink.getDateCreated())
-            .dateUpdated(paymentFeeLink.getDateUpdated())
-            .fees(toFeeDtos(paymentFeeLink.getFees()))
-            .payments((!(paymentFeeLink.getPayments() == null) && !paymentFeeLink.getPayments().isEmpty()) ? toPaymentDtos(paymentFeeLink.getPayments()) : null)
-            .remissions(!(paymentFeeLink.getRemissions() == null) ? toRemissionDtos(paymentFeeLink.getRemissions()) : null)
-            .build();
-
-        String serviceRequestStatus = serviceRequestUtil.getServiceRequestStatus(paymentGroupDto);
-        paymentGroupDto.setServiceRequestStatus(serviceRequestStatus);
-
-        return paymentGroupDto;
-    }
-
 }

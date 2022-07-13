@@ -40,26 +40,6 @@ public class IdamServiceImpl implements IdamService {
     @Qualifier("restTemplateIdam")
     private RestTemplate restTemplateIdam;
 
-    @Value("${idam.serviceAccount.clientId}")
-    private String clientId;
-
-    @Value("${idam.serviceAccount.clientSecret}")
-    private String clientSecret;
-
-    @Value("${idam.serviceAccount.grantType}")
-    private String grantType;
-
-    @Value("${idam.serviceAccount.username}")
-    private String username;
-
-    @Value("${idam.serviceAccount.password}")
-    private String password;
-
-    @Value("${idam.serviceAccount.scope}")
-    private String scope;
-
-    private static final String TOKEN_ENDPOINT_PATH = "/o/token";
-
     @Override
     public String getUserId(MultiValueMap<String, String> headers) {
 
