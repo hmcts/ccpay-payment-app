@@ -5,7 +5,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -20,7 +19,6 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.payment.api.dto.IdamFullNameRetrivalResponse;
-import uk.gov.hmcts.payment.api.dto.IdamTokenResponse;
 import uk.gov.hmcts.payment.api.dto.IdamUserIdResponse;
 import uk.gov.hmcts.payment.api.dto.UserIdentityDataDto;
 import uk.gov.hmcts.payment.api.exceptions.UserNotFoundException;
@@ -31,8 +29,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
@@ -195,22 +191,5 @@ public class IdamServiceTest{
             eq(IdamFullNameRetrivalResponse[].class)
         )).thenReturn(responseForFullNameCCDUserId);
     }
-
-    @Test
-    public void methodGetAccessTokenShouldMakeCallToIdamApi() {
-        IdamTokenResponse idamTokenResponse = IdamTokenResponse.idamFullNameRetrivalResponseWith()
-            .refreshToken("refresh-token")
-            .idToken("id-token")
-            .accessToken("access-token")
-            .expiresIn("10")
-            .scope("openid profile roles")
-            .tokenType("type")
-            .build();
-        when(restTemplateIdam.exchange(anyString(), eq(HttpMethod.POST), Mockito.any(), eq(
-            IdamTokenResponse.class))).thenReturn(ResponseEntity.ok(idamTokenResponse));
-        IdamTokenResponse actualResponse = idamService.getSecurityTokens();
-        assertEquals(idamTokenResponse.getAccessToken(),actualResponse.getAccessToken());
-    }
-
 }
 

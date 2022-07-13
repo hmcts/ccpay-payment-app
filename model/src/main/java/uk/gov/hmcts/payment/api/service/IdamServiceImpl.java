@@ -14,7 +14,6 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.payment.api.dto.IdamFullNameRetrivalResponse;
-import uk.gov.hmcts.payment.api.dto.IdamTokenResponse;
 import uk.gov.hmcts.payment.api.dto.IdamUserIdResponse;
 import uk.gov.hmcts.payment.api.dto.UserIdentityDataDto;
 import uk.gov.hmcts.payment.api.exceptions.UserNotFoundException;
@@ -23,8 +22,6 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.GatewayTimeoutException;
 
 import java.util.Collections;
 import java.util.List;
-
-import static org.springframework.http.HttpHeaders.EMPTY;
 
 @Service
 @SuppressWarnings("PMD.PreserveStackTrace")
@@ -145,34 +142,5 @@ public class IdamServiceImpl implements IdamService {
 
         LOG.error("User name not found for given user id : {}", uid);
         throw new UserNotFoundException("Internal Server error. Please, try again later");
-    }
-
-    public IdamTokenResponse getSecurityTokens() {
-        LOG.info("getSecurityTokens");
-
-        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(idamBaseURL + TOKEN_ENDPOINT_PATH)
-            .queryParam("client_id", clientId)
-            .queryParam("client_secret", clientSecret)
-            .queryParam("grant_type", grantType)
-            .queryParam("password", password)
-            .queryParam("scope", scope)
-            .queryParam("username", username);
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-        ResponseEntity<IdamTokenResponse> idamTokenResponse;
-        try {
-            idamTokenResponse = restTemplateIdam
-                .exchange(
-                    builder.build(false).toUriString(),
-                    HttpMethod.POST,
-                    new HttpEntity<>(httpHeaders, EMPTY),
-                    IdamTokenResponse.class
-                );
-            return idamTokenResponse.getBody();
-        } catch (HttpClientErrorException | HttpServerErrorException exception) {
-            LOG.error("IDAM exception {}", exception.getMessage());
-            return null;
-        }
-
     }
 }

@@ -1,8 +1,5 @@
 package uk.gov.hmcts.payment.api.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,11 +13,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-import uk.gov.hmcts.payment.api.contract.CasePaymentOrderDto;
-import uk.gov.hmcts.payment.api.contract.CasePaymentOrdersDto;
 import uk.gov.hmcts.payment.api.domain.service.ServiceRequestDomainService;
-import uk.gov.hmcts.payment.api.dto.IdamTokenResponse;
-import uk.gov.hmcts.payment.api.dto.PaymentFailureStatusDto;
 import uk.gov.hmcts.payment.api.dto.PaymentStatusChargebackDto;
 import uk.gov.hmcts.payment.api.dto.mapper.CasePaymentOrdersMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
@@ -29,8 +22,6 @@ import uk.gov.hmcts.payment.api.dto.mapper.PaymentStatusDtoMapper;
 import uk.gov.hmcts.payment.api.dto.PaymentStatusBouncedChequeDto;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
-import uk.gov.hmcts.payment.casepaymentorders.client.ServiceRequestCpoServiceClient;
-import uk.gov.hmcts.payment.casepaymentorders.client.dto.CpoGetResponse;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.util.*;
@@ -60,9 +51,6 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
 
     @Autowired
     private PaymentDtoMapper paymentDtoMapper;
-
-    @Autowired
-    private ServiceRequestCpoServiceClient cpoServiceClient;
 
     @Autowired
     private IdamService idamService;
@@ -101,32 +89,6 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
 
     public Optional<PaymentFailures> searchFailureReference(String failureReference) {
         return paymentFailureRepository.findByFailureReference(failureReference);
-    }
-
-    public void sendFailureMessageToServiceTopic(Payment payment, PaymentFailures paymentFailure) throws JsonProcessingException {
-
-        PaymentFeeLink paymentFeeLink = payment.getPaymentLink();
-        LOG.info("paymentFeeLink getCcdCaseNumber {}", paymentFeeLink.getCcdCaseNumber());
-        PaymentFeeLink retrieveDelegatingPaymentService = delegatingPaymentService.retrieve(paymentFeeLink, payment.getReference());
-        String serviceRequestStatus = paymentGroup.toPaymentFailureGroupDto(retrieveDelegatingPaymentService).getServiceRequestStatus();
-        ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-        String serviceRequestReference = paymentFeeLink.getPaymentReference();
-        CpoGetResponse casePaymentOrders = getCasePaymentOrders(payment.getCcdCaseNumber());
-        LOG.info("CpoGetResponse {}", casePaymentOrders);
-        CasePaymentOrdersDto casePaymentOrdersDto;
-        CasePaymentOrderDto filterCasePaymentOrdersDto =null;
-        if (null != casePaymentOrders) {
-            casePaymentOrdersDto = casePaymentOrdersMapper.toCasePaymentOrdersDto(casePaymentOrders);
-            filterCasePaymentOrdersDto = filterCasePaymentOrdersDto(casePaymentOrdersDto,serviceRequestReference);
-        }
-        PaymentFailureStatusDto paymentFailureStatusDto = paymentDtoMapper.toPaymentFailureStatusDto(serviceRequestReference, paymentFeeLink, serviceRequestStatus, filterCasePaymentOrdersDto, paymentFailure, payment);
-        if (null != paymentFeeLink.getCallBackUrl()) {
-            serviceRequestDomainService.sendFailureMessageToTopic(paymentFailureStatusDto, paymentFeeLink.getCallBackUrl());
-        }
-        String jsonpaymentStatusDto = ow.writeValueAsString(paymentFailureStatusDto);
-        LOG.info("json format paymentFailureStatusDto to Topic {}", jsonpaymentStatusDto);
-        LOG.info("callback URL paymentFailureStatusDto to Topic {}", paymentFeeLink.getCallBackUrl());
-
     }
 
     public boolean cancelFailurePaymentRefund(String paymentReference) {
@@ -197,22 +159,4 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
             throw new PaymentNotFoundException("Failure reference not found in database for delete");
         }
     }
-
-    public CpoGetResponse getCasePaymentOrders(String caseIds) {
-        return cpoServiceClient.getCasePaymentOrdersForServiceReq(caseIds, getAccessToken(),
-            authTokenGenerator.generate());
-    }
-
-    private String getAccessToken() {
-        IdamTokenResponse idamTokenResponse = idamService.getSecurityTokens();
-        LOG.info("idamTokenResponse {}", idamTokenResponse.getAccessToken());
-        return BEARER + idamTokenResponse.getAccessToken();
-    }
-
-    private CasePaymentOrderDto filterCasePaymentOrdersDto(CasePaymentOrdersDto casePaymentOrdersDto, String serviceRequestReference) {
-
-        return casePaymentOrdersDto.getContent().stream()
-        .filter(s -> serviceRequestReference.equalsIgnoreCase(s.getOrderReference())).findAny().orElse(null);
-}
-
 }

@@ -1,6 +1,5 @@
 package uk.gov.hmcts.payment.api.controllers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,7 +85,7 @@ public class PaymentStatusController {
 
     @PaymentExternalAPI
     @PostMapping(path = "/payment-failures/chargeback")
-    public ResponseEntity<String> paymentStatusChargeBack(@Valid @RequestBody PaymentStatusChargebackDto paymentStatusChargebackDto) throws JsonProcessingException {
+    public ResponseEntity<String> paymentStatusChargeBack(@Valid @RequestBody PaymentStatusChargebackDto paymentStatusChargebackDto){
 
         boolean psuLockFeature = featureToggler.getBooleanValue("payment-status-update-flag",false);
         LOG.info("feature toggler enable for  chargeback : {}",psuLockFeature);
@@ -111,7 +110,6 @@ public class PaymentStatusController {
         PaymentFailures insertPaymentFailures = paymentStatusUpdateService.insertChargebackPaymentFailure(paymentStatusChargebackDto);
 
         if(null != insertPaymentFailures.getId()){
-            paymentStatusUpdateService.sendFailureMessageToServiceTopic(payment.get(),insertPaymentFailures);
             paymentStatusUpdateService.cancelFailurePaymentRefund(paymentStatusChargebackDto.getPaymentReference());
         }
         return new ResponseEntity<>("successful operation", HttpStatus.OK);

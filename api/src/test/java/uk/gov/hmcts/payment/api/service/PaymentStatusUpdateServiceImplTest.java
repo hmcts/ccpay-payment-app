@@ -36,8 +36,6 @@ import uk.gov.hmcts.payment.api.model.PaymentFailureRepository;
 import uk.gov.hmcts.payment.api.model.PaymentFailures;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
-import uk.gov.hmcts.payment.casepaymentorders.client.ServiceRequestCpoServiceClient;
-
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.util.Optional;
@@ -70,13 +68,6 @@ public class PaymentStatusUpdateServiceImplTest {
 
     @Mock
    private  PaymentFailures paymentFailures;
-
-    @Mock
-    private ServiceRequestCpoServiceClient cpoServiceClient;
-
-    public static final String S2S_TOKEN = "s2sToken";
-    public static final String AUTH_TOKEN = "authToken";
-    public static final String CASE_IDS = "caseId1, caseId2";
 
     @Test
      public void testPaymentFailureBounceChequeDBInsert(){
