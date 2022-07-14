@@ -27,6 +27,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.springframework.http.HttpStatus.*;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CASE_WORKER_GROUP;
+import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
 
 @RunWith(SpringIntegrationSerenityRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
@@ -38,6 +39,7 @@ public class PaymentStatusFunctionalTest {
     private static String SERVICE_TOKEN_PAYMENT;
     private static String USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE;
     private static boolean TOKENS_INITIALIZED = false;
+    private static String USER_TOKEN_PAYMENT;
 
     @Autowired
     private PaymentTestService paymentTestService;
@@ -67,7 +69,7 @@ public class PaymentStatusFunctionalTest {
             USER_TOKEN = idamService.createUserWith(CMC_CASE_WORKER_GROUP, "caseworker-cmc-solicitor")
                 .getAuthorisationToken();
             SERVICE_TOKEN = s2sTokenService.getS2sToken(testProps.s2sServiceName, testProps.s2sServiceSecret);
-
+            USER_TOKEN_PAYMENT = idamService.createUserWith(CMC_CITIZEN_GROUP, "payments").getAuthorisationToken();
             USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE =
                 idamService.createUserWithSearchScope(CMC_CASE_WORKER_GROUP, "payments-refund")
                     .getAuthorisationToken();
@@ -100,7 +102,7 @@ public class PaymentStatusFunctionalTest {
             paymentStatusBouncedChequeDto);
 
         PaymentFailureResponse paymentsFailureResponse =
-            paymentTestService.getFailurePayment(USER_TOKEN, SERVICE_TOKEN, paymentStatusBouncedChequeDto.getPaymentReference()).then()
+            paymentTestService.getFailurePayment(USER_TOKEN_PAYMENT, SERVICE_TOKEN, paymentStatusBouncedChequeDto.getPaymentReference()).then()
                 .statusCode(OK.value()).extract().as(PaymentFailureResponse.class);
 
         assertThat(paymentsFailureResponse.getPaymentFailureList().get(0).getPaymentFailureInitiated().getFailureReference()).isEqualTo(paymentStatusBouncedChequeDto.getFailureReference());
@@ -198,7 +200,7 @@ public class PaymentStatusFunctionalTest {
             paymentStatusChargebackDto);
 
         PaymentFailureResponse paymentsFailureResponse =
-            paymentTestService.getFailurePayment(USER_TOKEN, SERVICE_TOKEN, paymentStatusChargebackDto.getPaymentReference()).then()
+            paymentTestService.getFailurePayment(USER_TOKEN_PAYMENT, SERVICE_TOKEN, paymentStatusChargebackDto.getPaymentReference()).then()
                 .statusCode(OK.value()).extract().as(PaymentFailureResponse.class);
 
          assertThat(paymentsFailureResponse.getPaymentFailureList().get(0).getPaymentFailureInitiated().getFailureReference()).isEqualTo(paymentStatusChargebackDto.getFailureReference());
@@ -296,13 +298,12 @@ public class PaymentStatusFunctionalTest {
             paymentStatusChargebackDto);
 
         PaymentFailureResponse paymentsFailureResponse =
-            paymentTestService.getFailurePayment(USER_TOKEN, SERVICE_TOKEN, paymentStatusChargebackDto.getPaymentReference()).then()
+            paymentTestService.getFailurePayment(USER_TOKEN_PAYMENT, SERVICE_TOKEN, paymentStatusChargebackDto.getPaymentReference()).then()
                 .statusCode(OK.value()).extract().as(PaymentFailureResponse.class);
 
         assertThat(paymentsFailureResponse.getPaymentFailureList().get(0).getPaymentFailureInitiated().getFailureReference()).isEqualTo(paymentStatusChargebackDto.getFailureReference());
         assertThat(paymentsFailureResponse.getPaymentFailureList().get(0).getPaymentFailureInitiated().getPaymentReference()).isEqualTo(paymentStatusChargebackDto.getPaymentReference());
         assertThat(paymentsFailureResponse.getPaymentFailureList().get(0).getPaymentFailureInitiated().getFailureType()).isEqualTo("Chargeback");
-        assertThat(paymentsFailureResponse.getPaymentFailureList().get(0).getPaymentFailureInitiated().getFailureEventDateTime()).isEqualTo(paymentStatusChargebackDto.getEventDateTime());
         assertThat(paymentsFailureResponse.getPaymentFailureList().get(0).getPaymentFailureInitiated().getAdditionalReference()).isEqualTo(paymentStatusChargebackDto.getAdditionalReference());
         assertThat(paymentsFailureResponse.getPaymentFailureList().get(0).getPaymentFailureInitiated().getHasAmountDebited()).isEqualTo(paymentStatusChargebackDto.getHasAmountDebited());
 
@@ -329,7 +330,7 @@ public class PaymentStatusFunctionalTest {
             .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
 
         Response paymentsFailureResponse =
-            paymentTestService.getFailurePayment(USER_TOKEN, SERVICE_TOKEN, "RC-1656-9291-1811-2800");
+            paymentTestService.getFailurePayment(USER_TOKEN_PAYMENT, SERVICE_TOKEN, "RC-1656-9291-1811-2800");
         assertThat("no record found").isEqualTo(paymentsFailureResponse.body().prettyPrint());
 
         assertThat(paymentsFailureResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND.value());

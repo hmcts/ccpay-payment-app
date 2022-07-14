@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +21,7 @@ import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentStatusDtoMapper;
 import uk.gov.hmcts.payment.api.dto.PaymentStatusBouncedChequeDto;
+import uk.gov.hmcts.payment.api.exception.FailureReferenceNotFoundException;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
@@ -53,7 +55,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
     private PaymentDtoMapper paymentDtoMapper;
 
     @Autowired
-    private IdamService idamService;
+    private Payment2Repository paymentRepository;
 
     private final ServiceRequestDomainService serviceRequestDomainService;
 
@@ -81,14 +83,23 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
     public PaymentFailures insertBounceChequePaymentFailure(PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto) {
 
         LOG.info("Begin Payment failure insert in payment_failure table: {}", paymentStatusBouncedChequeDto.getPaymentReference());
-        PaymentFailures paymentFailures = paymentStatusDtoMapper.bounceChequeRequestMapper(paymentStatusBouncedChequeDto);
-        PaymentFailures insertpaymentFailures = paymentFailureRepository.save(paymentFailures);
-        LOG.info("Completed  Payment failure insert in payment_failure table: {}", paymentStatusBouncedChequeDto.getPaymentReference());
-        return insertpaymentFailures;
-    }
 
-    public Optional<PaymentFailures> searchFailureReference(String failureReference) {
-        return paymentFailureRepository.findByFailureReference(failureReference);
+        Optional<Payment> payment = paymentRepository.findByReference(paymentStatusBouncedChequeDto.getPaymentReference());
+
+        if(payment.isEmpty()){
+            throw new PaymentNotFoundException("No Payments available for the given Payment reference");
+        }
+
+        PaymentFailures paymentFailuresMap = paymentStatusDtoMapper.bounceChequeRequestMapper(paymentStatusBouncedChequeDto);
+        try{
+
+            PaymentFailures insertPaymentFailure = paymentFailureRepository.save(paymentFailuresMap);
+
+            LOG.info("Completed  Payment failure insert in payment_failure table: {}", paymentStatusBouncedChequeDto.getPaymentReference());
+            return insertPaymentFailure;
+        }catch(DataIntegrityViolationException e){
+            throw new FailureReferenceNotFoundException("Request already received for this failure reference");
+        }
     }
 
     public boolean cancelFailurePaymentRefund(String paymentReference) {
@@ -133,11 +144,21 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
 
     public PaymentFailures insertChargebackPaymentFailure(PaymentStatusChargebackDto paymentStatusChargebackDto) {
 
-        LOG.info("Begin Payment failure insert in payment_failure table: {}", paymentStatusChargebackDto.getPaymentReference());
-        PaymentFailures paymentFailures = paymentStatusDtoMapper.ChargebackRequestMapper(paymentStatusChargebackDto);
-        PaymentFailures insertpaymentFailures = paymentFailureRepository.save(paymentFailures);
-        LOG.info("Completed  Payment failure insert in payment_failure table: {}", paymentStatusChargebackDto.getPaymentReference());
-        return insertpaymentFailures;
+        Optional<Payment> payment = paymentRepository.findByReference(paymentStatusChargebackDto.getPaymentReference());
+
+        if(payment.isEmpty()){
+            throw new PaymentNotFoundException("No Payments available for the given Payment reference");
+        }
+
+        PaymentFailures paymentFailuresMap = paymentStatusDtoMapper.ChargebackRequestMapper(paymentStatusChargebackDto);
+
+        try{
+            PaymentFailures insertPaymentFailure = paymentFailureRepository.save(paymentFailuresMap);
+            LOG.info("Completed  Payment failure insert in payment_failure table: {}", paymentStatusChargebackDto.getPaymentReference());
+            return insertPaymentFailure;
+        } catch(DataIntegrityViolationException e){
+            throw new FailureReferenceNotFoundException("Request already received for this failure reference");
+        }
     }
 
     public List<PaymentFailures> searchPaymentFailure(String paymentReference) {

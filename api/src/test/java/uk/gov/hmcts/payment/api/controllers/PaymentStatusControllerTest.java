@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
@@ -153,7 +154,7 @@ public class PaymentStatusControllerTest {
         PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto =getPaymentStatusBouncedChequeDto();
         when(paymentStatusDtoMapper.bounceChequeRequestMapper(any())).thenReturn(paymentFailures);
         when(paymentFailureRepository.findByFailureReference(any())).thenReturn(Optional.of(paymentFailures));
-        when(paymentStatusUpdateService.searchFailureReference(any())).thenReturn(Optional.of(paymentFailures));
+        when(paymentFailureRepository.save(any())).thenThrow(DataIntegrityViolationException.class);
         when(paymentRepository.findByReference(any())).thenReturn(Optional.of(payment));
         MvcResult result = restActions
             .post("/payment-failures/bounced-cheque", paymentStatusBouncedChequeDto)
@@ -186,7 +187,6 @@ public class PaymentStatusControllerTest {
         PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto =getPaymentStatusBouncedChequeDto();
         when(paymentStatusDtoMapper.bounceChequeRequestMapper(any())).thenReturn(paymentFailures);
         when(paymentFailureRepository.findByFailureReference(any())).thenReturn(Optional.empty());
-        when(paymentStatusUpdateService.searchFailureReference(any())).thenReturn(Optional.empty());
         when(paymentFailureRepository.save(any())).thenReturn(paymentFailures);
         when(paymentRepository.findByReference(any())).thenReturn(Optional.of(payment));
         when(paymentService.findSavedPayment(any())).thenReturn(payment1);
@@ -232,7 +232,7 @@ public class PaymentStatusControllerTest {
         PaymentStatusChargebackDto paymentStatusChargebackDto =getPaymentStatusChargebackDto();
         when(paymentStatusDtoMapper.ChargebackRequestMapper(any())).thenReturn(paymentFailures);
         when(paymentFailureRepository.findByFailureReference(any())).thenReturn(Optional.of(paymentFailures));
-        when(paymentStatusUpdateService.searchFailureReference(any())).thenReturn(Optional.of(paymentFailures));
+        when(paymentFailureRepository.save(any())).thenThrow(DataIntegrityViolationException.class);
         when(paymentRepository.findByReference(any())).thenReturn(Optional.of(payment));
         MvcResult result = restActions
             .post("/payment-failures/chargeback", paymentStatusChargebackDto)
@@ -270,13 +270,11 @@ public class PaymentStatusControllerTest {
         PaymentStatusChargebackDto paymentStatusChargebackDto =getPaymentStatusChargebackDto();
         when(paymentStatusDtoMapper.ChargebackRequestMapper(any())).thenReturn(paymentFailures);
         when(paymentFailureRepository.findByFailureReference(any())).thenReturn(Optional.empty());
-        when(paymentStatusUpdateService.searchFailureReference(any())).thenReturn(Optional.empty());
         when(paymentFailureRepository.save(any())).thenReturn(paymentFailures);
         when(paymentRepository.findByReference(any())).thenReturn(Optional.of(payment));
         when(delegatingPaymentService.retrieve(any(PaymentFeeLink.class) ,anyString())).thenReturn(paymentFeeLink);
         when(paymentStatusUpdateService.cancelFailurePaymentRefund(any())).thenReturn(true);
         when(authTokenGenerator.generate()).thenReturn("service auth token");
-       when(paymentStatusUpdateService.searchFailureReference(anyString())).thenReturn(Optional.of(getPaymentFailures()));
         when(this.restTemplateRefundCancel.exchange(anyString(),
             eq(HttpMethod.PATCH),
             any(HttpEntity.class),

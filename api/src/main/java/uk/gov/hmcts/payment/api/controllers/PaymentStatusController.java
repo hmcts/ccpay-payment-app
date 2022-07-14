@@ -11,15 +11,12 @@ import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentStatusResponseMapper;
 import uk.gov.hmcts.payment.api.exception.FailureReferenceNotFoundException;
-import uk.gov.hmcts.payment.api.model.Payment;
-import uk.gov.hmcts.payment.api.model.Payment2Repository;
 import uk.gov.hmcts.payment.api.model.PaymentFailures;
 import uk.gov.hmcts.payment.api.service.PaymentStatusUpdateService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import javax.validation.Valid;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 
@@ -31,9 +28,6 @@ public class PaymentStatusController {
 
     @Autowired
     private PaymentStatusUpdateService paymentStatusUpdateService;
-
-    @Autowired
-    private Payment2Repository paymentRepository;
 
     @Autowired
     private PaymentStatusResponseMapper paymentStatusResponseMapper;
@@ -61,18 +55,6 @@ public class PaymentStatusController {
         }
 
         LOG.info("Received payment status request bounced-cheque : {}", paymentStatusBouncedChequeDto);
-        Optional<Payment> payment = paymentRepository.findByReference(paymentStatusBouncedChequeDto.getPaymentReference());
-
-        if(payment.isEmpty()){
-            throw new PaymentNotFoundException("No Payments available for the given Payment reference");
-        }
-
-        Optional<PaymentFailures> paymentFailures = paymentStatusUpdateService.searchFailureReference(paymentStatusBouncedChequeDto.getFailureReference());
-
-        if(paymentFailures.isPresent()){
-            throw new FailureReferenceNotFoundException("Request already received for this failure reference");
-        }
-
          PaymentFailures insertPaymentFailures =  paymentStatusUpdateService.insertBounceChequePaymentFailure(paymentStatusBouncedChequeDto);
 
           if(null != insertPaymentFailures.getId()){
@@ -95,17 +77,6 @@ public class PaymentStatusController {
         }
 
         LOG.info("Received payment status request chargeback : {}", paymentStatusChargebackDto);
-        Optional<Payment> payment = paymentRepository.findByReference(paymentStatusChargebackDto.getPaymentReference());
-
-        if(payment.isEmpty()){
-            throw new PaymentNotFoundException("No Payments available for the given Payment reference");
-        }
-
-        Optional<PaymentFailures> paymentFailures = paymentStatusUpdateService.searchFailureReference(paymentStatusChargebackDto.getFailureReference());
-
-        if(paymentFailures.isPresent()){
-            throw new FailureReferenceNotFoundException("Request already received for this failure reference");
-        }
 
         PaymentFailures insertPaymentFailures = paymentStatusUpdateService.insertChargebackPaymentFailure(paymentStatusChargebackDto);
 
