@@ -53,7 +53,7 @@ public class AccountController {
             LOG.error("Error while  calling account", ex);
             throw new AccountNotFoundException("Account not found");
         } catch (Exception ex) {
-            throw new LiberataServiceInaccessibleException("Failed to connect with Liberata. " + ex.getMessage());
+            throw new LiberataServiceInaccessibleException("Error Failed to connect with Liberata. " + ex.getMessage());
         }
 
 
