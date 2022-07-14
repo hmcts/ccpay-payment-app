@@ -45,9 +45,5 @@ java:
         - gov-pay-keys-iac
         - gov-pay-keys-adoption
         - gov-pay-keys-prl
-        - ccpay-cpo-client-id
-        - ccpay-cpo-client-secret
-        - ccpay-cpo-user-password
-        - ccpay-cpo-user-id
   postgresql:
     enabled: true

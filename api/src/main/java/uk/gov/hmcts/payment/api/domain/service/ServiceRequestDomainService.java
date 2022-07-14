@@ -43,6 +43,4 @@ public interface ServiceRequestDomainService {
     void deadLetterProcess(IMessageReceiver subscriptionClient) throws ServiceBusException, InterruptedException, IOException;
 
     IMessageReceiver createDLQConnection() throws ServiceBusException, InterruptedException;
-
-    void sendFailureMessageToTopic(PaymentFailureStatusDto payment, String callBackUrl);
 }

@@ -18,7 +18,6 @@ import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.reports.FeesService;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
-import uk.gov.hmcts.payment.casepaymentorders.client.dto.CpoGetResponse;
 
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
@@ -592,56 +591,6 @@ public class PaymentDtoMapper {
     public PaymentAllocationDto toPaymentAllocationDtos(PaymentAllocation paymentAllocation) {
         return PaymentAllocationDto.paymentAllocationDtoWith()
             .allocationStatus(paymentAllocation.getPaymentAllocationStatus().getName())
-            .build();
-    }
-
-    public PaymentFailureStatusDto toPaymentFailureStatusDto(String serviceRequestReference, PaymentFeeLink paymentFeeLink,  String serviceRequestStatus, CasePaymentOrderDto cpoGetResponse, PaymentFailures paymentFailure, Payment payment) {
-        return PaymentFailureStatusDto.paymentFailureStatusDto()
-            .serviceRequestReference(serviceRequestReference)
-            .ccdCaseNumber(payment.getCcdCaseNumber())
-            .serviceRequestAmount(payment.getAmount())
-            .serviceRequestStatus(serviceRequestStatus)
-            .payment((!(paymentFeeLink.getPayments() == null) && !paymentFeeLink.getPayments().isEmpty()) ? toPaymentFailureDtos(paymentFeeLink.getPayments()) : null)
-            .dispute(toDisputeDto(paymentFailure))
-            .fees(toFailureFeeDtos(paymentFeeLink.getFees()))
-            .orgId(paymentFeeLink.getOrgId())
-            .responsibleParty(null != cpoGetResponse ? cpoGetResponse.getResponsibleParty():null)
-            .ccdAction(null != cpoGetResponse ? cpoGetResponse.getAction():null)
-            .build();
-    }
-
-    private List<FeeServiceDto> toFailureFeeDtos(List<PaymentFee> paymentFees) {
-        return paymentFees.stream().map(f -> toFailureFeeServiceDto(f)).collect(Collectors.toList());
-    }
-
-    private FeeServiceDto toFailureFeeServiceDto(PaymentFee fee){
-
-        return FeeServiceDto.feeServiceDtoWith()
-            .feeAmount(fee.getFeeAmount())
-            .feeCode(fee.getCode())
-            .build();
-    }
-
-    private List<PaymentServiceDto> toPaymentFailureDtos(List<Payment> payments) {
-        return payments.stream().map(p -> toPaymentServiceReqDto(p)).collect(Collectors.toList());
-    }
-    private PaymentServiceDto toPaymentServiceReqDto(
-                                                Payment payment) {
-        return PaymentServiceDto.paymentServiceDtoWith()
-            .paymentAmount(payment.getAmount())
-            .paymentReference(payment.getReference())
-            .caseReference(payment.getCaseReference())
-            .build();
-    }
-
-    private DisputeServiceDto toDisputeDto(PaymentFailures paymentFailure){
-
-        return DisputeServiceDto.paymentServiceDisputeDtoWith()
-            .disputeAmount(paymentFailure.getAmount())
-            .failureEventDate(paymentFailure.getFailureEventDateTime())
-            .hasAmountDebited(paymentFailure.getHasAmountDebited())
-            .representmentDate(paymentFailure.getRepresentmentOutcomeDate())
-            .representmentStatus(paymentFailure.getRepresentmentSuccess())
             .build();
     }
 }

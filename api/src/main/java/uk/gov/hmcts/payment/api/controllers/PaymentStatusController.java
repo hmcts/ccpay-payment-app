@@ -1,6 +1,5 @@
 package uk.gov.hmcts.payment.api.controllers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,11 +7,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentStatusResponseMapper;
 import uk.gov.hmcts.payment.api.exception.FailureReferenceNotFoundException;
-import uk.gov.hmcts.payment.api.model.Payment;
-import uk.gov.hmcts.payment.api.model.Payment2Repository;
 import uk.gov.hmcts.payment.api.model.PaymentFailures;
 import uk.gov.hmcts.payment.api.service.PaymentStatusUpdateService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
@@ -33,10 +31,10 @@ public class PaymentStatusController {
     private PaymentStatusUpdateService paymentStatusUpdateService;
 
     @Autowired
-    private Payment2Repository paymentRepository;
+    private PaymentStatusResponseMapper paymentStatusResponseMapper;
 
     @Autowired
-    private PaymentStatusResponseMapper paymentStatusResponseMapper;
+    private LaunchDarklyFeatureToggler featureToggler;
 
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "successful operation"),
@@ -50,55 +48,43 @@ public class PaymentStatusController {
     @PostMapping(path = "/payment-failures/bounced-cheque")
     public ResponseEntity<String> paymentStatusBouncedCheque(@Valid @RequestBody PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto){
 
+        boolean psuLockFeature = featureToggler.getBooleanValue("payment-status-update-flag",false);
+        LOG.info("feature toggler enable for  bounced-cheque : {}",psuLockFeature);
+
+        if(psuLockFeature){
+            return new ResponseEntity<>("service unavailable", HttpStatus.SERVICE_UNAVAILABLE);
+        }
+
         LOG.info("Received payment status request bounced-cheque : {}", paymentStatusBouncedChequeDto);
-        Optional<Payment> payment = paymentRepository.findByReference(paymentStatusBouncedChequeDto.getPaymentReference());
-
-        if(payment.isEmpty()){
-            throw new PaymentNotFoundException("No Payments available for the given Payment reference");
-        }
-
-        Optional<PaymentFailures> paymentFailures = paymentStatusUpdateService.searchFailureReference(paymentStatusBouncedChequeDto.getFailureReference());
-
-        if(paymentFailures.isPresent()){
-            throw new FailureReferenceNotFoundException("Request already received for this failure reference");
-        }
-
          PaymentFailures insertPaymentFailures =  paymentStatusUpdateService.insertBounceChequePaymentFailure(paymentStatusBouncedChequeDto);
 
           if(null != insertPaymentFailures.getId()){
               paymentStatusUpdateService.cancelFailurePaymentRefund(paymentStatusBouncedChequeDto.getPaymentReference());
-              return new ResponseEntity<>("successful operation", HttpStatus.OK);
-        }
+            }
 
-        return new ResponseEntity<>("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>("successful operation", HttpStatus.OK);
 
     }
 
     @PaymentExternalAPI
     @PostMapping(path = "/payment-failures/chargeback")
-    public ResponseEntity<String> paymentStatusChargeBack(@Valid @RequestBody PaymentStatusChargebackDto paymentStatusChargebackDto) throws JsonProcessingException {
+    public ResponseEntity<String> paymentStatusChargeBack(@Valid @RequestBody PaymentStatusChargebackDto paymentStatusChargebackDto){
+
+        boolean psuLockFeature = featureToggler.getBooleanValue("payment-status-update-flag",false);
+        LOG.info("feature toggler enable for  chargeback : {}",psuLockFeature);
+
+        if(psuLockFeature){
+            return new ResponseEntity<>("service unavailable", HttpStatus.SERVICE_UNAVAILABLE);
+        }
 
         LOG.info("Received payment status request chargeback : {}", paymentStatusChargebackDto);
-        Optional<Payment> payment = paymentRepository.findByReference(paymentStatusChargebackDto.getPaymentReference());
-
-        if(payment.isEmpty()){
-            throw new PaymentNotFoundException("No Payments available for the given Payment reference");
-        }
-
-        Optional<PaymentFailures> paymentFailures = paymentStatusUpdateService.searchFailureReference(paymentStatusChargebackDto.getFailureReference());
-
-        if(paymentFailures.isPresent()){
-            throw new FailureReferenceNotFoundException("Request already received for this failure reference");
-        }
 
         PaymentFailures insertPaymentFailures = paymentStatusUpdateService.insertChargebackPaymentFailure(paymentStatusChargebackDto);
 
         if(null != insertPaymentFailures.getId()){
-            paymentStatusUpdateService.sendFailureMessageToServiceTopic(payment.get(),insertPaymentFailures);
             paymentStatusUpdateService.cancelFailurePaymentRefund(paymentStatusChargebackDto.getPaymentReference());
-            return new ResponseEntity<>("successful operation", HttpStatus.OK);
         }
-        return new ResponseEntity<>("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>("successful operation", HttpStatus.OK);
     }
 
     @ApiOperation(value = "Get payment failure by payment reference", notes = "Get payment failure for supplied payment reference")
@@ -134,17 +120,9 @@ public class PaymentStatusController {
     @PatchMapping("/payment-failures/{failureReference}")
     public ResponseEntity<String> paymentStatusSecond(@PathVariable("failureReference") String failureReference,
                                                       @Valid @RequestBody PaymentStatusUpdateSecond paymentStatusUpdateSecondDto) {
-
         LOG.info("Received payment status update second ping request: {}", paymentStatusUpdateSecondDto);
-
-        Optional<PaymentFailures> paymentFailures = paymentStatusUpdateService.searchFailureReference(failureReference);
-
-        if (!paymentFailures.isPresent()) {
-            throw new PaymentNotFoundException("No Payment Failure available for the given Failure reference");
-        } else {
-            paymentStatusUpdateService.updatePaymentFailure(paymentFailures.get(), paymentStatusUpdateSecondDto);
-            return new ResponseEntity<>("Successful operation", HttpStatus.OK);
-        }
+        paymentStatusUpdateService.updatePaymentFailure(failureReference, paymentStatusUpdateSecondDto);
+        return new ResponseEntity<>("Successful operation", HttpStatus.OK);
     }
 
     @ResponseStatus(HttpStatus.TOO_MANY_REQUESTS)

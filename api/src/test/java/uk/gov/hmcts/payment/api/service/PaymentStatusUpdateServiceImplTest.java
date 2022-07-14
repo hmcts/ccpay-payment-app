@@ -22,8 +22,6 @@ import uk.gov.hmcts.payment.api.dto.PaymentStatusChargebackDto;
 
 import java.math.BigDecimal;
 import java.util.*;
-
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
@@ -35,11 +33,8 @@ import static org.mockito.Mockito.when;
 import uk.gov.hmcts.payment.api.dto.PaymentStatusUpdateSecond;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentStatusDtoMapper;
 import uk.gov.hmcts.payment.api.dto.PaymentStatusBouncedChequeDto;
-import uk.gov.hmcts.payment.api.model.PaymentFailureRepository;
-import uk.gov.hmcts.payment.api.model.PaymentFailures;
+import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
-
-import uk.gov.hmcts.payment.casepaymentorders.client.ServiceRequestCpoServiceClient;
 
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
@@ -75,42 +70,18 @@ public class PaymentStatusUpdateServiceImplTest {
    private  PaymentFailures paymentFailures;
 
     @Mock
-    private ServiceRequestCpoServiceClient cpoServiceClient;
-
-    public static final String S2S_TOKEN = "s2sToken";
-    public static final String AUTH_TOKEN = "authToken";
-    public static final String CASE_IDS = "caseId1, caseId2";
+    private Payment2Repository paymentRepository;
 
     @Test
      public void testPaymentFailureBounceChequeDBInsert(){
-
+        Payment payment = getPayment();
         PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto =getPaymentStatusBouncedChequeDto();
+        when(paymentRepository.findByReference(any())).thenReturn(Optional.of(payment));
         when(paymentStatusDtoMapper.bounceChequeRequestMapper(any())).thenReturn(paymentFailures);
         when(paymentFailureRepository.save(any())).thenReturn(paymentFailures);
         PaymentFailures paymentFailures = paymentStatusUpdateServiceImpl.insertBounceChequePaymentFailure(paymentStatusBouncedChequeDto);
         assertNotNull(paymentFailures);
 
-    }
-
-    @Test
-    public void testFindFailureReferenceForBounceChequePayment(){
-
-        PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto = getPaymentStatusBouncedChequeDto();
-
-        PaymentFailures paymentFailures = PaymentFailures.paymentFailuresWith()
-            .failureType("Bounced Cheque")
-            .paymentReference("RC1234")
-            .amount(BigDecimal.valueOf(555))
-            .ccdCaseNumber("123456789")
-            .failureReference("FR12345")
-            .id(1)
-            .reason("RR001")
-            .build();
-
-         when(paymentFailureRepository.findByFailureReference(any())).thenReturn(Optional.of(paymentFailures));
-        Optional<PaymentFailures> paymentFailuresResult=  paymentStatusUpdateServiceImpl.searchFailureReference(paymentStatusBouncedChequeDto.getFailureReference());
-        assertThat(paymentFailuresResult).isNotNull();
-        assertEquals(Optional.of(1),Optional.of(paymentFailuresResult.stream().findFirst().get().getId()));
     }
 
     @Test
@@ -152,34 +123,14 @@ public class PaymentStatusUpdateServiceImplTest {
 
     @Test
     public void testPaymentFailureChargebackDBInsert(){
-
+        Payment payment = getPayment();
         PaymentStatusChargebackDto paymentStatusChargebackDto =getPaymentStatusChargebackDto();
+        when(paymentRepository.findByReference(any())).thenReturn(Optional.of(payment));
         when(paymentStatusDtoMapper.ChargebackRequestMapper(any())).thenReturn(paymentFailures);
         when(paymentFailureRepository.save(any())).thenReturn(paymentFailures);
         PaymentFailures paymentFailures = paymentStatusUpdateServiceImpl.insertChargebackPaymentFailure(paymentStatusChargebackDto);
         assertNotNull(paymentFailures);
 
-    }
-
-    @Test
-    public void testFindFailureReferenceForChargebackPayment(){
-
-        PaymentStatusChargebackDto paymentStatusChargebackDto =getPaymentStatusChargebackDto();
-
-        PaymentFailures paymentFailures = PaymentFailures.paymentFailuresWith()
-            .failureType("Bounced Cheque")
-            .paymentReference("RC1234")
-            .amount(BigDecimal.valueOf(555))
-            .ccdCaseNumber("123456789")
-            .failureReference("FR12345")
-            .id(1)
-            .reason("RR001")
-            .build();
-
-        when(paymentFailureRepository.findByFailureReference(any())).thenReturn(Optional.of(paymentFailures));
-        Optional<PaymentFailures> paymentFailuresResult=  paymentStatusUpdateServiceImpl.searchFailureReference(paymentStatusChargebackDto.getFailureReference());
-        assertThat(paymentFailuresResult).isNotNull();
-        assertEquals(Optional.of(1),Optional.of(paymentFailuresResult.stream().findFirst().get().getId()));
     }
 
     @Test
@@ -231,21 +182,12 @@ public class PaymentStatusUpdateServiceImplTest {
 
     @Test
     public void givenValidInputWhenUpdatePaymentFailureThenValidOutput() {
-        PaymentFailures paymentFailure = PaymentFailures.paymentFailuresWith()
-                .failureType("Bounced Cheque")
-                .paymentReference("RC1234")
-                .amount(BigDecimal.valueOf(555))
-                .ccdCaseNumber("123456789")
-                .failureReference("FR12345")
-                .id(1)
-                .reason("RR001")
-                .build();
         PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
                 .representmentDate("2021-10-10T10:10:10")
                 .representmentStatus("Yes")
                 .build();
 
-        PaymentFailures paymentFailure1 = PaymentFailures.paymentFailuresWith()
+        PaymentFailures paymentFailure = PaymentFailures.paymentFailuresWith()
                 .failureType("Bounced Cheque")
                 .paymentReference("RC1234")
                 .amount(BigDecimal.valueOf(555))
@@ -258,10 +200,10 @@ public class PaymentStatusUpdateServiceImplTest {
                         .toDate())
                 .representmentSuccess("Yes")
                 .build();
-        when(paymentFailureRepository.save(any())).thenReturn(paymentFailure1);
-        PaymentFailures result = paymentStatusUpdateServiceImpl.updatePaymentFailure(paymentFailure, paymentStatusUpdateSecond);
-        assertEquals(result.getRepresentmentSuccess(), paymentFailure1.getRepresentmentSuccess());
-        assertEquals(result.getRepresentmentOutcomeDate(), paymentFailure1.getRepresentmentOutcomeDate());
+        when(paymentFailureRepository.save(any())).thenReturn(paymentFailure);
+        PaymentFailures result = paymentStatusUpdateServiceImpl.updatePaymentFailure("dummy", paymentStatusUpdateSecond);
+        assertEquals(result.getRepresentmentSuccess(), paymentFailure.getRepresentmentSuccess());
+        assertEquals(result.getRepresentmentOutcomeDate(), paymentFailure.getRepresentmentOutcomeDate());
     }
 
     private PaymentStatusBouncedChequeDto getPaymentStatusBouncedChequeDto() {
@@ -313,6 +255,43 @@ public class PaymentStatusUpdateServiceImplTest {
         paymentFailuresList.add(paymentFailures);
         return paymentFailuresList;
 
+    }
+
+    private Payment getPayment() {
+
+        Payment payment = Payment.paymentWith()
+            .id(1)
+            .amount(BigDecimal.valueOf(555))
+            .caseReference("caseReference")
+            .description("retrieve payment mock test")
+            .serviceType("Civil Money Claims")
+            .siteId("siteID")
+            .currency("GBP")
+            .organisationName("organisationName")
+            .customerReference("customerReference")
+            .pbaNumber("pbaNumer")
+            .reference("RC-1520-2505-0381-8145")
+            .ccdCaseNumber("1234123412341234")
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
+            .paymentLink(PaymentFeeLink.paymentFeeLinkWith()
+                .id(1)
+                .paymentReference("2018-15202505035")
+                .fees(Arrays.asList(PaymentFee.feeWith().id(1).calculatedAmount(new BigDecimal("11.99")).code("X0001").version("1").build()))
+                .payments(Arrays.asList(Payment.paymentWith().internalReference("abc")
+                    .id(1)
+                    .reference("RC-1632-3254-9172-5888")
+                    .caseReference("123789")
+                    .ccdCaseNumber("1234")
+                    .amount(new BigDecimal(300))
+                    .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
+                    .build()))
+                .callBackUrl("http//:test")
+                .build())
+            .build();
+
+        return payment;
     }
 
 }

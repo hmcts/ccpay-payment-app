@@ -2,7 +2,6 @@ package uk.gov.hmcts.payment.api.componenttests;
 
 import org.joda.time.MutableDateTime;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.annotation.DirtiesContext;

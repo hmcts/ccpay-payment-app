@@ -1,8 +1,5 @@
 package uk.gov.hmcts.payment.api.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
@@ -10,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,25 +16,16 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-import uk.gov.hmcts.payment.api.contract.CasePaymentOrderDto;
-import uk.gov.hmcts.payment.api.contract.CasePaymentOrdersDto;
-import uk.gov.hmcts.payment.api.domain.service.ServiceRequestDomainService;
-import uk.gov.hmcts.payment.api.dto.IdamTokenResponse;
-import uk.gov.hmcts.payment.api.dto.PaymentFailureStatusDto;
-import uk.gov.hmcts.payment.api.dto.PaymentStatusBouncedChequeDto;
 import uk.gov.hmcts.payment.api.dto.PaymentStatusChargebackDto;
 import uk.gov.hmcts.payment.api.dto.PaymentStatusUpdateSecond;
-import uk.gov.hmcts.payment.api.dto.mapper.CasePaymentOrdersMapper;
-import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
-import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentStatusDtoMapper;
+import uk.gov.hmcts.payment.api.dto.PaymentStatusBouncedChequeDto;
+import uk.gov.hmcts.payment.api.exception.FailureReferenceNotFoundException;
 import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.Payment2Repository;
 import uk.gov.hmcts.payment.api.model.PaymentFailures;
 import uk.gov.hmcts.payment.api.model.PaymentFailureRepository;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
-import uk.gov.hmcts.payment.casepaymentorders.client.ServiceRequestCpoServiceClient;
-import uk.gov.hmcts.payment.casepaymentorders.client.dto.CpoGetResponse;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.util.*;
@@ -53,27 +42,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
     PaymentFailureRepository paymentFailureRepository;
 
     @Autowired
-    private PaymentService<PaymentFeeLink, String> paymentService;
-
-    @Autowired
-    private FeesService feeService;
-
-    @Autowired
-    private PaymentGroupDtoMapper paymentGroup;
-
-    @Autowired
-    private DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService;
-
-    @Autowired
-    private PaymentDtoMapper paymentDtoMapper;
-
-    @Autowired
-    private ServiceRequestCpoServiceClient cpoServiceClient;
-
-    @Autowired
-    private IdamService idamService;
-
-    private final ServiceRequestDomainService serviceRequestDomainService;
+    private Payment2Repository paymentRepository;
 
     @Autowired()
     @Qualifier("restTemplateRefundCancel")
@@ -85,54 +54,26 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
     @Value("${refund.api.url}")
     private String refundApiUrl;
 
-    @Autowired
-    private CasePaymentOrdersMapper casePaymentOrdersMapper;
-
-    public static final String BEARER = "Bearer ";
-
-    @Autowired
-    public PaymentStatusUpdateServiceImpl(
-        ServiceRequestDomainService serviceRequestDomainService) {
-        this.serviceRequestDomainService = serviceRequestDomainService;
-    }
-
     public PaymentFailures insertBounceChequePaymentFailure(PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto) {
 
         LOG.info("Begin Payment failure insert in payment_failure table: {}", paymentStatusBouncedChequeDto.getPaymentReference());
-        PaymentFailures paymentFailures = paymentStatusDtoMapper.bounceChequeRequestMapper(paymentStatusBouncedChequeDto);
-        PaymentFailures insertpaymentFailures = paymentFailureRepository.save(paymentFailures);
-        LOG.info("Completed  Payment failure insert in payment_failure table: {}", paymentStatusBouncedChequeDto.getPaymentReference());
-        return insertpaymentFailures;
-    }
 
-    public Optional<PaymentFailures> searchFailureReference(String failureReference) {
-        return paymentFailureRepository.findByFailureReference(failureReference);
-    }
+        Optional<Payment> payment = paymentRepository.findByReference(paymentStatusBouncedChequeDto.getPaymentReference());
 
-    public void sendFailureMessageToServiceTopic(Payment payment, PaymentFailures paymentFailure) throws JsonProcessingException {
-
-        PaymentFeeLink paymentFeeLink = payment.getPaymentLink();
-        LOG.info("paymentFeeLink getCcdCaseNumber {}", paymentFeeLink.getCcdCaseNumber());
-        PaymentFeeLink retrieveDelegatingPaymentService = delegatingPaymentService.retrieve(paymentFeeLink, payment.getReference());
-        String serviceRequestStatus = paymentGroup.toPaymentFailureGroupDto(retrieveDelegatingPaymentService).getServiceRequestStatus();
-        ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-        String serviceRequestReference = paymentFeeLink.getPaymentReference();
-        CpoGetResponse casePaymentOrders = getCasePaymentOrders(payment.getCcdCaseNumber());
-        LOG.info("CpoGetResponse {}", casePaymentOrders);
-        CasePaymentOrdersDto casePaymentOrdersDto;
-        CasePaymentOrderDto filterCasePaymentOrdersDto =null;
-        if (null != casePaymentOrders) {
-            casePaymentOrdersDto = casePaymentOrdersMapper.toCasePaymentOrdersDto(casePaymentOrders);
-            filterCasePaymentOrdersDto = filterCasePaymentOrdersDto(casePaymentOrdersDto,serviceRequestReference);
+        if(payment.isEmpty()){
+            throw new PaymentNotFoundException("No Payments available for the given Payment reference");
         }
-        PaymentFailureStatusDto paymentFailureStatusDto = paymentDtoMapper.toPaymentFailureStatusDto(serviceRequestReference, paymentFeeLink, serviceRequestStatus, filterCasePaymentOrdersDto, paymentFailure, payment);
-        if (null != paymentFeeLink.getCallBackUrl()) {
-            serviceRequestDomainService.sendFailureMessageToTopic(paymentFailureStatusDto, paymentFeeLink.getCallBackUrl());
-        }
-        String jsonpaymentStatusDto = ow.writeValueAsString(paymentFailureStatusDto);
-        LOG.info("json format paymentFailureStatusDto to Topic {}", jsonpaymentStatusDto);
-        LOG.info("callback URL paymentFailureStatusDto to Topic {}", paymentFeeLink.getCallBackUrl());
 
+        PaymentFailures paymentFailuresMap = paymentStatusDtoMapper.bounceChequeRequestMapper(paymentStatusBouncedChequeDto);
+        try{
+
+            PaymentFailures insertPaymentFailure = paymentFailureRepository.save(paymentFailuresMap);
+
+            LOG.info("Completed  Payment failure insert in payment_failure table: {}", paymentStatusBouncedChequeDto.getPaymentReference());
+            return insertPaymentFailure;
+        }catch(DataIntegrityViolationException e){
+            throw new FailureReferenceNotFoundException("Request already received for this failure reference");
+        }
     }
 
     public boolean cancelFailurePaymentRefund(String paymentReference) {
@@ -177,11 +118,21 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
 
     public PaymentFailures insertChargebackPaymentFailure(PaymentStatusChargebackDto paymentStatusChargebackDto) {
 
-        LOG.info("Begin Payment failure insert in payment_failure table: {}", paymentStatusChargebackDto.getPaymentReference());
-        PaymentFailures paymentFailures = paymentStatusDtoMapper.ChargebackRequestMapper(paymentStatusChargebackDto);
-        PaymentFailures insertpaymentFailures = paymentFailureRepository.save(paymentFailures);
-        LOG.info("Completed  Payment failure insert in payment_failure table: {}", paymentStatusChargebackDto.getPaymentReference());
-        return insertpaymentFailures;
+        Optional<Payment> payment = paymentRepository.findByReference(paymentStatusChargebackDto.getPaymentReference());
+
+        if(payment.isEmpty()){
+            throw new PaymentNotFoundException("No Payments available for the given Payment reference");
+        }
+
+        PaymentFailures paymentFailuresMap = paymentStatusDtoMapper.ChargebackRequestMapper(paymentStatusChargebackDto);
+
+        try{
+            PaymentFailures insertPaymentFailure = paymentFailureRepository.save(paymentFailuresMap);
+            LOG.info("Completed  Payment failure insert in payment_failure table: {}", paymentStatusChargebackDto.getPaymentReference());
+            return insertPaymentFailure;
+        } catch(DataIntegrityViolationException e){
+            throw new FailureReferenceNotFoundException("Request already received for this failure reference");
+        }
     }
 
     public List<PaymentFailures> searchPaymentFailure(String paymentReference) {
@@ -205,32 +156,22 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
     }
 
     @Override
-    public PaymentFailures updatePaymentFailure(PaymentFailures paymentFailure, PaymentStatusUpdateSecond paymentStatusUpdateSecond) {
-        paymentFailure.setRepresentmentSuccess(paymentStatusUpdateSecond.getRepresentmentStatus());
-        paymentFailure
-                .setRepresentmentOutcomeDate(DateTime.parse(paymentStatusUpdateSecond.getRepresentmentDate()).withZone(
-                        DateTimeZone.UTC)
-                        .toDate());
-        PaymentFailures updatedPaymentFailure = paymentFailureRepository.save(paymentFailure);
-        LOG.info("Updated Payment failure record in payment_failure table: {}", paymentFailure.getPaymentReference());
-        return updatedPaymentFailure;
+    public PaymentFailures updatePaymentFailure(String failureReference, PaymentStatusUpdateSecond paymentStatusUpdateSecond) {
+
+        Optional<PaymentFailures> paymentFailure = paymentFailureRepository.findByFailureReference(failureReference);
+
+        if (!paymentFailure.isPresent()) {
+            throw new PaymentNotFoundException("No Payment Failure available for the given Failure reference");
+        } else {
+            paymentFailure.get().setRepresentmentSuccess(paymentStatusUpdateSecond.getRepresentmentStatus());
+            paymentFailure.get()
+                    .setRepresentmentOutcomeDate(
+                            DateTime.parse(paymentStatusUpdateSecond.getRepresentmentDate()).withZone(
+                                    DateTimeZone.UTC)
+                                    .toDate());
+            PaymentFailures updatedPaymentFailure = paymentFailureRepository.save(paymentFailure.get());
+            LOG.info("Updated Payment failure record in payment_failure table: {}", failureReference);
+            return updatedPaymentFailure;
+        }
     }
-
-    public CpoGetResponse getCasePaymentOrders(String caseIds) {
-        return cpoServiceClient.getCasePaymentOrdersForServiceReq(caseIds, getAccessToken(),
-            authTokenGenerator.generate());
-    }
-
-    private String getAccessToken() {
-        IdamTokenResponse idamTokenResponse = idamService.getSecurityTokens();
-        LOG.info("idamTokenResponse {}", idamTokenResponse.getAccessToken());
-        return BEARER + idamTokenResponse.getAccessToken();
-    }
-
-    private CasePaymentOrderDto filterCasePaymentOrdersDto(CasePaymentOrdersDto casePaymentOrdersDto, String serviceRequestReference) {
-
-        return casePaymentOrdersDto.getContent().stream()
-        .filter(s -> serviceRequestReference.equalsIgnoreCase(s.getOrderReference())).findAny().orElse(null);
-}
-
 }

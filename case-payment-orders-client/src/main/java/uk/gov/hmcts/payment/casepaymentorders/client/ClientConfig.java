@@ -12,9 +12,4 @@ public class ClientConfig {
     public RestTemplate restTemplateCpoClient() {
         return new RestTemplate(new HttpComponentsClientHttpRequestFactory());
     }
-
-    @Bean(value = "restTemplateCpoClientServiceReq")
-    public RestTemplate restTemplateCpoClientServiceReq() {
-        return new RestTemplate(new HttpComponentsClientHttpRequestFactory());
-    }
 }

@@ -1,7 +1,6 @@
 package uk.gov.hmcts.payment.api.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.SneakyThrows;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -11,9 +10,9 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
@@ -21,33 +20,24 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.ResourceUtils;
-import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.WebApplicationContext;
+import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.dto.*;
-import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentStatusDtoMapper;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
-import uk.gov.hmcts.payment.api.service.IdamService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.service.PaymentStatusUpdateService;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
-import uk.gov.hmcts.payment.casepaymentorders.client.ServiceRequestCpoServiceClient;
 
-import uk.gov.hmcts.payment.casepaymentorders.client.dto.CasePaymentOrder;
-import uk.gov.hmcts.payment.casepaymentorders.client.dto.CpoGetResponse;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.math.BigDecimal;
 
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.time.LocalDateTime;
 import java.util.*;
 import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
@@ -66,6 +56,8 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @Transactional
 public class PaymentStatusControllerTest {
 
+    private static final String USER_ID = UserResolverBackdoor.CASEWORKER_ID;
+
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
@@ -73,8 +65,6 @@ public class PaymentStatusControllerTest {
 
     @InjectMocks
     PaymentStatusController paymentStatusController;
-    @Autowired
-    private ConfigurableListableBeanFactory configurableListableBeanFactory;
 
     MockMvc mvc;
     @Autowired
@@ -106,10 +96,6 @@ public class PaymentStatusControllerTest {
     private RestTemplate restTemplateRefundCancel;
 
     @MockBean
-    @Qualifier("restTemplateCpoClientServiceReq")
-    private RestTemplate restTemplateCpoClientServiceReq;
-
-    @MockBean
     private AuthTokenGenerator authTokenGenerator;
 
     @Mock
@@ -124,23 +110,8 @@ public class PaymentStatusControllerTest {
     private DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService;
 
     @MockBean
-    private PaymentFeeRepository paymentFeeRepository;
-    @MockBean
-    PaymentGroupDtoMapper paymentGroupDtoMapper;
+    private LaunchDarklyFeatureToggler featureToggler;
 
-    @MockBean
-    private IdamService idamService;
-    @MockBean
-    private ServiceRequestCpoServiceClient cpoServiceClient;
-
-    private ServiceRequestCpoServiceClient client;
-
-    private static final UUID CPO_ID = UUID.randomUUID();
-    private static final LocalDateTime CREATED_TIMESTAMP = LocalDateTime.of(2020, 3, 13, 10, 0);
-    private static final long CASE_ID = 12345L;
-    private static final String ACTION = "action1";
-    private static final String RESPONDENT = "respondent";
-    private static final String ORDER_REFERENCE = "2018-15202505035";
 
     @Before
     public void setup() {
@@ -183,7 +154,7 @@ public class PaymentStatusControllerTest {
         PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto =getPaymentStatusBouncedChequeDto();
         when(paymentStatusDtoMapper.bounceChequeRequestMapper(any())).thenReturn(paymentFailures);
         when(paymentFailureRepository.findByFailureReference(any())).thenReturn(Optional.of(paymentFailures));
-        when(paymentStatusUpdateService.searchFailureReference(any())).thenReturn(Optional.of(paymentFailures));
+        when(paymentFailureRepository.save(any())).thenThrow(DataIntegrityViolationException.class);
         when(paymentRepository.findByReference(any())).thenReturn(Optional.of(payment));
         MvcResult result = restActions
             .post("/payment-failures/bounced-cheque", paymentStatusBouncedChequeDto)
@@ -212,29 +183,16 @@ public class PaymentStatusControllerTest {
         List<Payment> paymentList = new ArrayList<>();
         paymentList.add(payment1);
 
-        PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith().ccdCaseNumber("1234")
-            .enterpriseServiceName("divorce")
-            .payments(paymentList)
-            .paymentReference("123456")
-            .build();
-
         PaymentFailures paymentFailures = getPaymentFailures();
         PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto =getPaymentStatusBouncedChequeDto();
         when(paymentStatusDtoMapper.bounceChequeRequestMapper(any())).thenReturn(paymentFailures);
         when(paymentFailureRepository.findByFailureReference(any())).thenReturn(Optional.empty());
-        when(paymentStatusUpdateService.searchFailureReference(any())).thenReturn(Optional.empty());
         when(paymentFailureRepository.save(any())).thenReturn(paymentFailures);
         when(paymentRepository.findByReference(any())).thenReturn(Optional.of(payment));
         when(paymentService.findSavedPayment(any())).thenReturn(payment1);
         when(paymentService.findByPaymentId(anyInt())).thenReturn(Arrays.asList(FeePayApportion.feePayApportionWith()
             .feeId(1)
             .build()));
-        when(paymentFeeRepository.findById(anyInt())).thenReturn(Optional.of(PaymentFee.feeWith().paymentLink(paymentFeeLink).build()));
-        when(delegatingPaymentService.retrieve(any(PaymentFeeLink.class) ,anyString())).thenReturn(paymentFeeLink);
-
-        PaymentGroupDto paymentGroupDto = new PaymentGroupDto();
-        paymentGroupDto.setServiceRequestStatus("Paid");
-        when(paymentGroupDtoMapper.toPaymentGroupDto(any())).thenReturn(paymentGroupDto);
         when(paymentStatusUpdateService.cancelFailurePaymentRefund(any())).thenReturn(true);
         when(authTokenGenerator.generate()).thenReturn("service auth token");
         when(this.restTemplateRefundCancel.exchange(anyString(),
@@ -264,7 +222,6 @@ public class PaymentStatusControllerTest {
 
         assertEquals("No Payments available for the given Payment reference",result.getResolvedException().getMessage());
 
-
     }
 
     @Test
@@ -275,7 +232,7 @@ public class PaymentStatusControllerTest {
         PaymentStatusChargebackDto paymentStatusChargebackDto =getPaymentStatusChargebackDto();
         when(paymentStatusDtoMapper.ChargebackRequestMapper(any())).thenReturn(paymentFailures);
         when(paymentFailureRepository.findByFailureReference(any())).thenReturn(Optional.of(paymentFailures));
-        when(paymentStatusUpdateService.searchFailureReference(any())).thenReturn(Optional.of(paymentFailures));
+        when(paymentFailureRepository.save(any())).thenThrow(DataIntegrityViolationException.class);
         when(paymentRepository.findByReference(any())).thenReturn(Optional.of(payment));
         MvcResult result = restActions
             .post("/payment-failures/chargeback", paymentStatusChargebackDto)
@@ -313,25 +270,11 @@ public class PaymentStatusControllerTest {
         PaymentStatusChargebackDto paymentStatusChargebackDto =getPaymentStatusChargebackDto();
         when(paymentStatusDtoMapper.ChargebackRequestMapper(any())).thenReturn(paymentFailures);
         when(paymentFailureRepository.findByFailureReference(any())).thenReturn(Optional.empty());
-        when(paymentStatusUpdateService.searchFailureReference(any())).thenReturn(Optional.empty());
         when(paymentFailureRepository.save(any())).thenReturn(paymentFailures);
         when(paymentRepository.findByReference(any())).thenReturn(Optional.of(payment));
-        when(paymentService.findByPaymentId(anyInt())).thenReturn(Arrays.asList(FeePayApportion.feePayApportionWith()
-            .feeId(1)
-            .build()));
         when(delegatingPaymentService.retrieve(any(PaymentFeeLink.class) ,anyString())).thenReturn(paymentFeeLink);
-
-        PaymentGroupDto paymentGroupDto = new PaymentGroupDto();
-        paymentGroupDto.setServiceRequestStatus("Paid");
-        when(paymentGroupDtoMapper.toPaymentFailureGroupDto(any())).thenReturn(paymentGroupDto);
         when(paymentStatusUpdateService.cancelFailurePaymentRefund(any())).thenReturn(true);
         when(authTokenGenerator.generate()).thenReturn("service auth token");
-       when(idamService.getSecurityTokens()).thenReturn(idamTokenResponse);
-       when(cpoServiceClient.getCasePaymentOrdersForServiceReq(anyString(),anyString(),anyString())).thenReturn(createCpoGetResponse());
-       when(this.restTemplateCpoClientServiceReq.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
-           CpoGetResponse.class))).thenReturn(new ResponseEntity(HttpStatus.OK)
-       );
-       when(paymentStatusUpdateService.searchFailureReference(anyString())).thenReturn(Optional.of(getPaymentFailures()));
         when(this.restTemplateRefundCancel.exchange(anyString(),
             eq(HttpMethod.PATCH),
             any(HttpEntity.class),
@@ -346,40 +289,13 @@ public class PaymentStatusControllerTest {
 
     }
 
-
-    @Test
-    public void return500WhenRefundServerNotAvailableForForChargeback() throws Exception {
-
-        Payment payment = getPayment();
-
-        PaymentFailures paymentFailures = getPaymentFailures();
-        PaymentStatusChargebackDto paymentStatusChargebackDto =getPaymentStatusChargebackDto();
-        when(paymentStatusDtoMapper.ChargebackRequestMapper(any())).thenReturn(paymentFailures);
-        when(paymentFailureRepository.findByFailureReference(any())).thenReturn(Optional.empty());
-        when(paymentStatusUpdateService.searchFailureReference(any())).thenReturn(Optional.empty());
-        when(paymentFailureRepository.save(any())).thenReturn(paymentFailures);
-        when(paymentRepository.findByReference(any())).thenReturn(Optional.of(payment));
-        when(paymentStatusUpdateService.cancelFailurePaymentRefund(any())).thenReturn(false);
-        when(authTokenGenerator.generate()).thenReturn("service auth token");
-        when(this.restTemplateRefundCancel.exchange(anyString(),
-            eq(HttpMethod.PATCH),
-            any(HttpEntity.class),
-            eq(String.class), any(Map.class)))
-            .thenThrow(new HttpServerErrorException(HttpStatus.NOT_FOUND));
-        MvcResult result = restActions
-            .post("/payment-failures/chargeback", paymentStatusChargebackDto)
-            .andExpect(status().is5xxServerError())
-            .andReturn();
-
-        assertEquals(500, result.getResponse().getStatus());
-
-    }
-
     @Test
     public void retrievePaymentFailureByPaymentReference() throws Exception {
 
         when(paymentFailureRepository.findByPaymentReferenceOrderByFailureEventDateTimeDesc(any())).thenReturn(Optional.of(getPaymentFailuresList()));
         MvcResult result = restActions
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
             .get("/payment-failures/RC-1637-5072-9888-4233")
             .andExpect(status().isOk())
             .andReturn();
@@ -393,6 +309,8 @@ public class PaymentStatusControllerTest {
 
         when(paymentFailureRepository.findByPaymentReferenceOrderByFailureEventDateTimeDesc(any())).thenReturn(Optional.empty());
         MvcResult result = restActions
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
             .get("/payment-failures/RC-1637-5072-9888-4233")
             .andExpect(status().isNotFound())
             .andReturn();
@@ -408,12 +326,32 @@ public class PaymentStatusControllerTest {
     }
 
     @Test
+    public void lockedChargeBackShouldThrowServiceUnavailable() throws Exception {
+        PaymentStatusChargebackDto paymentStatusChargebackDto =getPaymentStatusChargebackDto();
+        when(featureToggler.getBooleanValue(eq("payment-status-update-flag"),anyBoolean())).thenReturn(true);
+        MvcResult result = restActions
+            .post("/payment-failures/chargeback", paymentStatusChargebackDto)
+            .andExpect(status().isServiceUnavailable())
+            .andReturn();
+    }
+
+    @Test
+    public void lockedBounceChequeShouldThrowServiceUnavailable() throws Exception {
+        PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto =getPaymentStatusBouncedChequeDto();
+        when(featureToggler.getBooleanValue(eq("payment-status-update-flag"),anyBoolean())).thenReturn(true);
+        MvcResult result = restActions
+            .post("/payment-failures/bounced-cheque", paymentStatusBouncedChequeDto)
+            .andExpect(status().isServiceUnavailable())
+            .andReturn();
+    }
+
+    @Test
     public void givenNoPaymentFailureWhenPaymentStatusSecondThenPaymentNotFoundException() throws Exception {
         PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
                 .representmentStatus("Yes")
                 .representmentDate("2022-10-10T10:10:10")
                 .build();
-        when(paymentStatusUpdateService.searchFailureReference(any())).thenReturn(Optional.empty());
+        when(paymentFailureRepository.findByFailureReference(any())).thenReturn(Optional.empty());
 
         MvcResult result = restActions
                 .patch("/payment-failures/failureReference", paymentStatusUpdateSecond)
@@ -544,44 +482,4 @@ public class PaymentStatusControllerTest {
         return paymentFailuresList;
 
     }
-
-    IdamTokenResponse idamTokenResponse = IdamTokenResponse.idamFullNameRetrivalResponseWith()
-        .refreshToken("refresh-token")
-        .idToken("id-token")
-        .accessToken("access-token")
-        .expiresIn("10")
-        .scope("openid profile roles")
-        .tokenType("type")
-        .build();
-
-    @SneakyThrows
-    protected String contentsOf(String fileName) {
-        String content = new String(Files.readAllBytes(Paths.get(ResourceUtils.getURL("classpath:" + fileName).toURI())));
-        return resolvePlaceholders(content);
-    }
-
-    protected String resolvePlaceholders(String content) {
-        return configurableListableBeanFactory.resolveEmbeddedValue(content);
-    }
-
-    private static CpoGetResponse createCpoGetResponse() {
-        CpoGetResponse response = new CpoGetResponse();
-        response.setContent(Collections.singletonList(createCasePaymentOrder()));
-        response.setTotalElements(3L);
-        response.setSize(2);
-        response.setNumber(1);
-        return response;
-    }
-
-    private static CasePaymentOrder createCasePaymentOrder() {
-        CasePaymentOrder cpo = new CasePaymentOrder();
-        cpo.setId(CPO_ID);
-        cpo.setCreatedTimestamp(CREATED_TIMESTAMP);
-        cpo.setCaseId(CASE_ID);
-        cpo.setAction(ACTION);
-        cpo.setResponsibleParty(RESPONDENT);
-        cpo.setOrderReference(ORDER_REFERENCE);
-        return cpo;
-    }
-
 }
