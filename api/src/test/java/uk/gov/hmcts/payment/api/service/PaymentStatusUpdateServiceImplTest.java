@@ -1,5 +1,7 @@
 package uk.gov.hmcts.payment.api.service;
 
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,6 +32,7 @@ import static org.mockito.ArgumentMatchers.*;
 
 import static org.mockito.Mockito.when;
 
+import uk.gov.hmcts.payment.api.dto.PaymentStatusUpdateSecond;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentStatusDtoMapper;
 import uk.gov.hmcts.payment.api.dto.PaymentStatusBouncedChequeDto;
 import uk.gov.hmcts.payment.api.model.PaymentFailureRepository;
@@ -224,6 +227,41 @@ public class PaymentStatusUpdateServiceImplTest {
             PaymentNotFoundException.class,
             () -> paymentStatusUpdateServiceImpl.deleteByFailureReference("")
         );
+    }
+
+    @Test
+    public void givenValidInputWhenUpdatePaymentFailureThenValidOutput() {
+        PaymentFailures paymentFailure = PaymentFailures.paymentFailuresWith()
+                .failureType("Bounced Cheque")
+                .paymentReference("RC1234")
+                .amount(BigDecimal.valueOf(555))
+                .ccdCaseNumber("123456789")
+                .failureReference("FR12345")
+                .id(1)
+                .reason("RR001")
+                .build();
+        PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
+                .representmentDate("2021-10-10T10:10:10")
+                .representmentStatus("Yes")
+                .build();
+
+        PaymentFailures paymentFailure1 = PaymentFailures.paymentFailuresWith()
+                .failureType("Bounced Cheque")
+                .paymentReference("RC1234")
+                .amount(BigDecimal.valueOf(555))
+                .ccdCaseNumber("123456789")
+                .failureReference("FR12345")
+                .id(1)
+                .reason("RR001")
+                .representmentOutcomeDate(DateTime.parse(paymentStatusUpdateSecond.getRepresentmentDate()).withZone(
+                        DateTimeZone.UTC)
+                        .toDate())
+                .representmentSuccess("Yes")
+                .build();
+        when(paymentFailureRepository.save(any())).thenReturn(paymentFailure1);
+        PaymentFailures result = paymentStatusUpdateServiceImpl.updatePaymentFailure(paymentFailure, paymentStatusUpdateSecond);
+        assertEquals(result.getRepresentmentSuccess(), paymentFailure1.getRepresentmentSuccess());
+        assertEquals(result.getRepresentmentOutcomeDate(), paymentFailure1.getRepresentmentOutcomeDate());
     }
 
     private PaymentStatusBouncedChequeDto getPaymentStatusBouncedChequeDto() {

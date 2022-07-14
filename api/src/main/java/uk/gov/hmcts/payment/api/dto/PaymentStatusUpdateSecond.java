@@ -9,7 +9,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.Date;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
@@ -21,6 +22,12 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @NoArgsConstructor
 @Builder(builderMethodName = "paymentStatusUpdateSecondWith")
 public class PaymentStatusUpdateSecond {
+
+    @NotNull(message = "Representment Status cannot be null")
+    @NotEmpty(message = "Representment Status cannot be blank")
     private String representmentStatus;
-    private Date representmentDate;
+
+    @NotNull(message = "Representment Date cannot be null")
+    @NotEmpty(message = "Representment Date cannot be blank")
+    private String representmentDate;
 }

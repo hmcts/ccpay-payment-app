@@ -3,6 +3,8 @@ package uk.gov.hmcts.payment.api.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -205,10 +207,13 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
     @Override
     public PaymentFailures updatePaymentFailure(PaymentFailures paymentFailure, PaymentStatusUpdateSecond paymentStatusUpdateSecond) {
         paymentFailure.setRepresentmentSuccess(paymentStatusUpdateSecond.getRepresentmentStatus());
-        paymentFailure.setRepresentmentOutcomeDate(paymentStatusUpdateSecond.getRepresentmentDate());
-        PaymentFailures updatedpaymentFailure = paymentFailureRepository.save(paymentFailure);
+        paymentFailure
+                .setRepresentmentOutcomeDate(DateTime.parse(paymentStatusUpdateSecond.getRepresentmentDate()).withZone(
+                        DateTimeZone.UTC)
+                        .toDate());
+        PaymentFailures updatedPaymentFailure = paymentFailureRepository.save(paymentFailure);
         LOG.info("Updated Payment failure record in payment_failure table: {}", paymentFailure.getPaymentReference());
-        return updatedpaymentFailure;
+        return updatedPaymentFailure;
     }
 
     public CpoGetResponse getCasePaymentOrders(String caseIds) {

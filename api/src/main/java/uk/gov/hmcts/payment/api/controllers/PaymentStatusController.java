@@ -131,16 +131,16 @@ public class PaymentStatusController {
     }
 
     @PaymentExternalAPI
-    @PatchMapping(path = "/payment-failures/{failureReference}")
+    @PatchMapping("/payment-failures/{failureReference}")
     public ResponseEntity<String> paymentStatusSecond(@PathVariable("failureReference") String failureReference,
-            @Valid @RequestBody PaymentStatusUpdateSecond paymentStatusUpdateSecondDto) throws JsonProcessingException {
+                                                      @Valid @RequestBody PaymentStatusUpdateSecond paymentStatusUpdateSecondDto) {
 
         LOG.info("Received payment status update second ping request: {}", paymentStatusUpdateSecondDto);
 
         Optional<PaymentFailures> paymentFailures = paymentStatusUpdateService.searchFailureReference(failureReference);
 
-        if (paymentFailures.isPresent()) {
-            throw new FailureReferenceNotFoundException("No Payment Failure available for the given Failure reference");
+        if (!paymentFailures.isPresent()) {
+            throw new PaymentNotFoundException("No Payment Failure available for the given Failure reference");
         } else {
             paymentStatusUpdateService.updatePaymentFailure(paymentFailures.get(), paymentStatusUpdateSecondDto);
             return new ResponseEntity<>("Successful operation", HttpStatus.OK);
