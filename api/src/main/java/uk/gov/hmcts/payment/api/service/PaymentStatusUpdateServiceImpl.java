@@ -14,11 +14,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-import uk.gov.hmcts.payment.api.domain.service.ServiceRequestDomainService;
 import uk.gov.hmcts.payment.api.dto.PaymentStatusChargebackDto;
-import uk.gov.hmcts.payment.api.dto.mapper.CasePaymentOrdersMapper;
-import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
-import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentStatusDtoMapper;
 import uk.gov.hmcts.payment.api.dto.PaymentStatusBouncedChequeDto;
 import uk.gov.hmcts.payment.api.exception.FailureReferenceNotFoundException;
@@ -40,24 +36,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
     PaymentFailureRepository paymentFailureRepository;
 
     @Autowired
-    private PaymentService<PaymentFeeLink, String> paymentService;
-
-    @Autowired
-    private FeesService feeService;
-
-    @Autowired
-    private PaymentGroupDtoMapper paymentGroup;
-
-    @Autowired
-    private DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService;
-
-    @Autowired
-    private PaymentDtoMapper paymentDtoMapper;
-
-    @Autowired
     private Payment2Repository paymentRepository;
-
-    private final ServiceRequestDomainService serviceRequestDomainService;
 
     @Autowired()
     @Qualifier("restTemplateRefundCancel")
@@ -68,17 +47,6 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
 
     @Value("${refund.api.url}")
     private String refundApiUrl;
-
-    @Autowired
-    private CasePaymentOrdersMapper casePaymentOrdersMapper;
-
-    public static final String BEARER = "Bearer ";
-
-    @Autowired
-    public PaymentStatusUpdateServiceImpl(
-        ServiceRequestDomainService serviceRequestDomainService) {
-        this.serviceRequestDomainService = serviceRequestDomainService;
-    }
 
     public PaymentFailures insertBounceChequePaymentFailure(PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto) {
 
