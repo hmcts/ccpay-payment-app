@@ -350,6 +350,8 @@ public class PaymentStatusControllerTest {
         when(featureToggler.getBooleanValue(eq("payment-status-update-flag"), anyBoolean())).thenReturn(true);
         restActions
                 .patch("/payment-failures/failureReference", PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
+                        .representmentStatus("Yes")
+                        .representmentDate("2022-10-10T10:10:10")
                         .build())
                 .andExpect(status().isServiceUnavailable())
                 .andReturn();
