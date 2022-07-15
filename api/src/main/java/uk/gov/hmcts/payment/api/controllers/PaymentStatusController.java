@@ -120,6 +120,9 @@ public class PaymentStatusController {
     @PatchMapping("/payment-failures/{failureReference}")
     public ResponseEntity<String> paymentStatusSecond(@PathVariable("failureReference") String failureReference,
                                                       @Valid @RequestBody PaymentStatusUpdateSecond paymentStatusUpdateSecondDto) {
+        if (featureToggler.getBooleanValue("payment-status-update-flag",false)) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+        }
         LOG.info("Received payment status update second ping request: {}", paymentStatusUpdateSecondDto);
         paymentStatusUpdateService.updatePaymentFailure(failureReference, paymentStatusUpdateSecondDto);
         return new ResponseEntity<>("Successful operation", HttpStatus.OK);

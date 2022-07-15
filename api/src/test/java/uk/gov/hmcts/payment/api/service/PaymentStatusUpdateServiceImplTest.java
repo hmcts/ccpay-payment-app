@@ -200,6 +200,7 @@ public class PaymentStatusUpdateServiceImplTest {
                         .toDate())
                 .representmentSuccess("Yes")
                 .build();
+        when(paymentFailureRepository.findByFailureReference(anyString())).thenReturn(Optional.of(paymentFailure));
         when(paymentFailureRepository.save(any())).thenReturn(paymentFailure);
         PaymentFailures result = paymentStatusUpdateServiceImpl.updatePaymentFailure("dummy", paymentStatusUpdateSecond);
         assertEquals(result.getRepresentmentSuccess(), paymentFailure.getRepresentmentSuccess());

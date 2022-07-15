@@ -346,6 +346,16 @@ public class PaymentStatusControllerTest {
     }
 
     @Test
+    public void lockedPaymentStatusSecondShouldThrowServiceUnavailable() throws Exception {
+        when(featureToggler.getBooleanValue(eq("payment-status-update-flag"), anyBoolean())).thenReturn(true);
+        restActions
+                .patch("/payment-failures/failureReference", PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
+                        .build())
+                .andExpect(status().isServiceUnavailable())
+                .andReturn();
+    }
+
+    @Test
     public void givenNoPaymentFailureWhenPaymentStatusSecondThenPaymentNotFoundException() throws Exception {
         PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
                 .representmentStatus("Yes")
@@ -362,24 +372,21 @@ public class PaymentStatusControllerTest {
                 result.getResolvedException().getMessage());
     }
 
-    /*@Test
+    @Test
     public void givenPaymentFailureWhenPaymentStatusSecondThenSuccess() throws Exception {
         PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
                 .representmentStatus("Yes")
                 .representmentDate("2022-10-10T10:10:10")
                 .build();
-        PaymentFailures paymentFailures = getPaymentFailures();
-        when(paymentStatusUpdateService.searchFailureReference(any())).thenReturn(Optional.of(paymentFailures));
-
-        MvcResult result = mvc.perform(patch(
-                "/payment-failures/{failureReference}",
-                "RC-1111-2222-3333-4444", paymentStatusUpdateSecond))
+        when(paymentFailureRepository.findByFailureReference(any())).thenReturn(Optional.of(getPaymentFailures()));
+        MvcResult result = restActions
+                .patch("/payment-failures/failureReference", paymentStatusUpdateSecond)
                 .andExpect(status().isOk())
                 .andReturn();
 
         String message = result.getResponse().getContentAsString();
         assertEquals("Successful operation", message);
-    }*/
+    }
 
     private PaymentStatusBouncedChequeDto getPaymentStatusBouncedChequeDto() {
 
