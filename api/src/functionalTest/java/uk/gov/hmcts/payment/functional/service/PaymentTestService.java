@@ -179,8 +179,8 @@ public class PaymentTestService {
             .delete("/payment-status-delete/{failureReference}", failureReference);
     }
 
-    public Response patchPing2(String serviceToken, String failureReference,
-                                   PaymentStatusUpdateSecond paymentStatusUpdateSecond) {
+    public Response paymentStatusSecond(String serviceToken, String failureReference,
+                                        PaymentStatusUpdateSecond paymentStatusUpdateSecond) {
         return givenWithServiceHeaders(serviceToken)
                 .contentType(ContentType.JSON)
                 .body(paymentStatusUpdateSecond)

@@ -339,4 +339,59 @@ public class PaymentStatusFunctionalTest {
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
 
     }
+
+    @Test
+    public void positive_paymentStatusSecond() {
+
+        String accountNumber = testProps.existingAccountNumber;
+        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
+                .aPbaPaymentRequestForProbate("90.00",
+                        "PROBATE", "PBAFUNC12345");
+        accountPaymentRequest.setAccountNumber(accountNumber);
+        PaymentDto paymentDto = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
+                .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
+
+        PaymentRefundRequest paymentRefundRequest
+                = PaymentFixture.aRefundRequest("RR001", paymentDto.getReference());
+        Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+                SERVICE_TOKEN_PAYMENT,
+                paymentRefundRequest);
+        PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto
+                = PaymentFixture.bouncedChequeRequest(paymentDto.getReference());
+
+        Response bounceChequeResponse = paymentTestService.postBounceCheque(
+                SERVICE_TOKEN_PAYMENT,
+                paymentStatusBouncedChequeDto);
+
+        PaymentFailureResponse paymentsFailureResponse =
+                paymentTestService.getFailurePayment(USER_TOKEN_PAYMENT, SERVICE_TOKEN, paymentStatusBouncedChequeDto.getPaymentReference()).then()
+                        .statusCode(OK.value()).extract().as(PaymentFailureResponse.class);
+
+        assertThat(paymentsFailureResponse.getPaymentFailureList().get(0).getPaymentFailureInitiated().getFailureReference()).isEqualTo(paymentStatusBouncedChequeDto.getFailureReference());
+
+        assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
+        assertThat(bounceChequeResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+
+        //Ping 2
+        PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
+                .representmentStatus("Yes")
+                .representmentDate("2022-10-10T10:10:10")
+                .build();
+        Response ping2Response = paymentTestService.paymentStatusSecond(
+                SERVICE_TOKEN_PAYMENT, "",
+                paymentStatusUpdateSecond);
+        paymentTestService.paymentStatusSecond(
+                SERVICE_TOKEN_PAYMENT, "",
+                paymentStatusUpdateSecond).then()
+                .statusCode(OK.value()).body("status", equalTo("Success"));
+
+        assertThat(ping2Response.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+
+        // delete payment record
+        paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
+
+        //delete Payment Failure record
+        paymentTestService.deleteFailedPayment(USER_TOKEN, SERVICE_TOKEN, paymentStatusBouncedChequeDto.getFailureReference()).then().statusCode(NO_CONTENT.value());
+
+    }
 }
