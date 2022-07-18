@@ -378,12 +378,8 @@ public class PaymentStatusFunctionalTest {
                 .representmentDate("2022-10-10T10:10:10")
                 .build();
         Response ping2Response = paymentTestService.paymentStatusSecond(
-                SERVICE_TOKEN_PAYMENT, "",
+                SERVICE_TOKEN_PAYMENT, paymentStatusBouncedChequeDto.getFailureReference(),
                 paymentStatusUpdateSecond);
-        paymentTestService.paymentStatusSecond(
-                SERVICE_TOKEN_PAYMENT, "",
-                paymentStatusUpdateSecond).then()
-                .statusCode(OK.value()).body("status", equalTo("Success"));
 
         assertThat(ping2Response.getStatusCode()).isEqualTo(HttpStatus.OK.value());
 

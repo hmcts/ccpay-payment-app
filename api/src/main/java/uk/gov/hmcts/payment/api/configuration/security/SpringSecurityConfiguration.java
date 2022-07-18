@@ -137,6 +137,7 @@ public class SpringSecurityConfiguration {
                 .antMatchers(HttpMethod.GET, "/case-payment-orders**").permitAll()
                 .antMatchers(HttpMethod.POST, "/api/**").permitAll()
                 .antMatchers(HttpMethod.POST, "/payment-failures/**").permitAll()
+                .antMatchers(HttpMethod.PATCH, "/payment-failures/**").permitAll()
                 .antMatchers(HttpMethod.GET, "/payment-failures/{paymentReference}").hasAuthority(PAYMENTS_ROLE)
                 .anyRequest().authenticated();
         }
