@@ -168,7 +168,6 @@
         <cve>CVE-2022-31548</cve>
         <cve>CVE-2022-2048</cve>
         <cve>CVE-2022-2047</cve>
-        <cve>CVE-2022-31569statu</cve>
     </suppress>
 
     <suppress until="2022-09-30">
