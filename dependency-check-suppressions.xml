@@ -164,6 +164,11 @@
         <cve>CVE-2022-22978</cve>
         <cve>CVE-2021-22060</cve>
         <cve>CVE-2021-43466</cve>
+        <cve>CVE-2022-31569</cve>
+        <cve>CVE-2022-31548</cve>
+        <cve>CVE-2022-2048</cve>
+        <cve>CVE-2022-2047</cve>
+        <cve>CVE-2022-31569statu</cve>
     </suppress>
 
     <suppress until="2022-09-30">
