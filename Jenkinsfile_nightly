@@ -92,26 +92,15 @@ withNightlyPipeline("java", product, component) {
 
     }
 
-    after('functionalTest:preview') {
+    after('fullFunctionalTest') {
 
         publishHTML target: [
-            reportDir            : "api/build/reports/tests/functionalTest",
             allowMissing         : true,
             alwaysLinkToLastBuild: true,
             keepAll              : true,
+            reportDir            : "api/target/site/serenity",
             reportFiles          : "index.html",
-            reportName           : "Preview Functional Tests",
-            alwaysLinkToLastBuild: true,
-            reportName           : "CCPAY Payment App PREVIEW API Functional Test Report"
+            reportName           : "CCPAY Payment App Serenity Functional Tests"
         ]
-
-        publishHTML target: [
-            reportDir            : "api/target/site/serenity/",
-            reportFiles          : "index.html",
-            reportName           : "CCPAY Payment App PREVIEW Serenity Functional Tests",
-            alwaysLinkToLastBuild: true
-        ]
-
-        steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
     }
 }

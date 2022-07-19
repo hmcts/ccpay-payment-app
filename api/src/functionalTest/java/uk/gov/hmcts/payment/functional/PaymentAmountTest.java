@@ -1,11 +1,10 @@
 package uk.gov.hmcts.payment.functional;
 
 import io.restassured.response.Response;
-import lombok.Data;
+import net.serenitybdd.junit.runners.SerenityParameterizedRunner;
+import net.thucydides.junit.annotations.TestData;
 import org.junit.Before;
-import org.junit.experimental.theories.DataPoints;
-import org.junit.experimental.theories.Theories;
-import org.junit.experimental.theories.Theory;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,13 +18,15 @@ import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
 import uk.gov.hmcts.payment.functional.service.PaymentTestService;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Collection;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
 
-@RunWith(Theories.class)
+@RunWith(SerenityParameterizedRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
 public class PaymentAmountTest {
 
@@ -47,9 +48,40 @@ public class PaymentAmountTest {
     private static String SERVICE_TOKEN;
     private static boolean TOKENS_INITIALIZED = false;
 
+    @TestData
+    public static Collection<Object[]> testData() {
+        Collection<Object[]> params = new ArrayList<>();
+        params.add(new Object[]{"0.01", OK});
+        params.add(new Object[]{"0.10", OK});
+        params.add(new Object[]{"0.99", OK});
+
+        params.add(new Object[]{"1.01", OK});
+        params.add(new Object[]{"1.09", OK});
+        params.add(new Object[]{"1.10", OK});
+        params.add(new Object[]{"1.99", OK});
+
+        // GovPay error for this big amount
+        // AmountDataPoint.of("9999999.99",OK),
+
+        params.add(new Object[]{"0.00", NOT_OK});
+        params.add(new Object[]{"-0.01", NOT_OK});
+        params.add(new Object[]{"1.1000", NOT_OK});
+
+        return params;
+    }
+
+    public final String amount;
+
+    public final String expectedStatus;
+
+    public PaymentAmountTest(String amount, String expectedStatus){
+        this.amount = amount;
+        this.expectedStatus = expectedStatus;
+    }
+
     @Before
     public void setUp() throws Exception {
-        //hook into the Spring test-support framework because of @RunWith(Theories.class)
+        //hook into the Spring test-support framework because of @RunWith(SerenityParameterizedRunner.class)
         TestContextManager tcm = new TestContextManager(getClass());
         tcm.prepareTestInstance(this);
 
@@ -60,35 +92,14 @@ public class PaymentAmountTest {
         }
     }
 
-    @DataPoints
-    public static AmountDataPoint[] amountValidations() {
-        return new AmountDataPoint[]{
-            AmountDataPoint.of("0.01", OK),
-            AmountDataPoint.of("0.10", OK),
-            AmountDataPoint.of("0.99", OK),
-
-            AmountDataPoint.of("1.01", OK),
-            AmountDataPoint.of("1.09", OK),
-            AmountDataPoint.of("1.10", OK),
-            AmountDataPoint.of("1.99", OK),
-
-            // GovPay error for this big amount
-            // AmountDataPoint.of("9999999.99",OK),
-
-            AmountDataPoint.of("0.00", NOT_OK),
-            AmountDataPoint.of("-0.01", NOT_OK),
-            AmountDataPoint.of("1.1000", NOT_OK)
-        };
-    }
-
-    @Theory
-    public void shouldCreateCardPaymentsWithCorrectAmount(AmountDataPoint dataPoint) {
+    @Test
+    public void shouldCreateCardPaymentsWithCorrectAmount() {
         if (testProps.baseTestUrl.contains("payment-api-pr-")) {
             return; // temporarily passing the test in PR environment
         }
         // invoke card payment and assert expectedStatus
-        Response response = paymentTestService.postcardPayment(USER_TOKEN, SERVICE_TOKEN, PaymentFixture.aCardPaymentRequest(dataPoint.amount));
-        if (!OK.equalsIgnoreCase(dataPoint.expectedStatus)) {
+        Response response = paymentTestService.postcardPayment(USER_TOKEN, SERVICE_TOKEN, PaymentFixture.aCardPaymentRequest(amount));
+        if (!OK.equalsIgnoreCase(expectedStatus)) {
             response.then().statusCode(UNPROCESSABLE_ENTITY.value());
         } else {
             String reference = response.then()
@@ -103,21 +114,21 @@ public class PaymentAmountTest {
                 .statusCode(HttpStatus.OK.value())
                 .and()
                 .extract().body().jsonPath().get("amount");
-            assertThat(amount).isEqualByComparingTo(dataPoint.amount);
+            assertThat(amount).isEqualByComparingTo(amount);
         }
     }
 
-    @Theory
-    public void shouldCreatePbaPaymentsWithCorrectAmount(AmountDataPoint dataPoint) {
+    @Test
+    public void shouldCreatePbaPaymentsWithCorrectAmount() {
         if (testProps.baseTestUrl.contains("payment-api-pr-")) {
             return; // temporarily passing the test in PR environment
         }
         // invoke pba payment and assert expectedStatus
-        CreditAccountPaymentRequest request = PaymentFixture.aPbaPaymentRequest(dataPoint.amount, "CMC");
+        CreditAccountPaymentRequest request = PaymentFixture.aPbaPaymentRequest(amount, "CMC");
         request.setCaseReference("amountTestPbaCaseReference");
 
         Response response = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, request);
-        if (!OK.equalsIgnoreCase(dataPoint.expectedStatus)) {
+        if (!OK.equalsIgnoreCase(expectedStatus)) {
             response.then().statusCode(UNPROCESSABLE_ENTITY.value());
         } else {
             String reference = response.then()
@@ -131,18 +142,18 @@ public class PaymentAmountTest {
                 .statusCode(HttpStatus.OK.value())
                 .and()
                 .extract().body().jsonPath().get("amount");
-            assertThat(amount).isEqualByComparingTo(dataPoint.amount);
+            assertThat(amount).isEqualByComparingTo(amount);
         }
     }
 
-    @Theory
-    public void shouldCreateBarPaymentsWithCorrectAmount(AmountDataPoint dataPoint) {
+    @Test
+    public void shouldCreateBarPaymentsWithCorrectAmount() {
         if (testProps.baseTestUrl.contains("payment-api-pr-")) {
             return; // temporarily passing the test in PR environment
         }
         // invoke bar payment and assert expectedStatus
-        Response response = paymentTestService.recordBarPayment(USER_TOKEN, SERVICE_TOKEN, PaymentFixture.aBarPaymentRequest(dataPoint.amount));
-        if (!OK.equalsIgnoreCase(dataPoint.expectedStatus)) {
+        Response response = paymentTestService.recordBarPayment(USER_TOKEN, SERVICE_TOKEN, PaymentFixture.aBarPaymentRequest(amount));
+        if (!OK.equalsIgnoreCase(expectedStatus)) {
             response.then().statusCode(UNPROCESSABLE_ENTITY.value());
         } else {
             String reference = response.then()
@@ -151,11 +162,5 @@ public class PaymentAmountTest {
                 .extract().body().jsonPath().getString("reference");
             assertThat(reference).matches(PAYMENT_REFERENCE_REFEX);
         }
-    }
-
-    @Data(staticConstructor = "of")
-    static class AmountDataPoint {
-        private final String amount;
-        private final String expectedStatus;
     }
 }
