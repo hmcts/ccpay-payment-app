@@ -21,7 +21,7 @@ import static org.junit.Assert.assertEquals;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
 
-@RunWith(SpringIntegrationSerenityRunner.class)
+//@RunWith(SpringIntegrationSerenityRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
 public class CallBackServiceFunctionalTest {
 
@@ -67,7 +67,7 @@ public class CallBackServiceFunctionalTest {
      * Currently this test uses a Mock-API for serviceCallBack which is hosted in payment-app itself (Ideally a hosted mock server required)
      * </ul><p>
      */
-    @Test
+    //@Test
     public void shouldInvokeCallBackForStatusUpdate() {
         final String[] reference = new String[1];
 
@@ -106,9 +106,9 @@ public class CallBackServiceFunctionalTest {
 
         // Step 5: verify callback invocation from azure functions
         // Looks like there is no mock server for this api to work, so this can be verified manually in azure logs
-//        await()
-//            .pollInterval(Duration.TWO_HUNDRED_MILLISECONDS)
-//            .atMost(Duration.TWO_SECONDS)
-//            .until(() -> SerenityRest.given().get(testProps.mockCallBackUrl + "/" + reference[0]).getStatusCode() == 200);
+        await()
+            .pollInterval(Duration.TWO_HUNDRED_MILLISECONDS)
+            .atMost(Duration.TWO_SECONDS)
+            .until(() -> SerenityRest.given().get(testProps.mockCallBackUrl + "/" + reference[0]).getStatusCode() == 200);
     }
 }
