@@ -393,7 +393,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
                     LOG.warn("Service callback url is null!");
                 }
             }
-        } catch (GovPayPaymentNotFoundException pnfe) {
+        } catch (GovPayPaymentNotFoundException | NullPointerException pnfe) {
             LOG.error("Gov Pay payment not found id is:{} and govpay id is:{}", payment.getExternalReference(), paymentReference);
         } catch (UnsupportedOperationException exception) {
             LOG.error("Exception occurred while retrieving PaymentFeeLink: {} due to {}", paymentFeeLink.toString(),
