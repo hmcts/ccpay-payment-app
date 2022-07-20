@@ -3,6 +3,7 @@ package uk.gov.hmcts.payment.api.service;
 import uk.gov.hmcts.payment.api.dto.PaymentStatusBouncedChequeDto;
 import uk.gov.hmcts.payment.api.dto.PaymentStatusChargebackDto;
 import uk.gov.hmcts.payment.api.dto.PaymentStatusUpdateSecond;
+import uk.gov.hmcts.payment.api.dto.UnprocessedPayment;
 import uk.gov.hmcts.payment.api.model.PaymentFailures;
 
 import java.util.List;
@@ -17,4 +18,6 @@ public interface PaymentStatusUpdateService {
     void deleteByFailureReference(String failureReference);
 
     PaymentFailures updatePaymentFailure(String paymentFailures, PaymentStatusUpdateSecond paymentStatusUpdateSecond);
+
+    PaymentFailures unprocessedPayment(UnprocessedPayment unprocessedPayment);
 }

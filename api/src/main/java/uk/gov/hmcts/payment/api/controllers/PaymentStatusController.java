@@ -87,6 +87,20 @@ public class PaymentStatusController {
         return new ResponseEntity<>("successful operation", HttpStatus.OK);
     }
 
+    @PaymentExternalAPI
+    @PostMapping(path = "/payment-failures/unprocessed-payment")
+    public ResponseEntity<String> unprocessedPayment(@Valid @RequestBody UnprocessedPayment unprocessedPayment){
+        if (featureToggler.getBooleanValue("payment-status-update-flag",false)) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+        }
+
+        LOG.info("Received payment status request unprocessed payment : {}", unprocessedPayment);
+
+        PaymentFailures unprocessedPaymentFailure = paymentStatusUpdateService.unprocessedPayment(unprocessedPayment);
+
+        return new ResponseEntity<>("successful operation", HttpStatus.OK);
+    }
+
     @ApiOperation(value = "Get payment failure by payment reference", notes = "Get payment failure for supplied payment reference")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Payment failure retrieved"),
