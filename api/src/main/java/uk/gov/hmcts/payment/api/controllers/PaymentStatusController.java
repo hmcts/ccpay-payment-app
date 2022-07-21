@@ -141,7 +141,7 @@ public class PaymentStatusController {
     public PaymentFailureReportResponse retrievePaymentFailureReport(@RequestParam("date_from") Date fromDate,
                                                         @RequestParam("date_to") Date toDate,
      @RequestHeader(required = false) MultiValueMap<String, String> headers) {
-
+        LOG.info("Received payment status update second ping request: {}", fromDate);
        List<PaymentFailureReportDto> paymentFailureReportDto =  paymentStatusUpdateService.paymentFailureReport(atStartOfDay(fromDate), atEndOfDay(toDate),headers);
         return new PaymentFailureReportResponse(paymentFailureReportDto);
     }

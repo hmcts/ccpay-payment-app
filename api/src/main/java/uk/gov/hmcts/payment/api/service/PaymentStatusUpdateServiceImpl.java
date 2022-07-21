@@ -188,7 +188,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
     }
 
     public List<PaymentFailureReportDto> paymentFailureReport(Date startDate,Date endDate,MultiValueMap<String, String> headers){
-
+        LOG.info("Enter paymentFailureReport method:: {}", startDate);
         ValidationErrorDTO validationError = new ValidationErrorDTO();
 
         if(startDate.after(endDate)){
@@ -247,6 +247,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(refundApiUrl + "/refund/payment-failure-report")
             .queryParam("paymentReferenceList", referenceId);
 
+        LOG.info("Refund App uri{}", builder.toUriString());
         return restTemplateGetRefund.exchange(builder.toUriString(), HttpMethod.GET, getEntity(headers), new ParameterizedTypeReference<List<RefundDto>>(){
         });
     }
@@ -259,6 +260,8 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         headerMultiValueMapForOrganisationalDetail.put("Authorization", Collections.singletonList(userAuthorization.startsWith("Bearer ")
             ? userAuthorization : "Bearer ".concat(userAuthorization)));
         headerMultiValueMapForOrganisationalDetail.put("ServiceAuthorization", Collections.singletonList(serviceAuthorisation));
+            LOG.info("inputHeaders Service Auth values {}", headerMultiValueMapForOrganisationalDetail.getFirst("ServiceAuthorization"));
+        LOG.info("inputHeaders Authorization Auth values {}", headerMultiValueMapForOrganisationalDetail.getFirst("Authorization"));
         HttpHeaders httpHeaders = new HttpHeaders(headerMultiValueMapForOrganisationalDetail);
         return new HttpEntity<>(httpHeaders);
     }
