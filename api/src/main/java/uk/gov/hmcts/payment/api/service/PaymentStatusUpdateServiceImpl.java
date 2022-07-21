@@ -32,7 +32,6 @@ import uk.gov.hmcts.payment.api.model.PaymentFailureRepository;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
-import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -148,7 +147,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         }
     }
 
-    public List<PaymentFailures> searchPaymentFailure(String paymentReference) {
+    public List<PaymentFailures> searchPaymentFailure(String paymentReference) throws RestClientException{
 
         Optional<List<PaymentFailures>> paymentFailures;
         paymentFailures = paymentFailureRepository.findByPaymentReferenceOrderByFailureEventDateTimeDesc(paymentReference);
@@ -248,14 +247,12 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(refundApiUrl + "/refund/payment-failure-report")
             .queryParam("paymentReferenceList", referenceId);
 
-        LOG.info("Refund URI{}", builder.toUriString());
-
         return restTemplateGetRefund.exchange(builder.toUriString(), HttpMethod.GET, getEntity(headers), new ParameterizedTypeReference<List<RefundDto>>(){
         });
     }
 
     private HttpEntity<String> getEntity(MultiValueMap<String, String> headers) {
-        MultiValueMap<String, String> headerMultiValueMapForOrganisationalDetail = new LinkedMultiValueMap<String, String>();
+        MultiValueMap<String, String> headerMultiValueMapForOrganisationalDetail = new LinkedMultiValueMap<>();
         String serviceAuthorisation = authTokenGenerator.generate();
         headerMultiValueMapForOrganisationalDetail.put("Content-Type", headers.get("content-type"));
         String userAuthorization = headers.get("authorization") != null ? headers.get("authorization").get(0) : headers.get("Authorization").get(0);
