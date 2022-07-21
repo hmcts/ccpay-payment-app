@@ -66,6 +66,8 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
     @Qualifier("restTemplateGetRefund")
     private RestTemplate restTemplateGetRefund;
 
+    public static final String CONTENT_TYPE = "content-type";
+
     public PaymentFailures insertBounceChequePaymentFailure(PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto) {
 
         LOG.info("Begin Payment failure insert in payment_failure table: {}", paymentStatusBouncedChequeDto.getPaymentReference());
@@ -248,23 +250,22 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
             .queryParam("paymentReferenceList", referenceId);
 
         LOG.info("Refund App uri{}", builder.toUriString());
-        LOG.info("Refund App getEntity {}", getEntity(headers));
-        return restTemplateGetRefund.exchange(builder.toUriString(), HttpMethod.GET, getEntity(headers), new ParameterizedTypeReference<List<RefundDto>>(){
+        LOG.info("Refund App getEntity {}", getHeadersEntity(headers).hasBody());
+        return restTemplateGetRefund.exchange(builder.toUriString(), HttpMethod.GET, getHeadersEntity(headers), new ParameterizedTypeReference<List<RefundDto>>(){
         });
     }
 
-    private HttpEntity<String> getEntity(MultiValueMap<String, String> headers) {
-        MultiValueMap<String, String> headerMultiValueMapForOrganisationalDetail = new LinkedMultiValueMap<>();
-        String serviceAuthorisation = authTokenGenerator.generate();
-        headerMultiValueMapForOrganisationalDetail.put("Content-Type", headers.get("content-type"));
-        String userAuthorization = headers.get("authorization") != null ? headers.get("authorization").get(0) : headers.get("Authorization").get(0);
-        headerMultiValueMapForOrganisationalDetail.put("Authorization", Collections.singletonList(userAuthorization.startsWith("Bearer ")
-            ? userAuthorization : "Bearer ".concat(userAuthorization)));
-        headerMultiValueMapForOrganisationalDetail.put("ServiceAuthorization", Collections.singletonList(serviceAuthorisation));
-            LOG.info("inputHeaders Service Auth values {}", headerMultiValueMapForOrganisationalDetail.getFirst("ServiceAuthorization"));
-        LOG.info("inputHeaders Authorization Auth values {}", headerMultiValueMapForOrganisationalDetail.getFirst("Authorization"));
-        HttpHeaders httpHeaders = new HttpHeaders(headerMultiValueMapForOrganisationalDetail);
-        return new HttpEntity<>(httpHeaders);
+    private HttpEntity<String> getHeadersEntity(MultiValueMap<String, String> headers) {
+        return new HttpEntity<>(getFormatedHeaders(headers));
     }
 
+    private MultiValueMap<String, String> getFormatedHeaders(MultiValueMap<String, String> headers) {
+        List<String> authtoken = headers.get("authorization");
+        List<String> servauthtoken = Arrays.asList(authTokenGenerator.generate());
+        MultiValueMap<String, String> inputHeaders = new LinkedMultiValueMap<>();
+        inputHeaders.put(CONTENT_TYPE, headers.get(CONTENT_TYPE));
+        inputHeaders.put("Authorization", authtoken);
+        inputHeaders.put("ServiceAuthorization", servauthtoken);
+        return inputHeaders;
+    }
 }
