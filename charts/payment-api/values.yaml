@@ -82,13 +82,16 @@ java:
     REFUND_API_URL: http://ccpay-refunds-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal
     SERVER_SHUTDOWN_STRATEGY: graceful
     TIMEOUT_SERVER_SHUTDOWN_PHASE: 30s
+
     CARD_LAG_TIME: 120
     CASH_LAG_TIME: 120
     POSTALORDER_LAG_TIME: 480
     CHEQUES_LAG_TIME: 480
     PBA_LAG_TIME: 96
+
     CPO_SELECT_ACCOUNT_GRANT_TYPE: password
     CPO_SELECT_ACCOUNT_SCOPE: openid profile roles
+
 
   keyVaults:
     "ccpay":
