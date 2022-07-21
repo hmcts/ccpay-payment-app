@@ -46,7 +46,7 @@
         <cve>CVE-2021-28170</cve>
     </suppress>
 
-     <suppress until="2022-09-30">
+    <suppress until="2022-09-30">
         <notes>A vulnerability in all versions of Nim-lang allows unauthenticated attackers to write files to
             arbitrary directories via a crafted zip file with dot-slash characters included in the name of the
             crafted file
@@ -183,6 +183,40 @@
         </notes>
         <cve>CVE-2022-33915</cve>
     </suppress>
-    <!-- Supression Group ends here -->
 
+    <suppress until="2022-09-30">
+        <notes>
+            The RipudamanKaushikDal/projects repository through 2022-04-03 on GitHub allows absolute path traversal
+            because the Flask send_file function is used unsafely.
+        </notes>
+        <cve>CVE-2022-31569</cve>
+    </suppress>
+
+    <suppress until="2022-09-30">
+        <notes>
+            The nrlakin/homepage repository through 2017-03-06 on GitHub allows absolute path traversal because the
+            Flask send_file function is used unsafely.
+        </notes>
+        <cve>CVE-2022-31548</cve>
+    </suppress>
+
+    <suppress until="2022-09-30">
+        <notes>
+            In Eclipse Jetty versions 9.4.0 thru 9.4.46, and 10.0.0 thru 10.0.9, and 11.0.0 thru 11.0.9 versions, the
+            parsing of the authority segment of an http scheme URI, the Jetty HttpURI class improperly detects an
+            invalid input as a hostname. This can lead to failures in a Proxy scenario.
+        </notes>
+        <cve>CVE-2022-2047</cve>
+    </suppress>
+
+    <suppress until="2022-09-30">
+        <notes>
+            In Eclipse Jetty HTTP/2 server implementation, when encountering an invalid HTTP/2 request, the error
+            handling has a bug that can wind up not properly cleaning up the active connections and associated
+            resources. This can lead to a Denial of Service scenario where there are no enough resources left to process
+            good requests.
+        </notes>
+        <cve>CVE-2022-2048</cve>
+    </suppress>
+    <!-- Supression Group ends here -->
 </suppressions>
