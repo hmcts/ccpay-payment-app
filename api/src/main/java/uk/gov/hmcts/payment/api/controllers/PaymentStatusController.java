@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.dto.*;
@@ -16,9 +17,12 @@ import uk.gov.hmcts.payment.api.service.PaymentStatusUpdateService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import javax.validation.Valid;
+import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static uk.gov.hmcts.payment.api.util.DateUtil.atEndOfDay;
+import static uk.gov.hmcts.payment.api.util.DateUtil.atStartOfDay;
 
 
 @RestController
@@ -126,6 +130,20 @@ public class PaymentStatusController {
         LOG.info("Received payment status update second ping request: {}", paymentStatusUpdateSecondDto);
         paymentStatusUpdateService.updatePaymentFailure(failureReference, paymentStatusUpdateSecondDto);
         return new ResponseEntity<>("Successful operation", HttpStatus.OK);
+    }
+
+    @ApiOperation("API to generate report for payment failure ")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Report Generated"),
+        @ApiResponse(code = 404, message = "No Data found to generate Report")
+    })
+    @GetMapping("/payment-failures/failure-report")
+    public PaymentFailureReportResponse retrievePaymentFailureReport(@RequestParam("date_from") Date fromDate,
+                                                        @RequestParam("date_to") Date toDate,
+     @RequestHeader(required = false) MultiValueMap<String, String> headers) {
+
+       List<PaymentFailureReportDto> paymentFailureReportDto =  paymentStatusUpdateService.paymentFailureReport(atStartOfDay(fromDate), atEndOfDay(toDate),headers);
+        return new PaymentFailureReportResponse(paymentFailureReportDto);
     }
 
     @ResponseStatus(HttpStatus.TOO_MANY_REQUESTS)

@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -16,11 +17,14 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-import uk.gov.hmcts.payment.api.dto.PaymentStatusChargebackDto;
-import uk.gov.hmcts.payment.api.dto.PaymentStatusUpdateSecond;
+import org.springframework.web.util.UriComponentsBuilder;
+import uk.gov.hmcts.payment.api.contract.exception.ValidationErrorDTO;
+import uk.gov.hmcts.payment.api.dto.*;
+import uk.gov.hmcts.payment.api.dto.mapper.PaymentFailureReportMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentStatusDtoMapper;
-import uk.gov.hmcts.payment.api.dto.PaymentStatusBouncedChequeDto;
 import uk.gov.hmcts.payment.api.exception.FailureReferenceNotFoundException;
+import uk.gov.hmcts.payment.api.exception.InvalidRefundRequestException;
+import uk.gov.hmcts.payment.api.exception.ValidationErrorException;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.Payment2Repository;
 import uk.gov.hmcts.payment.api.model.PaymentFailures;
@@ -28,7 +32,9 @@ import uk.gov.hmcts.payment.api.model.PaymentFailureRepository;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
+import java.math.BigDecimal;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateService {
@@ -53,6 +59,13 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
 
     @Value("${refund.api.url}")
     private String refundApiUrl;
+
+    @Autowired
+    private PaymentFailureReportMapper paymentFailureReportMapper;
+
+    @Autowired()
+    @Qualifier("restTemplateGetRefund")
+    private RestTemplate restTemplateGetRefund;
 
     public PaymentFailures insertBounceChequePaymentFailure(PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto) {
 
@@ -174,4 +187,83 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
             return updatedPaymentFailure;
         }
     }
+
+    public List<PaymentFailureReportDto> paymentFailureReport(Date startDate,Date endDate,MultiValueMap<String, String> headers){
+
+        ValidationErrorDTO validationError = new ValidationErrorDTO();
+
+        if(startDate.after(endDate)){
+            validationError.addFieldError("dates", "Start date cannot be greater than end date");
+            throw new ValidationErrorException("Error occurred in the report ", validationError);
+        }
+
+        List<PaymentFailureReportDto> failureReport = new ArrayList<>();
+        List<PaymentFailures> paymentFailuresList = paymentFailureRepository.findByDatesBetween(startDate, endDate);
+
+        if(paymentFailuresList.isEmpty()){
+            throw new PaymentNotFoundException("No Data found to generate Report");
+        }
+
+        List<String> paymentReference= paymentFailuresList.stream().map(r->r.getPaymentReference()).distinct().collect(Collectors.toList());
+
+        List<Payment> paymentList= paymentRepository.findByReferenceIn(paymentReference);
+
+        List<RefundDto> refundList = fetchRefundResponse(paymentReference,headers);
+
+        paymentFailuresList.stream()
+            .collect(Collectors.toList())
+            .forEach(paymentFailure -> {
+                LOG.info("paymentFailure: {}", paymentFailure);
+                failureReport.add(paymentFailureReportMapper.failureReportMapper(
+                    paymentFailure,
+                    paymentList.stream()
+                        .filter(dto -> dto.getReference().equals(paymentFailure.getPaymentReference()))
+                        .findAny().get(),
+                    refundList
+                ));
+            });
+        return failureReport;
+    }
+
+    public List<RefundDto> fetchRefundResponse(List<String> paymentReference,MultiValueMap<String, String> headers) {
+
+        try {
+
+            ResponseEntity<List<RefundDto>> refundResponse =
+                fetchFailedPaymentRefunds(paymentReference,headers);
+            LOG.info("Refund response status code {}", refundResponse.getStatusCode());
+            LOG.info("Refund response {}", refundResponse.getBody());
+            return refundResponse.hasBody() ? refundResponse.getBody() :null;
+        } catch (HttpClientErrorException e) {
+            LOG.error(e.getMessage());
+            throw new InvalidRefundRequestException(e.getResponseBodyAsString());
+        }
+    }
+
+    private ResponseEntity<List<RefundDto>> fetchFailedPaymentRefunds(List<String> paymentReference,MultiValueMap<String, String> headers ) {
+        String referenceId = paymentReference.stream()
+            .map(Object::toString)
+            .collect(Collectors.joining(","));
+
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(refundApiUrl + "/refund/payment-failure-report")
+            .queryParam("paymentReferenceList", referenceId);
+
+        LOG.info("Refund URI{}", builder.toUriString());
+
+        return restTemplateGetRefund.exchange(builder.toUriString(), HttpMethod.GET, getEntity(headers), new ParameterizedTypeReference<List<RefundDto>>(){
+        });
+    }
+
+    private HttpEntity<String> getEntity(MultiValueMap<String, String> headers) {
+        MultiValueMap<String, String> headerMultiValueMapForOrganisationalDetail = new LinkedMultiValueMap<String, String>();
+        String serviceAuthorisation = authTokenGenerator.generate();
+        headerMultiValueMapForOrganisationalDetail.put("Content-Type", headers.get("content-type"));
+        String userAuthorization = headers.get("authorization") != null ? headers.get("authorization").get(0) : headers.get("Authorization").get(0);
+        headerMultiValueMapForOrganisationalDetail.put("Authorization", Collections.singletonList(userAuthorization.startsWith("Bearer ")
+            ? userAuthorization : "Bearer ".concat(userAuthorization)));
+        headerMultiValueMapForOrganisationalDetail.put("ServiceAuthorization", Collections.singletonList(serviceAuthorisation));
+        HttpHeaders httpHeaders = new HttpHeaders(headerMultiValueMapForOrganisationalDetail);
+        return new HttpEntity<>(httpHeaders);
+    }
+
 }
