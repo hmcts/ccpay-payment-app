@@ -157,10 +157,6 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
     @Override
     public List<Reference> listInitiatedStatusPaymentsReferences() {
         Date targetTime = DateUtils.addMinutes(new Date(), -1 * paymentsCutOffTime);
-        paymentRepository.findReferencesByPaymentProviderAndPaymentStatusNotInAndDateCreatedLessThan(
-                PaymentProvider.GOV_PAY,
-                Lists.newArrayList(SUCCESS, FAILED, ERROR, CANCELLED), targetTime, Sort.by(Sort.Direction.ASC, "dateCreated")
-        );
         return paymentRepository.findReferencesByPaymentProviderAndPaymentStatusNotInAndDateCreatedLessThan(
             PaymentProvider.GOV_PAY,
             Lists.newArrayList(SUCCESS, FAILED, ERROR, CANCELLED), targetTime,
