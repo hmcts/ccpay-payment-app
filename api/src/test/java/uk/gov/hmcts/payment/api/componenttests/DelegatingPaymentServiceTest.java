@@ -1,6 +1,6 @@
 package uk.gov.hmcts.payment.api.componenttests;
 
-import org.joda.time.MutableDateTime;
+import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.test.annotation.DirtiesContext;
@@ -41,13 +41,13 @@ public class DelegatingPaymentServiceTest extends TestUtil {
     }
 
     @Test
-    public void retireveCardPayments_forBetweenDates_WhereProviderIsGovPayTest() throws Exception {
+    public void retrieveCardPayments_forBetweenDates_WhereProviderIsGovPayTest() {
         Date fromDate = new Date();
-        MutableDateTime mFromDate = new MutableDateTime(fromDate);
-        mFromDate.addDays(-1);
+        DateTime mFromDate = new DateTime(fromDate);
+        mFromDate.minusDays(1);
         Date toDate = new Date();
-        MutableDateTime mToDate = new MutableDateTime(toDate);
-        mToDate.addDays(2);
+        DateTime mToDate = new DateTime(toDate);
+        mToDate.plusDays(2);
 
         List<PaymentFeeLink> result = cardPaymentService.search(
 
@@ -71,13 +71,13 @@ public class DelegatingPaymentServiceTest extends TestUtil {
     }
 
     @Test
-    public void retrieveCardPayments_forCMC() throws Exception {
+    public void retrieveCardPayments_forCMC() {
         Date fromDate = new Date();
-        MutableDateTime mFromDate = new MutableDateTime(fromDate);
-        mFromDate.addDays(-1);
+        DateTime mFromDate = new DateTime(fromDate);
+        mFromDate.minusDays(1);
         Date toDate = new Date();
-        MutableDateTime mToDate = new MutableDateTime(toDate);
-        mToDate.addDays(2);
+        DateTime mToDate = new DateTime(toDate);
+        mToDate.plusDays(2);
 
         List<PaymentFeeLink> result = cardPaymentService.search(PaymentSearchCriteria
             .searchCriteriaWith()
