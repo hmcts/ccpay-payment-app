@@ -321,7 +321,8 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
 
     private PaymentFeeLink retrieve(String paymentReference, boolean shouldCallBack, String serviceName ) {
         final Payment payment = findSavedPayment(paymentReference);
-        LOG.info("Retrieved payment reference {} with date created {}", paymentReference, payment.getDateCreated().toString());
+        LOG.info("Retrieved payment reference {}", paymentReference);
+        LOG.info("with date created {}", payment.getDateCreated().toString());
 
         final PaymentFeeLink paymentFeeLink = payment.getPaymentLink();
 
