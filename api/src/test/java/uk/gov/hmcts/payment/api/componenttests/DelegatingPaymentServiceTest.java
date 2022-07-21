@@ -72,20 +72,14 @@ public class DelegatingPaymentServiceTest extends TestUtil {
 
     @Test
     public void retrieveCardPayments_forCMC() {
-        Date fromDate = new Date();
-        DateTime mFromDate = new DateTime(fromDate);
-        mFromDate.minusDays(1);
-        Date toDate = new Date();
-        DateTime mToDate = new DateTime(toDate);
-        mToDate.plusDays(2);
 
-        List<PaymentFeeLink> result = cardPaymentService.search(PaymentSearchCriteria
-            .searchCriteriaWith()
-            .startDate(mFromDate.toDate())
-            .endDate(mToDate.toDate())
-            .paymentMethod(PaymentMethodType.CARD.getType())
-            .serviceType("cmc")
-            .build());
+        List<PaymentFeeLink> result = cardPaymentService.search(
+                PaymentSearchCriteria
+                        .searchCriteriaWith()
+                        .paymentMethod(PaymentMethodType.CARD.getType())
+                        .serviceType("cmc")
+                        .build()
+        );
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getPayments()).extracting("serviceType").contains("cmc");
