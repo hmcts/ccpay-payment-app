@@ -248,6 +248,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
             .queryParam("paymentReferenceList", referenceId);
 
         LOG.info("Refund App uri{}", builder.toUriString());
+        LOG.info("Refund App getEntity {}", getEntity(headers));
         return restTemplateGetRefund.exchange(builder.toUriString(), HttpMethod.GET, getEntity(headers), new ParameterizedTypeReference<List<RefundDto>>(){
         });
     }
