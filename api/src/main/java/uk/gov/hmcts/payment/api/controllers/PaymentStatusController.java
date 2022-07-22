@@ -135,14 +135,16 @@ public class PaymentStatusController {
     @ApiOperation("API to generate report for payment failure ")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Report Generated"),
-        @ApiResponse(code = 404, message = "No Data found to generate Report")
+        @ApiResponse(code = 404, message = "No Data found to generate Report"),
+        @ApiResponse(code = 500, message = "Internal Server Error")
     })
     @GetMapping("/payment-failures/failure-report")
     public PaymentFailureReportResponse retrievePaymentFailureReport(@RequestParam("date_from") Date fromDate,
                                                                       @RequestParam("date_to") Date toDate,
                                                                       @RequestHeader(required = false) MultiValueMap<String, String> headers,
                                                                       @RequestHeader("Authorization") String authorization) {
-        LOG.info("Received payment status update second ping request: {}", fromDate);
+
+        LOG.info("Received payment status report request: {}", fromDate,toDate);
        List<PaymentFailureReportDto> paymentFailureReportDto =  paymentStatusUpdateService.paymentFailureReport(atStartOfDay(fromDate), atEndOfDay(toDate),headers);
         return new PaymentFailureReportResponse(paymentFailureReportDto);
     }

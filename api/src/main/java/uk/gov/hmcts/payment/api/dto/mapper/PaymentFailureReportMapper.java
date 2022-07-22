@@ -6,14 +6,11 @@ import uk.gov.hmcts.payment.api.dto.RefundDto;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFailures;
 
-import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
 public class PaymentFailureReportMapper {
-
-    private static final String DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
 
     public PaymentFailureReportDto failureReportMapper(PaymentFailures paymentFailures, Payment payment, List<RefundDto> refund) {
 
@@ -26,9 +23,9 @@ public class PaymentFailureReportMapper {
             .eventName(paymentFailures.getFailureType())
             .paymentReference(payment.getReference())
             .orgId(payment.getPaymentLink().getOrgId())
-            .refundAmount(refund != null ? toRefundAmount(refund,paymentFailures):null)
-            .refundDate(refund != null ? toRefundDate(refund,paymentFailures):null)
-            .refundReference(refund != null ? toRefundReference(refund,paymentFailures):null)
+            .refundAmount(null != refund ? toRefundAmount(refund,paymentFailures) :null)
+            .refundDate(null != refund ? toRefundDate(refund,paymentFailures) :null)
+            .refundReference(null != refund ? toRefundReference(refund,paymentFailures) :null)
             .representmentDate(paymentFailures.getRepresentmentOutcomeDate())
             .representmentStatus(paymentFailures.getRepresentmentSuccess())
             .serviceName(payment.getServiceType())
@@ -55,7 +52,7 @@ public class PaymentFailureReportMapper {
     private String toRefundDate(List<RefundDto> refund,PaymentFailures paymentFailure) {
 
         List<RefundDto> refundRes;
-        String refundDate = null;
+        String refundDate =null;
         if(!refund.isEmpty()) {
             refundRes = refund.stream()
                 .filter(dto -> paymentFailure.getPaymentReference().equals(dto.getPaymentReference()))
@@ -67,7 +64,6 @@ public class PaymentFailureReportMapper {
                 .collect(Collectors.joining(","));
         }
         return refundDate;
-
     }
 
     private String  toRefundAmount(List<RefundDto> refund,PaymentFailures paymentFailure) {
