@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.api.componenttests;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +30,7 @@ public class PaymentRecordComponentTest {
     @Autowired
     private PaymentProviderRepository paymentProviderRespository;
 
+    @Ignore
     @Test
     public void recordCashPaymentTest() throws Exception {
         String paymentGroupRef = "2018-1234567890";
@@ -52,6 +54,7 @@ public class PaymentRecordComponentTest {
 
     }
 
+    @Ignore
     @Test
     public void recordChequePaymentTest() throws Exception {
         String paymentGroupRef = "2018-1234567891";
