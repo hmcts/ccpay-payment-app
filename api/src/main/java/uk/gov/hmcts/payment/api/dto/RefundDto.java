@@ -25,5 +25,5 @@ public class RefundDto {
 
     private String paymentReference;
 
-    private Date dateUpdated;
+    private String refundDate ;
 }

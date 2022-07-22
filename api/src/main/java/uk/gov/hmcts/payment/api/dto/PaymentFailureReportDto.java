@@ -45,6 +45,6 @@ public class PaymentFailureReportDto {
 
     private String refundAmount;
 
-    private String RefundDate;
+    private String refundDate;
 
 }

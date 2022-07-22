@@ -66,8 +66,6 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
     @Qualifier("restTemplateGetRefund")
     private RestTemplate restTemplateGetRefund;
 
-    public static final String CONTENT_TYPE = "content-type";
-
     public PaymentFailures insertBounceChequePaymentFailure(PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto) {
 
         LOG.info("Begin Payment failure insert in payment_failure table: {}", paymentStatusBouncedChequeDto.getPaymentReference());
@@ -250,13 +248,13 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
             .queryParam("paymentReferenceList", referenceId);
 
         List<String> serviceAuthTokenPaymentList = new ArrayList<>();
-         serviceAuthTokenPaymentList.add(authTokenGenerator.generate());
+        serviceAuthTokenPaymentList.add(authTokenGenerator.generate());
 
         MultiValueMap<String, String> headerMultiValueMapForRefund = new LinkedMultiValueMap<>();
         //Service token
-       headerMultiValueMapForRefund.put("ServiceAuthorization", serviceAuthTokenPaymentList);
+        headerMultiValueMapForRefund.put("ServiceAuthorization", serviceAuthTokenPaymentList);
         List<String> authtoken = headers.get("authorization");
-       // headerMultiValueMapForRefund.put(CONTENT_TYPE, headers.get(CONTENT_TYPE));
+        headerMultiValueMapForRefund.put("Content-Type", List.of("application/json"));
         headerMultiValueMapForRefund.put("Authorization", authtoken);
         HttpHeaders httpHeaders = new HttpHeaders(headerMultiValueMapForRefund);
         final HttpEntity<List<RefundDto>> entity = new HttpEntity<>(httpHeaders);

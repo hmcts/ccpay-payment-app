@@ -27,7 +27,7 @@ public class PaymentFailureReportMapper {
             .paymentReference(payment.getReference())
             .orgId(payment.getPaymentLink().getOrgId())
             .refundAmount(refund != null ? toRefundAmount(refund,paymentFailures):null)
-            .RefundDate(refund != null ? toRefundDate(refund,paymentFailures):null)
+            .refundDate(refund != null ? toRefundDate(refund,paymentFailures):null)
             .refundReference(refund != null ? toRefundReference(refund,paymentFailures):null)
             .representmentDate(paymentFailures.getRepresentmentOutcomeDate())
             .representmentStatus(paymentFailures.getRepresentmentSuccess())
@@ -65,7 +65,7 @@ public class PaymentFailureReportMapper {
 
             refundDate = refundRes
                 .stream()
-                .map(a -> formatter.format(a.getDateUpdated()))
+                .map(a -> formatter.format(a.getRefundDate()))
                 .collect(Collectors.joining(","));
         }
         return refundDate;
