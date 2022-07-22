@@ -55,8 +55,8 @@ public class MaintenanceJobsController {
 
         List<Reference> referenceList = paymentService.listInitiatedStatusPaymentsReferences();
 
-        LOG.warn("Found {} references that require an status update", referenceList.size());
-        LOG.info("Payment reference list: {}", referenceList);
+        LOG.warn("Found {} references that require an status update and the payment reference list is : {}",
+                referenceList.size(), referenceList);
 
         /* We ask the topic client proxy to keep the reuse the connection to the service bus for the whole batch */
         if(topicClientProxy != null && !referenceList.isEmpty()) {
