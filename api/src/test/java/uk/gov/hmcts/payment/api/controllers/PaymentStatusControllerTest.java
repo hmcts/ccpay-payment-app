@@ -420,6 +420,7 @@ public class PaymentStatusControllerTest {
         MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
         headers.add("Authorization", "auth");
         headers.add("ServiceAuthorization", "service-auth");
+        headers.add("Content-Type", "application/json");
         when(authTokenGenerator.generate()).thenReturn("test-token");
 
         when(this.restTemplateGetRefund.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),

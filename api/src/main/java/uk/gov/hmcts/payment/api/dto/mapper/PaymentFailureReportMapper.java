@@ -61,11 +61,9 @@ public class PaymentFailureReportMapper {
                 .filter(dto -> paymentFailure.getPaymentReference().equals(dto.getPaymentReference()))
                 .collect(Collectors.toList());
 
-            SimpleDateFormat formatter = new SimpleDateFormat(DATE_TIME_FORMAT);
-
             refundDate = refundRes
                 .stream()
-                .map(a -> formatter.format(a.getRefundDate()))
+                .map(a -> String.valueOf(a.getRefundDate()))
                 .collect(Collectors.joining(","));
         }
         return refundDate;
