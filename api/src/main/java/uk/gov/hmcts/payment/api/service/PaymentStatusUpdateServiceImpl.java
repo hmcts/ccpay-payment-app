@@ -16,8 +16,11 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponents;
+import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.payment.api.dto.PaymentStatusChargebackDto;
 import uk.gov.hmcts.payment.api.dto.PaymentStatusUpdateSecond;
+import uk.gov.hmcts.payment.api.dto.UnprocessedPayment;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentStatusDtoMapper;
 import uk.gov.hmcts.payment.api.dto.PaymentStatusBouncedChequeDto;
 import uk.gov.hmcts.payment.api.exception.FailureReferenceNotFoundException;
@@ -50,6 +53,16 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
 
     @Autowired
     private AuthTokenGenerator authTokenGenerator;
+
+    @Autowired()
+    @Qualifier("restTemplatePaymentGroup")
+    private RestTemplate restTemplatePaymentGroup;
+
+    @Value("${bulk.scanning.payments.processed.url}")
+    private String bulkScanPaymentsProcessedUrl;
+
+    @Value("${bulk.scanning.cases-path}")
+    private String casesPath;
 
     @Value("${refund.api.url}")
     private String refundApiUrl;
@@ -173,5 +186,36 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
             LOG.info("Updated Payment failure record in payment_failure table: {}", failureReference);
             return updatedPaymentFailure;
         }
+    }
+
+    @Override
+    public PaymentFailures unprocessedPayment(UnprocessedPayment unprocessedPayment,
+                                              MultiValueMap<String, String> headers) {
+
+        if (!validateDcn(unprocessedPayment.getDcn(), headers)) {
+            throw new PaymentNotFoundException("No Payments available for the given document reference number");
+        }
+
+        PaymentFailures paymentFailuresMap = paymentStatusDtoMapper.unprocessedPaymentMapper(unprocessedPayment);
+        try {
+            PaymentFailures insertPaymentFailure = paymentFailureRepository.save(paymentFailuresMap);
+            LOG.info("Cra insert in payment_failure table: {}",
+                    unprocessedPayment.getDcn());
+            return insertPaymentFailure;
+        } catch (DataIntegrityViolationException e) {
+            throw new FailureReferenceNotFoundException("Request already received for this failure reference");
+        }
+    }
+
+    private boolean validateDcn(String dcn, MultiValueMap<String, String> headers) {
+        UriComponents builder = UriComponentsBuilder.fromHttpUrl(bulkScanPaymentsProcessedUrl + casesPath)
+                .queryParam("document_control_number", dcn)
+                .build();
+        ResponseEntity responseEntity = restTemplatePaymentGroup
+                .exchange(builder.toUriString(), HttpMethod.GET, new HttpEntity<>(headers), ResponseEntity.class);
+        if (HttpStatus.OK.equals(responseEntity.getStatusCode())) {
+            return true;
+        }
+        return false;
     }
 }

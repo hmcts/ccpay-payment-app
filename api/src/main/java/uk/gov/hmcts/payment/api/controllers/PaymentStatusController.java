@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.dto.*;
@@ -89,16 +90,17 @@ public class PaymentStatusController {
 
     @PaymentExternalAPI
     @PostMapping(path = "/payment-failures/unprocessed-payment")
-    public ResponseEntity<String> unprocessedPayment(@Valid @RequestBody UnprocessedPayment unprocessedPayment){
+    public ResponseEntity<String> unprocessedPayment(@Valid @RequestBody UnprocessedPayment unprocessedPayment,
+                                                     @RequestHeader(required = false) MultiValueMap<String, String> headers) {
         if (featureToggler.getBooleanValue("payment-status-update-flag",false)) {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
         }
 
         LOG.info("Received payment status request unprocessed payment : {}", unprocessedPayment);
 
-        PaymentFailures unprocessedPaymentFailure = paymentStatusUpdateService.unprocessedPayment(unprocessedPayment);
+        paymentStatusUpdateService.unprocessedPayment(unprocessedPayment, headers);
 
-        return new ResponseEntity<>("successful operation", HttpStatus.OK);
+        return new ResponseEntity<>("Successful operation", HttpStatus.OK);
     }
 
     @ApiOperation(value = "Get payment failure by payment reference", notes = "Get payment failure for supplied payment reference")
