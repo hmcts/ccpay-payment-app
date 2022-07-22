@@ -207,7 +207,9 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
 
         List<Payment> paymentList= paymentRepository.findByReferenceIn(paymentReference);
 
-        List<RefundDto> refundList = fetchRefundResponse(paymentReference,headers);
+        RefundPaymentFailureReportDtoResponse refundPaymentFailureReportDtoResponse = fetchRefundResponse(paymentReference,headers);
+
+      List<RefundDto>  refundList = refundPaymentFailureReportDtoResponse.getPaymentFailureDto();
 
         paymentFailuresList.stream()
             .collect(Collectors.toList())
@@ -224,11 +226,11 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         return failureReport;
     }
 
-    public List<RefundDto> fetchRefundResponse(List<String> paymentReference,MultiValueMap<String, String> headers) {
+    public RefundPaymentFailureReportDtoResponse fetchRefundResponse(List<String> paymentReference,MultiValueMap<String, String> headers) {
 
         try {
 
-            ResponseEntity<List<RefundDto>> refundResponse =
+            ResponseEntity<RefundPaymentFailureReportDtoResponse> refundResponse =
                 fetchFailedPaymentRefunds(paymentReference,headers);
             LOG.info("Refund response status code {}", refundResponse.getStatusCode());
             LOG.info("Refund response {}", refundResponse.getBody());
@@ -239,7 +241,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         }
     }
 
-    private ResponseEntity<List<RefundDto>> fetchFailedPaymentRefunds(List<String> paymentReference,MultiValueMap<String, String> headers ) {
+    private ResponseEntity<RefundPaymentFailureReportDtoResponse> fetchFailedPaymentRefunds(List<String> paymentReference,MultiValueMap<String, String> headers ) {
         String referenceId = paymentReference.stream()
             .map(Object::toString)
             .collect(Collectors.joining(","));
@@ -266,7 +268,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
 
         LOG.info("Refund App uri{}", builder.toUriString());
         LOG.info("Refund App getEntity {}", entity);
-        return restTemplateGetRefund.exchange(builder.toUriString(), HttpMethod.GET, entity, new ParameterizedTypeReference<List<RefundDto>>(){
+        return restTemplateGetRefund.exchange(builder.toUriString(), HttpMethod.GET, entity, new ParameterizedTypeReference<RefundPaymentFailureReportDtoResponse>(){
         });
     }
 

@@ -414,9 +414,7 @@ public class PaymentStatusControllerTest {
 
         when(paymentFailureRepository.findByDatesBetween(any(),any())).thenReturn(getPaymentFailuresList());
         when(paymentRepository.findByReferenceIn(any())).thenReturn(getPaymentList());
-        List<RefundDto> refundDtoeDtos = new ArrayList<>();
-        refundDtoeDtos.add(getRefund());
-        ResponseEntity<List<RefundDto>> responseEntity = new ResponseEntity<>(refundDtoeDtos, HttpStatus.OK);
+        ResponseEntity<RefundPaymentFailureReportDtoResponse> responseEntity = new ResponseEntity<>(getFailureRefund(), HttpStatus.OK);
         MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
         headers.add("Authorization", "auth");
         headers.add("ServiceAuthorization", "service-auth");
@@ -424,7 +422,7 @@ public class PaymentStatusControllerTest {
         when(authTokenGenerator.generate()).thenReturn("test-token");
 
         when(this.restTemplateGetRefund.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
-            eq(new ParameterizedTypeReference<List<RefundDto>>() {
+            eq(new ParameterizedTypeReference<RefundPaymentFailureReportDtoResponse>() {
             }))).thenReturn(responseEntity);
         String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
         String endDate = LocalDate.now().toString(DATE_FORMAT);
@@ -592,5 +590,11 @@ public class PaymentStatusControllerTest {
         paymentList.add(payment);
 
         return paymentList;
+    }
+
+
+    private RefundPaymentFailureReportDtoResponse getFailureRefund(){
+        return   RefundPaymentFailureReportDtoResponse.buildPaymentFailureListWith().paymentFailureDto(Arrays.asList(getRefund())).build();
+
     }
 }

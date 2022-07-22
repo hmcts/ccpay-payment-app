@@ -231,16 +231,14 @@ public class PaymentStatusUpdateServiceImplTest {
     public void testSuccessPaymentFailureReport(){
          when(paymentFailureRepository.findByDatesBetween(any(),any())).thenReturn(getPaymentFailuresList());
         when(paymentRepository.findByReferenceIn(any())).thenReturn(getPaymentList());
-        List<RefundDto> refundDtoeDtos = new ArrayList<>();
-        refundDtoeDtos.add(getRefund());
-        ResponseEntity<List<RefundDto>> responseEntity = new ResponseEntity<>(refundDtoeDtos, HttpStatus.OK);
+        ResponseEntity<RefundPaymentFailureReportDtoResponse> responseEntity = new ResponseEntity<>(getFailureRefund(), HttpStatus.OK);
         MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
         headers.add("Authorization", "auth");
         headers.add("ServiceAuthorization", "service-auth");
         when(authTokenGenerator.generate()).thenReturn("test-token");
 
         when(restTemplateGetRefund.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
-            eq(new ParameterizedTypeReference<List<RefundDto>>() {
+            eq(new ParameterizedTypeReference<RefundPaymentFailureReportDtoResponse>() {
             }))).thenReturn(responseEntity);
 
         Date fromDate =clock.getYesterdayDate();
@@ -283,9 +281,7 @@ public class PaymentStatusUpdateServiceImplTest {
     @Test
     public void getRefundSuccess() throws Exception {
 
-        List<RefundDto> refundDtoeDtos = new ArrayList<>();
-        refundDtoeDtos.add(getRefund());
-        ResponseEntity<List<RefundDto>> responseEntity = new ResponseEntity<>(refundDtoeDtos, HttpStatus.OK);
+        ResponseEntity<RefundPaymentFailureReportDtoResponse> responseEntity = new ResponseEntity<>(getFailureRefund(), HttpStatus.OK);
         MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
         headers.add("Authorization", "auth");
         headers.add("ServiceAuthorization", "service-auth");
@@ -294,11 +290,11 @@ public class PaymentStatusUpdateServiceImplTest {
         List<String> paymentReference = new ArrayList<>();
         paymentReference.add("RC-1520-2505-0381-8145");
         when(restTemplateGetRefund.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
-            eq(new ParameterizedTypeReference<List<RefundDto>>() {
+            eq(new ParameterizedTypeReference<RefundPaymentFailureReportDtoResponse>() {
             }))).thenReturn(responseEntity);
 
-       List<RefundDto> res =  paymentStatusUpdateServiceImpl.fetchRefundResponse(paymentReference, headers);
-        Assert.assertEquals("RC-1520-2505-0381-8145",res.get(0).getPaymentReference());
+        RefundPaymentFailureReportDtoResponse res =  paymentStatusUpdateServiceImpl.fetchRefundResponse(paymentReference, headers);
+        Assert.assertEquals("RC-1520-2505-0381-8145",res.getPaymentFailureDto().get(0).getPaymentReference());
     }
 
     @Test(expected = InvalidRefundRequestException.class)
@@ -312,7 +308,7 @@ public class PaymentStatusUpdateServiceImplTest {
         List<String> paymentReference = new ArrayList<>();
         paymentReference.add("RC-1520-2505-0381-8145");
         when(restTemplateGetRefund.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
-            eq(new ParameterizedTypeReference<List<RefundDto>>() {
+            eq(new ParameterizedTypeReference<RefundPaymentFailureReportDtoResponse>() {
             }))).thenThrow(new HttpClientErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "internal server error"));
 
         paymentStatusUpdateServiceImpl.fetchRefundResponse(paymentReference, headers);
@@ -472,4 +468,8 @@ public class PaymentStatusUpdateServiceImplTest {
             .build();
     }
 
+    private RefundPaymentFailureReportDtoResponse getFailureRefund(){
+      return   RefundPaymentFailureReportDtoResponse.buildPaymentFailureListWith().paymentFailureDto(Arrays.asList(getRefund())).build();
+
+    }
 }
