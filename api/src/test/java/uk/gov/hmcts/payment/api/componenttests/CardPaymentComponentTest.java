@@ -44,6 +44,7 @@ public class CardPaymentComponentTest extends TestUtil {
         PaymentFeeLink paymentFeeLink1 = PaymentFeeLink.paymentFeeLinkWith()
                 .payments(Arrays.asList(getPaymentsData().get(0)))
                 .fees(PaymentsDataUtil.getFeesData())
+                .paymentReference("00000002")
                 .build();
         PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.save(paymentFeeLink1);
 
@@ -51,6 +52,7 @@ public class CardPaymentComponentTest extends TestUtil {
         assertNotNull(paymentFeeLink.getPayments());
         assertNotNull(paymentFeeLink.getFees());
         assertEquals(paymentFeeLink.getPayments().size(), 1);
+        assertEquals(paymentFeeLink.getPaymentReference(), "00000002");
         assertEquals(paymentFeeLink.getPayments().get(0).getReference(), "reference1");
         assertEquals(paymentFeeLink.getFees().size(), 4);
     }
