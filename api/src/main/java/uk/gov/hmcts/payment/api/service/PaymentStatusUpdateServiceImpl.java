@@ -249,23 +249,22 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(refundApiUrl + "/refund/payment-failure-report")
             .queryParam("paymentReferenceList", referenceId);
 
+        List<String> serviceAuthTokenPaymentList = new ArrayList<>();
+         serviceAuthTokenPaymentList.add(authTokenGenerator.generate());
+
+        MultiValueMap<String, String> headerMultiValueMapForRefund = new LinkedMultiValueMap<>();
+        //Service token
+       headerMultiValueMapForRefund.put("ServiceAuthorization", serviceAuthTokenPaymentList);
+        List<String> authtoken = headers.get("authorization");
+       // headerMultiValueMapForRefund.put(CONTENT_TYPE, headers.get(CONTENT_TYPE));
+        headerMultiValueMapForRefund.put("Authorization", authtoken);
+        HttpHeaders httpHeaders = new HttpHeaders(headerMultiValueMapForRefund);
+        final HttpEntity<List<RefundDto>> entity = new HttpEntity<>(httpHeaders);
+
         LOG.info("Refund App uri{}", builder.toUriString());
-        LOG.info("Refund App getEntity {}", getHeadersEntity(headers).hasBody());
-        return restTemplateGetRefund.exchange(builder.toUriString(), HttpMethod.GET, getHeadersEntity(headers), new ParameterizedTypeReference<List<RefundDto>>(){
+        LOG.info("Refund App getEntity {}", entity);
+        return restTemplateGetRefund.exchange(builder.toUriString(), HttpMethod.GET, entity, new ParameterizedTypeReference<List<RefundDto>>(){
         });
     }
 
-    private HttpEntity<String> getHeadersEntity(MultiValueMap<String, String> headers) {
-        return new HttpEntity<>(getFormatedHeaders(headers));
-    }
-
-    private MultiValueMap<String, String> getFormatedHeaders(MultiValueMap<String, String> headers) {
-        List<String> authtoken = headers.get("authorization");
-        List<String> servauthtoken = Arrays.asList(authTokenGenerator.generate());
-        MultiValueMap<String, String> inputHeaders = new LinkedMultiValueMap<>();
-        inputHeaders.put(CONTENT_TYPE, headers.get(CONTENT_TYPE));
-        inputHeaders.put("Authorization", authtoken);
-        inputHeaders.put("ServiceAuthorization", servauthtoken);
-        return inputHeaders;
-    }
 }
