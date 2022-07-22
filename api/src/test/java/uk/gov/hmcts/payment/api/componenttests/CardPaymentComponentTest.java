@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.api.componenttests;
 
 
 import org.junit.Test;
+import org.springframework.test.annotation.DirtiesContext;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.v1.componenttests.TestUtil;
@@ -15,9 +16,9 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static uk.gov.hmcts.payment.api.model.Payment.paymentWith;
-import static uk.gov.hmcts.payment.api.model.PaymentFee.feeWith;
 import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 
+@DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
 public class CardPaymentComponentTest extends TestUtil {
 
     @Test
