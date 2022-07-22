@@ -468,7 +468,7 @@ public class PaymentStatusUpdateServiceImplTest {
             .refundReference("RF-123=345=897")
             .amount(BigDecimal.valueOf(5))
             .paymentReference("RC-1520-2505-0381-8145")
-            .dateUpdated(currentDateTime.toDate())
+            .refundDate(currentDateTime.toDate().toString())
             .build();
     }
 
