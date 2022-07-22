@@ -15,6 +15,7 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static uk.gov.hmcts.payment.api.model.Payment.paymentWith;
+import static uk.gov.hmcts.payment.api.model.PaymentFee.feeWith;
 import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 
 public class CardPaymentComponentTest extends TestUtil {
@@ -41,9 +42,12 @@ public class CardPaymentComponentTest extends TestUtil {
     @Test
     public void testSaveOfSinglePaymentWithMultipleFees() {
         PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.save(paymentFeeLinkWith().paymentReference("00000002")
-            .payments(Arrays.asList(getPaymentsData().get(0)))
-            .fees(PaymentsDataUtil.getFeesData())
-            .build());
+                .payments(Arrays.asList(getPaymentsData().get(0)))
+                .fees(Arrays.asList(feeWith().code("X0011").version("1").calculatedAmount(new BigDecimal(100)).build(),
+                        feeWith().code("X0022").version("2").calculatedAmount(new BigDecimal(200)).build(),
+                        feeWith().code("X0033").version("3").calculatedAmount(new BigDecimal(140)).build(),
+                        feeWith().code("X0044").version("4").calculatedAmount(new BigDecimal(190)).build()))
+                .build());
 
         assertNotNull(paymentFeeLink.getId());
         assertNotNull(paymentFeeLink.getPayments());
