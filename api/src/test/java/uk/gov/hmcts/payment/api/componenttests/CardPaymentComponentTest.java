@@ -2,10 +2,15 @@ package uk.gov.hmcts.payment.api.componenttests;
 
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.model.*;
-import uk.gov.hmcts.payment.api.v1.componenttests.TestUtil;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import java.math.BigDecimal;
@@ -15,11 +20,19 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static uk.gov.hmcts.payment.api.model.Payment.paymentWith;
 import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 
+@RunWith(SpringRunner.class)
+@ActiveProfiles({"local", "componenttest"})
+@SpringBootTest(webEnvironment = MOCK)
 @DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
-public class CardPaymentComponentTest extends TestUtil {
+@Transactional
+public class CardPaymentComponentTest {
+
+    @Autowired
+    protected PaymentFeeLinkRepository paymentFeeLinkRepository;
 
     @Test
     public void testSaveOfSinglePaymentWithSingleFee() {
