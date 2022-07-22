@@ -41,19 +41,16 @@ public class CardPaymentComponentTest extends TestUtil {
 
     @Test
     public void testSaveOfSinglePaymentWithMultipleFees() {
-        PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.save(paymentFeeLinkWith().paymentReference("00000002")
+        PaymentFeeLink paymentFeeLink1 = PaymentFeeLink.paymentFeeLinkWith()
                 .payments(Arrays.asList(getPaymentsData().get(0)))
-                .fees(Arrays.asList(feeWith().code("X0011").version("1").calculatedAmount(new BigDecimal(100)).build(),
-                        feeWith().code("X0022").version("2").calculatedAmount(new BigDecimal(200)).build(),
-                        feeWith().code("X0033").version("3").calculatedAmount(new BigDecimal(140)).build(),
-                        feeWith().code("X0044").version("4").calculatedAmount(new BigDecimal(190)).build()))
-                .build());
+                .fees(PaymentsDataUtil.getFeesData())
+                .build();
+        PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.save(paymentFeeLink1);
 
         assertNotNull(paymentFeeLink.getId());
         assertNotNull(paymentFeeLink.getPayments());
         assertNotNull(paymentFeeLink.getFees());
         assertEquals(paymentFeeLink.getPayments().size(), 1);
-        assertEquals(paymentFeeLink.getPaymentReference(), "00000002");
         assertEquals(paymentFeeLink.getPayments().get(0).getReference(), "reference1");
         assertEquals(paymentFeeLink.getFees().size(), 4);
     }
