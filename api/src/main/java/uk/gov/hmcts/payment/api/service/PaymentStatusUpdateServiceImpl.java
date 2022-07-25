@@ -196,9 +196,9 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
             throw new PaymentNotFoundException("No Payments available for the given document reference number");
         }
 
-        PaymentFailures paymentFailuresMap = paymentStatusDtoMapper.unprocessedPaymentMapper(unprocessedPayment);
+        PaymentFailures paymentFailure = paymentStatusDtoMapper.unprocessedPaymentMapper(unprocessedPayment);
         try {
-            PaymentFailures insertPaymentFailure = paymentFailureRepository.save(paymentFailuresMap);
+            PaymentFailures insertPaymentFailure = paymentFailureRepository.save(paymentFailure);
             LOG.info("Cra insert in payment_failure table: {}",
                     unprocessedPayment.getDcn());
             return insertPaymentFailure;
