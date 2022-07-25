@@ -199,8 +199,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         PaymentFailures paymentFailure = paymentStatusDtoMapper.unprocessedPaymentMapper(unprocessedPayment);
         try {
             PaymentFailures insertPaymentFailure = paymentFailureRepository.save(paymentFailure);
-            LOG.info("Cra insert in payment_failure table: {}",
-                    unprocessedPayment.getDcn());
+            LOG.info("Completed Payment failure insert in payment_failure table: {}", unprocessedPayment.getDcn());
             return insertPaymentFailure;
         } catch (DataIntegrityViolationException e) {
             throw new FailureReferenceNotFoundException("Request already received for this failure reference");
