@@ -243,7 +243,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
             return refundResponse.hasBody() ? refundResponse.getBody() :null;
         } catch (HttpClientErrorException httpClientErrorException) {
             if (httpClientErrorException.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
-                LOG.info("Refund does not exist for the payment:: {}", paymentReference);
+                LOG.info("Refund does not exist for the payment:: {}");
                 return null;
             }
             LOG.error(httpClientErrorException.getMessage());
@@ -266,12 +266,12 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         //Service token
         headerMultiValueMapForRefund.put("ServiceAuthorization", serviceAuthTokenPaymentList);
 
-        String userAuthorization = headers.get("authorization") == null ? headers.get("Authorization").get(0) : headers.get(
+       /* String userAuthorization = headers.get("authorization") == null ? headers.get("Authorization").get(0) : headers.get(
             "authorization").get(0);
         headerMultiValueMapForRefund.put(
             "Authorization", Collections.singletonList(userAuthorization.startsWith("Bearer ")
                 ? userAuthorization : "Bearer ".concat(userAuthorization))
-        );
+        );*/
         headerMultiValueMapForRefund.put("Content-Type", List.of("application/json"));
         HttpHeaders httpHeaders = new HttpHeaders(headerMultiValueMapForRefund);
         final HttpEntity<List<RefundDto>> entity = new HttpEntity<>(httpHeaders);
