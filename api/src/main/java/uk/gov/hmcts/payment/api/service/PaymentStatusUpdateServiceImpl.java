@@ -188,7 +188,10 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
     }
 
     public List<PaymentFailureReportDto> paymentFailureReport(Date startDate,Date endDate,MultiValueMap<String, String> headers){
-        LOG.info("Enter paymentFailureReport method:: {}", startDate);
+        LOG.info("Enter paymentFailureReport method:: {}", startDate,endDate);
+
+        List<RefundDto> refundList = new ArrayList<>();
+        List<PaymentFailureReportDto> failureReport = new ArrayList<>();
         ValidationErrorDTO validationError = new ValidationErrorDTO();
 
         if(startDate.after(endDate)){
@@ -196,7 +199,6 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
             throw new ValidationErrorException("Error occurred in the report ", validationError);
         }
 
-        List<PaymentFailureReportDto> failureReport = new ArrayList<>();
         List<PaymentFailures> paymentFailuresList = paymentFailureRepository.findByDatesBetween(startDate, endDate);
 
         if(paymentFailuresList.isEmpty()){
@@ -209,7 +211,11 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
 
         RefundPaymentFailureReportDtoResponse refundPaymentFailureReportDtoResponse = fetchRefundResponse(paymentReference,headers);
 
-      List<RefundDto>  refundList = refundPaymentFailureReportDtoResponse.getPaymentFailureDto();
+        if(null != refundPaymentFailureReportDtoResponse){
+            refundList = refundPaymentFailureReportDtoResponse.getPaymentFailureDto();
+        }
+
+        List<RefundDto> finalRefundList = refundList;
 
         paymentFailuresList.stream()
             .collect(Collectors.toList())
@@ -220,7 +226,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
                     paymentList.stream()
                         .filter(dto -> dto.getReference().equals(paymentFailure.getPaymentReference()))
                         .findAny().get(),
-                    refundList
+                    finalRefundList
                 ));
             });
         return failureReport;
