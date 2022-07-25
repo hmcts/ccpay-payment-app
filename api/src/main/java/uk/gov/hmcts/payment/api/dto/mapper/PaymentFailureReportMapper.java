@@ -15,20 +15,20 @@ public class PaymentFailureReportMapper {
     public PaymentFailureReportDto failureReportMapper(PaymentFailures paymentFailures, Payment payment, List<RefundDto> refund) {
 
         PaymentFailureReportDto paymentFailureReportDto = PaymentFailureReportDto.paymentFailureReportDtoWith()
-            .ccdReference(payment.getCcdCaseNumber())
+            .ccdReference(null != payment ? payment.getCcdCaseNumber():null)
             .disputedAmount(paymentFailures.getAmount())
             .failureReason(paymentFailures.getReason())
             .failureReference(paymentFailures.getFailureReference())
             .eventDate(paymentFailures.getFailureEventDateTime())
             .eventName(paymentFailures.getFailureType())
-            .paymentReference(payment.getReference())
-            .orgId(payment.getPaymentLink().getOrgId())
+            .paymentReference(null != payment ? payment.getReference():null)
+            .orgId(null != payment ? payment.getPaymentLink().getOrgId():null)
             .refundAmount(null != refund ? toRefundAmount(refund,paymentFailures) :null)
             .refundDate(null != refund ? toRefundDate(refund,paymentFailures) :null)
             .refundReference(null != refund ? toRefundReference(refund,paymentFailures) :null)
             .representmentDate(paymentFailures.getRepresentmentOutcomeDate())
             .representmentStatus(paymentFailures.getRepresentmentSuccess())
-            .serviceName(payment.getServiceType())
+            .serviceName(null != payment ? payment.getServiceType():null)
             .build();
         return paymentFailureReportDto;
     }

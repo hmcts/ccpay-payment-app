@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.api.service;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +33,7 @@ import uk.gov.hmcts.payment.api.model.PaymentFailureRepository;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -225,7 +227,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
                     paymentFailure,
                     paymentList.stream()
                         .filter(dto -> dto.getReference().equals(paymentFailure.getPaymentReference()))
-                        .findAny().get(),
+                        .findAny().orElse(null),
                     finalRefundList
                 ));
             });
@@ -265,13 +267,6 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         MultiValueMap<String, String> headerMultiValueMapForRefund = new LinkedMultiValueMap<>();
         //Service token
         headerMultiValueMapForRefund.put("ServiceAuthorization", serviceAuthTokenPaymentList);
-
-       /* String userAuthorization = headers.get("authorization") == null ? headers.get("Authorization").get(0) : headers.get(
-            "authorization").get(0);
-        headerMultiValueMapForRefund.put(
-            "Authorization", Collections.singletonList(userAuthorization.startsWith("Bearer ")
-                ? userAuthorization : "Bearer ".concat(userAuthorization))
-        );*/
         headerMultiValueMapForRefund.put("Content-Type", List.of("application/json"));
         HttpHeaders httpHeaders = new HttpHeaders(headerMultiValueMapForRefund);
         final HttpEntity<List<RefundDto>> entity = new HttpEntity<>(httpHeaders);
