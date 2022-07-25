@@ -241,9 +241,13 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
             LOG.info("Refund response status code {}", refundResponse.getStatusCode());
             LOG.info("Refund response {}", refundResponse.getBody());
             return refundResponse.hasBody() ? refundResponse.getBody() :null;
-        } catch (HttpClientErrorException e) {
-            LOG.error(e.getMessage());
-            throw new InvalidRefundRequestException(e.getResponseBodyAsString());
+        } catch (HttpClientErrorException httpClientErrorException) {
+            if (httpClientErrorException.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
+                LOG.info("Refund does not exist for the payment:: {}", paymentReference);
+                return null;
+            }
+            LOG.error(httpClientErrorException.getMessage());
+            throw new InvalidRefundRequestException(httpClientErrorException.getResponseBodyAsString());
         }
     }
 
