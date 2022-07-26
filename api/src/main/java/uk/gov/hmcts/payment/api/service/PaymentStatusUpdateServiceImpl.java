@@ -2,7 +2,6 @@ package uk.gov.hmcts.payment.api.service;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
-import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +32,6 @@ import uk.gov.hmcts.payment.api.model.PaymentFailureRepository;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
-import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -190,7 +188,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
     }
 
     public List<PaymentFailureReportDto> paymentFailureReport(Date startDate,Date endDate,MultiValueMap<String, String> headers){
-        LOG.info("Enter paymentFailureReport method:: {}", startDate,endDate);
+        LOG.info("Enter paymentFailureReport method");
 
         List<RefundDto> refundList = new ArrayList<>();
         List<PaymentFailureReportDto> failureReport = new ArrayList<>();
@@ -212,7 +210,6 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         List<Payment> paymentList= paymentRepository.findByReferenceIn(paymentReference);
 
         RefundPaymentFailureReportDtoResponse refundPaymentFailureReportDtoResponse = fetchRefundResponse(paymentReference,headers);
-
         if(null != refundPaymentFailureReportDtoResponse){
             refundList = refundPaymentFailureReportDtoResponse.getPaymentFailureDto();
         }
@@ -245,15 +242,14 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
             return refundResponse.hasBody() ? refundResponse.getBody() :null;
         } catch (HttpClientErrorException httpClientErrorException) {
             if (httpClientErrorException.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
-                LOG.info("Refund does not exist for the payment:: {}");
+                LOG.info("Refund does not exist for the payment");
                 return null;
             }
-            LOG.error(httpClientErrorException.getMessage());
             throw new InvalidRefundRequestException(httpClientErrorException.getResponseBodyAsString());
         }
     }
 
-    private ResponseEntity<RefundPaymentFailureReportDtoResponse> fetchFailedPaymentRefunds(List<String> paymentReference,MultiValueMap<String, String> headers ) {
+    private ResponseEntity<RefundPaymentFailureReportDtoResponse> fetchFailedPaymentRefunds(List<String> paymentReference ) {
         String referenceId = paymentReference.stream()
             .map(Object::toString)
             .collect(Collectors.joining(","));
@@ -271,9 +267,8 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         HttpHeaders httpHeaders = new HttpHeaders(headerMultiValueMapForRefund);
         final HttpEntity<List<RefundDto>> entity = new HttpEntity<>(httpHeaders);
 
-        LOG.info("Refund App uri{}", builder.toUriString());
-        LOG.info("Refund App getEntity {}", entity);
-        return restTemplateGetRefund.exchange(builder.toUriString(), HttpMethod.GET, entity, new ParameterizedTypeReference<RefundPaymentFailureReportDtoResponse>(){
+        return restTemplateGetRefund.exchange(builder.toUriString(), HttpMethod.GET, entity, new ParameterizedTypeReference<RefundPaymentFailureReportDtoResponse>() {
         });
     }
+
 }

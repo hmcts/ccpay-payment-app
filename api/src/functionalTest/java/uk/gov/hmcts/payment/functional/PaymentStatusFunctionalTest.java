@@ -1,8 +1,13 @@
 package uk.gov.hmcts.payment.functional;
 
+import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.apache.commons.lang3.RandomUtils;
+import org.joda.time.DateTimeZone;
+
+import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -10,6 +15,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.dto.*;
@@ -22,6 +30,10 @@ import uk.gov.hmcts.payment.functional.service.CaseTestService;
 import uk.gov.hmcts.payment.functional.service.PaymentTestService;
 
 import javax.inject.Inject;
+
+import java.math.BigDecimal;
+import java.time.ZoneId;
+import java.util.Date;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -41,6 +53,7 @@ public class PaymentStatusFunctionalTest {
     private static String USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE;
     private static boolean TOKENS_INITIALIZED = false;
     private static String USER_TOKEN_PAYMENT;
+    private static final String DATE_TIME_FORMAT_T_HH_MM_SS = "yyyy-MM-dd'T'HH:mm:ss";
 
     @Autowired
     private PaymentTestService paymentTestService;
@@ -62,6 +75,8 @@ public class PaymentStatusFunctionalTest {
 
     @Autowired
     private PaymentsTestDsl dsl;
+
+    private static DateTimeZone zoneUTC = DateTimeZone.UTC;
 
     @Before
     public void setUp() throws Exception {
@@ -113,14 +128,13 @@ public class PaymentStatusFunctionalTest {
 
         // delete payment record
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
-
         //delete Payment Failure record
         paymentTestService.deleteFailedPayment(USER_TOKEN, SERVICE_TOKEN, paymentStatusBouncedChequeDto.getFailureReference()).then().statusCode(NO_CONTENT.value());
 
     }
 
     @Test
-    public void negative_return404_bounce_cheque_payment_failure_when_refund_not_found() {
+    public void negative_return404_bounce_cheque_payment_failure_when_payment_not_found() {
 
         String accountNumber = testProps.existingAccountNumber;
         String paymentReference = "RC-111-1114-" + RandomUtils.nextInt();
@@ -143,7 +157,7 @@ public class PaymentStatusFunctionalTest {
     }
 
     @Test
-    public void negative_return429_bounce_cheque_payment_failure_when_refund_not_found() {
+    public void negative_return429_bounce_cheque_payment_failure_when_dulicate_event() {
 
         String accountNumber = testProps.existingAccountNumber;
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
@@ -211,14 +225,12 @@ public class PaymentStatusFunctionalTest {
 
         // delete payment record
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
-
         //delete Payment Failure record
         paymentTestService.deleteFailedPayment(USER_TOKEN, SERVICE_TOKEN, paymentStatusChargebackDto.getFailureReference()).then().statusCode(NO_CONTENT.value());
-
     }
 
     @Test
-    public void negative_return404_chargeback_payment_failure_when_refund_not_found() {
+    public void negative_return404_chargeback_payment_failure_when_payment_not_found() {
 
         String accountNumber = testProps.existingAccountNumber;
         String paymentReference = "RC-111-1114-" + RandomUtils.nextInt();
@@ -241,7 +253,7 @@ public class PaymentStatusFunctionalTest {
     }
 
     @Test
-    public void negative_return429_chargeback_payment_failure_when_refund_not_found() {
+    public void negative_return429_chargeback_payment_failure_when_duplicate_event() {
 
         String accountNumber = testProps.existingAccountNumber;
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
@@ -313,7 +325,6 @@ public class PaymentStatusFunctionalTest {
 
         // delete payment record
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
-
         //delete Payment Failure record
         paymentTestService.deleteFailedPayment(USER_TOKEN, SERVICE_TOKEN, paymentStatusChargebackDto.getFailureReference()).then().statusCode(NO_CONTENT.value());
 
@@ -387,7 +398,6 @@ public class PaymentStatusFunctionalTest {
 
         // delete payment record
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
-
         //delete Payment Failure record
         paymentTestService.deleteFailedPayment(USER_TOKEN, SERVICE_TOKEN, paymentStatusBouncedChequeDto.getFailureReference()).then().statusCode(NO_CONTENT.value());
     }
@@ -406,5 +416,84 @@ public class PaymentStatusFunctionalTest {
 
         assertEquals(ping2Response.getStatusCode(), NOT_FOUND.value());
         assertEquals("No Payment Failure available for the given Failure reference", ping2Response.getBody().prettyPrint());
+    }
+
+    @Test
+    public void positive_paymentStatusReport() {
+
+        String accountNumber = testProps.existingAccountNumber;
+        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
+            .aPbaPaymentRequestForProbate("125.00",
+                "PROBATE", "PBAFUNC12345");
+        accountPaymentRequest.setAccountNumber(accountNumber);
+        PaymentDto paymentDto = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
+            .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
+
+        PaymentRefundRequest paymentRefundRequest
+            = PaymentFixture.aRefundRequest("RR001", paymentDto.getReference());
+        Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            SERVICE_TOKEN_PAYMENT,
+            paymentRefundRequest);
+        PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto
+            = PaymentFixture.bouncedChequeRequest(paymentDto.getReference());
+
+        Response bounceChequeResponse = paymentTestService.postBounceCheque(
+            SERVICE_TOKEN_PAYMENT,
+            paymentStatusBouncedChequeDto);
+
+        PaymentFailureResponse paymentsFailureResponse =
+            paymentTestService.getFailurePayment(USER_TOKEN_PAYMENT, SERVICE_TOKEN, paymentStatusBouncedChequeDto.getPaymentReference()).then()
+                .statusCode(OK.value()).extract().as(PaymentFailureResponse.class);
+
+        assertThat(paymentsFailureResponse.getPaymentFailureList().get(0).getPaymentFailureInitiated().getFailureReference()).isEqualTo(paymentStatusBouncedChequeDto.getFailureReference());
+
+        assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
+        assertThat(bounceChequeResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+
+        // Ping 2
+
+        String representmentDate = LocalDateTime.now(zoneUTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
+
+        PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
+            .representmentStatus("yes")
+            .representmentDate(representmentDate)
+            .build();
+        Response ping2Response = paymentTestService.paymentStatusSecond(
+            SERVICE_TOKEN_PAYMENT, paymentStatusBouncedChequeDto.getFailureReference(),
+            paymentStatusUpdateSecond);
+
+        assertEquals(ping2Response.getStatusCode(), OK.value());
+        assertEquals("Successful operation", ping2Response.getBody().prettyPrint());
+
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.add("date_from", getReportDate(new Date(System.currentTimeMillis())));
+        params.add("date_to", getReportDate(new Date(System.currentTimeMillis())));
+        Response response = RestAssured.given()
+            .header("Authorization", USER_TOKEN_PAYMENT)
+            .header("ServiceAuthorization", SERVICE_TOKEN_PAYMENT)
+            .contentType(ContentType.JSON)
+            .params(params)
+            .when()
+            .get("/payment-failures/failure-report");
+
+        PaymentFailureReportResponse paymentFailureReportResponse = response.getBody().as(PaymentFailureReportResponse.class);
+
+        PaymentFailureReportDto paymentFailureReportDto =  paymentFailureReportResponse.getPaymentFailureReportList().stream().filter(s->s.getFailureReference().equalsIgnoreCase(paymentsFailureResponse.getPaymentFailureList().get(0).getPaymentFailureInitiated().getFailureReference())).findFirst().get();
+        assertEquals(paymentDto.getReference(),paymentFailureReportDto.getPaymentReference());
+        assertEquals("Bounced Cheque",paymentFailureReportDto.getEventName());
+        assertEquals(new BigDecimal("100.00"),paymentFailureReportDto.getDisputedAmount());
+        assertEquals(paymentStatusBouncedChequeDto.getFailureReference(),paymentFailureReportDto.getFailureReference());
+        assertEquals("yes",paymentFailureReportDto.getRepresentmentStatus());
+
+        // delete payment record
+        paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
+
+        //delete Payment Failure record
+        paymentTestService.deleteFailedPayment(USER_TOKEN, SERVICE_TOKEN, paymentStatusBouncedChequeDto.getFailureReference()).then().statusCode(NO_CONTENT.value());
+    }
+
+    private String getReportDate(Date date) {
+        java.time.format.DateTimeFormatter reportNameDateFormat = java.time.format.DateTimeFormatter.ofPattern("MM/dd/yyyy");
+        return date == null ? null : java.time.LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault()).format(reportNameDateFormat);
     }
 }

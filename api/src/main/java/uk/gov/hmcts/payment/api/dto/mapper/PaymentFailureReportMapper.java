@@ -45,7 +45,9 @@ public class PaymentFailureReportMapper {
                  .stream()
                  .map(a -> String.valueOf(a.getRefundReference()))
                  .collect(Collectors.joining(","));
-         }
+         }if(refundRef.equalsIgnoreCase("")){
+             return null;
+        }
         return refundRef;
     }
 
@@ -62,6 +64,8 @@ public class PaymentFailureReportMapper {
                 .stream()
                 .map(a -> String.valueOf(a.getRefundDate()))
                 .collect(Collectors.joining(","));
+        }if(refundDate.equalsIgnoreCase("")){
+            return null;
         }
         return refundDate;
     }
@@ -77,6 +81,8 @@ public class PaymentFailureReportMapper {
                 .stream()
                 .map(a -> String.format("%.2f", a.getAmount()))
                 .collect(Collectors.joining(","));
+        }if(refundAmount.equalsIgnoreCase("")){
+            return null;
         }
         return refundAmount;
 
