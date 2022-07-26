@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.context.annotation.Lazy;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.dto.PaymentStatusDto;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
@@ -32,7 +33,7 @@ public class CallbackServiceImpl implements CallbackService {
 
     @Autowired
     public CallbackServiceImpl(PaymentDtoMapper paymentDtoMapper, ObjectMapper objectMapper,
-                               TopicClientProxy topicClient, FF4j ff4j, PaymentGroupDtoMapper paymentGroupDtoMapper) {
+                               TopicClientProxy topicClient, FF4j ff4j, @Lazy  PaymentGroupDtoMapper paymentGroupDtoMapper) {
         this.paymentDtoMapper = paymentDtoMapper;
         this.objectMapper = objectMapper;
         this.topicClient = topicClient;
