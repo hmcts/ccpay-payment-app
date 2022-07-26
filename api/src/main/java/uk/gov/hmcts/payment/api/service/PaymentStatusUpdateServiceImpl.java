@@ -18,11 +18,8 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
-import uk.gov.hmcts.payment.api.dto.PaymentStatusChargebackDto;
-import uk.gov.hmcts.payment.api.dto.PaymentStatusUpdateSecond;
-import uk.gov.hmcts.payment.api.dto.UnprocessedPayment;
+import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentStatusDtoMapper;
-import uk.gov.hmcts.payment.api.dto.PaymentStatusBouncedChequeDto;
 import uk.gov.hmcts.payment.api.exception.FailureReferenceNotFoundException;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.Payment2Repository;
@@ -176,6 +173,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         if (!paymentFailure.isPresent()) {
             throw new PaymentNotFoundException("No Payment Failure available for the given Failure reference");
         } else {
+
             paymentFailure.get().setRepresentmentSuccess(paymentStatusUpdateSecond.getRepresentmentStatus());
             paymentFailure.get()
                     .setRepresentmentOutcomeDate(
@@ -212,9 +210,12 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
                 .build();
         ResponseEntity responseEntity = restTemplatePaymentGroup
                 .exchange(builder.toUriString(), HttpMethod.GET, new HttpEntity<>(headers), ResponseEntity.class);
-        if (HttpStatus.OK.equals(responseEntity.getStatusCode())) {
-            return true;
+        if (!HttpStatus.OK.equals(responseEntity.getStatusCode())) {
+            return false;
+        } else {
+            SearchResponse searchResponse = (SearchResponse) responseEntity.getBody();
+            LOG.info("Search Response from Bulk Scanning app: {}", searchResponse);
         }
-        return false;
+        return true;
     }
 }
