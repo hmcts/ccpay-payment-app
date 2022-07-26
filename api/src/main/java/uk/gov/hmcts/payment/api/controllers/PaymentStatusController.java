@@ -132,7 +132,7 @@ public class PaymentStatusController {
         return new ResponseEntity<>("Successful operation", HttpStatus.OK);
     }
 
-    @ApiOperation("API to generate report for payment failure ")
+    @ApiOperation(value = "API to generate report for payment failure ", notes = "Get list of payments failures by providing date range. MM/dd/yyyy is  the supported date/time format.")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Report Generated"),
         @ApiResponse(code = 404, message = "No Data found to generate Report"),
@@ -144,7 +144,7 @@ public class PaymentStatusController {
                                                                       @RequestHeader(required = false) MultiValueMap<String, String> headers,
                                                                       @RequestHeader("Authorization") String authorization) {
 
-        LOG.info("Received payment status report request: {}", fromDate,toDate);
+        LOG.info("Received payment status report request");
        List<PaymentFailureReportDto> paymentFailureReportDto =  paymentStatusUpdateService.paymentFailureReport(atStartOfDay(fromDate), atEndOfDay(toDate),headers);
         return new PaymentFailureReportResponse(paymentFailureReportDto);
     }

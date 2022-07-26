@@ -254,7 +254,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
             .map(Object::toString)
             .collect(Collectors.joining(","));
 
-        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(refundApiUrl + "/payment/failure-report")
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(refundApiUrl + "/refund/payment-failure-report")
             .queryParam("paymentReferenceList", referenceId);
 
         List<String> serviceAuthTokenPaymentList = new ArrayList<>();
