@@ -152,13 +152,13 @@ public class PaymentGroupServiceImpl implements PaymentGroupService<PaymentFeeLi
         String ccdCaseNumber, String tablejoin) {
         List<Predicate> predicates = new ArrayList<>();
 
-        if (ccdCaseNumber != null && tablejoin.equals("payments")) {
+        if (ccdCaseNumber != null & tablejoin.equals("payments")) {
             Join<PaymentFeeLink, Payment> paymentJoin = root.join(tablejoin, JoinType.LEFT);
             predicates.add(cb.or(cb.equal(paymentJoin.get("ccdCaseNumber"), ccdCaseNumber),(cb.equal(paymentJoin.get("caseReference"), ccdCaseNumber))));
-        } else if (ccdCaseNumber != null && tablejoin.equals("fees")){
+        } else if (ccdCaseNumber != null & tablejoin.equals("fees")){
             Join<PaymentFeeLink, PaymentFee> paymentFeeJoin = root.join(tablejoin, JoinType.LEFT);
             predicates.add(cb.equal(paymentFeeJoin.get("ccdCaseNumber"), ccdCaseNumber));
-        } else if (ccdCaseNumber != null && tablejoin.equals("remissions")){
+        } else if (ccdCaseNumber != null & tablejoin.equals("remissions")){
             Join<PaymentFeeLink, Remission> remissionJoin = root.join(tablejoin, JoinType.LEFT);
             predicates.add(cb.equal(remissionJoin.get("ccdCaseNumber"), ccdCaseNumber));
         }
