@@ -293,7 +293,7 @@ public class PaymentStatusUpdateServiceImplTest {
             eq(new ParameterizedTypeReference<RefundPaymentFailureReportDtoResponse>() {
             }))).thenReturn(responseEntity);
 
-        RefundPaymentFailureReportDtoResponse res =  paymentStatusUpdateServiceImpl.fetchRefundResponse(paymentReference, headers);
+        RefundPaymentFailureReportDtoResponse res =  paymentStatusUpdateServiceImpl.fetchRefundResponse(paymentReference);
         Assert.assertEquals("RC-1520-2505-0381-8145",res.getPaymentFailureDto().get(0).getPaymentReference());
     }
 
@@ -311,7 +311,7 @@ public class PaymentStatusUpdateServiceImplTest {
             eq(new ParameterizedTypeReference<RefundPaymentFailureReportDtoResponse>() {
             }))).thenThrow(new HttpClientErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "internal server error"));
 
-        paymentStatusUpdateServiceImpl.fetchRefundResponse(paymentReference, headers);
+        paymentStatusUpdateServiceImpl.fetchRefundResponse(paymentReference);
 
     }
 
