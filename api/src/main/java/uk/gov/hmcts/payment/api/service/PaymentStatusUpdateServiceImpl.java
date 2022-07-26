@@ -209,7 +209,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
 
         List<Payment> paymentList= paymentRepository.findByReferenceIn(paymentReference);
 
-        RefundPaymentFailureReportDtoResponse refundPaymentFailureReportDtoResponse = fetchRefundResponse(paymentReference,headers);
+        RefundPaymentFailureReportDtoResponse refundPaymentFailureReportDtoResponse = fetchRefundResponse(paymentReference);
         if(null != refundPaymentFailureReportDtoResponse){
             refundList = refundPaymentFailureReportDtoResponse.getPaymentFailureDto();
         }
@@ -231,12 +231,12 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         return failureReport;
     }
 
-    public RefundPaymentFailureReportDtoResponse fetchRefundResponse(List<String> paymentReference,MultiValueMap<String, String> headers) {
+    public RefundPaymentFailureReportDtoResponse fetchRefundResponse(List<String> paymentReference) {
 
         try {
 
             ResponseEntity<RefundPaymentFailureReportDtoResponse> refundResponse =
-                fetchFailedPaymentRefunds(paymentReference,headers);
+                fetchFailedPaymentRefunds(paymentReference);
             LOG.info("Refund response status code {}", refundResponse.getStatusCode());
             LOG.info("Refund response {}", refundResponse.getBody());
             return refundResponse.hasBody() ? refundResponse.getBody() :null;
