@@ -1,6 +1,8 @@
 package uk.gov.hmcts.payment.api.service;
 
 import com.google.common.collect.ImmutableMap;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.junit.Test;
 import uk.gov.hmcts.payment.api.audit.AuditRepository;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
@@ -76,6 +78,9 @@ public class UserAwareDelegatingCardPaymentLinkServiceTest {
                 .status("Initiated")
                 .externalStatus("created")
                 .build()))
+            .dateCreated(DateTime.parse("2022-02-03T10:10:10").withZone(
+                    DateTimeZone.UTC)
+                    .toDate())
             .build();
 
         PaymentFeeLink paymentFeeLink = PaymentFeeLink
@@ -137,6 +142,9 @@ public class UserAwareDelegatingCardPaymentLinkServiceTest {
                 .externalStatus("created")
                 .build()))
             .paymentLink(paymentFeeLink)
+            .dateCreated(DateTime.parse("2022-02-03T10:10:10").withZone(
+                    DateTimeZone.UTC)
+                    .toDate())
             .build()));
 
         Payment payment = paymentRespository.findByReference(reference).orElseThrow(PaymentNotFoundException::new);
