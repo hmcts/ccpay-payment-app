@@ -25,7 +25,7 @@ public class PaymentStatusUpdateSecond {
 
     @NotNull(message = "Representment Status cannot be null")
     @NotEmpty(message = "Representment Status cannot be blank")
-    private String representmentStatus;
+    private RepresentmentStatus representmentStatus;
 
     @NotNull(message = "Representment Date cannot be null")
     @NotEmpty(message = "Representment Date cannot be blank")

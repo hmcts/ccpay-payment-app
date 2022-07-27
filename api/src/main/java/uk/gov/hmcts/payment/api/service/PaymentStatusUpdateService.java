@@ -6,7 +6,6 @@ import uk.gov.hmcts.payment.api.dto.PaymentStatusUpdateSecond;
 import uk.gov.hmcts.payment.api.model.PaymentFailures;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface PaymentStatusUpdateService {
 

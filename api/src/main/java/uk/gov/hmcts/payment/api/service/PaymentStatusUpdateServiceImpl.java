@@ -163,7 +163,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         if (!paymentFailure.isPresent()) {
             throw new PaymentNotFoundException("No Payment Failure available for the given Failure reference");
         } else {
-            paymentFailure.get().setRepresentmentSuccess(paymentStatusUpdateSecond.getRepresentmentStatus());
+            paymentFailure.get().setRepresentmentSuccess(paymentStatusUpdateSecond.getRepresentmentStatus().getStatus());
             paymentFailure.get()
                     .setRepresentmentOutcomeDate(
                             DateTime.parse(paymentStatusUpdateSecond.getRepresentmentDate()).withZone(
