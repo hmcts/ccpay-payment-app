@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.functional;
 
 import io.restassured.response.Response;
+import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -9,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.testcontainers.shaded.org.apache.commons.lang.RandomStringUtils;
 import uk.gov.hmcts.payment.api.dto.PBAResponse;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
@@ -29,7 +29,7 @@ import static uk.gov.hmcts.payment.functional.service.RefDataTestService.approve
 import static uk.gov.hmcts.payment.functional.service.RefDataTestService.postOrganisation;
 import static uk.gov.hmcts.payment.functional.service.RefDataTestService.readFileContents;
 
-@RunWith(SpringRunner.class)
+@RunWith(SpringIntegrationSerenityRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
 @ActiveProfiles({"functional-tests", "liberataMock"})
 @Ignore("As all the tests are Ignored,Switching these tests off....")
