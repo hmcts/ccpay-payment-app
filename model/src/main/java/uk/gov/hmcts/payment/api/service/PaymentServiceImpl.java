@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.payment.api.audit.AuditRepository;
@@ -170,8 +171,8 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
         Date targetTime = DateUtils.addMinutes(new Date(), -1 * paymentsCutOffTime);
         return paymentRepository.findReferencesByPaymentProviderAndPaymentStatusNotInAndDateCreatedLessThan(
             PaymentProvider.GOV_PAY,
-            Lists.newArrayList(SUCCESS, FAILED, ERROR, CANCELLED), targetTime
-        );
+            Lists.newArrayList(SUCCESS, FAILED, ERROR, CANCELLED), targetTime,
+                Sort.by(Sort.Direction.ASC, "dateCreated"));
     }
 
     @Override

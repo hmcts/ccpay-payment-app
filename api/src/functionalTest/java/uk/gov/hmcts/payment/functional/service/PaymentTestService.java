@@ -5,6 +5,7 @@ import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import io.restassured.response.ValidatableResponse;
 import io.restassured.specification.RequestSpecification;
+import net.serenitybdd.rest.SerenityRest;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
@@ -152,13 +153,13 @@ public class PaymentTestService {
     }
 
     public RequestSpecification givenWithAuthHeaders(String userToken, String serviceToken) {
-        return RestAssured.given()
+        return SerenityRest.given()
             .header(AUTHORIZATION, userToken)
             .header("ServiceAuthorization", serviceToken);
     }
 
     public RequestSpecification givenWithServiceHeaders(String serviceToken) {
-        return RestAssured.given()
+        return SerenityRest.given()
             .header("ServiceAuthorization", serviceToken);
     }
 

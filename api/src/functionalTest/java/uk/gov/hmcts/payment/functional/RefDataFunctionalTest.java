@@ -1,17 +1,17 @@
 package uk.gov.hmcts.payment.functional;
 
 import io.restassured.RestAssured;
+import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
+import net.serenitybdd.rest.SerenityRest;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
 
-import static io.restassured.RestAssured.given;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 
-@RunWith(SpringRunner.class)
+@RunWith(SpringIntegrationSerenityRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
 public class RefDataFunctionalTest {
 
@@ -25,7 +25,7 @@ public class RefDataFunctionalTest {
 
     @Test
     public void shouldReturnChannelsSuccess() {
-        given()
+        SerenityRest.given()
             .relaxedHTTPSValidation()
             .header(CONTENT_TYPE, "application/json")
             .when()
