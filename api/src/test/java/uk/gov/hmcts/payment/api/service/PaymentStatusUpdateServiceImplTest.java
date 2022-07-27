@@ -31,8 +31,10 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 
 import uk.gov.hmcts.payment.api.dto.PaymentStatusUpdateSecond;
+import uk.gov.hmcts.payment.api.dto.RepresentmentStatus;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentStatusDtoMapper;
 import uk.gov.hmcts.payment.api.dto.PaymentStatusBouncedChequeDto;
+import uk.gov.hmcts.payment.api.exception.InvalidPaymentFailureRequestException;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
@@ -181,10 +183,32 @@ public class PaymentStatusUpdateServiceImplTest {
     }
 
     @Test
+    public void returnBadRequestWhenDisputeAmountIsMoreThanPaymentAmountForChargeBack() {
+        Payment payment = getPayment();
+        PaymentStatusChargebackDto paymentStatusChargebackDto =getPaymentStatusChargebackDtoForBadRequest();
+        when(paymentRepository.findByReference(any())).thenReturn(Optional.of(payment));
+        assertThrows(
+            InvalidPaymentFailureRequestException.class,
+            () -> paymentStatusUpdateServiceImpl.insertChargebackPaymentFailure(paymentStatusChargebackDto)
+        );
+    }
+
+    @Test
+    public void returnBadRequestWhenDisputeAmountIsMoreThanPaymentAmountForBounceCheque() {
+        Payment payment = getPayment();
+        PaymentStatusBouncedChequeDto paymentStatusBounceChequeDto =getPaymentStatusBounceChequeDtoForBadRequest();
+        when(paymentRepository.findByReference(any())).thenReturn(Optional.of(payment));
+        assertThrows(
+            InvalidPaymentFailureRequestException.class,
+            () -> paymentStatusUpdateServiceImpl.insertBounceChequePaymentFailure(paymentStatusBounceChequeDto)
+        );
+    }
+
+    @Test
     public void givenValidInputWhenUpdatePaymentFailureThenValidOutput() {
         PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
                 .representmentDate("2021-10-10T10:10:10")
-                .representmentStatus("Yes")
+                .representmentStatus(RepresentmentStatus.YES)
                 .build();
 
         PaymentFailures paymentFailure = PaymentFailures.paymentFailuresWith()
@@ -294,5 +318,37 @@ public class PaymentStatusUpdateServiceImplTest {
 
         return payment;
     }
+
+    private PaymentStatusChargebackDto getPaymentStatusChargebackDtoForBadRequest() {
+
+        PaymentStatusChargebackDto paymentStatusChargebackDto = PaymentStatusChargebackDto.paymentStatusChargebackRequestWith()
+            .additionalReference("AR1234")
+            .amount(BigDecimal.valueOf(556))
+            .failureReference("FR12345")
+            .eventDateTime("2021-10-10T10:10:10")
+            .ccdCaseNumber("123456")
+            .reason("RR001")
+            .paymentReference("RC1234")
+            .hasAmountDebited("yes")
+            .build();
+
+        return paymentStatusChargebackDto;
+    }
+
+    private PaymentStatusBouncedChequeDto getPaymentStatusBounceChequeDtoForBadRequest() {
+
+        PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto = PaymentStatusBouncedChequeDto.paymentStatusBouncedChequeRequestWith()
+            .additionalReference("AR1234")
+            .amount(BigDecimal.valueOf(556))
+            .failureReference("FR12345")
+            .eventDateTime("2021-10-10T10:10:10")
+            .ccdCaseNumber("123456")
+            .reason("RR001")
+            .paymentReference("RC1234")
+            .build();
+
+        return paymentStatusBouncedChequeDto;
+    }
+
 
 }

@@ -21,6 +21,7 @@ import uk.gov.hmcts.payment.api.dto.PaymentStatusUpdateSecond;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentStatusDtoMapper;
 import uk.gov.hmcts.payment.api.dto.PaymentStatusBouncedChequeDto;
 import uk.gov.hmcts.payment.api.exception.FailureReferenceNotFoundException;
+import uk.gov.hmcts.payment.api.exception.InvalidPaymentFailureRequestException;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.Payment2Repository;
 import uk.gov.hmcts.payment.api.model.PaymentFailures;
@@ -28,6 +29,7 @@ import uk.gov.hmcts.payment.api.model.PaymentFailureRepository;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
+import java.math.BigDecimal;
 import java.util.*;
 
 @Service
@@ -63,6 +65,8 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         if(payment.isEmpty()){
             throw new PaymentNotFoundException("No Payments available for the given Payment reference");
         }
+
+        validatePaymentFailureAmount(paymentStatusBouncedChequeDto.getAmount(),payment.get());
 
         PaymentFailures paymentFailuresMap = paymentStatusDtoMapper.bounceChequeRequestMapper(paymentStatusBouncedChequeDto);
         try{
@@ -124,6 +128,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
             throw new PaymentNotFoundException("No Payments available for the given Payment reference");
         }
 
+        validatePaymentFailureAmount(paymentStatusChargebackDto.getAmount(),payment.get());
         PaymentFailures paymentFailuresMap = paymentStatusDtoMapper.ChargebackRequestMapper(paymentStatusChargebackDto);
 
         try{
@@ -152,6 +157,12 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         LOG.info("Number of deleted records are: {}", records);
         if (records == 0) {
             throw new PaymentNotFoundException("Failure reference not found in database for delete");
+        }
+    }
+
+    private void validatePaymentFailureAmount(BigDecimal disputeAmount, Payment payment){
+        if(disputeAmount.compareTo(payment.getAmount()) > 0){
+            throw new InvalidPaymentFailureRequestException("Failure amount can not be more than payment amount");
         }
     }
 

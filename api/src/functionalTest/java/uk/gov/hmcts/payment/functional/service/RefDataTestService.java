@@ -1,9 +1,9 @@
 package uk.gov.hmcts.payment.functional.service;
 
-import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
+import net.serenitybdd.rest.SerenityRest;
 import org.springframework.util.ResourceUtils;
 
 import java.io.File;
@@ -47,13 +47,13 @@ public class RefDataTestService {
 
 
     public static final RequestSpecification givenWithAuthHeaders(String userToken, String serviceToken) {
-        return RestAssured.given()
+        return SerenityRest.given()
             .header(AUTHORIZATION, userToken)
             .header("ServiceAuthorization", serviceToken);
     }
 
     public static final RequestSpecification givenWithServiceHeaders(final String serviceToken) {
-        return RestAssured.given()
+        return SerenityRest.given()
             .header("ServiceAuthorization", serviceToken);
     }
 }
