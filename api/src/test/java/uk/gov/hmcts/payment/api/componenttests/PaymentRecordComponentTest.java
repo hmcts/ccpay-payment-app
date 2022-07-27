@@ -19,7 +19,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "componenttest"})
 @SpringBootTest(webEnvironment = MOCK)
-@DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
+@DirtiesContext(classMode= DirtiesContext.ClassMode.BEFORE_CLASS)
 @Transactional
 public class PaymentRecordComponentTest {
 

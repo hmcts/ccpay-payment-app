@@ -19,8 +19,7 @@ import static org.junit.Assert.assertNotNull;
 import static uk.gov.hmcts.payment.api.model.Payment.paymentWith;
 import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 
-@Ignore
-@DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
+@DirtiesContext(classMode= DirtiesContext.ClassMode.BEFORE_CLASS)
 public class CardPaymentComponentTest extends TestUtil {
 
     @Test
