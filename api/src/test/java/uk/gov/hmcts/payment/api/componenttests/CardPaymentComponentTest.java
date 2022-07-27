@@ -2,6 +2,8 @@ package uk.gov.hmcts.payment.api.componenttests;
 
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.BlockJUnit4ClassRunner;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.v1.componenttests.TestUtil;
@@ -17,6 +19,7 @@ import static org.junit.Assert.assertNotNull;
 import static uk.gov.hmcts.payment.api.model.Payment.paymentWith;
 import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 
+@RunWith(value = BlockJUnit4ClassRunner.class)
 public class CardPaymentComponentTest extends TestUtil {
 
     @Test
