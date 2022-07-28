@@ -396,9 +396,6 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
             }
         } catch (GovPayPaymentNotFoundException | NullPointerException pnfe) {
             LOG.error("Gov Pay payment not found id is:{} and govpay id is:{}", payment.getExternalReference(), paymentReference);
-        } catch (UnsupportedOperationException exception) {
-            LOG.error("Exception occurred while retrieving PaymentFeeLink: {} due to {} {}", paymentFeeLink.toString(),
-                exception.getMessage(), exception);
         }
 
         LOG.info(" CcdCaseNumber updated for failure Gov.uk response : {}" ,paymentFeeLink.getCcdCaseNumber());
