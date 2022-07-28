@@ -384,7 +384,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
                         LOG.info(" ExternalReference updated for failure Gov.uk : {}" ,payment.getExternalReference());
                         LOG.info(" PaymentStatus updated for failure Gov.uk : {}" ,payment.getPaymentStatus().getName());
                         paymentFeeLinkRepository.save(paymentFeeLink);
-                        LOG.info("payment saved payment table successfully for failure case");
+                        LOG.info("payment {} saved in payment table successfully for failure case", paymentReference);
                     }
                 }
 
@@ -396,6 +396,9 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
             }
         } catch (GovPayPaymentNotFoundException | NullPointerException pnfe) {
             LOG.error("Gov Pay payment not found id is:{} and govpay id is:{}", payment.getExternalReference(), paymentReference);
+        } catch (UnsupportedOperationException exception) {
+            LOG.error("Exception occurred while retrieving PaymentFeeLink: {} due to {} {}", paymentFeeLink.toString(),
+                exception.getMessage(), exception);
         }
 
         LOG.info(" CcdCaseNumber updated for failure Gov.uk response : {}" ,paymentFeeLink.getCcdCaseNumber());
