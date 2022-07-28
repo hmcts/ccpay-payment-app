@@ -158,7 +158,7 @@ public class PaymentsSearchFunctionalTest {
                     .s2sToken(SERVICE_TOKEN)
                     .when().searchPaymentsBetweenDates(startDate, endDate)
                     .then().getPayments((paymentsResponse -> {
-                        assertThat(paymentsResponse.getPayments().size()).isGreaterThanOrEqualTo(1);
+                        assertThat(paymentsResponse.getPayments().size()).isGreaterThanOrEqualTo(2);
                         PaymentDto retrievedPaymentDto = paymentsResponse.getPayments().stream()
                             .filter(o -> o.getPaymentReference().equals(paymentDto.getReference())).findFirst().get();
                         FeeDto feeDto = retrievedPaymentDto.getFees().get(0);
