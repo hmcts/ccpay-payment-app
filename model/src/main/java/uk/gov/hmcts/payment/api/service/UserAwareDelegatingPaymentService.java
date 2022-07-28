@@ -321,6 +321,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
 
     private PaymentFeeLink retrieve(String paymentReference, boolean shouldCallBack, String serviceName ) {
         final Payment payment = findSavedPayment(paymentReference);
+        LOG.info("Retrieved payment reference {} with date created {}", paymentReference, payment.getDateCreated().toString());
 
         final PaymentFeeLink paymentFeeLink = payment.getPaymentLink();
 
@@ -382,8 +383,8 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
                         LOG.info(" CcdCaseNumber updated for failure Gov.uk : {}" ,payment.getCcdCaseNumber());
                         LOG.info(" ExternalReference updated for failure Gov.uk : {}" ,payment.getExternalReference());
                         LOG.info(" PaymentStatus updated for failure Gov.uk : {}" ,payment.getPaymentStatus().getName());
-                        LOG.info("payment saved payment table successfully for failure case");
                         paymentFeeLinkRepository.save(paymentFeeLink);
+                        LOG.info("payment saved payment table successfully for failure case");
                     }
                 }
 
