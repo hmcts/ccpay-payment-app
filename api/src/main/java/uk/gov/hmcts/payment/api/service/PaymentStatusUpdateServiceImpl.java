@@ -25,6 +25,7 @@ import uk.gov.hmcts.payment.api.dto.mapper.PaymentStatusDtoMapper;
 import uk.gov.hmcts.payment.api.exception.FailureReferenceNotFoundException;
 import uk.gov.hmcts.payment.api.exception.InvalidRefundRequestException;
 import uk.gov.hmcts.payment.api.exception.ValidationErrorException;
+import uk.gov.hmcts.payment.api.exception.InvalidPaymentFailureRequestException;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.Payment2Repository;
 import uk.gov.hmcts.payment.api.model.PaymentFailures;
@@ -32,6 +33,7 @@ import uk.gov.hmcts.payment.api.model.PaymentFailureRepository;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -75,6 +77,8 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         if(payment.isEmpty()){
             throw new PaymentNotFoundException("No Payments available for the given Payment reference");
         }
+
+        validatePaymentFailureAmount(paymentStatusBouncedChequeDto.getAmount(),payment.get());
 
         PaymentFailures paymentFailuresMap = paymentStatusDtoMapper.bounceChequeRequestMapper(paymentStatusBouncedChequeDto);
         try{
@@ -136,6 +140,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
             throw new PaymentNotFoundException("No Payments available for the given Payment reference");
         }
 
+        validatePaymentFailureAmount(paymentStatusChargebackDto.getAmount(),payment.get());
         PaymentFailures paymentFailuresMap = paymentStatusDtoMapper.ChargebackRequestMapper(paymentStatusChargebackDto);
 
         try{
@@ -167,23 +172,37 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         }
     }
 
+    private void validatePaymentFailureAmount(BigDecimal disputeAmount, Payment payment){
+        if(disputeAmount.compareTo(payment.getAmount()) > 0){
+            throw new InvalidPaymentFailureRequestException("Failure amount can not be more than payment amount");
+        }
+    }
+
     @Override
     public PaymentFailures updatePaymentFailure(String failureReference, PaymentStatusUpdateSecond paymentStatusUpdateSecond) {
 
-        Optional<PaymentFailures> paymentFailure = paymentFailureRepository.findByFailureReference(failureReference);
+        if (null != paymentStatusUpdateSecond && null != paymentStatusUpdateSecond.getRepresentmentStatus() &&
+                null != paymentStatusUpdateSecond.getRepresentmentDate() &&
+                !paymentStatusUpdateSecond.getRepresentmentDate().isEmpty()) {
 
-        if (!paymentFailure.isPresent()) {
-            throw new PaymentNotFoundException("No Payment Failure available for the given Failure reference");
+            Optional<PaymentFailures> paymentFailure = paymentFailureRepository.findByFailureReference(failureReference);
+
+            if (!paymentFailure.isPresent()) {
+                throw new PaymentNotFoundException("No Payment Failure available for the given Failure reference");
+            } else {
+                paymentFailure.get()
+                        .setRepresentmentSuccess(paymentStatusUpdateSecond.getRepresentmentStatus().getStatus());
+                paymentFailure.get()
+                        .setRepresentmentOutcomeDate(
+                                DateTime.parse(paymentStatusUpdateSecond.getRepresentmentDate()).withZone(
+                                        DateTimeZone.UTC)
+                                        .toDate());
+                PaymentFailures updatedPaymentFailure = paymentFailureRepository.save(paymentFailure.get());
+                LOG.info("Updated Payment failure record in payment_failure table: {}", failureReference);
+                return updatedPaymentFailure;
+            }
         } else {
-            paymentFailure.get().setRepresentmentSuccess(paymentStatusUpdateSecond.getRepresentmentStatus());
-            paymentFailure.get()
-                    .setRepresentmentOutcomeDate(
-                            DateTime.parse(paymentStatusUpdateSecond.getRepresentmentDate()).withZone(
-                                    DateTimeZone.UTC)
-                                    .toDate());
-            PaymentFailures updatedPaymentFailure = paymentFailureRepository.save(paymentFailure.get());
-            LOG.info("Updated Payment failure record in payment_failure table: {}", failureReference);
-            return updatedPaymentFailure;
+            throw new InvalidPaymentFailureRequestException("Bad request");
         }
     }
 
