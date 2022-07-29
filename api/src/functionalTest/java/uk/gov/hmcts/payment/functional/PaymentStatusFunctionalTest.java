@@ -375,7 +375,7 @@ public class PaymentStatusFunctionalTest {
 
         // Ping 2
         PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
-                .representmentStatus("Yes")
+                .representmentStatus(RepresentmentStatus.NO)
                 .representmentDate("2022-10-10T10:10:10")
                 .build();
         Response ping2Response = paymentTestService.paymentStatusSecond(
@@ -397,7 +397,7 @@ public class PaymentStatusFunctionalTest {
 
         // Ping 2
         PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
-                .representmentStatus("Yes")
+                .representmentStatus(RepresentmentStatus.YES)
                 .representmentDate("2022-10-10T10:10:10")
                 .build();
         Response ping2Response = paymentTestService.paymentStatusSecond(
@@ -407,4 +407,50 @@ public class PaymentStatusFunctionalTest {
         assertEquals(ping2Response.getStatusCode(), NOT_FOUND.value());
         assertEquals("No Payment Failure available for the given Failure reference", ping2Response.getBody().prettyPrint());
     }
+
+    @Test
+    public void negative_return404_chargeback_payment_failure_when_dispute_amount_is_more_than_payment_amount() {
+
+        String accountNumber = testProps.existingAccountNumber;
+        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
+            .aPbaPaymentRequestForProbate("49.00",
+                "PROBATE", "PBAFUNC12345");
+        accountPaymentRequest.setAccountNumber(accountNumber);
+        PaymentDto paymentDto = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
+            .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
+
+        PaymentStatusChargebackDto paymentStatusChargebackDto
+            = PaymentFixture.chargebackRequest(paymentDto.getReference());
+
+        Response chargebackResponse = paymentTestService.postChargeback(
+            SERVICE_TOKEN_PAYMENT,
+            paymentStatusChargebackDto);
+        assertThat(chargebackResponse.getStatusCode()).isEqualTo(BAD_REQUEST.value());
+        assertThat("Failure amount can not be more than payment amount").isEqualTo(chargebackResponse.getBody().prettyPrint());
+        // delete payment record
+        paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
+    }
+
+    @Test
+    public void negative_return404_bounce_cheque_payment_failure_when_dispute_amount_is_more_than_payment_amount() {
+
+        String accountNumber = testProps.existingAccountNumber;
+        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
+            .aPbaPaymentRequestForProbate("49.00",
+                "PROBATE", "PBAFUNC12345");
+        accountPaymentRequest.setAccountNumber(accountNumber);
+        PaymentDto paymentDto = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
+            .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
+            PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto
+                = PaymentFixture.bouncedChequeRequest(paymentDto.getReference());
+            Response bounceChequeResponse = paymentTestService.postBounceCheque(
+                SERVICE_TOKEN_PAYMENT,
+                paymentStatusBouncedChequeDto);
+
+        assertThat(bounceChequeResponse.getStatusCode()).isEqualTo(BAD_REQUEST.value());
+        assertThat("Failure amount can not be more than payment amount").isEqualTo(bounceChequeResponse.getBody().prettyPrint());
+
+        paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
+        }
+
 }

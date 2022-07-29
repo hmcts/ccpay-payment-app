@@ -1,6 +1,8 @@
 package uk.gov.hmcts.payment.api.service;
 
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -104,6 +106,10 @@ public class UserAwareDelegatingPaymentServiceTest {
     @Test
     public void whenValidInput_retrieveWithCallBack_thenPaymentFeeLinkReceived() {
         Payment payment = Payment.paymentWith()
+                .reference("GGG")
+                .dateCreated(DateTime.parse("2022-02-03T10:10:10").withZone(
+                        DateTimeZone.UTC)
+                        .toDate())
                 .s2sServiceName("S2S")
                 .internalReference("InternalReference")
                 .externalReference("ExternalReference")
@@ -118,7 +124,7 @@ public class UserAwareDelegatingPaymentServiceTest {
                         .externalStatus("created")
                         .build()))
                 .build();
-        when(paymentRespository.findByReference(anyString())).thenReturn(java.util.Optional.ofNullable(payment));
+        when(paymentRespository.findByReference(anyString())).thenReturn(java.util.Optional.of(payment));
         when(serviceToTokenMap.getServiceKeyVaultName(anyString())).thenReturn("prl_cos_api");
         GovPayPayment govPayPayment = GovPayPayment.govPaymentWith()
                 .amount(111)
@@ -138,7 +144,7 @@ public class UserAwareDelegatingPaymentServiceTest {
                         .build())
                 .build();
         when(delegateGovPay.retrieve(anyString(), anyString())).thenReturn(govPayPayment);
-        PaymentFeeLink paymentFeeLink = userAwareDelegatingPaymentService.retrieveWithCallBack("");
+        PaymentFeeLink paymentFeeLink = userAwareDelegatingPaymentService.retrieveWithCallBack("GGG");
 
         assertNotNull(paymentFeeLink);
         assertEquals("FFF", paymentFeeLink.getCcdCaseNumber());
