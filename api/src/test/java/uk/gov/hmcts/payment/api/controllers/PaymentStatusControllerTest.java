@@ -350,7 +350,7 @@ public class PaymentStatusControllerTest {
         when(featureToggler.getBooleanValue(eq("payment-status-update-flag"), anyBoolean())).thenReturn(true);
         restActions
                 .patch("/payment-failures/failureReference", PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
-                        .representmentStatus("Yes")
+                        .representmentStatus(RepresentmentStatus.NO)
                         .representmentDate("2022-10-10T10:10:10")
                         .build())
                 .andExpect(status().isServiceUnavailable())
@@ -358,9 +358,36 @@ public class PaymentStatusControllerTest {
     }
 
     @Test
+    public void givenNoRepresentmentStatusWhenPaymentStatusSecondThenBadRequestException() throws Exception {
+        PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
+                .representmentDate("2022-10-10T10:10:10")
+                .build();
+
+        MvcResult result = restActions
+                .patch("/payment-failures/failureReference", paymentStatusUpdateSecond)
+                .andExpect(status().isBadRequest())
+                .andReturn();
+
+        assertEquals("Bad request", result.getResolvedException().getMessage());
+    }
+
+    @Test
+    public void givenEmptyRequestWhenPaymentStatusSecondThenBadRequestException() throws Exception {
+        PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
+                .build();
+
+        MvcResult result = restActions
+                .patch("/payment-failures/failureReference", paymentStatusUpdateSecond)
+                .andExpect(status().isBadRequest())
+                .andReturn();
+
+        assertEquals("Bad request", result.getResolvedException().getMessage());
+    }
+
+    @Test
     public void givenNoPaymentFailureWhenPaymentStatusSecondThenPaymentNotFoundException() throws Exception {
         PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
-                .representmentStatus("Yes")
+                .representmentStatus(RepresentmentStatus.YES)
                 .representmentDate("2022-10-10T10:10:10")
                 .build();
         when(paymentFailureRepository.findByFailureReference(any())).thenReturn(Optional.empty());
@@ -377,7 +404,7 @@ public class PaymentStatusControllerTest {
     @Test
     public void givenPaymentFailureWhenPaymentStatusSecondThenSuccess() throws Exception {
         PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
-                .representmentStatus("Yes")
+                .representmentStatus(RepresentmentStatus.YES)
                 .representmentDate("2022-10-10T10:10:10")
                 .build();
         when(paymentFailureRepository.findByFailureReference(any())).thenReturn(Optional.of(getPaymentFailures()));

@@ -18,7 +18,6 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import javax.validation.Valid;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 
@@ -27,6 +26,7 @@ import java.util.stream.Collectors;
 @SwaggerDefinition(tags = {@Tag(name = "PaymentStatusController", description = "Payment Status REST API")})
 public class PaymentStatusController {
     private static final Logger LOG = LoggerFactory.getLogger(PaymentStatusController.class);
+    private static final String PAYMENT_STATUS_UPDATE_FLAG = "payment-status-update-flag";
 
     @Autowired
     private PaymentStatusUpdateService paymentStatusUpdateService;
@@ -49,7 +49,7 @@ public class PaymentStatusController {
     @PostMapping(path = "/payment-failures/bounced-cheque")
     public ResponseEntity<String> paymentStatusBouncedCheque(@Valid @RequestBody PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto){
 
-        boolean psuLockFeature = featureToggler.getBooleanValue("payment-status-update-flag",false);
+        boolean psuLockFeature = featureToggler.getBooleanValue(PAYMENT_STATUS_UPDATE_FLAG,false);
         LOG.info("feature toggler enable for  bounced-cheque : {}",psuLockFeature);
 
         if(psuLockFeature){
@@ -71,7 +71,7 @@ public class PaymentStatusController {
     @PostMapping(path = "/payment-failures/chargeback")
     public ResponseEntity<String> paymentStatusChargeBack(@Valid @RequestBody PaymentStatusChargebackDto paymentStatusChargebackDto){
 
-        boolean psuLockFeature = featureToggler.getBooleanValue("payment-status-update-flag",false);
+        boolean psuLockFeature = featureToggler.getBooleanValue(PAYMENT_STATUS_UPDATE_FLAG,false);
         LOG.info("feature toggler enable for  chargeback : {}",psuLockFeature);
 
         if(psuLockFeature){
@@ -120,8 +120,8 @@ public class PaymentStatusController {
     @PaymentExternalAPI
     @PatchMapping("/payment-failures/{failureReference}")
     public ResponseEntity<String> paymentStatusSecond(@PathVariable("failureReference") String failureReference,
-                                                      @Valid @RequestBody PaymentStatusUpdateSecond paymentStatusUpdateSecondDto) {
-        if (featureToggler.getBooleanValue("payment-status-update-flag",false)) {
+                                                      @RequestBody PaymentStatusUpdateSecond paymentStatusUpdateSecondDto) {
+        if (featureToggler.getBooleanValue(PAYMENT_STATUS_UPDATE_FLAG,false)) {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
         }
         LOG.info("Received payment status update second ping request: {}", paymentStatusUpdateSecondDto);

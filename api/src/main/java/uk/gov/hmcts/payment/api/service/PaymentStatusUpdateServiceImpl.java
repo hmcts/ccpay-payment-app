@@ -169,20 +169,28 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
     @Override
     public PaymentFailures updatePaymentFailure(String failureReference, PaymentStatusUpdateSecond paymentStatusUpdateSecond) {
 
-        Optional<PaymentFailures> paymentFailure = paymentFailureRepository.findByFailureReference(failureReference);
+        if (null != paymentStatusUpdateSecond && null != paymentStatusUpdateSecond.getRepresentmentStatus() &&
+                null != paymentStatusUpdateSecond.getRepresentmentDate() &&
+                !paymentStatusUpdateSecond.getRepresentmentDate().isEmpty()) {
 
-        if (!paymentFailure.isPresent()) {
-            throw new PaymentNotFoundException("No Payment Failure available for the given Failure reference");
+            Optional<PaymentFailures> paymentFailure = paymentFailureRepository.findByFailureReference(failureReference);
+
+            if (!paymentFailure.isPresent()) {
+                throw new PaymentNotFoundException("No Payment Failure available for the given Failure reference");
+            } else {
+                paymentFailure.get()
+                        .setRepresentmentSuccess(paymentStatusUpdateSecond.getRepresentmentStatus().getStatus());
+                paymentFailure.get()
+                        .setRepresentmentOutcomeDate(
+                                DateTime.parse(paymentStatusUpdateSecond.getRepresentmentDate()).withZone(
+                                        DateTimeZone.UTC)
+                                        .toDate());
+                PaymentFailures updatedPaymentFailure = paymentFailureRepository.save(paymentFailure.get());
+                LOG.info("Updated Payment failure record in payment_failure table: {}", failureReference);
+                return updatedPaymentFailure;
+            }
         } else {
-            paymentFailure.get().setRepresentmentSuccess(paymentStatusUpdateSecond.getRepresentmentStatus().getStatus());
-            paymentFailure.get()
-                    .setRepresentmentOutcomeDate(
-                            DateTime.parse(paymentStatusUpdateSecond.getRepresentmentDate()).withZone(
-                                    DateTimeZone.UTC)
-                                    .toDate());
-            PaymentFailures updatedPaymentFailure = paymentFailureRepository.save(paymentFailure.get());
-            LOG.info("Updated Payment failure record in payment_failure table: {}", failureReference);
-            return updatedPaymentFailure;
+            throw new InvalidPaymentFailureRequestException("Bad request");
         }
     }
 }
