@@ -390,7 +390,7 @@ public class PaymentStatusFunctionalTest {
 
         // Ping 2
         PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
-                .representmentStatus(RepresentmentStatus.NO)
+                .representmentStatus(RepresentmentStatus.No)
                 .representmentDate("2022-10-10T10:10:10")
                 .build();
         Response ping2Response = paymentTestService.paymentStatusSecond(
@@ -412,7 +412,7 @@ public class PaymentStatusFunctionalTest {
 
         // Ping 2
         PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
-                .representmentStatus(RepresentmentStatus.YES)
+                .representmentStatus(RepresentmentStatus.Yes)
                 .representmentDate("2022-10-10T10:10:10")
                 .build();
         Response ping2Response = paymentTestService.paymentStatusSecond(
