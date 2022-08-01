@@ -145,25 +145,27 @@ public class TelephonyPaymentFunctionalTest {
             Boolean compareResult = new HashSet<>(liberataResponseOld.getPayments()).equals(new HashSet<>(liberataResponseApproach1.getPayments()));
             Java6Assertions.assertThat(compareResult).isEqualTo(true);
             LOG.info("Comparison of old and new api end point response of telephony payment is same");
+            PaymentDto retrievedPaymentDto = liberataResponseApproach1.getPayments().stream()
+                    .filter(o -> o.getPaymentReference().equals(paymentReference.get())).findFirst().get();
 
-            Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getPaymentReference()).isNotNull();
-            Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getAmount()).isEqualTo(new BigDecimal("550.00"));
-            Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getDateCreated()).isNotNull();
-            Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getDateUpdated()).isNotNull();
-            Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getCurrency()).isNotNull();
-            Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getCcdCaseNumber()).isEqualTo(ccdCaseNumber);
-            Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getChannel()).isEqualTo("telephony");
-            Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getMethod()).isEqualTo("card");
-            Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getExternalProvider()).isEqualTo("pci pal");
-            Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getStatus()).isEqualTo("success");
-            Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getSiteId()).isEqualTo("ABA1");
-            Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getServiceName()).isEqualTo("Divorce");
-            Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getFees().get(0).getApportionedPayment()).isEqualTo("550.00");
-            Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getFees().get(0).getCalculatedAmount()).isEqualTo("550.00");
-            Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getFees().get(0).getMemoLine()).isEqualTo("GOV - App for divorce/nullity of marriage or CP");
-            Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getFees().get(0).getNaturalAccountCode()).isEqualTo("4481102159");
-            Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getFees().get(0).getJurisdiction1()).isEqualTo("family");
-            Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getFees().get(0).getJurisdiction2()).isEqualTo("family court");
+            Java6Assertions.assertThat(retrievedPaymentDto.getPaymentReference()).isNotNull();
+            Java6Assertions.assertThat(retrievedPaymentDto.getAmount()).isEqualTo(new BigDecimal("550.00"));
+            Java6Assertions.assertThat(retrievedPaymentDto.getDateCreated()).isNotNull();
+            Java6Assertions.assertThat(retrievedPaymentDto.getDateUpdated()).isNotNull();
+            Java6Assertions.assertThat(retrievedPaymentDto.getCurrency()).isNotNull();
+            Java6Assertions.assertThat(retrievedPaymentDto.getCcdCaseNumber()).isEqualTo(ccdCaseNumber);
+            Java6Assertions.assertThat(retrievedPaymentDto.getChannel()).isEqualTo("telephony");
+            Java6Assertions.assertThat(retrievedPaymentDto.getMethod()).isEqualTo("card");
+            Java6Assertions.assertThat(retrievedPaymentDto.getExternalProvider()).isEqualTo("pci pal");
+            Java6Assertions.assertThat(retrievedPaymentDto.getStatus()).isEqualTo("success");
+            Java6Assertions.assertThat(retrievedPaymentDto.getSiteId()).isEqualTo("ABA1");
+            Java6Assertions.assertThat(retrievedPaymentDto.getServiceName()).isEqualTo("Divorce");
+            Java6Assertions.assertThat(retrievedPaymentDto.getFees().get(0).getApportionedPayment()).isEqualTo("550.00");
+            Java6Assertions.assertThat(retrievedPaymentDto.getFees().get(0).getCalculatedAmount()).isEqualTo("550.00");
+            Java6Assertions.assertThat(retrievedPaymentDto.getFees().get(0).getMemoLine()).isEqualTo("GOV - App for divorce/nullity of marriage or CP");
+            Java6Assertions.assertThat(retrievedPaymentDto.getFees().get(0).getNaturalAccountCode()).isEqualTo("4481102159");
+            Java6Assertions.assertThat(retrievedPaymentDto.getFees().get(0).getJurisdiction1()).isEqualTo("family");
+            Java6Assertions.assertThat(retrievedPaymentDto.getFees().get(0).getJurisdiction2()).isEqualTo("family court");
 
         });
 
