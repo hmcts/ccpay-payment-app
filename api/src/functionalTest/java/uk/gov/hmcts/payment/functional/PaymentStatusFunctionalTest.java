@@ -486,7 +486,7 @@ public class PaymentStatusFunctionalTest {
         PaymentFailureReportDto paymentFailureReportDto =  paymentFailureReportResponse.getPaymentFailureReportList().stream().filter(s->s.getFailureReference().equalsIgnoreCase(paymentsFailureResponse.getPaymentFailureList().get(0).getPaymentFailureInitiated().getFailureReference())).findFirst().get();
         assertEquals(paymentDto.getReference(),paymentFailureReportDto.getPaymentReference());
         assertEquals("Bounced Cheque",paymentFailureReportDto.getEventName());
-        assertEquals(new BigDecimal("100.00"),paymentFailureReportDto.getDisputedAmount());
+        assertEquals(new BigDecimal("50.00"),paymentFailureReportDto.getDisputedAmount());
         assertEquals(paymentStatusBouncedChequeDto.getFailureReference(),paymentFailureReportDto.getFailureReference());
         assertEquals("yes",paymentFailureReportDto.getRepresentmentStatus());
 
