@@ -180,7 +180,7 @@ public class PaymentStatusUpdateServiceImplTest {
         when(paymentFailureRepository.findByPaymentReferenceOrderByFailureEventDateTimeDesc(any())).thenReturn(Optional.of(getPaymentFailuresList()));
         List<PaymentFailures> paymentFailures  =  paymentStatusUpdateServiceImpl.searchPaymentFailure("RC-1637-5072-9888-4233");
 
-        assertEquals("RC-1637-5072-9888-4233",paymentFailures.get(0).getPaymentReference());
+        assertEquals("RC-1520-2505-0381-8145",paymentFailures.get(0).getPaymentReference());
     }
 
     @Test
@@ -379,7 +379,7 @@ public class PaymentStatusUpdateServiceImplTest {
             .id(1)
             .reason("test")
             .failureReference("Bounce Cheque")
-            .paymentReference("RC-1637-5072-9888-4233")
+            .paymentReference("RC-1520-2505-0381-8145")
             .ccdCaseNumber("123456")
             .amount(BigDecimal.valueOf(555))
             .representmentSuccess("yes")
