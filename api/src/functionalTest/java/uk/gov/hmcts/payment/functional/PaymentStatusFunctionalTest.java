@@ -488,7 +488,7 @@ public class PaymentStatusFunctionalTest {
         assertEquals("Bounced Cheque",paymentFailureReportDto.getEventName());
         assertEquals(new BigDecimal("50.00"),paymentFailureReportDto.getDisputedAmount());
         assertEquals(paymentStatusBouncedChequeDto.getFailureReference(),paymentFailureReportDto.getFailureReference());
-        assertEquals("yes",paymentFailureReportDto.getRepresentmentStatus());
+        assertEquals("Yes",paymentFailureReportDto.getRepresentmentStatus());
 
         // delete payment record
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
