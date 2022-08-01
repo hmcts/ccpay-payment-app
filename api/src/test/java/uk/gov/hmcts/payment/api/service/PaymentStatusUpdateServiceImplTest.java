@@ -86,6 +86,16 @@ public class PaymentStatusUpdateServiceImplTest {
     @Mock
     private Payment2Repository paymentRepository;
 
+    private Clock clock;
+
+    @Spy
+    private PaymentFailureReportMapper paymentFailureReportMapper;
+
+    @Mock
+    @Qualifier("restTemplateGetRefund")
+    private RestTemplate restTemplateGetRefund;
+    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormat.forPattern("MM/dd/yyyy");
+
     @Test
      public void testPaymentFailureBounceChequeDBInsert(){
         Payment payment = getPayment();
@@ -241,6 +251,94 @@ public class PaymentStatusUpdateServiceImplTest {
         PaymentFailures result = paymentStatusUpdateServiceImpl.updatePaymentFailure("dummy", paymentStatusUpdateSecond);
         assertEquals(result.getRepresentmentSuccess(), paymentFailure.getRepresentmentSuccess());
         assertEquals(result.getRepresentmentOutcomeDate(), paymentFailure.getRepresentmentOutcomeDate());
+    }
+
+    @Test
+    public void testSuccessPaymentFailureReport(){
+        when(paymentFailureRepository.findByDatesBetween(any(),any())).thenReturn(getPaymentFailuresList());
+        when(paymentRepository.findByReferenceIn(any())).thenReturn(getPaymentList());
+        ResponseEntity<RefundPaymentFailureReportDtoResponse> responseEntity = new ResponseEntity<>(getFailureRefund(), HttpStatus.OK);
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add("Authorization", "auth");
+        headers.add("ServiceAuthorization", "service-auth");
+        when(authTokenGenerator.generate()).thenReturn("test-token");
+
+        when(restTemplateGetRefund.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+            eq(new ParameterizedTypeReference<RefundPaymentFailureReportDtoResponse>() {
+            }))).thenReturn(responseEntity);
+
+        Date fromDate =clock.getYesterdayDate();
+        Date toDate = clock.getTodayDate();
+        List<PaymentFailureReportDto> paymentFailureReportDto = paymentStatusUpdateServiceImpl.paymentFailureReport(fromDate,toDate,headers);
+
+        Assert.assertEquals("RC-1520-2505-0381-8145",paymentFailureReportDto.get(0).getPaymentReference());
+        Assert.assertEquals("RF-123=345=897",paymentFailureReportDto.get(0).getRefundReference());
+
+    }
+
+    @Test
+    public void returnValidationErrorWhenEndDateIsBeforeStartDate(){
+
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add("Authorization", "auth");
+        headers.add("ServiceAuthorization", "service-auth");
+        Date toDate =clock.getYesterdayDate();
+        Date fromDate = clock.getTodayDate();
+        assertThrows(
+            ValidationErrorException.class,
+            () -> paymentStatusUpdateServiceImpl.paymentFailureReport(fromDate,toDate,headers)
+        );
+    }
+
+    @Test
+    public void return404WhenPaymentNotFound(){
+
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add("Authorization", "auth");
+        headers.add("ServiceAuthorization", "service-auth");
+        Date fromDate =clock.getYesterdayDate();
+        Date toDate = clock.getTodayDate();
+        assertThrows(
+            PaymentNotFoundException.class,
+            () -> paymentStatusUpdateServiceImpl.paymentFailureReport(fromDate,toDate,headers)
+        );
+    }
+
+    @Test
+    public void getRefundSuccess() throws Exception {
+
+        ResponseEntity<RefundPaymentFailureReportDtoResponse> responseEntity = new ResponseEntity<>(getFailureRefund(), HttpStatus.OK);
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add("Authorization", "auth");
+        headers.add("ServiceAuthorization", "service-auth");
+        when(authTokenGenerator.generate()).thenReturn("test-token");
+
+        List<String> paymentReference = new ArrayList<>();
+        paymentReference.add("RC-1520-2505-0381-8145");
+        when(restTemplateGetRefund.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+            eq(new ParameterizedTypeReference<RefundPaymentFailureReportDtoResponse>() {
+            }))).thenReturn(responseEntity);
+
+        RefundPaymentFailureReportDtoResponse res =  paymentStatusUpdateServiceImpl.fetchRefundResponse(paymentReference);
+        Assert.assertEquals("RC-1520-2505-0381-8145",res.getPaymentFailureDto().get(0).getPaymentReference());
+    }
+
+    @Test(expected = InvalidRefundRequestException.class)
+    public void returnExcetionWhenRefundCalled() throws Exception {
+
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add("Authorization", "auth");
+        headers.add("ServiceAuthorization", "service-auth");
+        when(authTokenGenerator.generate()).thenReturn("test-token");
+
+        List<String> paymentReference = new ArrayList<>();
+        paymentReference.add("RC-1520-2505-0381-8145");
+        when(restTemplateGetRefund.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+            eq(new ParameterizedTypeReference<RefundPaymentFailureReportDtoResponse>() {
+            }))).thenThrow(new HttpClientErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "internal server error"));
+
+        paymentStatusUpdateServiceImpl.fetchRefundResponse(paymentReference);
+
     }
 
     private PaymentStatusBouncedChequeDto getPaymentStatusBouncedChequeDto() {
