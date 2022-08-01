@@ -1,8 +1,8 @@
 package uk.gov.hmcts.payment.api.dto;
 
 public enum RepresentmentStatus {
-    YES("Yes"),
-    NO("No");
+    Yes("Yes"),
+    No("No");
 
     private String status;
 

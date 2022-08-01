@@ -350,7 +350,7 @@ public class PaymentStatusControllerTest {
         when(featureToggler.getBooleanValue(eq("payment-status-update-flag"), anyBoolean())).thenReturn(true);
         restActions
                 .patch("/payment-failures/failureReference", PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
-                        .representmentStatus(RepresentmentStatus.NO)
+                        .representmentStatus(RepresentmentStatus.No)
                         .representmentDate("2022-10-10T10:10:10")
                         .build())
                 .andExpect(status().isServiceUnavailable())
@@ -387,7 +387,7 @@ public class PaymentStatusControllerTest {
     @Test
     public void givenNoPaymentFailureWhenPaymentStatusSecondThenPaymentNotFoundException() throws Exception {
         PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
-                .representmentStatus(RepresentmentStatus.YES)
+                .representmentStatus(RepresentmentStatus.Yes)
                 .representmentDate("2022-10-10T10:10:10")
                 .build();
         when(paymentFailureRepository.findByFailureReference(any())).thenReturn(Optional.empty());
@@ -404,7 +404,7 @@ public class PaymentStatusControllerTest {
     @Test
     public void givenPaymentFailureWhenPaymentStatusSecondThenSuccess() throws Exception {
         PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
-                .representmentStatus(RepresentmentStatus.YES)
+                .representmentStatus(RepresentmentStatus.Yes)
                 .representmentDate("2022-10-10T10:10:10")
                 .build();
         when(paymentFailureRepository.findByFailureReference(any())).thenReturn(Optional.of(getPaymentFailures()));
