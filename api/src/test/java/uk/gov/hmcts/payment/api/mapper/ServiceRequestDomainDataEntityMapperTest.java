@@ -17,6 +17,8 @@ import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import java.math.BigDecimal;
 import java.util.Collections;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 @RunWith(MockitoJUnitRunner.class)
 public class ServiceRequestDomainDataEntityMapperTest {
 
@@ -31,7 +33,8 @@ public class ServiceRequestDomainDataEntityMapperTest {
             .fees(Collections.singletonList(getServiceRequestFee()))
             .build();
 
-        serviceRequestDomainDataEntityMapper.toServiceRequestEntity(serviceRequestBo);
+        PaymentFeeLink result = serviceRequestDomainDataEntityMapper.toServiceRequestEntity(serviceRequestBo);
+        assertEquals(serviceRequestBo.getReference(), result.getPaymentReference());
     }
 
     @Test
@@ -49,7 +52,8 @@ public class ServiceRequestDomainDataEntityMapperTest {
             .build();
         PaymentFeeLink serviceRequest= PaymentFeeLink.paymentFeeLinkWith().build();
 
-        serviceRequestDomainDataEntityMapper.toPaymentEntity(serviceRequestOnlinePaymentBo,govPayPayment, serviceRequest);
+        Payment result = serviceRequestDomainDataEntityMapper.toPaymentEntity(serviceRequestOnlinePaymentBo,govPayPayment, serviceRequest);
+        assertEquals(serviceRequestOnlinePaymentBo.getPaymentReference(),result.getReference());
     }
 
     private ServiceRequestFeeBo getServiceRequestFee() {
