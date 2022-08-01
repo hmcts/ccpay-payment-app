@@ -460,7 +460,7 @@ public class PaymentStatusFunctionalTest {
         String representmentDate = LocalDateTime.now(zoneUTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
 
         PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
-            .representmentStatus(RepresentmentStatus.YES)
+            .representmentStatus(RepresentmentStatus.Yes)
             .representmentDate(representmentDate)
             .build();
         Response ping2Response = paymentTestService.paymentStatusSecond(
