@@ -37,6 +37,7 @@ import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 
+import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Date;
@@ -140,9 +141,9 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
 
         PaymentsResponse response = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentsResponse.class);
         List<PaymentDto> payments = response.getPayments();
-        assertThat(payments.size()).isEqualTo(1);
+        assertThat(payments).hasSize(1);
         assertEquals(payments.get(0).getPaymentReference(), paymentReference);
-        assertThat("success".equalsIgnoreCase(payments.get(0).getStatus()));
+        assertEquals("success",payments.get(0).getStatus());
 
     }
 
@@ -215,7 +216,7 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
         PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
         assertNotNull(paymentDto);
         assertEquals(paymentDto.getReference(), payment.getReference());
-        assertEquals(paymentDto.getStatus(), "Declined");
+        assertEquals("Declined",paymentDto.getStatus());
 
     }
 
@@ -261,8 +262,8 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
 
         PaymentsResponse response = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentsResponse.class);
         List<PaymentDto> payments = response.getPayments();
-        assertThat(payments.size()).isEqualTo(1);
-        assertEquals(payments.get(0).getPaymentReference(), "RC-1519-9028-1909-1435");
+        assertThat(payments).hasSize(1);
+        assertEquals("RC-1519-9028-1909-1435",payments.get(0).getPaymentReference());
         Date updatedTsForFirstReq = payments.get(0).getDateUpdated();
 
         //Update Telephony Payment Status from PCI PAL - 2nd time(Duplicate)
@@ -278,8 +279,8 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
 
         response = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentsResponse.class);
         payments = response.getPayments();
-        assertThat(payments.size()).isEqualTo(1);
-        assertEquals(payments.get(0).getPaymentReference(), "RC-1519-9028-1909-1435");
+        assertThat(payments).hasSize(1);
+        assertEquals("RC-1519-9028-1909-1435",payments.get(0).getPaymentReference());
         Date updatedTsForSecondReq = payments.get(0).getDateUpdated();
 
         //UpdateTimeStamp should not be changed after 2nd Request(Duplicate)
@@ -352,13 +353,21 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
         PaymentFeeLink savedPaymentGroup = db.findByReference(paymentGroupDto.getPaymentGroupReference());
         List<Payment> payments = savedPaymentGroup.getPayments();
 
-        assertThat(payments.size()).isEqualTo(1);
+        assertThat(payments).hasSize(1);
         assertEquals(payments.get(0).getReference(), paymentReference);
-        assertThat("success".equalsIgnoreCase(payments.get(0).getStatus()));
+
+        MvcResult result1 = restActions
+            .get("/payments/" + paymentReference)
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentDto savedPayment = objectMapper.readValue(result1.getResponse().getContentAsByteArray(),PaymentDto.class);
+        assertThat(savedPayment.getStatus()).isEqualToIgnoringCase("success");
+
 
         List<PaymentFee> fees = savedPaymentGroup.getFees();
 
-        assertThat(BigDecimal.valueOf(0.00).equals(fees.get(0).getAmountDue()));
+        assertThat(fees.get(0).getAmountDue()).isEqualByComparingTo(BigDecimal.valueOf(0.00));
     }
 
     @Test
@@ -426,13 +435,20 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
 
         PaymentFeeLink savedPaymentGroup = db.findByReference(paymentGroupDto.getPaymentGroupReference());
         List<Payment> payments = savedPaymentGroup.getPayments();
-        assertThat(payments.size()).isEqualTo(1);
-        assertEquals(payments.get(0).getReference(), paymentReference);
-        assertThat("failed".equalsIgnoreCase(payments.get(0).getStatus()));
+        assertThat(payments).hasSize(1);
+        assertEquals(paymentReference,payments.get(0).getReference());
+
+        MvcResult result1 = restActions
+            .get("/payments/" + paymentReference)
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentDto savedPayment = objectMapper.readValue(result1.getResponse().getContentAsByteArray(),PaymentDto.class);
+        assertThat(savedPayment.getStatus()).isEqualToIgnoringCase("failed");
 
         List<PaymentFee> fees = savedPaymentGroup.getFees();
 
-        assertThat(BigDecimal.valueOf(101.99).equals(fees.get(0).getAmountDue()));
+        assertThat(fees.get(0).getAmountDue()).isEqualByComparingTo(BigDecimal.valueOf(101.99));
 
     }
 

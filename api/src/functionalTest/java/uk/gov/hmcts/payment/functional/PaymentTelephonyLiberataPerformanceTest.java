@@ -175,6 +175,5 @@ public class PaymentTelephonyLiberataPerformanceTest {
                 Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getFees().get(0).getJurisdiction2()).isEqualTo("family court");
 
             });
-
     }
 }
