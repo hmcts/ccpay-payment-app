@@ -346,9 +346,10 @@ public class PaymentStatusControllerTest {
     }
 
     @Test
-    public void return503WhenPaymentFailureforGet() throws Exception {
+    public void return503WhenPaymentFailureForGetLocked() throws Exception {
 
         when(paymentFailureRepository.findByPaymentReferenceOrderByFailureEventDateTimeDesc(any())).thenReturn(Optional.empty());
+        when(featureToggler.getBooleanValue(eq("payment-status-update-flag"),anyBoolean())).thenReturn(true);
         MvcResult result = restActions
             .withAuthorizedUser(USER_ID)
             .withUserId(USER_ID)
