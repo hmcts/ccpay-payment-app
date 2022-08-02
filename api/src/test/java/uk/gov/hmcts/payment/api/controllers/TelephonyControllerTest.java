@@ -357,8 +357,18 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
 
         assertThat(payments).hasSize(1);
         assertEquals(payments.get(0).getReference(), paymentReference);
-        assertThat(payments.get(0).getStatus()).isEqualToIgnoringCase("success");
+
+        MvcResult result1 = restActions
+            .get("/payments/" + paymentReference)
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentDto savedPayment = objectMapper.readValue(result1.getResponse().getContentAsByteArray(),PaymentDto.class);
+        assertThat(savedPayment.getStatus()).isEqualToIgnoringCase("success");
+
+
         List<PaymentFee> fees = savedPaymentGroup.getFees();
+
         assertThat(fees.get(0).getAmountDue()).isEqualByComparingTo(BigDecimal.valueOf(0.00));
     }
 
@@ -428,13 +438,19 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
 
         PaymentFeeLink savedPaymentGroup = db.findByReference(paymentGroupDto.getPaymentGroupReference());
         List<Payment> payments = savedPaymentGroup.getPayments();
-        //assertThat(payments.size()).isEqualTo(1);
         assertThat(payments).hasSize(1);
-        assertEquals(payments.get(0).getReference(), paymentReference);
-        assertThat(payments.get(0).getStatus()).isEqualToIgnoringCase("failed");
+        assertEquals(paymentReference,payments.get(0).getReference());
+
+        MvcResult result1 = restActions
+            .get("/payments/" + paymentReference)
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentDto savedPayment = objectMapper.readValue(result1.getResponse().getContentAsByteArray(),PaymentDto.class);
+        assertThat(savedPayment.getStatus()).isEqualToIgnoringCase("failed");
+
         List<PaymentFee> fees = savedPaymentGroup.getFees();
 
-        //assertThat(BigDecimal.valueOf(101.99).equals(fees.get(0).getAmountDue()));
         assertThat(fees.get(0).getAmountDue()).isEqualByComparingTo(BigDecimal.valueOf(101.99));
 
     }
