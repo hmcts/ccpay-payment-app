@@ -345,6 +345,21 @@ public class PaymentStatusControllerTest {
             .andReturn();
     }
 
+    @Test
+    public void return503WhenPaymentFailureforGet() throws Exception {
+
+        when(paymentFailureRepository.findByPaymentReferenceOrderByFailureEventDateTimeDesc(any())).thenReturn(Optional.empty());
+        MvcResult result = restActions
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
+            .get("/payment-failures/RC-1637-5072-9888-4233")
+            .andExpect(status().isServiceUnavailable())
+            .andReturn();
+        assertEquals(503,result.getResponse().getStatus());
+
+        }
+
+
     private PaymentStatusBouncedChequeDto getPaymentStatusBouncedChequeDto() {
 
         PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto = PaymentStatusBouncedChequeDto.paymentStatusBouncedChequeRequestWith()
