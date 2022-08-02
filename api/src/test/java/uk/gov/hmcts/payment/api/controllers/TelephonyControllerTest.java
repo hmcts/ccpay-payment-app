@@ -359,11 +359,6 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
         assertEquals(payments.get(0).getReference(), paymentReference);
 
         assertThat(payments.get(0).getPaymentStatus().getName()).isEqualToIgnoringCase("success");
-
-/*        List<PaymentFee> fees = savedPaymentGroup.getFees();
-
-        assertThat(fees.get(0).getAmountDue()).isNull();
-       // assertThat(fees.get(0).getAmountDue()).isEqualByComparingTo(BigDecimal.valueOf(0.00));*/
     }
 
     @Test
@@ -436,11 +431,6 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
         assertEquals(paymentReference,payments.get(0).getReference());
 
         assertThat(payments.get(0).getPaymentStatus().getName()).isEqualToIgnoringCase("failed");
-
-        /*List<PaymentFee> fees = savedPaymentGroup.getFees();
-
-        assertThat(fees.get(0).getAmountDue()).isEqualByComparingTo(BigDecimal.valueOf(101.99));
-*/
     }
 
     private FeeDto getNewFee(String ccdCaseNumber) {
