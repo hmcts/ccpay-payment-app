@@ -57,7 +57,7 @@ import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "componenttest", "mockcallbackservice"})
 @SpringBootTest(webEnvironment = MOCK)
-@DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
+@DirtiesContext(classMode= DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 @Transactional
 public class TelephonyControllerTest extends PaymentsDataUtil {
 
@@ -357,7 +357,7 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
 
         assertThat(payments).hasSize(1);
         assertEquals(payments.get(0).getReference(), paymentReference);
-
+        assertThat(payments.get(0).getStatus()).isEqualToIgnoringCase("success");
         List<PaymentFee> fees = savedPaymentGroup.getFees();
         assertThat(fees.get(0).getAmountDue()).isEqualByComparingTo(BigDecimal.valueOf(0.00));
     }
@@ -428,12 +428,14 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
 
         PaymentFeeLink savedPaymentGroup = db.findByReference(paymentGroupDto.getPaymentGroupReference());
         List<Payment> payments = savedPaymentGroup.getPayments();
-        assertThat(payments.size()).isEqualTo(1);
+        //assertThat(payments.size()).isEqualTo(1);
+        assertThat(payments).hasSize(1);
         assertEquals(payments.get(0).getReference(), paymentReference);
-
+        assertThat(payments.get(0).getStatus()).isEqualToIgnoringCase("failed");
         List<PaymentFee> fees = savedPaymentGroup.getFees();
 
-        assertThat(BigDecimal.valueOf(101.99).equals(fees.get(0).getAmountDue()));
+        //assertThat(BigDecimal.valueOf(101.99).equals(fees.get(0).getAmountDue()));
+        assertThat(fees.get(0).getAmountDue()).isEqualByComparingTo(BigDecimal.valueOf(101.99));
 
     }
 
