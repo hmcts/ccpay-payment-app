@@ -8,10 +8,13 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestPaymentDtoDomainMapper;
+import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 
 import java.math.BigDecimal;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ServiceRequestPaymentDtoDomainMapperTest {
@@ -34,6 +37,8 @@ public class ServiceRequestPaymentDtoDomainMapperTest {
 
         Mockito.when(referenceUtil.getNext("RC")).thenReturn("RC-ref");
 
-        serviceRequestPaymentDtoDomainMapper.toDomain(paymentDto);
+        ServiceRequestPaymentBo result = serviceRequestPaymentDtoDomainMapper.toDomain(paymentDto);
+        assertEquals(paymentDto.getCustomerReference(), result.getCustomerReference());
+
     }
 }
