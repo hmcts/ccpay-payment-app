@@ -54,6 +54,7 @@ public class PaymentStatusFunctionalTest {
     private static boolean TOKENS_INITIALIZED = false;
     private static String USER_TOKEN_PAYMENT;
     private static String USER_TOKEN_CARD_PAYMENT;
+    private static final String PAYMENT_REFERENCE_REGEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
 
     @Autowired
     private PaymentTestService paymentTestService;
@@ -259,8 +260,9 @@ public class PaymentStatusFunctionalTest {
     }
 
     @Test
-    public void positive_paymentStatusSecond() {
+    public void positive_paymentStatusSecond_pba() {
 
+        // Create a Payment By Account
         String accountNumber = testProps.existingAccountNumber;
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
                 .aPbaPaymentRequestForProbate("90.00",
@@ -269,13 +271,110 @@ public class PaymentStatusFunctionalTest {
         PaymentDto paymentDto = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
                 .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
 
+        // Create a Refund on same payment
         PaymentRefundRequest paymentRefundRequest
                 = PaymentFixture.aRefundRequest("RR001", paymentDto.getReference());
         Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
                 SERVICE_TOKEN_PAYMENT,
                 paymentRefundRequest);
+
+        // Ping 1 for Chargeback event
+        PaymentStatusChargebackDto paymentStatusChargebackDto
+                = PaymentFixture.chargebackRequest(paymentDto.getReference());
+
+        Response chargebackResponse = paymentTestService.postChargeback(
+                SERVICE_TOKEN_PAYMENT,
+                paymentStatusChargebackDto);
+
+        PaymentFailureResponse paymentsFailureResponse =
+                paymentTestService.getFailurePayment(USER_TOKEN_PAYMENT, SERVICE_TOKEN, paymentStatusChargebackDto.getPaymentReference()).then()
+                        .statusCode(OK.value()).extract().as(PaymentFailureResponse.class);
+
+        assertThat(paymentsFailureResponse.getPaymentFailureList().get(0).getPaymentFailureInitiated().getFailureReference()).isEqualTo(paymentStatusChargebackDto.getFailureReference());
+
+        assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
+        assertThat(chargebackResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+
+        // Ping 2
+        PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
+                .representmentStatus(RepresentmentStatus.No)
+                .representmentDate("2022-10-10T10:10:10")
+                .build();
+        Response ping2Response = paymentTestService.paymentStatusSecond(
+                SERVICE_TOKEN_PAYMENT, paymentStatusChargebackDto.getFailureReference(),
+                paymentStatusUpdateSecond);
+
+        assertEquals(ping2Response.getStatusCode(), OK.value());
+        assertEquals("Successful operation", ping2Response.getBody().prettyPrint());
+
+        // delete payment record
+        paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
+
+        //delete Payment Failure record
+        paymentTestService.deleteFailedPayment(USER_TOKEN, SERVICE_TOKEN, paymentStatusChargebackDto.getFailureReference()).then().statusCode(NO_CONTENT.value());
+    }
+
+    @Test
+    public void positive_paymentStatusSecond_bulk_scan() {
+
+        // Create a Bulk scan payment
+        String ccdCaseNumber = "1111221233124419";
+        FeeDto feeDto = FeeDto.feeDtoWith()
+                .calculatedAmount(new BigDecimal("550.00"))
+                .ccdCaseNumber(ccdCaseNumber)
+                .version("4")
+                .code("FEE0002")
+                .description("Application for a third party debt order")
+                .build();
+
+        TelephonyCardPaymentsRequest telephonyPaymentRequest =
+                TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
+                        .amount(new BigDecimal("550"))
+                        .ccdCaseNumber(ccdCaseNumber)
+                        .currency(CurrencyCode.GBP)
+                        .caseType("DIVORCE")
+                        .returnURL("https://www.moneyclaims.service.gov.uk")
+                        .build();
+
+        PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
+                .fees(Arrays.asList(feeDto)).build();
+
+        AtomicReference<String> paymentReference = new AtomicReference<>();
+
+        dsl.given().userToken(USER_TOKEN)
+                .s2sToken(SERVICE_TOKEN)
+                .when().addNewFeeAndPaymentGroup(groupDto)
+                .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
+            assertThat(paymentGroupFeeDto).isNotNull();
+
+            String paymentGroupReference = paymentGroupFeeDto.getPaymentGroupReference();
+
+            dsl.given().userToken(USER_TOKEN)
+                    .s2sToken(SERVICE_TOKEN)
+                    .returnUrl("https://www.moneyclaims.service.gov.uk")
+                    .when().createTelephonyPayment(telephonyPaymentRequest, paymentGroupReference)
+                    .then().gotCreated(TelephonyCardPaymentsResponse.class, telephonyCardPaymentsResponse -> {
+                assertThat(telephonyCardPaymentsResponse).isNotNull();
+                assertThat(telephonyCardPaymentsResponse.getPaymentReference().matches(PAYMENT_REFERENCE_REGEX))
+                        .isTrue();
+                assertThat(telephonyCardPaymentsResponse.getStatus()).isEqualTo("Initiated");
+                paymentReference.set(telephonyCardPaymentsResponse.getPaymentReference());
+            });
+            // pci-pal callback
+            TelephonyCallbackDto callbackDto = TelephonyCallbackDto.telephonyCallbackWith()
+                    .orderReference(paymentReference.get())
+                    .orderAmount("550")
+                    .transactionResult("SUCCESS")
+                    .build();
+
+            dsl.given().s2sToken(SERVICE_TOKEN)
+                    .when().telephonyCallback(callbackDto)
+                    .then().noContent();
+        });
+
+        // Ping 1 for Bounced Cheque event
         PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto
-                = PaymentFixture.bouncedChequeRequest(paymentDto.getReference());
+                = PaymentFixture.bouncedChequeRequest(paymentReference.get());
 
         Response bounceChequeResponse = paymentTestService.postBounceCheque(
                 SERVICE_TOKEN_PAYMENT,
@@ -286,8 +385,6 @@ public class PaymentStatusFunctionalTest {
                         .statusCode(OK.value()).extract().as(PaymentFailureResponse.class);
 
         assertThat(paymentsFailureResponse.getPaymentFailureList().get(0).getPaymentFailureInitiated().getFailureReference()).isEqualTo(paymentStatusBouncedChequeDto.getFailureReference());
-
-        assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
         assertThat(bounceChequeResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
 
         // Ping 2
@@ -303,10 +400,153 @@ public class PaymentStatusFunctionalTest {
         assertEquals("Successful operation", ping2Response.getBody().prettyPrint());
 
         // delete payment record
-        paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
+        paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentReference.get()).then().statusCode(NO_CONTENT.value());
+
+        // delete Payment Failure record
+        paymentTestService.deleteFailedPayment(USER_TOKEN, SERVICE_TOKEN, paymentStatusBouncedChequeDto.getFailureReference()).then().statusCode(NO_CONTENT.value());
+    }
+
+    @Test
+    public void positive_paymentStatusSecond_card() {
+
+        // Create a Card payment
+        AtomicReference<String> paymentReference = new AtomicReference<>();
+        dsl.given().userToken(USER_TOKEN_CARD_PAYMENT)
+                .s2sToken(SERVICE_TOKEN)
+                .returnUrl("https://www.moneyclaims.service.gov.uk")
+                .when().createCardPayment(PaymentFixture.cardPaymentRequestAdoption("215.55", "ADOPTION"))
+                .then().created(savedPayment -> {
+            paymentReference.set(savedPayment.getReference());
+
+            assertNotNull(savedPayment.getReference());
+        });
+
+        // Ping 1 for Chargeback event
+        PaymentStatusChargebackDto paymentStatusChargebackDto
+                = PaymentFixture.chargebackRequest(paymentReference.get());
+
+        Response chargebackResponse = paymentTestService.postChargeback(
+                SERVICE_TOKEN_PAYMENT,
+                paymentStatusChargebackDto);
+
+        PaymentFailureResponse paymentsFailureResponse =
+                paymentTestService.getFailurePayment(USER_TOKEN_PAYMENT, SERVICE_TOKEN, paymentStatusChargebackDto.getPaymentReference()).then()
+                        .statusCode(OK.value()).extract().as(PaymentFailureResponse.class);
+
+        assertThat(paymentsFailureResponse.getPaymentFailureList().get(0).getPaymentFailureInitiated().getFailureReference()).isEqualTo(paymentStatusChargebackDto.getFailureReference());
+
+        assertThat(chargebackResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+
+        // Ping 2
+        PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
+                .representmentStatus(RepresentmentStatus.No)
+                .representmentDate("2022-10-10T10:10:10")
+                .build();
+        Response ping2Response = paymentTestService.paymentStatusSecond(
+                SERVICE_TOKEN_PAYMENT, paymentStatusChargebackDto.getFailureReference(),
+                paymentStatusUpdateSecond);
+
+        assertEquals(ping2Response.getStatusCode(), OK.value());
+        assertEquals("Successful operation", ping2Response.getBody().prettyPrint());
+
+        // delete payment record
+        paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentReference.get()).then().statusCode(NO_CONTENT.value());
 
         //delete Payment Failure record
-        paymentTestService.deleteFailedPayment(USER_TOKEN, SERVICE_TOKEN, paymentStatusBouncedChequeDto.getFailureReference()).then().statusCode(NO_CONTENT.value());
+        paymentTestService.deleteFailedPayment(USER_TOKEN, SERVICE_TOKEN, paymentStatusChargebackDto.getFailureReference()).then().statusCode(NO_CONTENT.value());
+
+    }
+
+    @Test
+    public void positive_paymentStatusSecond_telephony() {
+
+        // Create a Telephony payment
+        String ccdCaseNumber = "1111221233124412";
+        FeeDto feeDto = FeeDto.feeDtoWith()
+                .calculatedAmount(new BigDecimal("550.00"))
+                .ccdCaseNumber(ccdCaseNumber)
+                .version("4")
+                .code("FEE0002")
+                .description("Application for a third party debt order")
+                .build();
+
+        TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
+                .amount(new BigDecimal("550"))
+                .ccdCaseNumber(ccdCaseNumber)
+                .currency(CurrencyCode.GBP)
+                .caseType("DIVORCE")
+                .returnURL("https://www.moneyclaims.service.gov.uk")
+                .build();
+
+        PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
+                .fees(Arrays.asList(feeDto)).build();
+
+        AtomicReference<String> paymentReference = new AtomicReference<>();
+
+        dsl.given().userToken(USER_TOKEN)
+                .s2sToken(SERVICE_TOKEN)
+                .when().addNewFeeAndPaymentGroup(groupDto)
+                .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
+            assertThat(paymentGroupFeeDto).isNotNull();
+
+            String paymentGroupReference = paymentGroupFeeDto.getPaymentGroupReference();
+
+            dsl.given().userToken(USER_TOKEN)
+                    .s2sToken(SERVICE_TOKEN)
+                    .returnUrl("https://www.moneyclaims.service.gov.uk")
+                    .when().createTelephonyPayment(telephonyPaymentRequest, paymentGroupReference)
+                    .then().gotCreated(TelephonyCardPaymentsResponse.class, telephonyCardPaymentsResponse -> {
+                assertThat(telephonyCardPaymentsResponse).isNotNull();
+                assertThat(telephonyCardPaymentsResponse.getStatus()).isEqualTo("Initiated");
+                paymentReference.set(telephonyCardPaymentsResponse.getPaymentReference());
+            });
+            // pci-pal callback
+            TelephonyCallbackDto callbackDto = TelephonyCallbackDto.telephonyCallbackWith()
+                    .orderReference(paymentReference.get())
+                    .orderAmount("550")
+                    .transactionResult("SUCCESS")
+                    .build();
+
+            dsl.given().s2sToken(SERVICE_TOKEN)
+                    .when().telephonyCallback(callbackDto)
+                    .then().noContent();
+
+        });
+
+        // Ping 1 for Chargeback event
+        PaymentStatusChargebackDto paymentStatusChargebackDto
+                = PaymentFixture.chargebackRequest(paymentReference.get());
+
+        Response chargebackResponse = paymentTestService.postChargeback(
+                SERVICE_TOKEN_PAYMENT,
+                paymentStatusChargebackDto);
+
+        PaymentFailureResponse paymentsFailureResponse =
+                paymentTestService.getFailurePayment(USER_TOKEN_PAYMENT, SERVICE_TOKEN, paymentStatusChargebackDto.getPaymentReference()).then()
+                        .statusCode(OK.value()).extract().as(PaymentFailureResponse.class);
+
+        assertThat(paymentsFailureResponse.getPaymentFailureList().get(0).getPaymentFailureInitiated().getFailureReference()).isEqualTo(paymentStatusChargebackDto.getFailureReference());
+
+        assertThat(chargebackResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+
+        // Ping 2
+        PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
+                .representmentStatus(RepresentmentStatus.No)
+                .representmentDate("2022-10-10T10:10:10")
+                .build();
+        Response ping2Response = paymentTestService.paymentStatusSecond(
+                SERVICE_TOKEN_PAYMENT, paymentStatusChargebackDto.getFailureReference(),
+                paymentStatusUpdateSecond);
+
+        assertEquals(ping2Response.getStatusCode(), OK.value());
+        assertEquals("Successful operation", ping2Response.getBody().prettyPrint());
+
+        // delete payment record
+        paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentReference.get()).then().statusCode(NO_CONTENT.value());
+
+        //delete Payment Failure record
+        paymentTestService.deleteFailedPayment(USER_TOKEN, SERVICE_TOKEN, paymentStatusChargebackDto.getFailureReference()).then().statusCode(NO_CONTENT.value());
+
     }
 
     @Test
