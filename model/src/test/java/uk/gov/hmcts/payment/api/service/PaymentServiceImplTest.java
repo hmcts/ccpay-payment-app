@@ -109,6 +109,6 @@ public class PaymentServiceImplTest {
         List<Payment> paymentList = List.of(payment);
         when(paymentRepository.findByCcdCaseNumber(any())).thenReturn(Optional.of(paymentList));
         paymentService.updatePaymentsForCCDCaseNumberByCertainDays("ccdCaseNumber","5");
-        verify(paymentService).updatePaymentsForCCDCaseNumberByCertainDays(anyString());
+        verify(paymentService).updatePaymentsForCCDCaseNumberByCertainDays(anyString(), anyString());
     }
 }

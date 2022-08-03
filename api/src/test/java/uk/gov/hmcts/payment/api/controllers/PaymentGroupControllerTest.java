@@ -693,44 +693,44 @@ public class PaymentGroupControllerTest {
         assertThat(paymentGroupFeeDto.getFees().size()).isNotZero();
         assertThat(paymentGroupFeeDto.getFees().size()).isEqualTo(2);
 
-
-        BigDecimal amount = new BigDecimal("200");
-
-        TelephonyPaymentRequest telephonyPaymentRequest = TelephonyPaymentRequest.createTelephonyPaymentRequestDtoWith()
-            .amount(amount)
-            .currency(CurrencyCode.GBP)
-            .description("Test cross field validation")
-            .caseType("tax_exception")
-            .ccdCaseNumber("2154-2343-5634-2357")
-            .provider("pci pal")
-            .channel("telephony")
-            .build();
+        when(featureToggler.getBooleanValue("pci-pal-antenna-feature", false)).thenReturn(true);
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
-            .serviceCode("AA001")
-            .serviceDescription("Divorce")
-            .build();
+                .serviceCode("AAD7")
+                .serviceDescription("Divorce")
+                .build();
 
         when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenReturn(organisationalServiceDto);
 
         when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
-            .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
+                .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
 
-        when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
-            .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
+        when(pciPalPaymentService.getPaymentProviderAutorisationTokens()).thenReturn(getTelephonyProviderAuthorisationResponse());
 
+        when(pciPalPaymentService.getTelephonyProviderLink(any(PciPalPaymentRequest.class)
+                , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
+
+        BigDecimal amount = new BigDecimal("200");
+        TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
+                .caseType("tax_exception")
+                .amount(amount)
+                .ccdCaseNumber("2154234356342357")
+                .returnURL("https://www.moneyclaims.service.gov.uk")
+                .currency(CurrencyCode.GBP)
+                .build();
 
         MvcResult result3 = restActions
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", telephonyPaymentRequest)
-            .andExpect(status().isCreated())
-            .andReturn();
+                .withReturnUrl("https://www.moneyclaims.service.gov.uk")
+                .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyPaymentRequest)
+                .andExpect(status().isCreated())
+                .andReturn();
 
         PaymentDto paymentDtoResult = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentDto.class);
 
         MvcResult result4 = restActions
-            .get("/card-payments/" + paymentDtoResult.getReference())
-            .andExpect(status().isOk())
-            .andReturn();
+                .get("/card-payments/" + paymentDtoResult.getPaymentReference())
+                .andExpect(status().isOk())
+                .andReturn();
 
         PaymentDto paymentsResponse = objectMapper.readValue(result4.getResponse().getContentAsString(), PaymentDto.class);
 
@@ -746,45 +746,44 @@ public class PaymentGroupControllerTest {
     public void addNewPaymenttoExistingPaymentGroupWhenServiceTypeIsFinrem() throws Exception {
         PaymentGroupDto paymentGroupDto = addNewPaymentToExistingPaymentGroup();
 
+        when(featureToggler.getBooleanValue("pci-pal-antenna-feature", false)).thenReturn(true);
 
         BigDecimal amount = new BigDecimal("200");
+        TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
+                .caseType("FinancialRemedyContested")
+                .amount(amount)
+                .ccdCaseNumber("2154234356342357")
+                .returnURL("https://www.google.com")
+                .currency(CurrencyCode.GBP)
+                .build();
 
         when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
-            .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
+                .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
 
+        when(pciPalPaymentService.getPaymentProviderAutorisationTokens()).thenReturn(getTelephonyProviderAuthorisationResponse());
 
-        TelephonyPaymentRequest telephonyPaymentRequest = TelephonyPaymentRequest.createTelephonyPaymentRequestDtoWith()
-            .amount(amount)
-            .currency(CurrencyCode.GBP)
-            .description("Test cross field validation")
-            .caseType("FinancialRemedyContested")
-            .ccdCaseNumber("2154-2343-5634-2357")
-            .provider("pci pal")
-            .channel("telephony")
-            .build();
+        when(pciPalPaymentService.getTelephonyProviderLink(any(PciPalPaymentRequest.class)
+                , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
-            .serviceCode("AA001")
-            .serviceDescription("Financial Remedy")
-            .build();
-
-        when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
-            .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
+                .serviceCode("AA001")
+                .serviceDescription("Financial Remedy")
+                .build();
 
         when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenReturn(organisationalServiceDto);
 
         MvcResult result3 = restActions
-            .withReturnUrl("https://www.google.com")
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", telephonyPaymentRequest)
-            .andExpect(status().isCreated())
-            .andReturn();
+                .withReturnUrl("https://www.google.com")
+                .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyPaymentRequest)
+                .andExpect(status().isCreated())
+                .andReturn();
 
         PaymentDto paymentDtoResult = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentDto.class);
 
         MvcResult result4 = restActions
-            .get("/card-payments/" + paymentDtoResult.getReference())
-            .andExpect(status().isOk())
-            .andReturn();
+                .get("/card-payments/" + paymentDtoResult.getPaymentReference())
+                .andExpect(status().isOk())
+                .andReturn();
 
         PaymentDto paymentsResponse = objectMapper.readValue(result4.getResponse().getContentAsString(), PaymentDto.class);
 
@@ -832,45 +831,44 @@ public class PaymentGroupControllerTest {
     public void addNewPaymenttoExistingPaymentGroupWhenServiceTypeIsDivorce() throws Exception {
         PaymentGroupDto paymentGroupDto = addNewPaymentToExistingPaymentGroup();
 
+        when(featureToggler.getBooleanValue("pci-pal-antenna-feature", false)).thenReturn(true);
 
         BigDecimal amount = new BigDecimal("200");
+        TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
+                .caseType("tax_exception")
+                .amount(amount)
+                .ccdCaseNumber("2154234356342357")
+                .returnURL("https://www.google.com")
+                .currency(CurrencyCode.GBP)
+                .build();
 
-        TelephonyPaymentRequest telephonyPaymentRequest = TelephonyPaymentRequest.createTelephonyPaymentRequestDtoWith()
-            .amount(amount)
-            .currency(CurrencyCode.GBP)
-            .description("Test cross field validation")
-            .caseType("tax_exception")
-            .ccdCaseNumber("2154-2343-5634-2357")
-            .provider("pci pal")
-            .channel("telephony")
-            .build();
+        when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
+                .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
+
+        when(pciPalPaymentService.getPaymentProviderAutorisationTokens()).thenReturn(getTelephonyProviderAuthorisationResponse());
+
+        when(pciPalPaymentService.getTelephonyProviderLink(any(PciPalPaymentRequest.class)
+                , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
-            .serviceCode("AA001")
-            .serviceDescription("Divorce")
-            .build();
+                .serviceCode("AA001")
+                .serviceDescription("Divorce")
+                .build();
 
         when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenReturn(organisationalServiceDto);
 
-        when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
-            .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
-
-        when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
-            .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
-
-
         MvcResult result3 = restActions
-            .withReturnUrl("https://www.google.com")
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", telephonyPaymentRequest)
-            .andExpect(status().isCreated())
-            .andReturn();
+                .withReturnUrl("https://www.google.com")
+                .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyPaymentRequest)
+                .andExpect(status().isCreated())
+                .andReturn();
 
         PaymentDto paymentDtoResult = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentDto.class);
 
         MvcResult result4 = restActions
-            .get("/card-payments/" + paymentDtoResult.getReference())
-            .andExpect(status().isOk())
-            .andReturn();
+                .get("/card-payments/" + paymentDtoResult.getPaymentReference())
+                .andExpect(status().isOk())
+                .andReturn();
 
         PaymentDto paymentsResponse = objectMapper.readValue(result4.getResponse().getContentAsString(), PaymentDto.class);
 
@@ -884,46 +882,46 @@ public class PaymentGroupControllerTest {
 
     @Test
     public void addNewPaymenttoExistingPaymentGroupWhenServiceTypeIsProbate() throws Exception {
-        PaymentGroupDto paymentGroupDto = addNewPaymentToExistingPaymentGroup();
 
-        when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
-            .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
+        PaymentGroupDto paymentGroupDto = addNewPaymentToExistingPaymentGroup();
+        when(featureToggler.getBooleanValue("pci-pal-antenna-feature", false)).thenReturn(true);
 
         BigDecimal amount = new BigDecimal("200");
-
-        TelephonyPaymentRequest telephonyPaymentRequest = TelephonyPaymentRequest.createTelephonyPaymentRequestDtoWith()
-            .amount(amount)
-            .currency(CurrencyCode.GBP)
-            .description("Test cross field validation")
-            .caseType("PROBATE_ExceptionRecord")
-            .ccdCaseNumber("2154-2343-5634-2357")
-            .provider("pci pal")
-            .channel("telephony")
-            .build();
+        TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
+                .caseType("PROBATE_ExceptionRecord")
+                .amount(amount)
+                .ccdCaseNumber("2154234356342357")
+                .returnURL("https://www.google.com")
+                .currency(CurrencyCode.GBP)
+                .build();
 
         when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
-            .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
+                .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
 
+        when(pciPalPaymentService.getPaymentProviderAutorisationTokens()).thenReturn(getTelephonyProviderAuthorisationResponse());
+
+        when(pciPalPaymentService.getTelephonyProviderLink(any(PciPalPaymentRequest.class)
+                , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
-            .serviceCode("AA001")
-            .serviceDescription("Probate")
-            .build();
+                .serviceCode("AA001")
+                .serviceDescription("Probate")
+                .build();
 
         when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenReturn(organisationalServiceDto);
 
         MvcResult result3 = restActions
-            .withReturnUrl("https://www.google.com")
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", telephonyPaymentRequest)
-            .andExpect(status().isCreated())
-            .andReturn();
+                .withReturnUrl("https://www.google.com")
+                .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyPaymentRequest)
+                .andExpect(status().isCreated())
+                .andReturn();
 
         PaymentDto paymentDtoResult = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentDto.class);
 
         MvcResult result4 = restActions
-            .get("/card-payments/" + paymentDtoResult.getReference())
-            .andExpect(status().isOk())
-            .andReturn();
+                .get("/card-payments/" + paymentDtoResult.getPaymentReference())
+                .andExpect(status().isOk())
+                .andReturn();
 
         PaymentDto paymentsResponse = objectMapper.readValue(result4.getResponse().getContentAsString(), PaymentDto.class);
 
@@ -937,47 +935,47 @@ public class PaymentGroupControllerTest {
 
     @Test
     public void addNewPaymenttoExistingPaymentGroupWhenServiceTypeIsCMC() throws Exception {
+
         PaymentGroupDto paymentGroupDto = addNewPaymentToExistingPaymentGroup();
 
+        when(featureToggler.getBooleanValue("pci-pal-antenna-feature", false)).thenReturn(true);
 
         BigDecimal amount = new BigDecimal("200");
-
-        TelephonyPaymentRequest telephonyPaymentRequest = TelephonyPaymentRequest.createTelephonyPaymentRequestDtoWith()
-            .amount(amount)
-            .currency(CurrencyCode.GBP)
-            .description("Test cross field validation")
-            .caseType("tax_exception")
-            .ccdCaseNumber("2154-2343-5634-2357")
-            .provider("pci pal")
-            .channel("telephony")
-            .build();
+        TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
+                .caseType("tax_exception")
+                .amount(amount)
+                .ccdCaseNumber("2154234356342357")
+                .returnURL("https://www.google.com")
+                .currency(CurrencyCode.GBP)
+                .build();
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
-            .serviceCode("AA001")
-            .serviceDescription("Divorce")
-            .build();
+                .serviceCode("AA001")
+                .serviceDescription("Divorce")
+                .build();
 
         when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenReturn(organisationalServiceDto);
 
         when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
-            .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
+                .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
 
-        when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
-            .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
+        when(pciPalPaymentService.getPaymentProviderAutorisationTokens()).thenReturn(getTelephonyProviderAuthorisationResponse());
 
+        when(pciPalPaymentService.getTelephonyProviderLink(any(PciPalPaymentRequest.class)
+                , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         MvcResult result3 = restActions
-            .withReturnUrl("https://www.google.com")
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", telephonyPaymentRequest)
-            .andExpect(status().isCreated())
-            .andReturn();
+                .withReturnUrl("https://www.google.com")
+                .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyPaymentRequest)
+                .andExpect(status().isCreated())
+                .andReturn();
 
         PaymentDto paymentDtoResult = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentDto.class);
 
         MvcResult result4 = restActions
-            .get("/card-payments/" + paymentDtoResult.getReference())
-            .andExpect(status().isOk())
-            .andReturn();
+                .get("/card-payments/" + paymentDtoResult.getPaymentReference())
+                .andExpect(status().isOk())
+                .andReturn();
 
         PaymentDto paymentsResponse = objectMapper.readValue(result4.getResponse().getContentAsString(), PaymentDto.class);
 
@@ -987,52 +985,6 @@ public class PaymentGroupControllerTest {
         assertTrue(paymentsResponse.getReference().matches(PAYMENT_REFERENCE_REGEX));
         assertEquals(telephonyPaymentRequest.getAmount(), paymentsResponse.getAmount());
         assertEquals("Amount saved in remissionDbBackdoor is equal to the on inside the request", amount, paymentsResponse.getAmount());
-    }
-
-    @Test
-    public void addnewCardPaymentgroupWithCaseTypeShouldReturnSuccess() throws Exception {
-
-        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
-            .fees(Arrays.asList(getNewFee()))
-            .build();
-
-        when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
-            .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
-
-
-        MvcResult result = restActions
-            .post("/payment-groups", request)
-            .andExpect(status().isCreated())
-            .andReturn();
-
-        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
-
-        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
-            .serviceCode("AAD7")
-            .serviceDescription("Divorce")
-            .build();
-
-        when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenReturn(organisationalServiceDto);
-
-        when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
-            .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
-
-        BigDecimal amount = new BigDecimal("200");
-
-        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
-            .amount(amount)
-            .currency(CurrencyCode.GBP)
-            .description("Test cross field validation")
-            .caseType("tax_exception")
-            .ccdCaseNumber("2154-2343-5634-2357")
-            .provider("pci pal")
-            .channel("telephony")
-            .build();
-
-        restActions
-            .withReturnUrl("https://www.google.com")
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", cardPaymentRequest)
-            .andExpect(status().isCreated());
     }
 
     @Test
@@ -1181,86 +1133,6 @@ public class PaymentGroupControllerTest {
             .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyPaymentRequest)
             .andExpect(status().isGatewayTimeout())
             .andExpect(content().string("Test Error"));
-    }
-
-    @Test
-    public void cardPaymentShouldThrowNoServiceExceptionWithCaseType() throws Exception {
-
-        PaymentGroupDto paymentGroupDto = addNewPaymentToExistingPaymentGroup();
-
-        BigDecimal amount = new BigDecimal("200");
-
-        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
-            .amount(amount)
-            .currency(CurrencyCode.GBP)
-            .description("Test cross field validation")
-            .caseType("tax_exception")
-            .ccdCaseNumber("2154-2343-5634-2357")
-            .provider("pci pal")
-            .channel("telephony")
-            .build();
-
-        when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenThrow(new NoServiceFoundException("No Service found for given CaseType"));
-        restActions
-            .withReturnUrl("https://www.google.com")
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", cardPaymentRequest)
-            .andExpect(status().isNotFound())
-            .andExpect(content().string("No Service found for given CaseType"));
-    }
-
-    @Test
-    public void shouldThrowGatewayTimeOutExceptionWithCaseType() throws Exception {
-
-        PaymentGroupDto paymentGroupDto = addNewPaymentToExistingPaymentGroup();
-
-        BigDecimal amount = new BigDecimal("200");
-
-        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
-            .amount(amount)
-            .currency(CurrencyCode.GBP)
-            .description("Test cross field validation")
-            .caseType("tax_exception")
-            .ccdCaseNumber("2154-2343-5634-2357")
-            .provider("pci pal")
-            .channel("telephony")
-            .build();
-
-        when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenThrow(new GatewayTimeoutException("Unable to retrieve service information. Please try again later"));
-        restActions
-            .withReturnUrl("https://www.google.com")
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", cardPaymentRequest)
-            .andExpect(status().isGatewayTimeout())
-            .andExpect(content().string("Unable to retrieve service information. Please try again later"));
-    }
-
-
-    @Test
-    public void addNewPaymenttoExistingPaymentGroupTestWhenChannelAndProviderIsEmpty() throws Exception {
-        PaymentGroupDto paymentGroupDto = addNewPaymentToExistingPaymentGroup();
-
-        when(refundRemissionEnableService.returnRemissionEligible(any())).thenReturn(true);
-        BigDecimal amount = new BigDecimal("200");
-
-        TelephonyPaymentRequest telephonyPaymentRequest = TelephonyPaymentRequest.createTelephonyPaymentRequestDtoWith()
-            .amount(amount)
-            .currency(CurrencyCode.GBP)
-            .description("Test cross field validation")
-            .caseType("tax_exception")
-            .ccdCaseNumber("2154-2343-5634-2357")
-            .build();
-
-
-        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
-            .serviceCode("AA001")
-            .serviceDescription("Divorce")
-            .build();
-
-        when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenReturn(organisationalServiceDto);
-
-        MvcResult result3 = restActions
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", telephonyPaymentRequest)
-            .andExpect(status().isBadRequest())
-            .andReturn();
     }
 
     @Test
