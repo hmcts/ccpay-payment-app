@@ -12,6 +12,7 @@ import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentStatusResponseMapper;
 import uk.gov.hmcts.payment.api.exception.FailureReferenceNotFoundException;
 import uk.gov.hmcts.payment.api.exception.InvalidPaymentFailureRequestException;
+import uk.gov.hmcts.payment.api.exception.LiberataServiceInaccessibleException;
 import uk.gov.hmcts.payment.api.model.PaymentFailures;
 import uk.gov.hmcts.payment.api.service.PaymentStatusUpdateService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
@@ -97,6 +98,13 @@ public class PaymentStatusController {
     @GetMapping("/payment-failures/{paymentReference}")
     public PaymentFailureResponse retrievePaymentFailure(@PathVariable("paymentReference") String paymentReference) {
 
+        boolean psuLockFeature = featureToggler.getBooleanValue("payment-status-update-flag",false);
+        LOG.info("feature toggler enable for failure history : {}",psuLockFeature);
+
+        if(psuLockFeature){
+            throw new LiberataServiceInaccessibleException("service unavailable");
+        }
+
         List<PaymentFailureResponseDto> payments = paymentStatusUpdateService
             .searchPaymentFailure(paymentReference)
             .stream()
@@ -144,6 +152,12 @@ public class PaymentStatusController {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler({InvalidPaymentFailureRequestException.class})
     public String return400(Exception ex) {
+        return ex.getMessage();
+    }
+
+    @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
+    @ExceptionHandler({LiberataServiceInaccessibleException.class})
+    public String return503(Exception ex) {
         return ex.getMessage();
     }
 

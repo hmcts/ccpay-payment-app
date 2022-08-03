@@ -3,6 +3,7 @@ package uk.gov.hmcts.payment.api.unit;
 import com.microsoft.azure.servicebus.Message;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
@@ -31,6 +32,7 @@ public class TopicClientProxyTest {
 
         try{
             topicClientProxy.send(new Message("Hi!"));
+            Mockito.verify(topicClientProxy).send(new Message("Hi!"));
         }catch(Exception e) {
 
         }

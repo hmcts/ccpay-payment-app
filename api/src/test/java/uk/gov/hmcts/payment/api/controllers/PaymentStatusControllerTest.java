@@ -346,6 +346,21 @@ public class PaymentStatusControllerTest {
     }
 
     @Test
+    public void return503WhenPaymentFailureForGetLocked() throws Exception {
+
+        when(paymentFailureRepository.findByPaymentReferenceOrderByFailureEventDateTimeDesc(any())).thenReturn(Optional.empty());
+        when(featureToggler.getBooleanValue(eq("payment-status-update-flag"),anyBoolean())).thenReturn(true);
+        MvcResult result = restActions
+                .withAuthorizedUser(USER_ID)
+                .withUserId(USER_ID)
+                .get("/payment-failures/RC-1637-5072-9888-4233")
+                .andExpect(status().isServiceUnavailable())
+                .andReturn();
+        assertEquals(503,result.getResponse().getStatus());
+
+    }
+
+    @Test
     public void lockedPaymentStatusSecondShouldThrowServiceUnavailable() throws Exception {
         when(featureToggler.getBooleanValue(eq("payment-status-update-flag"), anyBoolean())).thenReturn(true);
         restActions
