@@ -33,7 +33,7 @@ public class CallbackServiceImpl implements CallbackService {
 
     @Autowired
     public CallbackServiceImpl(PaymentDtoMapper paymentDtoMapper, ObjectMapper objectMapper,
-                               TopicClientProxy topicClient, FF4j ff4j, @Lazy PaymentGroupDtoMapper paymentGroupDtoMapper) {
+                               TopicClientProxy topicClient, FF4j ff4j, @Lazy  PaymentGroupDtoMapper paymentGroupDtoMapper) {
         this.paymentDtoMapper = paymentDtoMapper;
         this.objectMapper = objectMapper;
         this.topicClient = topicClient;

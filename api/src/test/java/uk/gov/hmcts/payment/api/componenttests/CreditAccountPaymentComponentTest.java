@@ -40,11 +40,12 @@ public class CreditAccountPaymentComponentTest  {
             .paymentReference("2018-1234567890")
             .payments(payments).fees(fees).build();
 
-        paymentFeeLinkRepository.save(paymentFeeLink);
+        PaymentFeeLink result = paymentFeeLinkRepository.save(paymentFeeLink);
+        assertEquals(paymentFeeLink.getPaymentReference(),result.getPaymentReference());
     }
 
     @Ignore
-    @Test 
+    @Test
     public void retrieveCreditAccountPayment_byPaymentGroupReferenceTest() throws Exception {
         List<PaymentFee> fees = Arrays.asList(getFee());
         List<Payment> payments = new ArrayList<>(3);

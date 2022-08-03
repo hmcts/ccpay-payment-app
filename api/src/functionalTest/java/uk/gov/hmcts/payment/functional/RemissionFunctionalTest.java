@@ -8,9 +8,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
-import uk.gov.hmcts.payment.api.contract.FeeDto;
-import uk.gov.hmcts.payment.api.contract.TelephonyPaymentRequest;
+import org.springframework.test.context.junit4.SpringRunner;
+import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.RemissionDto;
@@ -74,26 +73,15 @@ public class RemissionFunctionalTest {
     @Test
     public void createRetrospectiveRemissionAndRetrieveRemissionByPaymentGroupTest() throws Exception {
 
-        TelephonyPaymentRequest telephonyPaymentRequest = TelephonyPaymentRequest.createTelephonyPaymentRequestDtoWith()
+        TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
             .amount(new BigDecimal("99.99"))
-            .description("telephonyPayment")
-            .caseReference("caseRef")
-            .ccdCaseNumber("1234")
+            .ccdCaseNumber("1234567890123456")
             .currency(CurrencyCode.GBP)
-            .provider("pci pal")
-            .channel("telephony")
             .caseType("LegacySearch")
-            .fees(Collections.singletonList(FeeDto.feeDtoWith()
-                .code("feeCode")
-                .version("1")
-                .calculatedAmount(new BigDecimal("100.1"))
-                .feeAmount(new BigDecimal("100.1"))
-                .build()))
-            .channel("telephony")
-            .provider("pci pal")
+            .returnURL("https://www.moneyclaims.service.gov.uk")
             .build();
 
-        // TEST create telephony card payment
+        // TEST create telephony card payment8
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .when().addNewFeeAndPaymentGroup(getPaymentFeeGroupRequest())
@@ -109,14 +97,14 @@ public class RemissionFunctionalTest {
             dsl.given().userToken(USER_TOKEN)
                 .s2sToken(SERVICE_TOKEN)
                 .returnUrl("https://www.moneyclaims.service.gov.uk")
-                .when().createTelephonyCardPayment(telephonyPaymentRequest, paymentGroupReference)
-                .then().created(paymentDto -> {
-                assertTrue(paymentDto.getReference().matches(PAYMENT_REFERENCE_REGEX));
-                assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
+                .when().createTelephonyPayment(telephonyPaymentRequest, paymentGroupReference)
+                .then().gotCreated(TelephonyCardPaymentsResponse.class, telephonyCardPaymentsResponse -> {
+                assertTrue(telephonyCardPaymentsResponse.getPaymentReference().matches(PAYMENT_REFERENCE_REGEX));
+                assertEquals("payment status is properly set", "Initiated", telephonyCardPaymentsResponse.getStatus());
                 String[] schemes = {"https"};
                 UrlValidator urlValidator = new UrlValidator(schemes);
-                assertNotNull(paymentDto.getLinks().getNextUrl());
-                assertTrue(urlValidator.isValid(paymentDto.getLinks().getNextUrl().getHref()));
+                assertNotNull(telephonyCardPaymentsResponse.getLinks().getNextUrl());
+                assertTrue(urlValidator.isValid(telephonyCardPaymentsResponse.getLinks().getNextUrl().getHref()));
             });
 
             // TEST create retrospective remission
