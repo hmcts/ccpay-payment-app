@@ -55,21 +55,6 @@ public class PaymentDtoMapper {
             .build();
     }
 
-    public PaymentDto toCardPaymentDto(Payment payment, String paymentGroupReference) {
-
-        return PaymentDto.payment2DtoWith()
-            .status(PayStatusToPayHubStatus.valueOf(payment.getStatus().toLowerCase()).getMappedStatus())
-            .reference(payment.getReference())
-            .paymentGroupReference(paymentGroupReference)
-            .dateCreated(payment.getDateCreated())
-            .externalReference(payment.getExternalReference())
-            .links(new PaymentDto.LinksDto(
-                payment.getNextUrl() == null ? null : new PaymentDto.LinkDto(payment.getNextUrl(), "GET"),
-                null, null
-            ))
-            .build();
-    }
-
     public PaymentDto toBulkScanPaymentDto(Payment payment, String paymentGroupReference) {
 
         return PaymentDto.payment2DtoWith()
@@ -110,17 +95,6 @@ public class PaymentDtoMapper {
             .reference(payment.getReference())
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
             .fees(paymentFeeLink.getFees() != null ? toFeeDtos(paymentFeeLink.getFees()) : null)
-            .dateCreated(payment.getDateCreated())
-            .links(new PaymentDto.LinksDto(new PaymentDto.LinkDto(link, "GET"), null, null))
-            .build();
-    }
-
-    public PaymentDto toPciPalCardPaymentDto(PaymentFeeLink paymentFeeLink, Payment payment, String link) {
-        return PaymentDto.payment2DtoWith()
-            .status(PayStatusToPayHubStatus.valueOf(payment.getStatus().toLowerCase()).getMappedStatus())
-            .reference(payment.getReference())
-            .paymentGroupReference(paymentFeeLink.getPaymentReference())
-            .fees(toFeeDtos(paymentFeeLink.getFees()))
             .dateCreated(payment.getDateCreated())
             .links(new PaymentDto.LinksDto(new PaymentDto.LinkDto(link, "GET"), null, null))
             .build();
