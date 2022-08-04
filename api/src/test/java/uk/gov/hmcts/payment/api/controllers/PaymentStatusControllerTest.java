@@ -346,11 +346,26 @@ public class PaymentStatusControllerTest {
     }
 
     @Test
+    public void return503WhenPaymentFailureForGetLocked() throws Exception {
+
+        when(paymentFailureRepository.findByPaymentReferenceOrderByFailureEventDateTimeDesc(any())).thenReturn(Optional.empty());
+        when(featureToggler.getBooleanValue(eq("payment-status-update-flag"),anyBoolean())).thenReturn(true);
+        MvcResult result = restActions
+                .withAuthorizedUser(USER_ID)
+                .withUserId(USER_ID)
+                .get("/payment-failures/RC-1637-5072-9888-4233")
+                .andExpect(status().isServiceUnavailable())
+                .andReturn();
+        assertEquals(503,result.getResponse().getStatus());
+
+    }
+
+    @Test
     public void lockedPaymentStatusSecondShouldThrowServiceUnavailable() throws Exception {
         when(featureToggler.getBooleanValue(eq("payment-status-update-flag"), anyBoolean())).thenReturn(true);
         restActions
                 .patch("/payment-failures/failureReference", PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
-                        .representmentStatus(RepresentmentStatus.NO)
+                        .representmentStatus(RepresentmentStatus.No)
                         .representmentDate("2022-10-10T10:10:10")
                         .build())
                 .andExpect(status().isServiceUnavailable())
@@ -387,7 +402,7 @@ public class PaymentStatusControllerTest {
     @Test
     public void givenNoPaymentFailureWhenPaymentStatusSecondThenPaymentNotFoundException() throws Exception {
         PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
-                .representmentStatus(RepresentmentStatus.YES)
+                .representmentStatus(RepresentmentStatus.Yes)
                 .representmentDate("2022-10-10T10:10:10")
                 .build();
         when(paymentFailureRepository.findByFailureReference(any())).thenReturn(Optional.empty());
@@ -404,7 +419,7 @@ public class PaymentStatusControllerTest {
     @Test
     public void givenPaymentFailureWhenPaymentStatusSecondThenSuccess() throws Exception {
         PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
-                .representmentStatus(RepresentmentStatus.YES)
+                .representmentStatus(RepresentmentStatus.Yes)
                 .representmentDate("2022-10-10T10:10:10")
                 .build();
         when(paymentFailureRepository.findByFailureReference(any())).thenReturn(Optional.of(getPaymentFailures()));

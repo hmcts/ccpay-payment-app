@@ -208,7 +208,7 @@ public class PaymentStatusUpdateServiceImplTest {
     public void givenValidInputWhenUpdatePaymentFailureThenValidOutput() {
         PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
                 .representmentDate("2021-10-10T10:10:10")
-                .representmentStatus(RepresentmentStatus.YES)
+                .representmentStatus(RepresentmentStatus.Yes)
                 .build();
 
         PaymentFailures paymentFailure = PaymentFailures.paymentFailuresWith()

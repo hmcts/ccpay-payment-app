@@ -61,7 +61,7 @@ public class CallbackServiceTest {
 
     @Test
     //Enable and config on application-componenttest.properties for end to end testing
-    public void testCallbackService() {
+    public void testCallbackService() throws ServiceBusException, InterruptedException {
 
         Payment payment = CardPaymentComponentTest.getPaymentsData().get(2);
         payment.setServiceCallbackUrl(serviceCallbackUrl);
@@ -72,7 +72,7 @@ public class CallbackServiceTest {
             .build();
 
         callbackService.callback(paymentFeeLink, paymentFeeLink.getPayments().get(0));
-
+        Mockito.verify(topicClient).send(any());
         ff4j.disable(CallbackService.FEATURE);
 
     }
