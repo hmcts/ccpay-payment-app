@@ -319,57 +319,55 @@ public class PaymentStatusFunctionalTest {
 
         // Create a Bulk scan payment
         String ccdCaseNumber = "1111221233124419";
-        FeeDto feeDto = FeeDto.feeDtoWith()
-                .calculatedAmount(new BigDecimal("550.00"))
+        String dcn = "34569087234591";
+
+        BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
+                .amount(new BigDecimal("100.00"))
+                .service("DIVORCE")
+                .siteId("AA01")
+                .currency(CurrencyCode.GBP)
+                .documentControlNumber(dcn)
                 .ccdCaseNumber(ccdCaseNumber)
-                .version("4")
-                .code("FEE0002")
-                .description("Application for a third party debt order")
+                .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
+                .payerName("CCD User1")
+                .bankedDate(DateTime.now().toString())
+                .paymentMethod(PaymentMethodType.CHEQUE)
+                .paymentStatus(PaymentStatus.SUCCESS)
+                .giroSlipNo("GH716376")
                 .build();
 
-        TelephonyCardPaymentsRequest telephonyPaymentRequest =
-                TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
-                        .amount(new BigDecimal("550"))
+        PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
+                .fees(Collections.singletonList(FeeDto.feeDtoWith()
+                        .calculatedAmount(new BigDecimal("450.00"))
+                        .code("FEE3132")
+                        .version("1")
+                        .reference("testRef1")
+                        .volume(2)
                         .ccdCaseNumber(ccdCaseNumber)
-                        .currency(CurrencyCode.GBP)
-                        .caseType("DIVORCE")
-                        .returnURL("https://www.moneyclaims.service.gov.uk")
-                        .build();
-
-        PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
-                .fees(Arrays.asList(feeDto)).build();
+                        .build())).build();
 
         AtomicReference<String> paymentReference = new AtomicReference<>();
 
         dsl.given().userToken(USER_TOKEN)
                 .s2sToken(SERVICE_TOKEN)
-                .when().addNewFeeAndPaymentGroup(groupDto)
+                .when().addNewFeeAndPaymentGroup(paymentGroupDto)
                 .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
             assertThat(paymentGroupFeeDto).isNotNull();
-
-            String paymentGroupReference = paymentGroupFeeDto.getPaymentGroupReference();
+            assertThat(paymentGroupFeeDto.getPaymentGroupReference()).isNotNull();
+            assertThat(paymentGroupFeeDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(paymentGroupDto);
 
             dsl.given().userToken(USER_TOKEN)
                     .s2sToken(SERVICE_TOKEN)
-                    .returnUrl("https://www.moneyclaims.service.gov.uk")
-                    .when().createTelephonyPayment(telephonyPaymentRequest, paymentGroupReference)
-                    .then().gotCreated(TelephonyCardPaymentsResponse.class, telephonyCardPaymentsResponse -> {
-                assertThat(telephonyCardPaymentsResponse).isNotNull();
-                assertThat(telephonyCardPaymentsResponse.getPaymentReference().matches(PAYMENT_REFERENCE_REGEX))
-                        .isTrue();
-                assertThat(telephonyCardPaymentsResponse.getStatus()).isEqualTo("Initiated");
-                paymentReference.set(telephonyCardPaymentsResponse.getPaymentReference());
-            });
-            // pci-pal callback
-            TelephonyCallbackDto callbackDto = TelephonyCallbackDto.telephonyCallbackWith()
-                    .orderReference(paymentReference.get())
-                    .orderAmount("550")
-                    .transactionResult("SUCCESS")
-                    .build();
+                    .when().createBulkScanPayment(bulkScanPaymentRequest, paymentGroupFeeDto.getPaymentGroupReference())
+                    .then().gotCreated(PaymentDto.class, paymentDto -> {
+                assertThat(paymentDto.getReference()).isNotNull();
+                assertThat(paymentDto.getStatus()).isEqualToIgnoringCase("success");
+                assertThat(paymentDto.getPaymentGroupReference()).isEqualTo(paymentGroupFeeDto.getPaymentGroupReference());
 
-            dsl.given().s2sToken(SERVICE_TOKEN)
-                    .when().telephonyCallback(callbackDto)
-                    .then().noContent();
+                paymentReference.set(paymentDto.getReference());
+
+            });
+
         });
 
         // Ping 1 for Bounced Cheque event
@@ -563,6 +561,21 @@ public class PaymentStatusFunctionalTest {
 
         assertEquals(ping2Response.getStatusCode(), NOT_FOUND.value());
         assertEquals("No Payment Failure available for the given Failure reference", ping2Response.getBody().prettyPrint());
+    }
+
+    @Test
+    public void negative_return500_paymentStatusSecond_when_invalid_format() {
+
+        // Ping 2
+        PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
+                .representmentStatus(RepresentmentStatus.Yes)
+                .representmentDate("2022-10-1010:10:10")
+                .build();
+        Response ping2Response = paymentTestService.paymentStatusSecond(
+                SERVICE_TOKEN_PAYMENT, "abcdefgh",
+                paymentStatusUpdateSecond);
+
+        assertEquals(ping2Response.getStatusCode(), INTERNAL_SERVER_ERROR.value());
     }
 
     @Test
