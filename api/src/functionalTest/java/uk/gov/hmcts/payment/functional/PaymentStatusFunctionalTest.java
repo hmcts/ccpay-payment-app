@@ -564,18 +564,18 @@ public class PaymentStatusFunctionalTest {
     }
 
     @Test
-    public void negative_return500_paymentStatusSecond_when_invalid_format() {
+    public void negative_return400_paymentStatusSecond_when_invalid_format() {
 
         // Ping 2
         PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
-                .representmentStatus(RepresentmentStatus.Yes)
-                .representmentDate("2022-10-1010:10:10")
+                .representmentStatus(null)
+                .representmentDate(null)
                 .build();
         Response ping2Response = paymentTestService.paymentStatusSecond(
-                SERVICE_TOKEN_PAYMENT, "abcdefgh",
+                SERVICE_TOKEN_PAYMENT, "string",
                 paymentStatusUpdateSecond);
 
-        assertEquals(ping2Response.getStatusCode(), INTERNAL_SERVER_ERROR.value());
+        assertEquals(BAD_REQUEST.value(), ping2Response.getStatusCode());
     }
 
     @Test
