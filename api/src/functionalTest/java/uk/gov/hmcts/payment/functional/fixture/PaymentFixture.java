@@ -9,9 +9,12 @@ import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
 import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
+import uk.gov.hmcts.payment.api.dto.PaymentStatusBouncedChequeDto;
+import uk.gov.hmcts.payment.api.dto.PaymentStatusChargebackDto;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 
 import java.math.BigDecimal;
+import java.sql.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
@@ -423,5 +426,65 @@ public class PaymentFixture {
             .refundRequestWith().paymentReference(paymentReference)
             .refundReason(refundReason).build();
 
+    }
+
+    public static PaymentStatusBouncedChequeDto bouncedChequeRequest(String paymentReference){
+        String ccdCaseNumber = "1111-CC13-" + RandomUtils.nextInt();
+        String failureReference = "FR-111-CC13-" + RandomUtils.nextInt();
+        Date date = new Date(System.currentTimeMillis());
+        return PaymentStatusBouncedChequeDto.paymentStatusBouncedChequeRequestWith()
+            .reason("RR001")
+            .paymentReference(paymentReference)
+            .eventDateTime(date.toString())
+            .additionalReference("AR1234556")
+            .amount(new BigDecimal(50.00))
+            .failureReference(failureReference)
+            .ccdCaseNumber(ccdCaseNumber)
+            .build();
+    }
+
+    public static PaymentStatusChargebackDto chargebackRequest(String paymentReference){
+        String ccdCaseNumber = "1111-CC13-" + RandomUtils.nextInt();
+        String failureReference = "FR-111-CC13-" + RandomUtils.nextInt();
+        Date date = new Date(System.currentTimeMillis());
+        return PaymentStatusChargebackDto.paymentStatusChargebackRequestWith()
+            .reason("RR001")
+            .paymentReference(paymentReference)
+            .eventDateTime(date.toString())
+            .additionalReference("AR1234556")
+            .amount(new BigDecimal(50.00))
+            .failureReference(failureReference)
+            .ccdCaseNumber(ccdCaseNumber)
+            .hasAmountDebited("yes")
+            .build();
+    }
+
+    public static PaymentStatusBouncedChequeDto bouncedChequeRequestForFailureRef(String paymentReference, String failureReference){
+        String ccdCaseNumber = "1111-CC13-" + RandomUtils.nextInt();
+        Date date = new Date(System.currentTimeMillis());
+        return PaymentStatusBouncedChequeDto.paymentStatusBouncedChequeRequestWith()
+            .reason("RR001")
+            .paymentReference(paymentReference)
+            .eventDateTime(date.toString())
+            .additionalReference("AR1234556")
+            .amount(new BigDecimal(50))
+            .failureReference(failureReference)
+            .ccdCaseNumber(ccdCaseNumber)
+            .build();
+    }
+
+    public static PaymentStatusChargebackDto chargebackRequestForFailureRef(String paymentReference, String failureReference){
+        String ccdCaseNumber = "1111-CC13-" + RandomUtils.nextInt();
+        Date date = new Date(System.currentTimeMillis());
+        return PaymentStatusChargebackDto.paymentStatusChargebackRequestWith()
+            .reason("RR001")
+            .paymentReference(paymentReference)
+            .eventDateTime(date.toString())
+            .additionalReference("AR1234556")
+            .amount(new BigDecimal(50))
+            .failureReference(failureReference)
+            .ccdCaseNumber(ccdCaseNumber)
+            .hasAmountDebited("yes")
+            .build();
     }
 }

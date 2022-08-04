@@ -49,7 +49,3 @@ spring:
         pci-pal-antenna-divorce-flow-id: pci-pal.antenna.divorce.flow.id
         pci-pal-antenna-financial-remedy-flow-id: pci-pal.antenna.financial.remedy.flow.id
         spring-mail-password: spring.mail.password
-        ccpay-cpo-client-id: idam.serviceAccount.clientId
-        ccpay-cpo-client-secret: idam.serviceAccount.clientSecret
-        ccpay-cpo-user-password: idam.serviceAccount.password
-        ccpay-cpo-user-id: idam.serviceAccount.username

@@ -416,7 +416,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     @Override
 
     public void deadLetterProcess(IMessageReceiver subscriptionClient) throws ServiceBusException, InterruptedException, IOException {
-        
+
         int receivedMessages =0;
         TopicClientProxy topicClientCPO = topicClientService.getTopicClientProxy();
         LOG.info("topicClientCPO : " + topicClientCPO );
@@ -436,7 +436,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
                     Message msg = new Message(objectMapper1.writeValueAsString(deadLetterDto));
                     msg.setContentType(MSGCONTENTTYPE);
                     LOG.info("Message to be sent back to Topic from DLQ {}", msg.getBody());
-                    topicClientCPO.send(msg);                    
+                    topicClientCPO.send(msg);
                 }
                 receivedMessages++;
             }
