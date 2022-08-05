@@ -761,6 +761,7 @@ public class RefundsRequestorJourneyFunctionalTest {
 
     }
 
+    @Ignore
     @Test
     public void issue_add_remission_and_add_refund_for_a_failed_payment() {
         // Create a PBA payment
@@ -812,6 +813,7 @@ public class RefundsRequestorJourneyFunctionalTest {
 
     }
 
+    @Ignore
     @Test
     public void issue_refunds_for_a_failed_payment() {
 
