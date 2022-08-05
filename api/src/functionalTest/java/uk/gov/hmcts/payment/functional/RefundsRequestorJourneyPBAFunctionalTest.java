@@ -1451,6 +1451,9 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         accountPaymentRequest.setAccountNumber(accountNumber);
         PaymentDto paymentDto = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
+        String ccdCaseNumber = accountPaymentRequest.getCcdCaseNumber();
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
+            ccdCaseNumber, "5");
         Response casePaymentGroupResponse
             = cardTestService
             .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN_PAYMENT, accountPaymentRequest.getCcdCaseNumber());
@@ -1467,6 +1470,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         String remissionReference = response.getBody().jsonPath().getString("remission_reference");
         RetrospectiveRemissionRequest retrospectiveRemissionRequest
             = PaymentFixture.aRetroRemissionRequest(remissionReference);
+
         Response refundResponse = paymentTestService.postSubmitRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT, retrospectiveRemissionRequest);
         assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
