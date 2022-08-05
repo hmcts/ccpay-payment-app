@@ -106,6 +106,9 @@ public class PaymentStatusFunctionalTest {
         PaymentDto paymentDto = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
 
+        String ccdCaseNumber = accountPaymentRequest.getCcdCaseNumber();
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
+            ccdCaseNumber, "5");
         PaymentRefundRequest paymentRefundRequest
             = PaymentFixture.aRefundRequest("RR001", paymentDto.getReference(), "50", "40");
         Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
@@ -168,13 +171,6 @@ public class PaymentStatusFunctionalTest {
         accountPaymentRequest.setAccountNumber(accountNumber);
         PaymentDto paymentDto = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
-
-        PaymentRefundRequest paymentRefundRequest
-            = PaymentFixture.aRefundRequest("RR001", paymentDto.getReference(), "50", "40");
-        Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
-            SERVICE_TOKEN_PAYMENT,
-            paymentRefundRequest);
-        assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
         PaymentStatusChargebackDto paymentStatusChargebackDto
             = PaymentFixture.chargebackRequest(paymentDto.getReference());
 
@@ -203,7 +199,9 @@ public class PaymentStatusFunctionalTest {
         accountPaymentRequest.setAccountNumber(accountNumber);
         PaymentDto paymentDto = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
-
+        String ccdCaseNumber = accountPaymentRequest.getCcdCaseNumber();
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
+            ccdCaseNumber, "5");
         PaymentRefundRequest paymentRefundRequest
             = PaymentFixture.aRefundRequest("RR001", paymentDto.getReference(), "50", "50");
         Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
@@ -270,7 +268,9 @@ public class PaymentStatusFunctionalTest {
         accountPaymentRequest.setAccountNumber(accountNumber);
         PaymentDto paymentDto = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
                 .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
-
+        String ccdCaseNumber = accountPaymentRequest.getCcdCaseNumber();
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
+            ccdCaseNumber, "5");
         // Create a Refund on same payment
         PaymentRefundRequest paymentRefundRequest
                 = PaymentFixture.aRefundRequest("RR001", paymentDto.getReference(), "50", "45");
