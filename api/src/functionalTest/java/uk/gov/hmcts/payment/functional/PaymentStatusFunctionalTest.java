@@ -5,7 +5,6 @@ import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.apache.commons.lang3.RandomUtils;
 import org.joda.time.DateTime;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -108,7 +107,7 @@ public class PaymentStatusFunctionalTest {
             .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
 
         PaymentRefundRequest paymentRefundRequest
-            = PaymentFixture.aRefundRequest("RR001", paymentDto.getReference());
+            = PaymentFixture.aRefundRequest("RR001", paymentDto.getReference(), "100", "450");
         Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentRefundRequest);
@@ -171,7 +170,7 @@ public class PaymentStatusFunctionalTest {
             .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
 
         PaymentRefundRequest paymentRefundRequest
-            = PaymentFixture.aRefundRequest("RR001", paymentDto.getReference());
+            = PaymentFixture.aRefundRequest("RR001", paymentDto.getReference(), "100", "450");
         Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentRefundRequest);
@@ -206,7 +205,7 @@ public class PaymentStatusFunctionalTest {
             .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
 
         PaymentRefundRequest paymentRefundRequest
-            = PaymentFixture.aRefundRequest("RR001", paymentDto.getReference());
+            = PaymentFixture.aRefundRequest("RR001", paymentDto.getReference(), "100", "450");
         Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentRefundRequest);
@@ -274,7 +273,7 @@ public class PaymentStatusFunctionalTest {
 
         // Create a Refund on same payment
         PaymentRefundRequest paymentRefundRequest
-                = PaymentFixture.aRefundRequest("RR001", paymentDto.getReference());
+                = PaymentFixture.aRefundRequest("RR001", paymentDto.getReference(), "100", "450");
         Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
                 SERVICE_TOKEN_PAYMENT,
                 paymentRefundRequest);
