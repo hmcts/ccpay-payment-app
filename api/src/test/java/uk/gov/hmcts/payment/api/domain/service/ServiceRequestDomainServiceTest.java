@@ -31,6 +31,7 @@ import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.mapper.PBAStatusErrorMapper;
 import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.service.*;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentGroupNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoAmountDue;
@@ -44,6 +45,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
@@ -154,8 +156,10 @@ public class ServiceRequestDomainServiceTest {
                     build();
 
 
-        serviceRequestDomainService.businessValidationForServiceRequests(getPaymentFeeLink(),serviceRequestPaymentDto);
+        PaymentFeeLink paymentFeeLink = serviceRequestDomainService
+                .businessValidationForServiceRequests(getPaymentFeeLink(), serviceRequestPaymentDto);
 
+        assertNotNull(paymentFeeLink);
     }
 
      @Test
@@ -281,8 +285,10 @@ public class ServiceRequestDomainServiceTest {
          paymentGroupDto.setServiceRequestStatus("Paid");
          when(paymentGroupDtoMapper.toPaymentGroupDto(any())).thenReturn(paymentGroupDto);
 
-         serviceRequestDomainService.addPayments(getPaymentFeeLink(),"123",serviceRequestPaymentDto);
+         ServiceRequestPaymentBo bo =
+                 serviceRequestDomainService.addPayments(getPaymentFeeLink(), "123", serviceRequestPaymentDto);
 
+         assertNotNull(bo);
      }
 
     @Test
@@ -319,8 +325,9 @@ public class ServiceRequestDomainServiceTest {
 
         when(featureToggler.getBooleanValue(any(),any())).thenReturn(true);
 
-        serviceRequestDomainService.create(onlineCardPaymentRequest,"","","");
+        OnlineCardPaymentResponse onlineCardPaymentResponse = serviceRequestDomainService.create(onlineCardPaymentRequest,"","","");
 
+        assertNotNull(onlineCardPaymentResponse);
     }
 
 

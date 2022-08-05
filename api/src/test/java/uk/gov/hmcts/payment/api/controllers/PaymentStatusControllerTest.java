@@ -347,9 +347,8 @@ public class PaymentStatusControllerTest {
     }
 
     @Test
-    public void return503WhenPaymentFailureForGetLocked() throws Exception {
+    public void lockedGetFailuresShouldThrowServiceUnavailable() throws Exception {
 
-        when(paymentFailureRepository.findByPaymentReferenceOrderByFailureEventDateTimeDesc(any())).thenReturn(Optional.empty());
         when(featureToggler.getBooleanValue(eq("payment-status-update-flag"),anyBoolean())).thenReturn(true);
         MvcResult result = restActions
                 .withAuthorizedUser(USER_ID)
@@ -368,6 +367,21 @@ public class PaymentStatusControllerTest {
                 .patch("/payment-failures/failureReference", PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
                         .representmentStatus(RepresentmentStatus.No)
                         .representmentDate("2022-10-10T10:10:10")
+                        .build())
+                .andExpect(status().isServiceUnavailable())
+                .andReturn();
+    }
+
+    @Test
+    public void lockedUnprocessedPaymentShouldThrowServiceUnavailable() throws Exception {
+        when(featureToggler.getBooleanValue(eq("payment-status-update-flag"), anyBoolean())).thenReturn(true);
+        restActions
+                .post("/payment-failures/unprocessed-payment", UnprocessedPayment.unprocessedPayment()
+                        .amount(BigDecimal.valueOf(999))
+                        .failureReference("FR9999")
+                        .eventDateTime("2022-10-10T10:10:10")
+                        .reason("RR001")
+                        .dcn("9999")
                         .build())
                 .andExpect(status().isServiceUnavailable())
                 .andReturn();
@@ -430,7 +444,27 @@ public class PaymentStatusControllerTest {
                 .andReturn();
 
         String message = result.getResponse().getContentAsString();
-        assertEquals("Successful operation", message);
+        assertEquals("successful operation", message);
+    }
+
+    @Test
+    public void givenPaymentFailureWhenUnprocessedPaymentThenSuccess() throws Exception {
+        UnprocessedPayment unprocessedPayment = UnprocessedPayment.unprocessedPayment()
+                .amount(BigDecimal.valueOf(888))
+                .failureReference("FR8888")
+                .eventDateTime("2022-10-10T10:10:10")
+                .reason("RR001")
+                .dcn("88")
+                .poBoxNumber("8")
+                .build();
+        when(paymentFailureRepository.findByFailureReference(any())).thenReturn(Optional.of(getPaymentFailures()));
+        MvcResult result = restActions
+                .patch("/payment-failures/unprocessed-payment", unprocessedPayment)
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String message = result.getResponse().getContentAsString();
+        assertEquals("successful operation", message);
     }
 
     private PaymentStatusBouncedChequeDto getPaymentStatusBouncedChequeDto() {
