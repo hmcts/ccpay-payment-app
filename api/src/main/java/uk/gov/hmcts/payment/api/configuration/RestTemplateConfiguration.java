@@ -51,5 +51,9 @@ public class RestTemplateConfiguration {
     public RestTemplate restTemplateRefData() {
         return  new RestTemplate(new HttpComponentsClientHttpRequestFactory());
     }
+    @Bean("restTemplateRefundCancel")
+    public RestTemplate restTemplateRefundCancel() {
+        return  new RestTemplate(new HttpComponentsClientHttpRequestFactory());
+    }
 
 }

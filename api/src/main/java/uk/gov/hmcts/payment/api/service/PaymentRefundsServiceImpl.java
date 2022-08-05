@@ -80,6 +80,9 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
     private RefundEligibilityUtil refundEligibilityUtil;
 
 
+    @Autowired
+    PaymentFailureRepository paymentFailureRepository;
+
     public ResponseEntity<RefundResponse> createRefund(PaymentRefundRequest paymentRefundRequest, MultiValueMap<String, String> headers) {
 
         validateContactDetails(paymentRefundRequest.getContactDetails());
@@ -210,9 +213,6 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             }
         return new ResponseEntity<>(null, HttpStatus.OK);
     }
-
-
-
     private RefundListDtoResponse getRefundsFromRefundService(String ccdCaseNumber, MultiValueMap<String, String> headers) {
 
 
@@ -290,6 +290,16 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
     private void validateThePaymentBeforeInitiatingRefund(Payment payment,MultiValueMap<String, String> headers) {
 
+        Optional<List<PaymentFailures>> paymentFailuresList;
+        paymentFailuresList = paymentFailureRepository.findByPaymentReference(payment.getReference());
+
+        if(paymentFailuresList.isPresent()){
+            boolean match = paymentFailuresList.get().stream().anyMatch(paymentFailuresList1 -> paymentFailuresList1.getRepresentmentSuccess() == null || paymentFailuresList1.getRepresentmentSuccess().equalsIgnoreCase("no"));
+            if(match) {
+                throw new PaymentNotSuccessException("Refund can't be requested for failed payment");
+            }
+        }
+
         //payment success check
         if (!paymentSuccessCheck.test(payment)) {
             throw new PaymentNotSuccessException("Refund can not be processed for unsuccessful payment");
@@ -313,7 +323,8 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
     private String postToRefundService(RefundRequestDto refundRequest, MultiValueMap<String, String> headers) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(refundApiUrl + REFUND_ENDPOINT);
-        LOG.debug("builder.toUriString() : {}", builder.toUriString());
+        LOG.info("builder.toUriString() : {}", builder.toUriString());
+        LOG.info("refundRequest: {}", refundRequest);
         try {
             ResponseEntity<InternalRefundResponse> refundResponseResponseEntity = restTemplateRefundsGroup
                 .exchange(builder.toUriString(), HttpMethod.POST, createEntity(headers, refundRequest), InternalRefundResponse.class);
