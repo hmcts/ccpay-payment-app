@@ -22,5 +22,5 @@ public class SearchResponse implements Serializable {
     private String exceptionRecordReference;
     private String responsibleServiceId;
     private List<PaymentMetadataDto> payments;
-//    private PaymentStatus allPaymentsStatus;
+    private PaymentStatus allPaymentsStatus;
 }

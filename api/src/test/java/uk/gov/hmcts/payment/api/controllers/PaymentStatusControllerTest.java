@@ -26,6 +26,7 @@ import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentStatusDtoMapper;
 import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.service.PaymentStatusUpdateService;

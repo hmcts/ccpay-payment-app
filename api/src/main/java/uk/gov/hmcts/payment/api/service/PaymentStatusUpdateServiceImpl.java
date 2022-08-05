@@ -172,7 +172,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
 
     private void validatePaymentFailureAmount(BigDecimal disputeAmount, Payment payment){
         if(disputeAmount.compareTo(payment.getAmount()) > 0){
-            throw new InvalidPaymentFailureRequestException("Failure amount can not be more than payment amount");
+            throw new InvalidPaymentFailureRequestException("Failure amount cannot be more than payment amount");
         }
     }
 
@@ -208,7 +208,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
     public PaymentFailures unprocessedPayment(UnprocessedPayment unprocessedPayment,
                                               MultiValueMap<String, String> headers) {
 
-        if (!validateDcn(unprocessedPayment.getDcn(), headers)) {
+        if (!validateDcn(unprocessedPayment.getDcn(), unprocessedPayment.getAmount(), headers)) {
             throw new PaymentNotFoundException("No Payments available for the given document reference number");
         }
 
@@ -222,7 +222,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         }
     }
 
-    private boolean validateDcn(String dcn, MultiValueMap<String, String> headers) {
+    private boolean validateDcn(String dcn, BigDecimal amount, MultiValueMap<String, String> headers) {
         UriComponents builder = UriComponentsBuilder.fromHttpUrl(bulkScanPaymentsProcessedUrl + casesPath)
                 .queryParam("document_control_number", dcn)
                 .build();
@@ -233,6 +233,13 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         } else {
             SearchResponse searchResponse = (SearchResponse) responseEntity.getBody();
             LOG.info("Search Response from Bulk Scanning app: {}", searchResponse);
+            if (!PaymentStatus.PROCESSED.equals(searchResponse.getAllPaymentsStatus())) {
+                for (PaymentMetadataDto paymentMetadataDto : searchResponse.getPayments()) {
+                    if (dcn.equals(paymentMetadataDto.getDcnReference()) && paymentMetadataDto.getAmount().compareTo(amount) == 1) {
+                        throw new InvalidPaymentFailureRequestException("Failure amount cannot be more than payment amount");
+                    }
+                }
+            }
         }
         return true;
     }

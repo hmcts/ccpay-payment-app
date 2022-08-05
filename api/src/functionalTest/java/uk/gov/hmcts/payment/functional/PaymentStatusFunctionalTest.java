@@ -596,7 +596,7 @@ public class PaymentStatusFunctionalTest {
             SERVICE_TOKEN_PAYMENT,
             paymentStatusChargebackDto);
         assertThat(chargebackResponse.getStatusCode()).isEqualTo(BAD_REQUEST.value());
-        assertThat("Failure amount can not be more than payment amount").isEqualTo(chargebackResponse.getBody().prettyPrint());
+        assertThat("Failure amount cannot be more than payment amount").isEqualTo(chargebackResponse.getBody().prettyPrint());
         // delete payment record
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
     }
@@ -618,7 +618,7 @@ public class PaymentStatusFunctionalTest {
                 paymentStatusBouncedChequeDto);
 
         assertThat(bounceChequeResponse.getStatusCode()).isEqualTo(BAD_REQUEST.value());
-        assertThat("Failure amount can not be more than payment amount").isEqualTo(bounceChequeResponse.getBody().prettyPrint());
+        assertThat("Failure amount cannot be more than payment amount").isEqualTo(bounceChequeResponse.getBody().prettyPrint());
 
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
         }
