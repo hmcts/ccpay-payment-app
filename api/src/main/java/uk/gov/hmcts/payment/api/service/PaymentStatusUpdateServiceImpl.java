@@ -31,6 +31,7 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateService {
@@ -191,6 +192,39 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
             }
         } else {
             throw new InvalidPaymentFailureRequestException("Bad request");
+        }
+    }
+
+    public void updateUnprocessedPayment(){
+
+        LOG.info("Inside updateUnprocessedPayment method");
+
+        List<PaymentFailures> paymentFailuresList = paymentFailureRepository.findAll();
+        List<PaymentFailures> paymentFailuresListWithNoRC = paymentFailuresList.stream().filter(p -> p.getPaymentReference() == null || p.getPaymentReference().equals("")).collect(Collectors.toList());
+
+        LOG.info("Inside updateUnprocessedPayment method paymentFailuresListWithNoRC size :{}",paymentFailuresListWithNoRC.size());
+
+        List<String> paymentFailuresListWithNoDcn = paymentFailuresListWithNoRC.stream().map(p -> p.getDcn()).collect(Collectors.toList());
+
+        List<Payment> paymentList = paymentRepository.findByDocumentControlNumberIn(paymentFailuresListWithNoDcn);
+
+        if(paymentList != null){
+            paymentFailuresListWithNoRC.stream().forEach( paymentFailure -> {
+                Payment payment =   paymentList.stream().filter(p -> p.getDocumentControlNumber().equals(paymentFailure.getDcn())).findFirst().orElse(null);
+                if(payment != null){
+                    updatePaymentReferenceForDcn(paymentFailure,payment);
+                } });
+        }
+    }
+
+    private void updatePaymentReferenceForDcn(PaymentFailures paymentFailure,Payment payment){
+
+        Optional<PaymentFailures> paymentFailureResponse = paymentFailureRepository.findByFailureReference(paymentFailure.getFailureReference());
+        if(paymentFailureResponse.isPresent()){
+            paymentFailureResponse.get().setPaymentReference(payment.getReference());
+            paymentFailureRepository.save(paymentFailureResponse.get());
+
+            LOG.info("updateUnprocessedPayment successful");
         }
     }
 }

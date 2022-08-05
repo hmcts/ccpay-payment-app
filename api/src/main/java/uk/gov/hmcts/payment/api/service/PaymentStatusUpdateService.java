@@ -16,4 +16,6 @@ public interface PaymentStatusUpdateService {
     void deleteByFailureReference(String failureReference);
 
     PaymentFailures updatePaymentFailure(String paymentFailures, PaymentStatusUpdateSecond paymentStatusUpdateSecond);
+
+    void updateUnprocessedPayment();
 }
