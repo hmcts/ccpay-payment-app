@@ -136,5 +136,4 @@ public class CardPaymentComponentTest extends TestUtil {
             .ccdCaseNumber("ccdCaseNo3").caseReference("caseRef3").serviceType("probate").currency("GBP").build());
         return payments;
     }
-
 }

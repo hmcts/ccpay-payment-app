@@ -12,6 +12,7 @@ import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
 import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
 import uk.gov.hmcts.payment.api.dto.RetrospectiveRemissionRequest;
+import uk.gov.hmcts.payment.api.dto.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -174,5 +175,44 @@ public class PaymentTestService {
         return givenWithAuthHeaders(userToken, serviceToken)
                 .when()
                 .delete("/refund/{reference}", refundReference);
+    }
+
+    public Response postBounceCheque(String serviceToken,
+                                     PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto) {
+        return givenWithServiceHeaders(serviceToken)
+            .contentType(ContentType.JSON)
+            .body(paymentStatusBouncedChequeDto)
+            .when()
+            .post("/payment-failures/bounced-cheque");
+    }
+
+    public Response postChargeback(String serviceToken,
+                                   PaymentStatusChargebackDto paymentStatusChargebackDto) {
+        return givenWithServiceHeaders(serviceToken)
+            .contentType(ContentType.JSON)
+            .body(paymentStatusChargebackDto)
+            .when()
+            .post("/payment-failures/chargeback");
+    }
+
+    public Response getFailurePayment(String userToken, String serviceToken, String paymentReference) {
+        return givenWithAuthHeaders(userToken, serviceToken)
+            .when()
+            .get("/payment-failures/{paymentReference}", paymentReference);
+    }
+
+    public Response deleteFailedPayment(String userToken, String serviceToken, String failureReference) {
+        return givenWithAuthHeaders(userToken, serviceToken)
+            .when()
+            .delete("/payment-status-delete/{failureReference}", failureReference);
+    }
+
+    public Response paymentStatusSecond(String serviceToken, String failureReference,
+                                        PaymentStatusUpdateSecond paymentStatusUpdateSecond) {
+        return givenWithServiceHeaders(serviceToken)
+            .contentType(ContentType.JSON)
+            .body(paymentStatusUpdateSecond)
+            .when()
+            .patch("/payment-failures/{failureReference}", failureReference);
     }
 }
