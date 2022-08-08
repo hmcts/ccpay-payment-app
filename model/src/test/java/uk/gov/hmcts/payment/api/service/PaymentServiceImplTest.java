@@ -9,7 +9,6 @@ import org.mockito.Spy;
 import uk.gov.hmcts.payment.api.model.*;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;

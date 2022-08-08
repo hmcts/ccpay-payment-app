@@ -50,13 +50,6 @@ public class PaymentStatusController {
     @PostMapping(path = "/payment-failures/bounced-cheque")
     public ResponseEntity<String> paymentStatusBouncedCheque(@Valid @RequestBody PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto){
 
-        boolean psuLockFeature = featureToggler.getBooleanValue(PAYMENT_STATUS_UPDATE_FLAG,false);
-        LOG.info("feature toggler enable for  bounced-cheque : {}",psuLockFeature);
-
-        if(psuLockFeature){
-            return new ResponseEntity<>("service unavailable", HttpStatus.SERVICE_UNAVAILABLE);
-        }
-
         LOG.info("Received payment status request bounced-cheque : {}", paymentStatusBouncedChequeDto);
          PaymentFailures insertPaymentFailures =  paymentStatusUpdateService.insertBounceChequePaymentFailure(paymentStatusBouncedChequeDto);
 
@@ -71,13 +64,6 @@ public class PaymentStatusController {
     @PaymentExternalAPI
     @PostMapping(path = "/payment-failures/chargeback")
     public ResponseEntity<String> paymentStatusChargeBack(@Valid @RequestBody PaymentStatusChargebackDto paymentStatusChargebackDto){
-
-        boolean psuLockFeature = featureToggler.getBooleanValue(PAYMENT_STATUS_UPDATE_FLAG,false);
-        LOG.info("feature toggler enable for  chargeback : {}",psuLockFeature);
-
-        if(psuLockFeature){
-            return new ResponseEntity<>("service unavailable", HttpStatus.SERVICE_UNAVAILABLE);
-        }
 
         LOG.info("Received payment status request chargeback : {}", paymentStatusChargebackDto);
 
@@ -97,13 +83,6 @@ public class PaymentStatusController {
     })
     @GetMapping("/payment-failures/{paymentReference}")
     public PaymentFailureResponse retrievePaymentFailure(@PathVariable("paymentReference") String paymentReference) {
-
-        boolean psuLockFeature = featureToggler.getBooleanValue("payment-status-update-flag",false);
-        LOG.info("feature toggler enable for failure history : {}",psuLockFeature);
-
-        if(psuLockFeature){
-            throw new LiberataServiceInaccessibleException("service unavailable");
-        }
 
         List<PaymentFailureResponseDto> payments = paymentStatusUpdateService
             .searchPaymentFailure(paymentReference)
@@ -128,10 +107,7 @@ public class PaymentStatusController {
     @PaymentExternalAPI
     @PatchMapping("/payment-failures/{failureReference}")
     public ResponseEntity<String> paymentStatusSecond(@PathVariable("failureReference") String failureReference,
-                                                      @RequestBody PaymentStatusUpdateSecond paymentStatusUpdateSecondDto) {
-        if (featureToggler.getBooleanValue(PAYMENT_STATUS_UPDATE_FLAG,false)) {
-            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
-        }
+
         LOG.info("Received payment status update second ping request: {}", paymentStatusUpdateSecondDto);
         paymentStatusUpdateService.updatePaymentFailure(failureReference, paymentStatusUpdateSecondDto);
         return new ResponseEntity<>("Successful operation", HttpStatus.OK);
@@ -155,10 +131,5 @@ public class PaymentStatusController {
         return ex.getMessage();
     }
 
-    @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
-    @ExceptionHandler({LiberataServiceInaccessibleException.class})
-    public String return503(Exception ex) {
-        return ex.getMessage();
-    }
 
 }
