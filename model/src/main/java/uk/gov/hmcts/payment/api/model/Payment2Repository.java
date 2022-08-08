@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.api.model;
 
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -21,7 +22,7 @@ public interface Payment2Repository extends CrudRepository<Payment, Integer>, Jp
     Optional<Payment> findByReference(String reference);
 
     List<Reference> findReferencesByPaymentProviderAndPaymentStatusNotInAndDateCreatedLessThan(
-        PaymentProvider paymentProvider, List<PaymentStatus> paymentStatuses, Date targetTime);
+            PaymentProvider paymentProvider, List<PaymentStatus> paymentStatuses, Date targetTime);
 
     Optional<List<Payment>> findAllByDateCreatedBetween(Date fromDate, Date toDate);
 

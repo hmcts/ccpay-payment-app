@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.functional;
 
 import com.mifmif.common.regex.Generex;
+import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.apache.commons.lang3.RandomUtils;
 import org.assertj.core.api.Assertions;
 import org.joda.time.DateTime;
@@ -10,10 +11,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
-import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
-import uk.gov.hmcts.payment.api.contract.FeeDto;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.contract.TelephonyPaymentRequest;
+import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
@@ -36,7 +34,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
 
-@RunWith(SpringRunner.class)
+@RunWith(SpringIntegrationSerenityRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
 public class PciPalCallbackTest {
     @Autowired
@@ -112,7 +110,7 @@ public class PciPalCallbackTest {
         final String[] reference = new String[1];
         // create card payment
 
-        String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
+        String ccdCaseNumber = "1111567890123456";
 
         List<FeeDto> fees = new ArrayList<>();
         fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
@@ -122,14 +120,13 @@ public class PciPalCallbackTest {
         fees.add(FeeDto.feeDtoWith().code("FEE0273").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
             .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
 
-        TelephonyPaymentRequest telephonyPaymentRequest = TelephonyPaymentRequest.createTelephonyPaymentRequestDtoWith()
+
+        TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
             .amount(new BigDecimal("120"))
             .ccdCaseNumber(ccdCaseNumber)
-            .channel("telephony")
-            .caseType("DIVORCE")
             .currency(CurrencyCode.GBP)
-            .description("A test telephony payment")
-            .provider("pci pal")
+            .caseType("DIVORCE")
+            .returnURL("https://google.co.uk")
             .build();
 
         PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
@@ -148,13 +145,12 @@ public class PciPalCallbackTest {
             dsl.given().userToken(USER_TOKEN)
                 .s2sToken(SERVICE_TOKEN)
                 .returnUrl("https://www.moneyclaims.service.gov.uk")
-                .when().createTelephonyCardPayment(telephonyPaymentRequest, paymentGroupReference)
-                .then().gotCreated(PaymentDto.class, paymentDto -> {
-                    Assertions.assertThat(paymentDto).isNotNull();
-                    Assertions.assertThat(paymentDto.getReference().matches(PAYMENT_REFERENCE_REGEX)).isTrue();
-                    Assertions.assertThat(paymentDto.getStatus()).isEqualTo("Initiated");
-                    paymentReference.set(paymentDto.getReference());
-
+                .when().createTelephonyPayment(telephonyPaymentRequest, paymentGroupReference)
+                .then().gotCreated(TelephonyCardPaymentsResponse.class, telephonyCardPaymentsResponse -> {
+                    Assertions.assertThat(telephonyCardPaymentsResponse).isNotNull();
+                    Assertions.assertThat(telephonyCardPaymentsResponse.getPaymentReference().matches(PAYMENT_REFERENCE_REGEX)).isTrue();
+                    Assertions.assertThat(telephonyCardPaymentsResponse.getStatus()).isEqualTo("Initiated");
+                    paymentReference.set(telephonyCardPaymentsResponse.getPaymentReference());
             });
 
         });
@@ -218,7 +214,7 @@ public class PciPalCallbackTest {
         final String[] reference = new String[1];
         // create card payment
 
-        String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
+        String ccdCaseNumber = "1234567890623456";
 
         List<FeeDto> fees = new ArrayList<>();
         fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
@@ -228,14 +224,13 @@ public class PciPalCallbackTest {
         fees.add(FeeDto.feeDtoWith().code("FEE0273").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
             .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
 
-        TelephonyPaymentRequest telephonyPaymentRequest = TelephonyPaymentRequest.createTelephonyPaymentRequestDtoWith()
+
+        TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
             .amount(new BigDecimal("120"))
             .ccdCaseNumber(ccdCaseNumber)
-            .channel("telephony")
             .currency(CurrencyCode.GBP)
-            .description("A test telephony payment")
-            .provider("pci pal")
             .caseType("DIVORCE")
+            .returnURL("https://www.moneyclaims.service.gov.uk")
             .build();
 
         PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
@@ -254,12 +249,12 @@ public class PciPalCallbackTest {
             dsl.given().userToken(USER_TOKEN)
                 .s2sToken(SERVICE_TOKEN)
                 .returnUrl("https://www.moneyclaims.service.gov.uk")
-                .when().createTelephonyCardPayment(telephonyPaymentRequest, paymentGroupReference)
-                .then().gotCreated(PaymentDto.class, paymentDto -> {
-                Assertions.assertThat(paymentDto).isNotNull();
-                Assertions.assertThat(paymentDto.getReference().matches(PAYMENT_REFERENCE_REGEX)).isTrue();
-                Assertions.assertThat(paymentDto.getStatus()).isEqualTo("Initiated");
-                paymentReference.set(paymentDto.getReference());
+                .when().createTelephonyPayment(telephonyPaymentRequest, paymentGroupReference)
+                .then().gotCreated(TelephonyCardPaymentsResponse.class, telephonyCardPaymentsResponse -> {
+                Assertions.assertThat(telephonyCardPaymentsResponse).isNotNull();
+                Assertions.assertThat(telephonyCardPaymentsResponse.getPaymentReference().matches(PAYMENT_REFERENCE_REGEX)).isTrue();
+                Assertions.assertThat(telephonyCardPaymentsResponse.getStatus()).isEqualTo("Initiated");
+                paymentReference.set(telephonyCardPaymentsResponse.getPaymentReference());
 
             });
 

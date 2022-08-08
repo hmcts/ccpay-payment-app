@@ -7,6 +7,10 @@ import org.apache.http.impl.client.HttpClients;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
 import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayPaymentNotFoundException;
@@ -20,6 +24,8 @@ public class GovPayClientTest {
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().dynamicPort());
 
+    @InjectMocks
+    @Spy
     private GovPayClient client;
 
     @Before
@@ -30,6 +36,7 @@ public class GovPayClientTest {
             new ObjectMapper(),
             new GovPayErrorTranslator(new ObjectMapper())
         );
+        MockitoAnnotations.initMocks(this);
     }
 
     @Test
@@ -76,6 +83,7 @@ public class GovPayClientTest {
         );
 
         client.cancelPayment("token", "http://localhost:" + wireMockRule.port() + "/cancel");
+        Mockito.verify(client).cancelPayment("token", "http://localhost:" + wireMockRule.port() + "/cancel");
     }
 
     @Test(expected = GovPayPaymentNotFoundException.class)

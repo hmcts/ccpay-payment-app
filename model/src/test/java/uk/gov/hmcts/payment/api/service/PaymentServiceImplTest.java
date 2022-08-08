@@ -5,6 +5,7 @@ import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
 import uk.gov.hmcts.payment.api.model.*;
 
 import java.math.BigDecimal;
@@ -13,11 +14,14 @@ import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class PaymentServiceImplTest {
 
     @InjectMocks
+    @Spy
     private PaymentServiceImpl paymentService;
 
     @Mock
@@ -106,5 +110,6 @@ public class PaymentServiceImplTest {
         List<Payment> paymentList = List.of(payment);
         when(paymentRepository.findByCcdCaseNumber(any())).thenReturn(Optional.of(paymentList));
         paymentService.updatePaymentsForCCDCaseNumberByCertainDays("ccdCaseNumber","5");
+        verify(paymentService).updatePaymentsForCCDCaseNumberByCertainDays(anyString(), anyString());
     }
 }

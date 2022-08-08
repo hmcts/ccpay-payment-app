@@ -110,6 +110,8 @@ public class PaymentRefundsServiceTest {
 
     @MockBean
     private FeePayApportionRepository feePayApportionRepository;
+    @MockBean
+    private PaymentFailureRepository paymentFailureRepository;
 
     @MockBean
     @Autowired()
@@ -153,7 +155,8 @@ public class PaymentRefundsServiceTest {
 
     }
 
-    @Test
+
+    @Test(expected = PaymentNotSuccessException.class)
     public void createRefundWithFailedReference() throws Exception {
         when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
         Payment mockPaymentFailed = Payment.paymentWith().reference("RC-1234-1234-1234-1234")
@@ -176,7 +179,7 @@ public class PaymentRefundsServiceTest {
 
     }
 
-    //@Test
+    @Test(expected = InvalidRefundRequestException.class)
     public void createRefundWithClientException() throws Exception {
         when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
         Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentSuccess));
@@ -308,7 +311,7 @@ public class PaymentRefundsServiceTest {
     }
 
 
-    @Test
+    @Test(expected = RemissionNotFoundException.class)
     public void RemissionNotFoundException() throws Exception {
 
         Mockito.when(remissionRepository.findByRemissionReference(any())).thenReturn(Optional.empty());
@@ -1075,6 +1078,170 @@ public class PaymentRefundsServiceTest {
 
     }
 
+    @Test(expected = PaymentNotSuccessException.class)
+    public void returnPaymentNotSuccessExceptionWhenPaymentFailureInitiatedForCreateRefund() throws Exception {
+        PaymentFailures paymentFailures = PaymentFailures.paymentFailuresWith()
+            .failureType("Bounced Cheque")
+            .paymentReference("RC-1520-2505-0381-8145")
+            .amount(BigDecimal.valueOf(555))
+            .ccdCaseNumber("123456789")
+            .failureReference("FR12345")
+            .id(1)
+            .reason("RR001")
+            .build();
+        List<PaymentFailures> paymentFailuresList  = new ArrayList<>();
+        paymentFailuresList.add(paymentFailures);
+        Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(getpayment()));
+        Mockito.when(paymentFailureRepository.findByPaymentReference(getpayment().getReference())).thenReturn(Optional.of(paymentFailuresList));
+        paymentRefundsService.createRefund(paymentRefundRequest, header);
 
+    }
 
-}
+    @Test(expected = PaymentNotSuccessException.class)
+    public void returnPaymentNotSuccessExceptionWhenPaymentFailureClosedForCreateRefund() throws Exception {
+
+        PaymentFailures paymentFailures = PaymentFailures.paymentFailuresWith()
+            .failureType("Bounced Cheque")
+            .paymentReference("RC-1520-2505-0381-8145")
+            .amount(BigDecimal.valueOf(555))
+            .ccdCaseNumber("123456789")
+            .failureReference("FR12345")
+            .id(1)
+            .reason("RR001")
+            .representmentSuccess("no")
+            .build();
+        List<PaymentFailures> paymentFailuresList = new ArrayList<>();
+        paymentFailuresList.add(paymentFailures);
+        Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(getpayment()));
+        Mockito.when(paymentFailureRepository.findByPaymentReference(getpayment().getReference())).thenReturn(Optional.of(paymentFailuresList));
+        paymentRefundsService.createRefund(paymentRefundRequest, header);
+    }
+
+    @Test(expected = PaymentNotSuccessException.class)
+    public void returnPaymentNotSuccessExceptionWhenPaymentFailureInitiatedForRetroRemission() throws Exception {
+
+        PaymentFailures paymentFailures = PaymentFailures.paymentFailuresWith()
+            .failureType("Bounced Cheque")
+            .paymentReference("RC-1520-2505-0381-8145")
+            .amount(BigDecimal.valueOf(555))
+            .ccdCaseNumber("123456789")
+            .failureReference("FR12345")
+            .id(1)
+            .reason("RR001")
+            .build();
+        List<PaymentFailures> paymentFailuresList  = new ArrayList<>();
+        paymentFailuresList.add(paymentFailures);
+
+        BigDecimal amount = new BigDecimal("11.99");
+        PaymentFee fee = PaymentFee.feeWith().id(1).calculatedAmount(new BigDecimal("11.99")).code("X0001").version("1").build();
+        PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith()
+            .id(1)
+            .paymentReference("2018-15202505035")
+            .fees(Arrays.asList(fee))
+            .build();
+
+        Remission remission = Remission.remissionWith()
+            .paymentFeeLink(paymentFeeLink)
+            .remissionReference("qwerty")
+            .fee(fee)
+            .hwfAmount(amount)
+            .hwfReference("poiuytrewq")
+            .build();
+
+        FeePayApportion feePayApportion = FeePayApportion.feePayApportionWith()
+            .apportionAmount(amount)
+            .paymentAmount(amount)
+            .ccdCaseNumber("1234123412341234")
+            .paymentLink(paymentFeeLink)
+            .paymentId(1)
+            .feeId(1)
+            .id(1)
+            .feeAmount(amount).build();
+        List<FeePayApportion> feePayApportionList = new ArrayList<FeePayApportion>();
+        feePayApportionList.add(feePayApportion);
+        Mockito.when(remissionRepository.findByRemissionReference(any())).thenReturn(Optional.ofNullable(remission));
+
+        Mockito.when(feePayApportionRepository.findByFeeId(any())).thenReturn(Optional.ofNullable(feePayApportionList));
+
+        Mockito.when(paymentRepository.findById(any())).thenReturn(Optional.ofNullable(getpayment()));
+        Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(getpayment()));
+        Mockito.when(paymentFailureRepository.findByPaymentReference(getpayment().getReference())).thenReturn(Optional.of(paymentFailuresList));
+        paymentRefundsService.createAndValidateRetrospectiveRemissionRequest(retrospectiveRemissionRequest, header);
+
+    }
+
+    @Test(expected = PaymentNotSuccessException.class)
+    public void returnPaymentNotSuccessExceptionWhenPaymentFailureClosedForRetroRemission() throws Exception {
+
+        PaymentFailures paymentFailures = PaymentFailures.paymentFailuresWith()
+            .failureType("Bounced Cheque")
+            .paymentReference("RC-1520-2505-0381-8145")
+            .amount(BigDecimal.valueOf(555))
+            .ccdCaseNumber("123456789")
+            .failureReference("FR12345")
+            .id(1)
+            .reason("RR001")
+            .representmentSuccess("no")
+            .build();
+        List<PaymentFailures> paymentFailuresList  = new ArrayList<>();
+        paymentFailuresList.add(paymentFailures);
+
+        BigDecimal amount = new BigDecimal("11.99");
+        PaymentFee fee = PaymentFee.feeWith().id(1).calculatedAmount(new BigDecimal("11.99")).code("X0001").version("1").build();
+        PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith()
+            .id(1)
+            .paymentReference("2018-15202505035")
+            .fees(Arrays.asList(fee))
+            .build();
+
+        Remission remission = Remission.remissionWith()
+            .paymentFeeLink(paymentFeeLink)
+            .remissionReference("qwerty")
+            .fee(fee)
+            .hwfAmount(amount)
+            .hwfReference("poiuytrewq")
+            .build();
+
+        FeePayApportion feePayApportion = FeePayApportion.feePayApportionWith()
+            .apportionAmount(amount)
+            .paymentAmount(amount)
+            .ccdCaseNumber("1234123412341234")
+            .paymentLink(paymentFeeLink)
+            .paymentId(1)
+            .feeId(1)
+            .id(1)
+            .feeAmount(amount).build();
+        List<FeePayApportion> feePayApportionList = new ArrayList<FeePayApportion>();
+        feePayApportionList.add(feePayApportion);
+        Mockito.when(remissionRepository.findByRemissionReference(any())).thenReturn(Optional.ofNullable(remission));
+
+        Mockito.when(feePayApportionRepository.findByFeeId(any())).thenReturn(Optional.ofNullable(feePayApportionList));
+
+        Mockito.when(paymentRepository.findById(any())).thenReturn(Optional.ofNullable(getpayment()));
+        Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(getpayment()));
+        Mockito.when(paymentFailureRepository.findByPaymentReference(getpayment().getReference())).thenReturn(Optional.of(paymentFailuresList));
+        paymentRefundsService.createAndValidateRetrospectiveRemissionRequest(retrospectiveRemissionRequest, header);
+
+    }
+
+    private Payment getpayment(){
+
+        Payment payment = Payment.paymentWith()
+            .id(1)
+            .caseReference("caseReference")
+            .description("retrieve payment mock test")
+            .serviceType("Civil Money Claims")
+            .siteId("siteID")
+            .currency("GBP")
+            .organisationName("organisationName")
+            .customerReference("customerReference")
+            .pbaNumber("pbaNumer")
+            .reference("RC-1520-2505-0381-8145")
+            .ccdCaseNumber("1234123412341234")
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
+            .build();
+        return payment;
+    }
+    }

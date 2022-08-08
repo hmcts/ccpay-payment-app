@@ -33,6 +33,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class UserAwareDelegatingCreditAccountPaymentServiceTest {
@@ -111,7 +112,8 @@ public class UserAwareDelegatingCreditAccountPaymentServiceTest {
             .build());
 
 
-        creditAccountPaymentService.create(payments.get(0), fees, "2018-1234567890");
+        PaymentFeeLink result = creditAccountPaymentService.create(payments.get(0), fees, "2018-1234567890");
+        assertEquals("2018-1234567890",result.getPaymentReference());
     }
 
     @Test
@@ -148,7 +150,7 @@ public class UserAwareDelegatingCreditAccountPaymentServiceTest {
 
         PaymentFeeLink result = creditAccountPaymentService.retrieveByPaymentReference(reference);
         assertNotNull(result);
-        assertEquals(result.getPaymentReference(), "2018-1234567890");
+        assertEquals("2018-1234567890",result.getPaymentReference());
         result.getPayments().stream().forEach(p -> {
             assertEquals(p.getReference(), reference);
             assertEquals(p.getAmount(), new BigDecimal("6000.00"));
@@ -188,6 +190,8 @@ public class UserAwareDelegatingCreditAccountPaymentServiceTest {
         long value = 1;
         when(paymentRespository.deleteByReference(anyString())).thenReturn(value);
         creditAccountPaymentService.deleteByPaymentReference("dummy");
+        verify(paymentRespository).deleteByReference(anyString());
+
     }
 
     private Payment getPayment(int number, String reference) throws CheckDigitException {

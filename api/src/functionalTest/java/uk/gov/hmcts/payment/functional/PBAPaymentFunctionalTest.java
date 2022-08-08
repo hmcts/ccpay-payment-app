@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.functional;
 
+import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.apache.commons.lang3.RandomUtils;
 import org.assertj.core.api.Assertions;
 import org.joda.time.DateTimeZone;
@@ -35,7 +36,7 @@ import static org.springframework.http.HttpStatus.*;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CASE_WORKER_GROUP;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
 
-@RunWith(SpringRunner.class)
+@RunWith(SpringIntegrationSerenityRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
 public class PBAPaymentFunctionalTest {
 
@@ -183,16 +184,18 @@ public class PBAPaymentFunctionalTest {
         PaymentsResponse liberataResponse = paymentTestService
                 .getPbaPaymentsByCCDCaseNumber(SERVICE_TOKEN, accountPaymentRequest.getCcdCaseNumber()).then()
                 .statusCode(OK.value()).extract().as(PaymentsResponse.class);
-
-        assertThat(liberataResponse.getPayments().get(0).getAccountNumber()).isEqualTo(accountNumber);
-        assertThat(liberataResponse.getPayments().get(0).getFees().get(0).getApportionedPayment()).isEqualTo("215.00");
-        assertThat(liberataResponse.getPayments().get(0).getFees().get(0).getCalculatedAmount()).isEqualTo("215.00");
-        assertThat(liberataResponse.getPayments().get(0).getFees().get(0).getMemoLine())
+        assertThat(liberataResponse.getPayments().size()).isGreaterThanOrEqualTo(1);
+        PaymentDto retrievedPaymentDto = liberataResponse.getPayments().stream()
+            .filter(o -> o.getPaymentReference().equals(paymentDto.getReference())).findFirst().get();
+        assertThat(retrievedPaymentDto.getAccountNumber()).isEqualTo(accountNumber);
+        assertThat(retrievedPaymentDto.getFees().get(0).getApportionedPayment()).isEqualTo("215.00");
+        assertThat(retrievedPaymentDto.getFees().get(0).getCalculatedAmount()).isEqualTo("215.00");
+        assertThat(retrievedPaymentDto.getFees().get(0).getMemoLine())
                 .isEqualTo("Personal Application for grant of Probate");
-        assertThat(liberataResponse.getPayments().get(0).getFees().get(0).getNaturalAccountCode())
+        assertThat(retrievedPaymentDto.getFees().get(0).getNaturalAccountCode())
                 .isEqualTo("4481102158");
-        assertThat(liberataResponse.getPayments().get(0).getFees().get(0).getJurisdiction1()).isEqualTo("family");
-        assertThat(liberataResponse.getPayments().get(0).getFees().get(0).getJurisdiction2())
+        assertThat(retrievedPaymentDto.getFees().get(0).getJurisdiction1()).isEqualTo("family");
+        assertThat(retrievedPaymentDto.getFees().get(0).getJurisdiction2())
                 .isEqualTo("probate registry");
 
         // delete payment record
@@ -234,42 +237,46 @@ public class PBAPaymentFunctionalTest {
                 .getPbaPaymentsByCCDCaseNumber(SERVICE_TOKEN, accountPaymentRequest.getCcdCaseNumber()).then()
                 .statusCode(OK.value()).extract().as(PaymentsResponse.class);
 
-        assertThat(liberataResponse.getPayments().get(0).getAccountNumber()).isEqualTo(accountNumber);
+        assertThat(liberataResponse.getPayments().size()).isGreaterThanOrEqualTo(1);
+        PaymentDto retrievedPaymentDto = liberataResponse.getPayments().stream()
+            .filter(o -> o.getPaymentReference().equals(paymentDto.getReference())).findFirst().get();
+
+        assertThat(retrievedPaymentDto.getAccountNumber()).isEqualTo(accountNumber);
 
         if (liberataResponse.getPayments().get(0).getFees().get(0).getCode().equalsIgnoreCase("FEE0271")) {
-            assertThat(liberataResponse.getPayments().get(0).getFees().get(0).getApportionedPayment())
+            assertThat(retrievedPaymentDto.getFees().get(0).getApportionedPayment())
                     .isEqualTo("20.00");
-            assertThat(liberataResponse.getPayments().get(0).getFees().get(0).getCalculatedAmount()).isEqualTo("20.00");
-            assertThat(liberataResponse.getPayments().get(0).getFees().get(0).getMemoLine())
+            assertThat(retrievedPaymentDto.getFees().get(0).getCalculatedAmount()).isEqualTo("20.00");
+            assertThat(retrievedPaymentDto.getFees().get(0).getMemoLine())
                     .isEqualTo("RECEIPT OF FEES - Tribunal issue other");
-            assertThat(liberataResponse.getPayments().get(0).getFees().get(0).getNaturalAccountCode())
+            assertThat(retrievedPaymentDto.getFees().get(0).getNaturalAccountCode())
                     .isEqualTo("4481102178");
-            assertThat(liberataResponse.getPayments().get(0).getFees().get(0).getJurisdiction1()).isEqualTo("tribunal");
-            assertThat(liberataResponse.getPayments().get(0).getFees().get(0).getJurisdiction2())
+            assertThat(retrievedPaymentDto.getFees().get(0).getJurisdiction1()).isEqualTo("tribunal");
+            assertThat(retrievedPaymentDto.getFees().get(0).getJurisdiction2())
                     .isEqualTo("property chamber");
         }
-        if (liberataResponse.getPayments().get(0).getFees().get(1).getCode().equalsIgnoreCase("FEE0272")) {
-            assertThat(liberataResponse.getPayments().get(0).getFees().get(1).getApportionedPayment())
+        if (retrievedPaymentDto.getFees().get(1).getCode().equalsIgnoreCase("FEE0272")) {
+            assertThat(retrievedPaymentDto.getFees().get(1).getApportionedPayment())
                     .isEqualTo("40.00");
-            assertThat(liberataResponse.getPayments().get(0).getFees().get(1).getCalculatedAmount()).isEqualTo("40.00");
-            assertThat(liberataResponse.getPayments().get(0).getFees().get(1).getMemoLine())
+            assertThat(retrievedPaymentDto.getFees().get(1).getCalculatedAmount()).isEqualTo("40.00");
+            assertThat(retrievedPaymentDto.getFees().get(1).getMemoLine())
                     .isEqualTo("RECEIPT OF FEES - Tribunal issue other");
-            assertThat(liberataResponse.getPayments().get(0).getFees().get(1).getNaturalAccountCode())
+            assertThat(retrievedPaymentDto.getFees().get(1).getNaturalAccountCode())
                     .isEqualTo("4481102178");
-            assertThat(liberataResponse.getPayments().get(0).getFees().get(1).getJurisdiction1()).isEqualTo("tribunal");
-            assertThat(liberataResponse.getPayments().get(0).getFees().get(1).getJurisdiction2())
+            assertThat(retrievedPaymentDto.getFees().get(1).getJurisdiction1()).isEqualTo("tribunal");
+            assertThat(retrievedPaymentDto.getFees().get(1).getJurisdiction2())
                     .isEqualTo("property chamber");
         }
-        if (liberataResponse.getPayments().get(0).getFees().get(2).getCode().equalsIgnoreCase("FEE0273")) {
-            assertThat(liberataResponse.getPayments().get(0).getFees().get(2).getApportionedPayment())
+        if (retrievedPaymentDto.getFees().get(2).getCode().equalsIgnoreCase("FEE0273")) {
+            assertThat(retrievedPaymentDto.getFees().get(2).getApportionedPayment())
                     .isEqualTo("60.00");
-            assertThat(liberataResponse.getPayments().get(0).getFees().get(2).getCalculatedAmount()).isEqualTo("60.00");
-            assertThat(liberataResponse.getPayments().get(0).getFees().get(2).getMemoLine())
+            assertThat(retrievedPaymentDto.getFees().get(2).getCalculatedAmount()).isEqualTo("60.00");
+            assertThat(retrievedPaymentDto.getFees().get(2).getMemoLine())
                     .isEqualTo("RECEIPT OF FEES - Family enforcement other");
-            assertThat(liberataResponse.getPayments().get(0).getFees().get(2).getNaturalAccountCode())
+            assertThat(retrievedPaymentDto.getFees().get(2).getNaturalAccountCode())
                     .isEqualTo("4481102167");
-            assertThat(liberataResponse.getPayments().get(0).getFees().get(2).getJurisdiction1()).isEqualTo("family");
-            assertThat(liberataResponse.getPayments().get(0).getFees().get(2).getJurisdiction2())
+            assertThat(retrievedPaymentDto.getFees().get(2).getJurisdiction1()).isEqualTo("family");
+            assertThat(retrievedPaymentDto.getFees().get(2).getJurisdiction2())
                     .isEqualTo("family court");
         }
 
@@ -293,7 +300,10 @@ public class PBAPaymentFunctionalTest {
         dsl.given().userToken(USER_TOKEN).s2sToken(SERVICE_TOKEN).when()
                 .searchPaymentsByServiceBetweenDates("Finrem", startDate, endDate).then()
                 .getPayments((paymentsResponse -> {
-                    Assertions.assertThat(paymentsResponse.getPayments().size()).isEqualTo(1);
+                    Assertions.assertThat(paymentsResponse.getPayments().size()).isGreaterThanOrEqualTo(1);
+                    PaymentDto retrievedPaymentDto = paymentsResponse.getPayments().stream()
+                        .filter(o -> o.getPaymentReference().equals(paymentDto.getReference())).findFirst().get();
+                    assertEquals(paymentDto.getReference(),retrievedPaymentDto.getPaymentReference());
                 }));
 
         // delete payment record
@@ -316,7 +326,10 @@ public class PBAPaymentFunctionalTest {
         dsl.given().userToken(USER_TOKEN).s2sToken(SERVICE_TOKEN).when()
                 .searchPaymentsByServiceBetweenDates("Civil", startDate, endDate).then()
                 .getPayments((paymentsResponse -> {
-                    Assertions.assertThat(paymentsResponse.getPayments().size()).isEqualTo(1);
+                    Assertions.assertThat(paymentsResponse.getPayments().size()).isGreaterThanOrEqualTo(1);
+                    PaymentDto retrievedPaymentDto = paymentsResponse.getPayments().stream()
+                        .filter(o -> o.getPaymentReference().equals(paymentDto.getReference())).findFirst().get();
+                    assertEquals(paymentDto.getReference(),retrievedPaymentDto.getPaymentReference());
                 }));
 
         // delete payment record
@@ -340,7 +353,10 @@ public class PBAPaymentFunctionalTest {
         dsl.given().userToken(USER_TOKEN).s2sToken(SERVICE_TOKEN).when()
                 .searchPaymentsByServiceBetweenDates("Immigration and Asylum Appeals", startDate, endDate).then()
                 .getPayments((paymentsResponse -> {
-                    Assertions.assertThat(paymentsResponse.getPayments().size()).isEqualTo(1);
+                    Assertions.assertThat(paymentsResponse.getPayments().size()).isGreaterThanOrEqualTo(1);
+                    PaymentDto retrievedPaymentDto = paymentsResponse.getPayments().stream()
+                        .filter(o -> o.getPaymentReference().equals(paymentDto.getReference())).findFirst().get();
+                    assertEquals(paymentDto.getReference(),retrievedPaymentDto.getPaymentReference());
                 }));
 
         // delete payment record
@@ -364,7 +380,10 @@ public class PBAPaymentFunctionalTest {
         dsl.given().userToken(USER_TOKEN).s2sToken(SERVICE_TOKEN).when()
                 .searchPaymentsByServiceBetweenDates("Family Public Law", startDate, endDate).then()
                 .getPayments((paymentsResponse -> {
-                    Assertions.assertThat(paymentsResponse.getPayments().size()).isEqualTo(1);
+                    Assertions.assertThat(paymentsResponse.getPayments().size()).isGreaterThanOrEqualTo(1);
+                    PaymentDto retrievedPaymentDto = paymentsResponse.getPayments().stream()
+                        .filter(o -> o.getPaymentReference().equals(paymentDto.getReference())).findFirst().get();
+                    assertEquals(paymentDto.getReference(),retrievedPaymentDto.getPaymentReference());
                 }));
 
         // delete payment record
@@ -379,8 +398,8 @@ public class PBAPaymentFunctionalTest {
         String accountNumber = testProps.existingAccountNumber;
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequestForSPEC("90.00", "SPEC");
         accountPaymentRequest.setAccountNumber(accountNumber);
-        paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
-            .statusCode(CREATED.value()).body("status", equalTo("Success"));
+        PaymentDto paymentDto = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
+            .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);;
 
         Thread.sleep(2000);
         String endDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
@@ -388,7 +407,10 @@ public class PBAPaymentFunctionalTest {
         dsl.given().userToken(USER_TOKEN).s2sToken(SERVICE_TOKEN).when()
             .searchPaymentsByServiceBetweenDates("Specified Money Claims", startDate, endDate).then()
             .getPayments((paymentsResponse -> {
-                Assertions.assertThat(paymentsResponse.getPayments().size()).isEqualTo(1);
+                Assertions.assertThat(paymentsResponse.getPayments().size()).isGreaterThanOrEqualTo(1);
+                PaymentDto retrievedPaymentDto = paymentsResponse.getPayments().stream()
+                    .filter(o -> o.getPaymentReference().equals(paymentDto.getReference())).findFirst().get();
+                assertEquals(paymentDto.getReference(),retrievedPaymentDto.getPaymentReference());
             }));
 
     }
