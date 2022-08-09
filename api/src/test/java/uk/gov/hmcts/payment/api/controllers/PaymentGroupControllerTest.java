@@ -696,39 +696,39 @@ public class PaymentGroupControllerTest {
         when(featureToggler.getBooleanValue("pci-pal-antenna-feature", false)).thenReturn(true);
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
-                .serviceCode("AAD7")
-                .serviceDescription("Divorce")
-                .build();
+            .serviceCode("AAD7")
+            .serviceDescription("Divorce")
+            .build();
 
         when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenReturn(organisationalServiceDto);
 
         when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
-                .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
+            .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
 
         when(pciPalPaymentService.getPaymentProviderAutorisationTokens()).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         when(pciPalPaymentService.getTelephonyProviderLink(any(PciPalPaymentRequest.class)
-                , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
+            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         BigDecimal amount = new BigDecimal("200");
         TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
-                .caseType("tax_exception")
-                .amount(amount)
-                .ccdCaseNumber("2154234356342357")
-                .returnURL("https://www.moneyclaims.service.gov.uk")
-                .currency(CurrencyCode.GBP)
-                .build();
+            .caseType("tax_exception")
+            .amount(amount)
+            .ccdCaseNumber("2154234356342357")
+            .returnURL("https://www.moneyclaims.service.gov.uk")
+            .currency(CurrencyCode.GBP)
+            .build();
 
         MvcResult result3 = restActions
-                .withReturnUrl("https://www.moneyclaims.service.gov.uk")
-                .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyPaymentRequest)
-                .andExpect(status().isCreated())
-                .andReturn();
+            .withReturnUrl("https://www.moneyclaims.service.gov.uk")
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
 
         PaymentDto paymentDtoResult = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentDto.class);
 
         MvcResult result4 = restActions
-            .get("/card-payments/" + paymentDtoResult.getReference())
+            .get("/card-payments/" + paymentDtoResult.getPaymentReference())
             .andExpect(status().isOk())
             .andReturn();
 
@@ -750,41 +750,38 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("200");
         TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
-                .caseType("FinancialRemedyContested")
-                .amount(amount)
-                .ccdCaseNumber("2154234356342357")
-                .returnURL("https://www.google.com")
-                .currency(CurrencyCode.GBP)
-                .build();
-
-        when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
-                .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
-
-        when(pciPalPaymentService.getPaymentProviderAutorisationTokens()).thenReturn(getTelephonyProviderAuthorisationResponse());
-
-        when(pciPalPaymentService.getTelephonyProviderLink(any(PciPalPaymentRequest.class)
-                , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
-
-        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
-                .serviceCode("AA001")
-                .serviceDescription("Financial Remedy")
-                .build();
+            .caseType("FinancialRemedyContested")
+            .amount(amount)
+            .ccdCaseNumber("2154234356342357")
+            .returnURL("https://www.google.com")
+            .currency(CurrencyCode.GBP)
+            .build();
 
         when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
             .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
 
+        when(pciPalPaymentService.getPaymentProviderAutorisationTokens()).thenReturn(getTelephonyProviderAuthorisationResponse());
+
+        when(pciPalPaymentService.getTelephonyProviderLink(any(PciPalPaymentRequest.class)
+            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
+
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA001")
+            .serviceDescription("Financial Remedy")
+            .build();
+
         when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenReturn(organisationalServiceDto);
 
         MvcResult result3 = restActions
-                .withReturnUrl("https://www.google.com")
-                .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyPaymentRequest)
-                .andExpect(status().isCreated())
-                .andReturn();
+            .withReturnUrl("https://www.google.com")
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
 
         PaymentDto paymentDtoResult = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentDto.class);
 
         MvcResult result4 = restActions
-            .get("/card-payments/" + paymentDtoResult.getReference())
+            .get("/card-payments/" + paymentDtoResult.getPaymentReference())
             .andExpect(status().isOk())
             .andReturn();
 
@@ -838,38 +835,38 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("200");
         TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
-                .caseType("tax_exception")
-                .amount(amount)
-                .ccdCaseNumber("2154234356342357")
-                .returnURL("https://www.google.com")
-                .currency(CurrencyCode.GBP)
-                .build();
+            .caseType("tax_exception")
+            .amount(amount)
+            .ccdCaseNumber("2154234356342357")
+            .returnURL("https://www.google.com")
+            .currency(CurrencyCode.GBP)
+            .build();
 
         when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
-                .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
+            .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
 
         when(pciPalPaymentService.getPaymentProviderAutorisationTokens()).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         when(pciPalPaymentService.getTelephonyProviderLink(any(PciPalPaymentRequest.class)
-                , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
+            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
-                .serviceCode("AA001")
-                .serviceDescription("Divorce")
-                .build();
+            .serviceCode("AA001")
+            .serviceDescription("Divorce")
+            .build();
 
         when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenReturn(organisationalServiceDto);
 
         MvcResult result3 = restActions
-                .withReturnUrl("https://www.google.com")
-                .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyPaymentRequest)
-                .andExpect(status().isCreated())
-                .andReturn();
+            .withReturnUrl("https://www.google.com")
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
 
         PaymentDto paymentDtoResult = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentDto.class);
 
         MvcResult result4 = restActions
-            .get("/card-payments/" + paymentDtoResult.getReference())
+            .get("/card-payments/" + paymentDtoResult.getPaymentReference())
             .andExpect(status().isOk())
             .andReturn();
 
@@ -945,40 +942,41 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("200");
         TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
-                .caseType("tax_exception")
-                .amount(amount)
-                .ccdCaseNumber("2154234356342357")
-                .returnURL("https://www.google.com")
-                .currency(CurrencyCode.GBP)
-                .build();
+            .caseType("tax_exception")
+            .amount(amount)
+            .ccdCaseNumber("2154234356342357")
+            .returnURL("https://www.google.com")
+            .currency(CurrencyCode.GBP)
+            .build();
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
-                .serviceCode("AA001")
-                .serviceDescription("Divorce")
-                .build();
+            .serviceCode("AA001")
+            .serviceDescription("Divorce")
+            .build();
 
         when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenReturn(organisationalServiceDto);
 
         when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
-                .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
+            .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
 
         when(pciPalPaymentService.getPaymentProviderAutorisationTokens()).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         when(pciPalPaymentService.getTelephonyProviderLink(any(PciPalPaymentRequest.class)
-                , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
+            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         MvcResult result3 = restActions
-                .withReturnUrl("https://www.google.com")
-                .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyPaymentRequest)
-                .andExpect(status().isCreated())
-                .andReturn();
+            .withReturnUrl("https://www.google.com")
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
 
         PaymentDto paymentDtoResult = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentDto.class);
 
         MvcResult result4 = restActions
-            .get("/card-payments/" + paymentDtoResult.getReference())
+            .get("/card-payments/" + paymentDtoResult.getPaymentReference())
             .andExpect(status().isOk())
             .andReturn();
+
         PaymentDto paymentsResponse = objectMapper.readValue(result4.getResponse().getContentAsString(), PaymentDto.class);
 
         assertNotNull(paymentsResponse);
