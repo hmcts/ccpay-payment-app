@@ -321,7 +321,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
 
     private PaymentFeeLink retrieve(String paymentReference, boolean shouldCallBack, String serviceName ) {
         final Payment payment = findSavedPayment(paymentReference);
-        LOG.info("Retrieved payment reference {} with date created {}", paymentReference, payment.getDateCreated().toString());
+        LOG.info("Retrieved payment reference {} with date created {}", paymentReference, payment.getDateCreated());
 
         final PaymentFeeLink paymentFeeLink = payment.getPaymentLink();
 
@@ -396,6 +396,9 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
             }
         } catch (GovPayPaymentNotFoundException | NullPointerException pnfe) {
             LOG.error("Gov Pay payment not found id is:{} and govpay id is:{}", payment.getExternalReference(), paymentReference);
+        } catch (UnsupportedOperationException exception) {
+            LOG.error("Exception occurred while retrieving PaymentFeeLink: {} for {} due to {} {}",
+                    paymentFeeLink, paymentReference, exception.getMessage(), exception);
         }
 
         LOG.info(" CcdCaseNumber updated for failure Gov.uk response : {}" ,paymentFeeLink.getCcdCaseNumber());
