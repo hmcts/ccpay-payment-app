@@ -97,6 +97,10 @@ public class PaymentStatusControllerTest {
     private RestTemplate restTemplateRefundCancel;
 
     @MockBean
+    @Qualifier("restTemplatePaymentGroup")
+    private RestTemplate restTemplatePaymentGroup;
+
+    @MockBean
     private AuthTokenGenerator authTokenGenerator;
 
     @Mock
@@ -457,14 +461,66 @@ public class PaymentStatusControllerTest {
                 .dcn("88")
                 .poBoxNumber("8")
                 .build();
-        when(paymentFailureRepository.findByFailureReference(any())).thenReturn(Optional.of(getPaymentFailures()));
+        when(this.restTemplatePaymentGroup.exchange(anyString(),
+                eq(HttpMethod.GET),
+                any(HttpEntity.class),
+                eq(ResponseEntity.class)))
+                .thenReturn(new ResponseEntity(HttpStatus.OK));
         MvcResult result = restActions
-                .patch("/payment-failures/unprocessed-payment", unprocessedPayment)
+                .post("/payment-failures/unprocessed-payment", unprocessedPayment)
                 .andExpect(status().isOk())
                 .andReturn();
 
         String message = result.getResponse().getContentAsString();
         assertEquals("successful operation", message);
+    }
+
+    @Test
+    public void givenNoPaymentWhenUnprocessedPaymentThen404() throws Exception {
+        UnprocessedPayment unprocessedPayment = UnprocessedPayment.unprocessedPayment()
+                .amount(BigDecimal.valueOf(888))
+                .failureReference("FR8888")
+                .eventDateTime("2022-10-10T10:10:10")
+                .reason("RR001")
+                .dcn("88")
+                .poBoxNumber("8")
+                .build();
+        when(this.restTemplatePaymentGroup.exchange(anyString(),
+                eq(HttpMethod.GET),
+                any(HttpEntity.class),
+                eq(ResponseEntity.class)))
+                .thenReturn(new ResponseEntity(HttpStatus.NOT_FOUND));
+        MvcResult result = restActions
+                .post("/payment-failures/unprocessed-payment", unprocessedPayment)
+                .andExpect(status().isNotFound())
+                .andReturn();
+
+        String message = result.getResponse().getContentAsString();
+        assertEquals("No Payments available for the given document reference number", message);
+    }
+
+    @Test
+    public void givenDuplicateRequestWhenUnprocessedPaymentThen429() throws Exception {
+        UnprocessedPayment unprocessedPayment = UnprocessedPayment.unprocessedPayment()
+                .amount(BigDecimal.valueOf(888))
+                .failureReference("FR8888")
+                .eventDateTime("2022-10-10T10:10:10")
+                .reason("RR001")
+                .dcn("88")
+                .poBoxNumber("8")
+                .build();
+        when(this.restTemplatePaymentGroup.exchange(anyString(),
+                eq(HttpMethod.GET),
+                any(HttpEntity.class),
+                eq(ResponseEntity.class)))
+                .thenReturn(new ResponseEntity(HttpStatus.OK));
+        when(paymentFailureRepository.save(any())).thenThrow(DataIntegrityViolationException.class);
+        MvcResult result = restActions
+                .post("/payment-failures/unprocessed-payment", unprocessedPayment)
+                .andExpect(status().isTooManyRequests())
+                .andReturn();
+
+        assertEquals("Request already received for this failure reference", result.getResolvedException().getMessage());
     }
 
     private PaymentStatusBouncedChequeDto getPaymentStatusBouncedChequeDto() {

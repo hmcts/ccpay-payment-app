@@ -36,6 +36,7 @@ import java.util.*;
 public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateService {
 
     private static final Logger LOG = LoggerFactory.getLogger(PaymentStatusUpdateServiceImpl.class);
+    private static final String TOO_MANY_RQUESTS_EXCEPTION_MSG = "Request already received for this failure reference";
 
     @Autowired
     PaymentStatusDtoMapper paymentStatusDtoMapper;
@@ -86,7 +87,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
             LOG.info("Completed  Payment failure insert in payment_failure table: {}", paymentStatusBouncedChequeDto.getPaymentReference());
             return insertPaymentFailure;
         }catch(DataIntegrityViolationException e){
-            throw new FailureReferenceNotFoundException("Request already received for this failure reference");
+            throw new FailureReferenceNotFoundException(TOO_MANY_RQUESTS_EXCEPTION_MSG);
         }
     }
 
@@ -146,7 +147,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
             LOG.info("Completed  Payment failure insert in payment_failure table: {}", paymentStatusChargebackDto.getPaymentReference());
             return insertPaymentFailure;
         } catch(DataIntegrityViolationException e){
-            throw new FailureReferenceNotFoundException("Request already received for this failure reference");
+            throw new FailureReferenceNotFoundException(TOO_MANY_RQUESTS_EXCEPTION_MSG);
         }
     }
 
@@ -214,11 +215,11 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
 
         PaymentFailures paymentFailure = paymentStatusDtoMapper.unprocessedPaymentMapper(unprocessedPayment);
         try {
-            PaymentFailures insertPaymentFailure = paymentFailureRepository.save(paymentFailure);
+            PaymentFailures savedPaymentFailure = paymentFailureRepository.save(paymentFailure);
             LOG.info("Completed Payment failure insert in payment_failure table: {}", unprocessedPayment.getDcn());
-            return insertPaymentFailure;
+            return savedPaymentFailure;
         } catch (DataIntegrityViolationException e) {
-            throw new FailureReferenceNotFoundException("Request already received for this failure reference");
+            throw new FailureReferenceNotFoundException(TOO_MANY_RQUESTS_EXCEPTION_MSG);
         }
     }
 
@@ -233,7 +234,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         } else {
             SearchResponse searchResponse = (SearchResponse) responseEntity.getBody();
             LOG.info("Search Response from Bulk Scanning app: {}", searchResponse);
-            if (!PaymentStatus.PROCESSED.equals(searchResponse.getAllPaymentsStatus())) {
+            if (null != searchResponse && !PaymentStatus.PROCESSED.equals(searchResponse.getAllPaymentsStatus())) {
                 for (PaymentMetadataDto paymentMetadataDto : searchResponse.getPayments()) {
                     if (dcn.equals(paymentMetadataDto.getDcnReference()) && paymentMetadataDto.getAmount().compareTo(amount) == 1) {
                         throw new InvalidPaymentFailureRequestException("Failure amount cannot be more than payment amount");

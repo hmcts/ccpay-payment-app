@@ -46,6 +46,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
@@ -288,7 +289,7 @@ public class ServiceRequestDomainServiceTest {
          ServiceRequestPaymentBo bo =
                  serviceRequestDomainService.addPayments(getPaymentFeeLink(), "123", serviceRequestPaymentDto);
 
-         assertNotNull(bo);
+         assertNull(bo);
      }
 
     @Test
