@@ -159,7 +159,8 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
         Date targetTime = DateUtils.addMinutes(new Date(), -1 * paymentsCutOffTime);
         return paymentRepository.findReferencesByPaymentProviderAndPaymentStatusNotInAndDateCreatedLessThan(
             PaymentProvider.GOV_PAY,
-            Lists.newArrayList(SUCCESS, FAILED, ERROR, CANCELLED), targetTime);
+            Lists.newArrayList(SUCCESS, FAILED, ERROR, CANCELLED), targetTime,
+                Sort.by(Sort.Direction.ASC, "dateCreated"));
     }
 
     @Override
