@@ -154,6 +154,10 @@ public class PaymentStatusController {
                                                                       @RequestHeader(required = false) MultiValueMap<String, String> headers,
                                                                       @RequestHeader("Authorization") String authorization) {
 
+        if (featureToggler.getBooleanValue(PAYMENT_STATUS_UPDATE_FLAG,false)) {
+            throw new LiberataServiceInaccessibleException("service unavailable");
+        }
+
         LOG.info("Received payment status report request");
        List<PaymentFailureReportDto> paymentFailureReportDto =  paymentStatusUpdateService.paymentFailureReport(atStartOfDay(fromDate), atEndOfDay(toDate),headers);
         return new PaymentFailureReportResponse(paymentFailureReportDto);
