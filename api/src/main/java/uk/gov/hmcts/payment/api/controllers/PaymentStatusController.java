@@ -107,6 +107,7 @@ public class PaymentStatusController {
     @PaymentExternalAPI
     @PatchMapping("/payment-failures/{failureReference}")
     public ResponseEntity<String> paymentStatusSecond(@PathVariable("failureReference") String failureReference,
+                                                      @RequestBody PaymentStatusUpdateSecond paymentStatusUpdateSecondDto){
 
         LOG.info("Received payment status update second ping request: {}", paymentStatusUpdateSecondDto);
         paymentStatusUpdateService.updatePaymentFailure(failureReference, paymentStatusUpdateSecondDto);
