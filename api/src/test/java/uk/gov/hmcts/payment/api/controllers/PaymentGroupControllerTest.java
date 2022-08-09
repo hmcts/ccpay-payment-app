@@ -988,52 +988,6 @@ public class PaymentGroupControllerTest {
     }
 
     @Test
-    public void addnewCardPaymentgroupWithCaseTypeShouldReturnSuccess() throws Exception {
-
-        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
-            .fees(Arrays.asList(getNewFee()))
-            .build();
-
-        when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
-            .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
-
-
-        MvcResult result = restActions
-            .post("/payment-groups", request)
-            .andExpect(status().isCreated())
-            .andReturn();
-
-        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
-
-        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
-            .serviceCode("AAD7")
-            .serviceDescription("Divorce")
-            .build();
-
-        when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenReturn(organisationalServiceDto);
-
-        when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
-            .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
-
-        BigDecimal amount = new BigDecimal("200");
-
-        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
-            .amount(amount)
-            .currency(CurrencyCode.GBP)
-            .description("Test cross field validation")
-            .caseType("tax_exception")
-            .ccdCaseNumber("2154-2343-5634-2357")
-            .provider("pci pal")
-            .channel("telephony")
-            .build();
-
-        restActions
-            .withReturnUrl("https://www.google.com")
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", cardPaymentRequest)
-            .andExpect(status().isCreated());
-    }
-
-    @Test
     public void addTelephonyPaymentWithValidCaseTypeReturnSuccess() throws Exception {
 
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
