@@ -384,7 +384,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
                         LOG.info(" ExternalReference updated for failure Gov.uk : {}" ,payment.getExternalReference());
                         LOG.info(" PaymentStatus updated for failure Gov.uk : {}" ,payment.getPaymentStatus().getName());
                         paymentFeeLinkRepository.save(paymentFeeLink);
-                        LOG.info("payment saved payment table successfully for failure case");
+                        LOG.info("payment {} saved in payment table successfully for failure case", paymentReference);
                     }
                 }
 

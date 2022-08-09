@@ -19,6 +19,8 @@ import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Date;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 @RunWith(MockitoJUnitRunner.class)
 public class ServiceRequestPaymentDomainDataEntityMapperTest {
 
@@ -54,7 +56,8 @@ public class ServiceRequestPaymentDomainDataEntityMapperTest {
         Mockito.when(serviceIdSupplier.get()).thenReturn("s2sServiceName");
 
         try {
-            serviceRequestPaymentDomainDataEntityMapper.toEntity(serviceRequestPaymentBo,getPaymentFeeLink());
+            Payment result = serviceRequestPaymentDomainDataEntityMapper.toEntity(serviceRequestPaymentBo,getPaymentFeeLink());
+            assertEquals(serviceRequestPaymentBo.getPaymentReference(),result.getReference());
         }catch (PaymentRefDataNotFoundException e){
 
         }
@@ -69,7 +72,8 @@ public class ServiceRequestPaymentDomainDataEntityMapperTest {
             .dateCreated(new Date())
             .build();
 
-        serviceRequestPaymentDomainDataEntityMapper.toDomain(payment);
+        ServiceRequestPaymentBo result = serviceRequestPaymentDomainDataEntityMapper.toDomain(payment);
+        assertEquals(payment.getReference(),result.getPaymentReference());
 
     }
 

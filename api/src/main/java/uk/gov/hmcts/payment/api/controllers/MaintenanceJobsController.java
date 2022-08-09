@@ -4,7 +4,6 @@ import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.payment.api.dto.Reference;
@@ -50,7 +49,6 @@ public class MaintenanceJobsController {
         @ApiResponse(code = 200, message = "Reports sent")
     })
     @PatchMapping(value = "/jobs/card-payments-status-update")
-    @Transactional
     public void updatePaymentsStatus() {
 
         List<Reference> referenceList = paymentService.listInitiatedStatusPaymentsReferences();

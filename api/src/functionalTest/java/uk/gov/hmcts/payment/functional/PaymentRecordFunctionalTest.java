@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
+import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
@@ -84,8 +85,9 @@ public class PaymentRecordFunctionalTest {
                 .then().getPayments((paymentsResponse -> {
                 LOG.info("paymentsResponse: {}",paymentsResponse.getPayments().size());
                 assertThat(paymentsResponse.getPayments().size()).isGreaterThanOrEqualTo(1);
-
-                FeeDto feeDto = paymentsResponse.getPayments().get(0).getFees().get(0);
+                PaymentDto retrievedPaymentDto = paymentsResponse.getPayments().stream()
+                    .filter(o -> o.getPaymentReference().equals(paymentDto.getReference())).findFirst().get();
+                FeeDto feeDto = retrievedPaymentDto.getFees().get(0);
                 assertThat(feeDto.getCode()).isEqualTo("FEE0333");
                 assertThat(feeDto.getVersion()).isEqualTo("1");
                 assertThat(feeDto.getCalculatedAmount()).isEqualTo(new BigDecimal("550.00"));
