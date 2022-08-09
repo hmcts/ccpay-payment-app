@@ -979,10 +979,6 @@ public class PaymentGroupControllerTest {
             .get("/card-payments/" + paymentDtoResult.getReference())
             .andExpect(status().isOk())
             .andReturn();
-                .get("/card-payments/" + paymentDtoResult.getPaymentReference())
-                .andExpect(status().isOk())
-                .andReturn();
-
         PaymentDto paymentsResponse = objectMapper.readValue(result4.getResponse().getContentAsString(), PaymentDto.class);
 
         assertNotNull(paymentsResponse);
