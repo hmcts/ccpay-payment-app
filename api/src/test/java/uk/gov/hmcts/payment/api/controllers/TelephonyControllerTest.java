@@ -311,7 +311,7 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(getNewFee(ccdCaseNumber)))
             .build();
-        when(refundRemissionEnableService.returnRemissionEligible(any())).thenReturn(true);
+
         MvcResult result = restActions
             .post("/payment-groups", request)
             .andExpect(status().isCreated())
@@ -327,8 +327,7 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
         when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenReturn(organisationalServiceDto);
 
         when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
-            .thenReturn(
-                    PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
+            .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
 
         when(pciPalPaymentService.getPaymentProviderAutorisationTokens()).thenReturn(getTelephonyProviderAuthorisationResponse());
 
@@ -352,7 +351,7 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
 
         PaymentDto paymentDtoResult = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentDto.class);
 
-        String paymentReference = paymentDtoResult.getReference();
+        String paymentReference = paymentDtoResult.getPaymentReference();
 
         String rawFormData = "orderCurrency=&orderAmount=100&orderReference=" +
             paymentReference +
