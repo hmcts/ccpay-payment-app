@@ -482,6 +482,29 @@ public class PaymentStatusControllerTest {
 
     }
 
+    @Test
+    public void lockedReportShouldThrowServiceUnavailable() throws Exception {
+
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add("Authorization", "auth");
+        headers.add("ServiceAuthorization", "service-auth");
+        headers.add("Content-Type", "application/json");
+        when(authTokenGenerator.generate()).thenReturn("test-token");
+        when(paymentFailureRepository.findByPaymentReferenceOrderByFailureEventDateTimeDesc(any())).thenReturn(Optional.empty());
+        when(featureToggler.getBooleanValue(eq("payment-status-update-flag"),anyBoolean())).thenReturn(true);
+
+        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
+        String endDate = LocalDate.now().toString(DATE_FORMAT);
+
+        MvcResult result = restActions
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
+            .get("/payment-failures/failure-report?date_from=" + startDate + "&date_to=" + endDate)
+            .andExpect(status().isServiceUnavailable())
+            .andReturn();
+        assertEquals(503,result.getResponse().getStatus());
+
+    }
     private PaymentStatusBouncedChequeDto getPaymentStatusBouncedChequeDto() {
 
         PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto = PaymentStatusBouncedChequeDto.paymentStatusBouncedChequeRequestWith()
