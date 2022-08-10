@@ -439,7 +439,7 @@ public class PaymentStatusControllerTest {
     @Test
     public void testSuccessFullyUnprocessedPaymentUpdate() throws Exception{
 
-        when(paymentFailureRepository.findAll()).thenReturn(getPaymentFailuresDcnList());
+        when(paymentFailureRepository.findDcn()).thenReturn(getPaymentFailuresDcnList());
         when(paymentFailureRepository.findByFailureReference(any())).thenReturn(Optional.of(getPaymentFailures()));
         when(paymentRepository.findByDocumentControlNumberIn(any())).thenReturn(Arrays.asList(getPayment()));
 

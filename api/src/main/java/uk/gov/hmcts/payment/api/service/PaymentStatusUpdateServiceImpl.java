@@ -198,9 +198,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
     public void updateUnprocessedPayment(){
 
         LOG.info("Inside updateUnprocessedPayment method");
-
-        List<PaymentFailures> paymentFailuresList = paymentFailureRepository.findAll();
-        List<PaymentFailures> paymentFailuresListWithNoRC = paymentFailuresList.stream().filter(p -> p.getPaymentReference() == null || p.getPaymentReference().equals("")).collect(Collectors.toList());
+        List<PaymentFailures> paymentFailuresListWithNoRC = paymentFailureRepository.findDcn();;
 
         LOG.info("Inside updateUnprocessedPayment method paymentFailuresListWithNoRC size :{}",paymentFailuresListWithNoRC.size());
 
@@ -222,6 +220,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         Optional<PaymentFailures> paymentFailureResponse = paymentFailureRepository.findByFailureReference(paymentFailure.getFailureReference());
         if(paymentFailureResponse.isPresent()){
             paymentFailureResponse.get().setPaymentReference(payment.getReference());
+            paymentFailureResponse.get().setCcdCaseNumber(payment.getCcdCaseNumber());
             paymentFailureRepository.save(paymentFailureResponse.get());
 
             LOG.info("updateUnprocessedPayment successful");
