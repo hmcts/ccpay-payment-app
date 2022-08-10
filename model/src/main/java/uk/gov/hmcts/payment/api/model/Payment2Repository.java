@@ -22,7 +22,8 @@ public interface Payment2Repository extends CrudRepository<Payment, Integer>, Jp
     Optional<Payment> findByReference(String reference);
 
     List<Reference> findReferencesByPaymentProviderAndPaymentStatusNotInAndDateCreatedLessThan(
-            PaymentProvider paymentProvider, List<PaymentStatus> paymentStatuses, Date targetTime);
+            PaymentProvider paymentProvider, List<PaymentStatus> paymentStatuses, Date targetTime,
+            Sort dateCreated);
 
     Optional<List<Payment>> findAllByDateCreatedBetween(Date fromDate, Date toDate);
 
