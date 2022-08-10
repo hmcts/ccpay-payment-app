@@ -174,5 +174,4 @@ public class PaymentStatusController {
     public String return503(Exception ex) {
         return ex.getMessage();
     }
-
 }
