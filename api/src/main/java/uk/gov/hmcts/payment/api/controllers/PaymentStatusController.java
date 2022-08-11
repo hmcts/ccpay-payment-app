@@ -58,10 +58,10 @@ public class PaymentStatusController {
         boolean psuLockFeature = featureToggler.getBooleanValue(PAYMENT_STATUS_UPDATE_FLAG,false);
         LOG.info("feature toggler enable for  bounced-cheque : {}",psuLockFeature);
 
-        if(psuLockFeature){
+       /* if(psuLockFeature){
             return new ResponseEntity<>("service unavailable", HttpStatus.SERVICE_UNAVAILABLE);
         }
-
+*/
         LOG.info("Received payment status request bounced-cheque : {}", paymentStatusBouncedChequeDto);
          PaymentFailures insertPaymentFailures =  paymentStatusUpdateService.insertBounceChequePaymentFailure(paymentStatusBouncedChequeDto);
 
@@ -80,9 +80,9 @@ public class PaymentStatusController {
         boolean psuLockFeature = featureToggler.getBooleanValue(PAYMENT_STATUS_UPDATE_FLAG,false);
         LOG.info("feature toggler enable for  chargeback : {}",psuLockFeature);
 
-        if(psuLockFeature){
+        /*if(psuLockFeature){
             return new ResponseEntity<>("service unavailable", HttpStatus.SERVICE_UNAVAILABLE);
-        }
+        }*/
 
         LOG.info("Received payment status request chargeback : {}", paymentStatusChargebackDto);
 
@@ -106,10 +106,10 @@ public class PaymentStatusController {
         boolean psuLockFeature = featureToggler.getBooleanValue("payment-status-update-flag",false);
         LOG.info("feature toggler enable for failure history : {}",psuLockFeature);
 
-        if(psuLockFeature){
+       /* if(psuLockFeature){
             throw new LiberataServiceInaccessibleException("service unavailable");
         }
-
+*/
         List<PaymentFailureResponseDto> payments = paymentStatusUpdateService
             .searchPaymentFailure(paymentReference)
             .stream()
@@ -134,9 +134,9 @@ public class PaymentStatusController {
     @PatchMapping("/payment-failures/{failureReference}")
     public ResponseEntity<String> paymentStatusSecond(@PathVariable("failureReference") String failureReference,
                                                       @RequestBody PaymentStatusUpdateSecond paymentStatusUpdateSecondDto) {
-        if (featureToggler.getBooleanValue(PAYMENT_STATUS_UPDATE_FLAG,false)) {
+       /* if (featureToggler.getBooleanValue(PAYMENT_STATUS_UPDATE_FLAG,false)) {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
-        }
+        }*/
         LOG.info("Received payment status update second ping request: {}", paymentStatusUpdateSecondDto);
         paymentStatusUpdateService.updatePaymentFailure(failureReference, paymentStatusUpdateSecondDto);
         return new ResponseEntity<>("Successful operation", HttpStatus.OK);
@@ -154,9 +154,9 @@ public class PaymentStatusController {
                                                                       @RequestHeader(required = false) MultiValueMap<String, String> headers,
                                                                       @RequestHeader("Authorization") String authorization) {
 
-        if (featureToggler.getBooleanValue(PAYMENT_STATUS_UPDATE_FLAG,false)) {
+      /*  if (featureToggler.getBooleanValue(PAYMENT_STATUS_UPDATE_FLAG,false)) {
             throw new LiberataServiceInaccessibleException("service unavailable");
-        }
+        }*/
 
         LOG.info("Received payment status report request");
        List<PaymentFailureReportDto> paymentFailureReportDto =  paymentStatusUpdateService.paymentFailureReport(atStartOfDay(fromDate), atEndOfDay(toDate),headers);
