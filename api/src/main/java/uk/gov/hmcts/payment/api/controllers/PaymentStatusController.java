@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 public class PaymentStatusController {
     private static final Logger LOG = LoggerFactory.getLogger(PaymentStatusController.class);
     private static final String PAYMENT_STATUS_UPDATE_FLAG = "payment-status-update-flag";
+    private static final String SUCCESSFUL_OPERATION = "successful operation";
 
     @Autowired
     private PaymentStatusUpdateService paymentStatusUpdateService;
@@ -62,7 +63,7 @@ public class PaymentStatusController {
               paymentStatusUpdateService.cancelFailurePaymentRefund(paymentStatusBouncedChequeDto.getPaymentReference());
             }
 
-        return new ResponseEntity<>("successful operation", HttpStatus.OK);
+        return new ResponseEntity<>(SUCCESSFUL_OPERATION, HttpStatus.OK);
 
     }
 
@@ -81,7 +82,7 @@ public class PaymentStatusController {
         if(null != insertPaymentFailures.getId()){
             paymentStatusUpdateService.cancelFailurePaymentRefund(paymentStatusChargebackDto.getPaymentReference());
         }
-        return new ResponseEntity<>("successful operation", HttpStatus.OK);
+        return new ResponseEntity<>(SUCCESSFUL_OPERATION, HttpStatus.OK);
     }
 
     @PaymentExternalAPI
@@ -96,7 +97,7 @@ public class PaymentStatusController {
 
         paymentStatusUpdateService.unprocessedPayment(unprocessedPayment, headers);
 
-        return new ResponseEntity<>("successful operation", HttpStatus.OK);
+        return new ResponseEntity<>(SUCCESSFUL_OPERATION, HttpStatus.OK);
     }
 
     @ApiOperation(value = "Get payment failure by payment reference", notes = "Get payment failure for supplied payment reference")
@@ -141,7 +142,7 @@ public class PaymentStatusController {
         }
         LOG.info("Received payment status update request for second ping: {}", paymentStatusUpdateSecondDto);
         paymentStatusUpdateService.updatePaymentFailure(failureReference, paymentStatusUpdateSecondDto);
-        return new ResponseEntity<>("successful operation", HttpStatus.OK);
+        return new ResponseEntity<>(SUCCESSFUL_OPERATION, HttpStatus.OK);
     }
 
     @ResponseStatus(HttpStatus.TOO_MANY_REQUESTS)

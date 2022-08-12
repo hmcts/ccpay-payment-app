@@ -16,8 +16,6 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponents;
-import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentStatusDtoMapper;
 import uk.gov.hmcts.payment.api.exception.FailureReferenceNotFoundException;
@@ -224,11 +222,10 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
     }
 
     private boolean validateDcn(String dcn, BigDecimal amount, MultiValueMap<String, String> headers) {
-        UriComponents builder = UriComponentsBuilder.fromHttpUrl(bulkScanPaymentsProcessedUrl + casesPath)
-                .queryParam("document_control_number", dcn)
-                .build();
+        Map<String, String> params = new HashMap<>();
+        params.put("document_control_number", dcn);
         ResponseEntity responseEntity = restTemplatePaymentGroup
-                .exchange(builder.toUriString(), HttpMethod.GET, new HttpEntity<>(headers), ResponseEntity.class);
+                .exchange(bulkScanPaymentsProcessedUrl + casesPath, HttpMethod.GET, new HttpEntity<>(headers), ResponseEntity.class, params);
         if (!HttpStatus.OK.equals(responseEntity.getStatusCode())) {
             return false;
         } else {
@@ -236,7 +233,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
             LOG.info("Search Response from Bulk Scanning app: {}", searchResponse);
             if (null != searchResponse && !PaymentStatus.PROCESSED.equals(searchResponse.getAllPaymentsStatus())) {
                 for (PaymentMetadataDto paymentMetadataDto : searchResponse.getPayments()) {
-                    if (dcn.equals(paymentMetadataDto.getDcnReference()) && paymentMetadataDto.getAmount().compareTo(amount) == 1) {
+                    if (dcn.equals(paymentMetadataDto.getDcnReference()) && paymentMetadataDto.getAmount().compareTo(amount) > 0) {
                         throw new InvalidPaymentFailureRequestException("Failure amount cannot be more than payment amount");
                     }
                 }
