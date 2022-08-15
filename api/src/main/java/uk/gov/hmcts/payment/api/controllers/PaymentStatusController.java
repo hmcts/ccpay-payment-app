@@ -54,7 +54,7 @@ public class PaymentStatusController {
         boolean psuLockFeature = featureToggler.getBooleanValue(PAYMENT_STATUS_UPDATE_FLAG,false);
         LOG.info("feature toggler enable for  bounced-cheque : {}",psuLockFeature);
 
-        if(!psuLockFeature){
+        if(psuLockFeature){
             return new ResponseEntity<>("service unavailable", HttpStatus.SERVICE_UNAVAILABLE);
         }
 
