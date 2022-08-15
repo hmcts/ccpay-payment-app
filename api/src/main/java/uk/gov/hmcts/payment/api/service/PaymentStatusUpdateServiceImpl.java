@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.api.service;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
@@ -209,9 +210,10 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
     public List<PaymentFailureReportDto> paymentFailureReport(Date startDate,Date endDate,MultiValueMap<String, String> headers){
         LOG.info("Enter paymentFailureReport method");
 
-        List<RefundDto> refundList = new ArrayList<>();
+        List<RefundDto> refundList = null;
         List<PaymentFailureReportDto> failureReport = new ArrayList<>();
         ValidationErrorDTO validationError = new ValidationErrorDTO();
+        RefundPaymentFailureReportDtoResponse refundPaymentFailureReportDtoResponse = null;
 
         if(startDate.after(endDate)){
             validationError.addFieldError("dates", "Start date cannot be greater than end date");
@@ -226,15 +228,17 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
 
         List<String> paymentReference= paymentFailuresList.stream().map(r->r.getPaymentReference()).distinct().collect(Collectors.toList());
 
-        List<Payment> paymentList= paymentRepository.findByReferenceIn(paymentReference);
+        List<Payment> paymentList = paymentRepository.findByReferenceIn(paymentReference);
 
-        RefundPaymentFailureReportDtoResponse refundPaymentFailureReportDtoResponse = fetchRefundResponse(paymentReference);
+         if(paymentList.size() > 0){
+            refundPaymentFailureReportDtoResponse = fetchRefundResponse(paymentReference);
+        }
+
         if(null != refundPaymentFailureReportDtoResponse){
             refundList = refundPaymentFailureReportDtoResponse.getPaymentFailureDto();
         }
 
         List<RefundDto> finalRefundList = refundList;
-
         paymentFailuresList.stream()
             .collect(Collectors.toList())
             .forEach(paymentFailure -> {

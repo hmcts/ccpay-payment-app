@@ -36,18 +36,22 @@ public class PaymentFailureReportMapper {
     private String toRefundReference(List<RefundDto> refund,PaymentFailures paymentFailure ) {
         List<RefundDto> refundRes;
         String refundRef = null;
-         if(!refund.isEmpty()) {
-             refundRes = refund.stream()
-                 .filter(dto -> paymentFailure.getPaymentReference().equals(dto.getPaymentReference()))
-                 .collect(Collectors.toList());
+        if(paymentFailure.getPaymentReference() != null){
+            if(!refund.isEmpty()) {
+                refundRes = refund.stream()
+                    .filter(dto -> paymentFailure.getPaymentReference().equals(dto.getPaymentReference()))
+                    .collect(Collectors.toList());
 
-             refundRef = refundRes
-                 .stream()
-                 .map(a -> String.valueOf(a.getRefundReference()))
-                 .collect(Collectors.joining(","));
-         }if(refundRef.equalsIgnoreCase("")){
-             return null;
+                refundRef = refundRes
+                    .stream()
+                    .map(a -> String.valueOf(a.getRefundReference()))
+                    .collect(Collectors.joining(","));
+            }
+            if("".equalsIgnoreCase(refundRef)){
+                return null;
+            }
         }
+
         return refundRef;
     }
 
@@ -55,35 +59,43 @@ public class PaymentFailureReportMapper {
 
         List<RefundDto> refundRes;
         String refundDate =null;
-        if(!refund.isEmpty()) {
-            refundRes = refund.stream()
-                .filter(dto -> paymentFailure.getPaymentReference().equals(dto.getPaymentReference()))
-                .collect(Collectors.toList());
+        if(paymentFailure.getPaymentReference() != null){
+            if(!refund.isEmpty()) {
+                refundRes = refund.stream()
+                    .filter(dto -> paymentFailure.getPaymentReference().equals(dto.getPaymentReference()))
+                    .collect(Collectors.toList());
 
-            refundDate = refundRes
-                .stream()
-                .map(a -> String.valueOf(a.getRefundDate()))
-                .collect(Collectors.joining(","));
-        }if(refundDate.equalsIgnoreCase("")){
-            return null;
+                refundDate = refundRes
+                    .stream()
+                    .map(a -> String.valueOf(a.getRefundDate()))
+                    .collect(Collectors.joining(","));
+            }
+            if("".equalsIgnoreCase(refundDate)){
+                return null;
+            }
         }
+
         return refundDate;
     }
 
     private String  toRefundAmount(List<RefundDto> refund,PaymentFailures paymentFailure) {
         List<RefundDto> refundRes;
         String refundAmount = null;
-        if(!refund.isEmpty()) {
-            refundRes = refund.stream()
-                .filter(dto -> paymentFailure.getPaymentReference().equals(dto.getPaymentReference()))
-                .collect(Collectors.toList());
-            refundAmount = refundRes
-                .stream()
-                .map(a -> String.format("%.2f", a.getAmount()))
-                .collect(Collectors.joining(","));
-        }if(refundAmount.equalsIgnoreCase("")){
-            return null;
+        if(paymentFailure.getPaymentReference() != null){
+            if(!refund.isEmpty()) {
+                refundRes = refund.stream()
+                    .filter(dto -> paymentFailure.getPaymentReference().equals(dto.getPaymentReference()))
+                    .collect(Collectors.toList());
+                refundAmount = refundRes
+                    .stream()
+                    .map(a -> String.format("%.2f", a.getAmount()))
+                    .collect(Collectors.joining(","));
+            }
+            if("".equalsIgnoreCase(refundAmount)){
+                return null;
+            }
         }
+
         return refundAmount;
 
     }
