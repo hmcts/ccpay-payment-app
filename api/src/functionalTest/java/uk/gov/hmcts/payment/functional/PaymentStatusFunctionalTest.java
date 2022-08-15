@@ -48,6 +48,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.math.BigDecimal;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.regex.Pattern;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -72,6 +73,7 @@ public class PaymentStatusFunctionalTest {
     private static String USER_TOKEN_CARD_PAYMENT;
     private static final String PAYMENT_REFERENCE_REGEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
     private static final String DATE_TIME_FORMAT_T_HH_MM_SS = "yyyy-MM-dd'T'HH:mm:ss";
+    private static final Pattern REFUNDS_REGEX_PATTERN = Pattern.compile("^(RF)-([0-9]{4})-([0-9-]{4})-([0-9-]{4})-([0-9-]{4})$");
 
     @Autowired
     private PaymentTestService paymentTestService;
@@ -1204,21 +1206,22 @@ public class PaymentStatusFunctionalTest {
         Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentRefundRequest);
-        PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto
-            = PaymentFixture.bouncedChequeRequest(paymentDto.getReference());
+        RefundResponse refundResponseFromPost = refundResponse.getBody().as(RefundResponse.class);
+        PaymentStatusChargebackDto paymentStatusChargebackDto
+            = PaymentFixture.chargebackRequest(paymentDto.getReference());
 
-        Response bounceChequeResponse = paymentTestService.postBounceCheque(
+        Response chargebackResponse = paymentTestService.postChargeback(
             SERVICE_TOKEN_PAYMENT,
-            paymentStatusBouncedChequeDto);
+            paymentStatusChargebackDto);
 
         PaymentFailureResponse paymentsFailureResponse =
-            paymentTestService.getFailurePayment(USER_TOKEN_PAYMENT, SERVICE_TOKEN, paymentStatusBouncedChequeDto.getPaymentReference()).then()
+            paymentTestService.getFailurePayment(USER_TOKEN_PAYMENT, SERVICE_TOKEN, paymentStatusChargebackDto.getPaymentReference()).then()
                 .statusCode(OK.value()).extract().as(PaymentFailureResponse.class);
 
-        assertThat(paymentsFailureResponse.getPaymentFailureList().get(0).getPaymentFailureInitiated().getFailureReference()).isEqualTo(paymentStatusBouncedChequeDto.getFailureReference());
+        assertThat(paymentsFailureResponse.getPaymentFailureList().get(0).getPaymentFailureInitiated().getFailureReference()).isEqualTo(paymentStatusChargebackDto.getFailureReference());
 
         assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
-        assertThat(bounceChequeResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+        assertThat(chargebackResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
 
         // Ping 2
 
@@ -1229,7 +1232,7 @@ public class PaymentStatusFunctionalTest {
             .representmentDate(representmentDate)
             .build();
         Response ping2Response = paymentTestService.paymentStatusSecond(
-            SERVICE_TOKEN_PAYMENT, paymentStatusBouncedChequeDto.getFailureReference(),
+            SERVICE_TOKEN_PAYMENT, paymentStatusChargebackDto.getFailureReference(),
             paymentStatusUpdateSecond);
 
         assertEquals(ping2Response.getStatusCode(), OK.value());
@@ -1249,17 +1252,209 @@ public class PaymentStatusFunctionalTest {
         PaymentFailureReportResponse paymentFailureReportResponse = response.getBody().as(PaymentFailureReportResponse.class);
 
         PaymentFailureReportDto paymentFailureReportDto =  paymentFailureReportResponse.getPaymentFailureReportList().stream().filter(s->s.getFailureReference().equalsIgnoreCase(paymentsFailureResponse.getPaymentFailureList().get(0).getPaymentFailureInitiated().getFailureReference())).findFirst().get();
+         String eventDate = getReportDate(paymentFailureReportDto.getEventDate());
+         String representmentReportDate = getReportDate(paymentFailureReportDto.getRepresentmentDate());
+         String expectedDate = getReportDate(new Date(System.currentTimeMillis()));
         assertEquals(paymentDto.getReference(),paymentFailureReportDto.getPaymentReference());
-        assertEquals("Bounced Cheque",paymentFailureReportDto.getEventName());
+        assertEquals("Chargeback",paymentFailureReportDto.getEventName());
         assertEquals(new BigDecimal("50.00"),paymentFailureReportDto.getDisputedAmount());
-        assertEquals(paymentStatusBouncedChequeDto.getFailureReference(),paymentFailureReportDto.getFailureReference());
+        assertEquals(paymentStatusChargebackDto.getFailureReference(),paymentFailureReportDto.getFailureReference());
         assertEquals("Yes",paymentFailureReportDto.getRepresentmentStatus());
+        assertEquals("ABA6",paymentFailureReportDto.getOrgId());
+        assertEquals(accountPaymentRequest.getCcdCaseNumber(),paymentFailureReportDto.getCcdReference());
+        assertEquals("Probate",paymentFailureReportDto.getServiceName());
+        assertEquals("125.00", paymentFailureReportDto.getRefundAmount());
+        assertEquals(expectedDate,eventDate);
+        assertEquals(expectedDate,representmentReportDate);
+        assertEquals(refundResponseFromPost.getRefundReference(),paymentFailureReportDto.getRefundReference());
+        assertEquals("RR001",paymentFailureReportDto.getFailureReason());
+
+
+
 
         // delete payment record
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
 
         //delete Payment Failure record
-        paymentTestService.deleteFailedPayment(USER_TOKEN, SERVICE_TOKEN, paymentStatusBouncedChequeDto.getFailureReference()).then().statusCode(NO_CONTENT.value());
+        paymentTestService.deleteFailedPayment(USER_TOKEN, SERVICE_TOKEN, paymentStatusChargebackDto.getFailureReference()).then().statusCode(NO_CONTENT.value());
+    }
+
+    @Test
+    public void positive_paymentStatusReport_no_refund_representment() {
+
+        String accountNumber = testProps.existingAccountNumber;
+        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
+            .aPbaPaymentRequestForProbate("125.00",
+                "PROBATE", "PBAFUNC12345");
+        accountPaymentRequest.setAccountNumber(accountNumber);
+        PaymentDto paymentDto = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
+            .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
+
+        PaymentStatusChargebackDto paymentStatusChargebackDto
+            = PaymentFixture.chargebackRequest(paymentDto.getReference());
+
+        Response chargebackResponse = paymentTestService.postChargeback(
+            SERVICE_TOKEN_PAYMENT,
+            paymentStatusChargebackDto);
+
+        PaymentFailureResponse paymentsFailureResponse =
+            paymentTestService.getFailurePayment(USER_TOKEN_PAYMENT, SERVICE_TOKEN, paymentStatusChargebackDto.getPaymentReference()).then()
+                .statusCode(OK.value()).extract().as(PaymentFailureResponse.class);
+
+        assertThat(paymentsFailureResponse.getPaymentFailureList().get(0).getPaymentFailureInitiated().getFailureReference()).isEqualTo(paymentStatusChargebackDto.getFailureReference());
+
+        assertThat(chargebackResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.add("date_from", getReportDate(new Date(System.currentTimeMillis())));
+        params.add("date_to", getReportDate(new Date(System.currentTimeMillis())));
+        Response response = RestAssured.given()
+            .header("Authorization", USER_TOKEN_PAYMENT)
+            .header("ServiceAuthorization", SERVICE_TOKEN_PAYMENT)
+            .contentType(ContentType.JSON)
+            .params(params)
+            .when()
+            .get("/payment-failures/failure-report");
+
+        PaymentFailureReportResponse paymentFailureReportResponse = response.getBody().as(PaymentFailureReportResponse.class);
+
+        PaymentFailureReportDto paymentFailureReportDto =  paymentFailureReportResponse.getPaymentFailureReportList().stream().filter(s->s.getFailureReference().equalsIgnoreCase(paymentsFailureResponse.getPaymentFailureList().get(0).getPaymentFailureInitiated().getFailureReference())).findFirst().get();
+        String eventDate = getReportDate(paymentFailureReportDto.getEventDate());
+        String expectedDate = getReportDate(new Date(System.currentTimeMillis()));
+        assertEquals(paymentDto.getReference(),paymentFailureReportDto.getPaymentReference());
+        assertEquals("Chargeback",paymentFailureReportDto.getEventName());
+        assertEquals(new BigDecimal("50.00"),paymentFailureReportDto.getDisputedAmount());
+        assertEquals(paymentStatusChargebackDto.getFailureReference(),paymentFailureReportDto.getFailureReference());
+        assertEquals("ABA6",paymentFailureReportDto.getOrgId());
+        assertEquals(accountPaymentRequest.getCcdCaseNumber(),paymentFailureReportDto.getCcdReference());
+        assertEquals("Probate",paymentFailureReportDto.getServiceName());
+        assertEquals(expectedDate,eventDate);
+        assertEquals("RR001",paymentFailureReportDto.getFailureReason());
+        // delete payment record
+        paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
+
+        //delete Payment Failure record
+        paymentTestService.deleteFailedPayment(USER_TOKEN, SERVICE_TOKEN, paymentStatusChargebackDto.getFailureReference()).then().statusCode(NO_CONTENT.value());
+    }
+
+    @Test
+    public void positive_paymentStatusReport_multiple_refund() {
+
+        String accountNumber = testProps.existingAccountNumber;
+        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
+            .aPbaPaymentRequestForProbateSinglePaymentFor2Fees("640.00",
+                "PROBATE", "PBAFUNC12345",
+                "FEE0001","90.00","FEE002","550.00");
+        accountPaymentRequest.setAccountNumber(accountNumber);
+        PaymentDto paymentDto = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
+            .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
+        Response casePaymentGroupResponse
+            = cardTestService
+            .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN_PAYMENT, accountPaymentRequest.getCcdCaseNumber());
+        PaymentGroupResponse paymentGroupResponse
+            = casePaymentGroupResponse.getBody().as(PaymentGroupResponse.class);
+        final String paymentGroupReference = paymentGroupResponse.getPaymentGroups().get(0).getPaymentGroupReference();
+        final Integer feeId = paymentGroupResponse.getPaymentGroups().get(0).getFees().get(0).getId();
+        final Integer feeId1 = paymentGroupResponse.getPaymentGroups().get(0).getFees().get(1).getId();
+        //TEST create retrospective remission
+        Response response = dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .when().createRetrospectiveRemissionForRefund(getRetroRemissionRequest("5.00"), paymentGroupReference, feeId)
+            .then().getResponse();
+
+        Response response1 = dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .when().createRetrospectiveRemissionForRefund(getRetroRemissionRequest("5.00"), paymentGroupReference, feeId1)
+            .then().getResponse();
+
+        String remissionReference = response.getBody().jsonPath().getString("remission_reference");
+        String remissionReference1 = response1.getBody().jsonPath().getString("remission_reference");
+        Response refundResponse = paymentTestService.postSubmitRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            SERVICE_TOKEN_PAYMENT,
+            RetroSpectiveRemissionRequest.retroSpectiveRemissionRequestWith().remissionReference(remissionReference).build());
+
+        Response refundResponse1 = paymentTestService.postSubmitRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            SERVICE_TOKEN_PAYMENT,
+            RetroSpectiveRemissionRequest.retroSpectiveRemissionRequestWith().remissionReference(remissionReference1).build());
+
+        assertThat(refundResponse.statusCode()).isEqualTo(HttpStatus.CREATED.value());
+        assertThat(refundResponse1.statusCode()).isEqualTo(HttpStatus.CREATED.value());
+        RefundResponse refundResponseFromPost = refundResponse.getBody().as(RefundResponse.class);
+        RefundResponse refundResponseFromPost1 = refundResponse1.getBody().as(RefundResponse.class);
+        assertThat(refundResponseFromPost.getRefundAmount()).isEqualTo(new BigDecimal("5.00"));
+        assertThat(REFUNDS_REGEX_PATTERN.matcher(refundResponseFromPost.getRefundReference()).matches()).isEqualTo(true);
+        PaymentStatusChargebackDto paymentStatusChargebackDto
+            = PaymentFixture.chargebackRequest(paymentDto.getReference());
+
+        Response chargebackResponse = paymentTestService.postChargeback(
+            SERVICE_TOKEN_PAYMENT,
+            paymentStatusChargebackDto);
+
+        PaymentFailureResponse paymentsFailureResponse =
+            paymentTestService.getFailurePayment(USER_TOKEN_PAYMENT, SERVICE_TOKEN, paymentStatusChargebackDto.getPaymentReference()).then()
+                .statusCode(OK.value()).extract().as(PaymentFailureResponse.class);
+
+        assertThat(paymentsFailureResponse.getPaymentFailureList().get(0).getPaymentFailureInitiated().getFailureReference()).isEqualTo(paymentStatusChargebackDto.getFailureReference());
+
+        assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
+        assertThat(chargebackResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+
+        // Ping 2
+
+        String representmentDate = LocalDateTime.now(zoneUTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
+
+        PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
+            .representmentStatus(RepresentmentStatus.Yes)
+            .representmentDate(representmentDate)
+            .build();
+        Response ping2Response = paymentTestService.paymentStatusSecond(
+            SERVICE_TOKEN_PAYMENT, paymentStatusChargebackDto.getFailureReference(),
+            paymentStatusUpdateSecond);
+
+        assertEquals(ping2Response.getStatusCode(), OK.value());
+        assertEquals("Successful operation", ping2Response.getBody().prettyPrint());
+
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.add("date_from", getReportDate(new Date(System.currentTimeMillis())));
+        params.add("date_to", getReportDate(new Date(System.currentTimeMillis())));
+        Response responseReport = RestAssured.given()
+            .header("Authorization", USER_TOKEN_PAYMENT)
+            .header("ServiceAuthorization", SERVICE_TOKEN_PAYMENT)
+            .contentType(ContentType.JSON)
+            .params(params)
+            .when()
+            .get("/payment-failures/failure-report");
+
+        PaymentFailureReportResponse paymentFailureReportResponse = responseReport.getBody().as(PaymentFailureReportResponse.class);
+        String joinedRefundReference = String.join(",", refundResponseFromPost.getRefundReference(), refundResponseFromPost1.getRefundReference());
+
+        String firstRefundAmount = String.valueOf(refundResponseFromPost.getRefundAmount().toString());
+        String secondRefundAmount = String.valueOf(refundResponseFromPost1.getRefundAmount().toString());
+        String joinedRefundAmount = String.join(",", firstRefundAmount, secondRefundAmount);
+        PaymentFailureReportDto paymentFailureReportDto =  paymentFailureReportResponse.getPaymentFailureReportList().stream().filter(s->s.getFailureReference().equalsIgnoreCase(paymentsFailureResponse.getPaymentFailureList().get(0).getPaymentFailureInitiated().getFailureReference())).findFirst().get();
+        String eventDate = getReportDate(paymentFailureReportDto.getEventDate());
+        String representmentReportDate = getReportDate(paymentFailureReportDto.getRepresentmentDate());
+        String expectedDate = getReportDate(new Date(System.currentTimeMillis()));
+        assertEquals(paymentDto.getReference(),paymentFailureReportDto.getPaymentReference());
+        assertEquals("Chargeback",paymentFailureReportDto.getEventName());
+        assertEquals(new BigDecimal("50.00"),paymentFailureReportDto.getDisputedAmount());
+        assertEquals(paymentStatusChargebackDto.getFailureReference(),paymentFailureReportDto.getFailureReference());
+        assertEquals("Yes",paymentFailureReportDto.getRepresentmentStatus());
+        assertEquals("ABA6",paymentFailureReportDto.getOrgId());
+        assertEquals(accountPaymentRequest.getCcdCaseNumber(),paymentFailureReportDto.getCcdReference());
+        assertEquals("Probate",paymentFailureReportDto.getServiceName());
+        assertEquals(joinedRefundAmount, paymentFailureReportDto.getRefundAmount());
+        assertEquals(expectedDate,eventDate);
+        assertEquals(expectedDate,representmentReportDate);
+        assertEquals(joinedRefundReference,paymentFailureReportDto.getRefundReference());
+        assertEquals("RR001",paymentFailureReportDto.getFailureReason());
+
+
+        // delete payment record
+        paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
+
+        //delete Payment Failure record
+        paymentTestService.deleteFailedPayment(USER_TOKEN, SERVICE_TOKEN, paymentStatusChargebackDto.getFailureReference()).then().statusCode(NO_CONTENT.value());
     }
 
     private String getReportDate(Date date) {
@@ -1267,5 +1462,11 @@ public class PaymentStatusFunctionalTest {
         return date == null ? null : java.time.LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault()).format(reportNameDateFormat);
     }
 
+    private static final RetroRemissionRequest getRetroRemissionRequest(final String remissionAmount) {
+        return RetroRemissionRequest.createRetroRemissionRequestWith()
+            .hwfAmount(new BigDecimal(remissionAmount))
+            .hwfReference("HWF-A1B-23C")
+            .build();
+    }
 
 }
