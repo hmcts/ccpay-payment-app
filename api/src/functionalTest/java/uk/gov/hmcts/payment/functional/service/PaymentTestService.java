@@ -188,4 +188,13 @@ public class PaymentTestService {
                 .when()
                 .patch("/payment-failures/{failureReference}", failureReference);
     }
+
+    public Response postUnprocessedPayment(String serviceToken,
+                                           UnprocessedPayment unprocessedPayment) {
+        return givenWithServiceHeaders(serviceToken)
+                .contentType(ContentType.JSON)
+                .body(unprocessedPayment)
+                .when()
+                .post("/payment-failures/unprocessed-payment");
+    }
 }
