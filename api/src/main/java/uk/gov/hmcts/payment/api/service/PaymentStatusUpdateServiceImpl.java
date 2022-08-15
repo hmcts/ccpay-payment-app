@@ -1,6 +1,5 @@
 package uk.gov.hmcts.payment.api.service;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
