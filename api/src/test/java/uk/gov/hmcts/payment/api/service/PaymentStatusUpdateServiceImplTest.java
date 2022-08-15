@@ -258,6 +258,8 @@ public class PaymentStatusUpdateServiceImplTest {
                 any(HttpEntity.class),
                 eq(ResponseEntity.class), any(Map.class)))
                 .thenReturn(responseEntity);
+        PaymentFailures failure = PaymentFailures.paymentFailuresWith().dcn("88").build();
+        when(paymentFailureRepository.save(any())).thenReturn(failure);
 
         PaymentFailures paymentFailure = paymentStatusUpdateServiceImpl.unprocessedPayment(unprocessedPayment, headers);
 
