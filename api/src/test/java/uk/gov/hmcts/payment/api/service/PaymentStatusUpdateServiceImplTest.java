@@ -254,11 +254,11 @@ public class PaymentStatusUpdateServiceImplTest {
                 .payments(Arrays.asList(metadataDto))
                 .build();
         ResponseEntity responseEntity = new ResponseEntity(searchResponse, HttpStatus.OK);
-        when(this.restTemplatePaymentGroup.exchange(anyString(),
+        /*when(this.restTemplatePaymentGroup.exchange(anyString(),
                 eq(HttpMethod.GET),
                 any(HttpEntity.class),
                 eq(ResponseEntity.class), any(Map.class)))
-                .thenReturn(responseEntity);
+                .thenReturn(responseEntity);*/
         PaymentFailures failure = PaymentFailures.paymentFailuresWith().dcn("88").build();
         when(paymentFailureRepository.save(any())).thenReturn(failure);
 
@@ -288,11 +288,11 @@ public class PaymentStatusUpdateServiceImplTest {
                 .payments(Arrays.asList(metadataDto))
                 .build();
         ResponseEntity responseEntity = new ResponseEntity(searchResponse, HttpStatus.OK);
-        when(this.restTemplatePaymentGroup.exchange(anyString(),
+        /*when(this.restTemplatePaymentGroup.exchange(anyString(),
                 eq(HttpMethod.GET),
                 any(HttpEntity.class),
                 eq(ResponseEntity.class), any(Map.class)))
-                .thenReturn(responseEntity);
+                .thenReturn(responseEntity);*/
 
         Exception exception = assertThrows(
                 InvalidPaymentFailureRequestException.class,
