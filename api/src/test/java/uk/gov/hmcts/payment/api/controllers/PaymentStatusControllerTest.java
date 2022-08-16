@@ -465,7 +465,7 @@ public class PaymentStatusControllerTest {
         when(this.restTemplatePaymentGroup.exchange(anyString(),
                 eq(HttpMethod.GET),
                 any(HttpEntity.class),
-                eq(ResponseEntity.class), any(Map.class)))
+                eq(SearchResponse.class), any(Map.class)))
                 .thenReturn(responseEntity);
         MvcResult result = restActions
                 .post("/payment-failures/unprocessed-payment", unprocessedPayment)
@@ -489,7 +489,7 @@ public class PaymentStatusControllerTest {
         when(this.restTemplatePaymentGroup.exchange(anyString(),
                 eq(HttpMethod.GET),
                 any(HttpEntity.class),
-                eq(ResponseEntity.class), any(Map.class)))
+                eq(SearchResponse.class), any(Map.class)))
                 .thenReturn(new ResponseEntity(HttpStatus.NOT_FOUND));
         MvcResult result = restActions
                 .post("/payment-failures/unprocessed-payment", unprocessedPayment)
@@ -513,7 +513,7 @@ public class PaymentStatusControllerTest {
         when(this.restTemplatePaymentGroup.exchange(anyString(),
                 eq(HttpMethod.GET),
                 any(HttpEntity.class),
-                eq(ResponseEntity.class), any(Map.class)))
+                eq(SearchResponse.class), any(Map.class)))
                 .thenReturn(new ResponseEntity(HttpStatus.OK));
         when(paymentFailureRepository.save(any())).thenThrow(DataIntegrityViolationException.class);
         MvcResult result = restActions

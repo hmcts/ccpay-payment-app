@@ -225,13 +225,13 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         Map<String, String> params = new HashMap<>();
         params.put("document_control_number", dcn);
         LOG.info("Calling Bulk scan api to retrieve payment by dcn: {}", dcn);
-        ResponseEntity responseEntity = restTemplatePaymentGroup
+        ResponseEntity<SearchResponse> responseEntity = restTemplatePaymentGroup
                 .exchange(bulkScanPaymentsProcessedUrl + casesPath + "/{document_control_number}", HttpMethod.GET,
-                        new HttpEntity<>(headers), ResponseEntity.class, params);
+                        new HttpEntity<>(headers), SearchResponse.class, params);
         if (!HttpStatus.OK.equals(responseEntity.getStatusCode())) {
             return false;
         } else {
-            SearchResponse searchResponse = (SearchResponse) responseEntity.getBody();
+            SearchResponse searchResponse = responseEntity.getBody();
             LOG.info("Search Response from Bulk Scanning app: {}", searchResponse);
             if (null != searchResponse && !PaymentStatus.PROCESSED.equals(searchResponse.getAllPaymentsStatus())) {
                 for (PaymentMetadataDto paymentMetadataDto : searchResponse.getPayments()) {
