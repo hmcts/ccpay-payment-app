@@ -233,7 +233,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         } else {
             SearchResponse searchResponse = responseEntity.getBody();
             LOG.info("Search Response from Bulk Scanning app: {}", searchResponse);
-            if (null != searchResponse && !PaymentStatus.PROCESSED.equals(searchResponse.getAllPaymentsStatus())) {
+            if (null != searchResponse && PaymentStatus.COMPLETE.equals(searchResponse.getAllPaymentsStatus())) {
                 for (PaymentMetadataDto paymentMetadataDto : searchResponse.getPayments()) {
                     if (dcn.equals(paymentMetadataDto.getDcnReference()) && paymentMetadataDto.getAmount().compareTo(amount) > 0) {
                         throw new InvalidPaymentFailureRequestException("Failure amount cannot be more than payment amount");
