@@ -228,9 +228,10 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         List<String> paymentReference= paymentFailuresList.stream().map(r->r.getPaymentReference()).distinct().collect(Collectors.toList());
 
         List<Payment> paymentList = paymentRepository.findByReferenceIn(paymentReference);
+        List<String> paymentRefForRefund = paymentList.stream().map(r->r.getReference()).collect(Collectors.toList());
 
          if(paymentList.size() > 0){
-            refundPaymentFailureReportDtoResponse = fetchRefundResponse(paymentReference);
+            refundPaymentFailureReportDtoResponse = fetchRefundResponse(paymentRefForRefund);
         }
 
         if(null != refundPaymentFailureReportDtoResponse){
