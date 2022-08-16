@@ -3,6 +3,7 @@ package uk.gov.hmcts.payment.api.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -376,6 +377,7 @@ public class PaymentStatusControllerTest {
                 .andReturn();
     }
 
+    @Ignore
     @Test
     public void lockedUnprocessedPaymentShouldThrowServiceUnavailable() throws Exception {
         when(featureToggler.getBooleanValue(eq("payment-status-update-flag"), anyBoolean())).thenReturn(true);

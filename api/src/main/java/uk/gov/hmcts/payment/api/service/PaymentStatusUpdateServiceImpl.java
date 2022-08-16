@@ -235,7 +235,6 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
             LOG.info("updateUnprocessedPayment successful");
         }
     }
-}
 
     @Override
     public PaymentFailures unprocessedPayment(UnprocessedPayment unprocessedPayment,
