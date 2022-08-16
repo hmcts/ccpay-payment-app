@@ -26,6 +26,7 @@ import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentStatusDtoMapper;
 import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.service.PaymentStatusUpdateService;
@@ -94,6 +95,10 @@ public class PaymentStatusControllerTest {
     @MockBean
     @Qualifier("restTemplateRefundCancel")
     private RestTemplate restTemplateRefundCancel;
+
+    @MockBean
+    @Qualifier("restTemplatePaymentGroup")
+    private RestTemplate restTemplatePaymentGroup;
 
     @MockBean
     private AuthTokenGenerator authTokenGenerator;
@@ -346,9 +351,8 @@ public class PaymentStatusControllerTest {
     }
 
     @Test
-    public void return503WhenPaymentFailureForGetLocked() throws Exception {
+    public void lockedGetFailuresShouldThrowServiceUnavailable() throws Exception {
 
-        when(paymentFailureRepository.findByPaymentReferenceOrderByFailureEventDateTimeDesc(any())).thenReturn(Optional.empty());
         when(featureToggler.getBooleanValue(eq("payment-status-update-flag"),anyBoolean())).thenReturn(true);
         MvcResult result = restActions
                 .withAuthorizedUser(USER_ID)
@@ -367,6 +371,21 @@ public class PaymentStatusControllerTest {
                 .patch("/payment-failures/failureReference", PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
                         .representmentStatus(RepresentmentStatus.No)
                         .representmentDate("2022-10-10T10:10:10")
+                        .build())
+                .andExpect(status().isServiceUnavailable())
+                .andReturn();
+    }
+
+    @Test
+    public void lockedUnprocessedPaymentShouldThrowServiceUnavailable() throws Exception {
+        when(featureToggler.getBooleanValue(eq("payment-status-update-flag"), anyBoolean())).thenReturn(true);
+        restActions
+                .post("/payment-failures/unprocessed-payment", UnprocessedPayment.unprocessedPayment()
+                        .amount(BigDecimal.valueOf(999))
+                        .failureReference("FR9999")
+                        .eventDateTime("2022-10-10T10:10:10")
+                        .reason("RR001")
+                        .dcn("9999")
                         .build())
                 .andExpect(status().isServiceUnavailable())
                 .andReturn();
@@ -429,7 +448,80 @@ public class PaymentStatusControllerTest {
                 .andReturn();
 
         String message = result.getResponse().getContentAsString();
-        assertEquals("Successful operation", message);
+        assertEquals("successful operation", message);
+    }
+
+    @Test
+    public void givenPaymentFailureWhenUnprocessedPaymentThenSuccess() throws Exception {
+        UnprocessedPayment unprocessedPayment = UnprocessedPayment.unprocessedPayment()
+                .amount(BigDecimal.valueOf(888))
+                .failureReference("FR8888")
+                .eventDateTime("2022-10-10T10:10:10")
+                .reason("RR001")
+                .dcn("88")
+                .poBoxNumber("8")
+                .build();
+        ResponseEntity responseEntity = new ResponseEntity(HttpStatus.OK);
+        when(this.restTemplatePaymentGroup.exchange(anyString(),
+                eq(HttpMethod.GET),
+                any(HttpEntity.class),
+                eq(ResponseEntity.class), any(Map.class)))
+                .thenReturn(responseEntity);
+        MvcResult result = restActions
+                .post("/payment-failures/unprocessed-payment", unprocessedPayment)
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String message = result.getResponse().getContentAsString();
+        assertEquals("successful operation", message);
+    }
+
+    @Test
+    public void givenNoPaymentWhenUnprocessedPaymentThen404() throws Exception {
+        UnprocessedPayment unprocessedPayment = UnprocessedPayment.unprocessedPayment()
+                .amount(BigDecimal.valueOf(888))
+                .failureReference("FR8888")
+                .eventDateTime("2022-10-10T10:10:10")
+                .reason("RR001")
+                .dcn("88")
+                .poBoxNumber("8")
+                .build();
+        when(this.restTemplatePaymentGroup.exchange(anyString(),
+                eq(HttpMethod.GET),
+                any(HttpEntity.class),
+                eq(ResponseEntity.class), any(Map.class)))
+                .thenReturn(new ResponseEntity(HttpStatus.NOT_FOUND));
+        MvcResult result = restActions
+                .post("/payment-failures/unprocessed-payment", unprocessedPayment)
+                .andExpect(status().isNotFound())
+                .andReturn();
+
+        String message = result.getResponse().getContentAsString();
+        assertEquals("No Payments available for the given document reference number", message);
+    }
+
+    @Test
+    public void givenDuplicateRequestWhenUnprocessedPaymentThen429() throws Exception {
+        UnprocessedPayment unprocessedPayment = UnprocessedPayment.unprocessedPayment()
+                .amount(BigDecimal.valueOf(888))
+                .failureReference("FR8888")
+                .eventDateTime("2022-10-10T10:10:10")
+                .reason("RR001")
+                .dcn("88")
+                .poBoxNumber("8")
+                .build();
+        when(this.restTemplatePaymentGroup.exchange(anyString(),
+                eq(HttpMethod.GET),
+                any(HttpEntity.class),
+                eq(ResponseEntity.class), any(Map.class)))
+                .thenReturn(new ResponseEntity(HttpStatus.OK));
+        when(paymentFailureRepository.save(any())).thenThrow(DataIntegrityViolationException.class);
+        MvcResult result = restActions
+                .post("/payment-failures/unprocessed-payment", unprocessedPayment)
+                .andExpect(status().isTooManyRequests())
+                .andReturn();
+
+        assertEquals("Request already received for this failure reference", result.getResolvedException().getMessage());
     }
 
     @Test

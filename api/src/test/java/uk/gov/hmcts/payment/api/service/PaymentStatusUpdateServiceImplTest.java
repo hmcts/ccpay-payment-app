@@ -18,7 +18,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
-import uk.gov.hmcts.payment.api.dto.PaymentStatusChargebackDto;
+import uk.gov.hmcts.payment.api.dto.*;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -30,12 +30,10 @@ import static org.mockito.ArgumentMatchers.*;
 
 import static org.mockito.Mockito.when;
 
-import uk.gov.hmcts.payment.api.dto.PaymentStatusUpdateSecond;
-import uk.gov.hmcts.payment.api.dto.RepresentmentStatus;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentStatusDtoMapper;
-import uk.gov.hmcts.payment.api.dto.PaymentStatusBouncedChequeDto;
 import uk.gov.hmcts.payment.api.exception.InvalidPaymentFailureRequestException;
 import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
@@ -61,9 +59,13 @@ public class PaymentStatusUpdateServiceImplTest {
     @InjectMocks
     private PaymentStatusUpdateServiceImpl paymentStatusUpdateServiceImpl;
 
-   @Mock
-   @Qualifier("restTemplateRefundCancel")
-   private RestTemplate restTemplateRefundCancel;
+    @Mock
+    @Qualifier("restTemplateRefundCancel")
+    private RestTemplate restTemplateRefundCancel;
+
+    @Mock
+    @Qualifier("restTemplatePaymentGroup")
+    private RestTemplate restTemplatePaymentGroup;
 
     @Mock
     private AuthTokenGenerator authTokenGenerator;
@@ -229,6 +231,73 @@ public class PaymentStatusUpdateServiceImplTest {
         PaymentFailures result = paymentStatusUpdateServiceImpl.updatePaymentFailure("dummy", paymentStatusUpdateSecond);
         assertEquals(result.getRepresentmentSuccess(), paymentFailure.getRepresentmentSuccess());
         assertEquals(result.getRepresentmentOutcomeDate(), paymentFailure.getRepresentmentOutcomeDate());
+    }
+
+    @Test
+    public void testUnprocessedPayment() {
+        UnprocessedPayment unprocessedPayment = UnprocessedPayment.unprocessedPayment()
+                .amount(BigDecimal.valueOf(888))
+                .failureReference("FR8888")
+                .eventDateTime("2022-10-10T10:10:10")
+                .reason("RR001")
+                .dcn("88")
+                .poBoxNumber("8")
+                .build();
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add("ServiceAuthorization", "service-auth");
+        PaymentMetadataDto metadataDto =
+                PaymentMetadataDto.paymentMetadataDtoWith().dcnReference("88").amount(new BigDecimal("777")).build();
+        SearchResponse searchResponse = SearchResponse.searchResponseWith()
+                .ccdReference("9881231111111111")
+                .allPaymentsStatus(uk.gov.hmcts.payment.api.dto.PaymentStatus.COMPLETE)
+                .payments(Arrays.asList(metadataDto))
+                .build();
+        ResponseEntity responseEntity = new ResponseEntity(searchResponse, HttpStatus.OK);
+        when(this.restTemplatePaymentGroup.exchange(anyString(),
+                eq(HttpMethod.GET),
+                any(HttpEntity.class),
+                eq(ResponseEntity.class), any(Map.class)))
+                .thenReturn(responseEntity);
+        PaymentFailures failure = PaymentFailures.paymentFailuresWith().dcn("88").build();
+        when(paymentFailureRepository.save(any())).thenReturn(failure);
+
+        PaymentFailures paymentFailure = paymentStatusUpdateServiceImpl.unprocessedPayment(unprocessedPayment, headers);
+
+        assertEquals("88", paymentFailure.getDcn());
+    }
+
+    @Test
+    public void testInvalidUnprocessedPayment() {
+        UnprocessedPayment unprocessedPayment = UnprocessedPayment.unprocessedPayment()
+                .amount(BigDecimal.valueOf(888))
+                .failureReference("FR8888")
+                .eventDateTime("2022-10-10T10:10:10")
+                .reason("RR001")
+                .dcn("88")
+                .poBoxNumber("8")
+                .build();
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add("ServiceAuthorization", "service-auth");
+        PaymentMetadataDto metadataDto =
+                PaymentMetadataDto.paymentMetadataDtoWith().dcnReference("88").amount(new BigDecimal("889")).build();
+        SearchResponse searchResponse = SearchResponse.searchResponseWith()
+                .ccdReference("9881231111111111")
+                .allPaymentsStatus(uk.gov.hmcts.payment.api.dto.PaymentStatus.COMPLETE)
+                .payments(Arrays.asList(metadataDto))
+                .build();
+        ResponseEntity responseEntity = new ResponseEntity(searchResponse, HttpStatus.OK);
+        when(this.restTemplatePaymentGroup.exchange(anyString(),
+                eq(HttpMethod.GET),
+                any(HttpEntity.class),
+                eq(ResponseEntity.class), any(Map.class)))
+                .thenReturn(responseEntity);
+
+        Exception exception = assertThrows(
+                InvalidPaymentFailureRequestException.class,
+                () -> paymentStatusUpdateServiceImpl.unprocessedPayment(unprocessedPayment, headers)
+        );
+        String actualMessage = exception.getMessage();
+        assertEquals("Failure amount cannot be more than payment amount", actualMessage);
     }
 
     private PaymentStatusBouncedChequeDto getPaymentStatusBouncedChequeDto() {

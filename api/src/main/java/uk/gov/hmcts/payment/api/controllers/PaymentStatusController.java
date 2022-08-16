@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.dto.*;
@@ -29,6 +30,7 @@ import java.util.stream.Collectors;
 public class PaymentStatusController {
     private static final Logger LOG = LoggerFactory.getLogger(PaymentStatusController.class);
     private static final String PAYMENT_STATUS_UPDATE_FLAG = "payment-status-update-flag";
+    private static final String SUCCESSFUL_OPERATION = "successful operation";
 
     @Autowired
     private PaymentStatusUpdateService paymentStatusUpdateService;
@@ -87,7 +89,22 @@ public class PaymentStatusController {
         if(null != insertPaymentFailures.getId()){
             paymentStatusUpdateService.cancelFailurePaymentRefund(paymentStatusChargebackDto.getPaymentReference());
         }
-        return new ResponseEntity<>("successful operation", HttpStatus.OK);
+        return new ResponseEntity<>(SUCCESSFUL_OPERATION, HttpStatus.OK);
+    }
+
+    @PaymentExternalAPI
+    @PostMapping(path = "/payment-failures/unprocessed-payment")
+    public ResponseEntity<String> unprocessedPayment(@Valid @RequestBody UnprocessedPayment unprocessedPayment,
+                                                     @RequestHeader(required = false) MultiValueMap<String, String> headers) {
+        if (featureToggler.getBooleanValue(PAYMENT_STATUS_UPDATE_FLAG,false)) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+        }
+
+        LOG.info("Received payment status request for unprocessed payment : {}", unprocessedPayment);
+
+        paymentStatusUpdateService.unprocessedPayment(unprocessedPayment, headers);
+
+        return new ResponseEntity<>(SUCCESSFUL_OPERATION, HttpStatus.OK);
     }
 
     @ApiOperation(value = "Get payment failure by payment reference", notes = "Get payment failure for supplied payment reference")
@@ -133,9 +150,9 @@ public class PaymentStatusController {
         if (featureToggler.getBooleanValue(PAYMENT_STATUS_UPDATE_FLAG,false)) {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
         }
-        LOG.info("Received payment status update second ping request: {}", paymentStatusUpdateSecondDto);
+        LOG.info("Received payment status update request for second ping: {}", paymentStatusUpdateSecondDto);
         paymentStatusUpdateService.updatePaymentFailure(failureReference, paymentStatusUpdateSecondDto);
-        return new ResponseEntity<>("Successful operation", HttpStatus.OK);
+        return new ResponseEntity<>(SUCCESSFUL_OPERATION, HttpStatus.OK);
     }
 
     @ApiOperation(value = "update payment reference for unprocessed payment", notes = "update payment reference for unprocessed payment")
@@ -174,4 +191,5 @@ public class PaymentStatusController {
     public String return503(Exception ex) {
         return ex.getMessage();
     }
+
 }
