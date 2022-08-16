@@ -307,7 +307,7 @@ public class PaymentStatusFunctionalTest {
                 paymentStatusUpdateSecond);
 
         assertEquals(ping2Response.getStatusCode(), OK.value());
-        assertEquals("Successful operation", ping2Response.getBody().prettyPrint());
+        assertEquals("successful operation", ping2Response.getBody().prettyPrint());
 
         // delete payment record
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
@@ -397,7 +397,7 @@ public class PaymentStatusFunctionalTest {
                 paymentStatusUpdateSecond);
 
         assertEquals(ping2Response.getStatusCode(), OK.value());
-        assertEquals("Successful operation", ping2Response.getBody().prettyPrint());
+        assertEquals("successful operation", ping2Response.getBody().prettyPrint());
 
         // delete payment record
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentReference.get()).then().statusCode(NO_CONTENT.value());
