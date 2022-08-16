@@ -45,6 +45,7 @@ import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP
 @RunWith(SpringIntegrationSerenityRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
 @ActiveProfiles({"functional-tests"})
+
 public class PaymentStatusFunctionalTest {
 
     private static String USER_TOKEN;
