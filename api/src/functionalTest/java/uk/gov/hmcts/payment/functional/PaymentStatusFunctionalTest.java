@@ -1273,7 +1273,7 @@ public class PaymentStatusFunctionalTest {
 
         // Create a Bulk scan payment
         String ccdCaseNumber = "1111221233124419";
-        String dcn = "34569087234591";
+        String dcn = "11111111111111";
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
                 .amount(new BigDecimal("100.00"))
@@ -1329,10 +1329,10 @@ public class PaymentStatusFunctionalTest {
         // Ping 1 for Unprocessed Payment event
         UnprocessedPayment unprocessedPayment = UnprocessedPayment.unprocessedPayment()
                 .amount(BigDecimal.valueOf(100))
-                .failureReference("FR8888")
+                .failureReference("FR111")
                 .eventDateTime("2022-10-10T10:10:10")
                 .reason("RR001")
-                .dcn("34569087234591")
+                .dcn(dcn)
                 .poBoxNumber("8")
                 .build();
 
@@ -1349,7 +1349,7 @@ public class PaymentStatusFunctionalTest {
 
         // Create a Bulk scan payment
         String ccdCaseNumber = "1111221233124419";
-        String dcn = "34569087234591";
+        String dcn = "22222222222222";
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
                 .amount(new BigDecimal("100.00"))
@@ -1393,20 +1393,17 @@ public class PaymentStatusFunctionalTest {
                 assertThat(paymentDto.getReference()).isNotNull();
                 assertThat(paymentDto.getStatus()).isEqualToIgnoringCase("success");
                 assertThat(paymentDto.getPaymentGroupReference()).isEqualTo(paymentGroupFeeDto.getPaymentGroupReference());
-
                 paymentReference.set(paymentDto.getReference());
-
             });
-
         });
 
         // Ping 1 for Unprocessed Payment event
         UnprocessedPayment unprocessedPayment = UnprocessedPayment.unprocessedPayment()
                 .amount(BigDecimal.valueOf(888))
-                .failureReference("FR8888")
+                .failureReference("FR2222")
                 .eventDateTime("2022-10-10T10:10:10")
                 .reason("RR001")
-                .dcn("88")
+                .dcn(dcn)
                 .poBoxNumber("8")
                 .build();
 
