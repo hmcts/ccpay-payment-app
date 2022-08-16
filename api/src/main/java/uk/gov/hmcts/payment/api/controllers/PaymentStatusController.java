@@ -96,10 +96,10 @@ public class PaymentStatusController {
     @PostMapping(path = "/payment-failures/unprocessed-payment")
     public ResponseEntity<String> unprocessedPayment(@Valid @RequestBody UnprocessedPayment unprocessedPayment,
                                                      @RequestHeader(required = false) MultiValueMap<String, String> headers) {
-       /* if (featureToggler.getBooleanValue(PAYMENT_STATUS_UPDATE_FLAG,false)) {
+        if (featureToggler.getBooleanValue(PAYMENT_STATUS_UPDATE_FLAG,false)) {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
         }
-*/
+
         LOG.info("Received payment status request for unprocessed payment : {}", unprocessedPayment);
 
         paymentStatusUpdateService.unprocessedPayment(unprocessedPayment, headers);
