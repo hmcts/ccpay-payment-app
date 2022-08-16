@@ -5,7 +5,6 @@ import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.apache.commons.lang3.RandomUtils;
 import org.joda.time.DateTime;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -448,7 +447,7 @@ public class PaymentStatusFunctionalTest {
                 paymentStatusUpdateSecond);
 
         assertEquals(ping2Response.getStatusCode(), OK.value());
-        assertEquals("Successful operation", ping2Response.getBody().prettyPrint());
+        assertEquals("successful operation", ping2Response.getBody().prettyPrint());
 
         // delete payment record
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentReference.get()).then().statusCode(NO_CONTENT.value());
@@ -540,7 +539,7 @@ public class PaymentStatusFunctionalTest {
                 paymentStatusUpdateSecond);
 
         assertEquals(ping2Response.getStatusCode(), OK.value());
-        assertEquals("Successful operation", ping2Response.getBody().prettyPrint());
+        assertEquals("successful operation", ping2Response.getBody().prettyPrint());
 
         // delete payment record
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentReference.get()).then().statusCode(NO_CONTENT.value());
@@ -1260,7 +1259,7 @@ public class PaymentStatusFunctionalTest {
                 paymentStatusUpdateSecond);
 
         assertEquals(ping2Response.getStatusCode(), OK.value());
-        assertEquals("Successful operation", ping2Response.getBody().prettyPrint());
+        assertEquals("successful operation", ping2Response.getBody().prettyPrint());
 
         // delete payment record
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentReference.get()).then().statusCode(NO_CONTENT.value());

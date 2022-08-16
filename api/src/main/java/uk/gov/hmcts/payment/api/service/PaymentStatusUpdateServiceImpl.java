@@ -257,8 +257,10 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
     private boolean validateDcn(String dcn, BigDecimal amount, MultiValueMap<String, String> headers) {
         Map<String, String> params = new HashMap<>();
         params.put("document_control_number", dcn);
+        LOG.info("Calling Bulk scan api to retrieve payment by dcn: {}", dcn);
         ResponseEntity responseEntity = restTemplatePaymentGroup
-                .exchange(bulkScanPaymentsProcessedUrl + casesPath, HttpMethod.GET, new HttpEntity<>(headers), ResponseEntity.class, params);
+                .exchange(bulkScanPaymentsProcessedUrl + casesPath + "/{document_control_number}", HttpMethod.GET,
+                        new HttpEntity<>(headers), ResponseEntity.class, params);
         if (!HttpStatus.OK.equals(responseEntity.getStatusCode())) {
             return false;
         } else {
