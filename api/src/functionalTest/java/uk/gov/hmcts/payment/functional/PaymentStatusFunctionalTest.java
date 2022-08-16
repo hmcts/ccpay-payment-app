@@ -1430,4 +1430,212 @@ public class PaymentStatusFunctionalTest {
         // delete Payment Failure record
         paymentTestService.deleteFailedPayment(USER_TOKEN, SERVICE_TOKEN, unprocessedPayment.getFailureReference()).then().statusCode(NO_CONTENT.value());
     }
+
+    @Test
+    public void positive_unprocessedPayment_update_payment() {
+
+        // Create a Bulk scan payment
+        Random rand = new Random();
+        String ccdCaseNumber = String.format((Locale) null, //don't want any thousand separators
+            "111122%04d%04d%02d",
+            rand.nextInt(10000),
+            rand.nextInt(10000),
+            rand.nextInt(99));
+       // String ccdCaseNumber = "1111221233124419";
+        String dcn = "DCN1234" + RandomUtils.nextInt();
+       // String dcn = "34569087234591";
+
+        BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
+            .amount(new BigDecimal("100.00"))
+            .service("DIVORCE")
+            .siteId("AA01")
+            .currency(CurrencyCode.GBP)
+            .documentControlNumber(dcn)
+            .ccdCaseNumber(ccdCaseNumber)
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
+            .payerName("CCD User1")
+            .bankedDate(DateTime.now().toString())
+            .paymentMethod(PaymentMethodType.CHEQUE)
+            .paymentStatus(PaymentStatus.SUCCESS)
+            .giroSlipNo("GH716376")
+            .build();
+
+        PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Collections.singletonList(FeeDto.feeDtoWith()
+                .calculatedAmount(new BigDecimal("450.00"))
+                .code("FEE3132")
+                .version("1")
+                .reference("testRef1")
+                .volume(2)
+                .ccdCaseNumber(ccdCaseNumber)
+                .build())).build();
+
+        AtomicReference<String> paymentReference = new AtomicReference<>();
+
+        dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .when().addNewFeeAndPaymentGroup(paymentGroupDto)
+            .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
+                assertThat(paymentGroupFeeDto).isNotNull();
+                assertThat(paymentGroupFeeDto.getPaymentGroupReference()).isNotNull();
+                assertThat(paymentGroupFeeDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(paymentGroupDto);
+
+                dsl.given().userToken(USER_TOKEN)
+                    .s2sToken(SERVICE_TOKEN)
+                    .when().createBulkScanPayment(bulkScanPaymentRequest, paymentGroupFeeDto.getPaymentGroupReference())
+                    .then().gotCreated(PaymentDto.class, paymentDto -> {
+                        assertThat(paymentDto.getReference()).isNotNull();
+                        assertThat(paymentDto.getStatus()).isEqualToIgnoringCase("success");
+                        assertThat(paymentDto.getPaymentGroupReference()).isEqualTo(paymentGroupFeeDto.getPaymentGroupReference());
+
+                        paymentReference.set(paymentDto.getReference());
+
+                    });
+
+            });
+        String failureReference = "FR-111-CC13-" + RandomUtils.nextInt();
+        // Ping 1 for Unprocessed Payment event
+        UnprocessedPayment unprocessedPayment = UnprocessedPayment.unprocessedPayment()
+            .amount(BigDecimal.valueOf(888))
+            .failureReference(failureReference)
+            .eventDateTime("2022-10-10T10:10:10")
+            .reason("RR001")
+            .dcn(dcn)
+            .poBoxNumber("8")
+            .build();
+
+        Response bounceChequeResponse = paymentTestService.postUnprocessedPayment(
+            SERVICE_TOKEN_PAYMENT,
+            unprocessedPayment);
+        assertThat(bounceChequeResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+
+        dsl.given()
+            .s2sToken(SERVICE_TOKEN)
+            .when().unprocessedPaymentUpdateJob()
+            .then()
+            .ok();
+
+        PaymentFailureResponse paymentsFailureResponse =
+            paymentTestService.getFailurePayment(USER_TOKEN_PAYMENT, SERVICE_TOKEN, paymentReference.get()).then()
+                .statusCode(OK.value()).extract().as(PaymentFailureResponse.class);
+
+        assertThat(paymentsFailureResponse.getPaymentFailureList().get(0).getPaymentFailureInitiated().getPaymentReference()).isEqualTo(paymentReference.get());
+
+        // delete payment record
+        paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentReference.get()).then().statusCode(NO_CONTENT.value());
+
+        // delete Payment Failure record
+        paymentTestService.deleteFailedPayment(USER_TOKEN, SERVICE_TOKEN, unprocessedPayment.getFailureReference()).then().statusCode(NO_CONTENT.value());
+    }
+
+    @Test
+    public void positive_unprocessedPayment_update_payment_after_second_ping() {
+
+        // Create a Bulk scan payment
+        Random rand = new Random();
+        String ccdCaseNumber = String.format((Locale) null, //don't want any thousand separators
+            "111122%04d%04d%02d",
+            rand.nextInt(10000),
+            rand.nextInt(10000),
+            rand.nextInt(99));
+        // String ccdCaseNumber = "1111221233124419";
+        String dcn = "DCN1234" + RandomUtils.nextInt();
+        // String dcn = "34569087234591";
+
+        BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
+            .amount(new BigDecimal("100.00"))
+            .service("DIVORCE")
+            .siteId("AA01")
+            .currency(CurrencyCode.GBP)
+            .documentControlNumber(dcn)
+            .ccdCaseNumber(ccdCaseNumber)
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
+            .payerName("CCD User1")
+            .bankedDate(DateTime.now().toString())
+            .paymentMethod(PaymentMethodType.CHEQUE)
+            .paymentStatus(PaymentStatus.SUCCESS)
+            .giroSlipNo("GH716376")
+            .build();
+
+        PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Collections.singletonList(FeeDto.feeDtoWith()
+                .calculatedAmount(new BigDecimal("450.00"))
+                .code("FEE3132")
+                .version("1")
+                .reference("testRef1")
+                .volume(2)
+                .ccdCaseNumber(ccdCaseNumber)
+                .build())).build();
+
+        AtomicReference<String> paymentReference = new AtomicReference<>();
+
+        dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .when().addNewFeeAndPaymentGroup(paymentGroupDto)
+            .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
+                assertThat(paymentGroupFeeDto).isNotNull();
+                assertThat(paymentGroupFeeDto.getPaymentGroupReference()).isNotNull();
+                assertThat(paymentGroupFeeDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(paymentGroupDto);
+
+                dsl.given().userToken(USER_TOKEN)
+                    .s2sToken(SERVICE_TOKEN)
+                    .when().createBulkScanPayment(bulkScanPaymentRequest, paymentGroupFeeDto.getPaymentGroupReference())
+                    .then().gotCreated(PaymentDto.class, paymentDto -> {
+                        assertThat(paymentDto.getReference()).isNotNull();
+                        assertThat(paymentDto.getStatus()).isEqualToIgnoringCase("success");
+                        assertThat(paymentDto.getPaymentGroupReference()).isEqualTo(paymentGroupFeeDto.getPaymentGroupReference());
+
+                        paymentReference.set(paymentDto.getReference());
+
+                    });
+
+            });
+        String failureReference = "FR-111-CC13-" + RandomUtils.nextInt();
+        // Ping 1 for Unprocessed Payment event
+        UnprocessedPayment unprocessedPayment = UnprocessedPayment.unprocessedPayment()
+            .amount(BigDecimal.valueOf(888))
+            .failureReference(failureReference)
+            .eventDateTime("2022-10-10T10:10:10")
+            .reason("RR001")
+            .dcn(dcn)
+            .poBoxNumber("8")
+            .build();
+
+        Response bounceChequeResponse = paymentTestService.postUnprocessedPayment(
+            SERVICE_TOKEN_PAYMENT,
+            unprocessedPayment);
+        assertThat(bounceChequeResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+
+
+        // Ping 2
+        PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
+            .representmentStatus(RepresentmentStatus.No)
+            .representmentDate("2022-10-10T10:10:10")
+            .build();
+        Response ping2Response = paymentTestService.paymentStatusSecond(
+            SERVICE_TOKEN_PAYMENT, unprocessedPayment.getFailureReference(),
+            paymentStatusUpdateSecond);
+
+        assertEquals(ping2Response.getStatusCode(), OK.value());
+        assertEquals("successful operation", ping2Response.getBody().prettyPrint());
+
+        dsl.given()
+            .s2sToken(SERVICE_TOKEN)
+            .when().unprocessedPaymentUpdateJob()
+            .then()
+            .ok();
+
+        PaymentFailureResponse paymentsFailureResponse =
+            paymentTestService.getFailurePayment(USER_TOKEN_PAYMENT, SERVICE_TOKEN, paymentReference.get()).then()
+                .statusCode(OK.value()).extract().as(PaymentFailureResponse.class);
+
+        assertThat(paymentsFailureResponse.getPaymentFailureList().get(0).getPaymentFailureClosed().getPaymentReference()).isEqualTo(paymentReference.get());
+
+
+        // delete payment record
+        paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentReference.get()).then().statusCode(NO_CONTENT.value());
+
+        // delete Payment Failure record
+        paymentTestService.deleteFailedPayment(USER_TOKEN, SERVICE_TOKEN, unprocessedPayment.getFailureReference()).then().statusCode(NO_CONTENT.value());
+    }
 }

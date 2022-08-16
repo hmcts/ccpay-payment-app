@@ -280,6 +280,11 @@ public class PaymentsTestDsl {
             return this;
         }
 
+        public PaymentWhenDsl unprocessedPaymentUpdateJob() {
+            response = newRequest().patch("/jobs/unprocessed-payment-update");
+            return this;
+        }
+
         public PaymentThenDsl then() {
             return new PaymentThenDsl();
         }
