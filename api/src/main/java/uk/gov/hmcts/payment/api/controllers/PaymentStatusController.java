@@ -151,7 +151,6 @@ public class PaymentStatusController {
         @ApiResponse(code = 200, message = "payment reference updated successfully")
     })
     @PatchMapping(value = "/jobs/unprocessed-payment-update")
-    @Transactional
     public void updateUnprocessedPayment(){
 
         LOG.info("Received unprocessed payment update job request");

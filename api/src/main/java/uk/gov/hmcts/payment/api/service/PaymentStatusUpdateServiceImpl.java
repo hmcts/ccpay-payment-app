@@ -204,6 +204,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         }
     }
 
+    @Transactional
     public void updateUnprocessedPayment(){
 
         LOG.info("Inside updateUnprocessedPayment method");
