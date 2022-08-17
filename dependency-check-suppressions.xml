@@ -219,5 +219,15 @@
         </notes>
         <cve>CVE-2022-2048</cve>
     </suppress>
+    
+    <suppress until="2022-09-30">
+        <notes>
+            The PGJDBC implementation of the java.sql.ResultRow.refreshRow() method is not performing escaping of column names
+            so a malicious column name that contains a statement terminator, e.g. ; could lead to SQL injection. This could
+            lead to executing additional SQL commands as the application's JDBC user. User applications that do not invoke the
+            ResultSet.refreshRow() method are not impacted.
+        </notes>
+        <cve>CVE-2022-31197</cve>
+    </suppress>
     <!-- Supression Group ends here -->
 </suppressions>
