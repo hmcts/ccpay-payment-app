@@ -152,7 +152,7 @@ public class PaymentStatusController {
     @PatchMapping(value = "/jobs/unprocessed-payment-update")
     public void updateUnprocessedPayment(){
 
-        if (featureToggler.getBooleanValue(PAYMENT_STATUS_UPDATE_FLAG,false)) {
+        if (!featureToggler.getBooleanValue(PAYMENT_STATUS_UPDATE_FLAG,false)) {
             LOG.info("Received unprocessed payment update job request");
 
             paymentStatusUpdateService.updateUnprocessedPayment();

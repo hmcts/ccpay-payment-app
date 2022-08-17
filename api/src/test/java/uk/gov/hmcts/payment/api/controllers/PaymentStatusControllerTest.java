@@ -526,7 +526,7 @@ public class PaymentStatusControllerTest {
 
     @Test
     public void testSuccessFullyUnprocessedPaymentUpdate() throws Exception{
-
+        when(featureToggler.getBooleanValue(eq("payment-status-update-flag"),anyBoolean())).thenReturn(false);
         when(paymentFailureRepository.findDcn()).thenReturn(getPaymentFailuresDcnList());
         when(paymentFailureRepository.findByFailureReference(any())).thenReturn(Optional.of(getPaymentFailures()));
         when(paymentRepository.findByDocumentControlNumberInAndPaymentMethod(any(),any())).thenReturn(Arrays.asList(getPayment()));
