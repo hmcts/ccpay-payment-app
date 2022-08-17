@@ -3,7 +3,6 @@ package uk.gov.hmcts.payment.api.service;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -254,11 +253,11 @@ public class PaymentStatusUpdateServiceImplTest {
                 .payments(Arrays.asList(metadataDto))
                 .build();
         ResponseEntity responseEntity = new ResponseEntity(searchResponse, HttpStatus.OK);
-        /*when(this.restTemplatePaymentGroup.exchange(anyString(),
+        when(this.restTemplatePaymentGroup.exchange(anyString(),
                 eq(HttpMethod.GET),
                 any(HttpEntity.class),
-                eq(ResponseEntity.class), any(Map.class)))
-                .thenReturn(responseEntity);*/
+                eq(SearchResponse.class), any(Map.class)))
+                .thenReturn(responseEntity);
         PaymentFailures failure = PaymentFailures.paymentFailuresWith().dcn("88").build();
         when(paymentFailureRepository.save(any())).thenReturn(failure);
 
@@ -267,7 +266,6 @@ public class PaymentStatusUpdateServiceImplTest {
         assertEquals("88", paymentFailure.getDcn());
     }
 
-    @Ignore
     @Test
     public void testInvalidUnprocessedPayment() {
         UnprocessedPayment unprocessedPayment = UnprocessedPayment.unprocessedPayment()
@@ -288,11 +286,11 @@ public class PaymentStatusUpdateServiceImplTest {
                 .payments(Arrays.asList(metadataDto))
                 .build();
         ResponseEntity responseEntity = new ResponseEntity(searchResponse, HttpStatus.OK);
-        /*when(this.restTemplatePaymentGroup.exchange(anyString(),
+        when(this.restTemplatePaymentGroup.exchange(anyString(),
                 eq(HttpMethod.GET),
                 any(HttpEntity.class),
-                eq(ResponseEntity.class), any(Map.class)))
-                .thenReturn(responseEntity);*/
+                eq(SearchResponse.class), any(Map.class)))
+                .thenReturn(responseEntity);
 
         Exception exception = assertThrows(
                 InvalidPaymentFailureRequestException.class,

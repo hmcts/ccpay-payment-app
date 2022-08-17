@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.api.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.AllArgsConstructor;
@@ -17,6 +18,7 @@ import java.util.List;
 @NoArgsConstructor
 @Data
 @ToString
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class SearchResponse implements Serializable {
     private String ccdReference;
     private String exceptionRecordReference;
