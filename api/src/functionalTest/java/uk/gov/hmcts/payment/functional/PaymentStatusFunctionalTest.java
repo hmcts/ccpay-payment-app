@@ -1438,9 +1438,7 @@ public class PaymentStatusFunctionalTest {
             rand.nextInt(10000),
             rand.nextInt(10000),
             rand.nextInt(99));
-       // String ccdCaseNumber = "1111221233124419";
         String dcn = "DCN1234" + RandomUtils.nextInt();
-       // String dcn = "34569087234591";
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal("100.00"))
@@ -1535,9 +1533,7 @@ public class PaymentStatusFunctionalTest {
             rand.nextInt(10000),
             rand.nextInt(10000),
             rand.nextInt(99));
-        // String ccdCaseNumber = "1111221233124419";
         String dcn = "DCN1234" + RandomUtils.nextInt();
-        // String dcn = "34569087234591";
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal("100.00"))

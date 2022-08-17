@@ -240,10 +240,10 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
     public PaymentFailures unprocessedPayment(UnprocessedPayment unprocessedPayment,
                                               MultiValueMap<String, String> headers) {
 
-      /*  if (!validateDcn(unprocessedPayment.getDcn(), unprocessedPayment.getAmount(), headers)) {
+        if (!validateDcn(unprocessedPayment.getDcn(), unprocessedPayment.getAmount(), headers)) {
             throw new PaymentNotFoundException("No Payments available for the given document reference number");
         }
-*/
+
         PaymentFailures paymentFailure = paymentStatusDtoMapper.unprocessedPaymentMapper(unprocessedPayment);
         try {
             PaymentFailures savedPaymentFailure = paymentFailureRepository.save(paymentFailure);

@@ -53,21 +53,18 @@ public class PaymentStatusController {
     @PostMapping(path = "/payment-failures/bounced-cheque")
     public ResponseEntity<String> paymentStatusBouncedCheque(@Valid @RequestBody PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto){
 
-        boolean psuLockFeature = featureToggler.getBooleanValue(PAYMENT_STATUS_UPDATE_FLAG,false);
-        LOG.info("feature toggler enable for  bounced-cheque : {}",psuLockFeature);
-
-        if(psuLockFeature){
-            return new ResponseEntity<>("service unavailable", HttpStatus.SERVICE_UNAVAILABLE);
+        if (featureToggler.getBooleanValue(PAYMENT_STATUS_UPDATE_FLAG,false)) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
         }
 
-        LOG.info("Received payment status request bounced-cheque : {}", paymentStatusBouncedChequeDto);
+        LOG.info("Received payment status request for bounced-cheque : {}", paymentStatusBouncedChequeDto);
          PaymentFailures insertPaymentFailures =  paymentStatusUpdateService.insertBounceChequePaymentFailure(paymentStatusBouncedChequeDto);
 
           if(null != insertPaymentFailures.getId()){
               paymentStatusUpdateService.cancelFailurePaymentRefund(paymentStatusBouncedChequeDto.getPaymentReference());
             }
 
-        return new ResponseEntity<>("successful operation", HttpStatus.OK);
+        return new ResponseEntity<>(SUCCESSFUL_OPERATION, HttpStatus.OK);
 
     }
 
@@ -75,14 +72,11 @@ public class PaymentStatusController {
     @PostMapping(path = "/payment-failures/chargeback")
     public ResponseEntity<String> paymentStatusChargeBack(@Valid @RequestBody PaymentStatusChargebackDto paymentStatusChargebackDto){
 
-        boolean psuLockFeature = featureToggler.getBooleanValue(PAYMENT_STATUS_UPDATE_FLAG,false);
-        LOG.info("feature toggler enable for  chargeback : {}",psuLockFeature);
-
-        if(psuLockFeature){
-            return new ResponseEntity<>("service unavailable", HttpStatus.SERVICE_UNAVAILABLE);
+        if (featureToggler.getBooleanValue(PAYMENT_STATUS_UPDATE_FLAG,false)) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
         }
 
-        LOG.info("Received payment status request chargeback : {}", paymentStatusChargebackDto);
+        LOG.info("Received payment status request for chargeback : {}", paymentStatusChargebackDto);
 
         PaymentFailures insertPaymentFailures = paymentStatusUpdateService.insertChargebackPaymentFailure(paymentStatusChargebackDto);
 
@@ -116,10 +110,7 @@ public class PaymentStatusController {
     @GetMapping("/payment-failures/{paymentReference}")
     public PaymentFailureResponse retrievePaymentFailure(@PathVariable("paymentReference") String paymentReference) {
 
-        boolean psuLockFeature = featureToggler.getBooleanValue("payment-status-update-flag",false);
-        LOG.info("feature toggler enable for failure history : {}",psuLockFeature);
-
-        if(psuLockFeature){
+        if (featureToggler.getBooleanValue(PAYMENT_STATUS_UPDATE_FLAG,false)) {
             throw new LiberataServiceInaccessibleException("service unavailable");
         }
 
