@@ -529,7 +529,7 @@ public class PaymentStatusControllerTest {
 
         when(paymentFailureRepository.findDcn()).thenReturn(getPaymentFailuresDcnList());
         when(paymentFailureRepository.findByFailureReference(any())).thenReturn(Optional.of(getPaymentFailures()));
-        when(paymentRepository.findByDocumentControlNumberIn(any())).thenReturn(Arrays.asList(getPayment()));
+        when(paymentRepository.findByDocumentControlNumberInAndPaymentMethod(any(),any())).thenReturn(Arrays.asList(getPayment()));
 
         MvcResult result = restActions
             .patch("/jobs/unprocessed-payment-update")
