@@ -207,7 +207,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
     public void updateUnprocessedPayment(){
 
         LOG.info("Inside updateUnprocessedPayment method");
-        List<PaymentFailures> paymentFailuresListWithNoRC = paymentFailureRepository.findDcn();;
+        List<PaymentFailures> paymentFailuresListWithNoRC = paymentFailureRepository.findDcn();
 
         LOG.info("Inside updateUnprocessedPayment method paymentFailuresListWithNoRC size :{}",paymentFailuresListWithNoRC.size());
 
