@@ -211,7 +211,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
 
         LOG.info("Inside updateUnprocessedPayment method paymentFailuresListWithNoRC size :{}",paymentFailuresListWithNoRC.size());
 
-        List<String> paymentFailuresListWithNoDcn = paymentFailuresListWithNoRC.stream().map(p -> p.getDcn()).collect(Collectors.toList());
+        List<String> paymentFailuresListWithNoDcn = paymentFailuresListWithNoRC.stream().map(PaymentFailures::getDcn).collect(Collectors.toList());
 
         List<Payment> paymentList = paymentRepository.findByDocumentControlNumberIn(paymentFailuresListWithNoDcn);
 
