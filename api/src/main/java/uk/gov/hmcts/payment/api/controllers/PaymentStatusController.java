@@ -152,9 +152,15 @@ public class PaymentStatusController {
     @PatchMapping(value = "/jobs/unprocessed-payment-update")
     public void updateUnprocessedPayment(){
 
-        LOG.info("Received unprocessed payment update job request");
+        if (featureToggler.getBooleanValue(PAYMENT_STATUS_UPDATE_FLAG,false)) {
+            LOG.info("Received unprocessed payment update job request");
 
-        paymentStatusUpdateService.updateUnprocessedPayment();
+            paymentStatusUpdateService.updateUnprocessedPayment();
+        } else{
+            LOG.info(" flag for unprocessed payment update job request is enable");
+        }
+
+
     }
 
     @ResponseStatus(HttpStatus.TOO_MANY_REQUESTS)
