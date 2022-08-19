@@ -16,6 +16,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentStatusDtoMapper;
 import uk.gov.hmcts.payment.api.exception.FailureReferenceNotFoundException;
@@ -222,12 +223,18 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
     }
 
     private boolean validateDcn(String dcn, BigDecimal amount, MultiValueMap<String, String> headers) {
+        UriComponentsBuilder builder = UriComponentsBuilder
+            .fromUriString(bulkScanPaymentsProcessedUrl + casesPath + "/{document_control_number}")
+            .queryParam("internalFlag", "true");
+
         Map<String, String> params = new HashMap<>();
         params.put("document_control_number", dcn);
         LOG.info("Calling Bulk scan api to retrieve payment by dcn: {}", dcn);
+
         ResponseEntity<SearchResponse> responseEntity = restTemplatePaymentGroup
-                .exchange(bulkScanPaymentsProcessedUrl + casesPath + "/{document_control_number}", HttpMethod.GET,
-                        new HttpEntity<>(headers), SearchResponse.class, params);
+            .exchange(builder.buildAndExpand(params).toUri(), HttpMethod.GET,
+                new HttpEntity<>(headers), SearchResponse.class);
+
         if (!HttpStatus.OK.equals(responseEntity.getStatusCode())) {
             return false;
         } else {
