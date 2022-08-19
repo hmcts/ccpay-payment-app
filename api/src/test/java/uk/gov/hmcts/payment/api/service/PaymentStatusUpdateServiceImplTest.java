@@ -253,7 +253,7 @@ public class PaymentStatusUpdateServiceImplTest {
                 .payments(Arrays.asList(metadataDto))
                 .build();
         ResponseEntity responseEntity = new ResponseEntity(searchResponse, HttpStatus.OK);
-        when(this.restTemplatePaymentGroup.exchange(anyString(),
+        when(this.restTemplatePaymentGroup.exchange(any(),
                 eq(HttpMethod.GET),
                 any(HttpEntity.class),
                 eq(SearchResponse.class)))
@@ -286,7 +286,7 @@ public class PaymentStatusUpdateServiceImplTest {
                 .payments(Arrays.asList(metadataDto))
                 .build();
         ResponseEntity responseEntity = new ResponseEntity(searchResponse, HttpStatus.OK);
-        when(this.restTemplatePaymentGroup.exchange(anyString(),
+        when(this.restTemplatePaymentGroup.exchange(any(),
                 eq(HttpMethod.GET),
                 any(HttpEntity.class),
                 eq(SearchResponse.class)))
@@ -353,7 +353,7 @@ public class PaymentStatusUpdateServiceImplTest {
 
     private Payment getPayment() {
 
-        Payment payment = Payment.paymentWith()
+        return Payment.paymentWith()
             .id(1)
             .amount(BigDecimal.valueOf(555))
             .caseReference("caseReference")
@@ -384,13 +384,11 @@ public class PaymentStatusUpdateServiceImplTest {
                 .callBackUrl("http//:test")
                 .build())
             .build();
-
-        return payment;
     }
 
     private PaymentStatusChargebackDto getPaymentStatusChargebackDtoForBadRequest() {
 
-        PaymentStatusChargebackDto paymentStatusChargebackDto = PaymentStatusChargebackDto.paymentStatusChargebackRequestWith()
+        return PaymentStatusChargebackDto.paymentStatusChargebackRequestWith()
             .additionalReference("AR1234")
             .amount(BigDecimal.valueOf(556))
             .failureReference("FR12345")
@@ -400,13 +398,11 @@ public class PaymentStatusUpdateServiceImplTest {
             .paymentReference("RC1234")
             .hasAmountDebited("yes")
             .build();
-
-        return paymentStatusChargebackDto;
     }
 
     private PaymentStatusBouncedChequeDto getPaymentStatusBounceChequeDtoForBadRequest() {
 
-        PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto = PaymentStatusBouncedChequeDto.paymentStatusBouncedChequeRequestWith()
+        return PaymentStatusBouncedChequeDto.paymentStatusBouncedChequeRequestWith()
             .additionalReference("AR1234")
             .amount(BigDecimal.valueOf(556))
             .failureReference("FR12345")
@@ -415,8 +411,6 @@ public class PaymentStatusUpdateServiceImplTest {
             .reason("RR001")
             .paymentReference("RC1234")
             .build();
-
-        return paymentStatusBouncedChequeDto;
     }
 
 

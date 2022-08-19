@@ -462,10 +462,10 @@ public class PaymentStatusControllerTest {
                 .poBoxNumber("8")
                 .build();
         ResponseEntity responseEntity = new ResponseEntity(HttpStatus.OK);
-        when(this.restTemplatePaymentGroup.exchange(anyString(),
+        when(this.restTemplatePaymentGroup.exchange(any(),
                 eq(HttpMethod.GET),
                 any(HttpEntity.class),
-                eq(SearchResponse.class), any(Map.class)))
+                eq(SearchResponse.class)))
                 .thenReturn(responseEntity);
         MvcResult result = restActions
                 .post("/payment-failures/unprocessed-payment", unprocessedPayment)
@@ -486,7 +486,7 @@ public class PaymentStatusControllerTest {
                 .dcn("88")
                 .poBoxNumber("8")
                 .build();
-        when(this.restTemplatePaymentGroup.exchange(anyString(),
+        when(this.restTemplatePaymentGroup.exchange(any(),
                 eq(HttpMethod.GET),
                 any(HttpEntity.class),
                 eq(SearchResponse.class)))
@@ -510,7 +510,7 @@ public class PaymentStatusControllerTest {
                 .dcn("88")
                 .poBoxNumber("8")
                 .build();
-        when(this.restTemplatePaymentGroup.exchange(anyString(),
+        when(this.restTemplatePaymentGroup.exchange(any(),
                 eq(HttpMethod.GET),
                 any(HttpEntity.class),
                 eq(SearchResponse.class)))
@@ -526,7 +526,7 @@ public class PaymentStatusControllerTest {
 
     private PaymentStatusBouncedChequeDto getPaymentStatusBouncedChequeDto() {
 
-        PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto = PaymentStatusBouncedChequeDto.paymentStatusBouncedChequeRequestWith()
+        return PaymentStatusBouncedChequeDto.paymentStatusBouncedChequeRequestWith()
             .additionalReference("AR1234")
             .amount(BigDecimal.valueOf(555))
             .failureReference("FR12345")
@@ -535,13 +535,11 @@ public class PaymentStatusControllerTest {
             .reason("RR001")
             .paymentReference("RC1234")
             .build();
-
-        return paymentStatusBouncedChequeDto;
     }
 
     private Payment getPayment() {
 
-        Payment payment = Payment.paymentWith()
+        return Payment.paymentWith()
             .id(1)
             .amount(BigDecimal.valueOf(555))
             .caseReference("caseReference")
@@ -572,13 +570,11 @@ public class PaymentStatusControllerTest {
                 .callBackUrl("http//:test")
                 .build())
             .build();
-
-        return payment;
     }
 
     private PaymentFailures getPaymentFailures(){
 
-        PaymentFailures paymentFailures = PaymentFailures.paymentFailuresWith()
+        return PaymentFailures.paymentFailuresWith()
             .id(1)
             .reason("RR001")
             .failureReference("Bounce Cheque")
@@ -586,13 +582,12 @@ public class PaymentStatusControllerTest {
             .ccdCaseNumber("123456")
             .amount(BigDecimal.valueOf(555))
             .build();
-        return paymentFailures;
 
     }
 
     private PaymentStatusChargebackDto getPaymentStatusChargebackDto() {
 
-        PaymentStatusChargebackDto paymentStatusChargebackDto = PaymentStatusChargebackDto.paymentStatusChargebackRequestWith()
+        return PaymentStatusChargebackDto.paymentStatusChargebackRequestWith()
             .additionalReference("AR1234")
             .amount(BigDecimal.valueOf(555))
             .failureReference("FR12345")
@@ -602,8 +597,6 @@ public class PaymentStatusControllerTest {
             .paymentReference("RC1234")
             .hasAmountDebited("yes")
             .build();
-
-        return paymentStatusChargebackDto;
     }
 
     private List<PaymentFailures> getPaymentFailuresList(){
