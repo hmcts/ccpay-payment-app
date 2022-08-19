@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.functional;
 
 import io.restassured.response.Response;
+import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
@@ -8,9 +9,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
+import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
 import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
 import uk.gov.hmcts.payment.functional.fixture.PaymentFixture;
@@ -22,7 +23,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
 
-@RunWith(SpringRunner.class)
+@RunWith(SpringIntegrationSerenityRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
 public class PaymentsSearchFunctionalTest {
 
@@ -125,6 +126,7 @@ public class PaymentsSearchFunctionalTest {
 
     @Test
     public void givenTwoPaymentsInPeriodWhensearchPaymentsWithStartDateEndDateThenShouldPass() throws InterruptedException {
+        Thread.sleep(2000);
         String startDate = LocalDateTime.now(zoneUTC).toString(DATE_TIME_FORMAT);
 
         dsl.given().userToken(USER_TOKEN)
@@ -132,37 +134,43 @@ public class PaymentsSearchFunctionalTest {
             .returnUrl("https://www.moneyclaims.service.gov.uk")
             .when().createCardPayment(getCardPaymentRequest())
             .then().created(paymentDto -> {
-            assertNotNull(paymentDto.getReference());
-            assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
-        });
+                assertNotNull(paymentDto.getReference());
+                assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
+            });
 
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .returnUrl("https://www.moneyclaims.service.gov.uk")
             .when().createCardPayment(getCardPaymentRequest())
             .then().created(paymentDto -> {
-            assertNotNull(paymentDto.getReference());
-            assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
-        });
+                assertNotNull(paymentDto.getReference());
+                assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
 
-        Thread.sleep(2000);
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
 
-        String endDate = LocalDateTime.now(zoneUTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
+                String endDate = LocalDateTime.now(zoneUTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
 
-        // retrieve card payment
-        dsl.given().userToken(USER_TOKEN)
-            .s2sToken(SERVICE_TOKEN)
-            .when().searchPaymentsBetweenDates(startDate, endDate)
-            .then().getPayments((paymentsResponse -> {
-            assertThat(paymentsResponse.getPayments().size()).isEqualTo(2);
-            FeeDto feeDto = paymentsResponse.getPayments().get(0).getFees().get(0);
-            assertThat(feeDto.getCode()).isEqualTo("FEE0001");
-            assertThat(feeDto.getVersion()).isEqualTo("1");
-            assertThat(feeDto.getNaturalAccountCode()).isEqualTo("4481102133");
-            assertThat(feeDto.getMemoLine()).isNotEmpty();
-            assertThat(feeDto.getJurisdiction1()).isEqualTo("civil");
-            assertThat(feeDto.getJurisdiction2()).isEqualTo("county court");
-        }));
+                // retrieve card payment
+                dsl.given().userToken(USER_TOKEN)
+                    .s2sToken(SERVICE_TOKEN)
+                    .when().searchPaymentsBetweenDates(startDate, endDate)
+                    .then().getPayments((paymentsResponse -> {
+                        assertThat(paymentsResponse.getPayments().size()).isGreaterThanOrEqualTo(2);
+                        PaymentDto retrievedPaymentDto = paymentsResponse.getPayments().stream()
+                            .filter(o -> o.getPaymentReference().equals(paymentDto.getReference())).findFirst().get();
+                        FeeDto feeDto = retrievedPaymentDto.getFees().get(0);
+                        assertThat(feeDto.getCode()).isEqualTo("FEE0001");
+                        assertThat(feeDto.getVersion()).isEqualTo("1");
+                        assertThat(feeDto.getNaturalAccountCode()).isEqualTo("4481102133");
+                        assertThat(feeDto.getMemoLine()).isNotEmpty();
+                        assertThat(feeDto.getJurisdiction1()).isEqualTo("civil");
+                        assertThat(feeDto.getJurisdiction2()).isEqualTo("county court");
+                    }));
+            });
 
     }
 

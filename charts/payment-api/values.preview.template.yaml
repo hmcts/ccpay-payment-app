@@ -4,9 +4,9 @@ java:
   ingressHost: ${SERVICE_FQDN}
   environment:
     POSTGRES_HOST: "{{ .Release.Name }}-postgresql"
-    POSTGRES_NAME: "{{ .Values.postgresql.postgresqlDatabase}}"
-    POSTGRES_USERNAME: "{{ .Values.postgresql.postgresqlUsername}}"
-    POSTGRES_PASSWORD: "{{ .Values.postgresql.postgresqlPassword}}"
+    POSTGRES_NAME: "{{ .Values.postgresql.auth.database}}"
+    POSTGRES_USERNAME: "{{ .Values.postgresql.auth.username}}"
+    POSTGRES_PASSWORD: "{{ .Values.postgresql.auth.password}}"
     POSTGRES_CONNECTION_OPTIONS: "?sslmode=allow"
 
     SPRING_LIQUIBASE_ENABLED: true
@@ -18,8 +18,7 @@ java:
     IAC_SERVICE_API_URL: http://ia-case-access-api-aat.service.core-compute-aat.internal
     PBA_CONFIG1_SERVICE_NAMES: dummy
     PCI_PAL_API_URL: https://ip3cloud.com/clients/hmcts/payments/index.php
-
-    REFUND_API_URL: http://ccpay-refunds-api-pr-181.service.core-compute-preview.internal/
+    REFUND_API_URL: http://ccpay-refunds-api-pr-158-java
 
   keyVaults:
     "ccpay":
@@ -42,7 +41,6 @@ java:
         - pci-pal-antenna-financial-remedy-flow-id
         - spring-mail-password
         - gov-pay-keys-cmc-claim-store
-        - gov-pay-keys-reference
         - gov-pay-keys-divorce
         - gov-pay-keys-probate
         - gov-pay-keys-iac

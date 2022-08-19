@@ -7,6 +7,8 @@ import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
@@ -31,18 +33,22 @@ import uk.gov.hmcts.payment.functional.service.PaymentTestService;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Locale;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.http.HttpStatus.CREATED;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CASE_WORKER_GROUP;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
 
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
 public class RefundRequestorJourneyBulkscanPaymentFunctionalTest {
+
+    private static final Logger LOG = LoggerFactory.getLogger(RefundRequestorJourneyBulkscanPaymentFunctionalTest.class);
 
     @Autowired
     private PaymentTestService paymentTestService;
@@ -88,13 +94,12 @@ public class RefundRequestorJourneyBulkscanPaymentFunctionalTest {
     }
 
     @Test
-    public void givenAFeeInPG_WhenABulkScanPaymentNeedsMappingthenPaymentShouldBeAddedToExistingGroup() throws Exception {
+    public void givenAFeeInPG_WhenABulkScanPaymentNeedsMappingthenPaymentShouldBeAddedToExistingGroup() {
 
         String[] paymentMethod = {"CHEQUE", "POSTAL_ORDER", "CASH"};
         String[] lag_time = {"20", "20", "5"};
 
         for (int i = 0; i < paymentMethod.length; i++) {
-
 
             Random rand = new Random();
             String ccdCaseNumber = String.format((Locale) null, //don't want any thousand separators
@@ -107,7 +112,7 @@ public class RefundRequestorJourneyBulkscanPaymentFunctionalTest {
             String dcn = "3456908723459" + RandomUtils.nextInt();
 
             BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
-                .amount(new BigDecimal(100.00))
+                .amount(new BigDecimal("100.00"))
                 .service("DIVORCE")
                 .siteId("AA01")
                 .currency(CurrencyCode.GBP)
@@ -122,14 +127,14 @@ public class RefundRequestorJourneyBulkscanPaymentFunctionalTest {
                 .build();
 
             PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
-                .fees(Arrays.asList(FeeDto.feeDtoWith()
-                    .calculatedAmount(new BigDecimal("450.00"))
-                    .code("FEE3132")
-                    .version("1")
-                    .reference("testRef1")
-                    .volume(2)
-                    .ccdCaseNumber(ccdCaseNumber1)
-                    .build())).build();
+                .fees(Collections.singletonList(FeeDto.feeDtoWith()
+                        .calculatedAmount(new BigDecimal("450.00"))
+                        .code("FEE3132")
+                        .version("1")
+                        .reference("testRef1")
+                        .volume(2)
+                        .ccdCaseNumber(ccdCaseNumber1)
+                        .build())).build();
 
             AtomicReference<String> paymentReference = new AtomicReference<>();
 
@@ -155,29 +160,30 @@ public class RefundRequestorJourneyBulkscanPaymentFunctionalTest {
 
                 });
 
-            Response rollbackPaymentResponse = paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
+            paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
                 ccdCaseNumber, lag_time[i]);
-            System.out.println(rollbackPaymentResponse.getBody().prettyPrint());
 
             PaymentRefundRequest paymentRefundRequest
                 = PaymentFixture.aRefundRequest("RR001", paymentReference.get(), "100.00", "450");
-            Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            RefundResponse refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
                 SERVICE_TOKEN_PAYMENT,
-                paymentRefundRequest);
+                paymentRefundRequest).
+                    then().statusCode(CREATED.value()).extract().as(RefundResponse.class);
 
-            System.out.println(refundResponse.getBody().prettyPrint());
-            assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
-            RefundResponse refundResponseFromPost = refundResponse.getBody().as(RefundResponse.class);
-            assertThat(refundResponseFromPost.getRefundAmount()).isEqualTo(new BigDecimal("100.00"));
-            System.out.println(refundResponseFromPost.getRefundReference());
-            assertThat(REFUNDS_REGEX_PATTERN.matcher(refundResponseFromPost.getRefundReference()).matches()).isEqualTo(true);
+            assertThat(refundResponse.getRefundAmount()).isEqualTo(new BigDecimal("100.00"));
+            assertThat(REFUNDS_REGEX_PATTERN.matcher(refundResponse.getRefundReference()).matches()).isEqualTo(true);
 
+            LOG.info("Refund Reference: {}", refundResponse.getRefundReference());
+            // Delete refund record
+            paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN,
+                    refundResponse.getRefundReference());
         }
+
 
     }
 
     @Test
-    public void negative_givenAFeeInPG_WhenABulkScanPaymentNeedsMappingthenPaymentShouldBeAddedToExistingGroup_under_lag_time() throws Exception {
+    public void negative_givenAFeeInPG_WhenABulkScanPaymentNeedsMappingthenPaymentShouldBeAddedToExistingGroup_under_lag_time() {
 
         String[] paymentMethod = {"CHEQUE", "POSTAL_ORDER", "CASH"};
         String[] lag_time = {"15", "15", "3"};
@@ -195,7 +201,7 @@ public class RefundRequestorJourneyBulkscanPaymentFunctionalTest {
             String dcn = "3456908723459" + RandomUtils.nextInt();
 
             BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
-                .amount(new BigDecimal(100.00))
+                .amount(new BigDecimal("100.00"))
                 .service("DIVORCE")
                 .siteId("AA01")
                 .currency(CurrencyCode.GBP)
@@ -243,9 +249,8 @@ public class RefundRequestorJourneyBulkscanPaymentFunctionalTest {
 
                 });
 
-            Response rollbackPaymentResponse = paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
+            paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
                 ccdCaseNumber, lag_time[i]);
-            System.out.println(rollbackPaymentResponse.getBody().prettyPrint());
 
             // initiate the refund
             PaymentRefundRequest paymentRefundRequest
@@ -254,7 +259,6 @@ public class RefundRequestorJourneyBulkscanPaymentFunctionalTest {
                 SERVICE_TOKEN_PAYMENT,
                 paymentRefundRequest);
 
-            System.out.println(refundResponse.getBody().prettyPrint());
             assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
             assertThat(refundResponse.getBody().asString()).isEqualTo("This payment is not yet eligible for refund");
 

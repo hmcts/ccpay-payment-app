@@ -66,7 +66,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
@@ -169,7 +168,6 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         this.restActions=null;
         mvc=null;
     }
-
 
     @Test
     public void createCreditAccountPaymentTest() throws Exception {
@@ -723,7 +721,6 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         assertNotNull(paymentDto);
     }
 
-
     @Test
     public void givenLiberataCheckOffAndCheckLiberataAccountForAllSericesOnThenAllServicesTriggerLiberataCheck() throws Exception {
 
@@ -1177,6 +1174,13 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         assertEquals(new BigDecimal(0), savedfees.get(0).getAmountDue());
         assertEquals(new BigDecimal(0), savedfees.get(1).getAmountDue());
         assertEquals(new BigDecimal(20), savedfees.get(2).getAmountDue());
+    }
+
+    @Test
+    public void testDeletePayment() throws Exception {
+        restActions.delete("/credit-account-payments/test")
+            .andExpect(status().isNotFound())
+            .andReturn();
     }
 
     private String jsonRequestWithoutCcdCaseRefAndCaseRef() {

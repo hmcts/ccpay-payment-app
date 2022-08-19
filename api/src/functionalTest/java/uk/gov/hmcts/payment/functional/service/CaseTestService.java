@@ -1,10 +1,9 @@
 package uk.gov.hmcts.payment.functional.service;
 
-import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
-import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
+import net.serenitybdd.rest.SerenityRest;
 
 import javax.inject.Named;
 
@@ -23,7 +22,7 @@ public class CaseTestService {
     }
 
     public RequestSpecification givenWithAuthHeaders(String userToken, String serviceToken) {
-        return RestAssured.given()
+        return SerenityRest.given()
             .header(AUTHORIZATION, userToken)
             .header("ServiceAuthorization", serviceToken);
     }

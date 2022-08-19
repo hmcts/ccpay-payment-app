@@ -77,4 +77,10 @@ public class LoggingCreditAccountPaymentService implements CreditAccountPaymentS
         LOG.info("PaymentFeeLinks found: {}", paymentFeeLinks.size());
         return paymentFeeLinks;
     }
+
+    @Override
+    public void deleteByPaymentReference(String paymentReference) {
+        LOG.info("Deleting payment for reference: {}", paymentReference);
+        delegate.deleteByPaymentReference(paymentReference);
+    }
 }

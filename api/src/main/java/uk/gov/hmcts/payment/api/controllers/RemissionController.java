@@ -64,7 +64,7 @@ public class RemissionController {
         return new ResponseEntity<>(remissionDtoMapper.toCreateRemissionResponse(paymentFeeLink), HttpStatus.CREATED);
     }
 
-    @ApiOperation(value = "Create retrospective remission record", notes = "Create retrospective remission record")
+    @ApiOperation(value = "Create retrospective remission record(not in use)", notes = "Create retrospective remission record")
     @ApiResponses(value = {
         @ApiResponse(code = 201, message = "Remission created"),
         @ApiResponse(code = 400, message = "Remission creation failed"),

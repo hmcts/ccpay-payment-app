@@ -5,6 +5,7 @@ import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
 import uk.gov.hmcts.payment.api.model.*;
 
 import java.math.BigDecimal;
@@ -14,11 +15,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class PaymentServiceImplTest {
 
     @InjectMocks
+    @Spy
     private PaymentServiceImpl paymentService;
 
     @Mock

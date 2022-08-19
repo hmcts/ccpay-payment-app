@@ -75,6 +75,18 @@ public class RefundsController {
         return paymentRefundsService.updateTheRemissionAmount(paymentReference, request);
     }
 
+    @ApiOperation(value = "Delete refund details by refund reference", notes = "Delete Refund details for supplied refund reference")
+    @ApiResponses(value = {
+            @ApiResponse(code = 204, message = "Refund deleted successfully"),
+            @ApiResponse(code = 404, message = "Refund not found for the given reference")
+    })
+    @DeleteMapping(value = "/refund/{refundReference}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteByRefundReference(@PathVariable("refundReference") String refundReference,
+                                        @RequestHeader(required = false) MultiValueMap<String, String> headers) {
+        paymentRefundsService.deleteByRefundReference(refundReference, headers);
+    }
+
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler({PaymentNotSuccessException.class, NonPBAPaymentException.class, RemissionNotFoundException.class, InvalidRefundRequestException.class, InvalidPartialRefundRequestException.class})
     public String return400(Exception ex) {

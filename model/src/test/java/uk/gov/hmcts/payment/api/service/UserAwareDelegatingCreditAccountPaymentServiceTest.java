@@ -6,7 +6,18 @@ import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.PaymentChannel;
+import uk.gov.hmcts.payment.api.model.PaymentChannelRepository;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
+import uk.gov.hmcts.payment.api.model.PaymentMethod;
+import uk.gov.hmcts.payment.api.model.PaymentMethodRepository;
+import uk.gov.hmcts.payment.api.model.PaymentStatus;
+import uk.gov.hmcts.payment.api.model.PaymentStatusRepository;
+import uk.gov.hmcts.payment.api.model.Payment2Repository;
+import uk.gov.hmcts.payment.api.model.StatusHistory;
 import uk.gov.hmcts.payment.api.util.ServiceRequestCaseUtil;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
@@ -21,6 +32,8 @@ import java.util.Optional;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class UserAwareDelegatingCreditAccountPaymentServiceTest {
@@ -99,7 +112,8 @@ public class UserAwareDelegatingCreditAccountPaymentServiceTest {
             .build());
 
 
-        creditAccountPaymentService.create(payments.get(0), fees, "2018-1234567890");
+        PaymentFeeLink result = creditAccountPaymentService.create(payments.get(0), fees, "2018-1234567890");
+        assertEquals("2018-1234567890",result.getPaymentReference());
     }
 
     @Test
@@ -136,7 +150,7 @@ public class UserAwareDelegatingCreditAccountPaymentServiceTest {
 
         PaymentFeeLink result = creditAccountPaymentService.retrieveByPaymentReference(reference);
         assertNotNull(result);
-        assertEquals(result.getPaymentReference(), "2018-1234567890");
+        assertEquals("2018-1234567890",result.getPaymentReference());
         result.getPayments().stream().forEach(p -> {
             assertEquals(p.getReference(), reference);
             assertEquals(p.getAmount(), new BigDecimal("6000.00"));
@@ -162,6 +176,22 @@ public class UserAwareDelegatingCreditAccountPaymentServiceTest {
         when(paymentRespository.findByReferenceAndPaymentMethod("RC-1234-1234-1234-1112", PaymentMethod.paymentMethodWith().name(PAYMENT_METHOD).build()))
             .thenThrow(new PaymentNotFoundException());
         creditAccountPaymentService.retrieveByPaymentReference("RC-1234-1234-1234-1112");
+    }
+
+    @Test(expected = PaymentNotFoundException.class)
+    public void testDeleteByPaymentReferenceWithException() {
+        long value = 0;
+        when(paymentRespository.deleteByReference(anyString())).thenReturn(value);
+        creditAccountPaymentService.deleteByPaymentReference("");
+    }
+
+    @Test
+    public void testDeleteByPaymentReference() {
+        long value = 1;
+        when(paymentRespository.deleteByReference(anyString())).thenReturn(value);
+        creditAccountPaymentService.deleteByPaymentReference("dummy");
+        verify(paymentRespository).deleteByReference(anyString());
+
     }
 
     private Payment getPayment(int number, String reference) throws CheckDigitException {

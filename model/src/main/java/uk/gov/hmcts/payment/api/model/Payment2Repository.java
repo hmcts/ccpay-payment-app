@@ -1,6 +1,6 @@
 package uk.gov.hmcts.payment.api.model;
 
-
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -24,7 +24,8 @@ public interface Payment2Repository extends CrudRepository<Payment, Integer>, Jp
     Optional<List<Payment>> findByReferenceIn(List<String> reference);
 
     List<Reference> findReferencesByPaymentProviderAndPaymentStatusNotInAndDateCreatedLessThan(
-        PaymentProvider paymentProvider, List<PaymentStatus> paymentStatuses, Date targetTime);
+            PaymentProvider paymentProvider, List<PaymentStatus> paymentStatuses, Date targetTime,
+            Sort dateCreated);
 
     Optional<List<Payment>> findAllByDateCreatedBetween(Date fromDate, Date toDate);
 
@@ -35,6 +36,8 @@ public interface Payment2Repository extends CrudRepository<Payment, Integer>, Jp
     Optional<List<Payment>> findByPaymentLinkId(Integer id);
 
     Optional<Payment> findByInternalReference(String internalReference);
+
+    long deleteByReference(String reference);
 
     @Modifying
     @Query(value = "UPDATE payment SET date_updated = :rollbackdate where ccd_case_number = :ccdcasenumber",nativeQuery = true)

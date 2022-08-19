@@ -412,14 +412,11 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         return subscriptionClient;
     }
 
-
     @Override
 
     public void deadLetterProcess(IMessageReceiver subscriptionClient) throws ServiceBusException, InterruptedException, IOException {
 
-
         int receivedMessages =0;
-
         TopicClientProxy topicClientCPO = topicClientService.getTopicClientProxy();
         LOG.info("topicClientCPO : " + topicClientCPO );
         while (true)
@@ -428,16 +425,19 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
             LOG.info("receivedMessage\n", receivedMessage);
             if (receivedMessage != null) {
                 String  msgProperties = receivedMessage.getProperties().toString();
-                boolean isFound500 =  msgProperties.indexOf("500") !=-1? true: false;
-                if (isFound500) {
+                LOG.info("Received message properties: {}", msgProperties);
+                boolean isFound503 =  msgProperties.indexOf("503") !=-1? true: false;
+                if (isFound503) {
                     byte[] body = receivedMessage.getBody();
                     ObjectMapper objectMapper = new ObjectMapper();
                     DeadLetterDto deadLetterDto = objectMapper.readValue(body, DeadLetterDto.class);
                     ObjectMapper objectMapper1 = new ObjectMapper();
                     Message msg = new Message(objectMapper1.writeValueAsString(deadLetterDto));
                     msg.setContentType(MSGCONTENTTYPE);
+                    LOG.info("Message to be sent back to Topic from DLQ {}", msg.getBody());
                     topicClientCPO.send(msg);
                 }
+                receivedMessages++;
             }
             else
             {
@@ -446,7 +446,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
                 break;
             }
         }
-        LOG.info("Received %s messages from subscription.\n", receivedMessages);
+        LOG.info("Number of messages received from subscrition: {}", receivedMessages);
     }
 
 
@@ -483,7 +483,6 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
                 msg.setProperties(Collections.singletonMap("serviceCallbackUrl",
                     callBackUrl+"/case-payment-orders"));
                 topicClientCPO.send(msg);
-                LOG.info("Message sent: {}", msg);
                 topicClientCPO.close();
             }
         } catch (Exception e) {

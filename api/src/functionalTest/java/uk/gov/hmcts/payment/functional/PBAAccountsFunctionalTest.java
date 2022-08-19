@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.functional;
 
 import io.restassured.response.Response;
+import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -9,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.testcontainers.shaded.org.apache.commons.lang.RandomStringUtils;
 import uk.gov.hmcts.payment.api.dto.PBAResponse;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
@@ -29,7 +29,7 @@ import static uk.gov.hmcts.payment.functional.service.RefDataTestService.approve
 import static uk.gov.hmcts.payment.functional.service.RefDataTestService.postOrganisation;
 import static uk.gov.hmcts.payment.functional.service.RefDataTestService.readFileContents;
 
-@RunWith(SpringRunner.class)
+@RunWith(SpringIntegrationSerenityRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
 @ActiveProfiles({"functional-tests", "liberataMock"})
 @Ignore("As all the tests are Ignored,Switching these tests off....")
@@ -95,7 +95,6 @@ public class PBAAccountsFunctionalTest {
         final ValidUser user = idamService.createUserWithRefDataEmailFormat(CMC_CASE_WORKER_GROUP,
             role);
         final String userPUIFinanceManagerToken = user.getAuthorisationToken();
-        System.out.println("The value of the userPUIFinanceManagerToken : " + userPUIFinanceManagerToken);
 
         final String pba_account_number_1 = generateRandomString(6, true, false);
         final String pba_account_number_2 = generateRandomString(6, true, false);
@@ -104,7 +103,6 @@ public class PBAAccountsFunctionalTest {
             List.of("PBA3"+pba_account_number_1.toUpperCase(), "PBA4"+pba_account_number_2.toUpperCase(), "PBA5"+pba_account_number_3.toUpperCase());
 
         final String fileContentsTemplate = readFileContents(INPUT_FILE_PATH + "/" + "CreateOrganisation.json");
-        System.out.println("The value of the File Contents Before Templating : " + fileContentsTemplate);
         final String fileContents = String.format(fileContentsTemplate,
             generateRandomString(13, true, false),
             generateRandomString(8, true, false),
@@ -112,18 +110,12 @@ public class PBAAccountsFunctionalTest {
             pba_account_number_1,
             pba_account_number_2,
             pba_account_number_3);
-        System.out.println("The value of the File Contents After Templating : " + fileContents);
         Response response = postOrganisation(SERVICE_TOKEN_PAYMENT_APP, testProps.getRefDataApiUrl(), fileContents);
-        System.out.println("The value of the Body" + response.getBody().prettyPrint());
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
         final String organisationIdentifier = response.jsonPath().getString("organisationIdentifier");
-        System.out.println(organisationIdentifier);
 
         final String prdAdminToken =
             idamService.createUserWithCreateScope(CMC_CASE_WORKER_GROUP, "prd-admin").getAuthorisationToken();
-        System.out.println("The value of the Admin Token : " + prdAdminToken);
-        System.out.println("The value of the Service Token PAY BUBBLE : " + SERVICE_TOKEN_CCPAY_BUBBLE);
-        System.out.println("The value of the Service Token PAYMENT APP : " + SERVICE_TOKEN_PAYMENT_APP);
         Response updatedResponse =
             approveOrganisation(prdAdminToken, SERVICE_TOKEN_PAYMENT_APP, testProps.getRefDataApiUrl(), fileContents,
                 organisationIdentifier);
@@ -144,9 +136,6 @@ public class PBAAccountsFunctionalTest {
             .isEqualTo("Smith");//'lastName' is not matched as Ref Data are responding back with this value
         assertThat(pbaResponseDTO.getOrganisationEntityResponse().getSuperUser().getEmail())
             .isEqualToIgnoringCase(user.getEmail());//Does not match Case for some reason.
-        System.out.println("The Responded Accounts : " +
-            Arrays.deepToString(pbaResponseDTO.getOrganisationEntityResponse().getPaymentAccount().toArray()));
-        System.out.println("The set up Accounts : " + Arrays.deepToString(accountsForCreatedOrganisation.toArray()));
         assertThat(new TreeSet(pbaResponseDTO.getOrganisationEntityResponse().getPaymentAccount()).equals(new TreeSet(accountsForCreatedOrganisation))).isTrue();
 
     }
@@ -155,24 +144,16 @@ public class PBAAccountsFunctionalTest {
         final ValidUser user = idamService.createUserWithSearchScopeForRefData(CMC_CASE_WORKER_GROUP,
             role);
         final String userPUIFinanceManagerToken = user.getAuthorisationToken();
-        System.out.println("The value of the userPUIFinanceManagerToken : " + userPUIFinanceManagerToken);
         final String fileContentsTemplate = readFileContents(INPUT_FILE_PATH + "/" + fileName);
-        System.out.println("The value of the File Contents Before Templating : " + fileContentsTemplate);
         final String fileContents = String.format(fileContentsTemplate,
             generateRandomString(13, true, false),
             generateRandomString(8, true, false),
             user.getEmail());
-        System.out.println("The value of the File Contents After Templating : " + fileContents);
         Response response = postOrganisation(SERVICE_TOKEN_PAYMENT_APP, testProps.getRefDataApiUrl(), fileContents);
-        System.out.println("The value of the Body" + response.getBody().prettyPrint());
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
         final String organisationIdentifier = response.jsonPath().getString("organisationIdentifier");
-        System.out.println(organisationIdentifier);
         final String prdAdminToken =
             idamService.createUserWithCreateScope(CMC_CASE_WORKER_GROUP, "prd-admin").getAuthorisationToken();
-        System.out.println("The value of the Admin Token : " + prdAdminToken);
-        System.out.println("The value of the Service Token PAY BUBBLE : " + SERVICE_TOKEN_CCPAY_BUBBLE);
-        System.out.println("The value of the Service Token PAYMENT APP : " + SERVICE_TOKEN_PAYMENT_APP);
         Response updatedResponse =
             approveOrganisation(prdAdminToken, SERVICE_TOKEN_PAYMENT_APP, testProps.getRefDataApiUrl(), fileContents,
                 organisationIdentifier);

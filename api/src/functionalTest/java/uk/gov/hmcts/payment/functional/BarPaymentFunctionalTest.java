@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.functional;
 
+import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.assertj.core.api.Java6Assertions;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -12,8 +13,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
+import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
@@ -32,7 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertNotNull;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
 
-@RunWith(SpringRunner.class)
+@RunWith(SpringIntegrationSerenityRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
 public class BarPaymentFunctionalTest {
 
@@ -69,49 +70,50 @@ public class BarPaymentFunctionalTest {
             .s2sToken(SERVICE_TOKEN)
             .when().createTelephonyPayment(getPaymentRecordRequest())
             .then().created(paymentDto -> {
-            assertNotNull(paymentDto.getReference());
-        });
+                assertNotNull(paymentDto.getReference());
 
-        // search payment and assert the result
+                // search payment and assert the result
 
-        try {
-            Thread.sleep(10000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+                try {
+                    Thread.sleep(10000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
 
-        String endDate = formatter.format(LocalDateTime.now(zoneUTC).toDate());
+                String endDate = formatter.format(LocalDateTime.now(zoneUTC).toDate());
 
-        dsl.given().userToken(USER_TOKEN)
-            .s2sToken(SERVICE_TOKEN)
-            .when().searchPaymentsBetweenDatesPaymentMethodServiceNameApproach1(startDate, endDate, "cash")
-            .then().getPayments((paymentsResponse -> {
-            LOG.info("paymentsResponse: {}", paymentsResponse.getPayments().size());
-            assertThat(paymentsResponse.getPayments().size()).isGreaterThanOrEqualTo(1);
-            assertThat(paymentsResponse.getPayments().get(0).getMethod()).isEqualTo("cash");
-            assertThat(paymentsResponse.getPayments().get(0).getAmount()).isIn(new BigDecimal("1.01"), new BigDecimal("0.10"), new BigDecimal("0.01"), new BigDecimal("100.00"), new BigDecimal("550.00"));
-            assertThat(paymentsResponse.getPayments().get(0).getChannel()).isEqualTo("digital bar");
-            assertThat(paymentsResponse.getPayments().get(0).getStatus()).isEqualTo("success");
-            assertThat(paymentsResponse.getPayments().get(0).getServiceName()).isEqualTo("Digital Bar");
-            assertThat(paymentsResponse.getPayments().get(0).getDateCreated()).isNotNull();
-            assertThat(paymentsResponse.getPayments().get(0).getDateUpdated()).isNotNull();
-            assertThat(paymentsResponse.getPayments().get(0).getCurrency()).isNotNull();
-            assertThat(paymentsResponse.getPayments().get(0).getCaseReference()).isNotNull();
-            assertThat(paymentsResponse.getPayments().get(0).getPaymentReference()).isNotNull();
-            assertThat(paymentsResponse.getPayments().get(0).getExternalProvider()).isNotNull();
-            assertThat(paymentsResponse.getPayments().get(0).getSiteId()).isNotNull();
-            assertThat(paymentsResponse.getPayments().get(0).getPaymentGroupReference()).isNotNull();
-            assertThat(paymentsResponse.getPayments().get(0).getReportedDateOffline()).isNotNull();
-            assertThat(paymentsResponse.getPayments().get(0).getGiroSlipNo()).isEqualTo("12345");
-            FeeDto feeDto = paymentsResponse.getPayments().get(0).getFees().get(0);
-            assertThat(feeDto.getCode()).isEqualTo("FEE0333");
-            assertThat(feeDto.getVersion()).isEqualTo("1");
-            assertThat(feeDto.getCalculatedAmount()).isEqualTo(new BigDecimal("550.00"));
-            assertThat(feeDto.getReference()).isNotNull();
-            assertThat(feeDto.getReference()).isEqualTo("REF_123");
-            assertThat(feeDto.getVolume()).isEqualTo(1);
-        }));
-
+                dsl.given().userToken(USER_TOKEN)
+                    .s2sToken(SERVICE_TOKEN)
+                    .when().searchPaymentsBetweenDatesPaymentMethodServiceNameApproach1(startDate, endDate, "cash")
+                    .then().getPayments((paymentsResponse -> {
+                        LOG.info("paymentsResponse: {}", paymentsResponse.getPayments().size());
+                        assertThat(paymentsResponse.getPayments().size()).isGreaterThanOrEqualTo(1);
+                        PaymentDto retrievedPaymentDto = paymentsResponse.getPayments().stream()
+                            .filter(o -> o.getPaymentReference().equals(paymentDto.getReference())).findFirst().get();
+                        assertThat(retrievedPaymentDto.getMethod()).isEqualTo("cash");
+                        assertThat(retrievedPaymentDto.getAmount()).isIn(new BigDecimal("1.01"), new BigDecimal("0.10"), new BigDecimal("0.01"), new BigDecimal("100.00"), new BigDecimal("550.00"));
+                        assertThat(retrievedPaymentDto.getChannel()).isEqualTo("digital bar");
+                        assertThat(retrievedPaymentDto.getStatus()).isEqualTo("success");
+                        assertThat(retrievedPaymentDto.getServiceName()).isEqualTo("Digital Bar");
+                        assertThat(retrievedPaymentDto.getDateCreated()).isNotNull();
+                        assertThat(retrievedPaymentDto.getDateUpdated()).isNotNull();
+                        assertThat(retrievedPaymentDto.getCurrency()).isNotNull();
+                        assertThat(retrievedPaymentDto.getCaseReference()).isNotNull();
+                        assertThat(retrievedPaymentDto.getPaymentReference()).isNotNull();
+                        assertThat(retrievedPaymentDto.getExternalProvider()).isNotNull();
+                        assertThat(retrievedPaymentDto.getSiteId()).isNotNull();
+                        assertThat(retrievedPaymentDto.getPaymentGroupReference()).isNotNull();
+                        assertThat(retrievedPaymentDto.getReportedDateOffline()).isNotNull();
+                        assertThat(retrievedPaymentDto.getGiroSlipNo()).isEqualTo("12345");
+                        FeeDto feeDto = retrievedPaymentDto.getFees().get(0);
+                        assertThat(feeDto.getCode()).isEqualTo("FEE0333");
+                        assertThat(feeDto.getVersion()).isEqualTo("1");
+                        assertThat(feeDto.getCalculatedAmount()).isEqualTo(new BigDecimal("550.00"));
+                        assertThat(feeDto.getReference()).isNotNull();
+                        assertThat(feeDto.getReference()).isEqualTo("REF_123");
+                        assertThat(feeDto.getVolume()).isEqualTo(1);
+                    }));
+            });
     }
 
     private PaymentRecordRequest getPaymentRecordRequest() {
@@ -149,70 +151,73 @@ public class BarPaymentFunctionalTest {
             .when().createTelephonyPayment(getPaymentRecordRequestForPostalOrder())
             .then().created(paymentDto -> {
                 LOG.info(paymentDto.getReference());
-            assertNotNull(paymentDto.getReference());
-        });
+                assertNotNull(paymentDto.getReference());
 
-        try {
-            Thread.sleep(5000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
 
-        String endDate = formatter.format(LocalDateTime.now(zoneUTC).toDate());
+                String endDate = formatter.format(LocalDateTime.now(zoneUTC).toDate());
 
-        PaymentsResponse liberataResponseOld = dsl.given().userToken(USER_TOKEN)
-            .s2sToken(SERVICE_TOKEN)
-            .when().searchPaymentsBetweenDatesPaymentMethodServiceName(startDate, endDate, "postal_order")
-            .then().getPayments();
+                PaymentsResponse liberataResponseOld = dsl.given().userToken(USER_TOKEN)
+                    .s2sToken(SERVICE_TOKEN)
+                    .when().searchPaymentsBetweenDatesPaymentMethodServiceName(startDate, endDate, "postal_order")
+                    .then().getPayments();
 
-        PaymentsResponse liberataResponseApproach1 = dsl.given().userToken(USER_TOKEN)
-            .s2sToken(SERVICE_TOKEN)
-            .when().searchPaymentsBetweenDatesPaymentMethodServiceNameApproach1(startDate, endDate, "postal_order")
-            .then().getPayments();
+                PaymentsResponse liberataResponseApproach1 = dsl.given().userToken(USER_TOKEN)
+                    .s2sToken(SERVICE_TOKEN)
+                    .when().searchPaymentsBetweenDatesPaymentMethodServiceNameApproach1(startDate, endDate, "postal_order")
+                    .then().getPayments();
 
-        //Comparing the response size of old and new approach
-        Java6Assertions.assertThat(liberataResponseOld.getPayments().size()).
-            isEqualTo(liberataResponseApproach1.getPayments().size());
-        LOG.info(""+liberataResponseApproach1.getPayments().size());
-        //Comparing the response of old and new approach
-        Boolean compareResult = new HashSet<>(liberataResponseOld.getPayments()).equals(new HashSet<>(liberataResponseApproach1.getPayments()));
-        Java6Assertions.assertThat(compareResult).isEqualTo(true);
-        LOG.info("Comparison of old and new api end point response BAR Postal Order payment is same");
+                //Comparing the response size of old and new approach
+                Java6Assertions.assertThat(liberataResponseOld.getPayments().size()).
+                    isEqualTo(liberataResponseApproach1.getPayments().size());
+                LOG.info(""+liberataResponseApproach1.getPayments().size());
+                //Comparing the response of old and new approach
+                Boolean compareResult = new HashSet<>(liberataResponseOld.getPayments()).equals(new HashSet<>(liberataResponseApproach1.getPayments()));
+                Java6Assertions.assertThat(compareResult).isEqualTo(true);
+                LOG.info("Comparison of old and new api end point response BAR Postal Order payment is same");
 
-        // search payment and assert the result
-        dsl.given().userToken(USER_TOKEN)
-            .s2sToken(SERVICE_TOKEN)
-            .when().searchPaymentsBetweenDatesPaymentMethodServiceNameApproach1(startDate, endDate, "postal_order")
-            .then().getPayments((paymentsResponse -> {
-            LOG.info("paymentsResponse: {}", paymentsResponse.getPayments().size());
-            assertThat(paymentsResponse.getPayments().size()).isGreaterThanOrEqualTo(1);
-            assertThat(paymentsResponse.getPayments().get(0).getMethod()).isEqualTo("postal order");
-            assertThat(paymentsResponse.getPayments().get(0).getAmount()).isEqualTo(new BigDecimal("550.00"));
-            assertThat(paymentsResponse.getPayments().get(0).getChannel()).isEqualTo("digital bar");
-            assertThat(paymentsResponse.getPayments().get(0).getStatus()).isEqualTo("pending");
-            assertThat(paymentsResponse.getPayments().get(0).getServiceName()).isEqualTo("Digital Bar");
-            assertThat(paymentsResponse.getPayments().get(0).getDateCreated()).isNotNull();
-            assertThat(paymentsResponse.getPayments().get(0).getDateUpdated()).isNotNull();
-            assertThat(paymentsResponse.getPayments().get(0).getCurrency()).isNotNull();
-            assertThat(paymentsResponse.getPayments().get(0).getCaseReference()).isNotNull();
-            assertThat(paymentsResponse.getPayments().get(0).getPaymentReference()).isNotNull();
-            assertThat(paymentsResponse.getPayments().get(0).getExternalProvider()).isNotNull();
-            assertThat(paymentsResponse.getPayments().get(0).getSiteId()).isNotNull();
-            assertThat(paymentsResponse.getPayments().get(0).getPaymentGroupReference()).isNotNull();
-            assertThat(paymentsResponse.getPayments().get(0).getReportedDateOffline()).isNotNull();
-            assertThat(paymentsResponse.getPayments().get(0).getGiroSlipNo()).isEqualTo("312131");
-            FeeDto feeDto = paymentsResponse.getPayments().get(0).getFees().get(0);
-            assertThat(feeDto.getCode()).isEqualTo("FEE0002");
-            assertThat(feeDto.getVersion()).isEqualTo("4");
-            assertThat(feeDto.getCalculatedAmount()).isEqualTo(new BigDecimal("550.00"));
-            assertThat(feeDto.getReference()).isNotNull();
-            assertThat(feeDto.getReference()).isEqualTo("REF_123");
-            assertThat(feeDto.getMemoLine()).isEqualTo("GOV - App for divorce/nullity of marriage or CP");
-            assertThat(feeDto.getNaturalAccountCode()).isEqualTo("4481102159");
-            assertThat(feeDto.getJurisdiction1()).isEqualTo("family");
-            assertThat(feeDto.getJurisdiction2()).isEqualTo("family court");
-            assertThat(feeDto.getVolume()).isEqualTo(1);
-        }));
+                // search payment and assert the result
+                dsl.given().userToken(USER_TOKEN)
+                    .s2sToken(SERVICE_TOKEN)
+                    .when().searchPaymentsBetweenDatesPaymentMethodServiceNameApproach1(startDate, endDate, "postal_order")
+                    .then().getPayments((paymentsResponse -> {
+                        LOG.info("paymentsResponse: {}", paymentsResponse.getPayments().size());
+                        assertThat(paymentsResponse.getPayments().size()).isGreaterThanOrEqualTo(1);
+                        PaymentDto retrievedPaymentDto = paymentsResponse.getPayments().stream()
+                            .filter(o -> o.getPaymentReference().equals(paymentDto.getReference())).findFirst().get();
+                        assertThat(retrievedPaymentDto.getMethod()).isEqualTo("postal order");
+                        assertThat(retrievedPaymentDto.getAmount()).isEqualTo(new BigDecimal("550.00"));
+                        assertThat(retrievedPaymentDto.getChannel()).isEqualTo("digital bar");
+                        assertThat(retrievedPaymentDto.getStatus()).isEqualTo("pending");
+                        assertThat(retrievedPaymentDto.getServiceName()).isEqualTo("Digital Bar");
+                        assertThat(retrievedPaymentDto.getDateCreated()).isNotNull();
+                        assertThat(retrievedPaymentDto.getDateUpdated()).isNotNull();
+                        assertThat(retrievedPaymentDto.getCurrency()).isNotNull();
+                        assertThat(retrievedPaymentDto.getCaseReference()).isNotNull();
+                        assertThat(retrievedPaymentDto.getPaymentReference()).isNotNull();
+                        assertThat(retrievedPaymentDto.getExternalProvider()).isNotNull();
+                        assertThat(retrievedPaymentDto.getSiteId()).isNotNull();
+                        assertThat(retrievedPaymentDto.getPaymentGroupReference()).isNotNull();
+                        assertThat(retrievedPaymentDto.getReportedDateOffline()).isNotNull();
+                        assertThat(retrievedPaymentDto.getGiroSlipNo()).isEqualTo("312131");
+                        FeeDto feeDto = retrievedPaymentDto.getFees().get(0);
+                        assertThat(feeDto.getCode()).isEqualTo("FEE0002");
+                        assertThat(feeDto.getVersion()).isEqualTo("4");
+                        assertThat(feeDto.getCalculatedAmount()).isEqualTo(new BigDecimal("550.00"));
+                        assertThat(feeDto.getReference()).isNotNull();
+                        assertThat(feeDto.getReference()).isEqualTo("REF_123");
+                        assertThat(feeDto.getMemoLine()).isEqualTo("GOV - App for divorce/nullity of marriage or CP");
+                        assertThat(feeDto.getNaturalAccountCode()).isEqualTo("4481102159");
+                        assertThat(feeDto.getJurisdiction1()).isEqualTo("family");
+                        assertThat(feeDto.getJurisdiction2()).isEqualTo("family court");
+                        assertThat(feeDto.getVolume()).isEqualTo(1);
+                    }));
+
+            });
 
     }
 
@@ -252,51 +257,52 @@ public class BarPaymentFunctionalTest {
             .when().createTelephonyPayment(getPaymentRecordRequestForCheque())
             .then().created(paymentDto -> {
             assertNotNull(paymentDto.getReference());
+
+                try {
+                    Thread.sleep(10000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                String endDate = formatter.format(LocalDateTime.now(zoneUTC).toDate());
+
+                // search payment and assert the result
+                dsl.given().userToken(USER_TOKEN)
+                    .s2sToken(SERVICE_TOKEN)
+                    .when().searchPaymentsBetweenDatesPaymentMethodServiceNameApproach1(startDate, endDate, "cheque")
+                    .then().getPayments((paymentsResponse -> {
+                        LOG.info("paymentsResponse: {}", paymentsResponse.getPayments().size());
+                        assertThat(paymentsResponse.getPayments().size()).isGreaterThanOrEqualTo(1);
+                        PaymentDto retrievedPaymentDto = paymentsResponse.getPayments().stream()
+                            .filter(o -> o.getPaymentReference().equals(paymentDto.getReference())).findFirst().get();
+                        assertThat(retrievedPaymentDto.getMethod()).isEqualTo("cheque");
+                        assertThat(retrievedPaymentDto.getAmount()).isIn(new BigDecimal("0.10"), new BigDecimal("0.01"), new BigDecimal("100.00"), new BigDecimal("550.00"));
+                        assertThat(retrievedPaymentDto.getChannel()).isIn("digital bar", "bulk scan");
+                        // assertThat(retrievedPaymentDto.getStatus()).isEqualTo("pending");
+                        assertThat(retrievedPaymentDto.getServiceName()).isEqualTo("Digital Bar");
+                        assertThat(retrievedPaymentDto.getDateCreated()).isNotNull();
+                        assertThat(retrievedPaymentDto.getDateUpdated()).isNotNull();
+                        assertThat(retrievedPaymentDto.getCurrency()).isNotNull();
+                        assertThat(retrievedPaymentDto.getCaseReference()).isNotNull();
+                        assertThat(retrievedPaymentDto.getPaymentReference()).isNotNull();
+                        assertThat(retrievedPaymentDto.getExternalProvider()).isNotNull();
+                        assertThat(retrievedPaymentDto.getSiteId()).isNotNull();
+                        assertThat(retrievedPaymentDto.getPaymentGroupReference()).isNotNull();
+                        assertThat(retrievedPaymentDto.getReportedDateOffline()).isNotNull();
+                        assertThat(retrievedPaymentDto.getGiroSlipNo()).isEqualTo("312131");
+                        FeeDto feeDto = retrievedPaymentDto.getFees().get(0);
+                        assertThat(feeDto.getCode()).isEqualTo("FEE0002");
+                        assertThat(feeDto.getVersion()).isEqualTo("4");
+                        assertThat(feeDto.getCalculatedAmount()).isEqualTo(new BigDecimal("550.00"));
+                        assertThat(feeDto.getReference()).isNotNull();
+                        assertThat(feeDto.getReference()).isEqualTo("REF_123");
+                        assertThat(feeDto.getMemoLine()).isEqualTo("GOV - App for divorce/nullity of marriage or CP");
+                        assertThat(feeDto.getNaturalAccountCode()).isEqualTo("4481102159");
+                        assertThat(feeDto.getJurisdiction1()).isEqualTo("family");
+                        assertThat(feeDto.getJurisdiction2()).isEqualTo("family court");
+                        assertThat(feeDto.getVolume()).isEqualTo(1);
+                    }));
         });
-
-
-        try {
-            Thread.sleep(10000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        String endDate = formatter.format(LocalDateTime.now(zoneUTC).toDate());
-
-        // search payment and assert the result
-        dsl.given().userToken(USER_TOKEN)
-            .s2sToken(SERVICE_TOKEN)
-            .when().searchPaymentsBetweenDatesPaymentMethodServiceNameApproach1(startDate, endDate, "cheque")
-            .then().getPayments((paymentsResponse -> {
-            LOG.info("paymentsResponse: {}", paymentsResponse.getPayments().size());
-            assertThat(paymentsResponse.getPayments().size()).isGreaterThanOrEqualTo(1);
-            assertThat(paymentsResponse.getPayments().get(0).getMethod()).isEqualTo("cheque");
-            assertThat(paymentsResponse.getPayments().get(0).getAmount()).isIn(new BigDecimal("0.10"), new BigDecimal("0.01"), new BigDecimal("100.00"), new BigDecimal("550.00"));
-            assertThat(paymentsResponse.getPayments().get(0).getChannel()).isIn("digital bar", "bulk scan");
-            // assertThat(paymentsResponse.getPayments().get(0).getStatus()).isEqualTo("pending");
-            assertThat(paymentsResponse.getPayments().get(0).getServiceName()).isEqualTo("Digital Bar");
-            assertThat(paymentsResponse.getPayments().get(0).getDateCreated()).isNotNull();
-            assertThat(paymentsResponse.getPayments().get(0).getDateUpdated()).isNotNull();
-            assertThat(paymentsResponse.getPayments().get(0).getCurrency()).isNotNull();
-            assertThat(paymentsResponse.getPayments().get(0).getCaseReference()).isNotNull();
-            assertThat(paymentsResponse.getPayments().get(0).getPaymentReference()).isNotNull();
-            assertThat(paymentsResponse.getPayments().get(0).getExternalProvider()).isNotNull();
-            assertThat(paymentsResponse.getPayments().get(0).getSiteId()).isNotNull();
-            assertThat(paymentsResponse.getPayments().get(0).getPaymentGroupReference()).isNotNull();
-            assertThat(paymentsResponse.getPayments().get(0).getReportedDateOffline()).isNotNull();
-            assertThat(paymentsResponse.getPayments().get(0).getGiroSlipNo()).isEqualTo("312131");
-            FeeDto feeDto = paymentsResponse.getPayments().get(0).getFees().get(0);
-            assertThat(feeDto.getCode()).isEqualTo("FEE0002");
-            assertThat(feeDto.getVersion()).isEqualTo("4");
-            assertThat(feeDto.getCalculatedAmount()).isEqualTo(new BigDecimal("550.00"));
-            assertThat(feeDto.getReference()).isNotNull();
-            assertThat(feeDto.getReference()).isEqualTo("REF_123");
-            assertThat(feeDto.getMemoLine()).isEqualTo("GOV - App for divorce/nullity of marriage or CP");
-            assertThat(feeDto.getNaturalAccountCode()).isEqualTo("4481102159");
-            assertThat(feeDto.getJurisdiction1()).isEqualTo("family");
-            assertThat(feeDto.getJurisdiction2()).isEqualTo("family court");
-            assertThat(feeDto.getVolume()).isEqualTo(1);
-        }));
 
     }
 
@@ -335,50 +341,51 @@ public class BarPaymentFunctionalTest {
             .when().createTelephonyPayment(getPaymentRecordRequestForCard())
             .then().created(paymentDto -> {
             assertNotNull(paymentDto.getReference());
+
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                String endDate = formatter.format(LocalDateTime.now(zoneUTC).toDate());
+
+                // search payment and assert the result
+                dsl.given().userToken(USER_TOKEN)
+                    .s2sToken(SERVICE_TOKEN)
+                    .when().searchPaymentsBetweenDatesPaymentMethodServiceNameApproach1(startDate, endDate, "card")
+                    .then().getPayments((paymentsResponse -> {
+                        LOG.info("paymentsResponse: {}", paymentsResponse.getPayments().size());
+                        assertThat(paymentsResponse.getPayments().size()).isGreaterThanOrEqualTo(1);
+                        PaymentDto retrievedPaymentDto = paymentsResponse.getPayments().stream()
+                            .filter(o -> o.getPaymentReference().equals(paymentDto.getReference())).findFirst().get();
+                        assertThat(retrievedPaymentDto.getMethod()).isEqualTo("card");
+                        assertThat(retrievedPaymentDto.getAmount()).isEqualTo(new BigDecimal("550.00"));
+                        assertThat(retrievedPaymentDto.getChannel()).isEqualTo("digital bar");
+                        assertThat(retrievedPaymentDto.getStatus()).isEqualTo("success");
+                        assertThat(retrievedPaymentDto.getServiceName()).isEqualTo("Digital Bar");
+                        assertThat(retrievedPaymentDto.getDateCreated()).isNotNull();
+                        assertThat(retrievedPaymentDto.getDateUpdated()).isNotNull();
+                        assertThat(retrievedPaymentDto.getCurrency()).isNotNull();
+                        assertThat(retrievedPaymentDto.getCaseReference()).isNotNull();
+                        assertThat(retrievedPaymentDto.getPaymentReference()).isNotNull();
+                        assertThat(retrievedPaymentDto.getExternalProvider()).isNotNull();
+                        assertThat(retrievedPaymentDto.getSiteId()).isNotNull();
+                        assertThat(retrievedPaymentDto.getPaymentGroupReference()).isNotNull();
+                        assertThat(retrievedPaymentDto.getReportedDateOffline()).isNotNull();
+                        assertThat(retrievedPaymentDto.getGiroSlipNo()).isNull();
+                        FeeDto feeDto = retrievedPaymentDto.getFees().get(0);
+                        assertThat(feeDto.getCode()).isEqualTo("FEE0002");
+                        assertThat(feeDto.getVersion()).isEqualTo("4");
+                        assertThat(feeDto.getCalculatedAmount()).isEqualTo(new BigDecimal("550.00"));
+                        assertThat(feeDto.getReference()).isNotNull();
+                        assertThat(feeDto.getReference()).isEqualTo("REF_123");
+                        assertThat(feeDto.getMemoLine()).isEqualTo("GOV - App for divorce/nullity of marriage or CP");
+                        assertThat(feeDto.getNaturalAccountCode()).isEqualTo("4481102159");
+                        assertThat(feeDto.getJurisdiction1()).isEqualTo("family");
+                        assertThat(feeDto.getJurisdiction2()).isEqualTo("family court");
+                        assertThat(feeDto.getVolume()).isEqualTo(1);
+                    }));
         });
-
-
-        try {
-            Thread.sleep(5000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        String endDate = formatter.format(LocalDateTime.now(zoneUTC).toDate());
-
-        // search payment and assert the result
-        dsl.given().userToken(USER_TOKEN)
-            .s2sToken(SERVICE_TOKEN)
-            .when().searchPaymentsBetweenDatesPaymentMethodServiceNameApproach1(startDate, endDate, "card")
-            .then().getPayments((paymentsResponse -> {
-            LOG.info("paymentsResponse: {}", paymentsResponse.getPayments().size());
-            assertThat(paymentsResponse.getPayments().size()).isGreaterThanOrEqualTo(1);
-            assertThat(paymentsResponse.getPayments().get(0).getMethod()).isEqualTo("card");
-            assertThat(paymentsResponse.getPayments().get(0).getAmount()).isEqualTo(new BigDecimal("550.00"));
-            assertThat(paymentsResponse.getPayments().get(0).getChannel()).isEqualTo("digital bar");
-            assertThat(paymentsResponse.getPayments().get(0).getStatus()).isEqualTo("success");
-            assertThat(paymentsResponse.getPayments().get(0).getServiceName()).isEqualTo("Digital Bar");
-            assertThat(paymentsResponse.getPayments().get(0).getDateCreated()).isNotNull();
-            assertThat(paymentsResponse.getPayments().get(0).getDateUpdated()).isNotNull();
-            assertThat(paymentsResponse.getPayments().get(0).getCurrency()).isNotNull();
-            assertThat(paymentsResponse.getPayments().get(0).getCaseReference()).isNotNull();
-            assertThat(paymentsResponse.getPayments().get(0).getPaymentReference()).isNotNull();
-            assertThat(paymentsResponse.getPayments().get(0).getExternalProvider()).isNotNull();
-            assertThat(paymentsResponse.getPayments().get(0).getSiteId()).isNotNull();
-            assertThat(paymentsResponse.getPayments().get(0).getPaymentGroupReference()).isNotNull();
-            assertThat(paymentsResponse.getPayments().get(0).getReportedDateOffline()).isNotNull();
-            assertThat(paymentsResponse.getPayments().get(0).getGiroSlipNo()).isNull();
-            FeeDto feeDto = paymentsResponse.getPayments().get(0).getFees().get(0);
-            assertThat(feeDto.getCode()).isEqualTo("FEE0002");
-            assertThat(feeDto.getVersion()).isEqualTo("4");
-            assertThat(feeDto.getCalculatedAmount()).isEqualTo(new BigDecimal("550.00"));
-            assertThat(feeDto.getReference()).isNotNull();
-            assertThat(feeDto.getReference()).isEqualTo("REF_123");
-            assertThat(feeDto.getMemoLine()).isEqualTo("GOV - App for divorce/nullity of marriage or CP");
-            assertThat(feeDto.getNaturalAccountCode()).isEqualTo("4481102159");
-            assertThat(feeDto.getJurisdiction1()).isEqualTo("family");
-            assertThat(feeDto.getJurisdiction2()).isEqualTo("family court");
-            assertThat(feeDto.getVolume()).isEqualTo(1);
-        }));
 
     }
 

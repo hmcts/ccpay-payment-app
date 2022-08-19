@@ -1,15 +1,14 @@
 package uk.gov.hmcts.payment.functional;
 
 import io.restassured.response.Response;
+import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentRequest;
@@ -29,12 +28,11 @@ import java.time.LocalDate;
 import java.util.regex.Pattern;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CASE_WORKER_GROUP;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
 
-@RunWith(SpringRunner.class)
+@RunWith(SpringIntegrationSerenityRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
 @ActiveProfiles({"functional-tests", "liberataMock"})
 public class ServiceRequestBasedOnlineCardPayment {
@@ -86,7 +84,6 @@ public class ServiceRequestBasedOnlineCardPayment {
 
         ServiceRequestDto serviceRequestDto
             = ServiceRequestFixture.buildServiceRequestDTO("AAA6", null);
-        System.out.println("The Value of the CCD Case Number : " + serviceRequestDto.getCcdCaseNumber());
         Response createServiceRequestResponse
             = serviceRequestTestService.createServiceRequest(USER_TOKEN_PAYMENT, SERVICE_TOKEN,
             serviceRequestDto);
@@ -185,31 +182,14 @@ public class ServiceRequestBasedOnlineCardPayment {
         OnlineCardPaymentResponse onlineCardPaymentResponseAgain =
             createOnlineCardPaymentResponseAgain.getBody().as(OnlineCardPaymentResponse.class);
         final String laterPaymentReference = onlineCardPaymentResponseAgain.getPaymentReference();
-        System.out.println("The value of the external reference : " + onlineCardPaymentResponseAgain.getExternalReference());
         assertThat(laterPaymentReference).matches(PAYMENTS_REGEX_PATTERN);
         assertThat(initialPaymentReference).isNotEqualTo(laterPaymentReference);
-        System.out.println("The value of the later payment reference : " + laterPaymentReference);
-        //Also to check that the old Payment Fee Link was Cancelled
-
-        // Retrieve card payment
-        /*PaymentDto paymentDto = dsl.given().userToken(USER_TOKEN_PAYMENT)
-            .s2sToken(SERVICE_TOKEN)
-            .when().getCardPayment(laterPaymentReference)
-            .then().get();
-        System.out.println("The value of the Internal Reference : " + paymentDto.getInternalReference());
-
-        assertNotNull(paymentDto);
-        assertThat(paymentDto.getAmount()).isEqualTo(new BigDecimal("100.00"));
-        assertEquals(paymentDto.getExternalProvider(), "gov pay");
-        assertEquals(paymentDto.getServiceName(), "Specified Money Claims");
-        assertEquals(paymentDto.getStatus(), "Initiated");*/
 
         Response getOnlineCardPaymentResponseForInitialPaymentResponse =
             serviceRequestTestService.getAnOnlineCardPaymentForAnInternalReference(SERVICE_TOKEN,
                 initialPaymentDto.getInternalReference());
         PaymentDto getOnlineCardPaymentInitialDto = getOnlineCardPaymentResponseForInitialPaymentResponse.getBody().as(PaymentDto.class);
         assertThat(getOnlineCardPaymentInitialDto.getStatus()).isEqualTo("Failed");
-        //assertThat(getOnlineCardPaymentInitialDto.getReference()).isEqualTo(laterPaymentReference);
     }
 
     @Test
@@ -249,7 +229,6 @@ public class ServiceRequestBasedOnlineCardPayment {
             .s2sToken(SERVICE_TOKEN)
             .when().getCardPayment(paymentReference)
             .then().get();
-        System.out.println("The value of the Internal Reference : " + paymentDto.getInternalReference());
         assertThat(paymentDto).isNotNull();
         assertThat(paymentDto.getReference()).isEqualTo(paymentReference);
         assertThat(paymentDto.getStatus()).isEqualTo("Initiated");

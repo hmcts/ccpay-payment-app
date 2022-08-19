@@ -41,13 +41,13 @@ public class ServiceRequestDto {
     @NotNull
     private @Valid CasePaymentRequest casePaymentRequest;
 
-    @NotBlank
+    @NotBlank(message = "Case Reference should not be blank")
     private String caseReference;
 
-    @NotBlank
+    @NotBlank(message = "callBackUrl should not be blank")
     private String callBackUrl;
 
-    @NotBlank
+    @NotBlank(message = "hmctsOrgId should not be blank")
     private String hmctsOrgId;
 
     @AssertFalse(message = "Fee code cannot be duplicated")

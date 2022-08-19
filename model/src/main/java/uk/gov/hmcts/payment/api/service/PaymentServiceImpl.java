@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.payment.api.audit.AuditRepository;
@@ -68,12 +69,13 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
 
     @Autowired
     public PaymentServiceImpl(
-        @Qualifier("loggingPaymentService") DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService,
-        Payment2Repository paymentRepository, CallbackService callbackService, PaymentStatusRepository paymentStatusRepository,
-        TelephonyRepository telephonyRepository, AuditRepository paymentAuditRepository,
-        FeePayApportionService feePayApportionService,
-        FeePayApportionRepository feePayApportionRepository,
-        LaunchDarklyFeatureToggler featureToggler) {
+            @Qualifier("loggingPaymentService") DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService,
+            Payment2Repository paymentRepository, CallbackService callbackService,
+            PaymentStatusRepository paymentStatusRepository,
+            TelephonyRepository telephonyRepository, AuditRepository paymentAuditRepository,
+            FeePayApportionService feePayApportionService,
+            FeePayApportionRepository feePayApportionRepository,
+            LaunchDarklyFeatureToggler featureToggler) {
         this.paymentRepository = paymentRepository;
         this.delegatingPaymentService = delegatingPaymentService;
         this.callbackService = callbackService;
@@ -101,6 +103,7 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
         serviceNameMap.put("CIVIL", "Civil");
         serviceNameMap.put("ADOPTION", "Adoption");
         serviceNameMap.put("PRL", "Family Private Law");
+        serviceNameMap.put("SPEC", "Specified Money Claims");
     }
 
     @Override
@@ -193,8 +196,8 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
         Date targetTime = DateUtils.addMinutes(new Date(), -1 * paymentsCutOffTime);
         return paymentRepository.findReferencesByPaymentProviderAndPaymentStatusNotInAndDateCreatedLessThan(
             PaymentProvider.GOV_PAY,
-            Lists.newArrayList(SUCCESS, FAILED, ERROR, CANCELLED), targetTime
-        );
+            Lists.newArrayList(SUCCESS, FAILED, ERROR, CANCELLED), targetTime,
+                Sort.by(Sort.Direction.ASC, "dateCreated"));
     }
 
     @Override

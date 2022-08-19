@@ -93,11 +93,6 @@ public class PaymentDtoTest {
         apportionedPayment = new BigDecimal(1);
         dateReceiptProcessed = currentDateTime.toDate();
 
-        /*feeWithVolumeDto = new FeeDto(1, feeWithVolumeCode, feeVersion, volume, calculatedAmountForFeeWithVolume,
-            feeAmount, memoLine, naturalAccountCode, null, null, null, jurisdiction1, jurisdiction2, feeDescription,caseReference,apportionAmount,allocatedAmount,dateApportioned,dateCreated,dateUpdated,amountDue,paymentGroupReference,apportionedPayment,dateReceiptProcessed,remissionEnable);
-
-        feeNoVolumeDto = new FeeDto(1, feeNoVolumeCode, feeVersion, volume, calculatedAmountForFeeNoVolume,
-            feeAmount, memoLine, naturalAccountCode, null, null, null, jurisdiction1, jurisdiction2, feeDescription,caseReference,apportionAmount,allocatedAmount,dateApportioned,dateCreated,dateUpdated,amountDue,paymentGroupReference,apportionedPayment,dateReceiptProcessed,remissionEnable);*/
     }
 
     @Before
@@ -138,12 +133,6 @@ public class PaymentDtoTest {
         refundEnable = true;
         remissionEnable=true;
 
-
-        /*testDto = new PaymentDto(id, amount, description, reference, dateCreated, dateUpdated,
-            gbp, ccdNumber, caseReference, paymentReference, channel, method, externalProvider,
-            status, externalReference, siteId, serviceName, customerReference, accountNumber,
-            organisationName, paymentGroupReference, reportedDateOffline,documentControlNumber,bankedDate,payerName,true,
-            null, statusHistories, paymentAllocations,giroSlipNo, internalReference,links);*/
     }
 
     @Test

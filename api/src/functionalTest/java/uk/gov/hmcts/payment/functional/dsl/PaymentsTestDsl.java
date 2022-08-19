@@ -1,10 +1,10 @@
 package uk.gov.hmcts.payment.functional.dsl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
+import net.serenitybdd.rest.SerenityRest;
 import org.assertj.core.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -72,7 +72,7 @@ public class PaymentsTestDsl {
 
         public PaymentGivenDsl setFF4Jfeature(String featureName, boolean value) {
             String path = "/api/ff4j/store/features/" + featureName + (value ? "enable" : "disable");
-            RestAssured.given().relaxedHTTPSValidation().baseUri(baseURL).contentType(ContentType.JSON).headers(headers)
+            SerenityRest.given().relaxedHTTPSValidation().baseUri(baseURL).contentType(ContentType.JSON).headers(headers)
                 .post(path);
             return this;
         }
@@ -84,7 +84,7 @@ public class PaymentsTestDsl {
 
     public class PaymentWhenDsl {
         private RequestSpecification newRequest() {
-            return RestAssured.given().relaxedHTTPSValidation().baseUri(baseURL).contentType(ContentType.JSON).headers(headers);
+            return SerenityRest.given().relaxedHTTPSValidation().baseUri(baseURL).contentType(ContentType.JSON).headers(headers);
         }
 
         public PaymentWhenDsl getPaymentGroupByReference(String reference) {
@@ -119,11 +119,6 @@ public class PaymentsTestDsl {
 
         public PaymentWhenDsl createCardPayment(CardPaymentRequest cardPaymentRequest) {
             response = newRequest().contentType(ContentType.JSON).body(cardPaymentRequest).post("/card-payments");
-            return this;
-        }
-
-        public PaymentWhenDsl createTelephonyCardPayment(TelephonyPaymentRequest telephonyPaymentRequest, String paymentGroupReference) {
-            response = newRequest().contentType(ContentType.JSON).body(telephonyPaymentRequest).post("/payment-groups/{payment-group-reference}/card-payments", paymentGroupReference);
             return this;
         }
 

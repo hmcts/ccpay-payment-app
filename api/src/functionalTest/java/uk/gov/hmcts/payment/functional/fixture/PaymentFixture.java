@@ -12,9 +12,12 @@ import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
 import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
 import uk.gov.hmcts.payment.api.dto.RetrospectiveRemissionRequest;
 import uk.gov.hmcts.payment.api.model.ContactDetails;
+import uk.gov.hmcts.payment.api.dto.PaymentStatusBouncedChequeDto;
+import uk.gov.hmcts.payment.api.dto.PaymentStatusChargebackDto;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 
 import java.math.BigDecimal;
+import java.sql.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
@@ -33,10 +36,10 @@ public class PaymentFixture {
             .siteId("AA101")
             .fees(Lists.newArrayList(
                 FeeDto.feeDtoWith()
-                    .calculatedAmount(new BigDecimal(amountString))
-                    .code("FEE0001")
-                    .version("1")
-                    .build())
+                .calculatedAmount(new BigDecimal(amountString))
+                .code("FEE0001")
+                .version("1")
+                .build())
             )
             .build();
     }
@@ -256,15 +259,37 @@ public class PaymentFixture {
             .build();
     }
 
+    public static CreditAccountPaymentRequest aPbaPaymentRequestForSPEC(String amountString, String service) {
+        String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
+        return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
+            .amount(new BigDecimal(amountString))
+            .description("New passport application")
+            .ccdCaseNumber(ccdCaseNumber)
+            .caseReference("aCaseReference")
+            .service(service)
+            .currency(CurrencyCode.GBP)
+            .siteId("AAA6")
+            .customerReference("CUST101")
+            .organisationName("ORG101")
+            .accountNumber("PBAFUNC12345")
+            .fees(Lists.newArrayList(
+                FeeDto.feeDtoWith()
+                    .calculatedAmount(new BigDecimal(amountString))
+                    .code("FEE0209")
+                    .version("1")
+                    .build())
+            )
+            .build();
+    }
+
     public static CreditAccountPaymentRequest aPbaPaymentRequestForProbate(
         final String amountString, final String service, final String pbaAccountNumber) {
         Random rand = new Random();
-        String ccdCaseNumber = String.format((Locale) null, //don't want any thousand separators
+        String ccdCaseNumber = String.format((Locale)null, //don't want any thousand separators
             "111122%04d%04d%02d",
             rand.nextInt(10000),
             rand.nextInt(10000),
             rand.nextInt(99));
-        System.out.println("The Correct CCD Case Number : " + ccdCaseNumber);
         return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
             .amount(new BigDecimal(amountString))
             .description("New passport application")
@@ -289,12 +314,11 @@ public class PaymentFixture {
     public static CreditAccountPaymentRequest aPbaPaymentRequestForProbateWithFeeCode(
         final String amountString, final String feeCode, final String service, final String pbaAccountNumber) {
         Random rand = new Random();
-        String ccdCaseNumber = String.format((Locale) null, //don't want any thousand separators
+        String ccdCaseNumber = String.format((Locale)null, //don't want any thousand separators
             "111122%04d%04d%02d",
             rand.nextInt(10000),
             rand.nextInt(10000),
             rand.nextInt(99));
-        System.out.println("The Correct CCD Case Number : " + ccdCaseNumber);
         return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
             .amount(new BigDecimal(amountString))
             .description("New passport application")
@@ -323,14 +347,13 @@ public class PaymentFixture {
         final String feeCode1,
         final String feeAmount1,
         final String feeCode2,
-        final String feeAmount2) {
+        final String feeAmount2 ) {
         Random rand = new Random();
-        String ccdCaseNumber = String.format((Locale) null, //don't want any thousand separators
+        String ccdCaseNumber = String.format((Locale)null, //don't want any thousand separators
             "111122%04d%04d%02d",
             rand.nextInt(10000),
             rand.nextInt(10000),
             rand.nextInt(99));
-        System.out.println("The Correct CCD Case Number : " + ccdCaseNumber);
         return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
             .amount(new BigDecimal(amountString))
             .description("New passport application")
@@ -381,7 +404,7 @@ public class PaymentFixture {
     }
 
     public static PaymentRecordRequest aBarPaymentRequest(String amountString) {
-        return PaymentRecordRequest.createPaymentRecordRequestDtoWith()
+        return  PaymentRecordRequest.createPaymentRecordRequestDtoWith()
             .amount(new BigDecimal(amountString))
             .paymentMethod(PaymentMethodType.CASH)
             .reference("case_ref_123")
@@ -401,7 +424,8 @@ public class PaymentFixture {
     }
 
     public static PaymentRefundRequest aRefundRequest(final String refundReason,
-                                                      final String paymentReference, final String refundAmount, final String feeAmount) {
+                                                      final String paymentReference,
+                                                      final String refundAmount, final String feeAmount) {
         return PaymentRefundRequest
             .refundRequestWith().paymentReference(paymentReference)
             .refundReason(refundReason)
@@ -409,12 +433,12 @@ public class PaymentFixture {
             .fees(Lists.newArrayList(
                 RefundsFeeDto.refundFeeDtoWith()
                     .apportionAmount(BigDecimal.valueOf(0))
-                    .apportionAmount(BigDecimal.valueOf(0))
                     .calculatedAmount(new BigDecimal(feeAmount))
                     .code("FEE0001")
                     .id(0)
                     .version("1")
                     .updatedVolume(1)
+                    .refundAmount(new BigDecimal(refundAmount))
                     .build())
             )
             .contactDetails(ContactDetails.contactDetailsWith().
@@ -428,6 +452,66 @@ public class PaymentFixture {
                 .build())
             .build();
 
+    }
+
+    public static PaymentStatusBouncedChequeDto bouncedChequeRequest(String paymentReference){
+        String ccdCaseNumber = "1111-CC13-" + RandomUtils.nextInt();
+        String failureReference = "FR-111-CC13-" + RandomUtils.nextInt();
+        Date date = new Date(System.currentTimeMillis());
+        return PaymentStatusBouncedChequeDto.paymentStatusBouncedChequeRequestWith()
+            .reason("RR001")
+            .paymentReference(paymentReference)
+            .eventDateTime(date.toString())
+            .additionalReference("AR1234556")
+            .amount(new BigDecimal(50.00))
+            .failureReference(failureReference)
+            .ccdCaseNumber(ccdCaseNumber)
+            .build();
+    }
+
+    public static PaymentStatusChargebackDto chargebackRequest(String paymentReference){
+        String ccdCaseNumber = "1111-CC13-" + RandomUtils.nextInt();
+        String failureReference = "FR-111-CC13-" + RandomUtils.nextInt();
+        Date date = new Date(System.currentTimeMillis());
+        return PaymentStatusChargebackDto.paymentStatusChargebackRequestWith()
+            .reason("RR001")
+            .paymentReference(paymentReference)
+            .eventDateTime(date.toString())
+            .additionalReference("AR1234556")
+            .amount(new BigDecimal(50.00))
+            .failureReference(failureReference)
+            .ccdCaseNumber(ccdCaseNumber)
+            .hasAmountDebited("yes")
+            .build();
+    }
+
+    public static PaymentStatusBouncedChequeDto bouncedChequeRequestForFailureRef(String paymentReference, String failureReference){
+        String ccdCaseNumber = "1111-CC13-" + RandomUtils.nextInt();
+        Date date = new Date(System.currentTimeMillis());
+        return PaymentStatusBouncedChequeDto.paymentStatusBouncedChequeRequestWith()
+            .reason("RR001")
+            .paymentReference(paymentReference)
+            .eventDateTime(date.toString())
+            .additionalReference("AR1234556")
+            .amount(new BigDecimal(50))
+            .failureReference(failureReference)
+            .ccdCaseNumber(ccdCaseNumber)
+            .build();
+    }
+
+    public static PaymentStatusChargebackDto chargebackRequestForFailureRef(String paymentReference, String failureReference) {
+        String ccdCaseNumber = "1111-CC13-" + RandomUtils.nextInt();
+        Date date = new Date(System.currentTimeMillis());
+        return PaymentStatusChargebackDto.paymentStatusChargebackRequestWith()
+            .reason("RR001")
+            .paymentReference(paymentReference)
+            .eventDateTime(date.toString())
+            .additionalReference("AR1234556")
+            .amount(new BigDecimal(50))
+            .failureReference(failureReference)
+            .ccdCaseNumber(ccdCaseNumber)
+            .hasAmountDebited("yes")
+            .build();
     }
 
     public static RetrospectiveRemissionRequest aRetroRemissionRequest(final String remissionReference) {

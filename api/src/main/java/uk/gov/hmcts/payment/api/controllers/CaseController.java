@@ -114,7 +114,7 @@ public class CaseController {
 
         PaymentGroupResponse paymentGroupResponse = new PaymentGroupResponse(paymentGroups);
 
-        paymentGroupResponse = paymentRefundsService.checkRefundAgainstRemission(headers, paymentGroupResponse, ccdCaseNumber);
+        paymentGroupResponse = paymentRefundsService.checkRefundAgainstRemissionV2(headers, paymentGroupResponse, ccdCaseNumber);
 
         return paymentGroupResponse;
     }

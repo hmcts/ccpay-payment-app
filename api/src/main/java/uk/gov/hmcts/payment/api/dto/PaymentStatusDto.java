@@ -35,5 +35,4 @@ public class PaymentStatusDto {
 
     @JsonProperty("payment")
     private PaymentReference payment;
-
 }

@@ -14,7 +14,10 @@ import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class LoggingCreditAccountPaymentServiceTest {
@@ -77,11 +80,17 @@ public class LoggingCreditAccountPaymentServiceTest {
 
         PaymentFeeLink paymentFeeLink = loggingCreditAccountPaymentService.create(payment, fees, "2018-1234567890");
         assertNotNull(paymentFeeLink);
-        assertEquals(paymentFeeLink.getPaymentReference(), "2018-1234567890");
+        assertEquals("2018-1234567890",paymentFeeLink.getPaymentReference());
         paymentFeeLink.getPayments().stream().forEach(p -> {
-            assertEquals(p.getAmount(), new BigDecimal("10000"));
-            assertEquals(p.getStatus(), "Initiated");
-            assertEquals(p.getReference(), "RC-1518-9479-8089-4415");
+            assertEquals( new BigDecimal("10000"),p.getAmount());
+            assertEquals("Initiated",p.getStatus());
+            assertEquals("RC-1518-9479-8089-4415",p.getReference());
         });
+    }
+
+    @Test
+    public void testDelete() {
+        loggingCreditAccountPaymentService.deleteByPaymentReference("");
+        verify(creditAccountPaymentService).deleteByPaymentReference(anyString());
     }
 }
