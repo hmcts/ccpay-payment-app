@@ -231,9 +231,14 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         params.put("document_control_number", dcn);
         LOG.info("Calling Bulk scan api to retrieve payment by dcn: {}", dcn);
 
-        ResponseEntity<SearchResponse> responseEntity = restTemplatePaymentGroup
-            .exchange(builder.buildAndExpand(params).toUri(), HttpMethod.GET,
-                new HttpEntity<>(headers), SearchResponse.class);
+        ResponseEntity<SearchResponse> responseEntity;
+        try {
+            responseEntity = restTemplatePaymentGroup
+                    .exchange(builder.buildAndExpand(params).toUri(), HttpMethod.GET,
+                            new HttpEntity<>(headers), SearchResponse.class);
+        } catch (HttpClientErrorException exception) {
+            throw new PaymentNotFoundException("No Payments available for the given document reference number");
+        }
 
         if (!HttpStatus.OK.equals(responseEntity.getStatusCode())) {
             return false;
