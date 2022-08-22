@@ -248,8 +248,8 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
             if (null != searchResponse && PaymentStatus.COMPLETE.equals(searchResponse.getAllPaymentsStatus())) {
                 for (PaymentMetadataDto paymentMetadataDto : searchResponse.getPayments()) {
                     LOG.info("dcn comparison: {}", dcn.equals(paymentMetadataDto.getDcnReference()));
-                    LOG.info("amount comparison: {}", paymentMetadataDto.getAmount().compareTo(amount));
-                    if (dcn.equals(paymentMetadataDto.getDcnReference()) && paymentMetadataDto.getAmount().compareTo(amount) > 0) {
+                    LOG.info("amount comparison: {}", amount.compareTo(paymentMetadataDto.getAmount()));
+                    if (dcn.equals(paymentMetadataDto.getDcnReference()) && amount.compareTo(paymentMetadataDto.getAmount()) > 0) {
                         throw new InvalidPaymentFailureRequestException("Failure amount cannot be more than payment amount");
                     }
                 }
