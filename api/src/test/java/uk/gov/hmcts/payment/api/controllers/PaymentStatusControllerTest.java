@@ -524,6 +524,21 @@ public class PaymentStatusControllerTest {
         assertEquals("Request already received for this failure reference", result.getResolvedException().getMessage());
     }
 
+    @Test
+    public void testSuccessFullyUnprocessedPaymentUpdate() throws Exception{
+        when(featureToggler.getBooleanValue(eq("payment-status-update-flag"),anyBoolean())).thenReturn(false);
+        when(paymentFailureRepository.findDcn()).thenReturn(getPaymentFailuresDcnList());
+        when(paymentFailureRepository.findByFailureReference(any())).thenReturn(Optional.of(getPaymentFailures()));
+        when(paymentRepository.findByDocumentControlNumberInAndPaymentMethod(any(),any())).thenReturn(Arrays.asList(getPayment()));
+
+        MvcResult result = restActions
+            .patch("/jobs/unprocessed-payment-update")
+            .andExpect(status().isOk())
+            .andReturn();
+
+        assertEquals(200, result.getResponse().getStatus());
+    }
+
     private PaymentStatusBouncedChequeDto getPaymentStatusBouncedChequeDto() {
 
         return PaymentStatusBouncedChequeDto.paymentStatusBouncedChequeRequestWith()
@@ -552,6 +567,7 @@ public class PaymentStatusControllerTest {
             .pbaNumber("pbaNumer")
             .reference("RC-1520-2505-0381-8145")
             .ccdCaseNumber("1234123412341234")
+            .documentControlNumber("12345")
             .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
             .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
             .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
@@ -581,6 +597,7 @@ public class PaymentStatusControllerTest {
             .paymentReference("RC12345")
             .ccdCaseNumber("123456")
             .amount(BigDecimal.valueOf(555))
+            .dcn("12345")
             .build();
 
     }
@@ -612,6 +629,24 @@ public class PaymentStatusControllerTest {
             .representmentSuccess("yes")
             .failureType("Chargeback")
             .additionalReference("AR12345")
+            .build();
+
+        paymentFailuresList.add(paymentFailures);
+        return paymentFailuresList;
+
+    }
+
+    private List<PaymentFailures> getPaymentFailuresDcnList(){
+
+        List<PaymentFailures> paymentFailuresList = new ArrayList<>();
+        PaymentFailures paymentFailures = PaymentFailures.paymentFailuresWith()
+            .id(1)
+            .reason("test")
+            .failureReference("FR12345")
+            .amount(BigDecimal.valueOf(555))
+            .representmentSuccess("yes")
+            .poBoxNumber("12345")
+            .dcn("12345")
             .build();
 
         paymentFailuresList.add(paymentFailures);
