@@ -341,6 +341,29 @@ public class PaymentStatusUpdateServiceImplTest {
 
     }
 
+    @Test
+    public void testSuccessPaymentFailureReportWhereRefundNotMatched(){
+        when(paymentFailureRepository.findByDatesBetween(any(),any())).thenReturn(getPaymentFailuresList());
+        when(paymentRepository.findByReferenceIn(any())).thenReturn(getPaymentList());
+        ResponseEntity<RefundPaymentFailureReportDtoResponse> responseEntity = new ResponseEntity<>(getFailureRefundForNotMatched(), HttpStatus.OK);
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add("Authorization", "auth");
+        headers.add("ServiceAuthorization", "service-auth");
+        when(authTokenGenerator.generate()).thenReturn("test-token");
+
+        when(restTemplateGetRefund.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+            eq(new ParameterizedTypeReference<RefundPaymentFailureReportDtoResponse>() {
+            }))).thenReturn(responseEntity);
+
+        Date fromDate =clock.getYesterdayDate();
+        Date toDate = clock.getTodayDate();
+        List<PaymentFailureReportDto> paymentFailureReportDto = paymentStatusUpdateServiceImpl.paymentFailureReport(fromDate,toDate,headers);
+
+        Assert.assertEquals("RC-1520-2505-0381-8145",paymentFailureReportDto.get(0).getPaymentReference());
+       // Assert.assertEquals("RF-123=345=897",paymentFailureReportDto.get(0).getRefundReference());
+
+    }
+
     private PaymentStatusBouncedChequeDto getPaymentStatusBouncedChequeDto() {
 
         PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto = PaymentStatusBouncedChequeDto.paymentStatusBouncedChequeRequestWith()
@@ -523,8 +546,23 @@ public class PaymentStatusUpdateServiceImplTest {
             .build();
     }
 
+    private RefundDto getRefundForNotMatched(){
+        DateTime currentDateTime = new DateTime();
+        return RefundDto.buildRefundListDtoWith()
+            .refundReference("RF-123=345=897")
+            .amount(BigDecimal.valueOf(5))
+            .paymentReference("RC-1520-2505-0381-8146")
+            .refundDate(currentDateTime.toDate().toString())
+            .build();
+    }
+
     private RefundPaymentFailureReportDtoResponse getFailureRefund(){
         return   RefundPaymentFailureReportDtoResponse.buildPaymentFailureListWith().paymentFailureDto(Arrays.asList(getRefund())).build();
+
+    }
+
+    private RefundPaymentFailureReportDtoResponse getFailureRefundForNotMatched(){
+        return   RefundPaymentFailureReportDtoResponse.buildPaymentFailureListWith().paymentFailureDto(Arrays.asList(getRefundForNotMatched())).build();
 
     }
 
