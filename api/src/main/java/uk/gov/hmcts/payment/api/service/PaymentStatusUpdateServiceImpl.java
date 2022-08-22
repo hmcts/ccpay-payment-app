@@ -16,6 +16,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.dto.PaymentStatus;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentStatusDtoMapper;
@@ -255,12 +256,23 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
     }
 
     private boolean validateDcn(String dcn, BigDecimal amount, MultiValueMap<String, String> headers) {
+        UriComponentsBuilder builder = UriComponentsBuilder
+            .fromUriString(bulkScanPaymentsProcessedUrl + casesPath + "/{document_control_number}")
+            .queryParam("internalFlag", "true");
+
         Map<String, String> params = new HashMap<>();
         params.put("document_control_number", dcn);
         LOG.info("Calling Bulk scan api to retrieve payment by dcn: {}", dcn);
-        ResponseEntity<SearchResponse> responseEntity = restTemplatePaymentGroup
-                .exchange(bulkScanPaymentsProcessedUrl + casesPath + "/{document_control_number}", HttpMethod.GET,
-                        new HttpEntity<>(headers), SearchResponse.class, params);
+
+        ResponseEntity<SearchResponse> responseEntity;
+        try {
+            responseEntity = restTemplatePaymentGroup
+                    .exchange(builder.buildAndExpand(params).toUri(), HttpMethod.GET,
+                            new HttpEntity<>(headers), SearchResponse.class);
+        } catch (HttpClientErrorException exception) {
+            throw new PaymentNotFoundException("No Payments available for the given document reference number");
+        }
+
         if (!HttpStatus.OK.equals(responseEntity.getStatusCode())) {
             return false;
         } else {
@@ -268,7 +280,9 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
             LOG.info("Search Response from Bulk Scanning app: {}", searchResponse);
             if (null != searchResponse && PaymentStatus.COMPLETE.equals(searchResponse.getAllPaymentsStatus())) {
                 for (PaymentMetadataDto paymentMetadataDto : searchResponse.getPayments()) {
-                    if (dcn.equals(paymentMetadataDto.getDcnReference()) && paymentMetadataDto.getAmount().compareTo(amount) > 0) {
+                    LOG.info("dcn comparison: {}", dcn.equals(paymentMetadataDto.getDcnReference()));
+                    LOG.info("amount comparison: {}", amount.compareTo(paymentMetadataDto.getAmount()));
+                    if (dcn.equals(paymentMetadataDto.getDcnReference()) && amount.compareTo(paymentMetadataDto.getAmount()) > 0) {
                         throw new InvalidPaymentFailureRequestException("Failure amount cannot be more than payment amount");
                     }
                 }
