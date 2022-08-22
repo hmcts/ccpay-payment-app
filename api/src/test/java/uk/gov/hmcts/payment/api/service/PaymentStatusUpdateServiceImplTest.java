@@ -266,7 +266,7 @@ public class PaymentStatusUpdateServiceImplTest {
         assertEquals("88", paymentFailure.getDcn());
     }
 
-   @Test
+    @Test
     public void testInvalidUnprocessedPayment() {
         UnprocessedPayment unprocessedPayment = UnprocessedPayment.unprocessedPayment()
                 .amount(BigDecimal.valueOf(889))
