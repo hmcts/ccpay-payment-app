@@ -36,6 +36,9 @@ public class PaymentsTestDsl {
     @Value("${test.url}")
     private String baseURL;
 
+    @Value("${bulk.scanning.payments.processed.url}")
+    private String bulkScanUrl;
+
     @Autowired
     private S2sTokenService serviceTokenFactory;
 

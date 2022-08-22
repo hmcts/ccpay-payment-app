@@ -197,4 +197,32 @@ public class PaymentTestService {
                 .when()
                 .post("/payment-failures/unprocessed-payment");
     }
+
+    public Response createBulkScanPayment(String serviceToken, BulkScanPayment bulkScanPayment, final String baseUri) {
+        return givenWithServiceHeaders(serviceToken)
+                .baseUri(baseUri)
+                .when()
+                .post("/bulk-scan-payment", bulkScanPayment);
+    }
+
+    public Response completeBulkScanPayment(String serviceToken, BulkScanPayments bulkScanPayment, final String baseUri) {
+        return givenWithServiceHeaders(serviceToken)
+                .baseUri(baseUri)
+                .when()
+                .post("/bulk-scan-payments", bulkScanPayment);
+    }
+
+    public Response getBulkScanPayment(String serviceToken, String dcn, final String baseUri) {
+        return givenWithServiceHeaders(serviceToken)
+                .baseUri(baseUri)
+                .when()
+                .delete("/bulk-scan-payments/{dcn}", dcn);
+    }
+
+    public Response deleteBulkScanPayment(String serviceToken, String dcn, final String baseUri) {
+        return givenWithServiceHeaders(serviceToken)
+                .baseUri(baseUri)
+                .when()
+                .delete("/bulk-scan-payments/{dcn}", dcn);
+    }
 }
