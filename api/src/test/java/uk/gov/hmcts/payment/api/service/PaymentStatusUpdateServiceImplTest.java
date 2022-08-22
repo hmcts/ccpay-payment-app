@@ -236,7 +236,7 @@ public class PaymentStatusUpdateServiceImplTest {
     @Test
     public void testUnprocessedPayment() {
         UnprocessedPayment unprocessedPayment = UnprocessedPayment.unprocessedPayment()
-                .amount(BigDecimal.valueOf(888))
+                .amount(BigDecimal.valueOf(777))
                 .failureReference("FR8888")
                 .eventDateTime("2022-10-10T10:10:10")
                 .reason("RR001")
@@ -246,7 +246,7 @@ public class PaymentStatusUpdateServiceImplTest {
         MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
         headers.add("ServiceAuthorization", "service-auth");
         PaymentMetadataDto metadataDto =
-                PaymentMetadataDto.paymentMetadataDtoWith().dcnReference("88").amount(new BigDecimal("777")).build();
+                PaymentMetadataDto.paymentMetadataDtoWith().dcnReference("88").amount(new BigDecimal("888")).build();
         SearchResponse searchResponse = SearchResponse.searchResponseWith()
                 .ccdReference("9881231111111111")
                 .allPaymentsStatus(uk.gov.hmcts.payment.api.dto.PaymentStatus.COMPLETE)
@@ -269,7 +269,7 @@ public class PaymentStatusUpdateServiceImplTest {
     @Test
     public void testInvalidUnprocessedPayment() {
         UnprocessedPayment unprocessedPayment = UnprocessedPayment.unprocessedPayment()
-                .amount(BigDecimal.valueOf(888))
+                .amount(BigDecimal.valueOf(889))
                 .failureReference("FR8888")
                 .eventDateTime("2022-10-10T10:10:10")
                 .reason("RR001")
@@ -279,7 +279,7 @@ public class PaymentStatusUpdateServiceImplTest {
         MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
         headers.add("ServiceAuthorization", "service-auth");
         PaymentMetadataDto metadataDto =
-                PaymentMetadataDto.paymentMetadataDtoWith().dcnReference("88").amount(new BigDecimal("889")).build();
+                PaymentMetadataDto.paymentMetadataDtoWith().dcnReference("88").amount(new BigDecimal("888")).build();
         SearchResponse searchResponse = SearchResponse.searchResponseWith()
                 .ccdReference("9881231111111111")
                 .allPaymentsStatus(uk.gov.hmcts.payment.api.dto.PaymentStatus.COMPLETE)
