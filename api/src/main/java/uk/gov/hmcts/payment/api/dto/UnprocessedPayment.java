@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 
@@ -30,6 +31,7 @@ public class UnprocessedPayment {
     private BigDecimal amount;
 
     @NotNull
+    @NotEmpty
     private String dcn;
 
     private String eventDateTime;
