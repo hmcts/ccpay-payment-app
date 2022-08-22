@@ -216,7 +216,7 @@ public class PaymentTestService {
         return givenWithServiceHeaders(serviceToken)
                 .baseUri(baseUri)
                 .when()
-                .delete("/bulk-scan-payments/{dcn}", dcn);
+                .get("/case/{dcn}", dcn);
     }
 
     public Response deleteBulkScanPayment(String serviceToken, String dcn, final String baseUri) {
