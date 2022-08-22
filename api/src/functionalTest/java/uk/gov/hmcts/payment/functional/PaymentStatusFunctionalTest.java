@@ -9,6 +9,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import uk.gov.hmcts.payment.api.contract.*;
@@ -1207,15 +1208,15 @@ public class PaymentStatusFunctionalTest {
                 bulkScanPayments, testProps.bulkScanUrl).then().statusCode(CREATED.value());
 
         // Fetch same Bulk scan payment
-        SearchResponse searchResponse = paymentTestService.getBulkScanPayment(
+        ResponseEntity<SearchResponse> searchResponse = paymentTestService.getBulkScanPayment(
                 SERVICE_TOKEN_PAYMENT,
                 dcn, testProps.bulkScanUrl).then()
-                .statusCode(OK.value()).extract().as(SearchResponse.class);
-        assertEquals(dcn, searchResponse.getPayments().get(0).getDcnReference());
+                .statusCode(OK.value()).extract().as(ResponseEntity.class);
+        assertEquals(dcn, searchResponse.getBody().getPayments().get(0).getDcnReference());
 
         // Ping 1 for Unprocessed Payment event
         UnprocessedPayment unprocessedPayment = UnprocessedPayment.unprocessedPayment()
-                .amount(BigDecimal.valueOf(888))
+                .amount(BigDecimal.valueOf(55))
                 .failureReference("FR3333")
                 .eventDateTime("2022-10-10T10:10:10")
                 .reason("RR001")
@@ -1253,59 +1254,40 @@ public class PaymentStatusFunctionalTest {
     public void negative_return404_unprocessedPayment_bulk_scan() {
 
         // Create a Bulk scan payment
-        String ccdCaseNumber = "1111221233124419";
-        String dcn = "11111111111111";
-
-        BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
-                .amount(new BigDecimal("100.00"))
-                .service("DIVORCE")
-                .siteId("AA01")
-                .currency(CurrencyCode.GBP)
-                .documentControlNumber(dcn)
-                .ccdCaseNumber(ccdCaseNumber)
-                .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
-                .payerName("CCD User1")
-                .bankedDate(DateTime.now().toString())
-                .paymentMethod(PaymentMethodType.CHEQUE)
-                .paymentStatus(PaymentStatus.SUCCESS)
-                .giroSlipNo("GH716376")
+        String dcn = "555555555555555555552";
+        BulkScanPayment bulkScanPayment = BulkScanPayment.createPaymentRequestWith()
+                .amount(new BigDecimal("555"))
+                .bankGiroCreditSlipNumber(Integer.valueOf("5"))
+                .bankedDate("2022-01-01")
+                .currency("GBP")
+                .dcnReference(dcn)
+                .method("Cash")
                 .build();
+        paymentTestService.createBulkScanPayment(
+                SERVICE_TOKEN_PAYMENT,
+                bulkScanPayment, testProps.bulkScanUrl).then().statusCode(CREATED.value());
 
-        PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
-                .fees(Collections.singletonList(FeeDto.feeDtoWith()
-                        .calculatedAmount(new BigDecimal("450.00"))
-                        .code("FEE3132")
-                        .version("1")
-                        .reference("testRef1")
-                        .volume(2)
-                        .ccdCaseNumber(ccdCaseNumber)
-                        .build())).build();
+        // Complete a Bulk scan payment
+        BulkScanPayments bulkScanPayments = BulkScanPayments.createBSPaymentRequestWith()
+                .ccdCaseNumber("1234567890123456")
+                .documentControlNumbers(new String[]{dcn})
+                .isExceptionRecord(false)
+                .responsibleServiceId("AA07")
+                .build();
+        paymentTestService.completeBulkScanPayment(
+                SERVICE_TOKEN_PAYMENT,
+                bulkScanPayments, testProps.bulkScanUrl).then().statusCode(CREATED.value());
 
-        AtomicReference<String> paymentReference = new AtomicReference<>();
-
-        dsl.given().userToken(USER_TOKEN)
-                .s2sToken(SERVICE_TOKEN)
-                .when().addNewFeeAndPaymentGroup(paymentGroupDto)
-                .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
-            assertThat(paymentGroupFeeDto).isNotNull();
-            assertThat(paymentGroupFeeDto.getPaymentGroupReference()).isNotNull();
-            assertThat(paymentGroupFeeDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(paymentGroupDto);
-
-            dsl.given().userToken(USER_TOKEN)
-                    .s2sToken(SERVICE_TOKEN)
-                    .when().createBulkScanPayment(bulkScanPaymentRequest, paymentGroupFeeDto.getPaymentGroupReference())
-                    .then().gotCreated(PaymentDto.class, paymentDto -> {
-                assertThat(paymentDto.getReference()).isNotNull();
-                assertThat(paymentDto.getStatus()).isEqualToIgnoringCase("success");
-                assertThat(paymentDto.getPaymentGroupReference()).isEqualTo(paymentGroupFeeDto.getPaymentGroupReference());
-
-                paymentReference.set(paymentDto.getReference());
-
-            });
-        });
+        // Fetch same Bulk scan payment
+        ResponseEntity<SearchResponse> searchResponse = paymentTestService.getBulkScanPayment(
+                SERVICE_TOKEN_PAYMENT,
+                dcn, testProps.bulkScanUrl).then()
+                .statusCode(OK.value()).extract().as(ResponseEntity.class);
+        assertEquals(dcn, searchResponse.getBody().getPayments().get(0).getDcnReference());
 
         // delete payment record
-        paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentReference.get()).then().statusCode(NO_CONTENT.value());
+        paymentTestService.deleteBulkScanPayment(SERVICE_TOKEN, dcn, testProps.bulkScanUrl).then()
+                .statusCode(NO_CONTENT.value());
 
         // Ping 1 for Unprocessed Payment event
         UnprocessedPayment unprocessedPayment = UnprocessedPayment.unprocessedPayment()
@@ -1329,54 +1311,36 @@ public class PaymentStatusFunctionalTest {
     public void negative_return429_unprocessedPayment_bulk_scan() {
 
         // Create a Bulk scan payment
-        String ccdCaseNumber = "1111221233124419";
-        String dcn = "22222222222222";
-
-        BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
-                .amount(new BigDecimal("100.00"))
-                .service("DIVORCE")
-                .siteId("AA01")
-                .currency(CurrencyCode.GBP)
-                .documentControlNumber(dcn)
-                .ccdCaseNumber(ccdCaseNumber)
-                .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
-                .payerName("CCD User1")
-                .bankedDate(DateTime.now().toString())
-                .paymentMethod(PaymentMethodType.CHEQUE)
-                .paymentStatus(PaymentStatus.SUCCESS)
-                .giroSlipNo("GH716376")
+        String dcn = "555555555555555555553";
+        BulkScanPayment bulkScanPayment = BulkScanPayment.createPaymentRequestWith()
+                .amount(new BigDecimal("999"))
+                .bankGiroCreditSlipNumber(Integer.valueOf("5"))
+                .bankedDate("2022-01-01")
+                .currency("GBP")
+                .dcnReference(dcn)
+                .method("Cash")
                 .build();
+        paymentTestService.createBulkScanPayment(
+                SERVICE_TOKEN_PAYMENT,
+                bulkScanPayment, testProps.bulkScanUrl).then().statusCode(CREATED.value());
 
-        PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
-                .fees(Collections.singletonList(FeeDto.feeDtoWith()
-                        .calculatedAmount(new BigDecimal("450.00"))
-                        .code("FEE3132")
-                        .version("1")
-                        .reference("testRef1")
-                        .volume(2)
-                        .ccdCaseNumber(ccdCaseNumber)
-                        .build())).build();
+        // Complete a Bulk scan payment
+        BulkScanPayments bulkScanPayments = BulkScanPayments.createBSPaymentRequestWith()
+                .ccdCaseNumber("1234567890123456")
+                .documentControlNumbers(new String[]{dcn})
+                .isExceptionRecord(false)
+                .responsibleServiceId("AA07")
+                .build();
+        paymentTestService.completeBulkScanPayment(
+                SERVICE_TOKEN_PAYMENT,
+                bulkScanPayments, testProps.bulkScanUrl).then().statusCode(CREATED.value());
 
-        AtomicReference<String> paymentReference = new AtomicReference<>();
-
-        dsl.given().userToken(USER_TOKEN)
-                .s2sToken(SERVICE_TOKEN)
-                .when().addNewFeeAndPaymentGroup(paymentGroupDto)
-                .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
-            assertThat(paymentGroupFeeDto).isNotNull();
-            assertThat(paymentGroupFeeDto.getPaymentGroupReference()).isNotNull();
-            assertThat(paymentGroupFeeDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(paymentGroupDto);
-
-            dsl.given().userToken(USER_TOKEN)
-                    .s2sToken(SERVICE_TOKEN)
-                    .when().createBulkScanPayment(bulkScanPaymentRequest, paymentGroupFeeDto.getPaymentGroupReference())
-                    .then().gotCreated(PaymentDto.class, paymentDto -> {
-                assertThat(paymentDto.getReference()).isNotNull();
-                assertThat(paymentDto.getStatus()).isEqualToIgnoringCase("success");
-                assertThat(paymentDto.getPaymentGroupReference()).isEqualTo(paymentGroupFeeDto.getPaymentGroupReference());
-                paymentReference.set(paymentDto.getReference());
-            });
-        });
+        // Fetch same Bulk scan payment
+        ResponseEntity<SearchResponse> searchResponse = paymentTestService.getBulkScanPayment(
+                SERVICE_TOKEN_PAYMENT,
+                dcn, testProps.bulkScanUrl).then()
+                .statusCode(OK.value()).extract().as(ResponseEntity.class);
+        assertEquals(dcn, searchResponse.getBody().getPayments().get(0).getDcnReference());
 
         // Ping 1 for Unprocessed Payment event
         UnprocessedPayment unprocessedPayment = UnprocessedPayment.unprocessedPayment()
@@ -1402,67 +1366,48 @@ public class PaymentStatusFunctionalTest {
                 "Request already received for this failure reference");
 
         // delete payment record
-        paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentReference.get()).then().statusCode(NO_CONTENT.value());
+        paymentTestService.deleteBulkScanPayment(SERVICE_TOKEN, dcn, testProps.bulkScanUrl).then()
+                .statusCode(NO_CONTENT.value());
 
         // delete Payment Failure record
-        paymentTestService.deleteFailedPayment(USER_TOKEN, SERVICE_TOKEN, unprocessedPayment.getFailureReference()).then().statusCode(NO_CONTENT.value());
+        paymentTestService.deleteFailedPayment(USER_TOKEN, SERVICE_TOKEN, unprocessedPayment.getFailureReference())
+                .then().statusCode(NO_CONTENT.value());
     }
 
     @Test
     public void negative_return400_unprocessedPayment_bulk_scan() {
 
         // Create a Bulk scan payment
-        String ccdCaseNumber = "1111221233124419";
-        String dcn = "33333333333333";
-
-        BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
-                .amount(new BigDecimal("100.00"))
-                .service("DIVORCE")
-                .siteId("AA01")
-                .currency(CurrencyCode.GBP)
-                .documentControlNumber(dcn)
-                .ccdCaseNumber(ccdCaseNumber)
-                .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
-                .payerName("CCD User1")
-                .bankedDate(DateTime.now().toString())
-                .paymentMethod(PaymentMethodType.CHEQUE)
-                .paymentStatus(PaymentStatus.SUCCESS)
-                .giroSlipNo("GH716376")
+        String dcn = "555555555555555555554";
+        BulkScanPayment bulkScanPayment = BulkScanPayment.createPaymentRequestWith()
+                .amount(new BigDecimal("555"))
+                .bankGiroCreditSlipNumber(Integer.valueOf("5"))
+                .bankedDate("2022-01-01")
+                .currency("GBP")
+                .dcnReference(dcn)
+                .method("Cash")
                 .build();
+        paymentTestService.createBulkScanPayment(
+                SERVICE_TOKEN_PAYMENT,
+                bulkScanPayment, testProps.bulkScanUrl).then().statusCode(CREATED.value());
 
-        PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
-                .fees(Collections.singletonList(FeeDto.feeDtoWith()
-                        .calculatedAmount(new BigDecimal("450.00"))
-                        .code("FEE3132")
-                        .version("1")
-                        .reference("testRef1")
-                        .volume(2)
-                        .ccdCaseNumber(ccdCaseNumber)
-                        .build())).build();
+        // Complete a Bulk scan payment
+        BulkScanPayments bulkScanPayments = BulkScanPayments.createBSPaymentRequestWith()
+                .ccdCaseNumber("1234567890123456")
+                .documentControlNumbers(new String[]{dcn})
+                .isExceptionRecord(false)
+                .responsibleServiceId("AA07")
+                .build();
+        paymentTestService.completeBulkScanPayment(
+                SERVICE_TOKEN_PAYMENT,
+                bulkScanPayments, testProps.bulkScanUrl).then().statusCode(CREATED.value());
 
-        AtomicReference<String> paymentReference = new AtomicReference<>();
-
-        dsl.given().userToken(USER_TOKEN)
-                .s2sToken(SERVICE_TOKEN)
-                .when().addNewFeeAndPaymentGroup(paymentGroupDto)
-                .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
-            assertThat(paymentGroupFeeDto).isNotNull();
-            assertThat(paymentGroupFeeDto.getPaymentGroupReference()).isNotNull();
-            assertThat(paymentGroupFeeDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(paymentGroupDto);
-
-            dsl.given().userToken(USER_TOKEN)
-                    .s2sToken(SERVICE_TOKEN)
-                    .when().createBulkScanPayment(bulkScanPaymentRequest, paymentGroupFeeDto.getPaymentGroupReference())
-                    .then().gotCreated(PaymentDto.class, paymentDto -> {
-                assertThat(paymentDto.getReference()).isNotNull();
-                assertThat(paymentDto.getStatus()).isEqualToIgnoringCase("success");
-                assertThat(paymentDto.getPaymentGroupReference()).isEqualTo(paymentGroupFeeDto.getPaymentGroupReference());
-
-                paymentReference.set(paymentDto.getReference());
-
-            });
-
-        });
+        // Fetch same Bulk scan payment
+        ResponseEntity<SearchResponse> searchResponse = paymentTestService.getBulkScanPayment(
+                SERVICE_TOKEN_PAYMENT,
+                dcn, testProps.bulkScanUrl).then()
+                .statusCode(OK.value()).extract().as(ResponseEntity.class);
+        assertEquals(dcn, searchResponse.getBody().getPayments().get(0).getDcnReference());
 
         // Ping 1 for Unprocessed Payment event
         UnprocessedPayment unprocessedPayment = UnprocessedPayment.unprocessedPayment()
@@ -1480,7 +1425,7 @@ public class PaymentStatusFunctionalTest {
         assertThat(bounceChequeResponse.getStatusCode()).isEqualTo(NOT_FOUND.value());
 
         // delete payment record
-        paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentReference.get()).then().statusCode(NO_CONTENT.value());
-
+        paymentTestService.deleteBulkScanPayment(SERVICE_TOKEN, dcn, testProps.bulkScanUrl).then()
+                .statusCode(NO_CONTENT.value());
     }
 }
