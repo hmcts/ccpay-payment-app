@@ -19,8 +19,12 @@ import uk.gov.hmcts.payment.api.service.PaymentStatusUpdateService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import javax.validation.Valid;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static uk.gov.hmcts.payment.api.util.DateUtil.atEndOfDay;
+import static uk.gov.hmcts.payment.api.util.DateUtil.atStartOfDay;
 
 
 @RestController
@@ -160,6 +164,27 @@ public class PaymentStatusController {
             LOG.info(" flag for unprocessed payment update job request is enable");
         }
 
+    }
+
+    @ApiOperation(value = "API to generate report for payment failure ", notes = "Get list of payments failures by providing date range. MM/dd/yyyy is  the supported date/time format.")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Report Generated"),
+        @ApiResponse(code = 404, message = "No Data found to generate Report"),
+        @ApiResponse(code = 500, message = "Internal Server Error")
+    })
+    @GetMapping("/payment-failures/failure-report")
+    public PaymentFailureReportResponse retrievePaymentFailureReport(@RequestParam("date_from") Date fromDate,
+                                                                      @RequestParam("date_to") Date toDate,
+                                                                      @RequestHeader(required = false) MultiValueMap<String, String> headers,
+                                                                      @RequestHeader("Authorization") String authorization) {
+
+        if (featureToggler.getBooleanValue(PAYMENT_STATUS_UPDATE_FLAG,false)) {
+            throw new LiberataServiceInaccessibleException("service unavailable");
+        }
+
+        LOG.info("Received payment status report request");
+       List<PaymentFailureReportDto> paymentFailureReportDto =  paymentStatusUpdateService.paymentFailureReport(atStartOfDay(fromDate), atEndOfDay(toDate),headers);
+        return new PaymentFailureReportResponse(paymentFailureReportDto);
     }
 
     @ResponseStatus(HttpStatus.TOO_MANY_REQUESTS)

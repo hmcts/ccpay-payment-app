@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -19,8 +20,14 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.dto.PaymentStatus;
+import org.springframework.web.util.UriComponentsBuilder;
+import uk.gov.hmcts.payment.api.contract.exception.ValidationErrorDTO;
+import uk.gov.hmcts.payment.api.dto.*;
+import uk.gov.hmcts.payment.api.dto.mapper.PaymentFailureReportMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentStatusDtoMapper;
 import uk.gov.hmcts.payment.api.exception.FailureReferenceNotFoundException;
+import uk.gov.hmcts.payment.api.exception.InvalidRefundRequestException;
+import uk.gov.hmcts.payment.api.exception.ValidationErrorException;
 import uk.gov.hmcts.payment.api.exception.InvalidPaymentFailureRequestException;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
@@ -65,6 +72,13 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
 
     @Value("${refund.api.url}")
     private String refundApiUrl;
+
+    @Autowired
+    private PaymentFailureReportMapper paymentFailureReportMapper;
+
+    @Autowired()
+    @Qualifier("restTemplateGetRefund")
+    private RestTemplate restTemplateGetRefund;
 
     public PaymentFailures insertBounceChequePaymentFailure(PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto) {
 
@@ -150,7 +164,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         }
     }
 
-    public List<PaymentFailures> searchPaymentFailure(String paymentReference) {
+    public List<PaymentFailures> searchPaymentFailure(String paymentReference) throws RestClientException{
 
         Optional<List<PaymentFailures>> paymentFailures;
         paymentFailures = paymentFailureRepository.findByPaymentReferenceOrderByFailureEventDateTimeDesc(paymentReference);
@@ -203,6 +217,95 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
             throw new InvalidPaymentFailureRequestException("Bad request");
         }
     }
+
+    public List<PaymentFailureReportDto> paymentFailureReport(Date startDate,Date endDate,MultiValueMap<String, String> headers){
+        LOG.info("Enter paymentFailureReport method");
+
+        List<RefundDto> refundList = null;
+        List<PaymentFailureReportDto> failureReport = new ArrayList<>();
+        ValidationErrorDTO validationError = new ValidationErrorDTO();
+        RefundPaymentFailureReportDtoResponse refundPaymentFailureReportDtoResponse = null;
+
+        if(startDate.after(endDate)){
+            validationError.addFieldError("dates", "Start date cannot be greater than end date");
+            throw new ValidationErrorException("Error occurred in the report ", validationError);
+        }
+
+        List<PaymentFailures> paymentFailuresList = paymentFailureRepository.findByDatesBetween(startDate, endDate);
+
+        if(paymentFailuresList.isEmpty()){
+            throw new PaymentNotFoundException("No Data found to generate Report");
+        }
+
+        List<String> paymentReference= paymentFailuresList.stream().map(r->r.getPaymentReference()).distinct().collect(Collectors.toList());
+
+        List<Payment> paymentList = paymentRepository.findByReferenceIn(paymentReference);
+        List<String> paymentRefForRefund = paymentList.stream().map(r->r.getReference()).collect(Collectors.toList());
+
+         if(paymentList.size() > 0){
+            refundPaymentFailureReportDtoResponse = fetchRefundResponse(paymentRefForRefund);
+        }
+
+        if(null != refundPaymentFailureReportDtoResponse){
+            refundList = refundPaymentFailureReportDtoResponse.getPaymentFailureDto();
+        }
+
+        List<RefundDto> finalRefundList = refundList;
+        paymentFailuresList.stream()
+            .collect(Collectors.toList())
+            .forEach(paymentFailure -> {
+                LOG.info("paymentFailure: {}", paymentFailure);
+                failureReport.add(paymentFailureReportMapper.failureReportMapper(
+                    paymentFailure,
+                    paymentList.stream()
+                        .filter(dto -> dto.getReference().equals(paymentFailure.getPaymentReference()))
+                        .findAny().orElse(null),
+                    finalRefundList
+                ));
+            });
+        return failureReport;
+    }
+
+    public RefundPaymentFailureReportDtoResponse fetchRefundResponse(List<String> paymentReference) {
+
+        try {
+
+            ResponseEntity<RefundPaymentFailureReportDtoResponse> refundResponse =
+                fetchFailedPaymentRefunds(paymentReference);
+            LOG.info("Refund response status code {}", refundResponse.getStatusCode());
+            LOG.info("Refund response {}", refundResponse.getBody());
+            return refundResponse.hasBody() ? refundResponse.getBody() :null;
+        } catch (HttpClientErrorException httpClientErrorException) {
+            if (httpClientErrorException.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
+                LOG.info("Refund does not exist for the payment");
+                return null;
+            }
+            throw new InvalidRefundRequestException(httpClientErrorException.getResponseBodyAsString());
+        }
+    }
+
+    private ResponseEntity<RefundPaymentFailureReportDtoResponse> fetchFailedPaymentRefunds(List<String> paymentReference ) {
+        String referenceId = paymentReference.stream()
+            .map(Object::toString)
+            .collect(Collectors.joining(","));
+
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(refundApiUrl + "/refund/payment-failure-report")
+            .queryParam("paymentReferenceList", referenceId);
+
+        List<String> serviceAuthTokenPaymentList = new ArrayList<>();
+        serviceAuthTokenPaymentList.add(authTokenGenerator.generate());
+
+        MultiValueMap<String, String> headerMultiValueMapForRefund = new LinkedMultiValueMap<>();
+        //Service token
+        headerMultiValueMapForRefund.put("ServiceAuthorization", serviceAuthTokenPaymentList);
+        headerMultiValueMapForRefund.put("Content-Type", List.of("application/json"));
+        HttpHeaders httpHeaders = new HttpHeaders(headerMultiValueMapForRefund);
+        final HttpEntity<List<RefundDto>> entity = new HttpEntity<>(httpHeaders);
+
+        return restTemplateGetRefund.exchange(builder.toUriString(), HttpMethod.GET, entity, new ParameterizedTypeReference<RefundPaymentFailureReportDtoResponse>() {
+        });
+    }
+
 
     @Override
     public PaymentFailures unprocessedPayment(UnprocessedPayment unprocessedPayment,

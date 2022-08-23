@@ -1,6 +1,11 @@
 package uk.gov.hmcts.payment.api.controllers;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.joda.time.DateTime;
+import org.joda.time.LocalDate;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -8,10 +13,12 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.*;
 import org.springframework.test.annotation.DirtiesContext;
@@ -20,10 +27,13 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.dto.*;
+import uk.gov.hmcts.payment.api.dto.mapper.PaymentFailureReportMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentStatusDtoMapper;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
@@ -40,6 +50,8 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import java.math.BigDecimal;
 
 import java.util.*;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
@@ -116,7 +128,14 @@ public class PaymentStatusControllerTest {
 
     @MockBean
     private LaunchDarklyFeatureToggler featureToggler;
+    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormat.forPattern("MM/dd/yyyy");
 
+    @MockBean
+    @Qualifier("restTemplateGetRefund")
+    private RestTemplate restTemplateGetRefund;
+
+    @Spy
+    private PaymentFailureReportMapper paymentFailureReportMapper;
 
     @Before
     public void setup() {
@@ -539,6 +558,60 @@ public class PaymentStatusControllerTest {
         assertEquals(200, result.getResponse().getStatus());
     }
 
+    @Test
+    public void returnSuccessPaymentFailureReport() throws Exception{
+
+        when(paymentFailureRepository.findByDatesBetween(any(),any())).thenReturn(getPaymentFailuresList());
+        when(paymentRepository.findByReferenceIn(any())).thenReturn(getPaymentList());
+        ResponseEntity<RefundPaymentFailureReportDtoResponse> responseEntity = new ResponseEntity<>(getFailureRefund(), HttpStatus.OK);
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add("Authorization", "auth");
+        headers.add("ServiceAuthorization", "service-auth");
+        headers.add("Content-Type", "application/json");
+        when(authTokenGenerator.generate()).thenReturn("test-token");
+
+        when(this.restTemplateGetRefund.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+            eq(new ParameterizedTypeReference<RefundPaymentFailureReportDtoResponse>() {
+            }))).thenReturn(responseEntity);
+        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
+        String endDate = LocalDate.now().toString(DATE_FORMAT);
+
+        MvcResult result = restActions
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
+            .get("/payment-failures/failure-report?date_from=" + startDate + "&date_to=" + endDate)
+            .andExpect(status().isOk())
+            .andReturn();
+        PaymentFailureReportResponse paymentFailureReportResponse = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentFailureReportResponse>(){});
+
+        assertThat(paymentFailureReportResponse.getPaymentFailureReportList().size()).isEqualTo(1);
+        assertThat(paymentFailureReportResponse.getPaymentFailureReportList().get(0).getPaymentReference()).isEqualTo("RC-1520-2505-0381-8145");
+
+    }
+
+    @Test
+    public void lockedReportShouldThrowServiceUnavailable() throws Exception {
+
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add("Authorization", "auth");
+        headers.add("ServiceAuthorization", "service-auth");
+        headers.add("Content-Type", "application/json");
+        when(authTokenGenerator.generate()).thenReturn("test-token");
+        when(paymentFailureRepository.findByPaymentReferenceOrderByFailureEventDateTimeDesc(any())).thenReturn(Optional.empty());
+        when(featureToggler.getBooleanValue(eq("payment-status-update-flag"),anyBoolean())).thenReturn(true);
+
+        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
+        String endDate = LocalDate.now().toString(DATE_FORMAT);
+
+        MvcResult result = restActions
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
+            .get("/payment-failures/failure-report?date_from=" + startDate + "&date_to=" + endDate)
+            .andExpect(status().isServiceUnavailable())
+            .andReturn();
+        assertEquals(503,result.getResponse().getStatus());
+
+    }
     private PaymentStatusBouncedChequeDto getPaymentStatusBouncedChequeDto() {
 
         return PaymentStatusBouncedChequeDto.paymentStatusBouncedChequeRequestWith()
@@ -623,7 +696,7 @@ public class PaymentStatusControllerTest {
             .id(1)
             .reason("test")
             .failureReference("Bounce Cheque")
-            .paymentReference("RC-1637-5072-9888-4233")
+            .paymentReference("RC-1520-2505-0381-8145")
             .ccdCaseNumber("123456")
             .amount(BigDecimal.valueOf(555))
             .representmentSuccess("yes")
@@ -651,6 +724,62 @@ public class PaymentStatusControllerTest {
 
         paymentFailuresList.add(paymentFailures);
         return paymentFailuresList;
+
+    }
+
+    private RefundDto getRefund(){
+        DateTime currentDateTime = new DateTime();
+        return RefundDto.buildRefundListDtoWith()
+            .refundReference("RF-123=345=897")
+            .amount(BigDecimal.valueOf(5))
+            .paymentReference("RC-1520-2505-0381-8145")
+            .refundDate(currentDateTime.toDate().toString())
+            .build();
+    }
+
+    private List<Payment> getPaymentList() {
+
+        List<Payment> paymentList =new ArrayList<>();
+        Payment payment = Payment.paymentWith()
+            .id(1)
+            .amount(BigDecimal.valueOf(555))
+            .caseReference("caseReference")
+            .description("retrieve payment mock test")
+            .serviceType("Civil Money Claims")
+            .siteId("siteID")
+            .currency("GBP")
+            .organisationName("organisationName")
+            .customerReference("customerReference")
+            .pbaNumber("pbaNumer")
+            .reference("RC-1520-2505-0381-8145")
+            .ccdCaseNumber("1234123412341234")
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
+            .paymentLink(PaymentFeeLink.paymentFeeLinkWith()
+                .id(1)
+                .paymentReference("2018-15202505035")
+                .fees(Arrays.asList(PaymentFee.feeWith().id(1).calculatedAmount(new BigDecimal("11.99")).code("X0001").version("1").build()))
+                .payments(Arrays.asList(Payment.paymentWith().internalReference("abc")
+                    .id(1)
+                    .reference("RC-1632-3254-9172-5888")
+                    .caseReference("123789")
+                    .ccdCaseNumber("1234")
+                    .amount(new BigDecimal(300))
+                    .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
+                    .build()))
+                .callBackUrl("http//:test")
+                .build())
+            .build();
+
+        paymentList.add(payment);
+
+        return paymentList;
+    }
+
+
+    private RefundPaymentFailureReportDtoResponse getFailureRefund(){
+        return   RefundPaymentFailureReportDtoResponse.buildPaymentFailureListWith().paymentFailureDto(Arrays.asList(getRefund())).build();
 
     }
 }
