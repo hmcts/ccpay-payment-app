@@ -1207,13 +1207,6 @@ public class PaymentStatusFunctionalTest {
                 SERVICE_TOKEN_PAYMENT,
                 bulkScanPayments, testProps.bulkScanUrl).then().statusCode(CREATED.value());
 
-        // Fetch same Bulk scan payment
-        ResponseEntity<SearchResponse> searchResponse = paymentTestService.getBulkScanPayment(
-                SERVICE_TOKEN_PAYMENT,
-                dcn, testProps.bulkScanUrl).then()
-                .statusCode(OK.value()).extract().as(ResponseEntity.class);
-        assertEquals(dcn, searchResponse.getBody().getPayments().get(0).getDcnReference());
-
         // Ping 1 for Unprocessed Payment event
         UnprocessedPayment unprocessedPayment = UnprocessedPayment.unprocessedPayment()
                 .amount(BigDecimal.valueOf(55))
@@ -1278,13 +1271,6 @@ public class PaymentStatusFunctionalTest {
                 SERVICE_TOKEN_PAYMENT,
                 bulkScanPayments, testProps.bulkScanUrl).then().statusCode(CREATED.value());
 
-        // Fetch same Bulk scan payment
-        ResponseEntity<SearchResponse> searchResponse = paymentTestService.getBulkScanPayment(
-                SERVICE_TOKEN_PAYMENT,
-                dcn, testProps.bulkScanUrl).then()
-                .statusCode(OK.value()).extract().as(ResponseEntity.class);
-        assertEquals(dcn, searchResponse.getBody().getPayments().get(0).getDcnReference());
-
         // delete payment record
         paymentTestService.deleteBulkScanPayment(SERVICE_TOKEN, dcn, testProps.bulkScanUrl).then()
                 .statusCode(NO_CONTENT.value());
@@ -1334,13 +1320,6 @@ public class PaymentStatusFunctionalTest {
         paymentTestService.completeBulkScanPayment(
                 SERVICE_TOKEN_PAYMENT,
                 bulkScanPayments, testProps.bulkScanUrl).then().statusCode(CREATED.value());
-
-        // Fetch same Bulk scan payment
-        ResponseEntity<SearchResponse> searchResponse = paymentTestService.getBulkScanPayment(
-                SERVICE_TOKEN_PAYMENT,
-                dcn, testProps.bulkScanUrl).then()
-                .statusCode(OK.value()).extract().as(ResponseEntity.class);
-        assertEquals(dcn, searchResponse.getBody().getPayments().get(0).getDcnReference());
 
         // Ping 1 for Unprocessed Payment event
         UnprocessedPayment unprocessedPayment = UnprocessedPayment.unprocessedPayment()
@@ -1401,13 +1380,6 @@ public class PaymentStatusFunctionalTest {
         paymentTestService.completeBulkScanPayment(
                 SERVICE_TOKEN_PAYMENT,
                 bulkScanPayments, testProps.bulkScanUrl).then().statusCode(CREATED.value());
-
-        // Fetch same Bulk scan payment
-        ResponseEntity<SearchResponse> searchResponse = paymentTestService.getBulkScanPayment(
-                SERVICE_TOKEN_PAYMENT,
-                dcn, testProps.bulkScanUrl).then()
-                .statusCode(OK.value()).extract().as(ResponseEntity.class);
-        assertEquals(dcn, searchResponse.getBody().getPayments().get(0).getDcnReference());
 
         // Ping 1 for Unprocessed Payment event
         UnprocessedPayment unprocessedPayment = UnprocessedPayment.unprocessedPayment()
