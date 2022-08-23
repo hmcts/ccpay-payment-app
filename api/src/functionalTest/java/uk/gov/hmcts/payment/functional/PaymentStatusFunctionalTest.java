@@ -1308,7 +1308,7 @@ public class PaymentStatusFunctionalTest {
                 unprocessedPayment);
         assertThat(bounceChequeResponse.getStatusCode()).isEqualTo(NOT_FOUND.value());
         assertThat(bounceChequeResponse.getBody().prettyPrint()).isEqualTo(
-                "No Payments available for the given Payment reference");
+                "No Payments available for the given document reference number");
     }
 
     @Test
@@ -1402,7 +1402,7 @@ public class PaymentStatusFunctionalTest {
         // Ping 1 for Unprocessed Payment event
         UnprocessedPayment unprocessedPayment = UnprocessedPayment.unprocessedPayment()
                 .amount(BigDecimal.valueOf(888))
-                .failureReference("FR3333")
+                .failureReference("FR4444")
                 .eventDateTime("2022-10-10T10:10:10")
                 .reason("RR001")
                 .dcn(dcn)
@@ -1412,7 +1412,7 @@ public class PaymentStatusFunctionalTest {
         Response bounceChequeResponse = paymentTestService.postUnprocessedPayment(
                 SERVICE_TOKEN_PAYMENT,
                 unprocessedPayment);
-        assertThat(bounceChequeResponse.getStatusCode()).isEqualTo(NOT_FOUND.value());
+        assertThat(bounceChequeResponse.getStatusCode()).isEqualTo(BAD_REQUEST.value());
 
         // delete payment record
         paymentTestService.deleteBulkScanPayment(SERVICE_TOKEN, dcn, testProps.bulkScanUrl).then()
@@ -1809,7 +1809,7 @@ public class PaymentStatusFunctionalTest {
         RefundResponse refundResponseFromPost = refundResponse.getBody().as(RefundResponse.class);
         RefundResponse refundResponseFromPost1 = refundResponse1.getBody().as(RefundResponse.class);
         assertThat(refundResponseFromPost.getRefundAmount()).isEqualTo(new BigDecimal("5.00"));
-        assertThat(REFUNDS_REGEX_PATTERN.matcher(refundResponseFromPost.getRefundReference()).matches()).isEqualTo(true);
+        assertThat(REFUNDS_REGEX_PATTERN.matcher(refundResponseFromPost.getRefundReference()).matches()).isTrue();
         PaymentStatusChargebackDto paymentStatusChargebackDto
             = PaymentFixture.chargebackRequest(paymentDto.getReference());
 
@@ -1889,7 +1889,7 @@ public class PaymentStatusFunctionalTest {
         return date == null ? null : java.time.LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault()).format(reportNameDateFormat);
     }
 
-    private static final RetroRemissionRequest getRetroRemissionRequest(final String remissionAmount) {
+    private static RetroRemissionRequest getRetroRemissionRequest(final String remissionAmount) {
         return RetroRemissionRequest.createRetroRemissionRequestWith()
             .hwfAmount(new BigDecimal(remissionAmount))
             .hwfReference("HWF-A1B-23C")
