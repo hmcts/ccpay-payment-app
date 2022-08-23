@@ -201,15 +201,17 @@ public class PaymentTestService {
     public Response createBulkScanPayment(String serviceToken, BulkScanPayment bulkScanPayment, final String baseUri) {
         return givenWithServiceHeaders(serviceToken)
                 .baseUri(baseUri)
+                .body(bulkScanPayment)
                 .when()
-                .post("/bulk-scan-payment", bulkScanPayment);
+                .post("/bulk-scan-payment");
     }
 
     public Response completeBulkScanPayment(String serviceToken, BulkScanPayments bulkScanPayment, final String baseUri) {
         return givenWithServiceHeaders(serviceToken)
                 .baseUri(baseUri)
+                .body(bulkScanPayment)
                 .when()
-                .post("/bulk-scan-payments", bulkScanPayment);
+                .post("/bulk-scan-payments");
     }
 
     public Response getBulkScanPayment(String serviceToken, String dcn, final String baseUri) {
