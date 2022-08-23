@@ -145,6 +145,23 @@ public class PaymentStatusController {
         return new ResponseEntity<>(SUCCESSFUL_OPERATION, HttpStatus.OK);
     }
 
+    @ApiOperation(value = "update payment reference for unprocessed payment", notes = "update payment reference for unprocessed payment")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "payment reference updated successfully")
+    })
+    @PatchMapping(value = "/jobs/unprocessed-payment-update")
+    public void updateUnprocessedPayment(){
+
+        if (!featureToggler.getBooleanValue(PAYMENT_STATUS_UPDATE_FLAG,false)) {
+            LOG.info("Received unprocessed payment update job request");
+
+            paymentStatusUpdateService.updateUnprocessedPayment();
+        } else{
+            LOG.info(" flag for unprocessed payment update job request is enable");
+        }
+
+    }
+
     @ResponseStatus(HttpStatus.TOO_MANY_REQUESTS)
     @ExceptionHandler(FailureReferenceNotFoundException.class)
     public String return429(FailureReferenceNotFoundException ex) {

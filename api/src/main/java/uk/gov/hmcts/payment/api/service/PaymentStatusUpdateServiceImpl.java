@@ -18,24 +18,24 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.payment.api.dto.*;
+import uk.gov.hmcts.payment.api.dto.PaymentStatus;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentStatusDtoMapper;
 import uk.gov.hmcts.payment.api.exception.FailureReferenceNotFoundException;
 import uk.gov.hmcts.payment.api.exception.InvalidPaymentFailureRequestException;
-import uk.gov.hmcts.payment.api.model.Payment;
-import uk.gov.hmcts.payment.api.model.Payment2Repository;
-import uk.gov.hmcts.payment.api.model.PaymentFailures;
-import uk.gov.hmcts.payment.api.model.PaymentFailureRepository;
+import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateService {
 
     private static final Logger LOG = LoggerFactory.getLogger(PaymentStatusUpdateServiceImpl.class);
     private static final String TOO_MANY_RQUESTS_EXCEPTION_MSG = "Request already received for this failure reference";
+    private static final String PAYMENT_METHOD = "cheque";
 
     @Autowired
     PaymentStatusDtoMapper paymentStatusDtoMapper;
@@ -257,4 +257,38 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         }
         return true;
     }
+
+    @Transactional
+    public void updateUnprocessedPayment(){
+
+        LOG.info("Inside updateUnprocessedPayment method");
+        List<PaymentFailures> paymentFailuresListWithNoRC = paymentFailureRepository.findDcn();
+
+        LOG.info("Inside updateUnprocessedPayment method paymentFailuresListWithNoRC size :{}",paymentFailuresListWithNoRC.size());
+
+        List<String> paymentFailuresListWithNoDcn = paymentFailuresListWithNoRC.stream().map(PaymentFailures::getDcn).collect(Collectors.toList());
+
+        List<Payment> paymentList = paymentRepository.findByDocumentControlNumberInAndPaymentMethod(paymentFailuresListWithNoDcn, PaymentMethod.paymentMethodWith().name(PAYMENT_METHOD).build());
+
+        if(paymentList != null){
+            paymentFailuresListWithNoRC.stream().forEach( paymentFailure -> {
+                Payment payment =   paymentList.stream().filter(p -> p.getDocumentControlNumber().equals(paymentFailure.getDcn())).findFirst().orElse(null);
+                if(payment != null){
+                    updatePaymentReferenceForDcn(paymentFailure,payment);
+                } });
+        }
+    }
+
+    private void updatePaymentReferenceForDcn(PaymentFailures paymentFailure,Payment payment){
+
+        Optional<PaymentFailures> paymentFailureResponse = paymentFailureRepository.findByFailureReference(paymentFailure.getFailureReference());
+        if(paymentFailureResponse.isPresent()){
+            paymentFailureResponse.get().setPaymentReference(payment.getReference());
+            paymentFailureResponse.get().setCcdCaseNumber(payment.getCcdCaseNumber());
+            paymentFailureRepository.save(paymentFailureResponse.get());
+
+            LOG.info("updateUnprocessedPayment successful");
+        }
+    }
+
 }
