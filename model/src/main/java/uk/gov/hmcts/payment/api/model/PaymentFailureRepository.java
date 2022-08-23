@@ -17,4 +17,7 @@ public interface PaymentFailureRepository extends CrudRepository<PaymentFailures
     @Query("select pf from PaymentFailures pf " +
         "where pf.failureEventDateTime between ?1 and ?2 or pf.representmentOutcomeDate between ?1 and ?2 order by pf.failureEventDateTime desc")
     List<PaymentFailures> findByDatesBetween(Date fromDate, Date toDate);
+
+    @Query("select pf from PaymentFailures pf where  (paymentReference IS NULL or paymentReference ='') and dcn IS NOT NULL")
+    List<PaymentFailures> findDcn();
 }

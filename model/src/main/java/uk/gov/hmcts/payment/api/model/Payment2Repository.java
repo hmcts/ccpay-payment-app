@@ -34,4 +34,6 @@ public interface Payment2Repository extends CrudRepository<Payment, Integer>, Jp
     long deleteByReference(String reference);
 
     List<Payment> findByReferenceIn(List<String> reference);
+
+    List<Payment> findByDocumentControlNumberInAndPaymentMethod(List<String> dcn, PaymentMethod paymentMethod);
 }

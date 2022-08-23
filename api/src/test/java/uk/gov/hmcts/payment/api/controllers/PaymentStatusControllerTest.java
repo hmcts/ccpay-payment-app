@@ -36,6 +36,7 @@ import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentFailureReportMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentStatusDtoMapper;
 import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.service.PaymentStatusUpdateService;
@@ -106,6 +107,10 @@ public class PaymentStatusControllerTest {
     @MockBean
     @Qualifier("restTemplateRefundCancel")
     private RestTemplate restTemplateRefundCancel;
+
+    @MockBean
+    @Qualifier("restTemplatePaymentGroup")
+    private RestTemplate restTemplatePaymentGroup;
 
     @MockBean
     private AuthTokenGenerator authTokenGenerator;
@@ -365,9 +370,8 @@ public class PaymentStatusControllerTest {
     }
 
     @Test
-    public void return503WhenPaymentFailureForGetLocked() throws Exception {
+    public void lockedGetFailuresShouldThrowServiceUnavailable() throws Exception {
 
-        when(paymentFailureRepository.findByPaymentReferenceOrderByFailureEventDateTimeDesc(any())).thenReturn(Optional.empty());
         when(featureToggler.getBooleanValue(eq("payment-status-update-flag"),anyBoolean())).thenReturn(true);
         MvcResult result = restActions
                 .withAuthorizedUser(USER_ID)
@@ -386,6 +390,21 @@ public class PaymentStatusControllerTest {
                 .patch("/payment-failures/failureReference", PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
                         .representmentStatus(RepresentmentStatus.No)
                         .representmentDate("2022-10-10T10:10:10")
+                        .build())
+                .andExpect(status().isServiceUnavailable())
+                .andReturn();
+    }
+
+    @Test
+    public void lockedUnprocessedPaymentShouldThrowServiceUnavailable() throws Exception {
+        when(featureToggler.getBooleanValue(eq("payment-status-update-flag"), anyBoolean())).thenReturn(true);
+        restActions
+                .post("/payment-failures/unprocessed-payment", UnprocessedPayment.unprocessedPayment()
+                        .amount(BigDecimal.valueOf(999))
+                        .failureReference("FR9999")
+                        .eventDateTime("2022-10-10T10:10:10")
+                        .reason("RR001")
+                        .dcn("9999")
                         .build())
                 .andExpect(status().isServiceUnavailable())
                 .andReturn();
@@ -448,7 +467,95 @@ public class PaymentStatusControllerTest {
                 .andReturn();
 
         String message = result.getResponse().getContentAsString();
-        assertEquals("Successful operation", message);
+        assertEquals("successful operation", message);
+    }
+
+    @Test
+    public void givenPaymentFailureWhenUnprocessedPaymentThenSuccess() throws Exception {
+        UnprocessedPayment unprocessedPayment = UnprocessedPayment.unprocessedPayment()
+                .amount(BigDecimal.valueOf(888))
+                .failureReference("FR8888")
+                .eventDateTime("2022-10-10T10:10:10")
+                .reason("RR001")
+                .dcn("88")
+                .poBoxNumber("8")
+                .build();
+        ResponseEntity responseEntity = new ResponseEntity(HttpStatus.OK);
+        when(this.restTemplatePaymentGroup.exchange(any(),
+                eq(HttpMethod.GET),
+                any(HttpEntity.class),
+                eq(SearchResponse.class)))
+                .thenReturn(responseEntity);
+        MvcResult result = restActions
+                .post("/payment-failures/unprocessed-payment", unprocessedPayment)
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String message = result.getResponse().getContentAsString();
+        assertEquals("successful operation", message);
+    }
+
+    @Test
+    public void givenNoPaymentWhenUnprocessedPaymentThen404() throws Exception {
+        UnprocessedPayment unprocessedPayment = UnprocessedPayment.unprocessedPayment()
+                .amount(BigDecimal.valueOf(888))
+                .failureReference("FR8888")
+                .eventDateTime("2022-10-10T10:10:10")
+                .reason("RR001")
+                .dcn("88")
+                .poBoxNumber("8")
+                .build();
+        when(this.restTemplatePaymentGroup.exchange(any(),
+                eq(HttpMethod.GET),
+                any(HttpEntity.class),
+                eq(SearchResponse.class)))
+                .thenReturn(new ResponseEntity(HttpStatus.NOT_FOUND));
+        MvcResult result = restActions
+                .post("/payment-failures/unprocessed-payment", unprocessedPayment)
+                .andExpect(status().isNotFound())
+                .andReturn();
+
+        String message = result.getResponse().getContentAsString();
+        assertEquals("No Payments available for the given document reference number", message);
+    }
+
+    @Test
+    public void givenDuplicateRequestWhenUnprocessedPaymentThen429() throws Exception {
+        UnprocessedPayment unprocessedPayment = UnprocessedPayment.unprocessedPayment()
+                .amount(BigDecimal.valueOf(888))
+                .failureReference("FR8888")
+                .eventDateTime("2022-10-10T10:10:10")
+                .reason("RR001")
+                .dcn("88")
+                .poBoxNumber("8")
+                .build();
+        when(this.restTemplatePaymentGroup.exchange(any(),
+                eq(HttpMethod.GET),
+                any(HttpEntity.class),
+                eq(SearchResponse.class)))
+                .thenReturn(new ResponseEntity(HttpStatus.OK));
+        when(paymentFailureRepository.save(any())).thenThrow(DataIntegrityViolationException.class);
+        MvcResult result = restActions
+                .post("/payment-failures/unprocessed-payment", unprocessedPayment)
+                .andExpect(status().isTooManyRequests())
+                .andReturn();
+
+        assertEquals("Request already received for this failure reference", result.getResolvedException().getMessage());
+    }
+
+    @Test
+    public void testSuccessFullyUnprocessedPaymentUpdate() throws Exception{
+        when(featureToggler.getBooleanValue(eq("payment-status-update-flag"),anyBoolean())).thenReturn(false);
+        when(paymentFailureRepository.findDcn()).thenReturn(getPaymentFailuresDcnList());
+        when(paymentFailureRepository.findByFailureReference(any())).thenReturn(Optional.of(getPaymentFailures()));
+        when(paymentRepository.findByDocumentControlNumberInAndPaymentMethod(any(),any())).thenReturn(Arrays.asList(getPayment()));
+
+        MvcResult result = restActions
+            .patch("/jobs/unprocessed-payment-update")
+            .andExpect(status().isOk())
+            .andReturn();
+
+        assertEquals(200, result.getResponse().getStatus());
     }
 
     @Test
@@ -507,7 +614,7 @@ public class PaymentStatusControllerTest {
     }
     private PaymentStatusBouncedChequeDto getPaymentStatusBouncedChequeDto() {
 
-        PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto = PaymentStatusBouncedChequeDto.paymentStatusBouncedChequeRequestWith()
+        return PaymentStatusBouncedChequeDto.paymentStatusBouncedChequeRequestWith()
             .additionalReference("AR1234")
             .amount(BigDecimal.valueOf(555))
             .failureReference("FR12345")
@@ -516,13 +623,11 @@ public class PaymentStatusControllerTest {
             .reason("RR001")
             .paymentReference("RC1234")
             .build();
-
-        return paymentStatusBouncedChequeDto;
     }
 
     private Payment getPayment() {
 
-        Payment payment = Payment.paymentWith()
+        return Payment.paymentWith()
             .id(1)
             .amount(BigDecimal.valueOf(555))
             .caseReference("caseReference")
@@ -535,6 +640,7 @@ public class PaymentStatusControllerTest {
             .pbaNumber("pbaNumer")
             .reference("RC-1520-2505-0381-8145")
             .ccdCaseNumber("1234123412341234")
+            .documentControlNumber("12345")
             .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
             .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
             .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
@@ -553,27 +659,25 @@ public class PaymentStatusControllerTest {
                 .callBackUrl("http//:test")
                 .build())
             .build();
-
-        return payment;
     }
 
     private PaymentFailures getPaymentFailures(){
 
-        PaymentFailures paymentFailures = PaymentFailures.paymentFailuresWith()
+        return PaymentFailures.paymentFailuresWith()
             .id(1)
             .reason("RR001")
             .failureReference("Bounce Cheque")
             .paymentReference("RC12345")
             .ccdCaseNumber("123456")
             .amount(BigDecimal.valueOf(555))
+            .dcn("12345")
             .build();
-        return paymentFailures;
 
     }
 
     private PaymentStatusChargebackDto getPaymentStatusChargebackDto() {
 
-        PaymentStatusChargebackDto paymentStatusChargebackDto = PaymentStatusChargebackDto.paymentStatusChargebackRequestWith()
+        return PaymentStatusChargebackDto.paymentStatusChargebackRequestWith()
             .additionalReference("AR1234")
             .amount(BigDecimal.valueOf(555))
             .failureReference("FR12345")
@@ -583,8 +687,6 @@ public class PaymentStatusControllerTest {
             .paymentReference("RC1234")
             .hasAmountDebited("yes")
             .build();
-
-        return paymentStatusChargebackDto;
     }
 
     private List<PaymentFailures> getPaymentFailuresList(){
@@ -600,6 +702,24 @@ public class PaymentStatusControllerTest {
             .representmentSuccess("yes")
             .failureType("Chargeback")
             .additionalReference("AR12345")
+            .build();
+
+        paymentFailuresList.add(paymentFailures);
+        return paymentFailuresList;
+
+    }
+
+    private List<PaymentFailures> getPaymentFailuresDcnList(){
+
+        List<PaymentFailures> paymentFailuresList = new ArrayList<>();
+        PaymentFailures paymentFailures = PaymentFailures.paymentFailuresWith()
+            .id(1)
+            .reason("test")
+            .failureReference("FR12345")
+            .amount(BigDecimal.valueOf(555))
+            .representmentSuccess("yes")
+            .poBoxNumber("12345")
+            .dcn("12345")
             .build();
 
         paymentFailuresList.add(paymentFailures);

@@ -18,6 +18,9 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+import uk.gov.hmcts.payment.api.dto.*;
+import uk.gov.hmcts.payment.api.dto.PaymentStatus;
+import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.payment.api.contract.exception.ValidationErrorDTO;
 import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentFailureReportMapper;
@@ -26,10 +29,7 @@ import uk.gov.hmcts.payment.api.exception.FailureReferenceNotFoundException;
 import uk.gov.hmcts.payment.api.exception.InvalidRefundRequestException;
 import uk.gov.hmcts.payment.api.exception.ValidationErrorException;
 import uk.gov.hmcts.payment.api.exception.InvalidPaymentFailureRequestException;
-import uk.gov.hmcts.payment.api.model.Payment;
-import uk.gov.hmcts.payment.api.model.Payment2Repository;
-import uk.gov.hmcts.payment.api.model.PaymentFailures;
-import uk.gov.hmcts.payment.api.model.PaymentFailureRepository;
+import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
@@ -41,6 +41,8 @@ import java.util.stream.Collectors;
 public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateService {
 
     private static final Logger LOG = LoggerFactory.getLogger(PaymentStatusUpdateServiceImpl.class);
+    private static final String TOO_MANY_RQUESTS_EXCEPTION_MSG = "Request already received for this failure reference";
+    private static final String PAYMENT_METHOD = "cheque";
 
     @Autowired
     PaymentStatusDtoMapper paymentStatusDtoMapper;
@@ -57,6 +59,16 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
 
     @Autowired
     private AuthTokenGenerator authTokenGenerator;
+
+    @Autowired()
+    @Qualifier("restTemplatePaymentGroup")
+    private RestTemplate restTemplatePaymentGroup;
+
+    @Value("${bulk.scanning.payments.processed.url}")
+    private String bulkScanPaymentsProcessedUrl;
+
+    @Value("${bulk.scanning.cases-path}")
+    private String casesPath;
 
     @Value("${refund.api.url}")
     private String refundApiUrl;
@@ -88,7 +100,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
             LOG.info("Completed  Payment failure insert in payment_failure table: {}", paymentStatusBouncedChequeDto.getPaymentReference());
             return insertPaymentFailure;
         }catch(DataIntegrityViolationException e){
-            throw new FailureReferenceNotFoundException("Request already received for this failure reference");
+            throw new FailureReferenceNotFoundException(TOO_MANY_RQUESTS_EXCEPTION_MSG);
         }
     }
 
@@ -148,7 +160,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
             LOG.info("Completed  Payment failure insert in payment_failure table: {}", paymentStatusChargebackDto.getPaymentReference());
             return insertPaymentFailure;
         } catch(DataIntegrityViolationException e){
-            throw new FailureReferenceNotFoundException("Request already received for this failure reference");
+            throw new FailureReferenceNotFoundException(TOO_MANY_RQUESTS_EXCEPTION_MSG);
         }
     }
 
@@ -174,7 +186,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
 
     private void validatePaymentFailureAmount(BigDecimal disputeAmount, Payment payment){
         if(disputeAmount.compareTo(payment.getAmount()) > 0){
-            throw new InvalidPaymentFailureRequestException("Failure amount can not be more than payment amount");
+            throw new InvalidPaymentFailureRequestException("Failure amount cannot be more than payment amount");
         }
     }
 
@@ -292,6 +304,94 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
 
         return restTemplateGetRefund.exchange(builder.toUriString(), HttpMethod.GET, entity, new ParameterizedTypeReference<RefundPaymentFailureReportDtoResponse>() {
         });
+    }
+
+
+    @Override
+    public PaymentFailures unprocessedPayment(UnprocessedPayment unprocessedPayment,
+                                              MultiValueMap<String, String> headers) {
+
+        if (!validateDcn(unprocessedPayment.getDcn(), unprocessedPayment.getAmount(), headers)) {
+            throw new PaymentNotFoundException("No Payments available for the given document reference number");
+        }
+
+        PaymentFailures paymentFailure = paymentStatusDtoMapper.unprocessedPaymentMapper(unprocessedPayment);
+        try {
+            PaymentFailures savedPaymentFailure = paymentFailureRepository.save(paymentFailure);
+            LOG.info("Completed Payment failure insert in payment_failure table: {}", unprocessedPayment.getDcn());
+            return savedPaymentFailure;
+        } catch (DataIntegrityViolationException e) {
+            throw new FailureReferenceNotFoundException(TOO_MANY_RQUESTS_EXCEPTION_MSG);
+        }
+    }
+
+    private boolean validateDcn(String dcn, BigDecimal amount, MultiValueMap<String, String> headers) {
+        UriComponentsBuilder builder = UriComponentsBuilder
+            .fromUriString(bulkScanPaymentsProcessedUrl + casesPath + "/{document_control_number}")
+            .queryParam("internalFlag", "true");
+
+        Map<String, String> params = new HashMap<>();
+        params.put("document_control_number", dcn);
+        LOG.info("Calling Bulk scan api to retrieve payment by dcn: {}", dcn);
+
+        ResponseEntity<SearchResponse> responseEntity;
+        try {
+            responseEntity = restTemplatePaymentGroup
+                    .exchange(builder.buildAndExpand(params).toUri(), HttpMethod.GET,
+                            new HttpEntity<>(headers), SearchResponse.class);
+        } catch (HttpClientErrorException exception) {
+            throw new PaymentNotFoundException("No Payments available for the given document reference number");
+        }
+
+        if (!HttpStatus.OK.equals(responseEntity.getStatusCode())) {
+            return false;
+        } else {
+            SearchResponse searchResponse = responseEntity.getBody();
+            LOG.info("Search Response from Bulk Scanning app: {}", searchResponse);
+            if (null != searchResponse && PaymentStatus.COMPLETE.equals(searchResponse.getAllPaymentsStatus())) {
+                for (PaymentMetadataDto paymentMetadataDto : searchResponse.getPayments()) {
+                    LOG.info("dcn comparison: {}", dcn.equals(paymentMetadataDto.getDcnReference()));
+                    LOG.info("amount comparison: {}", amount.compareTo(paymentMetadataDto.getAmount()));
+                    if (dcn.equals(paymentMetadataDto.getDcnReference()) && amount.compareTo(paymentMetadataDto.getAmount()) > 0) {
+                        throw new InvalidPaymentFailureRequestException("Failure amount cannot be more than payment amount");
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    @Transactional
+    public void updateUnprocessedPayment(){
+
+        LOG.info("Inside updateUnprocessedPayment method");
+        List<PaymentFailures> paymentFailuresListWithNoRC = paymentFailureRepository.findDcn();
+
+        LOG.info("Inside updateUnprocessedPayment method paymentFailuresListWithNoRC size :{}",paymentFailuresListWithNoRC.size());
+
+        List<String> paymentFailuresListWithNoDcn = paymentFailuresListWithNoRC.stream().map(PaymentFailures::getDcn).collect(Collectors.toList());
+
+        List<Payment> paymentList = paymentRepository.findByDocumentControlNumberInAndPaymentMethod(paymentFailuresListWithNoDcn, PaymentMethod.paymentMethodWith().name(PAYMENT_METHOD).build());
+
+        if(paymentList != null){
+            paymentFailuresListWithNoRC.stream().forEach( paymentFailure -> {
+                Payment payment =   paymentList.stream().filter(p -> p.getDocumentControlNumber().equals(paymentFailure.getDcn())).findFirst().orElse(null);
+                if(payment != null){
+                    updatePaymentReferenceForDcn(paymentFailure,payment);
+                } });
+        }
+    }
+
+    private void updatePaymentReferenceForDcn(PaymentFailures paymentFailure,Payment payment){
+
+        Optional<PaymentFailures> paymentFailureResponse = paymentFailureRepository.findByFailureReference(paymentFailure.getFailureReference());
+        if(paymentFailureResponse.isPresent()){
+            paymentFailureResponse.get().setPaymentReference(payment.getReference());
+            paymentFailureResponse.get().setCcdCaseNumber(payment.getCcdCaseNumber());
+            paymentFailureRepository.save(paymentFailureResponse.get());
+
+            LOG.info("updateUnprocessedPayment successful");
+        }
     }
 
 }

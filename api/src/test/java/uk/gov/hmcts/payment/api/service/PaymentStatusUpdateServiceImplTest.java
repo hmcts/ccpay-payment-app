@@ -47,6 +47,7 @@ import uk.gov.hmcts.payment.api.dto.PaymentStatusBouncedChequeDto;
 import uk.gov.hmcts.payment.api.exception.InvalidPaymentFailureRequestException;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.scheduler.Clock;
+import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
@@ -76,6 +77,10 @@ public class PaymentStatusUpdateServiceImplTest {
    @Mock
    @Qualifier("restTemplateRefundCancel")
    private RestTemplate restTemplateRefundCancel;
+
+    @Mock
+    @Qualifier("restTemplatePaymentGroup")
+    private RestTemplate restTemplatePaymentGroup;
 
     @Mock
     private AuthTokenGenerator authTokenGenerator;
@@ -364,6 +369,73 @@ public class PaymentStatusUpdateServiceImplTest {
 
     }
 
+    @Test
+    public void testUnprocessedPayment() {
+        UnprocessedPayment unprocessedPayment = UnprocessedPayment.unprocessedPayment()
+                .amount(BigDecimal.valueOf(777))
+                .failureReference("FR8888")
+                .eventDateTime("2022-10-10T10:10:10")
+                .reason("RR001")
+                .dcn("88")
+                .poBoxNumber("8")
+                .build();
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add("ServiceAuthorization", "service-auth");
+        PaymentMetadataDto metadataDto =
+                PaymentMetadataDto.paymentMetadataDtoWith().dcnReference("88").amount(new BigDecimal("888")).build();
+        SearchResponse searchResponse = SearchResponse.searchResponseWith()
+                .ccdReference("9881231111111111")
+                .allPaymentsStatus(uk.gov.hmcts.payment.api.dto.PaymentStatus.COMPLETE)
+                .payments(Arrays.asList(metadataDto))
+                .build();
+        ResponseEntity responseEntity = new ResponseEntity(searchResponse, HttpStatus.OK);
+        when(this.restTemplatePaymentGroup.exchange(any(),
+                eq(HttpMethod.GET),
+                any(HttpEntity.class),
+                eq(SearchResponse.class)))
+                .thenReturn(responseEntity);
+        PaymentFailures failure = PaymentFailures.paymentFailuresWith().dcn("88").build();
+        when(paymentFailureRepository.save(any())).thenReturn(failure);
+
+        PaymentFailures paymentFailure = paymentStatusUpdateServiceImpl.unprocessedPayment(unprocessedPayment, headers);
+
+        assertEquals("88", paymentFailure.getDcn());
+    }
+
+    @Test
+    public void testInvalidUnprocessedPayment() {
+        UnprocessedPayment unprocessedPayment = UnprocessedPayment.unprocessedPayment()
+                .amount(BigDecimal.valueOf(889))
+                .failureReference("FR8888")
+                .eventDateTime("2022-10-10T10:10:10")
+                .reason("RR001")
+                .dcn("88")
+                .poBoxNumber("8")
+                .build();
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add("ServiceAuthorization", "service-auth");
+        PaymentMetadataDto metadataDto =
+                PaymentMetadataDto.paymentMetadataDtoWith().dcnReference("88").amount(new BigDecimal("888")).build();
+        SearchResponse searchResponse = SearchResponse.searchResponseWith()
+                .ccdReference("9881231111111111")
+                .allPaymentsStatus(uk.gov.hmcts.payment.api.dto.PaymentStatus.COMPLETE)
+                .payments(Arrays.asList(metadataDto))
+                .build();
+        ResponseEntity responseEntity = new ResponseEntity(searchResponse, HttpStatus.OK);
+        when(this.restTemplatePaymentGroup.exchange(any(),
+                eq(HttpMethod.GET),
+                any(HttpEntity.class),
+                eq(SearchResponse.class)))
+                .thenReturn(responseEntity);
+
+        Exception exception = assertThrows(
+                InvalidPaymentFailureRequestException.class,
+                () -> paymentStatusUpdateServiceImpl.unprocessedPayment(unprocessedPayment, headers)
+        );
+        String actualMessage = exception.getMessage();
+        assertEquals("Failure amount cannot be more than payment amount", actualMessage);
+    }
+
     private PaymentStatusBouncedChequeDto getPaymentStatusBouncedChequeDto() {
 
         PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto = PaymentStatusBouncedChequeDto.paymentStatusBouncedChequeRequestWith()
@@ -417,7 +489,7 @@ public class PaymentStatusUpdateServiceImplTest {
 
     private Payment getPayment() {
 
-        Payment payment = Payment.paymentWith()
+        return Payment.paymentWith()
             .id(1)
             .amount(BigDecimal.valueOf(555))
             .caseReference("caseReference")
@@ -448,13 +520,11 @@ public class PaymentStatusUpdateServiceImplTest {
                 .callBackUrl("http//:test")
                 .build())
             .build();
-
-        return payment;
     }
 
     private PaymentStatusChargebackDto getPaymentStatusChargebackDtoForBadRequest() {
 
-        PaymentStatusChargebackDto paymentStatusChargebackDto = PaymentStatusChargebackDto.paymentStatusChargebackRequestWith()
+        return PaymentStatusChargebackDto.paymentStatusChargebackRequestWith()
             .additionalReference("AR1234")
             .amount(BigDecimal.valueOf(556))
             .failureReference("FR12345")
@@ -464,13 +534,11 @@ public class PaymentStatusUpdateServiceImplTest {
             .paymentReference("RC1234")
             .hasAmountDebited("yes")
             .build();
-
-        return paymentStatusChargebackDto;
     }
 
     private PaymentStatusBouncedChequeDto getPaymentStatusBounceChequeDtoForBadRequest() {
 
-        PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto = PaymentStatusBouncedChequeDto.paymentStatusBouncedChequeRequestWith()
+        return PaymentStatusBouncedChequeDto.paymentStatusBouncedChequeRequestWith()
             .additionalReference("AR1234")
             .amount(BigDecimal.valueOf(556))
             .failureReference("FR12345")
@@ -479,8 +547,6 @@ public class PaymentStatusUpdateServiceImplTest {
             .reason("RR001")
             .paymentReference("RC1234")
             .build();
-
-        return paymentStatusBouncedChequeDto;
     }
     private List<Payment> getPaymentList() {
 
