@@ -201,6 +201,7 @@ public class PaymentTestService {
     public Response createBulkScanPayment(String serviceToken, BulkScanPayment bulkScanPayment, final String baseUri) {
         return givenWithServiceHeaders(serviceToken)
                 .baseUri(baseUri)
+                .contentType(ContentType.JSON)
                 .body(bulkScanPayment)
                 .when()
                 .post("/bulk-scan-payment");
@@ -209,6 +210,7 @@ public class PaymentTestService {
     public Response completeBulkScanPayment(String serviceToken, BulkScanPayments bulkScanPayment, final String baseUri) {
         return givenWithServiceHeaders(serviceToken)
                 .baseUri(baseUri)
+                .contentType(ContentType.JSON)
                 .body(bulkScanPayment)
                 .when()
                 .post("/bulk-scan-payments");
