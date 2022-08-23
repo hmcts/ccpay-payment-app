@@ -3,8 +3,6 @@ package uk.gov.hmcts.payment.api.dto;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
-import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -68,6 +66,7 @@ public class BulkScanPayment {
      */
     @NotBlank(message = "banked_date can't be Blank")
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+    @JsonProperty("banked_date")
     private String bankedDate;
 
     @JsonIgnore
