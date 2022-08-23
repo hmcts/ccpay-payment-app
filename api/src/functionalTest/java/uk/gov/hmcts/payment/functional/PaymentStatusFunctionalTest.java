@@ -1666,7 +1666,7 @@ public class PaymentStatusFunctionalTest {
             paymentStatusUpdateSecond);
 
         assertEquals(ping2Response.getStatusCode(), OK.value());
-        assertEquals("Successful operation", ping2Response.getBody().prettyPrint());
+        assertEquals("successful operation", ping2Response.getBody().prettyPrint());
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("date_from", getReportDate(new Date(System.currentTimeMillis())));
@@ -1839,7 +1839,7 @@ public class PaymentStatusFunctionalTest {
             paymentStatusUpdateSecond);
 
         assertEquals(ping2Response.getStatusCode(), OK.value());
-        assertEquals("Successful operation", ping2Response.getBody().prettyPrint());
+        assertEquals("successful operation", ping2Response.getBody().prettyPrint());
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("date_from", getReportDate(new Date(System.currentTimeMillis())));
