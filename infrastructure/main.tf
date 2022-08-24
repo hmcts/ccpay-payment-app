@@ -59,6 +59,9 @@ module "payment-database-v11" {
   common_tags = var.common_tags
   subscription = var.subscription
   postgresql_version = var.postgresql_version
+  additional_databases = [
+      "postgresql-db2"
+  ]
 }
 
 # Populate Vault with DB info
@@ -104,7 +107,7 @@ data "azurerm_key_vault" "sendgrid" {
 
 data "azurerm_key_vault_secret" "sendgrid-api-key" {
   provider = azurerm.sendgrid
-  
+
   name         = "hmcts-payment-api-key"
   key_vault_id = data.azurerm_key_vault.sendgrid.id
 }
