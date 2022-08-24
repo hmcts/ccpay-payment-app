@@ -20,9 +20,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.dto.PaymentStatus;
-import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.payment.api.contract.exception.ValidationErrorDTO;
-import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentFailureReportMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentStatusDtoMapper;
 import uk.gov.hmcts.payment.api.exception.FailureReferenceNotFoundException;
@@ -237,10 +235,10 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
             throw new PaymentNotFoundException("No Data found to generate Report");
         }
 
-        List<String> paymentReference= paymentFailuresList.stream().map(r->r.getPaymentReference()).distinct().collect(Collectors.toList());
+        List<String> paymentReference= paymentFailuresList.stream().map(PaymentFailures::getPaymentReference).distinct().collect(Collectors.toList());
 
         List<Payment> paymentList = paymentRepository.findByReferenceIn(paymentReference);
-        List<String> paymentRefForRefund = paymentList.stream().map(r->r.getReference()).collect(Collectors.toList());
+        List<String> paymentRefForRefund = paymentList.stream().map(Payment::getReference).collect(Collectors.toList());
 
          if(paymentList.size() > 0){
             refundPaymentFailureReportDtoResponse = fetchRefundResponse(paymentRefForRefund);
@@ -302,8 +300,9 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         HttpHeaders httpHeaders = new HttpHeaders(headerMultiValueMapForRefund);
         final HttpEntity<List<RefundDto>> entity = new HttpEntity<>(httpHeaders);
 
-        return restTemplateGetRefund.exchange(builder.toUriString(), HttpMethod.GET, entity, new ParameterizedTypeReference<RefundPaymentFailureReportDtoResponse>() {
-        });
+        return restTemplateGetRefund.exchange(builder.toUriString(), HttpMethod.GET, entity,
+                new ParameterizedTypeReference<>() {
+                });
     }
 
 
@@ -332,14 +331,16 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
 
         Map<String, String> params = new HashMap<>();
         params.put("document_control_number", dcn);
-        LOG.info("Calling Bulk scan api to retrieve payment by dcn: {}", dcn);
+        LOG.info("Calling Bulk scan api to retrieve payment: {}", builder.buildAndExpand(params).toUri());
 
-        ResponseEntity<SearchResponse> responseEntity;
+        ResponseEntity<SearchResponse> responseEntity = null;
         try {
             responseEntity = restTemplatePaymentGroup
                     .exchange(builder.buildAndExpand(params).toUri(), HttpMethod.GET,
                             new HttpEntity<>(headers), SearchResponse.class);
         } catch (HttpClientErrorException exception) {
+            LOG.error("Exception occurred while calling bulk scan application: {}, {}",
+                    exception.getMessage(), exception.getStackTrace());
             throw new PaymentNotFoundException("No Payments available for the given document reference number");
         }
 
@@ -374,7 +375,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         List<Payment> paymentList = paymentRepository.findByDocumentControlNumberInAndPaymentMethod(paymentFailuresListWithNoDcn, PaymentMethod.paymentMethodWith().name(PAYMENT_METHOD).build());
 
         if(paymentList != null){
-            paymentFailuresListWithNoRC.stream().forEach( paymentFailure -> {
+            paymentFailuresListWithNoRC.forEach(paymentFailure -> {
                 Payment payment =   paymentList.stream().filter(p -> p.getDocumentControlNumber().equals(paymentFailure.getDcn())).findFirst().orElse(null);
                 if(payment != null){
                     updatePaymentReferenceForDcn(paymentFailure,payment);
