@@ -1422,28 +1422,58 @@ public class PaymentStatusFunctionalTest {
     @Test
     public void positive_unprocessedPayment_update_payment() {
 
-        // Create a Bulk scan payment
-        Random rand = new Random();
-        String ccdCaseNumber = String.format((Locale) null, //don't want any thousand separators
-            "111122%04d%04d%02d",
-            rand.nextInt(10000),
-            rand.nextInt(10000),
-            rand.nextInt(99));
-        String dcn = "DCN1234" + RandomUtils.nextInt();
+        String dcn = "555555555555555555551";
+        BulkScanPayment bulkScanPayment = BulkScanPayment.createPaymentRequestWith()
+            .amount(new BigDecimal("555"))
+            .bankGiroCreditSlipNumber(Integer.valueOf("5"))
+            .bankedDate("2022-01-01")
+            .currency("GBP")
+            .dcnReference(dcn)
+            .method("cheque")
+            .build();
+        paymentTestService.createBulkScanPayment(
+            SERVICE_TOKEN_PAYMENT,
+            bulkScanPayment, testProps.bulkScanUrl).then().statusCode(CREATED.value());
+
+        // Complete a Bulk scan payment
+        BulkScanPayments bulkScanPayments = BulkScanPayments.createBSPaymentRequestWith()
+            .ccdCaseNumber("1234567890123456")
+            .documentControlNumbers(new String[]{dcn})
+            .isExceptionRecord(false)
+            .responsibleServiceId("AA07")
+            .build();
+        paymentTestService.completeBulkScanPayment(
+            SERVICE_TOKEN_PAYMENT,
+            bulkScanPayments, testProps.bulkScanUrl).then().statusCode(CREATED.value());
+
+        // Ping 1 for Unprocessed Payment event
+        UnprocessedPayment unprocessedPayment = UnprocessedPayment.unprocessedPayment()
+            .amount(BigDecimal.valueOf(55))
+            .failureReference("FR3333")
+            .eventDateTime("2022-10-10T10:10:10")
+            .reason("RR001")
+            .dcn(dcn)
+            .poBoxNumber("8")
+            .build();
+
+        Response bounceChequeResponse = paymentTestService.postUnprocessedPayment(
+            SERVICE_TOKEN_PAYMENT,
+            unprocessedPayment);
+        assertThat(bounceChequeResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
-            .amount(new BigDecimal("100.00"))
+            .amount(new BigDecimal("555"))
             .service("DIVORCE")
             .siteId("AA01")
             .currency(CurrencyCode.GBP)
             .documentControlNumber(dcn)
-            .ccdCaseNumber(ccdCaseNumber)
+            .ccdCaseNumber("1234567890123456")
             .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
             .payerName("CCD User1")
             .bankedDate(DateTime.now().toString())
             .paymentMethod(PaymentMethodType.CHEQUE)
             .paymentStatus(PaymentStatus.SUCCESS)
-            .giroSlipNo("GH716376")
+            .giroSlipNo("5")
             .build();
 
         PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
@@ -1453,7 +1483,7 @@ public class PaymentStatusFunctionalTest {
                 .version("1")
                 .reference("testRef1")
                 .volume(2)
-                .ccdCaseNumber(ccdCaseNumber)
+                .ccdCaseNumber("1234567890123456")
                 .build())).build();
 
         AtomicReference<String> paymentReference = new AtomicReference<>();
@@ -1479,21 +1509,6 @@ public class PaymentStatusFunctionalTest {
                     });
 
             });
-        String failureReference = "FR-111-CC13-" + RandomUtils.nextInt();
-        // Ping 1 for Unprocessed Payment event
-        UnprocessedPayment unprocessedPayment = UnprocessedPayment.unprocessedPayment()
-            .amount(BigDecimal.valueOf(888))
-            .failureReference(failureReference)
-            .eventDateTime("2022-10-10T10:10:10")
-            .reason("RR001")
-            .dcn(dcn)
-            .poBoxNumber("8")
-            .build();
-
-        Response bounceChequeResponse = paymentTestService.postUnprocessedPayment(
-            SERVICE_TOKEN_PAYMENT,
-            unprocessedPayment);
-        assertThat(bounceChequeResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
 
         dsl.given()
             .s2sToken(SERVICE_TOKEN)
@@ -1512,19 +1527,53 @@ public class PaymentStatusFunctionalTest {
 
         // delete Payment Failure record
         paymentTestService.deleteFailedPayment(USER_TOKEN, SERVICE_TOKEN, unprocessedPayment.getFailureReference()).then().statusCode(NO_CONTENT.value());
+
+        paymentTestService.deleteBulkScanPayment(SERVICE_TOKEN, dcn, testProps.bulkScanUrl).then()
+            .statusCode(NO_CONTENT.value());
     }
 
     @Test
     public void positive_unprocessedPayment_update_payment_after_second_ping() {
 
         // Create a Bulk scan payment
-        Random rand = new Random();
-        String ccdCaseNumber = String.format((Locale) null, //don't want any thousand separators
-            "111122%04d%04d%02d",
-            rand.nextInt(10000),
-            rand.nextInt(10000),
-            rand.nextInt(99));
-        String dcn = "DCN1234" + RandomUtils.nextInt();
+        String dcn = "555555555555555555551";
+        BulkScanPayment bulkScanPayment = BulkScanPayment.createPaymentRequestWith()
+            .amount(new BigDecimal("555"))
+            .bankGiroCreditSlipNumber(Integer.valueOf("5"))
+            .bankedDate("2022-01-01")
+            .currency("GBP")
+            .dcnReference(dcn)
+            .method("cheque")
+            .build();
+        paymentTestService.createBulkScanPayment(
+            SERVICE_TOKEN_PAYMENT,
+            bulkScanPayment, testProps.bulkScanUrl).then().statusCode(CREATED.value());
+
+        // Complete a Bulk scan payment
+        BulkScanPayments bulkScanPayments = BulkScanPayments.createBSPaymentRequestWith()
+            .ccdCaseNumber("1234567890123456")
+            .documentControlNumbers(new String[]{dcn})
+            .isExceptionRecord(false)
+            .responsibleServiceId("AA07")
+            .build();
+        paymentTestService.completeBulkScanPayment(
+            SERVICE_TOKEN_PAYMENT,
+            bulkScanPayments, testProps.bulkScanUrl).then().statusCode(CREATED.value());
+
+        // Ping 1 for Unprocessed Payment event
+        UnprocessedPayment unprocessedPayment = UnprocessedPayment.unprocessedPayment()
+            .amount(BigDecimal.valueOf(55))
+            .failureReference("FR3333")
+            .eventDateTime("2022-10-10T10:10:10")
+            .reason("RR001")
+            .dcn(dcn)
+            .poBoxNumber("8")
+            .build();
+
+        Response bounceChequeResponse = paymentTestService.postUnprocessedPayment(
+            SERVICE_TOKEN_PAYMENT,
+            unprocessedPayment);
+        assertThat(bounceChequeResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal("100.00"))
@@ -1532,7 +1581,7 @@ public class PaymentStatusFunctionalTest {
             .siteId("AA01")
             .currency(CurrencyCode.GBP)
             .documentControlNumber(dcn)
-            .ccdCaseNumber(ccdCaseNumber)
+            .ccdCaseNumber("1234567890123456")
             .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
             .payerName("CCD User1")
             .bankedDate(DateTime.now().toString())
@@ -1548,7 +1597,7 @@ public class PaymentStatusFunctionalTest {
                 .version("1")
                 .reference("testRef1")
                 .volume(2)
-                .ccdCaseNumber(ccdCaseNumber)
+                .ccdCaseNumber("1234567890123456")
                 .build())).build();
 
         AtomicReference<String> paymentReference = new AtomicReference<>();
@@ -1574,24 +1623,8 @@ public class PaymentStatusFunctionalTest {
                     });
 
             });
-        String failureReference = "FR-111-CC13-" + RandomUtils.nextInt();
-        // Ping 1 for Unprocessed Payment event
-        UnprocessedPayment unprocessedPayment = UnprocessedPayment.unprocessedPayment()
-            .amount(BigDecimal.valueOf(888))
-            .failureReference(failureReference)
-            .eventDateTime("2022-10-10T10:10:10")
-            .reason("RR001")
-            .dcn(dcn)
-            .poBoxNumber("8")
-            .build();
 
-        Response bounceChequeResponse = paymentTestService.postUnprocessedPayment(
-            SERVICE_TOKEN_PAYMENT,
-            unprocessedPayment);
-        assertThat(bounceChequeResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
-
-
-        // Ping 2
+        // Ping 2 for Unprocessed Payment event
         PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
             .representmentStatus(RepresentmentStatus.No)
             .representmentDate("2022-10-10T10:10:10")
@@ -1618,6 +1651,13 @@ public class PaymentStatusFunctionalTest {
 
         // delete payment record
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentReference.get()).then().statusCode(NO_CONTENT.value());
+
+        // delete Payment Failure record
+        paymentTestService.deleteFailedPayment(USER_TOKEN, SERVICE_TOKEN, unprocessedPayment.getFailureReference()).then().statusCode(NO_CONTENT.value());
+
+        // delete bulk scan record
+        paymentTestService.deleteBulkScanPayment(SERVICE_TOKEN, dcn, testProps.bulkScanUrl).then()
+            .statusCode(NO_CONTENT.value());
     }
 
     @Test
