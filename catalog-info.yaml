@@ -15,4 +15,4 @@ metadata:
 spec:
   type: service
   lifecycle: production
-  owner: dcd_group_fees&pay_v2
+  owner: dcd_group_fees_pay_v2
