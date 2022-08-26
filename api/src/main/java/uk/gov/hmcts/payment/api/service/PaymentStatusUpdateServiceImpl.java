@@ -332,6 +332,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         Map<String, String> params = new HashMap<>();
         params.put("document_control_number", dcn);
         LOG.info("Calling Bulk scan api to retrieve payment: {}", builder.buildAndExpand(params).toUri());
+        LOG.info("Headers: {}", headers);
 
         ResponseEntity<SearchResponse> responseEntity;
         try {
