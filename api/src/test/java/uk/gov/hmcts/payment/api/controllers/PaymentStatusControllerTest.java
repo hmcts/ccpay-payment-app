@@ -481,10 +481,9 @@ public class PaymentStatusControllerTest {
                 .poBoxNumber("8")
                 .build();
         ResponseEntity responseEntity = new ResponseEntity(HttpStatus.OK);
-        when(this.restTemplatePaymentGroup.exchange(any(),
-                eq(HttpMethod.GET),
-                any(HttpEntity.class),
-                eq(SearchResponse.class)))
+        when(this.restTemplatePaymentGroup.getForEntity(any(),
+                eq(SearchResponse.class),
+                any(HttpEntity.class)))
                 .thenReturn(responseEntity);
         MvcResult result = restActions
                 .post("/payment-failures/unprocessed-payment", unprocessedPayment)
@@ -505,10 +504,9 @@ public class PaymentStatusControllerTest {
                 .dcn("88")
                 .poBoxNumber("8")
                 .build();
-        when(this.restTemplatePaymentGroup.exchange(any(),
-                eq(HttpMethod.GET),
-                any(HttpEntity.class),
-                eq(SearchResponse.class)))
+        when(this.restTemplatePaymentGroup.getForEntity(any(),
+                eq(SearchResponse.class),
+                any(HttpEntity.class)))
                 .thenReturn(new ResponseEntity(HttpStatus.NOT_FOUND));
         MvcResult result = restActions
                 .post("/payment-failures/unprocessed-payment", unprocessedPayment)
@@ -529,10 +527,9 @@ public class PaymentStatusControllerTest {
                 .dcn("88")
                 .poBoxNumber("8")
                 .build();
-        when(this.restTemplatePaymentGroup.exchange(any(),
-                eq(HttpMethod.GET),
-                any(HttpEntity.class),
-                eq(SearchResponse.class)))
+        when(this.restTemplatePaymentGroup.getForEntity(any(),
+                eq(SearchResponse.class),
+                any(HttpEntity.class)))
                 .thenReturn(new ResponseEntity(HttpStatus.OK));
         when(paymentFailureRepository.save(any())).thenThrow(DataIntegrityViolationException.class);
         MvcResult result = restActions
@@ -582,7 +579,9 @@ public class PaymentStatusControllerTest {
             .get("/payment-failures/failure-report?date_from=" + startDate + "&date_to=" + endDate)
             .andExpect(status().isOk())
             .andReturn();
-        PaymentFailureReportResponse paymentFailureReportResponse = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentFailureReportResponse>(){});
+        PaymentFailureReportResponse paymentFailureReportResponse = objectMapper.readValue(result.getResponse().getContentAsByteArray(),
+                new TypeReference<>() {
+                });
 
         assertThat(paymentFailureReportResponse.getPaymentFailureReportList().size()).isEqualTo(1);
         assertThat(paymentFailureReportResponse.getPaymentFailureReportList().get(0).getPaymentReference()).isEqualTo("RC-1520-2505-0381-8145");

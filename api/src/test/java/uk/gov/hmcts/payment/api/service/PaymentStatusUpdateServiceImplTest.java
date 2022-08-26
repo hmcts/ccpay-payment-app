@@ -310,7 +310,7 @@ public class PaymentStatusUpdateServiceImplTest {
     }
 
     @Test
-    public void getRefundSuccess() throws Exception {
+    public void getRefundSuccess() {
 
         ResponseEntity<RefundPaymentFailureReportDtoResponse> responseEntity = new ResponseEntity<>(getFailureRefund(), HttpStatus.OK);
         MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
@@ -329,7 +329,7 @@ public class PaymentStatusUpdateServiceImplTest {
     }
 
     @Test(expected = InvalidRefundRequestException.class)
-    public void returnExcetionWhenRefundCalled() throws Exception {
+    public void returnExcetionWhenRefundCalled() {
 
         MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
         headers.add("Authorization", "auth");
@@ -389,10 +389,9 @@ public class PaymentStatusUpdateServiceImplTest {
                 .payments(Arrays.asList(metadataDto))
                 .build();
         ResponseEntity responseEntity = new ResponseEntity(searchResponse, HttpStatus.OK);
-        when(this.restTemplatePaymentGroup.exchange(any(),
-                eq(HttpMethod.GET),
-                any(HttpEntity.class),
-                eq(SearchResponse.class)))
+        when(this.restTemplatePaymentGroup.getForEntity(any(),
+                eq(SearchResponse.class),
+                any(HttpEntity.class)))
                 .thenReturn(responseEntity);
         PaymentFailures failure = PaymentFailures.paymentFailuresWith().dcn("88").build();
         when(paymentFailureRepository.save(any())).thenReturn(failure);
@@ -422,10 +421,9 @@ public class PaymentStatusUpdateServiceImplTest {
                 .payments(Arrays.asList(metadataDto))
                 .build();
         ResponseEntity responseEntity = new ResponseEntity(searchResponse, HttpStatus.OK);
-        when(this.restTemplatePaymentGroup.exchange(any(),
-                eq(HttpMethod.GET),
-                any(HttpEntity.class),
-                eq(SearchResponse.class)))
+        when(this.restTemplatePaymentGroup.getForEntity(any(),
+                eq(SearchResponse.class),
+                any(HttpEntity.class)))
                 .thenReturn(responseEntity);
 
         Exception exception = assertThrows(
@@ -438,7 +436,7 @@ public class PaymentStatusUpdateServiceImplTest {
 
     private PaymentStatusBouncedChequeDto getPaymentStatusBouncedChequeDto() {
 
-        PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto = PaymentStatusBouncedChequeDto.paymentStatusBouncedChequeRequestWith()
+        return PaymentStatusBouncedChequeDto.paymentStatusBouncedChequeRequestWith()
             .additionalReference("AR1234")
             .amount(BigDecimal.valueOf(555))
             .failureReference("FR12345")
@@ -447,13 +445,11 @@ public class PaymentStatusUpdateServiceImplTest {
             .reason("RR001")
             .paymentReference("RC1234")
             .build();
-
-        return paymentStatusBouncedChequeDto;
     }
 
     private PaymentStatusChargebackDto getPaymentStatusChargebackDto() {
 
-        PaymentStatusChargebackDto paymentStatusChargebackDto = PaymentStatusChargebackDto.paymentStatusChargebackRequestWith()
+        return PaymentStatusChargebackDto.paymentStatusChargebackRequestWith()
             .additionalReference("AR1234")
             .amount(BigDecimal.valueOf(555))
             .failureReference("FR12345")
@@ -463,8 +459,6 @@ public class PaymentStatusUpdateServiceImplTest {
             .paymentReference("RC1234")
             .hasAmountDebited("yes")
             .build();
-
-        return paymentStatusChargebackDto;
     }
 
     private List<PaymentFailures> getPaymentFailuresList(){
