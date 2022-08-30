@@ -59,12 +59,10 @@ module "payment-database-v11" {
   common_tags = var.common_tags
   subscription = var.subscription
   postgresql_version = var.postgresql_version
-  additional_databases = var.additional_databases
-}
-
-additional_databases = [
-      "postgresql-db2"
+  additional_databases = [
+    "postgresql-db2"
   ]
+}
 
 # Populate Vault with DB info
 
