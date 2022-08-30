@@ -389,9 +389,10 @@ public class PaymentStatusUpdateServiceImplTest {
                 .payments(Arrays.asList(metadataDto))
                 .build();
         ResponseEntity responseEntity = new ResponseEntity(searchResponse, HttpStatus.OK);
-        when(this.restTemplatePaymentGroup.getForEntity(any(),
-                eq(SearchResponse.class),
-                any(HttpEntity.class)))
+        when(this.restTemplatePaymentGroup.exchange(any(),
+                eq(HttpMethod.GET),
+                any(HttpEntity.class),
+                eq(SearchResponse.class)))
                 .thenReturn(responseEntity);
         PaymentFailures failure = PaymentFailures.paymentFailuresWith().dcn("88").build();
         when(paymentFailureRepository.save(any())).thenReturn(failure);
@@ -421,9 +422,10 @@ public class PaymentStatusUpdateServiceImplTest {
                 .payments(Arrays.asList(metadataDto))
                 .build();
         ResponseEntity responseEntity = new ResponseEntity(searchResponse, HttpStatus.OK);
-        when(this.restTemplatePaymentGroup.getForEntity(any(),
-                eq(SearchResponse.class),
-                any(HttpEntity.class)))
+        when(this.restTemplatePaymentGroup.exchange(any(),
+                eq(HttpMethod.GET),
+                any(HttpEntity.class),
+                eq(SearchResponse.class)))
                 .thenReturn(responseEntity);
 
         Exception exception = assertThrows(

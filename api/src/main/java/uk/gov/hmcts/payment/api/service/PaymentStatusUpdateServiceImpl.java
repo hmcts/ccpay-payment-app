@@ -333,14 +333,14 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         params.put("document_control_number", dcn);
         LOG.info("Calling Bulk scan api to retrieve payment: {}", builder.buildAndExpand(params).toUri());
         MultiValueMap<String, String> header = new LinkedMultiValueMap<>();
-        header.put("serviceAuthorization", headers.get("serviceauthorization"));
+        header.put("serviceauthorization", headers.get("serviceauthorization"));
         LOG.info("Headers: {}", header);
 
         ResponseEntity<SearchResponse> responseEntity;
         try {
             responseEntity = restTemplatePaymentGroup
-                    .getForEntity(builder.buildAndExpand(params).toUri().toString(),
-                            SearchResponse.class, new HttpEntity<>(header));
+                    .exchange(builder.buildAndExpand(params).toUri(), HttpMethod.GET,
+                            new HttpEntity<>(headers), SearchResponse.class);
         } catch (HttpClientErrorException exception) {
             LOG.error("Exception occurred while calling bulk scan application: {}, {}",
                     exception.getMessage(), exception.getStackTrace());
