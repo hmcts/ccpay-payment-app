@@ -109,7 +109,6 @@ data "azurerm_key_vault" "sendgrid" {
 
 data "azurerm_key_vault_secret" "sendgrid-api-key" {
   provider = azurerm.sendgrid
-
   name         = "hmcts-payment-api-key"
   key_vault_id = data.azurerm_key_vault.sendgrid.id
 }
