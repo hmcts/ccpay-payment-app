@@ -343,7 +343,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
             LOG.info("Host of BS API : {}", uri.getHost());
             responseEntity = restTemplatePaymentGroup
                     .exchange(uri, HttpMethod.GET,
-                            new HttpEntity<>(headers), SearchResponse.class);
+                            new HttpEntity<>(header), SearchResponse.class);
         } catch (HttpClientErrorException exception) {
             LOG.error("Exception occurred while calling bulk scan application: {}, {}",
                     exception.getMessage(), exception.getStackTrace());
