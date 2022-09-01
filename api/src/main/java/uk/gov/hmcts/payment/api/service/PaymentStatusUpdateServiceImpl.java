@@ -336,14 +336,15 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         MultiValueMap<String, String> header = new LinkedMultiValueMap<>();
         header.put("serviceauthorization", headers.get("serviceauthorization"));
         LOG.info("Headers: {}", header);
-
+        HttpHeaders headersVal = new HttpHeaders(header);
+        final HttpEntity<String> entity = new HttpEntity<>(headersVal);
         ResponseEntity<SearchResponse> responseEntity;
         try {
             LOG.info("Calling Bulk scan api to retrieve payment: {}", uri.toString());
             LOG.info("Host of BS API : {}", uri.getHost());
-            responseEntity = restTemplatePaymentGroup
-                    .exchange(uri, HttpMethod.GET,
-                            new HttpEntity<>(header), SearchResponse.class);
+            LOG.info("restTemplatePaymentGroup before Calling Bulkscan : {}",restTemplatePaymentGroup);
+            responseEntity = restTemplatePaymentGroup.exchange(bulkScanPaymentsProcessedUrl + "/case/{document_control_number}", HttpMethod.GET, entity, SearchResponse.class, params);
+            LOG.info("Response Entity from BS Call: {}", responseEntity);
         } catch (HttpClientErrorException exception) {
             LOG.error("Exception occurred while calling bulk scan application: {}, {}",
                     exception.getMessage(), exception.getStackTrace());
