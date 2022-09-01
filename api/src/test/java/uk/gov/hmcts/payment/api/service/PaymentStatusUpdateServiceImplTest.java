@@ -392,7 +392,7 @@ public class PaymentStatusUpdateServiceImplTest {
         when(this.restTemplatePaymentGroup.exchange(any(),
                 eq(HttpMethod.GET),
                 any(HttpEntity.class),
-                eq(SearchResponse.class)))
+                eq(SearchResponse.class),any(HashMap.class)))
                 .thenReturn(responseEntity);
         PaymentFailures failure = PaymentFailures.paymentFailuresWith().dcn("88").build();
         when(paymentFailureRepository.save(any())).thenReturn(failure);
@@ -425,7 +425,7 @@ public class PaymentStatusUpdateServiceImplTest {
         when(this.restTemplatePaymentGroup.exchange(any(),
                 eq(HttpMethod.GET),
                 any(HttpEntity.class),
-                eq(SearchResponse.class)))
+                eq(SearchResponse.class), any(HashMap.class)))
                 .thenReturn(responseEntity);
 
         Exception exception = assertThrows(
