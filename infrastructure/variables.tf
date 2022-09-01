@@ -67,3 +67,7 @@ variable sku_name {
 variable "sku_capacity" {
   default = "2"
 }
+
+variable "additional_databases" {
+  default = []
+}
