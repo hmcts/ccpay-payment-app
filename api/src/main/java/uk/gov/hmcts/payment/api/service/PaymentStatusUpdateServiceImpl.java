@@ -32,6 +32,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.math.BigDecimal;
+import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -331,15 +332,17 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
 
         Map<String, String> params = new HashMap<>();
         params.put("document_control_number", dcn);
-        LOG.info("Calling Bulk scan api to retrieve payment: {}", builder.buildAndExpand(params).toUri());
+        URI uri= builder.buildAndExpand(params).toUri();
         MultiValueMap<String, String> header = new LinkedMultiValueMap<>();
         header.put("serviceauthorization", headers.get("serviceauthorization"));
         LOG.info("Headers: {}", header);
 
         ResponseEntity<SearchResponse> responseEntity;
         try {
+            LOG.info("Calling Bulk scan api to retrieve payment: {}", uri.toString());
+            LOG.info("Host of BS API : {}", uri.getHost());
             responseEntity = restTemplatePaymentGroup
-                    .exchange(builder.buildAndExpand(params).toUri(), HttpMethod.GET,
+                    .exchange(uri, HttpMethod.GET,
                             new HttpEntity<>(headers), SearchResponse.class);
         } catch (HttpClientErrorException exception) {
             LOG.error("Exception occurred while calling bulk scan application: {}, {}",
