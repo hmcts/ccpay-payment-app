@@ -327,9 +327,9 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
 
     private boolean validateDcn(String dcn, BigDecimal amount, MultiValueMap<String, String> headers) {
         UriComponentsBuilder builder = UriComponentsBuilder
-            .fromUriString(bulkScanPaymentsProcessedUrl + casesPath + "/{document_control_number}")
+            .fromUriString(bulkScanPaymentsProcessedUrl + casesPath + "/"+dcn+"")
             .queryParam("internalFlag", "true");
-
+        String bsURL = bulkScanPaymentsProcessedUrl + casesPath + "/" + dcn + "?internalFlag=true";
         Map<String, String> params = new HashMap<>();
         params.put("document_control_number", dcn);
         URI uri= builder.buildAndExpand(params).toUri();
@@ -340,10 +340,10 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         final HttpEntity<String> entity = new HttpEntity<>(headersVal);
         ResponseEntity<SearchResponse> responseEntity;
         try {
-            LOG.info("Calling Bulk scan api to retrieve payment: {}", builder.toUriString());
+            LOG.info("Calling Bulk scan api to retrieve payment: {}", bsURL);
             LOG.info("Host of BS API : {}", uri.getHost());
             LOG.info("restTemplatePaymentGroup before Calling Bulkscan : {}",restTemplatePaymentGroup);
-            responseEntity = restTemplatePaymentGroup.exchange(builder.toUriString(), HttpMethod.GET, entity, SearchResponse.class, params);
+            responseEntity = restTemplatePaymentGroup.exchange(bsURL, HttpMethod.GET, entity, SearchResponse.class, params);
             LOG.info("Response Entity from BS Call: {}", responseEntity);
         } catch (HttpClientErrorException exception) {
             LOG.error("Exception occurred while calling bulk scan application: {}, {}",
