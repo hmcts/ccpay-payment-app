@@ -326,13 +326,9 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
     }
 
     private boolean validateDcn(String dcn, BigDecimal amount, MultiValueMap<String, String> headers) {
-        UriComponentsBuilder builder = UriComponentsBuilder
-            .fromUriString(bulkScanPaymentsProcessedUrl + casesPath + "/"+dcn+"")
-            .queryParam("internalFlag", "true");
-        String bsURL = bulkScanPaymentsProcessedUrl + casesPath + "/" + dcn + "?internalFlag=true";
+        String bsURL = bulkScanPaymentsProcessedUrl + casesPath + "/{document_control_number}?internalFlag=true";
         Map<String, String> params = new HashMap<>();
         params.put("document_control_number", dcn);
-        URI uri= builder.buildAndExpand(params).toUri();
         MultiValueMap<String, String> header = new LinkedMultiValueMap<>();
         header.put("serviceauthorization", headers.get("serviceauthorization"));
         LOG.info("Headers: {}", header);
@@ -341,7 +337,6 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         ResponseEntity<SearchResponse> responseEntity;
         try {
             LOG.info("Calling Bulk scan api to retrieve payment: {}", bsURL);
-            LOG.info("Host of BS API : {}", uri.getHost());
             LOG.info("restTemplatePaymentGroup before Calling Bulkscan : {}",restTemplatePaymentGroup);
             responseEntity = restTemplatePaymentGroup.exchange(bsURL, HttpMethod.GET, entity, SearchResponse.class, params);
             LOG.info("Response Entity from BS Call: {}", responseEntity);
