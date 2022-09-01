@@ -2,12 +2,6 @@ telephony_api_gateway_certificate_thumbprints = ["B1BF8007527F85085D7C4A3DC406A9
 sku_name = "GP_Gen5_2"
 sku_capacity = "2"
 
-variable "additional_databases" {
-    default = [
-    "postgresql-db2"
-  ]
-}
-
 additional_databases = [
     "postgresql-db2"
 ]
