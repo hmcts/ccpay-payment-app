@@ -340,10 +340,10 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         final HttpEntity<String> entity = new HttpEntity<>(headersVal);
         ResponseEntity<SearchResponse> responseEntity;
         try {
-            LOG.info("Calling Bulk scan api to retrieve payment: {}", uri.toString());
+            LOG.info("Calling Bulk scan api to retrieve payment: {}", builder.toUriString());
             LOG.info("Host of BS API : {}", uri.getHost());
             LOG.info("restTemplatePaymentGroup before Calling Bulkscan : {}",restTemplatePaymentGroup);
-            responseEntity = restTemplatePaymentGroup.exchange(bulkScanPaymentsProcessedUrl + "/case/{document_control_number}", HttpMethod.GET, entity, SearchResponse.class, params);
+            responseEntity = restTemplatePaymentGroup.exchange(builder.toUriString(), HttpMethod.GET, entity, SearchResponse.class, params);
             LOG.info("Response Entity from BS Call: {}", responseEntity);
         } catch (HttpClientErrorException exception) {
             LOG.error("Exception occurred while calling bulk scan application: {}, {}",
