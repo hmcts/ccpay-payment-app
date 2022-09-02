@@ -562,4 +562,15 @@ public class PaymentDtoMapper {
             .allocationStatus(paymentAllocation.getPaymentAllocationStatus().getName())
             .build();
     }
+
+    public List<PaymentDto> toGetPaymentResponseDtos(List<Payment> paymentList) {
+        if (null != paymentList && !paymentList.isEmpty()) {
+            List<PaymentDto> paymentDtoList = new ArrayList<>();
+            for (Payment payment : paymentList) {
+                paymentDtoList.add(toGetPaymentResponseDtos(payment));
+            }
+            return paymentDtoList;
+        }
+        throw new PaymentNotFoundException("No Payment found");
+    }
 }

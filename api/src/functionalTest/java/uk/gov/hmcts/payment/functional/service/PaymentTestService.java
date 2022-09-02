@@ -213,4 +213,10 @@ public class PaymentTestService {
                 .when()
                 .patch("/payment-failures/{failureReference}", failureReference);
     }
+
+    public Response getPbaPaymentsByReferenceNumberList(String serviceToken, String paymentReferenceList) {
+        return givenWithServiceHeaders(serviceToken)
+            .when()
+            .get("/refunds/payments?paymentReferenceList={paymentReferenceList}", paymentReferenceList);
+    }
 }
