@@ -1315,7 +1315,7 @@ public class PaymentStatusFunctionalTest {
     public void negative_return429_unprocessedPayment_bulk_scan() {
 
         // Create a Bulk scan payment
-        String dcn = "55555555555" + RandomUtils.nextInt();
+        String dcn = "555555555557777777777";
         BulkScanPayment bulkScanPayment = BulkScanPayment.createPaymentRequestWith()
                 .amount(new BigDecimal("999"))
                 .bankGiroCreditSlipNumber(Integer.valueOf("5"))
@@ -1422,7 +1422,7 @@ public class PaymentStatusFunctionalTest {
     @Test
     public void positive_unprocessedPayment_update_payment() {
 
-        String dcn = "55555555555" + RandomUtils.nextInt();
+        String dcn = "555555555558888888888";
         BulkScanPayment bulkScanPayment = BulkScanPayment.createPaymentRequestWith()
             .amount(new BigDecimal("555"))
             .bankGiroCreditSlipNumber(Integer.valueOf("5"))
@@ -1536,7 +1536,7 @@ public class PaymentStatusFunctionalTest {
     public void positive_unprocessedPayment_update_payment_after_second_ping() {
 
         // Create a Bulk scan payment
-        String dcn = "555555555555" + RandomUtils.nextInt();
+        String dcn = "55555555555" + RandomUtils.nextInt();
         BulkScanPayment bulkScanPayment = BulkScanPayment.createPaymentRequestWith()
             .amount(new BigDecimal("555"))
             .bankGiroCreditSlipNumber(Integer.valueOf("5"))
