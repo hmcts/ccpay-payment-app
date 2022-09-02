@@ -164,6 +164,7 @@
         <cve>CVE-2022-22978</cve>
         <cve>CVE-2021-22060</cve>
         <cve>CVE-2021-43466</cve>
+        <cve>CVE-2022-25857</cve>
     </suppress>
 
     <suppress until="2022-09-30">
@@ -218,7 +219,7 @@
         </notes>
         <cve>CVE-2022-2048</cve>
     </suppress>
-    
+
     <suppress until="2022-09-30">
         <notes>
             The PGJDBC implementation of the java.sql.ResultRow.refreshRow() method is not performing escaping of column names
