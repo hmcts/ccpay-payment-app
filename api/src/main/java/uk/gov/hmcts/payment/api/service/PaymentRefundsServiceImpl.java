@@ -105,6 +105,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             .refundFees(getRefundFees(paymentRefundRequest.getFees()))
             .contactDetails(paymentRefundRequest.getContactDetails())
             .serviceType(payment.getServiceType())
+            .paymentChannel(payment.getPaymentChannel())
             .build();
 
         RefundResponse refundResponse = RefundResponse.RefundResponseWith()
@@ -182,6 +183,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                         .serviceType(payment.getServiceType())
                         .paymentMethod(payment.getPaymentMethod().toString())
                         .contactDetails(retrospectiveRemissionRequest.getContactDetails())
+                        .paymentChannel(payment.getPaymentChannel())
                         .build();
                     RefundResponse refundResponse = RefundResponse.RefundResponseWith()
                         .refundAmount(remissionAmount)
