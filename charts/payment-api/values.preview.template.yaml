@@ -20,6 +20,7 @@ java:
     PCI_PAL_API_URL: https://ip3cloud.com/clients/hmcts/payments/index.php
 
     REFUND_API_URL: http://ccpay-refunds-api-pr-224-java
+    
   keyVaults:
     "ccpay":
       resourceGroup: ccpay

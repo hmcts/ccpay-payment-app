@@ -231,10 +231,12 @@
 
     <suppress until="2022-09-30">
         <notes>
-            The package org.yaml:snakeyaml from 0 and before 1.31 are vulnerable to Denial of Service (DoS) due missing
-            to nested depth limitation for collections.
+            The package org.yaml:snakeyaml from 0 and before 1.31 are vulnerable to
+            Denial of Service (DoS) due missing to nested depth limitation for collections.
+            snakeyaml v1.31 (most recent patch available currently) does not resolve the issue.
         </notes>
         <cve>CVE-2022-25857</cve>
     </suppress>
+
     <!-- Supression Group ends here -->
 </suppressions>
