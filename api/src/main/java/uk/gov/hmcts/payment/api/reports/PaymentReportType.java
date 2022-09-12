@@ -10,7 +10,9 @@ public enum PaymentReportType {
     PBA_DIVORCE,
     PBA_PROBATE,
     PBA_FINREM,
-    PBA_FPL;
+    PBA_FPL,
+    PBA_CIVIL,
+    PBA_PRL;
 
     public static PaymentReportType from(PaymentMethodType paymentMethodType, String serviceType) {
         String value = "";
@@ -51,6 +53,12 @@ public enum PaymentReportType {
         }
         if (serviceType != null && (serviceType.equalsIgnoreCase("Probate"))) {
             return "PROBATE";
+        }
+        if (serviceType != null && (serviceType.equalsIgnoreCase("Civil"))) {
+            return "CIVIL";
+        }
+        if (serviceType != null && (serviceType.equalsIgnoreCase("Family Private Law"))) {
+            return "PRL";
         }
         return serviceType;
     }
