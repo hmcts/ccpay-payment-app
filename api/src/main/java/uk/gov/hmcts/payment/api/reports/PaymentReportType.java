@@ -19,7 +19,7 @@ public enum PaymentReportType {
     public static PaymentReportType from(PaymentMethodType paymentMethodType, String serviceType) {
         String value = "";
 
-        String serviceTypeEnum = getServiceTypeEnum2(serviceType);
+        String serviceTypeEnum = getServiceTypeEnum(serviceType);
 
         if (paymentMethodType != null && serviceTypeEnum != null) {
             value = String.join("_", paymentMethodType.name(), serviceTypeEnum);
@@ -37,34 +37,7 @@ public enum PaymentReportType {
         }
     }
 
-    private static String getServiceTypeEnum(String serviceType) {
-        if (serviceType != null && (serviceType.equalsIgnoreCase("Specified Money Claims") || serviceType.equalsIgnoreCase("Civil Money Claims"))) {
-            return "CMC";
-        }
-        if (serviceType != null && (serviceType.equalsIgnoreCase("Financial Remedy") || serviceType.equalsIgnoreCase("Finrem"))) {
-            return "FINREM";
-        }
-        if (serviceType != null && (serviceType.equalsIgnoreCase("Family Public Law"))) {
-            return "FPL";
-        }
-        if (serviceType != null && (serviceType.equalsIgnoreCase("Digital Bar"))) {
-            return "DIGITAL_BAR";
-        }
-        if (serviceType != null && (serviceType.equalsIgnoreCase("Divorce"))) {
-            return "DIVORCE";
-        }
-        if (serviceType != null && (serviceType.equalsIgnoreCase("Probate"))) {
-            return "PROBATE";
-        }
-        if (serviceType != null && (serviceType.equalsIgnoreCase("Civil"))) {
-            return "CIVIL";
-        }
-        if (serviceType != null && (serviceType.equalsIgnoreCase("Family Private Law"))) {
-            return "PRL";
-        }
-        return serviceType;
-    }
-    private static String getServiceTypeEnum2(String ServiceType) {
+    private static String getServiceTypeEnum(String ServiceType) {
         HashMap<String, String> serviceTypeHashMap = new HashMap<>();
 
         serviceTypeHashMap.put("Specified Money Claims", "CMC");
