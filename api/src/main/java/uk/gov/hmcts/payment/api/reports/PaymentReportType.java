@@ -37,7 +37,7 @@ public enum PaymentReportType {
         }
     }
 
-    private static String getServiceTypeEnum(String ServiceType) {
+    private static String getServiceTypeEnum(String serviceType) {
         HashMap<String, String> serviceTypeHashMap = new HashMap<>();
 
         serviceTypeHashMap.put("Specified Money Claims", "CMC");
@@ -51,11 +51,11 @@ public enum PaymentReportType {
         serviceTypeHashMap.put("Civil","CIVIL");
         serviceTypeHashMap.put("Family Private Law","PRL");
 
-        if (ServiceType != null) {
-            return serviceTypeHashMap.get(ServiceType);
+        if (serviceType != null) {
+            return serviceTypeHashMap.get(serviceType);
         }
 
 //        Throw some error here?
-        return "invalid ServiceType";
+        return serviceType;
     }
 }
