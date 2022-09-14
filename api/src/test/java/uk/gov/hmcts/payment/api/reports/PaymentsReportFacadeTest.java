@@ -65,18 +65,18 @@ public class PaymentsReportFacadeTest {
         facade = null;
     }
 
-//    @Test
-//    public void shouldDelegateToServiceIfEnabled() {
-//        // given
-//        Date fromDate = new Date();
-//        Date toDate = new Date();
-//
-//        // when
-//        facade.generateCsvAndSendEmail(fromDate, toDate, CARD, null);
-//
-//        // then
-//        verify(reportService).generateCsvAndSendEmail(fromDate, toDate, CARD, null, cardPaymentReportConfig);
-//    }
+    @Test
+    public void shouldDelegateToServiceIfEnabled() {
+        // given
+        Date fromDate = new Date();
+        Date toDate = new Date();
+
+        // when
+        facade.generateCsvAndSendEmail(fromDate, toDate, CARD, null);
+
+        // then
+        verify(reportService).generateCsvAndSendEmail(fromDate, toDate, CARD, null, cardPaymentReportConfig);
+    }
 
 //    @Test
 //    public void shouldDelegateToServiceIfExistingConfigurationForService() {
@@ -91,20 +91,20 @@ public class PaymentsReportFacadeTest {
 //        verify(reportService).generateCsvAndSendEmail(fromDate, toDate, null, "DIGITAL BAR", barPaymentReportConfig);
 //    }
 //
-//    @Test
-//    public void PbaCmcDelegatePaymentReportType() {
-//
-//        // given
-//        Date fromDate = new Date();
-//        Date toDate = new Date();
-//
-//        // given & when
-//
-//        facade.generateCsvAndSendEmail(fromDate, toDate, PBA, "Specified Money Claims");
-//
-//        verify(reportService).generateCsvAndSendEmail(fromDate, toDate, PBA, "Specified Money Claims", pbaCmcPaymentReportConfig);
-//
-//    }
+    @Test
+    public void PbaCmcDelegatePaymentReportType() {
+
+        // given
+        Date fromDate = new Date();
+        Date toDate = new Date();
+
+        // given & when
+
+        facade.generateCsvAndSendEmail(fromDate, toDate, PBA, "Specified Money Claims");
+
+        verify(reportService).generateCsvAndSendEmail(fromDate, toDate, PBA, "Specified Money Claims", pbaCmcPaymentReportConfig);
+
+    }
 
     @Test
     public void shouldThrowExceptionForInvalidPaymentReportType() {
