@@ -51,11 +51,6 @@ public enum PaymentReportType {
         serviceTypeHashMap.put("Civil","CIVIL");
         serviceTypeHashMap.put("Family Private Law","PRL");
 
-        if (serviceType != null) {
-            return serviceTypeHashMap.get(serviceType);
-        }
-
-//        Throw some error here?
-        return serviceType;
+        return serviceTypeHashMap.getOrDefault(serviceType, serviceType);
     }
 }

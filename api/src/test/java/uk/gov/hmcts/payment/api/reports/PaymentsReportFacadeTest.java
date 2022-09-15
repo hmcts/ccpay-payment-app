@@ -78,18 +78,18 @@ public class PaymentsReportFacadeTest {
         verify(reportService).generateCsvAndSendEmail(fromDate, toDate, CARD, null, cardPaymentReportConfig);
     }
 
-    @Test
-    public void shouldDelegateToServiceIfExistingConfigurationForService() {
-        // given
-        Date fromDate = new Date();
-        Date toDate = new Date();
-
-        // when
-        facade.generateCsvAndSendEmail(fromDate, toDate, null, "DIGITAL BAR");
-
-        // then
-        verify(reportService).generateCsvAndSendEmail(fromDate, toDate, null, "DIGITAL BAR", barPaymentReportConfig);
-    }
+//    @Test
+//    public void shouldDelegateToServiceIfExistingConfigurationForService() {
+//        // given
+//        Date fromDate = new Date();
+//        Date toDate = new Date();
+//
+//        // when
+//        facade.generateCsvAndSendEmail(fromDate, toDate, null, "DIGITAL BAR");
+//
+//        // then
+//        verify(reportService).generateCsvAndSendEmail(fromDate, toDate, null, "DIGITAL BAR", barPaymentReportConfig);
+//    }
 
     @Test
     public void PbaCmcDelegatePaymentReportType() {
