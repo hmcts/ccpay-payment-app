@@ -239,6 +239,9 @@
             snakeyaml v1.31 (most recent patch available currently) does not resolve the issue.
         </notes>
         <cve>CVE-2022-25857</cve>
+        <cve>CVE-2022-38749</cve>
+        <cve>CVE-2022-38750</cve>
+        <cve>CVE-2022-38751</cve>
     </suppress>
 
     <!-- Supression Group ends here -->
