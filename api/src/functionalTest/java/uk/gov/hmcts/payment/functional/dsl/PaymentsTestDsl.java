@@ -36,6 +36,9 @@ public class PaymentsTestDsl {
     @Value("${test.url}")
     private String baseURL;
 
+    @Value("${bulk.scanning.payments.processed.url}")
+    private String bulkScanUrl;
+
     @Autowired
     private S2sTokenService serviceTokenFactory;
 
@@ -277,6 +280,11 @@ public class PaymentsTestDsl {
             sb.append("&service_name=").append(serviceName);
             response = newRequest().get(sb.toString());
 
+            return this;
+        }
+
+        public PaymentWhenDsl unprocessedPaymentUpdateJob() {
+            response = newRequest().patch("/jobs/unprocessed-payment-update");
             return this;
         }
 

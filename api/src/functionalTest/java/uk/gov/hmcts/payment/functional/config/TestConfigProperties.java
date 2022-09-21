@@ -77,4 +77,6 @@ public class TestConfigProperties {
     @Value("${service.request.cpo.update.service.s2s.topic.name}")
     public String serviceRequestCpoUpdateServices2sTopicName;
 
+    @Value("${bulk.scanning.payments.processed.url}")
+    public String bulkScanUrl;
 }

@@ -403,7 +403,6 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
 
         LOG.info(" CcdCaseNumber updated for failure Gov.uk response : {}" ,paymentFeeLink.getCcdCaseNumber());
         LOG.info(" PaymentReference updated for failure Gov.uk response : {}" ,paymentFeeLink.getPaymentReference());
-        LOG.info(" Payments updated for failure Gov.uk response : {}" ,paymentFeeLink.getPayments());
         LOG.info("payment saved payment table successfully for failure case : Out");
 
         return paymentFeeLink;
