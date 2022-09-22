@@ -45,6 +45,7 @@ import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
 import uk.gov.hmcts.payment.api.external.client.dto.State;
 import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
@@ -728,16 +729,16 @@ public class ServiceRequestControllerTest {
                 build();
 
         //assert not equal scenario
-        assertFalse(serviceRequestPaymentDto.equals(serviceRequestPaymentDto2));
+        assertNotEquals(serviceRequestPaymentDto, serviceRequestPaymentDto2);
 
         serviceRequestPaymentDto2.setCustomerReference("testCustReference");
         //assert equal scenario
-        assertTrue(serviceRequestPaymentDto.equals(serviceRequestPaymentDto)); //same Object
-        assertTrue(serviceRequestPaymentDto.equals(serviceRequestPaymentDto2)); //Different Object
+        assertEquals(serviceRequestPaymentDto, serviceRequestPaymentDto); //same Object
+        assertEquals(serviceRequestPaymentDto, serviceRequestPaymentDto2); //Different Object
 
         //assert different class scenario
         ServiceRequestDto serviceRequestDto = ServiceRequestDto.serviceRequestDtoWith().build();
-        assertFalse(serviceRequestPaymentDto.equals(serviceRequestDto));
+        assertNotEquals(serviceRequestPaymentDto, serviceRequestDto);
 
         //Hashcode coverage
         assertTrue(Integer.valueOf(serviceRequestPaymentDto.hashCode()) instanceof Integer);

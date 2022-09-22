@@ -2,7 +2,6 @@ package uk.gov.hmcts.payment.api.componenttests;
 
 import org.joda.time.MutableDateTime;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.annotation.DirtiesContext;
@@ -20,8 +19,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 
-@Ignore
-@DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
+@DirtiesContext(classMode= DirtiesContext.ClassMode.BEFORE_CLASS)
 public class PaymentReconciliationComponentTest extends TestUtil {
     private PaymentsDataUtil paymentsDataUtil;
 
@@ -41,7 +39,8 @@ public class PaymentReconciliationComponentTest extends TestUtil {
     }
 
     @Test
-    public void testFindPaymetsBetweenGivenValidDates() throws Exception {
+    public void testFindPaymetsBetweenGivenValidDates() {
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
         String paymentRef1 = UUID.randomUUID().toString();
         PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.save(paymentFeeLinkWith().paymentReference(paymentRef1)
             .payments(paymentsDataUtil.getCardPaymentsData())
@@ -64,11 +63,11 @@ public class PaymentReconciliationComponentTest extends TestUtil {
         List<PaymentFeeLink> paymentFeeLinks = paymentFeeLinkRepository.findAll(findByDatesBetween(mFromDate.toDate(), mToDate.toDate()));
 
         assertNotNull(paymentFeeLink);
-        assertEquals(paymentFeeLinks.size(), 2);
+        assertEquals(2, paymentFeeLinks.size());
     }
 
     @Test
-    public void testFindPaymetsBetweenGivenInValidDates() throws Exception {
+    public void testFindPaymetsBetweenGivenInValidDates() {
 
         String paymentRef3 = UUID.randomUUID().toString();
         PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.save(paymentFeeLinkWith().paymentReference(paymentRef3)
@@ -93,7 +92,7 @@ public class PaymentReconciliationComponentTest extends TestUtil {
         List<PaymentFeeLink> paymentFeeLinks = paymentFeeLinkRepository.findAll(findByDatesBetween(mFromDate.toDate(), mToDate.toDate()));
 
         assertNotNull(paymentFeeLink);
-        assertEquals(paymentFeeLinks.size(), 0);
+        assertEquals(0, paymentFeeLinks.size());
     }
 
 }
