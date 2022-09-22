@@ -534,6 +534,12 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             Payment payment = paymentRepository.findByReference(paymentReference).orElseThrow(PaymentNotFoundException::new);
             BigDecimal balanceAvailable;
             Boolean refundRole;
+            List<String> paymentList = new ArrayList<>();
+            for (PaymentDto payment1 : paymentGroupDto.getPayments()) {
+
+                paymentList.add(payment1.getReference());
+            }
+            Optional<List<PaymentFailures>> paymentFailuresList = paymentFailureRepository.findFailedPayments(paymentList);
 
             //get the RefundListDtoResponse by calling refunds app
             RefundListDtoResponse refundListDtoResponse = getRefundsFromRefundService(payment.getCcdCaseNumber(), headers);
@@ -608,6 +614,16 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                                         fee.setAddRemission(true);
                                     }
                                 }
+                                        if (paymentFailuresList.isPresent()) {
+
+                                            paymentFailuresList.get().forEach(paymentFailures -> {
+
+                                                if (paymentFailures.getPaymentReference().equals(paymentDto.getReference())) {
+                                                    remission.setAddRefund(false);
+
+                                                }
+                                            });
+                                        }
                             }
                         }
                         else{
@@ -668,7 +684,17 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                     }
                     });
                 }
-            }
+                        if (paymentFailuresList.isPresent()) {
+
+                            paymentFailuresList.get().forEach(paymentFailures -> {
+
+                                if (paymentFailures.getPaymentReference().equals(paymentDto.getReference())) {
+                                    paymentDto.setIssueRefund(false);
+
+                                }
+                            });
+                        }
+                    }
         }
         return paymentGroupDto;
     }
@@ -681,6 +707,17 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
             BigDecimal balanceAvailable;
             Boolean refundRole;
+
+            List<String> paymentList = new ArrayList<>();
+            for (PaymentGroupDto paymentGroupDto : paymentGroupResponse.getPaymentGroups()) {
+
+                for (PaymentDto payment : paymentGroupDto.getPayments()) {
+
+                    paymentList.add(payment.getReference());
+                }
+            }
+
+            Optional<List<PaymentFailures>> paymentFailuresList = paymentFailureRepository.findFailedPayments(paymentList);
 
             //get the RefundListDtoResponse by calling refunds app
             RefundListDtoResponse refundListDtoResponse = getRefundsFromRefundService(ccdCaseNumber, headers);
@@ -741,6 +778,19 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                                             payment.setIssueRefund(true);
                                         }
                                     }
+                                    paymentGroupDto.getPayments().forEach(paymentDto -> {
+                                            if (paymentFailuresList.isPresent()) {
+
+                                                paymentFailuresList.get().forEach(paymentFailures -> {
+
+                                                    if (paymentFailures.getPaymentReference().equals(paymentDto.getReference())) {
+                                                        remission.setAddRefund(false);
+
+                                                    }
+                                                });
+                                            }
+                                        }
+                                    );
                                 }
                                 //If the fee does not have a remission, check if theres any other active remissions in this payment group
                                 else{
@@ -811,6 +861,19 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                     }
                     );
 
+                    paymentGroupDto.getPayments().forEach(paymentDto -> {
+                        if (paymentFailuresList.isPresent()) {
+
+                            paymentFailuresList.get().forEach(paymentFailures -> {
+
+                                if (paymentFailures.getPaymentReference().equals(paymentDto.getReference())) {
+                                    paymentDto.setIssueRefund(false);
+
+                                }
+                            });
+                        }
+                    }
+                    );
                 }
             }
         }
