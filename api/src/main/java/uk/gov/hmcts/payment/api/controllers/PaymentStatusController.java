@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.dto.*;
@@ -18,8 +19,12 @@ import uk.gov.hmcts.payment.api.service.PaymentStatusUpdateService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import javax.validation.Valid;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static uk.gov.hmcts.payment.api.util.DateUtil.atEndOfDay;
+import static uk.gov.hmcts.payment.api.util.DateUtil.atStartOfDay;
 
 
 @RestController
@@ -28,6 +33,7 @@ import java.util.stream.Collectors;
 public class PaymentStatusController {
     private static final Logger LOG = LoggerFactory.getLogger(PaymentStatusController.class);
     private static final String PAYMENT_STATUS_UPDATE_FLAG = "payment-status-update-flag";
+    private static final String SUCCESSFUL_OPERATION = "successful operation";
 
     @Autowired
     private PaymentStatusUpdateService paymentStatusUpdateService;
@@ -50,14 +56,18 @@ public class PaymentStatusController {
     @PostMapping(path = "/payment-failures/bounced-cheque")
     public ResponseEntity<String> paymentStatusBouncedCheque(@Valid @RequestBody PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto){
 
-        LOG.info("Received payment status request bounced-cheque : {}", paymentStatusBouncedChequeDto);
+        if (featureToggler.getBooleanValue(PAYMENT_STATUS_UPDATE_FLAG,false)) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+        }
+
+        LOG.info("Received payment status request for bounced-cheque : {}", paymentStatusBouncedChequeDto);
          PaymentFailures insertPaymentFailures =  paymentStatusUpdateService.insertBounceChequePaymentFailure(paymentStatusBouncedChequeDto);
 
           if(null != insertPaymentFailures.getId()){
               paymentStatusUpdateService.cancelFailurePaymentRefund(paymentStatusBouncedChequeDto.getPaymentReference());
             }
 
-        return new ResponseEntity<>("successful operation", HttpStatus.OK);
+        return new ResponseEntity<>(SUCCESSFUL_OPERATION, HttpStatus.OK);
 
     }
 
@@ -65,14 +75,33 @@ public class PaymentStatusController {
     @PostMapping(path = "/payment-failures/chargeback")
     public ResponseEntity<String> paymentStatusChargeBack(@Valid @RequestBody PaymentStatusChargebackDto paymentStatusChargebackDto){
 
-        LOG.info("Received payment status request chargeback : {}", paymentStatusChargebackDto);
+        if (featureToggler.getBooleanValue(PAYMENT_STATUS_UPDATE_FLAG,false)) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+        }
+
+        LOG.info("Received payment status request for chargeback : {}", paymentStatusChargebackDto);
 
         PaymentFailures insertPaymentFailures = paymentStatusUpdateService.insertChargebackPaymentFailure(paymentStatusChargebackDto);
 
         if(null != insertPaymentFailures.getId()){
             paymentStatusUpdateService.cancelFailurePaymentRefund(paymentStatusChargebackDto.getPaymentReference());
         }
-        return new ResponseEntity<>("successful operation", HttpStatus.OK);
+        return new ResponseEntity<>(SUCCESSFUL_OPERATION, HttpStatus.OK);
+    }
+
+    @PaymentExternalAPI
+    @PostMapping(path = "/payment-failures/unprocessed-payment")
+    public ResponseEntity<String> unprocessedPayment(@Valid @RequestBody UnprocessedPayment unprocessedPayment,
+                                                     @RequestHeader(required = false) MultiValueMap<String, String> headers) {
+        if (featureToggler.getBooleanValue(PAYMENT_STATUS_UPDATE_FLAG,false)) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+        }
+
+        LOG.info("Received payment status request for unprocessed payment : {}", unprocessedPayment);
+
+        paymentStatusUpdateService.unprocessedPayment(unprocessedPayment, headers);
+
+        return new ResponseEntity<>(SUCCESSFUL_OPERATION, HttpStatus.OK);
     }
 
     @ApiOperation(value = "Get payment failure by payment reference", notes = "Get payment failure for supplied payment reference")
@@ -83,6 +112,10 @@ public class PaymentStatusController {
     })
     @GetMapping("/payment-failures/{paymentReference}")
     public PaymentFailureResponse retrievePaymentFailure(@PathVariable("paymentReference") String paymentReference) {
+
+        if (featureToggler.getBooleanValue(PAYMENT_STATUS_UPDATE_FLAG,false)) {
+            throw new LiberataServiceInaccessibleException("service unavailable");
+        }
 
         List<PaymentFailureResponseDto> payments = paymentStatusUpdateService
             .searchPaymentFailure(paymentReference)
@@ -107,11 +140,51 @@ public class PaymentStatusController {
     @PaymentExternalAPI
     @PatchMapping("/payment-failures/{failureReference}")
     public ResponseEntity<String> paymentStatusSecond(@PathVariable("failureReference") String failureReference,
-                                                      @RequestBody PaymentStatusUpdateSecond paymentStatusUpdateSecondDto){
-
-        LOG.info("Received payment status update second ping request: {}", paymentStatusUpdateSecondDto);
+                                                      @RequestBody PaymentStatusUpdateSecond paymentStatusUpdateSecondDto) {
+        if (featureToggler.getBooleanValue(PAYMENT_STATUS_UPDATE_FLAG,false)) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+        }
+        LOG.info("Received payment status update request for second ping: {}", paymentStatusUpdateSecondDto);
         paymentStatusUpdateService.updatePaymentFailure(failureReference, paymentStatusUpdateSecondDto);
-        return new ResponseEntity<>("Successful operation", HttpStatus.OK);
+        return new ResponseEntity<>(SUCCESSFUL_OPERATION, HttpStatus.OK);
+    }
+
+    @ApiOperation(value = "update payment reference for unprocessed payment", notes = "update payment reference for unprocessed payment")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "payment reference updated successfully")
+    })
+    @PatchMapping(value = "/jobs/unprocessed-payment-update")
+    public void updateUnprocessedPayment(){
+
+        if (!featureToggler.getBooleanValue(PAYMENT_STATUS_UPDATE_FLAG,false)) {
+            LOG.info("Received unprocessed payment update job request");
+
+            paymentStatusUpdateService.updateUnprocessedPayment();
+        } else{
+            LOG.info(" flag for unprocessed payment update job request is enable");
+        }
+
+    }
+
+    @ApiOperation(value = "API to generate report for payment failure ", notes = "Get list of payments failures by providing date range. MM/dd/yyyy is  the supported date/time format.")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Report Generated"),
+        @ApiResponse(code = 404, message = "No Data found to generate Report"),
+        @ApiResponse(code = 500, message = "Internal Server Error")
+    })
+    @GetMapping("/payment-failures/failure-report")
+    public PaymentFailureReportResponse retrievePaymentFailureReport(@RequestParam("date_from") Date fromDate,
+                                                                      @RequestParam("date_to") Date toDate,
+                                                                      @RequestHeader(required = false) MultiValueMap<String, String> headers,
+                                                                      @RequestHeader("Authorization") String authorization) {
+
+        if (featureToggler.getBooleanValue(PAYMENT_STATUS_UPDATE_FLAG,false)) {
+            throw new LiberataServiceInaccessibleException("service unavailable");
+        }
+
+        LOG.info("Received payment status report request");
+       List<PaymentFailureReportDto> paymentFailureReportDto =  paymentStatusUpdateService.paymentFailureReport(atStartOfDay(fromDate), atEndOfDay(toDate),headers);
+        return new PaymentFailureReportResponse(paymentFailureReportDto);
     }
 
     @ResponseStatus(HttpStatus.TOO_MANY_REQUESTS)
@@ -132,5 +205,10 @@ public class PaymentStatusController {
         return ex.getMessage();
     }
 
+    @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
+    @ExceptionHandler({LiberataServiceInaccessibleException.class})
+    public String return503(Exception ex) {
+        return ex.getMessage();
+    }
 
 }

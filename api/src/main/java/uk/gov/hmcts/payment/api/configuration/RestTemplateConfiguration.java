@@ -56,4 +56,8 @@ public class RestTemplateConfiguration {
         return  new RestTemplate(new HttpComponentsClientHttpRequestFactory());
     }
 
+    @Bean("restTemplateGetRefund")
+    public RestTemplate restTemplateGetRefund() {
+        return  new RestTemplate(new HttpComponentsClientHttpRequestFactory());
+    }
 }
