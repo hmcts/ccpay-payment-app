@@ -41,7 +41,7 @@ public interface Payment2Repository extends CrudRepository<Payment, Integer>, Jp
 
     List<Payment> findByDocumentControlNumberInAndPaymentMethod(List<String> dcn, PaymentMethod paymentMethod);
 
-    Optional<List<Payment>> findByReferenceIn(List<String> reference);
+//    Optional<List<Payment>> findByReferenceIn(List<String> reference);
 
     @Modifying
     @Query(value = "UPDATE payment SET date_updated = :rollbackdate where ccd_case_number = :ccdcasenumber",nativeQuery = true)
