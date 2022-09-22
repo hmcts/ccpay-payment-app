@@ -116,7 +116,7 @@ public class PaymentServiceImplTest {
     @Test
     public void givenNoData_whenRetrievePayment_thenPaymentsReceived() {
         List<Payment> paymentList = new ArrayList<>();
-        when(paymentRepository.findByReferenceIn(anyList())).thenReturn(Optional.of(paymentList));
+        when(paymentRepository.findByReferenceIn(anyList())).thenReturn(paymentList);
 
         List<Payment> payments = paymentService.retrievePayment(Arrays.asList("RC-1519-9028-2432-000"));
         assertNotNull(payments);
@@ -126,7 +126,7 @@ public class PaymentServiceImplTest {
     @Test
     public void givenValidReference_whenRetrievePayment_thenPaymentsReceived() {
         List<Payment> paymentList = List.of(getPayment());
-        when(paymentRepository.findByReferenceIn(anyList())).thenReturn(Optional.of(paymentList));
+        when(paymentRepository.findByReferenceIn(anyList())).thenReturn(paymentList);
 
         List<Payment> payments = paymentService.retrievePayment(Arrays.asList("RC-1519-9028-2432-000"));
         assertNotNull(payments);
