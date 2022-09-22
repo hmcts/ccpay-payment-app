@@ -11,7 +11,6 @@ import lombok.Setter;
 import uk.gov.hmcts.payment.api.model.ContactDetails;
 
 import java.math.BigDecimal;
-import java.util.Date;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
@@ -48,5 +47,5 @@ public class RefundDto {
 
     private String feeIds;
 
-    private Date refundDate;
+    private String refundDate;
 }
