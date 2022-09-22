@@ -1298,8 +1298,8 @@ public class PaymentRefundsServiceTest {
         paymentRefundsService.checkRefundAgainstRemissionV2(header, paymentGroupResponse,"1111222233334444");
 
         assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
-        assertEquals(paymentGroupResponse.getPaymentGroups().get(0).getPayments().get(0).isIssueRefund(), false);
-        assertEquals(paymentGroupResponse.getPaymentGroups().get(0).getRemissions().get(0).isAddRefund(), false);
+        assertEquals(false,paymentGroupResponse.getPaymentGroups().get(0).getPayments().get(0).isIssueRefund());
+        assertEquals(false,paymentGroupResponse.getPaymentGroups().get(0).getRemissions().get(0).isAddRefund());
 
     }
 
@@ -1373,8 +1373,8 @@ public class PaymentRefundsServiceTest {
             eq(RefundListDtoResponse.class))).thenReturn(responseEntity);
         Mockito.when(paymentFailureRepository.findFailedPayments(anyList())).thenReturn(Optional.of(getPaymentFailureList()));
         PaymentGroupDto paymentGroupDto1 =  paymentRefundsService.checkRefundAgainstRemissionFeeApportionV2(header, paymentGroupDto,"1111222233334444");
-        assertEquals(paymentGroupDto1.getPayments().get(0).isIssueRefund(), false);
-        assertEquals(paymentGroupDto1.getRemissions().get(0).isAddRefund(), false);
+        assertEquals(false,paymentGroupDto1.getPayments().get(0).isIssueRefund());
+        assertEquals(false,paymentGroupDto1.getRemissions().get(0).isAddRefund());
 
     }
 
