@@ -213,4 +213,45 @@ public class PaymentTestService {
                 .when()
                 .patch("/payment-failures/{failureReference}", failureReference);
     }
+
+    public Response postUnprocessedPayment(String serviceToken,
+                                           UnprocessedPayment unprocessedPayment) {
+        return givenWithServiceHeaders(serviceToken)
+                .contentType(ContentType.JSON)
+                .body(unprocessedPayment)
+                .when()
+                .post("/payment-failures/unprocessed-payment");
+    }
+
+    public Response createBulkScanPayment(String serviceToken, BulkScanPayment bulkScanPayment, final String baseUri) {
+        return givenWithServiceHeaders(serviceToken)
+                .baseUri(baseUri)
+                .contentType(ContentType.JSON)
+                .body(bulkScanPayment)
+                .when()
+                .post("/bulk-scan-payment");
+    }
+
+    public Response completeBulkScanPayment(String serviceToken, BulkScanPayments bulkScanPayment, final String baseUri) {
+        return givenWithServiceHeaders(serviceToken)
+                .baseUri(baseUri)
+                .contentType(ContentType.JSON)
+                .body(bulkScanPayment)
+                .when()
+                .post("/bulk-scan-payments");
+    }
+
+    public Response getBulkScanPayment(String serviceToken, String dcn, final String baseUri) {
+        return givenWithServiceHeaders(serviceToken)
+                .baseUri(baseUri)
+                .when()
+                .get("/case/{dcn}", dcn);
+    }
+
+    public Response deleteBulkScanPayment(String serviceToken, String dcn, final String baseUri) {
+        return givenWithServiceHeaders(serviceToken)
+                .baseUri(baseUri)
+                .when()
+                .delete("/bulk-scan-payment/{dcn}", dcn);
+    }
 }

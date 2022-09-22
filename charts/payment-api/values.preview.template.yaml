@@ -51,3 +51,4 @@ java:
         - ccpay-cpo-user-id
   postgresql:
     enabled: true
+
