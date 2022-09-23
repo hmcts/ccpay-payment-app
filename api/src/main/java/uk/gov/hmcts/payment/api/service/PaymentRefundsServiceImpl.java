@@ -720,6 +720,8 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
             Optional<List<PaymentFailures>> paymentFailuresList = paymentFailureRepository.findFailedPayments(paymentList);
 
+            LOG.info("paymentFailuresList : {}", paymentFailuresList.get());
+
             //get the RefundListDtoResponse by calling refunds app
             RefundListDtoResponse refundListDtoResponse = getRefundsFromRefundService(ccdCaseNumber, headers);
             LOG.info("refundListDtoResponse : {}", refundListDtoResponse);
