@@ -102,8 +102,6 @@ public class CaseController {
     @RequestMapping(value = "/cases/{ccdcasenumber}/paymentgroups", method = GET)
     public PaymentGroupResponse retrieveCasePaymentGroups(@PathVariable(name = "ccdcasenumber") String ccdCaseNumber,
         @RequestHeader(required = false) MultiValueMap<String, String> headers) {
-
-        System.out.println("inside cretrieveCasePaymentGroups method");
         LOG.info("inside cretrieveCasePaymentGroups method");
         refundRemissionEnableService.isRolePresent(headers);
         List<PaymentGroupDto> paymentGroups = paymentGroupService

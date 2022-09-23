@@ -703,7 +703,6 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
     public PaymentGroupResponse checkRefundAgainstRemissionV2(MultiValueMap<String, String> headers,
                                                               PaymentGroupResponse paymentGroupResponse, String ccdCaseNumber) {
-        System.out.println("inside checkRefundAgainstRemissionV2 method");
         LOG.info("inside checkRefundAgainstRemissionV2 method");
         //check roles
         if(isContainsPaymentsRefundRole()) {
