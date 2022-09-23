@@ -703,6 +703,8 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
     public PaymentGroupResponse checkRefundAgainstRemissionV2(MultiValueMap<String, String> headers,
                                                               PaymentGroupResponse paymentGroupResponse, String ccdCaseNumber) {
+        System.out.println("inside checkRefundAgainstRemissionV2 method");
+        LOG.info("inside checkRefundAgainstRemissionV2 method");
         //check roles
         if(isContainsPaymentsRefundRole()) {
 
@@ -783,10 +785,11 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                                     }
                                     paymentGroupDto.getPayments().forEach(paymentDto -> {
                                             if (paymentFailuresList.isPresent()) {
-
+                                                LOG.info("ENTERED PAYMENT FAILURE FOUND FOR REMISSION");
                                                 paymentFailuresList.get().forEach(paymentFailures -> {
 
                                                     if (paymentFailures.getPaymentReference().equals(paymentDto.getReference())) {
+                                                        LOG.info("ENTERED PAYMENT FAILURE FOUND FOR REMISSION1");
                                                         remission.setAddRefund(false);
 
                                                     }
@@ -866,10 +869,11 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
                     paymentGroupDto.getPayments().forEach(paymentDto -> {
                         if (paymentFailuresList.isPresent()) {
-
+                            LOG.info("ENTERED PAYMENT FAILURE FOUND FOR PAYMENT");
                             paymentFailuresList.get().forEach(paymentFailures -> {
 
                                 if (paymentFailures.getPaymentReference().equals(paymentDto.getReference())) {
+                                    LOG.info("ENTERED PAYMENT FAILURE FOUND FOR PAYMENT1");
                                     paymentDto.setIssueRefund(false);
 
                                 }
