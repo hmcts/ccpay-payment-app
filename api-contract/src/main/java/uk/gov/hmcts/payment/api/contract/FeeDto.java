@@ -86,6 +86,8 @@ public class FeeDto {
 
     private Boolean remissionEnable;
 
+    private boolean issueRefundAddRefundAddRemission;
+
     private BigDecimal overPayment;
 
     private boolean addRemission;

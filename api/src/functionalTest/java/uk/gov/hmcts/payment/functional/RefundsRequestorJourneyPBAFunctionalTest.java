@@ -6,6 +6,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -1483,6 +1484,8 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
             .build();
     }
 
+    // //Ignoring FT as currently launch darkly flag is enable.
+    @Ignore
     @Test
     public void issue_add_remission_and_add_refund_for_a_failed_payment() {
         // Create a PBA payment
