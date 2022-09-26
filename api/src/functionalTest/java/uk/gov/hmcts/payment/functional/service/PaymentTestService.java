@@ -254,4 +254,14 @@ public class PaymentTestService {
                 .when()
                 .delete("/bulk-scan-payment/{dcn}", dcn);
     }
+
+    public Response getPaymentApportion(final String userToken,
+                                            final String serviceToken,
+                                            final String paymentreference) {
+        return givenWithAuthHeaders(userToken, serviceToken)
+            .contentType(ContentType.JSON)
+            .when()
+            .get("/payment-groups/fee-pay-apportion/{paymentreference}",paymentreference);
+    }
+
 }
