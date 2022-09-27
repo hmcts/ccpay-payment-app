@@ -125,6 +125,8 @@ java:
         - pba-finrem-payments-email-to
         - pba-divorce-payments-email-to
         - pba-fpl-payments-email-to
+        - pba-civil-payments-email-to
+        - pba-prl-payments-email-to
         - launch-darkly-sdk-key
         - payment-s2s-secret
         - pci-pal-account-id-finrem
