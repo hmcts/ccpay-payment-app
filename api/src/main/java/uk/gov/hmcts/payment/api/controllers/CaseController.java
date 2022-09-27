@@ -6,8 +6,6 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import io.swagger.annotations.SwaggerDefinition;
 import io.swagger.annotations.Tag;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.MultiValueMap;
@@ -45,7 +43,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 @SwaggerDefinition(tags = {@Tag(name = "CaseController", description = "Case REST API")})
 @Validated
 public class CaseController {
-    private static final Logger LOG = LoggerFactory.getLogger(CaseController.class);
+
     private final PaymentService<PaymentFeeLink, String> paymentService;
     private final PaymentGroupService<PaymentFeeLink, String> paymentGroupService;
     private final PaymentDtoMapper paymentDtoMapper;
@@ -102,7 +100,7 @@ public class CaseController {
     @RequestMapping(value = "/cases/{ccdcasenumber}/paymentgroups", method = GET)
     public PaymentGroupResponse retrieveCasePaymentGroups(@PathVariable(name = "ccdcasenumber") String ccdCaseNumber,
         @RequestHeader(required = false) MultiValueMap<String, String> headers) {
-        LOG.info("inside cretrieveCasePaymentGroups method");
+
         refundRemissionEnableService.isRolePresent(headers);
         List<PaymentGroupDto> paymentGroups = paymentGroupService
             .search(ccdCaseNumber)
