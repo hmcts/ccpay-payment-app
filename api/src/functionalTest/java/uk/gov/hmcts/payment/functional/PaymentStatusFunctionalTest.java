@@ -10,7 +10,6 @@ import org.joda.time.DateTimeZone;
 
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,8 +60,6 @@ import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP
 @ContextConfiguration(classes = TestContextConfiguration.class)
 @ActiveProfiles({"functional-tests"})
 
-//Ignoring FT as currently launch darkly flag is enable.
-@Ignore
 public class PaymentStatusFunctionalTest {
 
     private static String USER_TOKEN;

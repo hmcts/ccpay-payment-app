@@ -75,12 +75,9 @@ public class PaymentStatusController {
     @PostMapping(path = "/payment-failures/chargeback")
     public ResponseEntity<String> paymentStatusChargeBack(@Valid @RequestBody PaymentStatusChargebackDto paymentStatusChargebackDto){
 
-        /* COMMENTED LAUNCH DARKLY FLAG FOR FT RUN . IT WILL BE UNCOMMENTED BACK ONCE FT COMPLETED*/
-
-        /*
         if (featureToggler.getBooleanValue(PAYMENT_STATUS_UPDATE_FLAG,false)) {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
-        }*/
+        }
 
         LOG.info("Received payment status request for chargeback : {}", paymentStatusChargebackDto);
 
@@ -145,11 +142,9 @@ public class PaymentStatusController {
     public ResponseEntity<String> paymentStatusSecond(@PathVariable("failureReference") String failureReference,
                                                       @RequestBody PaymentStatusUpdateSecond paymentStatusUpdateSecondDto) {
 
-        /* COMMENTED LAUNCH DARKLY FLAG FOR FT RUN . IT WILL BE UNCOMMENTED BACK ONCE FT COMPLETED*/
-
-        /*if (featureToggler.getBooleanValue(PAYMENT_STATUS_UPDATE_FLAG,false)) {
+        if (featureToggler.getBooleanValue(PAYMENT_STATUS_UPDATE_FLAG,false)) {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
-        }*/
+        }
         LOG.info("Received payment status update request for second ping: {}", paymentStatusUpdateSecondDto);
         paymentStatusUpdateService.updatePaymentFailure(failureReference, paymentStatusUpdateSecondDto);
         return new ResponseEntity<>(SUCCESSFUL_OPERATION, HttpStatus.OK);
