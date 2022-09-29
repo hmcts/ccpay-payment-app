@@ -141,7 +141,6 @@ public class PaymentStatusController {
     @PatchMapping("/payment-failures/{failureReference}")
     public ResponseEntity<String> paymentStatusSecond(@PathVariable("failureReference") String failureReference,
                                                       @RequestBody PaymentStatusUpdateSecond paymentStatusUpdateSecondDto) {
-
         if (featureToggler.getBooleanValue(PAYMENT_STATUS_UPDATE_FLAG,false)) {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
         }
