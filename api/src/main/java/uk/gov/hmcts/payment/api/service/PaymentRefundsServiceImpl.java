@@ -99,13 +99,14 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             .paymentReference(paymentRefundRequest.getPaymentReference())
             .refundAmount(paymentRefundRequest.getTotalRefundAmount())
             .paymentAmount(payment.getAmount())
-            .paymentMethod(payment.getPaymentMethod().toString())
+            .paymentMethod(payment.getPaymentMethod().getName())
             .ccdCaseNumber(payment.getCcdCaseNumber())
             .refundReason(paymentRefundRequest.getRefundReason())
             .feeIds(getFeeIds(paymentRefundRequest.getFees()))
             .refundFees(getRefundFees(paymentRefundRequest.getFees()))
             .contactDetails(paymentRefundRequest.getContactDetails())
             .serviceType(payment.getServiceType())
+            .paymentChannel(payment.getPaymentChannel().getName())
             .build();
 
         RefundResponse refundResponse = RefundResponse.RefundResponseWith()
@@ -181,8 +182,9 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                         .feeIds(getFeeIdsUsingPaymentFees(Collections.singletonList(paymentFee)))
                         .refundFees(getRefundFeesUsingPaymentFee(Collections.singletonList(paymentFee)))
                         .serviceType(payment.getServiceType())
-                        .paymentMethod(payment.getPaymentMethod().toString())
+                        .paymentMethod(payment.getPaymentMethod().getName())
                         .contactDetails(retrospectiveRemissionRequest.getContactDetails())
+                        .paymentChannel(payment.getPaymentChannel().getName())
                         .build();
                     RefundResponse refundResponse = RefundResponse.RefundResponseWith()
                         .refundAmount(remissionAmount)

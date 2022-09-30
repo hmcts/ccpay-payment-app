@@ -10,7 +10,9 @@ import java.util.List;
 
 public interface PaymentService<T, ID> {
 
-    T retrieve(ID id);
+    T retrievePayment(ID id);
+
+    List<Payment> retrievePayment(List<ID> id);
 
     List<Reference> listInitiatedStatusPaymentsReferences();
 
