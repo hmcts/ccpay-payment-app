@@ -5,6 +5,7 @@ import org.joda.time.DateTimeZone;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.dto.PaymentStatusBouncedChequeDto;
 import uk.gov.hmcts.payment.api.dto.PaymentStatusChargebackDto;
+import uk.gov.hmcts.payment.api.dto.UnprocessedPayment;
 import uk.gov.hmcts.payment.api.model.PaymentFailures;
 
 @Component
@@ -42,6 +43,22 @@ public class PaymentStatusDtoMapper {
                                 .toDate())
                 .failureType(CHARGEBACK)
                 .hasAmountDebited(paymentStatusChargebackDto.getHasAmountDebited())
+                .build();
+        return paymentFailures;
+    }
+
+    public PaymentFailures unprocessedPaymentMapper(UnprocessedPayment unprocessedPayment) {
+
+        PaymentFailures paymentFailures = PaymentFailures.paymentFailuresWith()
+                .failureReference(unprocessedPayment.getFailureReference())
+                .reason(unprocessedPayment.getReason())
+                .poBoxNumber(unprocessedPayment.getPoBoxNumber())
+                .amount(unprocessedPayment.getAmount())
+                .dcn(unprocessedPayment.getDcn())
+                .failureEventDateTime(
+                        DateTime.parse(unprocessedPayment.getEventDateTime()).withZone(DateTimeZone.UTC)
+                                .toDate())
+                .failureType(BOUNCEDCHEQUE)
                 .build();
         return paymentFailures;
     }

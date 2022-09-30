@@ -47,4 +47,5 @@ public class RefundDto {
 
     private String feeIds;
 
+    private String refundDate;
 }
