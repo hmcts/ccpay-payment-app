@@ -7,6 +7,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -114,19 +115,23 @@ public class PaymentServiceImplTest {
     }
 
     @Test
-    public void givenNoData_whenRetrievePayment_thenPaymentsReceived() {
+    public void givenNoData_whenRetrievePayment_thenPaymentNotFoundExceptionReceived() {
         List<Payment> paymentList = new ArrayList<>();
-        when(paymentRepository.findByReferenceIn(anyList())).thenReturn(Optional.of(paymentList));
+        when(paymentRepository.findByReferenceIn(anyList())).thenReturn(paymentList);
 
-        List<Payment> payments = paymentService.retrievePayment(Arrays.asList("RC-1519-9028-2432-000"));
-        assertNotNull(payments);
-        assertEquals(0, payments.size());
+        Exception exception = assertThrows(
+                PaymentNotFoundException.class,
+                () -> paymentService.retrievePayment(Arrays.asList("RC-1519-9028-2432-000"))
+        );
+
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains("No Payments found"));
     }
 
     @Test
     public void givenValidReference_whenRetrievePayment_thenPaymentsReceived() {
         List<Payment> paymentList = List.of(getPayment());
-        when(paymentRepository.findByReferenceIn(anyList())).thenReturn(Optional.of(paymentList));
+        when(paymentRepository.findByReferenceIn(anyList())).thenReturn(paymentList);
 
         List<Payment> payments = paymentService.retrievePayment(Arrays.asList("RC-1519-9028-2432-000"));
         assertNotNull(payments);

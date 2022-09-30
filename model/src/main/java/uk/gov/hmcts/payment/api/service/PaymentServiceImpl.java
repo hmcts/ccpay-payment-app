@@ -218,7 +218,7 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
         List<Payment> paymentList = new ArrayList<>();
 
         List<Payment> payments =
-            paymentRepository.findByReferenceIn(referenceList).orElseThrow(PaymentNotFoundException::new);
+            paymentRepository.findByReferenceIn(referenceList);
 
         if (null != payments && !payments.isEmpty()) {
             List<PaymentFeeLink> paymentFeeLinks = payments.stream()
@@ -232,6 +232,8 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
                     paymentList.add(payment.get());
                 }
             }
+        } else {
+            throw new PaymentNotFoundException("No Payments found");
         }
         return paymentList;
     }
