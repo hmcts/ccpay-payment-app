@@ -255,6 +255,12 @@ public class PaymentTestService {
                 .delete("/bulk-scan-payment/{dcn}", dcn);
     }
 
+    public Response getPbaPaymentsByReferenceNumberList(String serviceToken, String paymentReferenceList) {
+        return givenWithServiceHeaders(serviceToken)
+            .when()
+            .get("/refunds/payments?paymentReferenceList={paymentReferenceList}", paymentReferenceList);
+    }
+
     public Response getPaymentApportion(final String userToken,
                                             final String serviceToken,
                                             final String paymentreference) {

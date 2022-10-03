@@ -31,10 +31,7 @@ import uk.gov.hmcts.payment.api.util.ServiceRequestUtil;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -259,5 +256,4 @@ public class PaymentGroupDtoMapper {
         }
         return overpayment;
     }
-
 }
