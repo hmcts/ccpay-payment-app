@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.api.service;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -89,7 +90,8 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
             throw new PaymentNotFoundException("No Payments available for the given Payment reference");
         }
 
-        validatePaymentFailureAmount(paymentStatusBouncedChequeDto.getAmount(),payment.get());
+        validateBounceChequeRequest(paymentStatusBouncedChequeDto, payment.get());
+        validatePingOneDate(paymentStatusBouncedChequeDto.getEventDateTime(), payment.get().getDateUpdated());
 
         PaymentFailures paymentFailuresMap = paymentStatusDtoMapper.bounceChequeRequestMapper(paymentStatusBouncedChequeDto);
         try{
@@ -152,6 +154,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         }
 
         validatePaymentFailureAmount(paymentStatusChargebackDto.getAmount(),payment.get());
+        validatePingOneDate(paymentStatusChargebackDto.getEventDateTime(), payment.get().getDateUpdated());
         PaymentFailures paymentFailuresMap = paymentStatusDtoMapper.ChargebackRequestMapper(paymentStatusChargebackDto);
 
         try{
@@ -186,6 +189,27 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
     private void validatePaymentFailureAmount(BigDecimal disputeAmount, Payment payment){
         if(disputeAmount.compareTo(payment.getAmount()) > 0){
             throw new InvalidPaymentFailureRequestException("Failure amount cannot be more than payment amount");
+        }
+    }
+
+    private void validateBounceChequeRequest(PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto, Payment payment){
+
+        if (!(payment.getPaymentMethod().getName().equals(PaymentMethod.paymentMethodWith().name("cheque").build()))){
+            throw new InvalidPaymentFailureRequestException("Bad request");
+        }
+
+        int amountCompare = paymentStatusBouncedChequeDto.getAmount().compareTo(payment.getAmount());
+
+        if (amountCompare != 0) {
+            throw new InvalidPaymentFailureRequestException("Bad request");
+        }
+    }
+
+    private void validatePingOneDate(String pingOneDateStr, Date paymentDate){
+
+       Date pingOneDate =  DateTime.parse(pingOneDateStr).withZone(DateTimeZone.UTC).toDate();
+        if (pingOneDate.before(paymentDate)){
+            throw new InvalidPaymentFailureRequestException("Bad request");
         }
     }
 
