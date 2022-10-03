@@ -27,7 +27,6 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @Data
 public class FeeDto {
 
-   
     private Integer id;
 
     @NotEmpty
@@ -92,7 +91,6 @@ public class FeeDto {
 
     private boolean addRemission;
 
-    
 
     @Override
     public String toString() {

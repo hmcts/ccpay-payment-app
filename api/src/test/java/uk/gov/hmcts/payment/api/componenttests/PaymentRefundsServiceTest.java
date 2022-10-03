@@ -847,7 +847,7 @@ public class PaymentRefundsServiceTest {
 
     }
 
-    //@Test
+   // @Test
     @WithMockUser(authorities = "payments-refund-approver")
     public void checkRefundAgainstRemissionTest1(){
 
@@ -925,8 +925,7 @@ public class PaymentRefundsServiceTest {
     }
 
 
-
-    //@Test
+    @Test
     @WithMockUser(authorities = "payments-refund")
     public void checkRefundAgainstRemissionFeePayApprotionTest(){
 
@@ -1222,6 +1221,180 @@ public class PaymentRefundsServiceTest {
         Mockito.when(paymentFailureRepository.findByPaymentReference(getpayment().getReference())).thenReturn(Optional.of(paymentFailuresList));
         paymentRefundsService.createAndValidateRetrospectiveRemissionRequest(retrospectiveRemissionRequest, header);
 
+    }
+
+    @Test
+    @WithMockUser(authorities = "payments-refund")
+    public void checkRefundAgainstRemissionTestWhenPaymentFailure(){
+
+        RemissionDto remissionDto = RemissionDto.remissionDtoWith()
+            .ccdCaseNumber("1111222233334444")
+            .feeId(1)
+            .id("1").build();
+
+        List<RemissionDto> remissionDtoList = new ArrayList<>();
+        remissionDtoList.add(remissionDto);
+
+        PaymentDto paymentDto =  PaymentDto.payment2DtoWith()
+            .paymentReference("RC-2222-3333-4444-5555")
+            .reference("RC-2222-3333-4444-5555")
+            .amount(BigDecimal.valueOf(100)).build();
+
+        List<PaymentDto> paymentDtoList = new ArrayList<>();
+        paymentDtoList.add(paymentDto);
+
+        FeeDto feeDto = FeeDto.feeDtoWith().id(1).build();
+
+        List<FeeDto> feeDtoList = new ArrayList<>();
+        feeDto.setCcdCaseNumber("1111222233334444");
+        feeDtoList.add(feeDto);
+
+        PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
+            .remissions(remissionDtoList)
+            .payments(paymentDtoList)
+            .fees(feeDtoList).build();
+
+        List<PaymentGroupDto> paymentGroupDtoList = new ArrayList<>();
+        paymentGroupDtoList.add(paymentGroupDto);
+
+        PaymentGroupResponse paymentGroupResponse = PaymentGroupResponse.paymentGroupResponseWith()
+            .paymentGroups(paymentGroupDtoList).build();
+
+        List<PaymentGroupResponse> paymentGroupResponseList = new ArrayList<>();
+        paymentGroupResponseList.add(paymentGroupResponse);
+
+        RefundDto refundDto = RefundDto.buildRefundListDtoWith()
+            .refundReference("RF-1111-2222-3333-4444")
+            .paymentReference("RC-2222-3333-4444-5555")
+            .feeIds("50")
+            .refundStatus(RefundStatus.buildRefundStatusWith().name("Accepted").build())
+            .reason("Retrospective remission")
+            .ccdCaseNumber("1111222233334444")
+            .amount(BigDecimal.valueOf(50)).build();
+
+        RefundDto refundDto2 = RefundDto.buildRefundListDtoWith()
+            .refundReference("RF-1111-2222-3333-4444")
+            .paymentReference("RC-2222-3333-4444-5555")
+            .feeIds("50")
+            .refundStatus(RefundStatus.buildRefundStatusWith().name("Accepted").build())
+            .reason("Retrospective remission")
+            .ccdCaseNumber("1111222233334444")
+            .amount(BigDecimal.valueOf(1000)).build();
+
+        List<RefundDto> refundDtoList = new ArrayList<>();
+        refundDtoList.add(refundDto);
+        refundDtoList.add(refundDto2);
+
+        RefundListDtoResponse mockRefundListDtoResponse = RefundListDtoResponse.buildRefundListWith()
+            .refundList(refundDtoList).build();
+
+        ResponseEntity<RefundListDtoResponse> responseEntity =
+            new ResponseEntity<>(mockRefundListDtoResponse, HttpStatus.OK);
+
+        when(authTokenGenerator.generate()).thenReturn("test-token");
+
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+            eq(RefundListDtoResponse.class))).thenReturn(responseEntity);
+        Mockito.when(paymentFailureRepository.findFailedPayments(anyList())).thenReturn(Optional.of(getPaymentFailureList()));
+        paymentRefundsService.checkRefundAgainstRemissionV2(header, paymentGroupResponse,"1111222233334444");
+
+        assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
+        assertEquals(false,paymentGroupResponse.getPaymentGroups().get(0).getPayments().get(0).isIssueRefund());
+        assertEquals(false,paymentGroupResponse.getPaymentGroups().get(0).getRemissions().get(0).isAddRefund());
+
+    }
+
+    @Test
+    @WithMockUser(authorities = "payments-refund")
+    public void checkRefundAgainstRemissionFeePayApprotionTestForFailedPayment(){
+
+        RemissionDto remissionDto = RemissionDto.remissionDtoWith()
+            .ccdCaseNumber("1111222233334444")
+            .feeId(50).build();
+
+
+        List<RemissionDto> remissionDtoList = new ArrayList<>();
+        remissionDtoList.add(remissionDto);
+
+        PaymentDto paymentDto =  PaymentDto.payment2DtoWith()
+            .paymentReference("RC-2222-3333-4444-5555")
+            .reference("RC-2222-3333-4444-5555")
+
+            .amount(BigDecimal.valueOf(100)).build();
+
+        List<PaymentDto> paymentDtoList = new ArrayList<>();
+        paymentDtoList.add(paymentDto);
+
+        FeeDto feeDto = FeeDto.feeDtoWith().build();
+
+        List<FeeDto> feeDtoList = new ArrayList<>();
+        feeDtoList.add(feeDto);
+
+        PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
+            .remissions(remissionDtoList)
+            .payments(paymentDtoList)
+            .fees(feeDtoList).build();
+
+
+
+        RefundDto refundDto = RefundDto.buildRefundListDtoWith()
+            .refundReference("RF-1111-2222-3333-4444")
+            .paymentReference("RC-2222-3333-4444-5555")
+            .feeIds("50")
+            .refundStatus(RefundStatus.buildRefundStatusWith().name("Accepted").build())
+            .reason("Retrospective remission")
+            .amount(BigDecimal.valueOf(50)).build();
+
+        RefundDto refundDto2 = RefundDto.buildRefundListDtoWith()
+            .refundReference("RF-1111-2222-3333-4444")
+            .paymentReference("RC-2222-3333-4444-5555")
+            .feeIds("50")
+            .refundStatus(RefundStatus.buildRefundStatusWith().name("Accepted").build())
+            .reason("Retrospective remission")
+            .amount(BigDecimal.valueOf(1000)).build();
+
+        List<RefundDto> refundDtoList = new ArrayList<>();
+        refundDtoList.add(refundDto);
+        refundDtoList.add(refundDto2);
+
+        RefundListDtoResponse mockRefundListDtoResponse = RefundListDtoResponse.buildRefundListWith()
+            .refundList(refundDtoList).build();
+
+        ResponseEntity<RefundListDtoResponse> responseEntity =
+            new ResponseEntity<>(mockRefundListDtoResponse, HttpStatus.OK);
+
+        when(authTokenGenerator.generate()).thenReturn("test-token");
+
+        Payment mockPaymentSuccess1 = Payment.paymentWith().reference("RC-2222-3333-4444-5555")
+            .amount(BigDecimal.valueOf(40))
+            .build();
+        when(paymentRepository.findByReference(anyString())).thenReturn(Optional.of(mockPaymentSuccess1));
+
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+            eq(RefundListDtoResponse.class))).thenReturn(responseEntity);
+        Mockito.when(paymentFailureRepository.findFailedPayments(anyList())).thenReturn(Optional.of(getPaymentFailureList()));
+        PaymentGroupDto paymentGroupDto1 =  paymentRefundsService.checkRefundAgainstRemissionFeeApportionV2(header, paymentGroupDto,"1111222233334444");
+        assertEquals(false,paymentGroupDto1.getPayments().get(0).isIssueRefund());
+        assertEquals(false,paymentGroupDto1.getRemissions().get(0).isAddRefund());
+
+    }
+
+
+    private List<PaymentFailures> getPaymentFailureList(){
+
+        PaymentFailures paymentFailures = PaymentFailures.paymentFailuresWith()
+            .failureType("Bounced Cheque")
+            .paymentReference("RC-2222-3333-4444-5555")
+            .amount(BigDecimal.valueOf(555))
+            .ccdCaseNumber("123456789")
+            .failureReference("FR12345")
+            .id(1)
+            .reason("RR001")
+            .build();
+        List<PaymentFailures> paymentFailuresList  = new ArrayList<>();
+        paymentFailuresList.add(paymentFailures);
+
+        return paymentFailuresList;
     }
 
     private Payment getpayment(){
