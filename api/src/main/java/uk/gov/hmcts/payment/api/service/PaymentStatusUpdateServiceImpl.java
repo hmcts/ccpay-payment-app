@@ -194,14 +194,14 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
 
     private void validateBounceChequeRequest(PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto, Payment payment){
 
-        if (!(payment.getPaymentMethod().getName().equals(PaymentMethod.paymentMethodWith().name("cheque").build()))){
-            throw new InvalidPaymentFailureRequestException("Bad request");
+        if (!(payment.getPaymentMethod().getName().equals(PAYMENT_METHOD))){
+            throw new InvalidPaymentFailureRequestException("Incorrect payment method");
         }
 
         int amountCompare = paymentStatusBouncedChequeDto.getAmount().compareTo(payment.getAmount());
 
         if (amountCompare != 0) {
-            throw new InvalidPaymentFailureRequestException("Bad request");
+            throw new InvalidPaymentFailureRequestException("Dispute amount can not be less than payment amount");
         }
     }
 
@@ -209,7 +209,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
 
        Date pingOneDate =  DateTime.parse(pingOneDateStr).withZone(DateTimeZone.UTC).toDate();
         if (pingOneDate.before(paymentDate)){
-            throw new InvalidPaymentFailureRequestException("Bad request");
+            throw new InvalidPaymentFailureRequestException("Failure event date can not be prior to payment date");
         }
     }
 
@@ -225,6 +225,14 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
             if (!paymentFailure.isPresent()) {
                 throw new PaymentNotFoundException("No Payment Failure available for the given Failure reference");
             } else {
+                Date pingTwoDate =  DateTime.parse(paymentStatusUpdateSecond.getRepresentmentDate()).withZone(DateTimeZone.UTC).toDate();
+                if (pingTwoDate.before(paymentFailure.get().getFailureEventDateTime())){
+                    throw new InvalidPaymentFailureRequestException("Representment date can not be prior to failure event date");
+                }
+                if (paymentStatusUpdateSecond.getRepresentmentStatus().equals(RepresentmentStatus.Yes)
+                    && paymentFailure.get().getFailureType().equals("Chargeback")) {
+                    paymentFailure.get().setHasAmountDebited("No");
+                }
                 paymentFailure.get()
                         .setRepresentmentSuccess(paymentStatusUpdateSecond.getRepresentmentStatus().getStatus());
                 paymentFailure.get()
@@ -335,7 +343,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
     public PaymentFailures unprocessedPayment(UnprocessedPayment unprocessedPayment,
                                               MultiValueMap<String, String> headers) {
 
-        if (!validateDcn(unprocessedPayment.getDcn(), unprocessedPayment.getAmount(), headers)) {
+        if (!validateDcn(unprocessedPayment, headers)) {
             throw new PaymentNotFoundException("No Payments available for the given document reference number");
         }
 
@@ -349,7 +357,10 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         }
     }
 
-    private boolean validateDcn(String dcn, BigDecimal amount, MultiValueMap<String, String> headers) {
+    private boolean validateDcn(UnprocessedPayment unprocessedPayment, MultiValueMap<String, String> headers) {
+
+        String dcn = unprocessedPayment.getDcn();
+        BigDecimal amount =  unprocessedPayment.getAmount();
         String bsURL = bulkScanPaymentsProcessedUrl + casesPath + "/{document_control_number}?internalFlag=true";
         Map<String, String> params = new HashMap<>();
         params.put("document_control_number", dcn);
@@ -381,6 +392,9 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
                     LOG.info("amount comparison: {}", amount.compareTo(paymentMetadataDto.getAmount()));
                     if (dcn.equals(paymentMetadataDto.getDcnReference()) && amount.compareTo(paymentMetadataDto.getAmount()) > 0) {
                         throw new InvalidPaymentFailureRequestException("Failure amount cannot be more than payment amount");
+                    }
+                    if(dcn.equals(paymentMetadataDto.getDcnReference())) {
+                        validatePingOneDate(unprocessedPayment.getEventDateTime(), paymentMetadataDto.getDateUpdated());
                     }
                 }
             }

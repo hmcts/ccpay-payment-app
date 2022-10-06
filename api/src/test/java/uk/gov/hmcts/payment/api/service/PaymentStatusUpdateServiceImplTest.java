@@ -28,6 +28,8 @@ import uk.gov.hmcts.payment.api.dto.*;
 
 import java.math.BigDecimal;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -101,8 +103,9 @@ public class PaymentStatusUpdateServiceImplTest {
     private RestTemplate restTemplateGetRefund;
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormat.forPattern("MM/dd/yyyy");
 
+    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.ENGLISH);
     @Test
-     public void testPaymentFailureBounceChequeDBInsert(){
+     public void testPaymentFailureBounceChequeDBInsert() throws ParseException {
         Payment payment = getPayment();
         PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto =getPaymentStatusBouncedChequeDto();
         when(paymentRepository.findByReference(any())).thenReturn(Optional.of(payment));
@@ -151,7 +154,7 @@ public class PaymentStatusUpdateServiceImplTest {
     }
 
     @Test
-    public void testPaymentFailureChargebackDBInsert(){
+    public void testPaymentFailureChargebackDBInsert() throws ParseException {
         Payment payment = getPayment();
         PaymentStatusChargebackDto paymentStatusChargebackDto =getPaymentStatusChargebackDto();
         when(paymentRepository.findByReference(any())).thenReturn(Optional.of(payment));
@@ -210,7 +213,7 @@ public class PaymentStatusUpdateServiceImplTest {
     }
 
     @Test
-    public void returnBadRequestWhenDisputeAmountIsMoreThanPaymentAmountForChargeBack() {
+    public void returnBadRequestWhenDisputeAmountIsMoreThanPaymentAmountForChargeBack() throws ParseException {
         Payment payment = getPayment();
         PaymentStatusChargebackDto paymentStatusChargebackDto =getPaymentStatusChargebackDtoForBadRequest();
         when(paymentRepository.findByReference(any())).thenReturn(Optional.of(payment));
@@ -221,7 +224,7 @@ public class PaymentStatusUpdateServiceImplTest {
     }
 
     @Test
-    public void returnBadRequestWhenDisputeAmountIsMoreThanPaymentAmountForBounceCheque() {
+    public void returnBadRequestWhenDisputeAmountIsMoreThanPaymentAmountForBounceCheque() throws ParseException {
         Payment payment = getPayment();
         PaymentStatusBouncedChequeDto paymentStatusBounceChequeDto =getPaymentStatusBounceChequeDtoForBadRequest();
         when(paymentRepository.findByReference(any())).thenReturn(Optional.of(payment));
@@ -232,12 +235,16 @@ public class PaymentStatusUpdateServiceImplTest {
     }
 
     @Test
-    public void givenValidInputWhenUpdatePaymentFailureThenValidOutput() {
+    public void givenValidInputWhenUpdatePaymentFailureThenValidOutput() throws ParseException {
         PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
                 .representmentDate("2021-10-10T10:10:10")
                 .representmentStatus(RepresentmentStatus.Yes)
                 .build();
+       // private static final DateTimeFormatter DATE_TIME_FORMAT_T_HH_MM_SS = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss");
 
+
+        String dateInString = "2021-10-09T10:10:10";
+        Date date = formatter.parse(dateInString);
         PaymentFailures paymentFailure = PaymentFailures.paymentFailuresWith()
                 .failureType("Bounced Cheque")
                 .paymentReference("RC1234")
@@ -246,6 +253,7 @@ public class PaymentStatusUpdateServiceImplTest {
                 .failureReference("FR12345")
                 .id(1)
                 .reason("RR001")
+                .failureEventDateTime(date)
                 .representmentOutcomeDate(DateTime.parse(paymentStatusUpdateSecond.getRepresentmentDate()).withZone(
                         DateTimeZone.UTC)
                         .toDate())
@@ -370,7 +378,9 @@ public class PaymentStatusUpdateServiceImplTest {
     }
 
     @Test
-    public void testUnprocessedPayment() {
+    public void testUnprocessedPayment() throws ParseException {
+        String dateInString = "2021-10-09T10:10:10";
+        Date date = formatter.parse(dateInString);
         UnprocessedPayment unprocessedPayment = UnprocessedPayment.unprocessedPayment()
                 .amount(BigDecimal.valueOf(777))
                 .failureReference("FR8888")
@@ -382,7 +392,7 @@ public class PaymentStatusUpdateServiceImplTest {
         MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
         headers.add("ServiceAuthorization", "service-auth");
         PaymentMetadataDto metadataDto =
-                PaymentMetadataDto.paymentMetadataDtoWith().dcnReference("88").amount(new BigDecimal("888")).build();
+                PaymentMetadataDto.paymentMetadataDtoWith().dcnReference("88").amount(new BigDecimal("888")).dateUpdated(date).build();
         SearchResponse searchResponse = SearchResponse.searchResponseWith()
                 .ccdReference("9881231111111111")
                 .allPaymentsStatus(uk.gov.hmcts.payment.api.dto.PaymentStatus.COMPLETE)
@@ -483,8 +493,9 @@ public class PaymentStatusUpdateServiceImplTest {
 
     }
 
-    private Payment getPayment() {
-
+    private Payment getPayment() throws ParseException {
+        String dateInString = "2021-10-09T10:10:10";
+        Date date = formatter.parse(dateInString);
         return Payment.paymentWith()
             .id(1)
             .amount(BigDecimal.valueOf(555))
@@ -498,9 +509,10 @@ public class PaymentStatusUpdateServiceImplTest {
             .pbaNumber("pbaNumer")
             .reference("RC-1520-2505-0381-8145")
             .ccdCaseNumber("1234123412341234")
+            .dateUpdated(date)
             .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
-            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
-            .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("cheque").build())
             .paymentLink(PaymentFeeLink.paymentFeeLinkWith()
                 .id(1)
                 .paymentReference("2018-15202505035")
