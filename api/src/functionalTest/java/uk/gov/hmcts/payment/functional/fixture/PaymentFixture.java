@@ -431,11 +431,11 @@ public class PaymentFixture {
     public static PaymentStatusBouncedChequeDto bouncedChequeRequest(String paymentReference){
         String ccdCaseNumber = "1111-CC13-" + RandomUtils.nextInt();
         String failureReference = "FR-111-CC13-" + RandomUtils.nextInt();
-        Date date = new Date(System.currentTimeMillis());
+        DateTime actualDateTime = new DateTime(System.currentTimeMillis());
         return PaymentStatusBouncedChequeDto.paymentStatusBouncedChequeRequestWith()
             .reason("RR001")
             .paymentReference(paymentReference)
-            .eventDateTime(date.toString())
+            .eventDateTime(actualDateTime.plusHours(2).toString())
             .additionalReference("AR1234556")
             .amount(new BigDecimal(50.00))
             .failureReference(failureReference)
@@ -446,11 +446,11 @@ public class PaymentFixture {
     public static PaymentStatusChargebackDto chargebackRequest(String paymentReference){
         String ccdCaseNumber = "1111-CC13-" + RandomUtils.nextInt();
         String failureReference = "FR-111-CC13-" + RandomUtils.nextInt();
-        Date date = new Date(System.currentTimeMillis());
+        DateTime actualDateTime = new DateTime(System.currentTimeMillis());
         return PaymentStatusChargebackDto.paymentStatusChargebackRequestWith()
             .reason("RR001")
             .paymentReference(paymentReference)
-            .eventDateTime(date.toString())
+            .eventDateTime(actualDateTime.plusHours(2).toString())
             .additionalReference("AR1234556")
             .amount(new BigDecimal(50.00))
             .failureReference(failureReference)
