@@ -1441,10 +1441,11 @@ public class PaymentStatusFunctionalTest {
                 bulkScanPayments, testProps.bulkScanUrl).then().statusCode(CREATED.value());
 
         // Ping 1 for Unprocessed Payment event
+        DateTime actualDateTime = new DateTime(System.currentTimeMillis());
         UnprocessedPayment unprocessedPayment = UnprocessedPayment.unprocessedPayment()
                 .amount(BigDecimal.valueOf(888))
                 .failureReference("FR4444")
-                .eventDateTime("2022-10-10T10:10:10")
+                .eventDateTime(actualDateTime.plusHours(2).toString())
                 .reason("RR001")
                 .dcn(dcn)
                 .poBoxNumber("8")
