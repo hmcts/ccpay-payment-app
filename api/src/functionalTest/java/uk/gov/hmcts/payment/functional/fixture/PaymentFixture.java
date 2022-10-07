@@ -435,9 +435,9 @@ public class PaymentFixture {
         return PaymentStatusBouncedChequeDto.paymentStatusBouncedChequeRequestWith()
             .reason("RR001")
             .paymentReference(paymentReference)
-            .eventDateTime(actualDateTime.plusHours(2).toString())
+            .eventDateTime(actualDateTime.plusMinutes(5).toString())
             .additionalReference("AR1234556")
-            .amount(new BigDecimal(50.00))
+            .amount(new BigDecimal(100.00))
             .failureReference(failureReference)
             .ccdCaseNumber(ccdCaseNumber)
             .build();
@@ -450,7 +450,7 @@ public class PaymentFixture {
         return PaymentStatusChargebackDto.paymentStatusChargebackRequestWith()
             .reason("RR001")
             .paymentReference(paymentReference)
-            .eventDateTime(actualDateTime.plusHours(2).toString())
+            .eventDateTime(actualDateTime.plusMinutes(5).toString())
             .additionalReference("AR1234556")
             .amount(new BigDecimal(50.00))
             .failureReference(failureReference)
@@ -461,13 +461,13 @@ public class PaymentFixture {
 
     public static PaymentStatusBouncedChequeDto bouncedChequeRequestForFailureRef(String paymentReference, String failureReference){
         String ccdCaseNumber = "1111-CC13-" + RandomUtils.nextInt();
-        Date date = new Date(System.currentTimeMillis());
+        DateTime actualDateTime = new DateTime(System.currentTimeMillis());
         return PaymentStatusBouncedChequeDto.paymentStatusBouncedChequeRequestWith()
             .reason("RR001")
             .paymentReference(paymentReference)
-            .eventDateTime(date.toString())
+            .eventDateTime(actualDateTime.plusMinutes(5).toString())
             .additionalReference("AR1234556")
-            .amount(new BigDecimal(50))
+            .amount(new BigDecimal(100))
             .failureReference(failureReference)
             .ccdCaseNumber(ccdCaseNumber)
             .build();
@@ -475,11 +475,11 @@ public class PaymentFixture {
 
     public static PaymentStatusChargebackDto chargebackRequestForFailureRef(String paymentReference, String failureReference){
         String ccdCaseNumber = "1111-CC13-" + RandomUtils.nextInt();
-        Date date = new Date(System.currentTimeMillis());
+        DateTime actualDateTime = new DateTime(System.currentTimeMillis());
         return PaymentStatusChargebackDto.paymentStatusChargebackRequestWith()
             .reason("RR001")
             .paymentReference(paymentReference)
-            .eventDateTime(date.toString())
+            .eventDateTime(actualDateTime.plusMinutes(5).toString())
             .additionalReference("AR1234556")
             .amount(new BigDecimal(50))
             .failureReference(failureReference)
