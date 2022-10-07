@@ -356,34 +356,9 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
     }
 
     private boolean validateDcn(UnprocessedPayment unprocessedPayment, MultiValueMap<String, String> headers) {
-
         String dcn = unprocessedPayment.getDcn();
-        BigDecimal amount =  unprocessedPayment.getAmount();
-        SearchResponse searchResponse =  getBulkScanResponse(unprocessedPayment, headers);
+        BigDecimal amount = unprocessedPayment.getAmount();
 
-            if (null != searchResponse && PaymentStatus.COMPLETE.equals(searchResponse.getAllPaymentsStatus())) {
-                for (PaymentMetadataDto paymentMetadataDto : searchResponse.getPayments()) {
-                    LOG.info("dcn comparison: {}", dcn.equals(paymentMetadataDto.getDcnReference()));
-                    LOG.info("amount comparison: {}", amount.compareTo(paymentMetadataDto.getAmount()));
-                    if (dcn.equals(paymentMetadataDto.getDcnReference()) && amount.compareTo(paymentMetadataDto.getAmount()) > 0) {
-                        throw new InvalidPaymentFailureRequestException("Failure amount cannot be more than payment amount");
-                    }
-                    if(dcn.equals(paymentMetadataDto.getDcnReference())) {
-                        validatePingOneDate(unprocessedPayment.getEventDateTime(), paymentMetadataDto.getDateUpdated());
-                    }
-                }
-                return true;
-            }else{
-                return false;
-            }
-
-    }
-
-    private SearchResponse getBulkScanResponse(UnprocessedPayment unprocessedPayment, MultiValueMap<String, String> headers){
-
-        SearchResponse searchResponse;
-
-        String dcn = unprocessedPayment.getDcn();
         String bsURL = bulkScanPaymentsProcessedUrl + casesPath + "/{document_control_number}?internalFlag=true";
         Map<String, String> params = new HashMap<>();
         params.put("document_control_number", dcn);
@@ -400,17 +375,35 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
             LOG.info("Response Entity from BS Call: {}", responseEntity);
         } catch (HttpClientErrorException exception) {
             LOG.error("Exception occurred while calling bulk scan application: {}, {}",
-                exception.getMessage(), exception.getStackTrace());
+                    exception.getMessage(), exception.getStackTrace());
             throw new PaymentNotFoundException("No Payments available for the given document reference number");
         }
 
         if (!HttpStatus.OK.equals(responseEntity.getStatusCode())) {
-            return null;
+            return false;
         } else {
-            searchResponse = responseEntity.getBody();
+            SearchResponse searchResponse = responseEntity.getBody();
+            LOG.info("Search Response from Bulk Scanning app: {}", searchResponse);
+            validateUnprocessedPayment(searchResponse, unprocessedPayment, dcn, amount);
+        }
+        return true;
+    }
+
+    private void validateUnprocessedPayment(SearchResponse searchResponse,UnprocessedPayment unprocessedPayment, String dcn, BigDecimal amount){
+
+        if (null != searchResponse && PaymentStatus.COMPLETE.equals(searchResponse.getAllPaymentsStatus())) {
+            for (PaymentMetadataDto paymentMetadataDto : searchResponse.getPayments()) {
+                LOG.info("dcn comparison: {}", dcn.equals(paymentMetadataDto.getDcnReference()));
+                LOG.info("amount comparison: {}", amount.compareTo(paymentMetadataDto.getAmount()));
+                if (dcn.equals(paymentMetadataDto.getDcnReference()) && amount.compareTo(paymentMetadataDto.getAmount()) > 0) {
+                    throw new InvalidPaymentFailureRequestException("Failure amount cannot be more than payment amount");
+                }
+                if(dcn.equals(paymentMetadataDto.getDcnReference())) {
+                    validatePingOneDate(unprocessedPayment.getEventDateTime(), paymentMetadataDto.getDateUpdated());
+                }
+            }
         }
 
-        return searchResponse;
     }
 
     @Transactional
