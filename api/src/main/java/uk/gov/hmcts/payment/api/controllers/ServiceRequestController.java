@@ -182,7 +182,7 @@ public class ServiceRequestController {
         }
 
         //business validations for serviceRequest
-        LOG.info("Service Request Reference passed to business validation", serviceRequestReference)
+        LOG.info("Service Request Reference passed to business validation", serviceRequestReference);
         PaymentFeeLink serviceRequest = serviceRequestDomainService.businessValidationForServiceRequests(serviceRequestDomainService.find(serviceRequestReference), serviceRequestPaymentDto);
 
         //PBA Payment
