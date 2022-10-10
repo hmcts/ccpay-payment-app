@@ -148,6 +148,14 @@ public class ServiceRequestController {
         String serviceRequestStatusDisplay = ow.writeValueAsString(serviceRequestPaymentDto);
         LOG.info("Passed service Request Status Display PBA payment : {} ", serviceRequestStatusDisplay);
 
+        try {
+            Thread.sleep(5000);
+            LOG.info("Thread Sleep starting - 5 seconds");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        LOG.info("Thread Sleeping ended");
+
         Function<IdempotencyKeys, ResponseEntity<?>> validateHashcodeForRequest = idempotencyKeys -> {
 
             ServiceRequestPaymentBo responseBO;
@@ -174,6 +182,7 @@ public class ServiceRequestController {
         }
 
         //business validations for serviceRequest
+        LOG.info("Service Request Reference passed to business validation", serviceRequestReference)
         PaymentFeeLink serviceRequest = serviceRequestDomainService.businessValidationForServiceRequests(serviceRequestDomainService.find(serviceRequestReference), serviceRequestPaymentDto);
 
         //PBA Payment
@@ -202,6 +211,7 @@ public class ServiceRequestController {
         }
 
         //Create Idempotency Record
+        LOG.info("Create Idemptotency Record", objectMapper, idempotencyKey);
         return serviceRequestDomainService.createIdempotencyRecord(objectMapper, idempotencyKey, serviceRequestReference, responseJson, responseEntity, serviceRequestPaymentDto);
     }
 
