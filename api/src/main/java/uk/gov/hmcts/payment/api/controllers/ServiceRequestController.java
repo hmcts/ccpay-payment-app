@@ -160,6 +160,8 @@ public class ServiceRequestController {
 
             ServiceRequestPaymentBo responseBO;
             try {
+                LOG.info("idempontency keys get hashcode: ", idempotencyKeys.getRequest_hashcode();
+                LOG.info("serviceRequestPaymentDto hashCodeWithServiceRequestReference", serviceRequestPaymentDto.hashCodeWithServiceRequestReference(serviceRequestReference));
                 if (!idempotencyKeys.getRequest_hashcode().equals(serviceRequestPaymentDto.hashCodeWithServiceRequestReference(serviceRequestReference))) {
                     return new ResponseEntity<>("Payment already present for idempotency key with different payment details", HttpStatus.CONFLICT); // 409 if hashcode not matched
                 }
@@ -182,8 +184,9 @@ public class ServiceRequestController {
         }
 
         //business validations for serviceRequest
-        LOG.info("Service Request Reference passed to business validation", serviceRequestReference);
+        LOG.info("Business valid start + Service Request Reference passed to business validation", serviceRequestReference);
         PaymentFeeLink serviceRequest = serviceRequestDomainService.businessValidationForServiceRequests(serviceRequestDomainService.find(serviceRequestReference), serviceRequestPaymentDto);
+        LOG.info("Business validation end");
 
         //PBA Payment
         ServiceRequestPaymentBo serviceRequestPaymentBo = null;
