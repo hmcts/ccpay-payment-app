@@ -313,9 +313,10 @@ public class PaymentStatusFunctionalTest {
         assertThat(chargebackResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
 
         // Ping 2
+        DateTime actualDateTime = new DateTime(System.currentTimeMillis());
         PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
                 .representmentStatus(RepresentmentStatus.No)
-                .representmentDate("2022-10-10T10:10:10")
+                .representmentDate(actualDateTime.plusMinutes(15).toString())
                 .build();
         Response ping2Response = paymentTestService.paymentStatusSecond(
                 SERVICE_TOKEN_PAYMENT, paymentStatusChargebackDto.getFailureReference(),
@@ -403,9 +404,10 @@ public class PaymentStatusFunctionalTest {
         assertThat(bounceChequeResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
 
         // Ping 2
+        DateTime actualDateTime = new DateTime(System.currentTimeMillis());
         PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
                 .representmentStatus(RepresentmentStatus.No)
-                .representmentDate("2022-10-10T10:10:10")
+                .representmentDate(actualDateTime.plusMinutes(15).toString())
                 .build();
         Response ping2Response = paymentTestService.paymentStatusSecond(
                 SERVICE_TOKEN_PAYMENT, paymentStatusBouncedChequeDto.getFailureReference(),
@@ -453,9 +455,10 @@ public class PaymentStatusFunctionalTest {
         assertThat(chargebackResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
 
         // Ping 2
+        DateTime actualDateTime = new DateTime(System.currentTimeMillis());
         PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
                 .representmentStatus(RepresentmentStatus.No)
-                .representmentDate("2022-10-10T10:10:10")
+                .representmentDate(actualDateTime.plusMinutes(15).toString())
                 .build();
         Response ping2Response = paymentTestService.paymentStatusSecond(
                 SERVICE_TOKEN_PAYMENT, paymentStatusChargebackDto.getFailureReference(),
@@ -545,9 +548,10 @@ public class PaymentStatusFunctionalTest {
         assertThat(chargebackResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
 
         // Ping 2
+        DateTime actualDateTime = new DateTime(System.currentTimeMillis());
         PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
                 .representmentStatus(RepresentmentStatus.No)
-                .representmentDate("2022-10-10T10:10:10")
+                .representmentDate(actualDateTime.plusMinutes(15).toString())
                 .build();
         Response ping2Response = paymentTestService.paymentStatusSecond(
                 SERVICE_TOKEN_PAYMENT, paymentStatusChargebackDto.getFailureReference(),
@@ -1267,10 +1271,11 @@ public class PaymentStatusFunctionalTest {
                 bulkScanPayments, testProps.bulkScanUrl).then().statusCode(CREATED.value());
 
         // Ping 1 for Unprocessed Payment event
+        DateTime actualDateTime = new DateTime(System.currentTimeMillis());
         UnprocessedPayment unprocessedPayment = UnprocessedPayment.unprocessedPayment()
                 .amount(BigDecimal.valueOf(55))
                 .failureReference("FR3333")
-                .eventDateTime("2022-10-10T10:10:10")
+                .eventDateTime(actualDateTime.plusMinutes(5).toString())
                 .reason("RR001")
                 .dcn(dcn)
                 .poBoxNumber("8")
@@ -1284,7 +1289,7 @@ public class PaymentStatusFunctionalTest {
         // Ping 2
         PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
                 .representmentStatus(RepresentmentStatus.No)
-                .representmentDate("2022-10-10T10:10:10")
+                .representmentDate(actualDateTime.plusMinutes(20).toString())
                 .build();
         Response ping2Response = paymentTestService.paymentStatusSecond(
                 SERVICE_TOKEN_PAYMENT, unprocessedPayment.getFailureReference(),
@@ -1335,10 +1340,11 @@ public class PaymentStatusFunctionalTest {
                 .statusCode(NO_CONTENT.value());
 
         // Ping 1 for Unprocessed Payment event
+        DateTime actualDateTime = new DateTime(System.currentTimeMillis());
         UnprocessedPayment unprocessedPayment = UnprocessedPayment.unprocessedPayment()
                 .amount(BigDecimal.valueOf(100))
                 .failureReference("FR111")
-                .eventDateTime("2022-10-10T10:10:10")
+                .eventDateTime(actualDateTime.plusMinutes(30).toString())
                 .reason("RR001")
                 .dcn(dcn)
                 .poBoxNumber("8")
@@ -1381,10 +1387,11 @@ public class PaymentStatusFunctionalTest {
                 bulkScanPayments, testProps.bulkScanUrl).then().statusCode(CREATED.value());
 
         // Ping 1 for Unprocessed Payment event
+        DateTime actualDateTime = new DateTime(System.currentTimeMillis());
         UnprocessedPayment unprocessedPayment = UnprocessedPayment.unprocessedPayment()
                 .amount(BigDecimal.valueOf(888))
                 .failureReference("FR2222")
-                .eventDateTime("2022-10-10T10:10:10")
+                .eventDateTime(actualDateTime.plusMinutes(30).toString())
                 .reason("RR001")
                 .dcn(dcn)
                 .poBoxNumber("8")
@@ -1489,10 +1496,11 @@ public class PaymentStatusFunctionalTest {
             bulkScanPayments, testProps.bulkScanUrl).then().statusCode(CREATED.value());
 
         // Ping 1 for Unprocessed Payment event
+        DateTime actualDateTime = new DateTime(System.currentTimeMillis());
         UnprocessedPayment unprocessedPayment = UnprocessedPayment.unprocessedPayment()
             .amount(BigDecimal.valueOf(55))
             .failureReference("FR3333")
-            .eventDateTime("2022-10-10T10:10:10")
+            .eventDateTime(actualDateTime.plusMinutes(30).toString())
             .reason("RR001")
             .dcn(dcn)
             .poBoxNumber("8")
@@ -1603,10 +1611,11 @@ public class PaymentStatusFunctionalTest {
             bulkScanPayments, testProps.bulkScanUrl).then().statusCode(CREATED.value());
 
         // Ping 1 for Unprocessed Payment event
+        DateTime actualDateTime = new DateTime(System.currentTimeMillis());
         UnprocessedPayment unprocessedPayment = UnprocessedPayment.unprocessedPayment()
             .amount(BigDecimal.valueOf(55))
             .failureReference("FR3333")
-            .eventDateTime("2022-10-10T10:10:10")
+            .eventDateTime(actualDateTime.plusMinutes(30).toString())
             .reason("RR001")
             .dcn(dcn)
             .poBoxNumber("8")
@@ -1669,7 +1678,7 @@ public class PaymentStatusFunctionalTest {
         // Ping 2 for Unprocessed Payment event
         PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
             .representmentStatus(RepresentmentStatus.No)
-            .representmentDate("2022-10-10T10:10:10")
+            .representmentDate(actualDateTime.plusMinutes(40).toString())
             .build();
         Response ping2Response = paymentTestService.paymentStatusSecond(
             SERVICE_TOKEN_PAYMENT, unprocessedPayment.getFailureReference(),
@@ -1965,6 +1974,207 @@ public class PaymentStatusFunctionalTest {
 
         //delete Payment Failure record
         paymentTestService.deleteFailedPayment(USER_TOKEN, SERVICE_TOKEN, paymentStatusChargebackDto.getFailureReference()).then().statusCode(NO_CONTENT.value());
+    }
+
+    @Test
+    public void negative_return400_bounce_cheque_payment_is_not_cheque() {
+
+        // Create a Bulk scan payment
+        String ccdCaseNumber = "1111221233124419";
+        String dcn = "34569087234591";
+
+        BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
+            .amount(new BigDecimal("100.00"))
+            .service("DIVORCE")
+            .siteId("AA01")
+            .currency(CurrencyCode.GBP)
+            .documentControlNumber(dcn)
+            .ccdCaseNumber(ccdCaseNumber)
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
+            .payerName("CCD User1")
+            .bankedDate(DateTime.now().toString())
+            .paymentMethod(PaymentMethodType.CASH)
+            .paymentStatus(PaymentStatus.SUCCESS)
+            .giroSlipNo("GH716376")
+            .build();
+
+        PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Collections.singletonList(FeeDto.feeDtoWith()
+                .calculatedAmount(new BigDecimal("450.00"))
+                .code("FEE3132")
+                .version("1")
+                .reference("testRef1")
+                .volume(2)
+                .ccdCaseNumber(ccdCaseNumber)
+                .build())).build();
+
+        AtomicReference<String> paymentReference = new AtomicReference<>();
+
+        dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .when().addNewFeeAndPaymentGroup(paymentGroupDto)
+            .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
+                assertThat(paymentGroupFeeDto).isNotNull();
+                assertThat(paymentGroupFeeDto.getPaymentGroupReference()).isNotNull();
+                assertThat(paymentGroupFeeDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(paymentGroupDto);
+
+                dsl.given().userToken(USER_TOKEN)
+                    .s2sToken(SERVICE_TOKEN)
+                    .when().createBulkScanPayment(bulkScanPaymentRequest, paymentGroupFeeDto.getPaymentGroupReference())
+                    .then().gotCreated(PaymentDto.class, paymentDto -> {
+                        assertThat(paymentDto.getReference()).isNotNull();
+                        assertThat(paymentDto.getStatus()).isEqualToIgnoringCase("success");
+                        assertThat(paymentDto.getPaymentGroupReference()).isEqualTo(paymentGroupFeeDto.getPaymentGroupReference());
+
+                        paymentReference.set(paymentDto.getReference());
+
+                    });
+
+            });
+
+        // Ping 1 for Bounced Cheque event
+        PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto
+            = PaymentFixture.bouncedChequeRequest(paymentReference.get());
+
+        Response bounceChequeResponse = paymentTestService.postBounceCheque(
+            SERVICE_TOKEN_PAYMENT,
+            paymentStatusBouncedChequeDto);
+
+         assertThat(bounceChequeResponse.getBody().prettyPrint()).isEqualTo(
+            "Incorrect payment method");
+        assertThat(bounceChequeResponse.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+
+        // delete payment record
+        paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentReference.get()).then().statusCode(NO_CONTENT.value());
+
+    }
+
+    @Test
+    public void negative_return400_bounce_cheque_payment_event_date_less_than_payment_date() {
+
+        // Create a Bulk scan payment
+        String ccdCaseNumber = "1111221233124419";
+        String dcn = "34569087234591";
+
+        BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
+            .amount(new BigDecimal("100.00"))
+            .service("DIVORCE")
+            .siteId("AA01")
+            .currency(CurrencyCode.GBP)
+            .documentControlNumber(dcn)
+            .ccdCaseNumber(ccdCaseNumber)
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
+            .payerName("CCD User1")
+            .bankedDate(DateTime.now().toString())
+            .paymentMethod(PaymentMethodType.CHEQUE)
+            .paymentStatus(PaymentStatus.SUCCESS)
+            .giroSlipNo("GH716376")
+            .build();
+
+        PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Collections.singletonList(FeeDto.feeDtoWith()
+                .calculatedAmount(new BigDecimal("450.00"))
+                .code("FEE3132")
+                .version("1")
+                .reference("testRef1")
+                .volume(2)
+                .ccdCaseNumber(ccdCaseNumber)
+                .build())).build();
+
+        AtomicReference<String> paymentReference = new AtomicReference<>();
+
+        dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .when().addNewFeeAndPaymentGroup(paymentGroupDto)
+            .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
+                assertThat(paymentGroupFeeDto).isNotNull();
+                assertThat(paymentGroupFeeDto.getPaymentGroupReference()).isNotNull();
+                assertThat(paymentGroupFeeDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(paymentGroupDto);
+
+                dsl.given().userToken(USER_TOKEN)
+                    .s2sToken(SERVICE_TOKEN)
+                    .when().createBulkScanPayment(bulkScanPaymentRequest, paymentGroupFeeDto.getPaymentGroupReference())
+                    .then().gotCreated(PaymentDto.class, paymentDto -> {
+                        assertThat(paymentDto.getReference()).isNotNull();
+                        assertThat(paymentDto.getStatus()).isEqualToIgnoringCase("success");
+                        assertThat(paymentDto.getPaymentGroupReference()).isEqualTo(paymentGroupFeeDto.getPaymentGroupReference());
+
+                        paymentReference.set(paymentDto.getReference());
+
+                    });
+
+            });
+
+        // Ping 1 for Bounced Cheque event
+        PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto
+            = PaymentFixture.bouncedChequeRequestForLessEventTime(paymentReference.get());
+
+        Response bounceChequeResponse = paymentTestService.postBounceCheque(
+            SERVICE_TOKEN_PAYMENT,
+            paymentStatusBouncedChequeDto);
+
+        assertThat(bounceChequeResponse.getBody().prettyPrint()).isEqualTo(
+            "Failure event date can not be prior to payment date");
+        assertThat(bounceChequeResponse.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+
+        // delete payment record
+        paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentReference.get()).then().statusCode(NO_CONTENT.value());
+
+    }
+
+    @Test
+    public void positive_paymentStatusSecond_card_update_has_amount_debited_No() {
+
+        // Create a Card payment
+        AtomicReference<String> paymentReference = new AtomicReference<>();
+        dsl.given().userToken(USER_TOKEN_CARD_PAYMENT)
+            .s2sToken(SERVICE_TOKEN)
+            .returnUrl("https://www.moneyclaims.service.gov.uk")
+            .when().createCardPayment(PaymentFixture.cardPaymentRequestAdoption("215.55", "ADOPTION"))
+            .then().created(savedPayment -> {
+                paymentReference.set(savedPayment.getReference());
+
+                assertNotNull(savedPayment.getReference());
+            });
+
+        // Ping 1 for Chargeback event
+        PaymentStatusChargebackDto paymentStatusChargebackDto
+            = PaymentFixture.chargebackRequest(paymentReference.get());
+
+        Response chargebackResponse = paymentTestService.postChargeback(
+            SERVICE_TOKEN_PAYMENT,
+            paymentStatusChargebackDto);
+
+        PaymentFailureResponse paymentsFailureResponse =
+            paymentTestService.getFailurePayment(USER_TOKEN_PAYMENT, SERVICE_TOKEN, paymentStatusChargebackDto.getPaymentReference()).then()
+                .statusCode(OK.value()).extract().as(PaymentFailureResponse.class);
+
+        assertThat(paymentsFailureResponse.getPaymentFailureList().get(0).getPaymentFailureInitiated().getHasAmountDebited()).isEqualTo("Yes");
+
+        assertThat(chargebackResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+
+        // Ping 2
+        DateTime actualDateTime = new DateTime(System.currentTimeMillis());
+        PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
+            .representmentStatus(RepresentmentStatus.Yes)
+            .representmentDate(actualDateTime.plusMinutes(15).toString())
+            .build();
+        Response ping2Response = paymentTestService.paymentStatusSecond(
+            SERVICE_TOKEN_PAYMENT, paymentStatusChargebackDto.getFailureReference(),
+            paymentStatusUpdateSecond);
+        PaymentFailureResponse paymentsFailureResponse1 =
+            paymentTestService.getFailurePayment(USER_TOKEN_PAYMENT, SERVICE_TOKEN, paymentStatusChargebackDto.getPaymentReference()).then()
+                .statusCode(OK.value()).extract().as(PaymentFailureResponse.class);
+        assertEquals(ping2Response.getStatusCode(), OK.value());
+        assertEquals("successful operation", ping2Response.getBody().prettyPrint());
+        assertThat(paymentsFailureResponse1.getPaymentFailureList().get(0).getPaymentFailureInitiated().getHasAmountDebited()).isEqualTo("No");
+
+        // delete payment record
+        paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentReference.get()).then().statusCode(NO_CONTENT.value());
+
+        //delete Payment Failure record
+        paymentTestService.deleteFailedPayment(USER_TOKEN, SERVICE_TOKEN, paymentStatusChargebackDto.getFailureReference()).then().statusCode(NO_CONTENT.value());
+
     }
 
     private String getReportDate(Date date) {
