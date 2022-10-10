@@ -160,7 +160,7 @@ public class ServiceRequestController {
 
             ServiceRequestPaymentBo responseBO;
             try {
-                LOG.info("idempontency keys get hashcode: ", idempotencyKeys.getRequest_hashcode();
+                LOG.info("idempontency keys get hashcode: ", idempotencyKeys.getRequest_hashcode());
                 LOG.info("serviceRequestPaymentDto hashCodeWithServiceRequestReference", serviceRequestPaymentDto.hashCodeWithServiceRequestReference(serviceRequestReference));
                 if (!idempotencyKeys.getRequest_hashcode().equals(serviceRequestPaymentDto.hashCodeWithServiceRequestReference(serviceRequestReference))) {
                     return new ResponseEntity<>("Payment already present for idempotency key with different payment details", HttpStatus.CONFLICT); // 409 if hashcode not matched
