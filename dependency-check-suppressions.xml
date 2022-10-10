@@ -241,14 +241,12 @@
         <cve>CVE-2022-38749</cve>
         <cve>CVE-2022-38750</cve>
         <cve>CVE-2022-38751</cve>
-        <cve>CVE-2022-38752</cve>
-        <cve>CVE-2022-42003</cve>
-        <cve>CVE-2022-42004</cve>
+        <cve>CVE-2022-38752</cve>>
     </suppress>
     <suppress until="2022-12-31">
         <notes>
-          In FasterXML jackson-databind before 2.14.0-rc1, resource exhaustion can occur because of a lack of a check in 
-          primitive value deserializers to avoid deep wrapper array nesting, 
+          In FasterXML jackson-databind before 2.14.0-rc1, resource exhaustion can occur because of a lack of a check in
+          primitive value deserializers to avoid deep wrapper array nesting,
           when the UNWRAP_SINGLE_VALUE_ARRAYS feature is enabled
         </notes>
         <cve>CVE-2022-42003</cve>
