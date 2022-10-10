@@ -502,4 +502,21 @@ public class PaymentFixture {
             .ccdCaseNumber(ccdCaseNumber)
             .build();
     }
+
+    public static PaymentStatusChargebackDto chargebackRequestForLessEventTime(String paymentReference){
+        String ccdCaseNumber = "1111-CC13-" + RandomUtils.nextInt();
+        String failureReference = "FR-111-CC13-" + RandomUtils.nextInt();
+        DateTime actualDateTime = new DateTime(System.currentTimeMillis());
+        return PaymentStatusChargebackDto.paymentStatusChargebackRequestWith()
+            .reason("RR001")
+            .paymentReference(paymentReference)
+            .eventDateTime(actualDateTime.minusHours(5).toString())
+            .additionalReference("AR1234556")
+            .amount(new BigDecimal(50.00))
+            .failureReference(failureReference)
+            .ccdCaseNumber(ccdCaseNumber)
+            .hasAmountDebited("Yes")
+            .build();
+    }
+
 }
