@@ -4,6 +4,7 @@ import java.math.BigInteger;
 import java.time.temporal.ChronoUnit;
 
 import org.apache.commons.lang3.EnumUtils;
+import org.apache.poi.hpsf.Decimal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -90,6 +91,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
         Payment payment = paymentRepository.findByReference(paymentRefundRequest.getPaymentReference()).orElseThrow(PaymentNotFoundException::new);
 
+         validateRefundAmount(paymentRefundRequest,payment.getPaymentLink().getFees(), payment);
 
         validateRefund(paymentRefundRequest,payment.getPaymentLink().getFees(), payment);
 
@@ -394,9 +396,6 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
     private void validateRefund(PaymentRefundRequest paymentRefundRequest, List<PaymentFee> paymentFeeList, Payment payment) {
 
-        if(paymentRefundRequest.getTotalRefundAmount().compareTo(BigDecimal.valueOf(0))==0)
-            throw new InvalidPartialRefundRequestException("You need to enter a refund amount");
-
         for(PaymentFee paymentFee : paymentFeeList){
             for (RefundsFeeDto feeDto : paymentRefundRequest.getFees()) {
 
@@ -427,6 +426,28 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
                 }
             }
+        }
+    }
+
+    private void validateRefundAmount(PaymentRefundRequest paymentRefundRequest, List<PaymentFee> paymentFeeList, Payment payment) {
+
+        if(paymentRefundRequest.getTotalRefundAmount().compareTo(BigDecimal.valueOf(0))==0)
+            throw new InvalidPartialRefundRequestException("You need to enter a refund amount");
+
+        BigDecimal totalRefundedAmount = BigDecimal.ZERO;
+        for(PaymentFee paymentFee : paymentFeeList) {
+            for (RefundsFeeDto feeDto : paymentRefundRequest.getFees()) {
+
+                if (feeDto.getId().intValue() == paymentFee.getId().intValue()){
+
+                    totalRefundedAmount = feeDto.getRefundAmount().add(totalRefundedAmount);
+                }
+            }
+        }
+
+        if(totalRefundedAmount.compareTo(payment.getAmount())>0){
+
+            throw new InvalidPartialRefundRequestException("The amount to refund can not be more than" + " " + "£" + payment.getAmount());
         }
     }
 
