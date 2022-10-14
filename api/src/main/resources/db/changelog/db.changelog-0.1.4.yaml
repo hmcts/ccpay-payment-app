@@ -159,10 +159,9 @@ databaseChangeLog:
         - sql:
             splitStatements: true
             sql: >
-              UPDATE audit_events_type
-              SET description='Valid order request received and recorded successfully'
-              WHERE "name"='order_created';
-
+              INSERT INTO audit_events_type (name, description)
+                VALUES
+                  ('order_created', 'Valid order request received and recorded successfully');
 
 # Apportionment DB Model Rollback Scripts
 #  - changeSet:
