@@ -1865,6 +1865,47 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         assertThat(paymentRefList.contains(paymentReference1));
     }
 
+    @Test
+    public void negative_bad_request_400_when_refund_amount_more_than_payment_amount() {
+        // create a PBA payment with 2 fees
+        String accountNumber = testProps.existingAccountNumber;
+        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
+            .aPbaPaymentRequestForProbateSinglePaymentFor2Fees("640.00",
+                "PROBATE", accountNumber,
+                "FEE0001", "90.00", "FEE002", "550.00");
+
+        String ccdCaseNumber = accountPaymentRequest.getCcdCaseNumber();
+
+        PaymentDto paymentDto = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
+            .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
+            ccdCaseNumber, "5");
+
+        // Get pba payment by reference
+        PaymentDto paymentsResponse =
+            paymentTestService.getPbaPayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then()
+                .statusCode(OK.value()).extract().as(PaymentDto.class);
+
+        assertThat(paymentsResponse.getAccountNumber()).isEqualTo(accountNumber);
+        assertThat(paymentsResponse.getAmount()).isEqualTo(new BigDecimal("640.00"));
+        assertThat(paymentsResponse.getCcdCaseNumber()).isEqualTo(ccdCaseNumber);
+
+        // issue a refund
+        String paymentReference = paymentsResponse.getReference();
+        PaymentRefundRequest paymentRefundRequest
+            = PaymentFixture.aRefundRequest("RR001", paymentReference, "650.00", "640");
+        Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            SERVICE_TOKEN_PAYMENT,
+            paymentRefundRequest);
+
+        assertThat(refundResponse.getStatusCode()).isEqualTo(BAD_REQUEST.value());
+        assertThat(refundResponse.getBody().prettyPrint()).isEqualTo(
+            "The amount to refund can not be more than £640.00");
+
+        // Delete payment records
+        paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
+    }
+
     public static PaymentRefundRequest aRefundRequestWithNullContactDetails(final String refundReason,
                                                                             final String paymentReference) {
         return PaymentRefundRequest
