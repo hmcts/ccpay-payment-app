@@ -159,6 +159,7 @@ databaseChangeLog:
         - sql:
             splitStatements: true
             sql: >
+              DELETE FROM audit_events_type WHERE "name"='order_created';
               INSERT INTO audit_events_type (name, description)
                 VALUES
                   ('order_created', 'Valid order request received and recorded successfully');
