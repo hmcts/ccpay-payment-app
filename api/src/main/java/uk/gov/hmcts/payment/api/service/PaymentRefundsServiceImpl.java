@@ -91,8 +91,6 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
         Payment payment = paymentRepository.findByReference(paymentRefundRequest.getPaymentReference()).orElseThrow(PaymentNotFoundException::new);
 
-         validateRefundAmount(paymentRefundRequest,payment.getPaymentLink().getFees(), payment);
-
         validateRefund(paymentRefundRequest,payment.getPaymentLink().getFees(), payment);
 
         validateThePaymentBeforeInitiatingRefund(payment,headers);
@@ -396,6 +394,16 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
     private void validateRefund(PaymentRefundRequest paymentRefundRequest, List<PaymentFee> paymentFeeList, Payment payment) {
 
+        if(paymentRefundRequest.getTotalRefundAmount().compareTo(BigDecimal.valueOf(0))==0)
+            throw new InvalidPartialRefundRequestException("You need to enter a refund amount");
+
+        BigDecimal totalRefundAmount = calculateRefundAmount(paymentRefundRequest, payment.getPaymentLink().getFees());
+
+        if(totalRefundAmount.compareTo(payment.getAmount())>0){
+
+            throw new InvalidPartialRefundRequestException("The amount to refund can not be more than £" + payment.getAmount());
+        }
+
         for(PaymentFee paymentFee : paymentFeeList){
             for (RefundsFeeDto feeDto : paymentRefundRequest.getFees()) {
 
@@ -429,7 +437,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         }
     }
 
-    private void validateRefundAmount(PaymentRefundRequest paymentRefundRequest, List<PaymentFee> paymentFeeList, Payment payment) {
+    private BigDecimal calculateRefundAmount(PaymentRefundRequest paymentRefundRequest, List<PaymentFee> paymentFeeList) {
 
         if(paymentRefundRequest.getTotalRefundAmount().compareTo(BigDecimal.valueOf(0))==0)
             throw new InvalidPartialRefundRequestException("You need to enter a refund amount");
@@ -445,12 +453,8 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             }
         }
 
-        if(totalRefundedAmount.compareTo(payment.getAmount())>0){
-
-            throw new InvalidPartialRefundRequestException("The amount to refund can not be more than" + " " + "£" + payment.getAmount());
-        }
+       return totalRefundedAmount;
     }
-
 
     public boolean isContainsPaymentsRefundRole (){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
