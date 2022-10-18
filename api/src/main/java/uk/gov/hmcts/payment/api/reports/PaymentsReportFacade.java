@@ -26,9 +26,11 @@ public class PaymentsReportFacade {
     }
 
     public void generateCsvAndSendEmail(Date startDate, Date endDate, PaymentMethodType paymentMethodType, String serviceType) {
-        LOG.info("Inside generateCsvAndSendEmail with paymentMethodType: {} and serviceType: {}", paymentMethodType, serviceType);
+        LOG.info("Inside generateCsvAndSendEmail with paymentMethodType: {} and serviceType: {} and startDate: {} and endDate: {}"
+            , paymentMethodType, serviceType, startDate, endDate);
         PaymentReportConfig reportConfig = configMap.get(PaymentReportType.from(paymentMethodType, serviceType));
         if (reportConfig.isEnabled()) {
+            LOG.info("payments report flag is enabled for type :{} and service :{}. creating csv", paymentMethodType, serviceType);
             reportService.generateCsvAndSendEmail(startDate, endDate, paymentMethodType, serviceType, reportConfig);
         } else {
             LOG.info("payments report flag is disabled for type :{} and service :{}. So, system will not send CSV email", paymentMethodType, serviceType);
