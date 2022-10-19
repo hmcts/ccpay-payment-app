@@ -60,7 +60,7 @@ public class PaymentRefundsServiceTest {
     PaymentRefundRequest paymentRefundRequest = PaymentRefundRequest.refundRequestWith()
         .paymentReference("RC-1649-7555-9551-8774")
         .refundReason("RR037")
-        .totalRefundAmount(BigDecimal.valueOf(118))
+        .totalRefundAmount(BigDecimal.valueOf(100))
         .fees(
             Arrays.asList(
                 RefundsFeeDto.refundFeeDtoWith()
@@ -69,12 +69,12 @@ public class PaymentRefundsServiceTest {
 //                        .feeAmount(new BigDecimal("550.00"))
                     .code("FEE0326")
 //                        .volume(1)
-                    .id(610)
+                    .id(1)
 //                        .memoLine("Bar Cash")
 //                        .naturalAccountCode("21245654433")
                     .version("2")
 //                        .volume(1)
-                    .refundAmount(new BigDecimal("118.00"))
+                    .refundAmount(new BigDecimal("100.00"))
                     .updatedVolume(1)
 //                        .reference("REF_123")
                     .build()

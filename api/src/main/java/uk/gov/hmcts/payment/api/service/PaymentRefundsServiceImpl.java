@@ -404,6 +404,11 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             throw new InvalidPartialRefundRequestException("The amount to refund can not be more than £" + payment.getAmount());
         }
 
+        if(totalRefundAmount.compareTo(paymentRefundRequest.getTotalRefundAmount()) != 0){
+
+            throw new InvalidPartialRefundRequestException("Invalid request");
+        }
+
         for(PaymentFee paymentFee : paymentFeeList){
             for (RefundsFeeDto feeDto : paymentRefundRequest.getFees()) {
 
@@ -442,18 +447,18 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         if(paymentRefundRequest.getTotalRefundAmount().compareTo(BigDecimal.valueOf(0))==0)
             throw new InvalidPartialRefundRequestException("You need to enter a refund amount");
 
-        BigDecimal totalRefundedAmount = BigDecimal.ZERO;
+        BigDecimal totalRefundAmount = BigDecimal.ZERO;
         for(PaymentFee paymentFee : paymentFeeList) {
             for (RefundsFeeDto feeDto : paymentRefundRequest.getFees()) {
 
                 if (feeDto.getId().intValue() == paymentFee.getId().intValue()){
 
-                    totalRefundedAmount = feeDto.getRefundAmount().add(totalRefundedAmount);
+                    totalRefundAmount = feeDto.getRefundAmount().add(totalRefundAmount);
                 }
             }
         }
 
-       return totalRefundedAmount;
+       return totalRefundAmount;
     }
 
     public boolean isContainsPaymentsRefundRole (){
