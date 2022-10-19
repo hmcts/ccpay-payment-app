@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.api.controllers;
 
 import io.swagger.annotations.*;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -14,11 +15,14 @@ import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Optional;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
 @RestController
 @Api(tags = {"Payment Report"})
 @SwaggerDefinition(tags = {@Tag(name = "PaymentReportController", description = "Payment report REST API")})
 public class PaymentReportController {
 
+    private static final Logger LOG = getLogger(PaymentReportController.class);
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_DATE;
 
     private final PaymentsReportFacade paymentsReportFacade;
@@ -42,6 +46,8 @@ public class PaymentReportController {
                                        @RequestParam(name = "start_date", required = false) Optional<String> startDateString,
                                        @RequestParam(name = "end_date", required = false) Optional<String> endDateString) {
 
+
+        LOG.info("Inside /jobs/email-pay-reports");
         validator.validate(paymentMethodType, startDateString, endDateString);
 
         Date fromDate = startDateString.map(s -> clock.atStartOfDay(s, FORMATTER)).orElseGet(clock::getYesterdayDate);
