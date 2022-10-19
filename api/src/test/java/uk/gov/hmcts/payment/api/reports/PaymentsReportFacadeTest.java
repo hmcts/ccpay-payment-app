@@ -86,6 +86,19 @@ public class PaymentsReportFacadeTest {
     }
 
     @Test
+    public void shouldDelegateToServiceIfExistingConfigurationForService() {
+            // given
+            Date fromDate = new Date();
+            Date toDate = new Date();
+
+            // when
+            facade.generateCsvAndSendEmail(fromDate, toDate, null, "DIGITAL_BAR");
+
+            // then
+            verify(reportService).generateCsvAndSendEmail(fromDate, toDate, null, "DIGITAL_BAR", barPaymentReportConfig);
+        }
+
+    @Test
     public void PbaCivilDelegatePaymentReportType() {
         // given
         Date fromDate = new Date();
