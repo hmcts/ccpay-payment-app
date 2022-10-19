@@ -399,14 +399,14 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
         BigDecimal totalRefundAmount = calculateRefundAmount(paymentRefundRequest, payment.getPaymentLink().getFees());
 
-        if(totalRefundAmount.compareTo(payment.getAmount())>0){
-
-            throw new InvalidPartialRefundRequestException("The amount to refund can not be more than £" + payment.getAmount());
-        }
-
         if(totalRefundAmount.compareTo(paymentRefundRequest.getTotalRefundAmount()) != 0){
 
             throw new InvalidPartialRefundRequestException("Invalid request");
+        }
+
+        if(totalRefundAmount.compareTo(payment.getAmount())>0){
+
+            throw new InvalidPartialRefundRequestException("The amount to refund can not be more than £" + payment.getAmount());
         }
 
         for(PaymentFee paymentFee : paymentFeeList){
