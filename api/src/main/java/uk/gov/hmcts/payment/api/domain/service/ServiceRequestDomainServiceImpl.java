@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -393,6 +394,59 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
 
         } catch (DataIntegrityViolationException exception) {
             responseEntity = new ResponseEntity<>("Too many requests.PBA Payment currently is in progress for this serviceRequest", HttpStatus.TOO_EARLY);
+        }
+
+        return responseEntity;
+    }
+
+    public ResponseEntity createIdempotencyRecordWithoutResponse(ObjectMapper objectMapper, String idempotencyKey, String serviceRequestReference, ServiceRequestPaymentDto serviceRequestPaymentDto) throws JsonProcessingException {
+        String requestJson = objectMapper.writeValueAsString(serviceRequestPaymentDto);
+        int requestHashCode = serviceRequestPaymentDto.hashCodeWithServiceRequestReference(serviceRequestReference);
+
+        ResponseEntity responseEntity = null;
+
+        IdempotencyKeys idempotencyRecord = IdempotencyKeys
+            .idempotencyKeysWith()
+            .idempotencyKey(idempotencyKey)
+            .requestBody(requestJson)
+            .request_hashcode(requestHashCode)   //save the hashcode
+            .build();
+
+        try {
+            Optional<IdempotencyKeys> idempotencyKeysRecord = idempotencyKeysRepository.findById(IdempotencyKeysPK.idempotencyKeysPKWith().idempotencyKey(idempotencyKey).request_hashcode(requestHashCode).build());
+            if (idempotencyKeysRecord.isPresent()) {
+                return new ResponseEntity<>(objectMapper.readValue(idempotencyKeysRecord.get().getResponseBody(), ServiceRequestPaymentBo.class), HttpStatus.valueOf(idempotencyKeysRecord.get().getResponseCode()));
+            }
+            idempotencyKeysRepository.save(idempotencyRecord);
+
+        } catch (DataIntegrityViolationException exception) {
+            responseEntity = new ResponseEntity<>("Too many requests.PBA Payment currently is in progress for this serviceRequest", HttpStatus.TOO_EARLY);
+        }
+
+        return responseEntity;
+    }
+
+    public ResponseEntity updateIdempotencyRecord(ObjectMapper objectMapper, String idempotencyKey, String responseJson, ResponseEntity<?> responseEntity, String serviceRequestReference,
+                                                  ServiceRequestPaymentDto serviceRequestPaymentDto) throws JsonProcessingException {
+        String requestJson = objectMapper.writeValueAsString(serviceRequestPaymentDto);
+        int requestHashCode = serviceRequestPaymentDto.hashCodeWithServiceRequestReference(serviceRequestReference);
+
+        IdempotencyKeys idempotencyRecord = IdempotencyKeys
+            .idempotencyKeysWith()
+            .idempotencyKey(idempotencyKey)
+            .responseBody(responseJson)
+            .responseCode(responseEntity.getStatusCodeValue())
+            .build();
+
+        try {
+            Optional<IdempotencyKeys> idempotencyKeysRecord = idempotencyKeysRepository.findById(IdempotencyKeysPK.idempotencyKeysPKWith().idempotencyKey(idempotencyKey).request_hashcode(requestHashCode).build());
+            if (idempotencyKeysRecord.isPresent()) {
+//                return new ResponseEntity<>(objectMapper.readValue(idempotencyKeysRecord.get().getResponseBody(), ServiceRequestPaymentBo.class), HttpStatus.valueOf(idempotencyKeysRecord.get().getResponseCode()));
+                idempotencyKeysRepository.save(idempotencyRecord); //NOT SURE IF CORRECT. Need repository.update method?
+            }
+
+        } catch (DataIntegrityViolationException exception) {
+            responseEntity = new ResponseEntity<>("Updated values already exist in the database, this action has been completed.", HttpStatus.BAD_REQUEST);
         }
 
         return responseEntity;

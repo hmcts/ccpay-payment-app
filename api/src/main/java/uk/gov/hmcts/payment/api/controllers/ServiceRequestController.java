@@ -148,13 +148,7 @@ public class ServiceRequestController {
         String serviceRequestStatusDisplay = ow.writeValueAsString(serviceRequestPaymentDto);
         LOG.info("Passed service Request Status Display PBA payment : {} ", serviceRequestStatusDisplay);
 
-        try {
-            Thread.sleep(5000);
-            LOG.info("Thread Sleep starting - 5 seconds");
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        LOG.info("Thread Sleeping ended");
+
 
         Function<IdempotencyKeys, ResponseEntity<?>> validateHashcodeForRequest = idempotencyKeys -> {
 
@@ -175,13 +169,16 @@ public class ServiceRequestController {
             return new ResponseEntity<>(responseBO, HttpStatus.valueOf(idempotencyKeys.getResponseCode())); // if hashcode matched
         };
 
-
         //Idempotency Check
         Optional<IdempotencyKeys> idempotencyKeysRow = getIdempotencyKey.apply(idempotencyKey);
         if (idempotencyKeysRow.isPresent()) {
             ResponseEntity responseEntity = validateHashcodeForRequest.apply(idempotencyKeysRow.get());
             return responseEntity;
         }
+
+        serviceRequestDomainService.createIdempotencyRecordWithoutResponse(objectMapper, idempotencyKey, serviceRequestReference, serviceRequestPaymentDto);
+        //add comment here
+
 
         //business validations for serviceRequest
         LOG.info("Business valid start + Service Request Reference passed to business validation", serviceRequestReference);
@@ -215,7 +212,10 @@ public class ServiceRequestController {
 
         //Create Idempotency Record
         LOG.info("Create Idemptotency Record", objectMapper, idempotencyKey);
-        return serviceRequestDomainService.createIdempotencyRecord(objectMapper, idempotencyKey, serviceRequestReference, responseJson, responseEntity, serviceRequestPaymentDto);
+
+        return serviceRequestDomainService.updateIdempotencyRecord(objectMapper, idempotencyKey, responseJson, responseEntity, serviceRequestReference, serviceRequestPaymentDto);
+
+//        return serviceRequestDomainService.createIdempotencyRecord(objectMapper, idempotencyKey, serviceRequestReference, responseJson, responseEntity, serviceRequestPaymentDto);
     }
 
     private TopicClient topicClient;
