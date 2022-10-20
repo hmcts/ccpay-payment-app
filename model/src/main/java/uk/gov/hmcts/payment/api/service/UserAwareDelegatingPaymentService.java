@@ -173,7 +173,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
         CriteriaBuilder cb,
         PaymentSearchCriteria searchCriteria, CriteriaQuery<?> query) {
         List<Predicate> predicates = new ArrayList<>();
-
+        LOG.info("PaymentSearchCriteria: {}", searchCriteria);
         Join<PaymentFeeLink, Payment> paymentJoin = root.join("payments", JoinType.LEFT);
 
         if (searchCriteria.getPaymentMethod() != null) {

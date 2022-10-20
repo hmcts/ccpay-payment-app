@@ -2,6 +2,8 @@ package uk.gov.hmcts.payment.api.reports;
 
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 
+import java.util.HashMap;
+
 public enum PaymentReportType {
 
     CARD,
@@ -10,7 +12,9 @@ public enum PaymentReportType {
     PBA_DIVORCE,
     PBA_PROBATE,
     PBA_FINREM,
-    PBA_FPL;
+    PBA_FPL,
+    PBA_CIVIL,
+    PBA_PRL;
 
     public static PaymentReportType from(PaymentMethodType paymentMethodType, String serviceType) {
         String value = "";
@@ -34,24 +38,19 @@ public enum PaymentReportType {
     }
 
     private static String getServiceTypeEnum(String serviceType) {
-        if (serviceType != null && (serviceType.equalsIgnoreCase("Specified Money Claims") || serviceType.equalsIgnoreCase("Civil Money Claims"))) {
-            return "CMC";
-        }
-        if (serviceType != null && (serviceType.equalsIgnoreCase("Financial Remedy") || serviceType.equalsIgnoreCase("Finrem"))) {
-            return "FINREM";
-        }
-        if (serviceType != null && (serviceType.equalsIgnoreCase("Family Public Law"))) {
-            return "FPL";
-        }
-        if (serviceType != null && (serviceType.equalsIgnoreCase("Digital Bar"))) {
-            return "DIGITAL_BAR";
-        }
-        if (serviceType != null && (serviceType.equalsIgnoreCase("Divorce"))) {
-            return "DIVORCE";
-        }
-        if (serviceType != null && (serviceType.equalsIgnoreCase("Probate"))) {
-            return "PROBATE";
-        }
-        return serviceType;
+        HashMap<String, String> serviceTypeHashMap = new HashMap<>();
+
+        serviceTypeHashMap.put("Specified Money Claims", "CMC");
+        serviceTypeHashMap.put("Civil Money Claims", "CMC");
+        serviceTypeHashMap.put("Financial Remedy", "FINREM");
+        serviceTypeHashMap.put("Finrem", "FINREM");
+        serviceTypeHashMap.put("Family Public Law", "FPL");
+        serviceTypeHashMap.put("Digital Bar", "DIGITAL_BAR");
+        serviceTypeHashMap.put("Divorce", "DIVORCE");
+        serviceTypeHashMap.put("Probate","PROBATE");
+        serviceTypeHashMap.put("Civil","CIVIL");
+        serviceTypeHashMap.put("Family Private Law","PRL");
+
+        return serviceTypeHashMap.getOrDefault(serviceType, serviceType);
     }
 }

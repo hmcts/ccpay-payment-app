@@ -245,6 +245,7 @@ public class PaymentDtoMapper {
     }
 
     public PaymentDto toReconciliationResponseDto(PaymentFeeLink paymentFeeLink) {
+        LOG.info("paymentFeeLink.getPayments().size(): {}", paymentFeeLink.getPayments().size());
         Payment payment = paymentFeeLink.getPayments().get(0);
         PaymentDto paymentDto = PaymentDto.payment2DtoWith()
             .paymentReference(payment.getReference())
