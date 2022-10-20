@@ -34,6 +34,8 @@ spring:
         pba-finrem-payments-email-to: pba.finrem.payments.email.to
         pba-divorce-payments-email-to: pba.divorce.payments.email.to
         pba-fpl-payments-email-to: pba.fpl.payments.email.to
+        pba-civil-payments-email-to: pba.civil.payments.email.to
+        pba-prl-payments-email-to: pba.prl.payments.email.to
         launch-darkly-sdk-key: launch.darkly.sdk.key
         payment-s2s-secret: PAYMENT_S2S_SECRET
         pci-pal-antenna-tenant-name: pci-pal.antenna.tenant.name
