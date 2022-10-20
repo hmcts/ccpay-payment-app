@@ -164,7 +164,7 @@ public class RefundRequestorJourneyBulkscanPaymentFunctionalTest {
                 ccdCaseNumber, lag_time[i]);
 
             PaymentRefundRequest paymentRefundRequest
-                = PaymentFixture.aRefundRequest("RR001", paymentReference.get(), "100.00", "450");
+                = PaymentFixture.aRefundRequest(0, "RR001", paymentReference.get(), "100.00", "450");
             RefundResponse refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
                 SERVICE_TOKEN_PAYMENT,
                 paymentRefundRequest).
@@ -254,7 +254,7 @@ public class RefundRequestorJourneyBulkscanPaymentFunctionalTest {
 
             // initiate the refund
             PaymentRefundRequest paymentRefundRequest
-                = PaymentFixture.aRefundRequest("RR001", paymentReference.get(), "100", "450");
+                = PaymentFixture.aRefundRequest(0, "RR001", paymentReference.get(), "100", "450");
             Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
                 SERVICE_TOKEN_PAYMENT,
                 paymentRefundRequest);
