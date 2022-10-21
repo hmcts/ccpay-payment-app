@@ -1909,8 +1909,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
 
         // issue a refund
         String paymentReference = paymentsResponse.getReference();
-        Integer paymentId = Integer.valueOf(paymentsResponse.getId());
-        //Integer paymentId2 = Integer.parseInt(paymentsResponse.getId());
+        int paymentId = paymentsResponse.getFees().get(0).getId();
         PaymentRefundRequest paymentRefundRequest
             = PaymentFixture.aRefundRequest(paymentId, "RR001", paymentReference, "650.00", "640");
         Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
