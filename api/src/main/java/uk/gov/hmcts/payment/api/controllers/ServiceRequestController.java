@@ -211,7 +211,7 @@ public class ServiceRequestController {
         }
 
         //Create Idempotency Record
-        LOG.info("Create Idemptotency Record", objectMapper, idempotencyKey);
+        LOG.info("Create Idemptotency Record {} {}", objectMapper, idempotencyKey);
 
         return serviceRequestDomainService.updateIdempotencyRecord(objectMapper, idempotencyKey, responseJson, responseEntity, serviceRequestReference, serviceRequestPaymentDto);
 

@@ -431,6 +431,8 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         String requestJson = objectMapper.writeValueAsString(serviceRequestPaymentDto);
         int requestHashCode = serviceRequestPaymentDto.hashCodeWithServiceRequestReference(serviceRequestReference);
 
+        LOG.info("entered update idempotency record");
+
         IdempotencyKeys idempotencyRecord = IdempotencyKeys
             .idempotencyKeysWith()
             .idempotencyKey(idempotencyKey)
