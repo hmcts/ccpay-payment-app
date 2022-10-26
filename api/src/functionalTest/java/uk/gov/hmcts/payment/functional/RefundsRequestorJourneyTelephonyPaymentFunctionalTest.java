@@ -159,6 +159,7 @@ public class RefundsRequestorJourneyTelephonyPaymentFunctionalTest {
         paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
                 ccdCaseNumber, "5");
 
+
         // initiate the refund
         PaymentRefundRequest paymentRefundRequest
                 = PaymentFixture.aRefundRequest(0, "RR001", paymentReference.get(), "550.00", "550");

@@ -93,12 +93,6 @@ public class PaymentTestService {
             .get("/credit-account-payments/{reference}", paymentReference);
     }
 
-    public Response getPbaPayment2(String userToken, String serviceToken, String paymentReference) {
-        return givenWithAuthHeaders(userToken, serviceToken)
-            .when()
-            .get("/payments/{reference}", paymentReference);
-    }
-
     public Response getPbaPaymentsByAccountNumber(String userToken, String serviceToken, String accountNumber) {
         return givenWithAuthHeaders(userToken, serviceToken)
             .when()
