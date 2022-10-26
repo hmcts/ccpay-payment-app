@@ -9,6 +9,8 @@ import java.util.stream.Collectors;
 
 public class ServiceRequestUtil {
 
+    private static final String DISPUTED = "Disputed";
+
     public String getServiceRequestStatus(PaymentGroupDto paymentGroupDto){
         //Calculate the fee total in a payment group
         BigDecimal orderFeeTotal = getTotalFeeAmount(paymentGroupDto);
@@ -24,7 +26,7 @@ public class ServiceRequestUtil {
 
         if(orderPendingTotal.compareTo(BigDecimal.ZERO) <= 0 && orderPaymentTotal.compareTo(BigDecimal.ZERO) > 0) {
             if (paymentGroupDto.isAnyPaymentDisputed()) {
-                return "Disputed";
+                return DISPUTED;
             } else {
                 return "Paid";
             }
@@ -32,7 +34,7 @@ public class ServiceRequestUtil {
         else if(orderFeeTotal.compareTo(BigDecimal.ZERO) > 0 && (orderPaymentTotal.compareTo(BigDecimal.ZERO) > 0
             || orderRemissionTotal.compareTo(BigDecimal.ZERO) > 0) && orderPendingTotal.compareTo(BigDecimal.ZERO) > 0){
             if (paymentGroupDto.isAnyPaymentDisputed()) {
-                return "Disputed";
+                return DISPUTED;
             } else {
                 return "Partially paid";
             }
@@ -40,7 +42,7 @@ public class ServiceRequestUtil {
         }
         else{
             if (paymentGroupDto.isAnyPaymentDisputed()) {
-                return "Disputed";
+                return DISPUTED;
             }
             else{
                 return "Not paid";
@@ -83,7 +85,7 @@ public class ServiceRequestUtil {
         if(paymentGroupDto.getPayments() != null) {
             for (int i = 0; i < paymentGroupDto.getPayments().size(); i++) {
                 if (paymentGroupDto.getPayments().get(i).getStatus().equals("Success") && paymentGroupDto.getPayments().get(i).getAmount() != null) {
-                 List<DisputeDTO> disputeDTO =  paymentGroupDto.getPayments().get(i).getDisputes().stream().filter(d ->d.isDispute()).collect(Collectors.toList());
+                 List<DisputeDTO> disputeDTO =  paymentGroupDto.getPayments().get(i).getDisputes().stream().filter(DisputeDTO::isDispute).collect(Collectors.toList());
                BigDecimal totalDispute = BigDecimal.ZERO;
                  for(DisputeDTO disputeDTO1:disputeDTO) {
 
