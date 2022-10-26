@@ -63,6 +63,7 @@ public class PaymentDtoTest {
     private Date dateReceiptProcessed;
     private Date dateApportioned;
     private String internalReference;
+    private List<DisputeDTO> disputeDTOS;
 
     public PaymentDtoTest() {
         feeWithVolumeCode = "X0001";
@@ -138,7 +139,7 @@ public class PaymentDtoTest {
             gbp, ccdNumber, caseReference, paymentReference, channel, method, externalProvider,
             status, externalReference, siteId, serviceName, customerReference, accountNumber,
             organisationName, paymentGroupReference, reportedDateOffline,documentControlNumber,bankedDate,payerName,
-            null, statusHistories, paymentAllocations,giroSlipNo, internalReference,links);
+            null, statusHistories, paymentAllocations,giroSlipNo, internalReference,disputeDTOS,links);
     }
 
     @Test

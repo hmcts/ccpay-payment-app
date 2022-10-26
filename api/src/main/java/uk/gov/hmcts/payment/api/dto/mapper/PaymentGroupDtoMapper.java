@@ -219,9 +219,6 @@ public class PaymentGroupDtoMapper {
     private List<DisputeDTO> evaluatePaymentDispute(Payment payment){
 
         List<DisputeDTO> disputeDTOs = new ArrayList<>();
-       // Optional<List<PaymentFailures>> paymentFailuresList;
-       // paymentFailuresList = paymentFailureRepository.findByPaymentReference(payment.getReference());
-
 
         if(paymentFailuresList.isPresent()) {
             for (PaymentFailures paymentFailure : paymentFailuresList.get()) {
