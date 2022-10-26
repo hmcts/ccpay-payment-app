@@ -9,24 +9,21 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.fees2.register.api.contract.FeeVersionDto;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
+import uk.gov.hmcts.payment.api.contract.DisputeDTO;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentAllocationDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.RemissionDto;
-import uk.gov.hmcts.payment.api.model.Payment;
-import uk.gov.hmcts.payment.api.model.PaymentAllocation;
-import uk.gov.hmcts.payment.api.model.PaymentFee;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.model.PaymentFeeRepository;
-import uk.gov.hmcts.payment.api.model.Remission;
+import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.reports.FeesService;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 import uk.gov.hmcts.payment.api.util.ServiceRequestUtil;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
@@ -45,6 +42,13 @@ public class PaymentGroupDtoMapper {
     @Autowired
     private PaymentFeeRepository paymentFeeRepository;
 
+    @Autowired
+   private  PaymentFailureRepository paymentFailureRepository;
+
+    private int FIRSTPING = 1;
+
+    Optional<List<PaymentFailures>> paymentFailuresList;
+
     public PaymentGroupDto toPaymentGroupDto(PaymentFeeLink paymentFeeLink) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         boolean containsPaymentRole = false;
@@ -59,7 +63,9 @@ public class PaymentGroupDtoMapper {
             }
         }
 
+        List<String> paymentReference = paymentFeeLink.getPayments().stream().map(Payment::getReference).collect(Collectors.toList());
 
+        paymentFailuresList = paymentFailureRepository.findByPaymentReferenceIn(paymentReference);
         PaymentGroupDto paymentGroupDto;
 
         paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
@@ -70,6 +76,20 @@ public class PaymentGroupDtoMapper {
             .payments((!(paymentFeeLink.getPayments() == null) && !paymentFeeLink.getPayments().isEmpty()) ? toPaymentDtos(paymentFeeLink.getPayments()) : null)
             .remissions(!(paymentFeeLink.getRemissions() == null) ? toRemissionDtos(paymentFeeLink.getRemissions()) : null)
             .build();
+
+        if(null != paymentGroupDto.getPayments()) {
+            for (PaymentDto paymentDto : paymentGroupDto.getPayments()) {
+                for (DisputeDTO disputeDTO : paymentDto.getDisputes()) {
+
+                    if (disputeDTO.isDispute() && disputeDTO.getPingNumber() == FIRSTPING) {
+
+                        paymentGroupDto.setAnyPaymentDisputed(true);
+                        break;
+                    }
+                }
+
+            }
+        }
 
         String serviceRequestStatus = serviceRequestUtil.getServiceRequestStatus(paymentGroupDto);
 
@@ -114,6 +134,7 @@ public class PaymentGroupDtoMapper {
             .bankedDate(payment.getBankedDate())
             .payerName(payment.getPayerName())
             .paymentAllocation(payment.getPaymentAllocation() !=null ? toPaymentAllocationDtos(payment.getPaymentAllocation()) : null)
+            .disputes(evaluatePaymentDispute(payment))
             .build();
     }
 
@@ -194,5 +215,51 @@ public class PaymentGroupDtoMapper {
             .dateCreated(apportionFeature ? timestamp: null)
             .build();
     }
+
+    private List<DisputeDTO> evaluatePaymentDispute(Payment payment){
+
+        List<DisputeDTO> disputeDTOs = new ArrayList<>();
+       // Optional<List<PaymentFailures>> paymentFailuresList;
+       // paymentFailuresList = paymentFailureRepository.findByPaymentReference(payment.getReference());
+
+
+        if(paymentFailuresList.isPresent()) {
+            for (PaymentFailures paymentFailure : paymentFailuresList.get()) {
+                if (paymentFailure.getPaymentReference().equals(payment.getReference())) {
+                    DisputeDTO disputeDTO = new DisputeDTO();
+                    if (paymentFailure.getRepresentmentSuccess() == null) {
+                        disputeDTO.setDispute(true);
+                        disputeDTO.setPingNumber(1);
+                    } else if (paymentFailure.getRepresentmentSuccess().equalsIgnoreCase("Yes")) {
+                        disputeDTO.setDispute(false);
+                        disputeDTO.setPingNumber(2);
+                    } else {
+                        disputeDTO.setDispute(true);
+                        disputeDTO.setPingNumber(2);
+                    }
+                    disputeDTO.setAmount(paymentFailure.getAmount());
+                    disputeDTO.setDcn(paymentFailure.getDcn());
+                    disputeDTO.setCcdCaseNumber(paymentFailure.getCcdCaseNumber());
+                    disputeDTO.setPaymentReference(paymentFailure.getPaymentReference());
+                    disputeDTO.setFailureEventDateTime(paymentFailure.getFailureEventDateTime());
+                    disputeDTO.setFailureReference(paymentFailure.getFailureReference());
+                    disputeDTO.setFailureType(paymentFailure.getFailureType());
+                    disputeDTO.setHasAmountDebited(paymentFailure.getHasAmountDebited());
+                    disputeDTO.setReason(paymentFailure.getReason());
+                    disputeDTO.setRepresentmentOutcomeDate(paymentFailure.getRepresentmentOutcomeDate());
+                    disputeDTO.setRepresentmentSuccess(paymentFailure.getRepresentmentSuccess());
+                    disputeDTOs.add(disputeDTO);
+                }
+            }
+        }
+        else{
+                DisputeDTO disputeDTO = new DisputeDTO();
+                disputeDTO.setDispute(false);
+                disputeDTO.setPingNumber(0);
+                disputeDTOs.add(disputeDTO);
+            }
+
+        return disputeDTOs;
+        }
 
 }
