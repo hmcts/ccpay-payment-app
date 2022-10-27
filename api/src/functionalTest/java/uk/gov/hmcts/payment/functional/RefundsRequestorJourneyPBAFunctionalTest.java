@@ -101,7 +101,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         }
     }
 
-    @Test
+    /*@Test
     public void positive_issue_refunds_for_a_pba_payment() {
 
         // create a PBA payment
@@ -155,7 +155,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         // Delete refund record
         paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN,
                 refundResponseFromPost.getRefundReference());
-    }
+    }*/
 
     @Test
     public void negative_issue_refunds_for_a_pba_payment_unauthorized_user() {
@@ -1243,7 +1243,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN,
                 refundInitiatedResponse.getRefundReference());
     }*/
-    /*
+    
     private void issue_refunds_for_a_failed_payment(final String amount,
                                                     final String accountNumber,
                                                     final String errorMessage) {
@@ -1284,7 +1284,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
 
         assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
         assertThat(refundResponse.getBody().print()).isEqualTo("Refund can be possible if payment is successful");
-    }*/
+    }
 
     @Test
     public void negative_add_remission_and_submit_a_refund_for_a_pba_payment_more_than_the_account_limit() {
@@ -1462,7 +1462,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
     }
 
-    @Test
+    /*@Test
     public void issue_refunds_for_a_failed_payment() {
 
         // create a PBA payment
@@ -1511,7 +1511,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
 
         //delete Payment Failure record
         paymentTestService.deleteFailedPayment(USER_TOKEN, SERVICE_TOKEN, paymentStatusChargebackDto.getFailureReference()).then().statusCode(NO_CONTENT.value());
-    }
+    }*/
 
     private static RetroRemissionRequest getRetroRemissionRequest(final String remissionAmount) {
         return RetroRemissionRequest.createRetroRemissionRequestWith()
