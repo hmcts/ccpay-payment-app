@@ -197,7 +197,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
     }
 
-    @Test
+    /*@Test
     public void negative_duplicate_issue_refunds_for_a_pba_payment() {
         // create a PBA payment
         String accountNumber = testProps.existingAccountNumber;
@@ -246,9 +246,9 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         // Delete refund record
         paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN,
                 refundResponseFromPost.getRefundReference());
-    }
+    }*/
 
-    @Test
+    /*@Test
     public void positive_issue_refunds_for_2_pba_payments() {
         // create the PBA payments
         String accountNumber = testProps.existingAccountNumber;
@@ -288,6 +288,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         int paymentId = paymentsResponse.getFees().get(0).getId();
         PaymentRefundRequest paymentRefundRequest
             = PaymentFixture.aRefundRequest(paymentId, "RR001", paymentReference, "550.00", "0");
+
         Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentRefundRequest);
@@ -303,10 +304,10 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         // Delete refund record
         paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN,
                 refundResponseFromPost.getRefundReference());
-    }
+    }*/
 
 
-    @Test
+    /*@Test
     public void positive_issue_refunds_for_a_pba_payment_accross_2_fees() {
         // create a PBA payment with 2 fees
         String accountNumber = testProps.existingAccountNumber;
@@ -350,7 +351,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         // Delete refund record
         paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN,
                 refundResponseFromPost.getRefundReference());
-    }
+    }*/
 
     @Test
     public void positive_add_remission_and_add_refund_for_a_pba_payment() throws JSONException {
@@ -1037,7 +1038,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
     }
 
-    @Test
+    /*@Test
     public void positive_add_remission_and_initiate_a_refund_for_a_pba_payment() {
         // create a PBA payment
         String accountNumber = testProps.existingAccountNumber;
@@ -1095,9 +1096,9 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         // Delete refund record
         paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN,
                 refundResponseFromPost.getRefundReference());
-    }
+    }*/
 
-    @Test
+    /*@Test
     public void positive_add_remission_add_refund_and_then_initiate_a_refund_for_a_pba_payment() {
         // create a PBA payment
         String accountNumber = testProps.existingAccountNumber;
@@ -1164,9 +1165,9 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
                 refundResponseFromPost.getRefundReference());
         paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN,
                 refundInitiatedResponse.getRefundReference());
-    }
+    }*/
 
-    @Test
+    /*@Test
     public void positive_create_2_fee_payment_add_remission_add_refund_and_then_initiate_a_refund_for_a_pba_payment() {
         String accountNumber = testProps.existingAccountNumber;
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
@@ -1241,8 +1242,8 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
                 refundResponseFromPost.getRefundReference());
         paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN,
                 refundInitiatedResponse.getRefundReference());
-    }
-
+    }*/
+    /*
     private void issue_refunds_for_a_failed_payment(final String amount,
                                                     final String accountNumber,
                                                     final String errorMessage) {
@@ -1283,7 +1284,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
 
         assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
         assertThat(refundResponse.getBody().print()).isEqualTo("Refund can be possible if payment is successful");
-    }
+    }*/
 
     @Test
     public void negative_add_remission_and_submit_a_refund_for_a_pba_payment_more_than_the_account_limit() {
