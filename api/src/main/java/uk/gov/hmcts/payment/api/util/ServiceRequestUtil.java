@@ -24,30 +24,16 @@ public class ServiceRequestUtil {
         //Calculate the pending amount for a payment group
         BigDecimal orderPendingTotal = (orderFeeTotal.subtract(orderRemissionTotal)).subtract(orderPaymentTotal);
 
-        if(orderPendingTotal.compareTo(BigDecimal.ZERO) <= 0 && orderPaymentTotal.compareTo(BigDecimal.ZERO) > 0) {
-            if (paymentGroupDto.isAnyPaymentDisputed()) {
+        if (paymentGroupDto.isAnyPaymentDisputed()) {
                 return DISPUTED;
-            } else {
+        } else if(orderPendingTotal.compareTo(BigDecimal.ZERO) <= 0 && orderPaymentTotal.compareTo(BigDecimal.ZERO) > 0) {
                 return "Paid";
-            }
-        }
-        else if(orderFeeTotal.compareTo(BigDecimal.ZERO) > 0 && (orderPaymentTotal.compareTo(BigDecimal.ZERO) > 0
+        } else if(orderFeeTotal.compareTo(BigDecimal.ZERO) > 0 && (orderPaymentTotal.compareTo(BigDecimal.ZERO) > 0
             || orderRemissionTotal.compareTo(BigDecimal.ZERO) > 0) && orderPendingTotal.compareTo(BigDecimal.ZERO) > 0){
-            if (paymentGroupDto.isAnyPaymentDisputed()) {
-                return DISPUTED;
-            } else {
                 return "Partially paid";
             }
-
-        }
         else{
-            if (paymentGroupDto.isAnyPaymentDisputed()) {
-                return DISPUTED;
-            }
-            else{
                 return "Not paid";
-            }
-
         }
     }
 
