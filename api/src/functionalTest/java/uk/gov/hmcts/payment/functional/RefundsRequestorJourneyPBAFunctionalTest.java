@@ -1462,7 +1462,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
     }
 
-    @Test
+    /*@Test
     public void issue_refunds_for_a_failed_payment() {
 
         // create a PBA payment
@@ -1511,7 +1511,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
 
         //delete Payment Failure record
         paymentTestService.deleteFailedPayment(USER_TOKEN, SERVICE_TOKEN, paymentStatusChargebackDto.getFailureReference()).then().statusCode(NO_CONTENT.value());
-    }
+    }*/
 
     private static RetroRemissionRequest getRetroRemissionRequest(final String remissionAmount) {
         return RetroRemissionRequest.createRetroRemissionRequestWith()
