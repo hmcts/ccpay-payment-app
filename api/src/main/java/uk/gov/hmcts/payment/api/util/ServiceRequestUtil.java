@@ -26,7 +26,7 @@ public class ServiceRequestUtil {
 
         if (paymentGroupDto.isAnyPaymentDisputed()) {
                 return DISPUTED;
-        } else if(orderPendingTotal.compareTo(BigDecimal.ZERO) <= 0 && orderPaymentTotal.compareTo(BigDecimal.ZERO) > 0) {
+        } else if(orderPendingTotal.compareTo(BigDecimal.ZERO) <= 0 && orderPaymentTotal.compareTo(BigDecimal.ZERO) >= 0) {
                 return "Paid";
         } else if(orderFeeTotal.compareTo(BigDecimal.ZERO) > 0 && (orderPaymentTotal.compareTo(BigDecimal.ZERO) > 0
             || orderRemissionTotal.compareTo(BigDecimal.ZERO) > 0) && orderPendingTotal.compareTo(BigDecimal.ZERO) > 0){
