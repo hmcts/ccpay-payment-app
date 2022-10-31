@@ -12,7 +12,7 @@ buildscript {
 
 plugins {
     id "info.solidsoft.pitest" version '1.6.0'
-    id 'au.com.dius.pact' version '4.3.14'
+    id 'au.com.dius.pact' version '4.1.36'
 }
 
 apply from: 'liquibase.gradle'
