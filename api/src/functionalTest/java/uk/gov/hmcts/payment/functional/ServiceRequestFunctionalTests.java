@@ -766,7 +766,10 @@ public class ServiceRequestFunctionalTests {
     @Test
     public void return_disputed_when_failure_event_has_happen_ping_one() {
 
-        String ccdCaseNumber = "1111221233124412";
+        String ccdCaseNumber = "11111234" + RandomUtils.nextInt();
+        if(ccdCaseNumber.length()>16){
+            ccdCaseNumber = ccdCaseNumber.substring(0,16);
+        }
         FeeDto feeDto = FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("550.00"))
             .ccdCaseNumber(ccdCaseNumber)
@@ -861,7 +864,10 @@ public class ServiceRequestFunctionalTests {
     @Test
     public void return_paid_when_failure_event_and_HMCTS_won_dispute_ping_two() {
 
-        String ccdCaseNumber = "1111221233124412";
+        String ccdCaseNumber = "11111234" + RandomUtils.nextInt();
+        if(ccdCaseNumber.length()>16){
+            ccdCaseNumber = ccdCaseNumber.substring(0,16);
+        }
         FeeDto feeDto = FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("550.00"))
             .ccdCaseNumber(ccdCaseNumber)
@@ -977,7 +983,10 @@ public class ServiceRequestFunctionalTests {
     @Test
     public void return_partially_paid_when_failure_event_and_HMCTS_lost_dispute_ping_two() {
 
-        String ccdCaseNumber = "1111221233124412";
+        String ccdCaseNumber = "11111234" + RandomUtils.nextInt();
+        if(ccdCaseNumber.length()>16){
+            ccdCaseNumber = ccdCaseNumber.substring(0,16);
+        }
         FeeDto feeDto = FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("550.00"))
             .ccdCaseNumber(ccdCaseNumber)
@@ -1437,7 +1446,11 @@ public class ServiceRequestFunctionalTests {
 
         // Create a Telephony payment
 
-        String ccdCaseNumber = "1111221233124412";
+        String ccdCaseNumber = "11111234" + RandomUtils.nextInt();
+        if(ccdCaseNumber.length()>16) {
+            ccdCaseNumber = ccdCaseNumber.substring(0,16);
+        }
+
         FeeDto feeDto = FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("550.00"))
             .ccdCaseNumber(ccdCaseNumber)
@@ -1554,7 +1567,11 @@ public class ServiceRequestFunctionalTests {
 
         // Create a Telephony payment
 
-        String ccdCaseNumber = "1111221233124412";
+        String ccdCaseNumber = "11111234" + RandomUtils.nextInt();
+        if(ccdCaseNumber.length()>16){
+            ccdCaseNumber = ccdCaseNumber.substring(0,16);
+        }
+
         FeeDto feeDto = FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("550.00"))
             .ccdCaseNumber(ccdCaseNumber)
@@ -1694,7 +1711,11 @@ public class ServiceRequestFunctionalTests {
 
         // Create a Telephony payment
 
-        String ccdCaseNumber = "1111221233124412";
+        String ccdCaseNumber = "11111234" + RandomUtils.nextInt();
+        if(ccdCaseNumber.length()>16){
+            ccdCaseNumber = ccdCaseNumber.substring(0,16);
+        }
+
         FeeDto feeDto = FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("550.00"))
             .ccdCaseNumber(ccdCaseNumber)
