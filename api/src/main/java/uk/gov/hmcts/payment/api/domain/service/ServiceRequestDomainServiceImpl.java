@@ -494,8 +494,8 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     @Override
     public void sendMessageToTopic(PaymentStatusDto payment, String callBackUrl){
         try {
-            TopicClientProxy topicClientCPO;
-            Message msg;
+            TopicClientProxy topicClientCPO = null;
+            Message msg = null;
             ObjectMapper objectMapper = new ObjectMapper();
 
             LOG.info("Callback URL: {}", callBackUrl);
