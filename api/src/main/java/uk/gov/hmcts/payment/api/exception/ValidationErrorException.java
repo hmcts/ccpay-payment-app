@@ -2,12 +2,10 @@ package uk.gov.hmcts.payment.api.exception;
 
 import uk.gov.hmcts.payment.api.contract.exception.ValidationErrorDTO;
 
-import java.io.Serial;
 import java.io.Serializable;
 
 public class ValidationErrorException extends RuntimeException implements Serializable {
 
-    @Serial
     private static final long serialVersionUID = 1905122041950251207L;
 
     private final ValidationErrorDTO errors;
