@@ -3,14 +3,12 @@ package uk.gov.hmcts.payment.api.contract.exception;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-import java.io.Serial;
 import java.io.Serializable;
 
 @ToString
 @NoArgsConstructor
 public class FieldErrorDTO implements Serializable {
 
-    @Serial
     private static final long serialVersionUID = 1905122041950258976L;
 
     private String field;

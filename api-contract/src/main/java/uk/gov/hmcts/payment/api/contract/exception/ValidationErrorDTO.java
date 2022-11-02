@@ -3,7 +3,6 @@ package uk.gov.hmcts.payment.api.contract.exception;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,7 +11,6 @@ import java.util.List;
 @NoArgsConstructor
 public class ValidationErrorDTO implements Serializable {
 
-    @Serial
     private static final long serialVersionUID = 2405172041950251807L;
 
     private List<FieldErrorDTO> fieldErrors = new ArrayList<>();
