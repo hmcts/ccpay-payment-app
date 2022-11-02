@@ -20,7 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestDomainDataEntityMapper;
 import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestDtoDomainMapper;
 import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestPaymentDomainDataEntityMapper;
@@ -464,9 +463,9 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
 
             ServiceRequestCpoDto serviceRequestCpoDto = ServiceRequestCpoDto.serviceRequestCpoDtoWith()
                     .action(serviceRequestDto.getCasePaymentRequest().getAction())
-                    .case_id(serviceRequestDto.getCcdCaseNumber())
-                    .order_reference(serviceRequestReference)
-                    .responsible_party(serviceRequestDto.getCasePaymentRequest().getResponsibleParty())
+                    .caseId(serviceRequestDto.getCcdCaseNumber())
+                    .orderReference(serviceRequestReference)
+                    .responsibleParty(serviceRequestDto.getCasePaymentRequest().getResponsibleParty())
                     .build();
 
             msg = new Message(objectMapper.writeValueAsString(serviceRequestCpoDto));
@@ -475,9 +474,9 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
             LOG.info("sending message started..");
             LOG.info("Message sent: {}", msg);
             LOG.info("message content Action: {}",serviceRequestCpoDto.getAction() );
-            LOG.info("message content case id: {}",serviceRequestCpoDto.getCase_id() );
-            LOG.info("message content order reference: {}",serviceRequestCpoDto.getOrder_reference() );
-            LOG.info("message content res party: {}",serviceRequestCpoDto.getResponsible_party() );
+            LOG.info("message content case id: {}",serviceRequestCpoDto.getCaseId() );
+            LOG.info("message content order reference: {}",serviceRequestCpoDto.getOrderReference() );
+            LOG.info("message content res party: {}",serviceRequestCpoDto.getResponsibleParty() );
 
             if(msg!=null && topicClientCPO!=null){
                 msg.setContentType(MSGCONTENTTYPE);
@@ -495,8 +494,8 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     @Override
     public void sendMessageToTopic(PaymentStatusDto payment, String callBackUrl){
         try {
-            TopicClientProxy topicClientCPO = null;
-            Message msg = null;
+            TopicClientProxy topicClientCPO;
+            Message msg;
             ObjectMapper objectMapper = new ObjectMapper();
 
             LOG.info("Callback URL: {}", callBackUrl);

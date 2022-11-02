@@ -4,7 +4,13 @@ import lombok.Getter;
 import lombok.Setter;
 
 public enum PayStatusToPayHubStatus {
-    created("Initiated"), started("Initiated"), submitted("Initiated"), success("Success"), failed("Failed"), cancelled("Failed"), error("Failed"), pending("Pending"), decline("Declined");
+    CREATED(PayStatusToPayHubStatus.INITIATED_VALUE), STARTED(PayStatusToPayHubStatus.INITIATED_VALUE),
+    SUBMITTED(PayStatusToPayHubStatus.INITIATED_VALUE), SUCCESS("Success"),
+    FAILED(PayStatusToPayHubStatus.FAILED_VALUE), CANCELLED(PayStatusToPayHubStatus.FAILED_VALUE),
+    ERROR(PayStatusToPayHubStatus.FAILED_VALUE), PENDING("Pending"), DECLINE("Declined");
+
+    public static final String INITIATED_VALUE = "Initiated";
+    public static final String FAILED_VALUE = "Failed";
 
     @Getter
     @Setter

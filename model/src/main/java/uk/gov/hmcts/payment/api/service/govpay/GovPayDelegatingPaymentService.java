@@ -7,22 +7,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
 import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
-import uk.gov.hmcts.payment.api.exceptions.ServiceRequestReferenceNotFoundException;
 import uk.gov.hmcts.payment.api.external.client.GovPayClient;
 import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.govpay.GovPayAuthUtil;
 import uk.gov.hmcts.payment.api.v1.model.govpay.GovPayKeyRepository;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 
 @Service
@@ -57,13 +53,18 @@ public class GovPayDelegatingPaymentService implements DelegatingPaymentService<
     @Override
     public GovPayPayment create(CreatePaymentRequest createPaymentRequest, String serviceName) {
         LOG.info("Gov Pay Delegating service --- createPaymentRequest.getReturnUrl() {}",createPaymentRequest.getReturnUrl());
-        LOG.info("Gov Pay Delegating service ---"+serviceName);
+        LOG.info("Gov Pay Delegating service --- {}", serviceName);
         String key = getServiceKeyWithServiceName(serviceName);
         LOG.info("Key value: {}",key);
         LOG.info("Language value in GovPayDelegatingPaymentService - CreatePaymentRequest: {}", createPaymentRequest.getLanguage());
         return govPayClient.createPayment(key, createPaymentRequest);
     }
 
+    /**
+     *
+     * @param payment
+     * @param ccdCaseNumber
+     */
     @Override
     public void cancel(Payment payment, String ccdCaseNumber) {
     }

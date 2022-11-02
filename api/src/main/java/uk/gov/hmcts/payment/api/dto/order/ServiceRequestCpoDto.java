@@ -22,12 +22,12 @@ public class ServiceRequestCpoDto {
     private String action;
 
     @NotBlank
-    private String case_id;
+    private String caseId;
 
     @NotBlank
-    private String order_reference;
+    private String orderReference;
 
     @NotBlank
-    private String responsible_party;
+    private String responsibleParty;
 
 }
