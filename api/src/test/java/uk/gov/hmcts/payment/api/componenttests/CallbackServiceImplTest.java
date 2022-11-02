@@ -44,7 +44,7 @@ public class CallbackServiceImplTest {
     private FF4j ff4j;
 
     @Test
-    public void testCallbackService() throws ServiceBusException, InterruptedException, JsonProcessingException {
+    public void testCallbackService() throws ServiceBusException, InterruptedException {
 
         Payment payment = CardPaymentComponentTest.getPaymentsData().get(2);
         payment.setServiceCallbackUrl("serviceCallbackUrl");
