@@ -217,6 +217,7 @@ public class PaymentStatusUpdateServiceImplTest {
         Payment payment = getPayment();
         PaymentStatusChargebackDto paymentStatusChargebackDto =getPaymentStatusChargebackDtoForBadRequest();
         when(paymentRepository.findByReference(any())).thenReturn(Optional.of(payment));
+        when(paymentFailureRepository.findByPaymentReference(any())).thenReturn(Optional.of(getPaymentFailuresList()));
         assertThrows(
             InvalidPaymentFailureRequestException.class,
             () -> paymentStatusUpdateServiceImpl.insertChargebackPaymentFailure(paymentStatusChargebackDto)
@@ -583,7 +584,7 @@ public class PaymentStatusUpdateServiceImplTest {
             .failureReference("Bounce Cheque")
             .paymentReference("RC-1520-2505-0381-8145")
             .ccdCaseNumber("123456")
-            .amount(BigDecimal.valueOf(555))
+            .amount(BigDecimal.valueOf(100))
             .representmentSuccess("yes")
             .failureType("Chargeback")
             .additionalReference("AR12345")
@@ -672,7 +673,7 @@ public class PaymentStatusUpdateServiceImplTest {
 
         return PaymentStatusChargebackDto.paymentStatusChargebackRequestWith()
             .additionalReference("AR1234")
-            .amount(BigDecimal.valueOf(556))
+            .amount(BigDecimal.valueOf(500))
             .failureReference("FR12345")
             .eventDateTime("2021-10-10T10:10:10")
             .ccdCaseNumber("123456")
