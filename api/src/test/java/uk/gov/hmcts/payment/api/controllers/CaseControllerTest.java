@@ -692,7 +692,6 @@ public class CaseControllerTest extends PaymentsDataUtil {
     }
 
     @Test
-    @Transactional
     public void returnDisputedWhenPaymentHaveDispoutePingOneWhenPaymentSuccess() throws Exception {
 
         populateCardPaymentToDb("1");
@@ -713,7 +712,6 @@ public class CaseControllerTest extends PaymentsDataUtil {
     }
 
     @Test
-    @Transactional
     public void returnDisputedWhenPaymentHaveDispoutePingOneWhenPaymentPartialSuccess() throws Exception {
 
         populateCardPaymentToDbWithPartiallyPaidPayment("1");
