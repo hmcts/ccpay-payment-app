@@ -151,7 +151,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
             throw new PaymentNotFoundException("No Payments available for the given Payment reference");
         }
 
-        validatePaymentFailureAmount(paymentStatusChargebackDto.getAmount(),payment.get());
+        validatePaymentFailureAmount(paymentStatusChargebackDto,payment.get());
         validatePingOneDate(paymentStatusChargebackDto.getEventDateTime(), payment.get().getDateUpdated());
         PaymentFailures paymentFailuresMap = paymentStatusDtoMapper.ChargebackRequestMapper(paymentStatusChargebackDto);
 
@@ -184,9 +184,24 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         }
     }
 
-    private void validatePaymentFailureAmount(BigDecimal disputeAmount, Payment payment){
-        if(disputeAmount.compareTo(payment.getAmount()) > 0){
-            throw new InvalidPaymentFailureRequestException("Failure amount cannot be more than payment amount");
+    private void validatePaymentFailureAmount(PaymentStatusChargebackDto paymentStatusChargebackDto, Payment payment){
+
+      Optional<List<PaymentFailures>> paymentFailuresList = paymentFailureRepository.findByPaymentReference(paymentStatusChargebackDto.getPaymentReference());
+
+       BigDecimal totalDisputeAmount = BigDecimal.ZERO;
+
+       if(paymentFailuresList.isPresent()) {
+
+          for(PaymentFailures paymentFailure:paymentFailuresList.get()){
+
+              totalDisputeAmount = paymentFailure.getAmount().add(totalDisputeAmount);
+          }
+
+          totalDisputeAmount = paymentStatusChargebackDto.getAmount().add(totalDisputeAmount);
+      }
+
+        if(totalDisputeAmount.compareTo(payment.getAmount()) > 0){
+            throw new InvalidPaymentFailureRequestException("Failure amount is more than the possible amount");
         }
     }
 

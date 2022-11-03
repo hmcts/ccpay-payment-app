@@ -619,7 +619,7 @@ public class PaymentStatusFunctionalTest {
             paymentStatusChargebackDto);
         assertThat(chargebackResponse.getStatusCode()).isEqualTo(BAD_REQUEST.value());
         assertThat(chargebackResponse.getBody().prettyPrint()).isEqualTo(
-                "Failure amount cannot be more than payment amount");
+                "Failure amount is more than the possible amount");
         // delete payment record
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
     }
