@@ -481,7 +481,7 @@ public class PaymentFixture {
             .paymentReference(paymentReference)
             .eventDateTime(actualDateTime.plusMinutes(5).toString())
             .additionalReference("AR1234556")
-            .amount(new BigDecimal(50))
+            .amount(new BigDecimal(35))
             .failureReference(failureReference)
             .ccdCaseNumber(ccdCaseNumber)
             .hasAmountDebited("yes")

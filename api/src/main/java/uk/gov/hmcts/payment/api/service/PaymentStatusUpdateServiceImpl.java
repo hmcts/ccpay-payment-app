@@ -78,6 +78,8 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
     @Qualifier("restTemplateGetRefund")
     private RestTemplate restTemplateGetRefund;
 
+    private static int amountCompareValue = 1;
+
     public PaymentFailures insertBounceChequePaymentFailure(PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto) {
 
         LOG.info("Begin Payment failure insert in payment_failure table: {}", paymentStatusBouncedChequeDto.getPaymentReference());
@@ -186,6 +188,10 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
 
     private void validatePaymentFailureAmount(PaymentStatusChargebackDto paymentStatusChargebackDto, Payment payment){
 
+        if (paymentStatusChargebackDto.getAmount().compareTo(payment.getAmount()) > 0) {
+            throw new InvalidPaymentFailureRequestException("Failure amount is more than the possible amount");
+        }
+
       Optional<List<PaymentFailures>> paymentFailuresList = paymentFailureRepository.findByPaymentReference(paymentStatusChargebackDto.getPaymentReference());
 
        BigDecimal totalDisputeAmount = BigDecimal.ZERO;
@@ -199,8 +205,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
 
           totalDisputeAmount = paymentStatusChargebackDto.getAmount().add(totalDisputeAmount);
       }
-
-        if(totalDisputeAmount.compareTo(payment.getAmount()) > 0){
+        if (totalDisputeAmount.compareTo(payment.getAmount()) > 0) {
             throw new InvalidPaymentFailureRequestException("Failure amount is more than the possible amount");
         }
     }
