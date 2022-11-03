@@ -197,7 +197,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
     }
 
-    /*@Test
+    @Test
     public void negative_duplicate_issue_refunds_for_a_pba_payment() {
         // create a PBA payment
         String accountNumber = testProps.existingAccountNumber;
@@ -246,7 +246,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         // Delete refund record
         paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN,
                 refundResponseFromPost.getRefundReference());
-    }*/
+    }
 
     /*@Test
     public void positive_issue_refunds_for_2_pba_payments() {

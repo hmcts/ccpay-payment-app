@@ -34,6 +34,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.http.HttpStatus.OK;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CASE_WORKER_GROUP;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
 
@@ -159,10 +160,14 @@ public class RefundsRequestorJourneyTelephonyPaymentFunctionalTest {
         paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
                 ccdCaseNumber, "5");
 
-
+        // Get pba payment by reference
+        PaymentDto paymentsResponse =
+            paymentTestService.getPayments(USER_TOKEN, SERVICE_TOKEN, paymentReference.get()).then()
+                .statusCode(OK.value()).extract().as(PaymentDto.class);
+        int paymentId = paymentsResponse.getFees().get(0).getId();
         // initiate the refund
         PaymentRefundRequest paymentRefundRequest
-                = PaymentFixture.aRefundRequest(0, "RR001", paymentReference.get(), "550.00", "550");
+                = PaymentFixture.aRefundRequest(paymentId, "RR001", paymentReference.get(), "550.00", "550");
         Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
                 SERVICE_TOKEN_PAYMENT,
                 paymentRefundRequest);
@@ -239,9 +244,14 @@ public class RefundsRequestorJourneyTelephonyPaymentFunctionalTest {
         paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
             ccdCaseNumber, "4");
 
+        // Get pba payment by reference
+        PaymentDto paymentsResponse =
+            paymentTestService.getPayments(USER_TOKEN, SERVICE_TOKEN, paymentReference.get()).then()
+                .statusCode(OK.value()).extract().as(PaymentDto.class);
+        int paymentId = paymentsResponse.getFees().get(0).getId();
         // initiate the refund
         PaymentRefundRequest paymentRefundRequest
-            = PaymentFixture.aRefundRequest(0, "RR001", paymentReference.get(), "550", "550");
+            = PaymentFixture.aRefundRequest(paymentId, "RR001", paymentReference.get(), "550", "550");
         Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentRefundRequest);
