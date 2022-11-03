@@ -214,7 +214,7 @@ public class PciPalCallbackTest {
         final String[] reference = new String[1];
         // create card payment
 
-        String ccdCaseNumber = "1111-CC15-" + RandomUtils.nextInt();
+        String ccdCaseNumber = "111111" + RandomUtils.nextInt();
 
         List<FeeDto> fees = new ArrayList<>();
         fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
