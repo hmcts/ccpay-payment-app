@@ -1,6 +1,6 @@
 package uk.gov.hmcts.payment.api.util;
 
-import uk.gov.hmcts.payment.api.contract.DisputeDTO;
+import uk.gov.hmcts.payment.api.contract.DisputeDto;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 
 import java.math.BigDecimal;
@@ -71,11 +71,11 @@ public class ServiceRequestUtil {
         if(paymentGroupDto.getPayments() != null) {
             for (int i = 0; i < paymentGroupDto.getPayments().size(); i++) {
                 if (paymentGroupDto.getPayments().get(i).getStatus().equals("Success") && paymentGroupDto.getPayments().get(i).getAmount() != null) {
-                 List<DisputeDTO> disputeDTO =  paymentGroupDto.getPayments().get(i).getDisputes().stream().filter(DisputeDTO::isDispute).collect(Collectors.toList());
+                 List<DisputeDto> disputeDTO =  paymentGroupDto.getPayments().get(i).getDisputes().stream().filter(DisputeDto::isDispute).collect(Collectors.toList());
                BigDecimal totalDispute = BigDecimal.ZERO;
-                 for(DisputeDTO disputeDTO1:disputeDTO) {
+                 for(DisputeDto disputeDto1 :disputeDTO) {
 
-                     totalDispute = totalDispute.add(disputeDTO1.getAmount());
+                     totalDispute = totalDispute.add(disputeDto1.getAmount());
                  }
 
                     orderPaymentTotal = orderPaymentTotal.add(paymentGroupDto.getPayments().get(i).getAmount().subtract(totalDispute));

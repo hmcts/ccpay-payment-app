@@ -9,7 +9,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.fees2.register.api.contract.FeeVersionDto;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
-import uk.gov.hmcts.payment.api.contract.DisputeDTO;
+import uk.gov.hmcts.payment.api.contract.DisputeDto;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentAllocationDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
@@ -45,7 +45,8 @@ public class PaymentGroupDtoMapper {
     @Autowired
    private  PaymentFailureRepository paymentFailureRepository;
 
-    private int FIRSTPING = 1;
+    private static final int FIRSTPING = 1;
+    private static final int SECONDPING = 2;
 
     Optional<List<PaymentFailures>> paymentFailuresList;
 
@@ -77,9 +78,9 @@ public class PaymentGroupDtoMapper {
             .remissions(!(paymentFeeLink.getRemissions() == null) ? toRemissionDtos(paymentFeeLink.getRemissions()) : null)
             .build();
 
-        if(null != paymentGroupDto.getPayments()) {
+        if (null != paymentGroupDto.getPayments()) {
             for (PaymentDto paymentDto : paymentGroupDto.getPayments()) {
-                for (DisputeDTO disputeDTO : paymentDto.getDisputes()) {
+                for (DisputeDto disputeDTO : paymentDto.getDisputes()) {
 
                     if (disputeDTO.isDispute() && disputeDTO.getPingNumber() == FIRSTPING) {
 
@@ -216,23 +217,23 @@ public class PaymentGroupDtoMapper {
             .build();
     }
 
-    private List<DisputeDTO> evaluatePaymentDispute(Payment payment){
+    private List<DisputeDto> evaluatePaymentDispute(Payment payment) {
 
-        List<DisputeDTO> disputeDTOs = new ArrayList<>();
+        List<DisputeDto> disputeDTOs = new ArrayList<>();
 
-        if(paymentFailuresList.isPresent()) {
-            for (PaymentFailures paymentFailure : paymentFailuresList.get()) {
+        if (paymentFailuresList.isPresent()) {
+            for (PaymentFailures paymentFailure: paymentFailuresList.get()) {
                 if (paymentFailure.getPaymentReference().equals(payment.getReference())) {
-                    DisputeDTO disputeDTO = new DisputeDTO();
+                    DisputeDto disputeDTO = new DisputeDto();
                     if (paymentFailure.getRepresentmentSuccess() == null) {
                         disputeDTO.setDispute(true);
-                        disputeDTO.setPingNumber(1);
+                        disputeDTO.setPingNumber(FIRSTPING);
                     } else if (paymentFailure.getRepresentmentSuccess().equalsIgnoreCase("Yes")) {
                         disputeDTO.setDispute(false);
-                        disputeDTO.setPingNumber(2);
+                        disputeDTO.setPingNumber(SECONDPING);
                     } else {
                         disputeDTO.setDispute(true);
-                        disputeDTO.setPingNumber(2);
+                        disputeDTO.setPingNumber(SECONDPING);
                     }
                     disputeDTO.setAmount(paymentFailure.getAmount());
                     disputeDTO.setDcn(paymentFailure.getDcn());
@@ -248,15 +249,14 @@ public class PaymentGroupDtoMapper {
                     disputeDTOs.add(disputeDTO);
                 }
             }
+        } else {
+            DisputeDto disputeDTO = new DisputeDto();
+            disputeDTO.setDispute(false);
+            disputeDTO.setPingNumber(0);
+            disputeDTOs.add(disputeDTO);
         }
-        else{
-                DisputeDTO disputeDTO = new DisputeDTO();
-                disputeDTO.setDispute(false);
-                disputeDTO.setPingNumber(0);
-                disputeDTOs.add(disputeDTO);
-            }
 
         return disputeDTOs;
-        }
+    }
 
 }

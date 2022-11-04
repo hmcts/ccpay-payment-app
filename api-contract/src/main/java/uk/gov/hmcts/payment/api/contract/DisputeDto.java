@@ -17,7 +17,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @Setter
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @JsonInclude(NON_NULL)
-public class DisputeDTO {
+public class DisputeDto {
 
     private int pingNumber;
     private boolean isDispute;

@@ -18,15 +18,15 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-import uk.gov.hmcts.payment.api.dto.*;
-import uk.gov.hmcts.payment.api.dto.PaymentStatus;
 import uk.gov.hmcts.payment.api.contract.exception.ValidationErrorDTO;
+import uk.gov.hmcts.payment.api.dto.PaymentStatus;
+import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentFailureReportMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentStatusDtoMapper;
 import uk.gov.hmcts.payment.api.exception.FailureReferenceNotFoundException;
+import uk.gov.hmcts.payment.api.exception.InvalidPaymentFailureRequestException;
 import uk.gov.hmcts.payment.api.exception.InvalidRefundRequestException;
 import uk.gov.hmcts.payment.api.exception.ValidationErrorException;
-import uk.gov.hmcts.payment.api.exception.InvalidPaymentFailureRequestException;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
@@ -41,6 +41,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
     private static final Logger LOG = LoggerFactory.getLogger(PaymentStatusUpdateServiceImpl.class);
     private static final String TOO_MANY_RQUESTS_EXCEPTION_MSG = "Request already received for this failure reference";
     private static final String PAYMENT_METHOD = "cheque";
+    private static final String FAILURE_AMOUNT_VALIDATION = "Failure amount is more than the possible amount";
 
     @Autowired
     PaymentStatusDtoMapper paymentStatusDtoMapper;
@@ -77,8 +78,6 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
     @Autowired()
     @Qualifier("restTemplateGetRefund")
     private RestTemplate restTemplateGetRefund;
-
-    private static int amountCompareValue = 1;
 
     public PaymentFailures insertBounceChequePaymentFailure(PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto) {
 
@@ -189,24 +188,25 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
     private void validatePaymentFailureAmount(PaymentStatusChargebackDto paymentStatusChargebackDto, Payment payment){
 
         if (paymentStatusChargebackDto.getAmount().compareTo(payment.getAmount()) > 0) {
-            throw new InvalidPaymentFailureRequestException("Failure amount is more than the possible amount");
+            throw new InvalidPaymentFailureRequestException(FAILURE_AMOUNT_VALIDATION);
         }
 
-      Optional<List<PaymentFailures>> paymentFailuresList = paymentFailureRepository.findByPaymentReference(paymentStatusChargebackDto.getPaymentReference());
+        Optional < List < PaymentFailures >> paymentFailuresList = paymentFailureRepository.findByPaymentReference(paymentStatusChargebackDto.getPaymentReference());
 
-       BigDecimal totalDisputeAmount = BigDecimal.ZERO;
+        BigDecimal totalDisputeAmount = BigDecimal.ZERO;
 
-       if(paymentFailuresList.isPresent()) {
+        if (paymentFailuresList.isPresent()) {
 
-          for(PaymentFailures paymentFailure:paymentFailuresList.get()){
+            for (PaymentFailures paymentFailure: paymentFailuresList.get()) {
 
-              totalDisputeAmount = paymentFailure.getAmount().add(totalDisputeAmount);
-          }
+                totalDisputeAmount = paymentFailure.getAmount().add(totalDisputeAmount);
+            }
 
-          totalDisputeAmount = paymentStatusChargebackDto.getAmount().add(totalDisputeAmount);
-      }
+            totalDisputeAmount = paymentStatusChargebackDto.getAmount().add(totalDisputeAmount);
+        }
+
         if (totalDisputeAmount.compareTo(payment.getAmount()) > 0) {
-            throw new InvalidPaymentFailureRequestException("Failure amount is more than the possible amount");
+            throw new InvalidPaymentFailureRequestException(FAILURE_AMOUNT_VALIDATION);
         }
     }
 
