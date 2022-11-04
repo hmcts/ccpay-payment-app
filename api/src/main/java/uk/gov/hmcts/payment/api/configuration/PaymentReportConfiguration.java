@@ -8,10 +8,12 @@ import uk.gov.hmcts.payment.api.reports.config.BarPaymentReportConfig;
 import uk.gov.hmcts.payment.api.reports.config.CardPaymentReportConfig;
 import uk.gov.hmcts.payment.api.reports.config.PaymentReportConfig;
 import uk.gov.hmcts.payment.api.reports.config.PbaCmcPaymentReportConfig;
+import uk.gov.hmcts.payment.api.reports.config.PbaCivilPaymentReportConfig;
 import uk.gov.hmcts.payment.api.reports.config.PbaDivorcePaymentReportConfig;
 import uk.gov.hmcts.payment.api.reports.config.PbaFinremPaymentReportConfig;
 import uk.gov.hmcts.payment.api.reports.config.PbaProbatePaymentReportConfig;
 import uk.gov.hmcts.payment.api.reports.config.PbaFplPaymentReportConfig;
+import uk.gov.hmcts.payment.api.reports.config.PbaPrlPaymentReportConfig;
 
 import java.util.Map;
 
@@ -25,7 +27,9 @@ public class PaymentReportConfiguration {
                                                                  PbaProbatePaymentReportConfig pbaProbatePaymentReportConfig,
                                                                  PbaFinremPaymentReportConfig pbaFinremPaymentReportConfig,
                                                                  PbaDivorcePaymentReportConfig pbaDivorcePaymentReportConfig,
-                                                                 PbaFplPaymentReportConfig pbaFplPaymentReportConfig) {
+                                                                 PbaFplPaymentReportConfig pbaFplPaymentReportConfig,
+                                                                 PbaCivilPaymentReportConfig pbaCivilPaymentReportConfig,
+                                                                 PbaPrlPaymentReportConfig pbaPrlPaymentReportConfig) {
         return ImmutableMap.<PaymentReportType, PaymentReportConfig>builder()
             .put(PaymentReportType.CARD, cardPaymentReportConfig)
             .put(PaymentReportType.DIGITAL_BAR, barPaymentReportConfig)
@@ -34,6 +38,8 @@ public class PaymentReportConfiguration {
             .put(PaymentReportType.PBA_FINREM, pbaFinremPaymentReportConfig)
             .put(PaymentReportType.PBA_DIVORCE, pbaDivorcePaymentReportConfig)
             .put(PaymentReportType.PBA_FPL, pbaFplPaymentReportConfig)
+            .put(PaymentReportType.PBA_CIVIL, pbaCivilPaymentReportConfig)
+            .put(PaymentReportType.PBA_PRL, pbaPrlPaymentReportConfig)
             .build();
 
     }

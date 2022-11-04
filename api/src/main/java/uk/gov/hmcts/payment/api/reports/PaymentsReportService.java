@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.api.reports;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -69,7 +70,7 @@ public class PaymentsReportService {
     private List<PaymentDto> findPaymentsBy(Date startDate, Date endDate, PaymentMethodType paymentMethodType, String serviceName) {
         String serviceType = serviceName;
         String paymentMethodTypeString = Optional.ofNullable(paymentMethodType).map(PaymentMethodType::getType).orElse(null);
-
+        LOG.info("Inside findPaymentsBy - paymentMethodTypeString: {}", paymentMethodTypeString);
         return delegatingPaymentService
             .search(
                 PaymentSearchCriteria.searchCriteriaWith()
@@ -85,6 +86,7 @@ public class PaymentsReportService {
     }
 
     private void generateCsvAndSendEmail(List<PaymentDto> payments, PaymentReportConfig reportConfig) {
+        LOG.info("CollectionUtils.isNotEmpty(payments): {}", CollectionUtils.isNotEmpty(payments));
         String paymentsCsvFileName = reportConfig.getCsvFileNamePrefix() + LocalDateTime.now().format(formatter) + PAYMENTS_CSV_FILE_EXTENSION;
         byte[] paymentsByteArray = createPaymentsCsvByteArray(payments, paymentsCsvFileName, reportConfig);
         Email email = Email.emailWith()
@@ -99,7 +101,7 @@ public class PaymentsReportService {
     private void sendEmail(Email email, byte[] paymentsCsvByteArray, String csvFileName) {
         email.setAttachments(newArrayList(csv(paymentsCsvByteArray, csvFileName)));
         emailService.sendEmail(email);
-        LOG.info("PaymentsReportService - Payments report email sent to " + Arrays.toString(email.getTo()));
+        LOG.info("PaymentsReportService - Payments report email sent to {}", Arrays.toString(email.getTo()));
     }
 
     private byte[] createPaymentsCsvByteArray(List<PaymentDto> payments, String paymentsCsvFileName, PaymentReportConfig reportConfig) {
@@ -111,10 +113,10 @@ public class PaymentsReportService {
                 bos.write(reportConfig.getCsvRecord(payment).getBytes(utf8));
                 bos.write(BYTE_ARRAY_OUTPUT_STREAM_NEWLINE.getBytes(utf8));
             }
-            LOG.info("PaymentsReportService - Total " + payments.size() + " payments records written in payments csv file " + paymentsCsvFileName);
+            LOG.info("PaymentsReportService - Total {} payments records written in payments csv file {}", payments.size(), paymentsCsvFileName);
             paymentsCsvByteArray = bos.toByteArray();
         } catch (IOException ex) {
-            LOG.error("PaymentsReportService - Error while creating payments csv file " + paymentsCsvFileName + ". Error message is " + ex.getMessage());
+            LOG.error("PaymentsReportService - Error while creating payments csv file {}. Error message is {}", paymentsCsvFileName, ex.getMessage());
         }
         return paymentsCsvByteArray;
     }
