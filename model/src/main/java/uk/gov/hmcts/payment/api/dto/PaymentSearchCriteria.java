@@ -2,9 +2,11 @@ package uk.gov.hmcts.payment.api.dto;
 
 import lombok.Builder;
 import lombok.Data;
+import lombok.ToString;
 
 import java.util.Date;
 
+@ToString
 @Data
 @Builder(builderMethodName = "searchCriteriaWith")
 public class PaymentSearchCriteria {
