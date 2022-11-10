@@ -216,6 +216,7 @@ public class PciPalCallbackTest {
 
         String ccdCaseNumber = "1234567890623456";
 
+
         List<FeeDto> fees = new ArrayList<>();
         fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
             .volume(1).version("1").calculatedAmount(new BigDecimal(20)).build());
