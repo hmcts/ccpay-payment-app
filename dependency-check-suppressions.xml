@@ -252,6 +252,13 @@
         </notes>
         <cve>CVE-2022-42003</cve>
         <cve>CVE-2022-42004</cve>
+        <cve>CVE-2022-42252</cve>
+    </suppress>
+
+    <suppress until="2022-12-31">
+        <notes>
+          This apache commons text cve issue is in re-analysis and hence suppressing.
+        </notes>
         <cve>CVE-2022-42889</cve>
     </suppress>
     <!-- Supression Group ends here -->
