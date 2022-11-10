@@ -168,7 +168,7 @@ public class PaymentsTestDsl {
 
         public PaymentWhenDsl addNewFeeAndPaymentGroup(PaymentGroupDto paymentGroupFeeRequest) {
             response = newRequest().contentType(ContentType.JSON).body(paymentGroupFeeRequest)
-                .post("/payment-groups/");
+                .post("/payment-groups");
             return this;
         }
 
