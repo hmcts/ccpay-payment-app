@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.api.validators;
 
 import org.apache.commons.lang3.EnumUtils;
 import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.contract.exception.ValidationErrorDTO;
@@ -13,11 +14,12 @@ import java.time.format.DateTimeParseException;
 import java.util.Optional;
 
 import static java.util.Optional.empty;
+import static org.slf4j.LoggerFactory.getLogger;
 
 @Component
 public class PaymentValidator {
 
-
+    private static final Logger LOG = getLogger(PaymentValidator.class);
     private final DateUtil dateUtil;
 
     @Autowired
@@ -26,6 +28,7 @@ public class PaymentValidator {
     }
 
     public void validate(Optional<String> paymentMethodType, Optional<String> startDateString, Optional<String> endDateString) {
+        LOG.info("Inside validate");
         ValidationErrorDTO dto = new ValidationErrorDTO();
 
         if (paymentMethodType.isPresent() && !EnumUtils.isValidEnum(PaymentMethodType.class, paymentMethodType.get().toUpperCase())) {
@@ -40,8 +43,10 @@ public class PaymentValidator {
         }
 
         if (dto.hasErrors()) {
+            LOG.info("Validation error exists: {}", dto);
             throw new ValidationErrorException("Error occurred in the payment params", dto);
         }
+        LOG.info("Validation is successful");
     }
 
     private Optional<LocalDateTime> parseAndValidateDate(Optional<String> dateTimeString, String fieldName, ValidationErrorDTO dto) {
