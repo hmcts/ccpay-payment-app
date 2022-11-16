@@ -258,5 +258,9 @@
         </notes>
         <cve>CVE-2022-42889</cve>
     </suppress>
+    <suppress>
+        <notes>Snakeyaml temporary suppression</notes>
+        <cve>CVE-2022-41854</cve>
+    </suppress>
     <!-- Supression Group ends here -->
 </suppressions>
