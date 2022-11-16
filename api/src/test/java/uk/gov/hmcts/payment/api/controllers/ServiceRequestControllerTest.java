@@ -159,7 +159,7 @@ public class ServiceRequestControllerTest {
     }
 
     @Test
-    @Ignore
+//    @Ignore
     public void createPBAPaymentWithServiceRequestSuccessTest() throws Exception {
 
         //Creation of serviceRequest-reference
