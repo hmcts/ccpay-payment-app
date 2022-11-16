@@ -212,6 +212,7 @@ public class ServiceRequestController {
         //Create Idempotency Record
         LOG.info("Create Idemptotency Record {} {}", objectMapper, idempotencyKey);
 
+        LOG.info("Last log before return, here is return {}", DELETETHISTEST);
         return DELETETHISTEST;
 
 //        TODO: Uncomment below once updateIdemptoencyRecord is fixed.
