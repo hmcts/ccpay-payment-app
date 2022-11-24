@@ -51,8 +51,7 @@ public enum PaymentReportType {
         serviceTypeHashMap.put("Probate","PROBATE");
         serviceTypeHashMap.put("Civil","CIVIL");
         serviceTypeHashMap.put("Family Private Law","PRL");
-        //TODO FIND NAME FOR IAC
-        serviceTypeHashMap.put("WHAT GOES HERE","IAC");
+        serviceTypeHashMap.put("Immigration and Asylum Appeals","IAC");
 
         return serviceTypeHashMap.getOrDefault(serviceType, serviceType);
     }
