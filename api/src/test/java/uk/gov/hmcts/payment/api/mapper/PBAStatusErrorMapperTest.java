@@ -77,7 +77,7 @@ public class PBAStatusErrorMapperTest {
     @Test
     public void testSetPaymentStatusWithOnHold() {
         PBAStatusErrorMapper pbaStatusErrorMapper = new PBAStatusErrorMapper();
-        String expected = "CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {} PaymentStatus : {} - Account Balance InSufficient!!!";
+        String expected = "CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {} PaymentStatus : {} - Account is on hold!";
         pbaStatusErrorMapper.setPaymentStatus(creditAccountPaymentRequest, payment, onHoldAccountDetails);
         verify(mockLOG).info(expected,"ccd-number",ON_HOLD,"failed");
     }
@@ -93,7 +93,7 @@ public class PBAStatusErrorMapperTest {
     @Test
     public void testSetPaymentStatusWithDeletedStatus() {
         PBAStatusErrorMapper pbaStatusErrorMapper = new PBAStatusErrorMapper();
-        String expected = "CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {} PaymentStatus : {} - Account Balance InSufficient!!!";
+        String expected = "CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {} PaymentStatus : {} - Account is deleted!";
         pbaStatusErrorMapper.setPaymentStatus(creditAccountPaymentRequest,payment,deletedAccountDetails);
         verify(mockLOG).info(expected,"ccd-number",DELETED,"failed");
     }

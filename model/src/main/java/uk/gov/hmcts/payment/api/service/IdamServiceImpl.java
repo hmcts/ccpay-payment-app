@@ -33,6 +33,8 @@ public class IdamServiceImpl implements IdamService {
 
     public static final String USER_FULL_NAME_ENDPOINT = "/api/v1/users";
 
+    private static final String INTERNAL_SERVER_ERR = "Internal Server error. Please, try again later";
+
     @Value("${auth.idam.client.baseUrl}")
     private String idamBaseURL;
 
@@ -55,10 +57,10 @@ public class IdamServiceImpl implements IdamService {
                 }
             }
             LOG.error("Parse error user not found");
-            throw new UserNotFoundException("Internal Server error. Please, try again later");
+            throw new UserNotFoundException(INTERNAL_SERVER_ERR);
         } catch (HttpClientErrorException e) {
             LOG.error("client err ", e);
-            throw new UserNotFoundException("Internal Server error. Please, try again later");
+            throw new UserNotFoundException(INTERNAL_SERVER_ERR);
         } catch (HttpServerErrorException e) {
             LOG.error("server err ", e);
             throw new GatewayTimeoutException("Unable to retrieve User information. Please try again later");
@@ -121,6 +123,6 @@ public class IdamServiceImpl implements IdamService {
         }
 
         LOG.error("User name not found for given user id : {}", uid);
-        throw new UserNotFoundException("Internal Server error. Please, try again later");
+        throw new UserNotFoundException(INTERNAL_SERVER_ERR);
     }
 }
