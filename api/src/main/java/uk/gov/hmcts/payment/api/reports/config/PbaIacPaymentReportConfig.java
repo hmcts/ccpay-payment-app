@@ -34,7 +34,7 @@ public class PbaIacPaymentReportConfig implements PaymentReportConfig {
 
     @Override
     public PaymentReportType getType() {
-        return PaymentReportType.PBA_CIVIL;
+        return PaymentReportType.PBA_IAC;
     }
 
     @Override
