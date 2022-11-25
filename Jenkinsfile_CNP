@@ -35,6 +35,10 @@ def secrets = [
         secret('paybubble-idam-client-secret','IDAM_PAYBUBBLE_CLIENT_SECRET'),
         secret('payment-s2s-secret','S2S_PAYMENT_APP_SERVICE_SECRET'),
         secret('ref-data-professional-client-secret','IDAM_RD_PROFESSIONAL_CLIENT_SECRET')
+    ],
+    'probate-${env}': [
+        secret('solicitorUserPass', 'PROBATE_SOLICITOR_USER'),
+        secret('solicitorUserEmail', 'PROBATE_SOLICITOR_PASSWORD')
     ]
 ]
 
