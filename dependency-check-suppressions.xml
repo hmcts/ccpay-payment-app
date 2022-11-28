@@ -20,6 +20,7 @@
         <cve>CVE-2020-29243</cve>
         <cve>CVE-2020-29244</cve>
         <cve>CVE-2020-29245</cve>
+        <cve>CVE-2022-41854</cve>
     </suppress>
 
     <suppress until="2022-12-31">
