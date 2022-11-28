@@ -4,7 +4,12 @@ properties([
     // H allow predefined but random minute see https://en.wikipedia.org/wiki/Cron#Non-standard_characters
     pipelineTriggers([cron('H 20 * * *')]),
     parameters([
+        string(name: 'ENVIRONMENT', defaultValue: 'aat', description: 'Environment to test'),
         string(name: 'URL_TO_TEST', defaultValue: 'http://payment-api-aat.service.core-compute-aat.internal', description: 'The URL you want to run these tests against'),
+        string(name: 'IDAM_API_URL', defaultValue: 'https://idam-api.aat.platform.hmcts.net', description: 'The Idam url you want to run these tests against'),
+        string(name: 'S2S_URL', defaultValue: 'http://rpe-service-auth-provider-aat.service.core-compute-aat.internal', description: 'The s2s url you want to run these tests against'),
+        string(name: 'REF_DATA_API_URL', defaultValue: 'http://rd-professional-api-aat.service.core-compute-aat.internal', description: 'The ref data url you want to run these tests against'),
+        string(name: 'OAUTH2_REDIRECT_URI', defaultValue: 'https://moneyclaims.aat.platform.hmcts.net', description: 'The redirect url you want to authenticate users and get idam token'),
         string(name: 'SecurityRules',
             defaultValue: 'http://raw.githubusercontent.com/hmcts/security-test-rules/master/conf/security-rules.conf',
             description: 'SecurityUrl against which rules will be executed'),
@@ -18,7 +23,7 @@ def product = "payment"
 def component = "api"
 
 def secrets = [
-    'ccpay-${env}': [
+    "ccpay-${params.ENVIRONMENT}": [
         secret('cmc-service-secret', 'S2S_SERVICE_SECRET'),
         secret('paybubble-s2s-secret', 'PAYBUBBLE_S2S_SERVICE_SECRET'),
         secret('citizen-oauth-client-secret', 'OAUTH2_CLIENT_SECRET'),
@@ -26,9 +31,10 @@ def secrets = [
         secret('freg-idam-test-user-password', 'TEST_USER_PASSWORD'),
         secret('gov-pay-keys-cmc', 'GOV_PAY_AUTH_KEY_CMC'),
         secret('pci-pal-antenna-client-secret', 'PCI_PAL_ANTENNA_CLIENT_SECRET'),
-        secret('paybubble-idam-client-secret','IDAM_PAYBUBBLE_CLIENT_SECRET')
+        secret('paybubble-idam-client-secret','IDAM_PAYBUBBLE_CLIENT_SECRET'),
+        secret('ref-data-professional-client-secret','IDAM_RD_PROFESSIONAL_CLIENT_SECRET')
     ],
-    'probate-${env}': [
+    "probate-${params.ENVIRONMENT}": [
         secret('solicitorUserPass', 'PROBATE_SOLICITOR_USER'),
         secret('solicitorUserEmail', 'PROBATE_SOLICITOR_PASSWORD')
     ]
@@ -45,6 +51,10 @@ static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
 
 withNightlyPipeline("java", product, component) {
     env.TEST_URL = params.URL_TO_TEST
+    env.IDAM_API_URL = params.IDAM_API_URL
+    env.S2S_URL = params.S2S_URL
+    env.REF_DATA_API_URL = params.REF_DATA_API_URL
+    env.OAUTH2_REDIRECT_URI = params.OAUTH2_REDIRECT_URI
     loadVaultSecrets(secrets)
     enableSecurityScan()
     enableMutationTest()
