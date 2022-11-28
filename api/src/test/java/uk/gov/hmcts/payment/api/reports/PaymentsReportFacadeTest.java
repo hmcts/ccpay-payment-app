@@ -13,11 +13,14 @@ import org.springframework.test.annotation.DirtiesContext;
 import uk.gov.hmcts.payment.api.reports.config.BarPaymentReportConfig;
 import uk.gov.hmcts.payment.api.reports.config.CardPaymentReportConfig;
 import uk.gov.hmcts.payment.api.reports.config.PaymentReportConfig;
+import uk.gov.hmcts.payment.api.reports.config.PbaCivilPaymentReportConfig;
 import uk.gov.hmcts.payment.api.reports.config.PbaCmcPaymentReportConfig;
 import uk.gov.hmcts.payment.api.reports.config.PbaDivorcePaymentReportConfig;
 import uk.gov.hmcts.payment.api.reports.config.PbaFinremPaymentReportConfig;
 import uk.gov.hmcts.payment.api.reports.config.PbaFplPaymentReportConfig;
+import uk.gov.hmcts.payment.api.reports.config.PbaPrlPaymentReportConfig;
 import uk.gov.hmcts.payment.api.reports.config.PbaProbatePaymentReportConfig;
+import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 
 import java.util.Date;
 import java.util.Map;
@@ -41,16 +44,20 @@ public class PaymentsReportFacadeTest {
     private CardPaymentReportConfig cardPaymentReportConfig = new CardPaymentReportConfig("from", null, "subject", "message", true);
     private BarPaymentReportConfig barPaymentReportConfig = new BarPaymentReportConfig("from", null, "subject", "message", true);
     private PbaCmcPaymentReportConfig pbaCmcPaymentReportConfig = new PbaCmcPaymentReportConfig("from", null, "subject", "message", true);
+    private PbaCivilPaymentReportConfig pbaCivilPaymentReportConfig = new PbaCivilPaymentReportConfig("from", null, "subject", "message", true);
     private PbaDivorcePaymentReportConfig pbaDivorcePaymentReportConfig = new PbaDivorcePaymentReportConfig("from", null, "subject", "message", true);
     private PbaFplPaymentReportConfig pbaFplPaymentReportConfig = new PbaFplPaymentReportConfig("from", null, "subject", "message", true);
+    private PbaPrlPaymentReportConfig pbaPrlPaymentReportConfig = new PbaPrlPaymentReportConfig("from", null, "subject", "message", true);
     private PbaProbatePaymentReportConfig pbaProbatePaymentReportConfig = new PbaProbatePaymentReportConfig("from", null, "subject", "message", true);
     private PbaFinremPaymentReportConfig pbaFinremPaymentReportConfig = new PbaFinremPaymentReportConfig("from", null, "subject", "message", true);
 
     Map<PaymentReportType, PaymentReportConfig> map = ImmutableMap.<PaymentReportType, PaymentReportConfig>builder()
         .put(PaymentReportType.CARD, cardPaymentReportConfig)
         .put(PaymentReportType.PBA_CMC, pbaCmcPaymentReportConfig)
+        .put(PaymentReportType.PBA_CIVIL, pbaCivilPaymentReportConfig)
         .put(PaymentReportType.DIGITAL_BAR, barPaymentReportConfig)
         .put(PaymentReportType.PBA_FPL, pbaFplPaymentReportConfig)
+        .put(PaymentReportType.PBA_PRL, pbaPrlPaymentReportConfig)
         .put(PaymentReportType.PBA_DIVORCE, pbaDivorcePaymentReportConfig)
         .put(PaymentReportType.PBA_PROBATE, pbaProbatePaymentReportConfig)
         .put(PaymentReportType.PBA_FINREM, pbaFinremPaymentReportConfig).build();
@@ -80,15 +87,28 @@ public class PaymentsReportFacadeTest {
 
     @Test
     public void shouldDelegateToServiceIfExistingConfigurationForService() {
+            // given
+            Date fromDate = new Date();
+            Date toDate = new Date();
+
+            // when
+            facade.generateCsvAndSendEmail(fromDate, toDate, null, "DIGITAL_BAR");
+
+            // then
+            verify(reportService).generateCsvAndSendEmail(fromDate, toDate, null, "DIGITAL_BAR", barPaymentReportConfig);
+        }
+
+    @Test
+    public void PbaCivilDelegatePaymentReportType() {
         // given
         Date fromDate = new Date();
         Date toDate = new Date();
 
         // when
-        facade.generateCsvAndSendEmail(fromDate, toDate, null, "DIGITAL BAR");
+        facade.generateCsvAndSendEmail(fromDate, toDate, PBA, "Civil");
 
         // then
-        verify(reportService).generateCsvAndSendEmail(fromDate, toDate, null, "DIGITAL BAR", barPaymentReportConfig);
+        verify(reportService).generateCsvAndSendEmail(fromDate, toDate, PBA, "Civil", pbaCivilPaymentReportConfig);
     }
 
     @Test
@@ -103,7 +123,6 @@ public class PaymentsReportFacadeTest {
         facade.generateCsvAndSendEmail(fromDate, toDate, PBA, "Specified Money Claims");
 
         verify(reportService).generateCsvAndSendEmail(fromDate, toDate, PBA, "Specified Money Claims", pbaCmcPaymentReportConfig);
-
     }
 
     @Test
@@ -135,6 +154,20 @@ public class PaymentsReportFacadeTest {
 
         // then
         verify(reportService).generateCsvAndSendEmail(fromDate, toDate, PBA, "Family Public Law", pbaFplPaymentReportConfig);
+
+    }
+
+    @Test
+    public void prlDelegateFPLConfigurationService() {
+        // given
+        Date fromDate = new Date();
+        Date toDate = new Date();
+
+        // when
+        facade.generateCsvAndSendEmail(fromDate, toDate, PBA, "Family Private Law");
+
+        // then
+        verify(reportService).generateCsvAndSendEmail(fromDate, toDate, PBA, "Family Private Law", pbaPrlPaymentReportConfig);
 
     }
 
