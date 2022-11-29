@@ -28,7 +28,7 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
 
     private final PaymentFeeRepository paymentFeeRepository;
 
-    private Boolean isSurplus = false;
+    private boolean isSurplus = false;
 
     public FeePayApportionServiceImpl(PaymentFeeLinkRepository paymentFeeLinkRepository,
                                       PaymentStatusRepository paymentStatusRepository,
@@ -87,7 +87,7 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
                     .filter(fee -> fee.getDateCreated() != null)
                     .sorted(Comparator.comparing(PaymentFee::getDateCreated))
                     .collect(Collectors.toList());
-                sortedFees.stream().forEach(fee -> {
+                sortedFees.forEach(fee -> {
                     fee.setNetAmount(fee.getNetAmount() != null
                         ? fee.getNetAmount()
                         : payment.getPaymentLink() != null ? getFeeCalculatedNetAmount(fee, payment.getPaymentLink().getRemissions())
@@ -124,26 +124,8 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
                 for (Payment payment : paymentsToBeApportioned) {
                     remainingPaymentAmount = payment.getAmount();
 
-                    for (PaymentFee fee : feesToBeApportioned) {
-                        if (fee.getAmountDue() != null && fee.getAmountDue().compareTo(BigDecimal.valueOf(0)) > 0) {
+                    remainingPaymentAmount = getRemainingPaymentAmount(feesToBeApportioned, payment, remainingPaymentAmount, feePayApportions);
 
-                            FeePayApportion feePayApportion = applyFeePayApportion(fee, payment, remainingPaymentAmount);
-                            feePayApportions.add(feePayApportion);
-
-                            if (remainingPaymentAmount.compareTo(fee.getAmountDue()) > 0) {
-                                remainingPaymentAmount = remainingPaymentAmount.subtract(fee.getAmountDue());
-                            } else {
-                                remainingPaymentAmount = BigDecimal.valueOf(0);
-                            }
-
-                            if (remainingPaymentAmount.compareTo(BigDecimal.valueOf(0)) > 0) {
-                                continue;
-                            } else {
-                                break;
-                            }
-                        }
-                    }
-                    // End Fee Loop
                     if (remainingPaymentAmount.compareTo(BigDecimal.valueOf(0)) > 0) {
                         callSurplusAmount = remainingPaymentAmount;
                         isSurplus = true;
@@ -154,18 +136,41 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
                 // End Payment Loop
                 if (feePayApportions != null && !feePayApportions.isEmpty()) {
                     if (isSurplus) {
-                        findSurplusFee(feePayApportions, callSurplusAmount, feePayApportionCCDCase.getFees());
+                        findSurplusFee(feePayApportions, callSurplusAmount);
                     }
-                    feePayApportionCCDCase.getFeePayGroups().stream()
-                        .forEach(paymentFeeLink -> {
-                            paymentFeeLink.setApportions(feePayApportions);
-                        });
+                    feePayApportionCCDCase.getFeePayGroups()
+                            .forEach(paymentFeeLink -> paymentFeeLink.setApportions(feePayApportions));
                 }
             }
             return feePayApportionCCDCase;
         } catch (Exception ex) {
             throw new PaymentException("Payment Auto-Apportionment failed", ex);
         }
+    }
+
+    private BigDecimal getRemainingPaymentAmount(List<PaymentFee> feesToBeApportioned, Payment payment,
+                                                 BigDecimal remainingPaymentAmount,
+                                                 List<FeePayApportion> feePayApportions) {
+        for (PaymentFee fee : feesToBeApportioned) {
+            if (fee.getAmountDue() != null && fee.getAmountDue().compareTo(BigDecimal.valueOf(0)) > 0) {
+
+                FeePayApportion feePayApportion = applyFeePayApportion(fee, payment, remainingPaymentAmount);
+                feePayApportions.add(feePayApportion);
+
+                if (remainingPaymentAmount.compareTo(fee.getAmountDue()) > 0) {
+                    remainingPaymentAmount = remainingPaymentAmount.subtract(fee.getAmountDue());
+                } else {
+                    remainingPaymentAmount = BigDecimal.valueOf(0);
+                }
+
+                if (remainingPaymentAmount.compareTo(BigDecimal.valueOf(0)) > 0) {
+                    continue;
+                } else {
+                    break;
+                }
+            }
+        }
+        return remainingPaymentAmount;
     }
 
     private FeePayApportion applyFeePayApportion(PaymentFee fee, Payment payment, BigDecimal remainingPaymentAmount) {
@@ -223,7 +228,7 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
             .collect(Collectors.toList());
     }
 
-    private void findSurplusFee(List<FeePayApportion> feePayApportions, BigDecimal callSurplusAmount, List<PaymentFee> fees) {
+    private void findSurplusFee(List<FeePayApportion> feePayApportions, BigDecimal callSurplusAmount) {
         FeePayApportion lastFeePayApportion = (FeePayApportion) feePayApportions.toArray()[feePayApportions.size() - 1];
         lastFeePayApportion.setCallSurplusAmount(callSurplusAmount);
     }
