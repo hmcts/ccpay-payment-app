@@ -34,6 +34,12 @@ public interface ServiceRequestDomainService {
     ResponseEntity createIdempotencyRecord(ObjectMapper objectMapper, String idempotencyKey, String serviceRequestReference,
                                            String responseJson, ResponseEntity<?> responseEntity, ServiceRequestPaymentDto serviceRequestPaymentDto) throws JsonProcessingException;
 
+    ResponseEntity createIdempotencyRecordWithoutResponse(ObjectMapper objectMapper, String idempotencyKey, String serviceRequestReference,
+                                            ServiceRequestPaymentDto serviceRequestPaymentDto) throws JsonProcessingException;
+
+    ResponseEntity updateIdempotencyRecord(ObjectMapper objectMapper, String idempotencyKey, String responseJson, ResponseEntity<?> responseEntity, String serviceRequestReference,
+                                           ServiceRequestPaymentDto serviceRequestPaymentDto) throws JsonProcessingException;
+
     Boolean isDuplicate(String serviceRequestReference);
 
     void sendMessageTopicCPO(ServiceRequestDto serviceRequestDto, String serviceRequestReference);
