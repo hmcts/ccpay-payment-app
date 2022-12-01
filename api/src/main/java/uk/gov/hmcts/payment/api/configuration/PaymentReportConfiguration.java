@@ -32,6 +32,7 @@ public class PaymentReportConfiguration {
             .put(PaymentReportType.PBA_FPL, pbaFplPaymentReportConfig)
             .put(PaymentReportType.PBA_CIVIL, pbaCivilPaymentReportConfig)
             .put(PaymentReportType.PBA_PRL, pbaPrlPaymentReportConfig)
+            .put(PaymentReportType.PBA_IAC, pbaIacPaymentReportConfig)
             .build();
 
     }
