@@ -14,7 +14,8 @@ public enum PaymentReportType {
     PBA_FINREM,
     PBA_FPL,
     PBA_CIVIL,
-    PBA_PRL;
+    PBA_PRL,
+    PBA_IAC;
 
     public static PaymentReportType from(PaymentMethodType paymentMethodType, String serviceType) {
         String value = "";
