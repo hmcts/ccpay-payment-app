@@ -11,8 +11,7 @@ import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertEquals;
 
 public class StatusMapperTest {
 
@@ -33,7 +32,7 @@ public class StatusMapperTest {
 
         PaymentDto paymentDto = mapper.toCardPaymentDto(getPaymentWithStatus("created"));
 
-        assertThat("Initiated", is(paymentDto.getStatus()));
+        assertEquals("Initiated", paymentDto.getStatus());
 
     }
 
@@ -42,7 +41,7 @@ public class StatusMapperTest {
 
         PaymentDto paymentDto = mapper.toCardPaymentDto(getPaymentWithStatus("started"));
 
-        assertThat("Initiated", is(paymentDto.getStatus()));
+        assertEquals("Initiated", paymentDto.getStatus());
     }
 
     @Test
@@ -50,7 +49,7 @@ public class StatusMapperTest {
 
         PaymentDto paymentDto = mapper.toCardPaymentDto(getPaymentWithStatus("error"));
 
-        assertThat("Failed", is(paymentDto.getStatus()));
+        assertEquals("Failed", paymentDto.getStatus());
     }
 
     @Test
@@ -58,15 +57,14 @@ public class StatusMapperTest {
 
         PaymentDto paymentDto = mapper.toCardPaymentDto(getPaymentWithStatus("failed"));
 
-        assertThat("Failed", is(paymentDto.getStatus()));
+        assertEquals("Failed", paymentDto.getStatus());
     }
-
 
     public void whenGovPayStatusIsUnknown_thenShouldReturnSameStatus() {
 
         PaymentDto paymentDto = mapper.toCardPaymentDto(getPaymentWithStatus("PBAStatus"));
 
-        assertThat("PBAStatus", is(paymentDto.getStatus()));
+        assertEquals("PBAStatus", paymentDto.getStatus());
     }
 
     private PaymentFeeLink getPaymentWithStatus(String status) {
@@ -75,7 +73,6 @@ public class StatusMapperTest {
             status(status).build();
 
         payments.add(payment);
-
 
         return PaymentFeeLink.paymentFeeLinkWith().payments(payments).build();
     }

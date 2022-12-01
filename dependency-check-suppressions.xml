@@ -260,5 +260,11 @@
         <cve>CVE-2022-42252</cve>
         <cve>CVE-2022-41854</cve>
     </suppress>
+    <suppress until="2022-12-31">
+        <notes>
+            Postgres jdbc vulnerability is not resolved by the most recent patch 42.4.3 and is being supressed until a newer version is available.
+        </notes>
+        <cve>CVE-2022-41946</cve>
+    </suppress>
     <!-- Supression Group ends here -->
 </suppressions>
