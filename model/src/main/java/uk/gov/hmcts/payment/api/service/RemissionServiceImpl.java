@@ -28,6 +28,8 @@ public class RemissionServiceImpl implements RemissionService {
 
     private final ServiceRequestCaseUtil serviceRequestCaseUtil;
 
+    private static final String MESSAGE = " does not exists.";
+
     @Autowired
     public RemissionServiceImpl(PaymentFeeLinkRepository paymentFeeLinkRepository,
                                 ReferenceUtil referenceUtil, ServiceRequestCaseUtil serviceRequestCaseUtil) {
@@ -60,17 +62,17 @@ public class RemissionServiceImpl implements RemissionService {
     @Transactional
     public PaymentFeeLink createRetrospectiveRemission(RemissionServiceRequest remissionServiceRequest, String paymentGroupReference, Integer feeId) throws CheckDigitException {
         PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.findByPaymentReference(paymentGroupReference)
-            .orElseThrow(() -> new InvalidPaymentGroupReferenceException("Payment group " + paymentGroupReference + " does not exists."));
+            .orElseThrow(() -> new InvalidPaymentGroupReferenceException("Payment group " + paymentGroupReference + MESSAGE));
 
         serviceRequestCaseUtil.updateServiceRequestCaseDetails(paymentFeeLink, remissionServiceRequest);
 
         // Tactical check where feeId is null
         PaymentFee fee = feeId != null ? paymentFeeLink.getFees().stream().filter(f -> f.getId().equals(feeId))
             .findAny()
-            .orElseThrow(() -> new PaymentFeeNotFoundException("Fee with id " + feeId + " does not exists.")) :
+            .orElseThrow(() -> new PaymentFeeNotFoundException("Fee with id " + feeId + MESSAGE)) :
             paymentFeeLink.getFees().stream().filter(f -> f.getCode().equals(remissionServiceRequest.getFee().getCode()))
                 .findAny()
-                .orElseThrow(() -> new PaymentFeeNotFoundException("Fee with code " + remissionServiceRequest.getFee().getCode() + " does not exists."));
+                .orElseThrow(() -> new PaymentFeeNotFoundException("Fee with code " + remissionServiceRequest.getFee().getCode() + MESSAGE));
 
         String remissionReference = referenceUtil.getNext("RM");
         remissionServiceRequest.setRemissionReference(remissionReference);
@@ -102,14 +104,14 @@ public class RemissionServiceImpl implements RemissionService {
 
     private PaymentFeeLink populatePaymentFeeLink(String paymentGroupReference) {
         return paymentFeeLinkRepository.findByPaymentReference(paymentGroupReference)
-            .orElseThrow(() -> new InvalidPaymentGroupReferenceException("Payment group " + paymentGroupReference + " does not exists."));
+            .orElseThrow(() -> new InvalidPaymentGroupReferenceException("Payment group " + paymentGroupReference + MESSAGE));
     }
 
     private PaymentFee populatePaymentFee(Integer feeId, PaymentFeeLink paymentFeeLink, RetroRemissionServiceRequest remissionServiceRequest) {
         // Get particular fee from paymentFeeLink using feeId
         PaymentFee fee = paymentFeeLink.getFees().stream().filter(f -> f.getId().equals(feeId))
             .findAny()
-            .orElseThrow(() -> new PaymentFeeNotFoundException("Fee with id " + feeId + " does not exists."));
+            .orElseThrow(() -> new PaymentFeeNotFoundException("Fee with id " + feeId + MESSAGE));
         if (!fee.getRemissions().isEmpty()) {
             throw new RemissionAlreadyExistException("Remission is already exist for FeeId " + feeId);
         } else if (fee.getCalculatedAmount().compareTo(remissionServiceRequest.getHwfAmount()) < 0) {
