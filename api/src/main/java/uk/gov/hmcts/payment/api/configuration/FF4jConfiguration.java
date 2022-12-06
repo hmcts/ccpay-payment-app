@@ -31,7 +31,7 @@ public class FF4jConfiguration {
     private boolean duplicatePaymentCheck = true;
 
     @Value("${feature.case.reference.validation}")
-    private boolean caseRefValidation = true;
+    private boolean caseRefValidation = false;
 
     @Value("${feature.bulk.scan.payments.check}")
     private boolean isBulkScanPaymentsEnabled = true;
