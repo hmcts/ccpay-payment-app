@@ -264,5 +264,13 @@
         </notes>
         <cve>CVE-2022-41946</cve>
     </suppress>
+    <suppress>
+        <notes>Prior to Apache Commons Net 3.9.0, Net's FTP client trusts the host from PASV response by default.
+            A malicious server can redirect the Commons Net code to use a different host, but the user has to
+            connect to the malicious server in the first place.
+            Major release 3.9.0+ needed to be upgraded to.
+        </notes>
+        <cve>CVE-2021-37533</cve>
+    </suppress>
     <!-- Supression Group ends here -->
 </suppressions>
