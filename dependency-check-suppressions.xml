@@ -264,5 +264,11 @@
         </notes>
         <cve>CVE-2022-41946</cve>
     </suppress>
+    <suppress until="2023-03-31">
+        <notes>
+          apache commons_net
+        </notes>
+        <cve>CVE-2021-37533</cve>
+    </suppress>
     <!-- Supression Group ends here -->
 </suppressions>
