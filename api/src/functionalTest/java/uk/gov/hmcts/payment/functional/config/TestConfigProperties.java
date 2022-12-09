@@ -47,6 +47,15 @@ public class TestConfigProperties {
     @Value("${payments.account.fake.account.number}")
     public String fakeAccountNumber;
 
+    @Value("${payments.account.probate.account.number}")
+    public String probatePbaAccountNumber;
+
+    @Value("${payments.account.probate.solicitor.user}")
+    public String probateSolicitorUser;
+
+    @Value("${payments.account.probate.solicitor.password}")
+    public String probateSolicitorPassword;
+
     @Value("${mock.callback.url.endpoint}")
     public String mockCallBackUrl;
 
