@@ -54,9 +54,9 @@ public class ServiceRequestDto {
     private boolean isFeeCodeUnique() {
         Set<String> unique = new HashSet<>();
 
-        if(fees!=null)
-        return fees.stream()
-            .anyMatch(p -> !unique.add(p.getCode()));
+        if (fees != null)
+            return fees.stream()
+                    .anyMatch(p -> !unique.add(p.getCode()));
 
         else return false;
     }
