@@ -5,12 +5,12 @@ import org.apache.commons.lang3.RandomUtils;
 import org.assertj.core.api.Assertions;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDateTime;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
@@ -436,4 +436,32 @@ public class PBAPaymentFunctionalTest {
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
     }
 
+    @Test
+    public void makePbaPaymentWithProbateSolicitorUsingProbatePbaAccount() {
+        Assume.assumeTrue(!testProps.baseTestUrl.contains("payment-api-pr-"));
+
+        // create a PBA payment
+        String accountNumber = testProps.probatePbaAccountNumber;
+
+        String accessToken = idamService.authenticateUser(testProps.getProbateSolicitorUser(), testProps.getProbateSolicitorPassword());
+
+        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequestForProbate("90.00",
+            "PROBATE",accountNumber);
+        accountPaymentRequest.setAccountNumber(accountNumber);
+        PaymentDto paymentDto = paymentTestService.postPbaPayment(accessToken, SERVICE_TOKEN, accountPaymentRequest).then()
+            .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
+
+        assertTrue(paymentDto.getReference().startsWith("RC-"));
+
+        // Get pba payment by reference
+        PaymentDto paymentsResponse =
+            paymentTestService.getPbaPayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then()
+                .statusCode(OK.value()).extract().as(PaymentDto.class);
+
+        assertThat(paymentsResponse.getAccountNumber()).isEqualTo(accountNumber);
+
+        // delete payment record
+        paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
+
+    }
 }
