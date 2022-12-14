@@ -28,6 +28,8 @@ import uk.gov.hmcts.payment.api.dto.*;
 
 import java.math.BigDecimal;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -101,8 +103,9 @@ public class PaymentStatusUpdateServiceImplTest {
     private RestTemplate restTemplateGetRefund;
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormat.forPattern("MM/dd/yyyy");
 
+    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.ENGLISH);
     @Test
-     public void testPaymentFailureBounceChequeDBInsert(){
+     public void testPaymentFailureBounceChequeDBInsert() throws ParseException {
         Payment payment = getPayment();
         PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto =getPaymentStatusBouncedChequeDto();
         when(paymentRepository.findByReference(any())).thenReturn(Optional.of(payment));
@@ -151,7 +154,7 @@ public class PaymentStatusUpdateServiceImplTest {
     }
 
     @Test
-    public void testPaymentFailureChargebackDBInsert(){
+    public void testPaymentFailureChargebackDBInsert() throws ParseException {
         Payment payment = getPayment();
         PaymentStatusChargebackDto paymentStatusChargebackDto =getPaymentStatusChargebackDto();
         when(paymentRepository.findByReference(any())).thenReturn(Optional.of(payment));
@@ -210,10 +213,11 @@ public class PaymentStatusUpdateServiceImplTest {
     }
 
     @Test
-    public void returnBadRequestWhenDisputeAmountIsMoreThanPaymentAmountForChargeBack() {
+    public void returnBadRequestWhenDisputeAmountIsMoreThanPaymentAmountForChargeBack() throws ParseException {
         Payment payment = getPayment();
         PaymentStatusChargebackDto paymentStatusChargebackDto =getPaymentStatusChargebackDtoForBadRequest();
         when(paymentRepository.findByReference(any())).thenReturn(Optional.of(payment));
+        when(paymentFailureRepository.findByPaymentReference(any())).thenReturn(Optional.of(getPaymentFailuresList()));
         assertThrows(
             InvalidPaymentFailureRequestException.class,
             () -> paymentStatusUpdateServiceImpl.insertChargebackPaymentFailure(paymentStatusChargebackDto)
@@ -221,7 +225,7 @@ public class PaymentStatusUpdateServiceImplTest {
     }
 
     @Test
-    public void returnBadRequestWhenDisputeAmountIsMoreThanPaymentAmountForBounceCheque() {
+    public void returnBadRequestWhenDisputeAmountIsMoreThanPaymentAmountForBounceCheque() throws ParseException {
         Payment payment = getPayment();
         PaymentStatusBouncedChequeDto paymentStatusBounceChequeDto =getPaymentStatusBounceChequeDtoForBadRequest();
         when(paymentRepository.findByReference(any())).thenReturn(Optional.of(payment));
@@ -232,12 +236,15 @@ public class PaymentStatusUpdateServiceImplTest {
     }
 
     @Test
-    public void givenValidInputWhenUpdatePaymentFailureThenValidOutput() {
+    public void givenValidInputWhenUpdatePaymentFailureThenValidOutput() throws ParseException {
         PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
                 .representmentDate("2021-10-10T10:10:10")
                 .representmentStatus(RepresentmentStatus.Yes)
                 .build();
 
+
+        String dateInString = "2021-10-09T10:10:10";
+        Date date = formatter.parse(dateInString);
         PaymentFailures paymentFailure = PaymentFailures.paymentFailuresWith()
                 .failureType("Bounced Cheque")
                 .paymentReference("RC1234")
@@ -246,6 +253,7 @@ public class PaymentStatusUpdateServiceImplTest {
                 .failureReference("FR12345")
                 .id(1)
                 .reason("RR001")
+                .failureEventDateTime(date)
                 .representmentOutcomeDate(DateTime.parse(paymentStatusUpdateSecond.getRepresentmentDate()).withZone(
                         DateTimeZone.UTC)
                         .toDate())
@@ -370,7 +378,9 @@ public class PaymentStatusUpdateServiceImplTest {
     }
 
     @Test
-    public void testUnprocessedPayment() {
+    public void testUnprocessedPayment() throws ParseException {
+        String dateInString = "2021-10-09T10:10:10";
+        Date date = formatter.parse(dateInString);
         UnprocessedPayment unprocessedPayment = UnprocessedPayment.unprocessedPayment()
                 .amount(BigDecimal.valueOf(777))
                 .failureReference("FR8888")
@@ -382,7 +392,7 @@ public class PaymentStatusUpdateServiceImplTest {
         MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
         headers.add("ServiceAuthorization", "service-auth");
         PaymentMetadataDto metadataDto =
-                PaymentMetadataDto.paymentMetadataDtoWith().dcnReference("88").amount(new BigDecimal("888")).build();
+                PaymentMetadataDto.paymentMetadataDtoWith().dcnReference("88").amount(new BigDecimal("888")).dateUpdated(date).build();
         SearchResponse searchResponse = SearchResponse.searchResponseWith()
                 .ccdReference("9881231111111111")
                 .allPaymentsStatus(uk.gov.hmcts.payment.api.dto.PaymentStatus.COMPLETE)
@@ -436,6 +446,82 @@ public class PaymentStatusUpdateServiceImplTest {
         assertEquals("Failure amount cannot be more than payment amount", actualMessage);
     }
 
+    @Test
+    public void testPaymentFailureBounceChequeDBInsertIncorrectPaymentMethod() throws ParseException {
+        Payment payment = getPaymentPBAMethod();
+        PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto =getPaymentStatusBouncedChequeDto();
+        when(paymentRepository.findByReference(any())).thenReturn(Optional.of(payment));
+        Exception exception = assertThrows(
+            InvalidPaymentFailureRequestException.class,
+            () -> paymentStatusUpdateServiceImpl.insertBounceChequePaymentFailure(paymentStatusBouncedChequeDto)
+        );
+        String actualMessage = exception.getMessage();
+        assertEquals("Incorrect payment method", actualMessage);
+
+    }
+
+    @Test
+    public void testPaymentFailureBounceChequeDBInsertLessPaymentFailureAmount() throws ParseException {
+        Payment payment = getPayment();
+        PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto = getPaymentStatusBouncedChequeDtoForLessAmount();
+        when(paymentRepository.findByReference(any())).thenReturn(Optional.of(payment));
+        Exception exception = assertThrows(
+            InvalidPaymentFailureRequestException.class,
+            () -> paymentStatusUpdateServiceImpl.insertBounceChequePaymentFailure(paymentStatusBouncedChequeDto)
+        );
+        String actualMessage = exception.getMessage();
+        assertEquals("Dispute amount can not be less than payment amount", actualMessage);
+
+    }
+
+    @Test
+    public void testPaymentFailureBounceChequeDBInsertEventDatePast() throws ParseException {
+        Payment payment = getPayment();
+        PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto = getPaymentStatusBouncedChequeDtoForEventDatePast();
+        when(paymentRepository.findByReference(any())).thenReturn(Optional.of(payment));
+        Exception exception = assertThrows(
+            InvalidPaymentFailureRequestException.class,
+            () -> paymentStatusUpdateServiceImpl.insertBounceChequePaymentFailure(paymentStatusBouncedChequeDto)
+        );
+        String actualMessage = exception.getMessage();
+        assertEquals("Failure event date can not be prior to payment date", actualMessage);
+
+    }
+
+    @Test
+    public void givenInvalidInputWhenUpdatePaymentFailureThenThrowsException() throws ParseException {
+        PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
+            .representmentDate("2021-10-08T10:10:10")
+            .representmentStatus(RepresentmentStatus.Yes)
+            .build();
+
+        String dateInString = "2021-10-09T10:10:10";
+        Date date = formatter.parse(dateInString);
+        PaymentFailures paymentFailure = PaymentFailures.paymentFailuresWith()
+            .failureType("Bounced Cheque")
+            .paymentReference("RC1234")
+            .amount(BigDecimal.valueOf(555))
+            .ccdCaseNumber("123456789")
+            .failureReference("FR12345")
+            .id(1)
+            .reason("RR001")
+            .failureEventDateTime(date)
+            .representmentOutcomeDate(DateTime.parse(paymentStatusUpdateSecond.getRepresentmentDate()).withZone(
+                    DateTimeZone.UTC)
+                .toDate())
+            .representmentSuccess("Yes")
+            .build();
+        when(paymentFailureRepository.findByFailureReference(anyString())).thenReturn(Optional.of(paymentFailure));
+
+        Exception exception = assertThrows(
+            InvalidPaymentFailureRequestException.class,
+            () -> paymentStatusUpdateServiceImpl.updatePaymentFailure("dummy", paymentStatusUpdateSecond)
+        );
+        String actualMessage = exception.getMessage();
+        assertEquals("Representment date can not be prior to failure event date", actualMessage);
+    }
+
+
     private PaymentStatusBouncedChequeDto getPaymentStatusBouncedChequeDto() {
 
         return PaymentStatusBouncedChequeDto.paymentStatusBouncedChequeRequestWith()
@@ -443,6 +529,32 @@ public class PaymentStatusUpdateServiceImplTest {
             .amount(BigDecimal.valueOf(555))
             .failureReference("FR12345")
             .eventDateTime("2021-10-10T10:10:10")
+            .ccdCaseNumber("123456")
+            .reason("RR001")
+            .paymentReference("RC1234")
+            .build();
+    }
+
+    private PaymentStatusBouncedChequeDto getPaymentStatusBouncedChequeDtoForLessAmount() {
+
+        return PaymentStatusBouncedChequeDto.paymentStatusBouncedChequeRequestWith()
+            .additionalReference("AR1234")
+            .amount(BigDecimal.valueOf(500))
+            .failureReference("FR12345")
+            .eventDateTime("2021-10-10T10:10:10")
+            .ccdCaseNumber("123456")
+            .reason("RR001")
+            .paymentReference("RC1234")
+            .build();
+    }
+
+    private PaymentStatusBouncedChequeDto getPaymentStatusBouncedChequeDtoForEventDatePast() {
+
+        return PaymentStatusBouncedChequeDto.paymentStatusBouncedChequeRequestWith()
+            .additionalReference("AR1234")
+            .amount(BigDecimal.valueOf(555))
+            .failureReference("FR12345")
+            .eventDateTime("2021-10-08T10:10:10")
             .ccdCaseNumber("123456")
             .reason("RR001")
             .paymentReference("RC1234")
@@ -472,7 +584,7 @@ public class PaymentStatusUpdateServiceImplTest {
             .failureReference("Bounce Cheque")
             .paymentReference("RC-1520-2505-0381-8145")
             .ccdCaseNumber("123456")
-            .amount(BigDecimal.valueOf(555))
+            .amount(BigDecimal.valueOf(100))
             .representmentSuccess("yes")
             .failureType("Chargeback")
             .additionalReference("AR12345")
@@ -483,8 +595,9 @@ public class PaymentStatusUpdateServiceImplTest {
 
     }
 
-    private Payment getPayment() {
-
+    private Payment getPayment() throws ParseException {
+        String dateInString = "2021-10-09T10:10:10";
+        Date date = formatter.parse(dateInString);
         return Payment.paymentWith()
             .id(1)
             .amount(BigDecimal.valueOf(555))
@@ -498,6 +611,44 @@ public class PaymentStatusUpdateServiceImplTest {
             .pbaNumber("pbaNumer")
             .reference("RC-1520-2505-0381-8145")
             .ccdCaseNumber("1234123412341234")
+            .dateUpdated(date)
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("cheque").build())
+            .paymentLink(PaymentFeeLink.paymentFeeLinkWith()
+                .id(1)
+                .paymentReference("2018-15202505035")
+                .fees(Arrays.asList(PaymentFee.feeWith().id(1).calculatedAmount(new BigDecimal("11.99")).code("X0001").version("1").build()))
+                .payments(Arrays.asList(Payment.paymentWith().internalReference("abc")
+                    .id(1)
+                    .reference("RC-1632-3254-9172-5888")
+                    .caseReference("123789")
+                    .ccdCaseNumber("1234")
+                    .amount(new BigDecimal(300))
+                    .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
+                    .build()))
+                .callBackUrl("http//:test")
+                .build())
+            .build();
+    }
+
+    private Payment getPaymentPBAMethod() throws ParseException {
+        String dateInString = "2021-10-09T10:10:10";
+        Date date = formatter.parse(dateInString);
+        return Payment.paymentWith()
+            .id(1)
+            .amount(BigDecimal.valueOf(555))
+            .caseReference("caseReference")
+            .description("retrieve payment mock test")
+            .serviceType("Civil Money Claims")
+            .siteId("siteID")
+            .currency("GBP")
+            .organisationName("organisationName")
+            .customerReference("customerReference")
+            .pbaNumber("pbaNumer")
+            .reference("RC-1520-2505-0381-8145")
+            .ccdCaseNumber("1234123412341234")
+            .dateUpdated(date)
             .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
             .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
             .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
@@ -522,7 +673,7 @@ public class PaymentStatusUpdateServiceImplTest {
 
         return PaymentStatusChargebackDto.paymentStatusChargebackRequestWith()
             .additionalReference("AR1234")
-            .amount(BigDecimal.valueOf(556))
+            .amount(BigDecimal.valueOf(500))
             .failureReference("FR12345")
             .eventDateTime("2021-10-10T10:10:10")
             .ccdCaseNumber("123456")

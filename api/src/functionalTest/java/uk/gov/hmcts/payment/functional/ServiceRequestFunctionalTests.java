@@ -5,6 +5,8 @@ import com.microsoft.azure.servicebus.TopicClient;
 import com.microsoft.azure.servicebus.primitives.ConnectionStringBuilder;
 import io.restassured.response.Response;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
+import org.apache.commons.lang3.RandomUtils;
+import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -13,30 +15,41 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
+import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
-import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentRequest;
-import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentResponse;
-import uk.gov.hmcts.payment.api.dto.PaymentGroupResponse;
-import uk.gov.hmcts.payment.api.dto.ServiceRequestResponseDto;
+import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
+import uk.gov.hmcts.payment.api.model.PaymentChannel;
+import uk.gov.hmcts.payment.api.model.PaymentStatus;
+import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
+import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
+import uk.gov.hmcts.payment.functional.fixture.PaymentFixture;
 import uk.gov.hmcts.payment.functional.fixture.ServiceRequestFixture;
 import uk.gov.hmcts.payment.functional.idam.IdamService;
 import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
+import uk.gov.hmcts.payment.functional.service.CaseTestService;
+import uk.gov.hmcts.payment.functional.service.PaymentTestService;
 import uk.gov.hmcts.payment.functional.service.ServiceRequestTestService;
 
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 import javax.inject.Inject;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.http.HttpStatus.*;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CASE_WORKER_GROUP;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
 
@@ -57,6 +70,15 @@ public class ServiceRequestFunctionalTests {
     @Autowired
     private S2sTokenService s2sTokenService;
 
+    @Autowired
+    private PaymentTestService paymentTestService;
+
+    @Inject
+    private CaseTestService cardTestService;
+
+    @Autowired
+    private PaymentsTestDsl dsl;
+
     private static String USER_TOKEN_PAYMENT;
     private static String SERVICE_TOKEN;
     private static String USER_TOKEN_CMC_CITIZEN;
@@ -73,6 +95,8 @@ public class ServiceRequestFunctionalTests {
     private static final String PAID = "Paid";
     private static final String NOT_PAID = "Not paid";
     private static final String PARTIALLY_PAID = "Partially paid";
+    private static String USER_TOKEN_CARD_PAYMENT;
+    private static final String DISPUTED = "Disputed";
 
     @Before
     public void setUp() throws Exception {
@@ -94,6 +118,8 @@ public class ServiceRequestFunctionalTests {
 
             SERVICE_TOKEN = s2sTokenService.getS2sToken(testProps.s2sServiceName, testProps.s2sServiceSecret);
             TOKENS_INITIALIZED = true;
+
+            USER_TOKEN_CARD_PAYMENT = idamService.createUserWith(CMC_CITIZEN_GROUP, "citizen").getAuthorisationToken();
         }
     }
 
@@ -734,6 +760,1135 @@ public class ServiceRequestFunctionalTests {
         assertThat(createServiceRequestResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND.value());
         assertThat(createServiceRequestResponse.getBody().asString())
             .isEqualTo("No Service found for given CaseType or HMCTS Org Id");
+    }
+
+
+    @Test
+    public void return_disputed_when_failure_event_has_happen_ping_one() {
+
+        String ccdCaseNumber = "11111234" + RandomUtils.nextInt();
+        if(ccdCaseNumber.length()>16){
+            ccdCaseNumber = ccdCaseNumber.substring(0,16);
+        }
+        FeeDto feeDto = FeeDto.feeDtoWith()
+            .calculatedAmount(new BigDecimal("550.00"))
+            .ccdCaseNumber(ccdCaseNumber)
+            .version("4")
+            .code("FEE0002")
+            .description("Application for a third party debt order")
+            .build();
+
+        TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
+            .amount(new BigDecimal("550"))
+            .ccdCaseNumber(ccdCaseNumber)
+            .currency(CurrencyCode.GBP)
+            .caseType("DIVORCE")
+            .returnURL("https://www.moneyclaims.service.gov.uk")
+            .build();
+
+        PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(feeDto)).build();
+
+        AtomicReference<String> paymentReference = new AtomicReference<>();
+
+        dsl.given().userToken(USER_TOKEN_CARD_PAYMENT)
+            .s2sToken(SERVICE_TOKEN)
+            .when().addNewFeeAndPaymentGroup(groupDto)
+            .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
+                assertThat(paymentGroupFeeDto).isNotNull();
+
+                String paymentGroupReference = paymentGroupFeeDto.getPaymentGroupReference();
+
+                dsl.given().userToken(USER_TOKEN_CARD_PAYMENT)
+                    .s2sToken(SERVICE_TOKEN)
+                    .returnUrl("https://www.moneyclaims.service.gov.uk")
+                    .when().createTelephonyPayment(telephonyPaymentRequest, paymentGroupReference)
+                    .then().gotCreated(TelephonyCardPaymentsResponse.class, telephonyCardPaymentsResponse -> {
+                        assertThat(telephonyCardPaymentsResponse).isNotNull();
+                        assertThat(telephonyCardPaymentsResponse.getStatus()).isEqualTo("Initiated");
+                        paymentReference.set(telephonyCardPaymentsResponse.getPaymentReference());
+                    });
+                // pci-pal callback
+                TelephonyCallbackDto callbackDto = TelephonyCallbackDto.telephonyCallbackWith()
+                    .orderReference(paymentReference.get())
+                    .orderAmount("550")
+                    .transactionResult("SUCCESS")
+                    .build();
+
+                dsl.given().s2sToken(SERVICE_TOKEN)
+                    .when().telephonyCallback(callbackDto)
+                    .then().noContent();
+
+            });
+
+
+        Response casePaymentGroupResponse
+            = cardTestService
+            .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN,ccdCaseNumber );
+        PaymentGroupResponse paymentGroupResponse
+            = casePaymentGroupResponse.getBody().as(PaymentGroupResponse.class);
+        assertThat(paymentGroupResponse.getPaymentGroups().get(0).getServiceRequestStatus())
+            .isEqualTo(PAID);
+
+        PaymentStatusChargebackDto paymentStatusChargebackDto
+            = PaymentFixture.chargebackRequest(paymentReference.get());
+
+        Response chargebackResponse = paymentTestService.postChargeback(
+            USER_TOKEN_PAYMENT,
+            paymentStatusChargebackDto);
+
+        PaymentFailureResponse paymentsFailureResponse =
+            paymentTestService.getFailurePayment(USER_TOKEN_PAYMENT, SERVICE_TOKEN, paymentStatusChargebackDto.getPaymentReference()).then()
+                .statusCode(OK.value()).extract().as(PaymentFailureResponse.class);
+
+        assertThat(paymentsFailureResponse.getPaymentFailureList().get(0).getPaymentFailureInitiated().getFailureReference()).isEqualTo(paymentStatusChargebackDto.getFailureReference());
+
+        assertThat(chargebackResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+        Response casePaymentGroupResponse1
+            = cardTestService
+            .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN, ccdCaseNumber);
+
+        PaymentGroupResponse paymentGroupResponse1
+            = casePaymentGroupResponse1.getBody().as(PaymentGroupResponse.class);
+
+        assertThat(paymentGroupResponse1.getPaymentGroups().get(0).getServiceRequestStatus())
+            .isEqualTo(DISPUTED);
+
+        // delete payment record
+        paymentTestService.deletePayment(USER_TOKEN_CMC_SOLICITOR, SERVICE_TOKEN, paymentReference.get()).then().statusCode(NO_CONTENT.value());
+
+        //delete Payment Failure record
+        paymentTestService.deleteFailedPayment(USER_TOKEN_CMC_SOLICITOR, SERVICE_TOKEN, paymentStatusChargebackDto.getFailureReference()).then().statusCode(NO_CONTENT.value());
+    }
+
+    @Test
+    public void return_paid_when_failure_event_and_HMCTS_won_dispute_ping_two() {
+
+        String ccdCaseNumber = "11111234" + RandomUtils.nextInt();
+        if(ccdCaseNumber.length()>16){
+            ccdCaseNumber = ccdCaseNumber.substring(0,16);
+        }
+        FeeDto feeDto = FeeDto.feeDtoWith()
+            .calculatedAmount(new BigDecimal("550.00"))
+            .ccdCaseNumber(ccdCaseNumber)
+            .version("4")
+            .code("FEE0002")
+            .description("Application for a third party debt order")
+            .build();
+
+        TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
+            .amount(new BigDecimal("550"))
+            .ccdCaseNumber(ccdCaseNumber)
+            .currency(CurrencyCode.GBP)
+            .caseType("DIVORCE")
+            .returnURL("https://www.moneyclaims.service.gov.uk")
+            .build();
+
+        PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(feeDto)).build();
+
+        AtomicReference<String> paymentReference = new AtomicReference<>();
+
+        dsl.given().userToken(USER_TOKEN_CARD_PAYMENT)
+            .s2sToken(SERVICE_TOKEN)
+            .when().addNewFeeAndPaymentGroup(groupDto)
+            .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
+                assertThat(paymentGroupFeeDto).isNotNull();
+
+                String paymentGroupReference = paymentGroupFeeDto.getPaymentGroupReference();
+
+                dsl.given().userToken(USER_TOKEN_CARD_PAYMENT)
+                    .s2sToken(SERVICE_TOKEN)
+                    .returnUrl("https://www.moneyclaims.service.gov.uk")
+                    .when().createTelephonyPayment(telephonyPaymentRequest, paymentGroupReference)
+                    .then().gotCreated(TelephonyCardPaymentsResponse.class, telephonyCardPaymentsResponse -> {
+                        assertThat(telephonyCardPaymentsResponse).isNotNull();
+                        assertThat(telephonyCardPaymentsResponse.getStatus()).isEqualTo("Initiated");
+                        paymentReference.set(telephonyCardPaymentsResponse.getPaymentReference());
+                    });
+                // pci-pal callback
+                TelephonyCallbackDto callbackDto = TelephonyCallbackDto.telephonyCallbackWith()
+                    .orderReference(paymentReference.get())
+                    .orderAmount("550")
+                    .transactionResult("SUCCESS")
+                    .build();
+
+                dsl.given().s2sToken(SERVICE_TOKEN)
+                    .when().telephonyCallback(callbackDto)
+                    .then().noContent();
+
+            });
+        Response casePaymentGroupResponse
+            = cardTestService
+            .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN, ccdCaseNumber);
+        PaymentGroupResponse paymentGroupResponse
+            = casePaymentGroupResponse.getBody().as(PaymentGroupResponse.class);
+        assertThat(paymentGroupResponse.getPaymentGroups().get(0).getServiceRequestStatus())
+            .isEqualTo(PAID);
+
+        PaymentStatusChargebackDto paymentStatusChargebackDto
+            = PaymentFixture.chargebackRequest(paymentReference.get());
+
+        Response chargebackResponse = paymentTestService.postChargeback(
+            USER_TOKEN_PAYMENT,
+            paymentStatusChargebackDto);
+
+        PaymentFailureResponse paymentsFailureResponse =
+            paymentTestService.getFailurePayment(USER_TOKEN_PAYMENT, SERVICE_TOKEN, paymentStatusChargebackDto.getPaymentReference()).then()
+                .statusCode(OK.value()).extract().as(PaymentFailureResponse.class);
+
+        assertThat(paymentsFailureResponse.getPaymentFailureList().get(0).getPaymentFailureInitiated().getFailureReference()).isEqualTo(paymentStatusChargebackDto.getFailureReference());
+
+        assertThat(chargebackResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+        Response casePaymentGroupResponse1
+            = cardTestService
+            .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN, ccdCaseNumber);
+
+        PaymentGroupResponse paymentGroupResponse1
+            = casePaymentGroupResponse1.getBody().as(PaymentGroupResponse.class);
+
+        assertThat(paymentGroupResponse1.getPaymentGroups().get(0).getServiceRequestStatus())
+            .isEqualTo(DISPUTED);
+
+        // Ping 2
+        DateTime actualDateTime = new DateTime(System.currentTimeMillis());
+        PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
+            .representmentStatus(RepresentmentStatus.Yes)
+            .representmentDate(actualDateTime.plusMinutes(15).toString())
+            .build();
+        Response ping2Response = paymentTestService.paymentStatusSecond(
+            SERVICE_TOKEN, paymentStatusChargebackDto.getFailureReference(),
+            paymentStatusUpdateSecond);
+
+        assertEquals(ping2Response.getStatusCode(), OK.value());
+        assertEquals("successful operation", ping2Response.getBody().prettyPrint());
+
+        Response casePaymentGroupResponse2
+            = cardTestService
+            .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN,ccdCaseNumber);
+
+        PaymentGroupResponse paymentGroupResponse2
+            = casePaymentGroupResponse2.getBody().as(PaymentGroupResponse.class);
+
+        assertThat(paymentGroupResponse2.getPaymentGroups().get(0).getServiceRequestStatus())
+            .isEqualTo(PAID);
+
+        // delete payment record
+        paymentTestService.deletePayment(USER_TOKEN_CMC_SOLICITOR, SERVICE_TOKEN, paymentReference.get()).then().statusCode(NO_CONTENT.value());
+
+        //delete Payment Failure record
+        paymentTestService.deleteFailedPayment(USER_TOKEN_CMC_SOLICITOR, SERVICE_TOKEN, paymentStatusChargebackDto.getFailureReference()).then().statusCode(NO_CONTENT.value());
+    }
+
+    @Test
+    public void return_partially_paid_when_failure_event_and_HMCTS_lost_dispute_ping_two() {
+
+        String ccdCaseNumber = "11111234" + RandomUtils.nextInt();
+        if(ccdCaseNumber.length()>16){
+            ccdCaseNumber = ccdCaseNumber.substring(0,16);
+        }
+        FeeDto feeDto = FeeDto.feeDtoWith()
+            .calculatedAmount(new BigDecimal("550.00"))
+            .ccdCaseNumber(ccdCaseNumber)
+            .version("4")
+            .code("FEE0002")
+            .description("Application for a third party debt order")
+            .build();
+
+        TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
+            .amount(new BigDecimal("550"))
+            .ccdCaseNumber(ccdCaseNumber)
+            .currency(CurrencyCode.GBP)
+            .caseType("DIVORCE")
+            .returnURL("https://www.moneyclaims.service.gov.uk")
+            .build();
+
+        PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(feeDto)).build();
+
+        AtomicReference<String> paymentReference = new AtomicReference<>();
+
+        dsl.given().userToken(USER_TOKEN_CARD_PAYMENT)
+            .s2sToken(SERVICE_TOKEN)
+            .when().addNewFeeAndPaymentGroup(groupDto)
+            .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
+                assertThat(paymentGroupFeeDto).isNotNull();
+
+                String paymentGroupReference = paymentGroupFeeDto.getPaymentGroupReference();
+
+                dsl.given().userToken(USER_TOKEN_CARD_PAYMENT)
+                    .s2sToken(SERVICE_TOKEN)
+                    .returnUrl("https://www.moneyclaims.service.gov.uk")
+                    .when().createTelephonyPayment(telephonyPaymentRequest, paymentGroupReference)
+                    .then().gotCreated(TelephonyCardPaymentsResponse.class, telephonyCardPaymentsResponse -> {
+                        assertThat(telephonyCardPaymentsResponse).isNotNull();
+                        assertThat(telephonyCardPaymentsResponse.getStatus()).isEqualTo("Initiated");
+                        paymentReference.set(telephonyCardPaymentsResponse.getPaymentReference());
+                    });
+                // pci-pal callback
+                TelephonyCallbackDto callbackDto = TelephonyCallbackDto.telephonyCallbackWith()
+                    .orderReference(paymentReference.get())
+                    .orderAmount("550")
+                    .transactionResult("SUCCESS")
+                    .build();
+
+                dsl.given().s2sToken(SERVICE_TOKEN)
+                    .when().telephonyCallback(callbackDto)
+                    .then().noContent();
+
+            });
+        Response casePaymentGroupResponse
+            = cardTestService
+            .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN, ccdCaseNumber);
+        PaymentGroupResponse paymentGroupResponse
+            = casePaymentGroupResponse.getBody().as(PaymentGroupResponse.class);
+        assertThat(paymentGroupResponse.getPaymentGroups().get(0).getServiceRequestStatus())
+            .isEqualTo(PAID);
+
+        PaymentStatusChargebackDto paymentStatusChargebackDto
+            = PaymentFixture.chargebackRequest(paymentReference.get());
+
+        Response chargebackResponse = paymentTestService.postChargeback(
+            USER_TOKEN_PAYMENT,
+            paymentStatusChargebackDto);
+
+        PaymentFailureResponse paymentsFailureResponse =
+            paymentTestService.getFailurePayment(USER_TOKEN_PAYMENT, SERVICE_TOKEN, paymentStatusChargebackDto.getPaymentReference()).then()
+                .statusCode(OK.value()).extract().as(PaymentFailureResponse.class);
+
+        assertThat(paymentsFailureResponse.getPaymentFailureList().get(0).getPaymentFailureInitiated().getFailureReference()).isEqualTo(paymentStatusChargebackDto.getFailureReference());
+
+        assertThat(chargebackResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+        Response casePaymentGroupResponse1
+            = cardTestService
+            .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN, ccdCaseNumber);
+
+        PaymentGroupResponse paymentGroupResponse1
+            = casePaymentGroupResponse1.getBody().as(PaymentGroupResponse.class);
+
+        assertThat(paymentGroupResponse1.getPaymentGroups().get(0).getServiceRequestStatus())
+            .isEqualTo(DISPUTED);
+
+        // Ping 2
+        DateTime actualDateTime = new DateTime(System.currentTimeMillis());
+        PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
+            .representmentStatus(RepresentmentStatus.No)
+            .representmentDate(actualDateTime.plusMinutes(15).toString())
+            .build();
+        Response ping2Response = paymentTestService.paymentStatusSecond(
+            SERVICE_TOKEN, paymentStatusChargebackDto.getFailureReference(),
+            paymentStatusUpdateSecond);
+
+        assertEquals(ping2Response.getStatusCode(), OK.value());
+        assertEquals("successful operation", ping2Response.getBody().prettyPrint());
+
+        Response casePaymentGroupResponse2
+            = cardTestService
+            .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN, ccdCaseNumber);
+
+        PaymentGroupResponse paymentGroupResponse2
+            = casePaymentGroupResponse2.getBody().as(PaymentGroupResponse.class);
+
+        assertThat(paymentGroupResponse2.getPaymentGroups().get(0).getServiceRequestStatus())
+            .isEqualTo(PARTIALLY_PAID);
+
+        // delete payment record
+        paymentTestService.deletePayment(USER_TOKEN_CMC_SOLICITOR, SERVICE_TOKEN, paymentReference.get()).then().statusCode(NO_CONTENT.value());
+
+        //delete Payment Failure record
+        paymentTestService.deleteFailedPayment(USER_TOKEN_CMC_SOLICITOR, SERVICE_TOKEN, paymentStatusChargebackDto.getFailureReference()).then().statusCode(NO_CONTENT.value());
+    }
+
+    @Test
+    public void return_paid_when_failure_event_and_HMCTS_received_money_retro_remission_ping_two() {
+
+        // Create a Bulk scan payment
+        String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
+        String dcn = "3456908723459901" + RandomUtils.nextInt();
+        dcn=  dcn.substring(0,21);
+        BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
+            .amount(new BigDecimal("100.00"))
+            .service("DIVORCE")
+            .siteId("AA01")
+            .currency(CurrencyCode.GBP)
+            .documentControlNumber(dcn)
+            .ccdCaseNumber(ccdCaseNumber)
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
+            .payerName("CCD User1")
+            .bankedDate(DateTime.now().toString())
+            .paymentMethod(PaymentMethodType.CHEQUE)
+            .paymentStatus(PaymentStatus.SUCCESS)
+            .giroSlipNo("GH716376")
+            .build();
+
+        PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Collections.singletonList(FeeDto.feeDtoWith()
+                .calculatedAmount(new BigDecimal("100.00"))
+                .code("FEE3132")
+                .version("1")
+                .reference("testRef1")
+                .volume(2)
+                .ccdCaseNumber(ccdCaseNumber)
+                .build())).build();
+
+        AtomicReference<String> paymentReference = new AtomicReference<>();
+
+        dsl.given().userToken(USER_TOKEN_PAYMENT)
+            .s2sToken(SERVICE_TOKEN)
+            .when().addNewFeeAndPaymentGroup(paymentGroupDto)
+            .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
+                assertThat(paymentGroupFeeDto).isNotNull();
+                assertThat(paymentGroupFeeDto.getPaymentGroupReference()).isNotNull();
+                assertThat(paymentGroupFeeDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(paymentGroupDto);
+
+                dsl.given().userToken(USER_TOKEN_PAYMENT)
+                    .s2sToken(SERVICE_TOKEN)
+                    .when().createBulkScanPayment(bulkScanPaymentRequest, paymentGroupFeeDto.getPaymentGroupReference())
+                    .then().gotCreated(PaymentDto.class, paymentDto -> {
+                        assertThat(paymentDto.getReference()).isNotNull();
+                        assertThat(paymentDto.getStatus()).isEqualToIgnoringCase("success");
+                        assertThat(paymentDto.getPaymentGroupReference()).isEqualTo(paymentGroupFeeDto.getPaymentGroupReference());
+
+                        paymentReference.set(paymentDto.getReference());
+
+                    });
+
+            });
+        Response casePaymentGroupResponse
+            = cardTestService
+            .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN, ccdCaseNumber);
+        PaymentGroupResponse paymentGroupResponse
+            = casePaymentGroupResponse.getBody().as(PaymentGroupResponse.class);
+        assertThat(paymentGroupResponse.getPaymentGroups().get(0).getServiceRequestStatus())
+            .isEqualTo(PAID);
+        final String paymentGroupReference = paymentGroupResponse.getPaymentGroups().get(0).getPaymentGroupReference();
+        final Integer feeId = paymentGroupResponse.getPaymentGroups().get(0).getFees().get(0).getId();
+
+        //TEST create retrospective remission
+        Response response = dsl.given().userToken(USER_TOKEN_PAYMENT)
+            .s2sToken(SERVICE_TOKEN)
+            .when().createRetrospectiveRemissionForRefund(getRetroRemissionRequest("100.00"), paymentGroupReference, feeId)
+            .then().getResponse();
+        assertThat(response.statusCode()).isEqualTo(HttpStatus.CREATED.value());
+
+        // Ping 1 for Bounced Cheque event
+        PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto
+            = PaymentFixture.bouncedChequeRequest(paymentReference.get());
+
+        Response bounceChequeResponse = paymentTestService.postBounceCheque(
+            SERVICE_TOKEN,
+            paymentStatusBouncedChequeDto);
+
+        assertThat(bounceChequeResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+        Response casePaymentGroupResponse1
+            = cardTestService
+            .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN, ccdCaseNumber);
+
+        PaymentGroupResponse paymentGroupResponse1
+            = casePaymentGroupResponse1.getBody().as(PaymentGroupResponse.class);
+
+        assertThat(paymentGroupResponse1.getPaymentGroups().get(0).getServiceRequestStatus())
+            .isEqualTo(DISPUTED);
+
+        // Ping 2
+        DateTime actualDateTime = new DateTime(System.currentTimeMillis());
+        PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
+            .representmentStatus(RepresentmentStatus.Yes)
+            .representmentDate(actualDateTime.plusMinutes(15).toString())
+            .build();
+        Response ping2Response = paymentTestService.paymentStatusSecond(
+            SERVICE_TOKEN, paymentStatusBouncedChequeDto.getFailureReference(),
+            paymentStatusUpdateSecond);
+
+        assertEquals(ping2Response.getStatusCode(), OK.value());
+        assertEquals("successful operation", ping2Response.getBody().prettyPrint());
+
+        Response casePaymentGroupResponse2
+            = cardTestService
+            .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN, ccdCaseNumber);
+
+        PaymentGroupResponse paymentGroupResponse2
+            = casePaymentGroupResponse2.getBody().as(PaymentGroupResponse.class);
+
+        assertThat(paymentGroupResponse2.getPaymentGroups().get(0).getServiceRequestStatus())
+            .isEqualTo(PAID);
+
+        // delete payment record
+        paymentTestService.deletePayment(USER_TOKEN_CMC_SOLICITOR, SERVICE_TOKEN, paymentReference.get()).then().statusCode(NO_CONTENT.value());
+
+        //delete Payment Failure record
+        paymentTestService.deleteFailedPayment(USER_TOKEN_CMC_SOLICITOR, SERVICE_TOKEN, paymentStatusBouncedChequeDto.getFailureReference()).then().statusCode(NO_CONTENT.value());
+    }
+
+    @Test
+    public void return_disputed_when_failure_event_has_happen_full_remission_ping_one() {
+
+        // Create a Bulk scan payment
+        String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
+        String dcn = "3456908723459901" + RandomUtils.nextInt();
+        dcn=  dcn.substring(0,21);
+        BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
+            .amount(new BigDecimal("100.00"))
+            .service("DIVORCE")
+            .siteId("AA01")
+            .currency(CurrencyCode.GBP)
+            .documentControlNumber(dcn)
+            .ccdCaseNumber(ccdCaseNumber)
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
+            .payerName("CCD User1")
+            .bankedDate(DateTime.now().toString())
+            .paymentMethod(PaymentMethodType.CHEQUE)
+            .paymentStatus(PaymentStatus.SUCCESS)
+            .giroSlipNo("GH716376")
+            .build();
+
+        PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Collections.singletonList(FeeDto.feeDtoWith()
+                .calculatedAmount(new BigDecimal("100.00"))
+                .code("FEE3132")
+                .version("1")
+                .reference("testRef1")
+                .volume(2)
+                .ccdCaseNumber(ccdCaseNumber)
+                .build())).build();
+
+        AtomicReference<String> paymentReference = new AtomicReference<>();
+
+        dsl.given().userToken(USER_TOKEN_PAYMENT)
+            .s2sToken(SERVICE_TOKEN)
+            .when().addNewFeeAndPaymentGroup(paymentGroupDto)
+            .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
+                assertThat(paymentGroupFeeDto).isNotNull();
+                assertThat(paymentGroupFeeDto.getPaymentGroupReference()).isNotNull();
+                assertThat(paymentGroupFeeDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(paymentGroupDto);
+
+                dsl.given().userToken(USER_TOKEN_PAYMENT)
+                    .s2sToken(SERVICE_TOKEN)
+                    .when().createBulkScanPayment(bulkScanPaymentRequest, paymentGroupFeeDto.getPaymentGroupReference())
+                    .then().gotCreated(PaymentDto.class, paymentDto -> {
+                        assertThat(paymentDto.getReference()).isNotNull();
+                        assertThat(paymentDto.getStatus()).isEqualToIgnoringCase("success");
+                        assertThat(paymentDto.getPaymentGroupReference()).isEqualTo(paymentGroupFeeDto.getPaymentGroupReference());
+
+                        paymentReference.set(paymentDto.getReference());
+
+                    });
+
+            });
+        Response casePaymentGroupResponse
+            = cardTestService
+            .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN, ccdCaseNumber);
+        PaymentGroupResponse paymentGroupResponse
+            = casePaymentGroupResponse.getBody().as(PaymentGroupResponse.class);
+        assertThat(paymentGroupResponse.getPaymentGroups().get(0).getServiceRequestStatus())
+            .isEqualTo(PAID);
+        final String paymentGroupReference = paymentGroupResponse.getPaymentGroups().get(0).getPaymentGroupReference();
+        final Integer feeId = paymentGroupResponse.getPaymentGroups().get(0).getFees().get(0).getId();
+
+        //TEST create retrospective remission
+        Response response = dsl.given().userToken(USER_TOKEN_PAYMENT)
+            .s2sToken(SERVICE_TOKEN)
+            .when().createRetrospectiveRemissionForRefund(getRetroRemissionRequest("100.00"), paymentGroupReference, feeId)
+            .then().getResponse();
+        assertThat(response.statusCode()).isEqualTo(HttpStatus.CREATED.value());
+
+        // Ping 1 for Bounced Cheque event
+        PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto
+            = PaymentFixture.bouncedChequeRequest(paymentReference.get());
+
+        Response bounceChequeResponse = paymentTestService.postBounceCheque(
+            SERVICE_TOKEN,
+            paymentStatusBouncedChequeDto);
+
+        assertThat(bounceChequeResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+        Response casePaymentGroupResponse1
+            = cardTestService
+            .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN, ccdCaseNumber);
+
+        PaymentGroupResponse paymentGroupResponse1
+            = casePaymentGroupResponse1.getBody().as(PaymentGroupResponse.class);
+
+        assertThat(paymentGroupResponse1.getPaymentGroups().get(0).getServiceRequestStatus())
+            .isEqualTo(DISPUTED);
+
+        // delete payment record
+        paymentTestService.deletePayment(USER_TOKEN_CMC_SOLICITOR, SERVICE_TOKEN, paymentReference.get()).then().statusCode(NO_CONTENT.value());
+
+        //delete Payment Failure record
+        paymentTestService.deleteFailedPayment(USER_TOKEN_CMC_SOLICITOR, SERVICE_TOKEN, paymentStatusBouncedChequeDto.getFailureReference()).then().statusCode(NO_CONTENT.value());
+    }
+
+    @Test
+    public void return_paid_when_failure_event_and_HMCTS_not_received_money_full_retro_remission_ping_two() {
+
+        // Create a Bulk scan payment
+        String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
+        String dcn = "3456908723459901" + RandomUtils.nextInt();
+        dcn=  dcn.substring(0,21);
+        BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
+            .amount(new BigDecimal("100.00"))
+            .service("DIVORCE")
+            .siteId("AA01")
+            .currency(CurrencyCode.GBP)
+            .documentControlNumber(dcn)
+            .ccdCaseNumber(ccdCaseNumber)
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
+            .payerName("CCD User1")
+            .bankedDate(DateTime.now().toString())
+            .paymentMethod(PaymentMethodType.CHEQUE)
+            .paymentStatus(PaymentStatus.SUCCESS)
+            .giroSlipNo("GH716376")
+            .build();
+
+        PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Collections.singletonList(FeeDto.feeDtoWith()
+                .calculatedAmount(new BigDecimal("100.00"))
+                .code("FEE3132")
+                .version("1")
+                .reference("testRef1")
+                .volume(2)
+                .ccdCaseNumber(ccdCaseNumber)
+                .build())).build();
+
+        AtomicReference<String> paymentReference = new AtomicReference<>();
+
+        dsl.given().userToken(USER_TOKEN_PAYMENT)
+            .s2sToken(SERVICE_TOKEN)
+            .when().addNewFeeAndPaymentGroup(paymentGroupDto)
+            .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
+                assertThat(paymentGroupFeeDto).isNotNull();
+                assertThat(paymentGroupFeeDto.getPaymentGroupReference()).isNotNull();
+                assertThat(paymentGroupFeeDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(paymentGroupDto);
+
+                dsl.given().userToken(USER_TOKEN_PAYMENT)
+                    .s2sToken(SERVICE_TOKEN)
+                    .when().createBulkScanPayment(bulkScanPaymentRequest, paymentGroupFeeDto.getPaymentGroupReference())
+                    .then().gotCreated(PaymentDto.class, paymentDto -> {
+                        assertThat(paymentDto.getReference()).isNotNull();
+                        assertThat(paymentDto.getStatus()).isEqualToIgnoringCase("success");
+                        assertThat(paymentDto.getPaymentGroupReference()).isEqualTo(paymentGroupFeeDto.getPaymentGroupReference());
+
+                        paymentReference.set(paymentDto.getReference());
+
+                    });
+
+            });
+        Response casePaymentGroupResponse
+            = cardTestService
+            .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN, ccdCaseNumber);
+        PaymentGroupResponse paymentGroupResponse
+            = casePaymentGroupResponse.getBody().as(PaymentGroupResponse.class);
+        assertThat(paymentGroupResponse.getPaymentGroups().get(0).getServiceRequestStatus())
+            .isEqualTo(PAID);
+        final String paymentGroupReference = paymentGroupResponse.getPaymentGroups().get(0).getPaymentGroupReference();
+        final Integer feeId = paymentGroupResponse.getPaymentGroups().get(0).getFees().get(0).getId();
+
+
+        // Ping 1 for Bounced Cheque event
+        PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto
+            = PaymentFixture.bouncedChequeRequest(paymentReference.get());
+
+        Response bounceChequeResponse = paymentTestService.postBounceCheque(
+            SERVICE_TOKEN,
+            paymentStatusBouncedChequeDto);
+
+        assertThat(bounceChequeResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+        Response casePaymentGroupResponse1
+            = cardTestService
+            .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN, ccdCaseNumber);
+
+        PaymentGroupResponse paymentGroupResponse1
+            = casePaymentGroupResponse1.getBody().as(PaymentGroupResponse.class);
+
+        assertThat(paymentGroupResponse1.getPaymentGroups().get(0).getServiceRequestStatus())
+            .isEqualTo(DISPUTED);
+
+        // Ping 2
+        DateTime actualDateTime = new DateTime(System.currentTimeMillis());
+        PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
+            .representmentStatus(RepresentmentStatus.No)
+            .representmentDate(actualDateTime.plusMinutes(15).toString())
+            .build();
+        Response ping2Response = paymentTestService.paymentStatusSecond(
+            SERVICE_TOKEN, paymentStatusBouncedChequeDto.getFailureReference(),
+            paymentStatusUpdateSecond);
+
+        assertEquals(ping2Response.getStatusCode(), OK.value());
+        assertEquals("successful operation", ping2Response.getBody().prettyPrint());
+
+        //TEST create retrospective remission
+        Response response = dsl.given().userToken(USER_TOKEN_PAYMENT)
+            .s2sToken(SERVICE_TOKEN)
+            .when().createRetrospectiveRemissionForRefund(getRetroRemissionRequest("100.00"), paymentGroupReference, feeId)
+            .then().getResponse();
+        assertThat(response.statusCode()).isEqualTo(HttpStatus.CREATED.value());
+
+
+        Response casePaymentGroupResponse2
+            = cardTestService
+            .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN, ccdCaseNumber);
+
+        PaymentGroupResponse paymentGroupResponse2
+            = casePaymentGroupResponse2.getBody().as(PaymentGroupResponse.class);
+
+        assertThat(paymentGroupResponse2.getPaymentGroups().get(0).getServiceRequestStatus())
+            .isEqualTo(PAID);
+
+        // delete payment record
+        paymentTestService.deletePayment(USER_TOKEN_CMC_SOLICITOR, SERVICE_TOKEN, paymentReference.get()).then().statusCode(NO_CONTENT.value());
+
+        //delete Payment Failure record
+        paymentTestService.deleteFailedPayment(USER_TOKEN_CMC_SOLICITOR, SERVICE_TOKEN, paymentStatusBouncedChequeDto.getFailureReference()).then().statusCode(NO_CONTENT.value());
+    }
+
+    @Test
+    public void return_disputed_when_failure_event_has_happen_partial_remission_ping_one() {
+
+        // Create a Telephony payment
+
+        String ccdCaseNumber = "11111234" + RandomUtils.nextInt();
+        if(ccdCaseNumber.length()>16) {
+            ccdCaseNumber = ccdCaseNumber.substring(0,16);
+        }
+
+        FeeDto feeDto = FeeDto.feeDtoWith()
+            .calculatedAmount(new BigDecimal("550.00"))
+            .ccdCaseNumber(ccdCaseNumber)
+            .version("4")
+            .code("FEE0002")
+            .description("Application for a third party debt order")
+            .build();
+
+        TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
+            .amount(new BigDecimal("500"))
+            .ccdCaseNumber(ccdCaseNumber)
+            .currency(CurrencyCode.GBP)
+            .caseType("DIVORCE")
+            .returnURL("https://www.moneyclaims.service.gov.uk")
+            .build();
+
+        PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(feeDto)).build();
+
+        AtomicReference<String> paymentReference = new AtomicReference<>();
+
+        dsl.given().userToken(USER_TOKEN_CARD_PAYMENT)
+            .s2sToken(SERVICE_TOKEN)
+            .when().addNewFeeAndPaymentGroup(groupDto)
+            .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
+                assertThat(paymentGroupFeeDto).isNotNull();
+
+                String paymentGroupReference = paymentGroupFeeDto.getPaymentGroupReference();
+
+                dsl.given().userToken(USER_TOKEN_CARD_PAYMENT)
+                    .s2sToken(SERVICE_TOKEN)
+                    .returnUrl("https://www.moneyclaims.service.gov.uk")
+                    .when().createTelephonyPayment(telephonyPaymentRequest, paymentGroupReference)
+                    .then().gotCreated(TelephonyCardPaymentsResponse.class, telephonyCardPaymentsResponse -> {
+                        assertThat(telephonyCardPaymentsResponse).isNotNull();
+                        assertThat(telephonyCardPaymentsResponse.getStatus()).isEqualTo("Initiated");
+                        paymentReference.set(telephonyCardPaymentsResponse.getPaymentReference());
+                    });
+                // pci-pal callback
+                TelephonyCallbackDto callbackDto = TelephonyCallbackDto.telephonyCallbackWith()
+                    .orderReference(paymentReference.get())
+                    .orderAmount("550")
+                    .transactionResult("SUCCESS")
+                    .build();
+
+                dsl.given().s2sToken(SERVICE_TOKEN)
+                    .when().telephonyCallback(callbackDto)
+                    .then().noContent();
+
+            });
+
+
+        Response casePaymentGroupResponse
+            = cardTestService
+            .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN, ccdCaseNumber);
+        PaymentGroupResponse paymentGroupResponse
+            = casePaymentGroupResponse.getBody().as(PaymentGroupResponse.class);
+
+        final String paymentGroupReference = paymentGroupResponse.getPaymentGroups().get(0).getPaymentGroupReference();
+        final Integer feeId = paymentGroupResponse.getPaymentGroups().get(0).getFees().get(0).getId();
+
+
+        //TEST create retrospective remission
+        Response response = dsl.given().userToken(USER_TOKEN_PAYMENT)
+            .s2sToken(SERVICE_TOKEN)
+            .when().createRetrospectiveRemissionForRefund(getRetroRemissionRequest("50.00"), paymentGroupReference, feeId)
+            .then().getResponse();
+        assertThat(response.statusCode()).isEqualTo(HttpStatus.CREATED.value());
+
+        Response casePaymentGroupResponse1
+            = cardTestService
+            .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN, ccdCaseNumber);
+        PaymentGroupResponse paymentGroupResponse1
+            = casePaymentGroupResponse1.getBody().as(PaymentGroupResponse.class);
+        assertThat(paymentGroupResponse1.getPaymentGroups().get(0).getServiceRequestStatus())
+            .isEqualTo(PAID);
+
+        // Ping 1 for Chargeback event
+        PaymentStatusChargebackDto paymentStatusChargebackDto
+            = PaymentFixture.chargebackRequest(paymentReference.get());
+
+        Response chargebackResponse = paymentTestService.postChargeback(
+            USER_TOKEN_CMC_SOLICITOR,
+            paymentStatusChargebackDto);
+
+        PaymentFailureResponse paymentsFailureResponse =
+            paymentTestService.getFailurePayment(USER_TOKEN_PAYMENT, SERVICE_TOKEN, paymentStatusChargebackDto.getPaymentReference()).then()
+                .statusCode(OK.value()).extract().as(PaymentFailureResponse.class);
+
+        assertThat(paymentsFailureResponse.getPaymentFailureList().get(0).getPaymentFailureInitiated().getFailureReference()).isEqualTo(paymentStatusChargebackDto.getFailureReference());
+
+        assertThat(chargebackResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+
+        Response casePaymentGroupResponse2
+            = cardTestService
+            .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN, ccdCaseNumber);
+
+        PaymentGroupResponse paymentGroupResponse2
+            = casePaymentGroupResponse2.getBody().as(PaymentGroupResponse.class);
+
+        assertThat(paymentGroupResponse2.getPaymentGroups().get(0).getServiceRequestStatus())
+            .isEqualTo(DISPUTED);
+
+        // delete payment record
+        paymentTestService.deletePayment(USER_TOKEN_PAYMENT, SERVICE_TOKEN, paymentReference.get()).then().statusCode(NO_CONTENT.value());
+
+        //delete Payment Failure record
+        paymentTestService.deleteFailedPayment(USER_TOKEN_PAYMENT, SERVICE_TOKEN, paymentStatusChargebackDto.getFailureReference()).then().statusCode(NO_CONTENT.value());
+
+  }
+
+    @Test
+    public void return_paid_when_failure_event_has_happen_partial_remission__HMCTS_received_money_ping_two() {
+
+        // Create a Telephony payment
+
+        String ccdCaseNumber = "11111234" + RandomUtils.nextInt();
+        if(ccdCaseNumber.length()>16){
+            ccdCaseNumber = ccdCaseNumber.substring(0,16);
+        }
+
+        FeeDto feeDto = FeeDto.feeDtoWith()
+            .calculatedAmount(new BigDecimal("550.00"))
+            .ccdCaseNumber(ccdCaseNumber)
+            .version("4")
+            .code("FEE0002")
+            .description("Application for a third party debt order")
+            .build();
+
+        TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
+            .amount(new BigDecimal("500"))
+            .ccdCaseNumber(ccdCaseNumber)
+            .currency(CurrencyCode.GBP)
+            .caseType("DIVORCE")
+            .returnURL("https://www.moneyclaims.service.gov.uk")
+            .build();
+
+        PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(feeDto)).build();
+
+        AtomicReference<String> paymentReference = new AtomicReference<>();
+
+        dsl.given().userToken(USER_TOKEN_CARD_PAYMENT)
+            .s2sToken(SERVICE_TOKEN)
+            .when().addNewFeeAndPaymentGroup(groupDto)
+            .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
+                assertThat(paymentGroupFeeDto).isNotNull();
+
+                String paymentGroupReference = paymentGroupFeeDto.getPaymentGroupReference();
+
+                dsl.given().userToken(USER_TOKEN_CARD_PAYMENT)
+                    .s2sToken(SERVICE_TOKEN)
+                    .returnUrl("https://www.moneyclaims.service.gov.uk")
+                    .when().createTelephonyPayment(telephonyPaymentRequest, paymentGroupReference)
+                    .then().gotCreated(TelephonyCardPaymentsResponse.class, telephonyCardPaymentsResponse -> {
+                        assertThat(telephonyCardPaymentsResponse).isNotNull();
+                        assertThat(telephonyCardPaymentsResponse.getStatus()).isEqualTo("Initiated");
+                        paymentReference.set(telephonyCardPaymentsResponse.getPaymentReference());
+                    });
+                // pci-pal callback
+                TelephonyCallbackDto callbackDto = TelephonyCallbackDto.telephonyCallbackWith()
+                    .orderReference(paymentReference.get())
+                    .orderAmount("550")
+                    .transactionResult("SUCCESS")
+                    .build();
+
+                dsl.given().s2sToken(SERVICE_TOKEN)
+                    .when().telephonyCallback(callbackDto)
+                    .then().noContent();
+
+            });
+
+
+        Response casePaymentGroupResponse
+            = cardTestService
+            .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN, ccdCaseNumber);
+        PaymentGroupResponse paymentGroupResponse
+            = casePaymentGroupResponse.getBody().as(PaymentGroupResponse.class);
+
+        final String paymentGroupReference = paymentGroupResponse.getPaymentGroups().get(0).getPaymentGroupReference();
+        final Integer feeId = paymentGroupResponse.getPaymentGroups().get(0).getFees().get(0).getId();
+
+
+        //TEST create retrospective remission
+        Response response = dsl.given().userToken(USER_TOKEN_PAYMENT)
+            .s2sToken(SERVICE_TOKEN)
+            .when().createRetrospectiveRemissionForRefund(getRetroRemissionRequest("50.00"), paymentGroupReference, feeId)
+            .then().getResponse();
+        assertThat(response.statusCode()).isEqualTo(HttpStatus.CREATED.value());
+
+        Response casePaymentGroupResponse1
+            = cardTestService
+            .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN, ccdCaseNumber);
+        PaymentGroupResponse paymentGroupResponse1
+            = casePaymentGroupResponse1.getBody().as(PaymentGroupResponse.class);
+        assertThat(paymentGroupResponse1.getPaymentGroups().get(0).getServiceRequestStatus())
+            .isEqualTo(PAID);
+
+        // Ping 1 for Chargeback event
+        PaymentStatusChargebackDto paymentStatusChargebackDto
+            = PaymentFixture.chargebackRequest(paymentReference.get());
+
+        Response chargebackResponse = paymentTestService.postChargeback(
+            USER_TOKEN_CMC_SOLICITOR,
+            paymentStatusChargebackDto);
+
+        PaymentFailureResponse paymentsFailureResponse =
+            paymentTestService.getFailurePayment(USER_TOKEN_PAYMENT, SERVICE_TOKEN, paymentStatusChargebackDto.getPaymentReference()).then()
+                .statusCode(OK.value()).extract().as(PaymentFailureResponse.class);
+
+        assertThat(paymentsFailureResponse.getPaymentFailureList().get(0).getPaymentFailureInitiated().getFailureReference()).isEqualTo(paymentStatusChargebackDto.getFailureReference());
+
+        assertThat(chargebackResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+
+        Response casePaymentGroupResponse2
+            = cardTestService
+            .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN, ccdCaseNumber);
+
+        PaymentGroupResponse paymentGroupResponse2
+            = casePaymentGroupResponse2.getBody().as(PaymentGroupResponse.class);
+
+        assertThat(paymentGroupResponse2.getPaymentGroups().get(0).getServiceRequestStatus())
+            .isEqualTo(DISPUTED);
+
+        // Ping 2
+        DateTime actualDateTime = new DateTime(System.currentTimeMillis());
+        PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
+            .representmentStatus(RepresentmentStatus.Yes)
+            .representmentDate(actualDateTime.plusMinutes(15).toString())
+            .build();
+        Response ping2Response = paymentTestService.paymentStatusSecond(
+            SERVICE_TOKEN, paymentStatusChargebackDto.getFailureReference(),
+            paymentStatusUpdateSecond);
+
+        assertEquals(ping2Response.getStatusCode(), OK.value());
+        assertEquals("successful operation", ping2Response.getBody().prettyPrint());
+
+        Response casePaymentGroupResponse3
+            = cardTestService
+            .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN, ccdCaseNumber);
+
+        PaymentGroupResponse paymentGroupResponse3
+            = casePaymentGroupResponse3.getBody().as(PaymentGroupResponse.class);
+
+        assertThat(paymentGroupResponse3.getPaymentGroups().get(0).getServiceRequestStatus())
+            .isEqualTo(PAID);
+
+        // delete payment record
+        paymentTestService.deletePayment(USER_TOKEN_PAYMENT, SERVICE_TOKEN, paymentReference.get()).then().statusCode(NO_CONTENT.value());
+
+        //delete Payment Failure record
+        paymentTestService.deleteFailedPayment(USER_TOKEN_PAYMENT, SERVICE_TOKEN, paymentStatusChargebackDto.getFailureReference()).then().statusCode(NO_CONTENT.value());
+
+    }
+
+    @Test
+    public void return_partially_paid_when_failure_event_has_happen_partial_remission__HMCTS_received_money_ping_two() {
+
+        // Create a Telephony payment
+
+        String ccdCaseNumber = "11111234" + RandomUtils.nextInt();
+        if(ccdCaseNumber.length()>16){
+            ccdCaseNumber = ccdCaseNumber.substring(0,16);
+        }
+
+        FeeDto feeDto = FeeDto.feeDtoWith()
+            .calculatedAmount(new BigDecimal("550.00"))
+            .ccdCaseNumber(ccdCaseNumber)
+            .version("4")
+            .code("FEE0002")
+            .description("Application for a third party debt order")
+            .build();
+
+        TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
+            .amount(new BigDecimal("500"))
+            .ccdCaseNumber(ccdCaseNumber)
+            .currency(CurrencyCode.GBP)
+            .caseType("DIVORCE")
+            .returnURL("https://www.moneyclaims.service.gov.uk")
+            .build();
+
+        PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(feeDto)).build();
+
+        AtomicReference<String> paymentReference = new AtomicReference<>();
+
+        dsl.given().userToken(USER_TOKEN_CARD_PAYMENT)
+            .s2sToken(SERVICE_TOKEN)
+            .when().addNewFeeAndPaymentGroup(groupDto)
+            .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
+                assertThat(paymentGroupFeeDto).isNotNull();
+
+                String paymentGroupReference = paymentGroupFeeDto.getPaymentGroupReference();
+
+                dsl.given().userToken(USER_TOKEN_CARD_PAYMENT)
+                    .s2sToken(SERVICE_TOKEN)
+                    .returnUrl("https://www.moneyclaims.service.gov.uk")
+                    .when().createTelephonyPayment(telephonyPaymentRequest, paymentGroupReference)
+                    .then().gotCreated(TelephonyCardPaymentsResponse.class, telephonyCardPaymentsResponse -> {
+                        assertThat(telephonyCardPaymentsResponse).isNotNull();
+                        assertThat(telephonyCardPaymentsResponse.getStatus()).isEqualTo("Initiated");
+                        paymentReference.set(telephonyCardPaymentsResponse.getPaymentReference());
+                    });
+                // pci-pal callback
+                TelephonyCallbackDto callbackDto = TelephonyCallbackDto.telephonyCallbackWith()
+                    .orderReference(paymentReference.get())
+                    .orderAmount("550")
+                    .transactionResult("SUCCESS")
+                    .build();
+
+                dsl.given().s2sToken(SERVICE_TOKEN)
+                    .when().telephonyCallback(callbackDto)
+                    .then().noContent();
+
+            });
+
+
+        Response casePaymentGroupResponse
+            = cardTestService
+            .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN, ccdCaseNumber);
+        PaymentGroupResponse paymentGroupResponse
+            = casePaymentGroupResponse.getBody().as(PaymentGroupResponse.class);
+
+        final String paymentGroupReference = paymentGroupResponse.getPaymentGroups().get(0).getPaymentGroupReference();
+        final Integer feeId = paymentGroupResponse.getPaymentGroups().get(0).getFees().get(0).getId();
+
+
+        //TEST create retrospective remission
+        Response response = dsl.given().userToken(USER_TOKEN_PAYMENT)
+            .s2sToken(SERVICE_TOKEN)
+            .when().createRetrospectiveRemissionForRefund(getRetroRemissionRequest("50.00"), paymentGroupReference, feeId)
+            .then().getResponse();
+        assertThat(response.statusCode()).isEqualTo(HttpStatus.CREATED.value());
+
+        Response casePaymentGroupResponse1
+            = cardTestService
+            .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN, ccdCaseNumber);
+        PaymentGroupResponse paymentGroupResponse1
+            = casePaymentGroupResponse1.getBody().as(PaymentGroupResponse.class);
+        assertThat(paymentGroupResponse1.getPaymentGroups().get(0).getServiceRequestStatus())
+            .isEqualTo(PAID);
+
+        // Ping 1 for Chargeback event
+        PaymentStatusChargebackDto paymentStatusChargebackDto
+            = PaymentFixture.chargebackRequest(paymentReference.get());
+
+        Response chargebackResponse = paymentTestService.postChargeback(
+            USER_TOKEN_CMC_SOLICITOR,
+            paymentStatusChargebackDto);
+
+        PaymentFailureResponse paymentsFailureResponse =
+            paymentTestService.getFailurePayment(USER_TOKEN_PAYMENT, SERVICE_TOKEN, paymentStatusChargebackDto.getPaymentReference()).then()
+                .statusCode(OK.value()).extract().as(PaymentFailureResponse.class);
+
+        assertThat(paymentsFailureResponse.getPaymentFailureList().get(0).getPaymentFailureInitiated().getFailureReference()).isEqualTo(paymentStatusChargebackDto.getFailureReference());
+
+        assertThat(chargebackResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+
+        Response casePaymentGroupResponse2
+            = cardTestService
+            .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN, ccdCaseNumber);
+
+        PaymentGroupResponse paymentGroupResponse2
+            = casePaymentGroupResponse2.getBody().as(PaymentGroupResponse.class);
+
+        assertThat(paymentGroupResponse2.getPaymentGroups().get(0).getServiceRequestStatus())
+            .isEqualTo(DISPUTED);
+
+        // Ping 2
+        DateTime actualDateTime = new DateTime(System.currentTimeMillis());
+        PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
+            .representmentStatus(RepresentmentStatus.No)
+            .representmentDate(actualDateTime.plusMinutes(15).toString())
+            .build();
+        Response ping2Response = paymentTestService.paymentStatusSecond(
+            SERVICE_TOKEN, paymentStatusChargebackDto.getFailureReference(),
+            paymentStatusUpdateSecond);
+
+        assertEquals(ping2Response.getStatusCode(), OK.value());
+        assertEquals("successful operation", ping2Response.getBody().prettyPrint());
+
+        Response casePaymentGroupResponse3
+            = cardTestService
+            .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN, ccdCaseNumber);
+
+        PaymentGroupResponse paymentGroupResponse3
+            = casePaymentGroupResponse3.getBody().as(PaymentGroupResponse.class);
+
+        assertThat(paymentGroupResponse3.getPaymentGroups().get(0).getServiceRequestStatus())
+            .isEqualTo(PARTIALLY_PAID);
+
+        // delete payment record
+        paymentTestService.deletePayment(USER_TOKEN_PAYMENT, SERVICE_TOKEN, paymentReference.get()).then().statusCode(NO_CONTENT.value());
+
+        //delete Payment Failure record
+        paymentTestService.deleteFailedPayment(USER_TOKEN_PAYMENT, SERVICE_TOKEN, paymentStatusChargebackDto.getFailureReference()).then().statusCode(NO_CONTENT.value());
+
+    }
+
+    @Test
+    public void createUpfrontRemission() throws Exception {
+
+        dsl.given().userToken(USER_TOKEN_PAYMENT)
+            .s2sToken(SERVICE_TOKEN)
+            .when().createUpfrontRemission(getRemissionRequest())
+            .then().gotCreated(RemissionDto.class, remissionDto -> {
+                assertThat(remissionDto).isNotNull();
+                assertThat(remissionDto.getFee()).isEqualToComparingOnlyGivenFields(getFee());
+            });
+
+    }
+
+    private RemissionRequest getRemissionRequest() {
+        return RemissionRequest.createRemissionRequestWith()
+            .beneficiaryName("A partial remission")
+            .ccdCaseNumber("1111-2222-3333-4444")
+            .hwfAmount(new BigDecimal("550.00"))
+            .hwfReference("HR1111")
+            .caseType("DIVORCE_ExceptionRecord")
+            .fee(getFee())
+            .build();
+    }
+
+    private FeeDto getFee() {
+        return FeeDto.feeDtoWith()
+            .calculatedAmount(new BigDecimal("550.00"))
+            .ccdCaseNumber("1111-2222-3333-4444")
+            .version("1")
+            .code("FEE0123")
+            .build();
+    }
+
+
+    private static RetroRemissionRequest getRetroRemissionRequest(final String remissionAmount) {
+        return RetroRemissionRequest.createRetroRemissionRequestWith()
+            .hwfAmount(new BigDecimal(remissionAmount))
+            .hwfReference("HWF-A1B-23C")
+            .build();
     }
 
     private void verifyThePaymentGroupResponseForNoPaymentsOrRemisssions(final ServiceRequestDto serviceRequestDto,
