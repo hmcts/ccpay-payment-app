@@ -19,7 +19,7 @@ public class PbaIacPaymentReportConfig implements PaymentReportConfig {
         "Payment status updated date,Payment status,Payment channel,Payment method,Payment amount,Site id,Fee code," +
         "Version,Calculated amount,Memo line,NAC,Fee volume";
 
-    private static final String CREDIT_ACCOUNT_PAYMENTS_CSV_FILE_PREFIX = "hmcts_credit_account_payments_civil_";
+    private static final String CREDIT_ACCOUNT_PAYMENTS_CSV_FILE_PREFIX = "hmcts_credit_account_payments_iac_";
 
     @Value("${pba.iac.payments.email.from:dummy}")
     private String from;
