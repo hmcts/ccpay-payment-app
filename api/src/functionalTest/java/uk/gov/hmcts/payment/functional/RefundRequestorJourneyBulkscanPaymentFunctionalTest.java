@@ -172,11 +172,12 @@ public class RefundRequestorJourneyBulkscanPaymentFunctionalTest {
 
             PaymentRefundRequest paymentRefundRequest
                 = PaymentFixture.aRefundRequest(paymentId, "RR001", paymentReference.get(), "100.00", "450");
+            LOG.info("Calling Refund Service to Create Refund (ln 175) {}", paymentRefundRequest.getPaymentReference());
             RefundResponse refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
                 SERVICE_TOKEN_PAYMENT,
                 paymentRefundRequest).
                     then().statusCode(CREATED.value()).extract().as(RefundResponse.class);
-
+            LOG.info("Refunds response received after creating refund");
             assertThat(refundResponse.getRefundAmount()).isEqualTo(new BigDecimal("100.00"));
             assertThat(REFUNDS_REGEX_PATTERN.matcher(refundResponse.getRefundReference()).matches()).isEqualTo(true);
 
@@ -268,10 +269,12 @@ public class RefundRequestorJourneyBulkscanPaymentFunctionalTest {
             // initiate the refund
             PaymentRefundRequest paymentRefundRequest
                 = PaymentFixture.aRefundRequest(paymentId, "RR001", paymentReference.get(), "100", "450");
+            LOG.info("Before calling Refund svc for creating refund (ln 272) {}", paymentRefundRequest.getPaymentReference());
             Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
                 SERVICE_TOKEN_PAYMENT,
                 paymentRefundRequest);
             String s = refundResponse.getBody().asString();
+            LOG.info("Refund service response (ln 277) {}",s);
             assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
             assertThat(refundResponse.getBody().asString()).isEqualTo("This payment is not yet eligible for refund");
 

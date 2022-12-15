@@ -112,7 +112,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         RefundResponse refundResponse = RefundResponse.RefundResponseWith()
             .refundAmount(paymentRefundRequest.getTotalRefundAmount())
             .refundReference(postToRefundService(refundRequest, headers)).build();
-
+        LOG.info("After return from Refunds service in createRefund PaymentRefundsServiceImpl");
         return new ResponseEntity<>(refundResponse, HttpStatus.CREATED);
 
     }
