@@ -1247,6 +1247,8 @@ public class PaymentStatusFunctionalTest {
 
         // Create a Bulk scan payment
         String dcn = "3456908723459901" + RandomUtils.nextInt();
+        String failureReference = "FR-123-456" + RandomUtils.nextInt();
+
         dcn=  dcn.substring(0,21);
         BulkScanPayment bulkScanPayment = BulkScanPayment.createPaymentRequestWith()
                 .amount(new BigDecimal("555"))
@@ -1275,7 +1277,7 @@ public class PaymentStatusFunctionalTest {
         DateTime actualDateTime = new DateTime(System.currentTimeMillis());
         UnprocessedPayment unprocessedPayment = UnprocessedPayment.unprocessedPayment()
                 .amount(BigDecimal.valueOf(55))
-                .failureReference("FR3333")
+                .failureReference(failureReference)
                 .eventDateTime(actualDateTime.plusMinutes(5).toString())
                 .reason("RR001")
                 .dcn(dcn)
@@ -1365,6 +1367,7 @@ public class PaymentStatusFunctionalTest {
 
         // Create a Bulk scan payment
         String dcn = "3456908723459901" + RandomUtils.nextInt();
+        String failureReference = "FR-123-456" + RandomUtils.nextInt();
         dcn=  dcn.substring(0,21);
         BulkScanPayment bulkScanPayment = BulkScanPayment.createPaymentRequestWith()
                 .amount(new BigDecimal("999"))
@@ -1393,7 +1396,7 @@ public class PaymentStatusFunctionalTest {
         DateTime actualDateTime = new DateTime(System.currentTimeMillis());
         UnprocessedPayment unprocessedPayment = UnprocessedPayment.unprocessedPayment()
                 .amount(BigDecimal.valueOf(888))
-                .failureReference("FR2222")
+                .failureReference(failureReference)
                 .eventDateTime(actualDateTime.plusMinutes(30).toString())
                 .reason("RR001")
                 .dcn(dcn)
@@ -1427,6 +1430,7 @@ public class PaymentStatusFunctionalTest {
 
         // Create a Bulk scan payment
         String dcn = "3456908723459901" + RandomUtils.nextInt();
+        String failureReference = "FR-123-456" + RandomUtils.nextInt();
         dcn=  dcn.substring(0,21);
         BulkScanPayment bulkScanPayment = BulkScanPayment.createPaymentRequestWith()
                 .amount(new BigDecimal("555"))
@@ -1455,7 +1459,7 @@ public class PaymentStatusFunctionalTest {
         DateTime actualDateTime = new DateTime(System.currentTimeMillis());
         UnprocessedPayment unprocessedPayment = UnprocessedPayment.unprocessedPayment()
                 .amount(BigDecimal.valueOf(888))
-                .failureReference("FR4444")
+                .failureReference(failureReference)
                 .eventDateTime(actualDateTime.plusHours(2).toString())
                 .reason("RR001")
                 .dcn(dcn)
@@ -1476,6 +1480,7 @@ public class PaymentStatusFunctionalTest {
     public void positive_unprocessedPayment_update_payment() {
 
         String dcn = "3456908723459901" + RandomUtils.nextInt();
+        String failureReference = "FR-123-456" + RandomUtils.nextInt();
         dcn=  dcn.substring(0,21);
         BulkScanPayment bulkScanPayment = BulkScanPayment.createPaymentRequestWith()
             .amount(new BigDecimal("555"))
@@ -1504,7 +1509,7 @@ public class PaymentStatusFunctionalTest {
         DateTime actualDateTime = new DateTime(System.currentTimeMillis());
         UnprocessedPayment unprocessedPayment = UnprocessedPayment.unprocessedPayment()
             .amount(BigDecimal.valueOf(55))
-            .failureReference("FR3333")
+            .failureReference(failureReference)
             .eventDateTime(actualDateTime.plusMinutes(30).toString())
             .reason("RR001")
             .dcn(dcn)
@@ -1592,6 +1597,7 @@ public class PaymentStatusFunctionalTest {
 
         // Create a Bulk scan payment
         String dcn = "3456908723459901" + RandomUtils.nextInt();
+        String failureReference = "FR-123-456" + RandomUtils.nextInt();
         dcn=  dcn.substring(0,21);
         BulkScanPayment bulkScanPayment = BulkScanPayment.createPaymentRequestWith()
             .amount(new BigDecimal("555"))
@@ -1620,7 +1626,7 @@ public class PaymentStatusFunctionalTest {
         DateTime actualDateTime = new DateTime(System.currentTimeMillis());
         UnprocessedPayment unprocessedPayment = UnprocessedPayment.unprocessedPayment()
             .amount(BigDecimal.valueOf(55))
-            .failureReference("FR3333")
+            .failureReference(failureReference)
             .eventDateTime(actualDateTime.plusMinutes(30).toString())
             .reason("RR001")
             .dcn(dcn)
@@ -1968,10 +1974,10 @@ public class PaymentStatusFunctionalTest {
         assertEquals("ABA6",paymentFailureReportDto.getOrgId());
         assertEquals(accountPaymentRequest.getCcdCaseNumber(),paymentFailureReportDto.getCcdReference());
         assertEquals("Probate",paymentFailureReportDto.getServiceName());
-        assertEquals(joinedRefundAmount, paymentFailureReportDto.getRefundAmount());
+        assertEquals(joinedRefundAmount.contains(paymentFailureReportDto.getRefundAmount());
         assertEquals(expectedDate,eventDate);
         assertEquals(expectedDate,representmentReportDate);
-        assertEquals(joinedRefundReference,paymentFailureReportDto.getRefundReference());
+        assertEquals(joinedRefundReference.contains(paymentFailureReportDto.getRefundReference());
         assertEquals("RR001",paymentFailureReportDto.getFailureReason());
 
 
