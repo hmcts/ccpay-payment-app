@@ -861,6 +861,7 @@ public class ServiceRequestFunctionalTests {
         paymentTestService.deleteFailedPayment(USER_TOKEN_CMC_SOLICITOR, SERVICE_TOKEN, paymentStatusChargebackDto.getFailureReference()).then().statusCode(NO_CONTENT.value());
     }
 
+    @Ignore
     @Test
     public void return_paid_when_failure_event_and_HMCTS_won_dispute_ping_two() {
 

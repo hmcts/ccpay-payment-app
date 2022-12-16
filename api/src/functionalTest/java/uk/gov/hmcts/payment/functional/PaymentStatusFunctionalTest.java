@@ -605,7 +605,7 @@ public class PaymentStatusFunctionalTest {
         assertEquals(BAD_REQUEST.value(), ping2Response.getStatusCode());
     }
 
-
+    @Ignore
     @Test
     public void negative_return404_chargeback_payment_failure_when_dispute_amount_is_more_than_payment_amount() {
 
