@@ -762,7 +762,7 @@ public class ServiceRequestFunctionalTests {
             .isEqualTo("No Service found for given CaseType or HMCTS Org Id");
     }
 
-
+    @Ignore
     @Test
     public void return_disputed_when_failure_event_has_happen_ping_one() {
 
@@ -831,7 +831,7 @@ public class ServiceRequestFunctionalTests {
             .isEqualTo(PAID);
 
         PaymentStatusChargebackDto paymentStatusChargebackDto
-            = PaymentFixture.chargebackRequest(paymentReference.get());
+            = PaymentFixture.chargebackRequestService(paymentReference.get(),ccdCaseNumber);
 
         Response chargebackResponse = paymentTestService.postChargeback(
             USER_TOKEN_PAYMENT,
@@ -861,6 +861,7 @@ public class ServiceRequestFunctionalTests {
         paymentTestService.deleteFailedPayment(USER_TOKEN_CMC_SOLICITOR, SERVICE_TOKEN, paymentStatusChargebackDto.getFailureReference()).then().statusCode(NO_CONTENT.value());
     }
 
+    @Ignore
     @Test
     public void return_paid_when_failure_event_and_HMCTS_won_dispute_ping_two() {
 
@@ -927,7 +928,7 @@ public class ServiceRequestFunctionalTests {
             .isEqualTo(PAID);
 
         PaymentStatusChargebackDto paymentStatusChargebackDto
-            = PaymentFixture.chargebackRequest(paymentReference.get());
+            = PaymentFixture.chargebackRequestService(paymentReference.get(),ccdCaseNumber);
 
         Response chargebackResponse = paymentTestService.postChargeback(
             USER_TOKEN_PAYMENT,
@@ -980,6 +981,7 @@ public class ServiceRequestFunctionalTests {
         paymentTestService.deleteFailedPayment(USER_TOKEN_CMC_SOLICITOR, SERVICE_TOKEN, paymentStatusChargebackDto.getFailureReference()).then().statusCode(NO_CONTENT.value());
     }
 
+    @Ignore
     @Test
     public void return_partially_paid_when_failure_event_and_HMCTS_lost_dispute_ping_two() {
 
@@ -1046,7 +1048,7 @@ public class ServiceRequestFunctionalTests {
             .isEqualTo(PAID);
 
         PaymentStatusChargebackDto paymentStatusChargebackDto
-            = PaymentFixture.chargebackRequest(paymentReference.get());
+            = PaymentFixture.chargebackRequestService(paymentReference.get(),ccdCaseNumber);
 
         Response chargebackResponse = paymentTestService.postChargeback(
             USER_TOKEN_PAYMENT,
@@ -1099,6 +1101,7 @@ public class ServiceRequestFunctionalTests {
         paymentTestService.deleteFailedPayment(USER_TOKEN_CMC_SOLICITOR, SERVICE_TOKEN, paymentStatusChargebackDto.getFailureReference()).then().statusCode(NO_CONTENT.value());
     }
 
+    @Ignore
     @Test
     public void return_paid_when_failure_event_and_HMCTS_received_money_retro_remission_ping_two() {
 
@@ -1173,7 +1176,7 @@ public class ServiceRequestFunctionalTests {
 
         // Ping 1 for Bounced Cheque event
         PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto
-            = PaymentFixture.bouncedChequeRequest(paymentReference.get());
+            = PaymentFixture.bouncedChequeRequestService(paymentReference.get(),ccdCaseNumber);
 
         Response bounceChequeResponse = paymentTestService.postBounceCheque(
             SERVICE_TOKEN,
@@ -1220,6 +1223,7 @@ public class ServiceRequestFunctionalTests {
         paymentTestService.deleteFailedPayment(USER_TOKEN_CMC_SOLICITOR, SERVICE_TOKEN, paymentStatusBouncedChequeDto.getFailureReference()).then().statusCode(NO_CONTENT.value());
     }
 
+    @Ignore
     @Test
     public void return_disputed_when_failure_event_has_happen_full_remission_ping_one() {
 
@@ -1294,7 +1298,7 @@ public class ServiceRequestFunctionalTests {
 
         // Ping 1 for Bounced Cheque event
         PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto
-            = PaymentFixture.bouncedChequeRequest(paymentReference.get());
+            = PaymentFixture.bouncedChequeRequestService(paymentReference.get(),ccdCaseNumber);
 
         Response bounceChequeResponse = paymentTestService.postBounceCheque(
             SERVICE_TOKEN,
@@ -1318,6 +1322,7 @@ public class ServiceRequestFunctionalTests {
         paymentTestService.deleteFailedPayment(USER_TOKEN_CMC_SOLICITOR, SERVICE_TOKEN, paymentStatusBouncedChequeDto.getFailureReference()).then().statusCode(NO_CONTENT.value());
     }
 
+    @Ignore
     @Test
     public void return_paid_when_failure_event_and_HMCTS_not_received_money_full_retro_remission_ping_two() {
 
@@ -1386,7 +1391,7 @@ public class ServiceRequestFunctionalTests {
 
         // Ping 1 for Bounced Cheque event
         PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto
-            = PaymentFixture.bouncedChequeRequest(paymentReference.get());
+            = PaymentFixture.bouncedChequeRequestService(paymentReference.get(),ccdCaseNumber);
 
         Response bounceChequeResponse = paymentTestService.postBounceCheque(
             SERVICE_TOKEN,
@@ -1441,6 +1446,7 @@ public class ServiceRequestFunctionalTests {
         paymentTestService.deleteFailedPayment(USER_TOKEN_CMC_SOLICITOR, SERVICE_TOKEN, paymentStatusBouncedChequeDto.getFailureReference()).then().statusCode(NO_CONTENT.value());
     }
 
+    @Ignore
     @Test
     public void return_disputed_when_failure_event_has_happen_partial_remission_ping_one() {
 
@@ -1530,7 +1536,7 @@ public class ServiceRequestFunctionalTests {
 
         // Ping 1 for Chargeback event
         PaymentStatusChargebackDto paymentStatusChargebackDto
-            = PaymentFixture.chargebackRequest(paymentReference.get());
+            = PaymentFixture.chargebackRequestService(paymentReference.get(),ccdCaseNumber);
 
         Response chargebackResponse = paymentTestService.postChargeback(
             USER_TOKEN_CMC_SOLICITOR,
@@ -1562,6 +1568,7 @@ public class ServiceRequestFunctionalTests {
 
   }
 
+    @Ignore
     @Test
     public void return_paid_when_failure_event_has_happen_partial_remission__HMCTS_received_money_ping_two() {
 
@@ -1651,7 +1658,7 @@ public class ServiceRequestFunctionalTests {
 
         // Ping 1 for Chargeback event
         PaymentStatusChargebackDto paymentStatusChargebackDto
-            = PaymentFixture.chargebackRequest(paymentReference.get());
+            = PaymentFixture.chargebackRequestService(paymentReference.get(),ccdCaseNumber);
 
         Response chargebackResponse = paymentTestService.postChargeback(
             USER_TOKEN_CMC_SOLICITOR,
@@ -1706,6 +1713,7 @@ public class ServiceRequestFunctionalTests {
 
     }
 
+    @Ignore
     @Test
     public void return_partially_paid_when_failure_event_has_happen_partial_remission__HMCTS_received_money_ping_two() {
 
@@ -1795,7 +1803,7 @@ public class ServiceRequestFunctionalTests {
 
         // Ping 1 for Chargeback event
         PaymentStatusChargebackDto paymentStatusChargebackDto
-            = PaymentFixture.chargebackRequest(paymentReference.get());
+            = PaymentFixture.chargebackRequestService(paymentReference.get(),ccdCaseNumber);
 
         Response chargebackResponse = paymentTestService.postChargeback(
             USER_TOKEN_CMC_SOLICITOR,
