@@ -215,6 +215,7 @@ public class PaymentStatusFunctionalTest {
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
     }
 
+    @Ignore
     @Test
     public void return_Success_Get_for_payment_failure() {
 
