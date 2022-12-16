@@ -831,7 +831,7 @@ public class ServiceRequestFunctionalTests {
             .isEqualTo(PAID);
 
         PaymentStatusChargebackDto paymentStatusChargebackDto
-            = PaymentFixture.chargebackRequest(paymentReference.get());
+            = PaymentFixture.chargebackRequestService(paymentReference.get(),ccdCaseNumber);
 
         Response chargebackResponse = paymentTestService.postChargeback(
             USER_TOKEN_PAYMENT,
@@ -927,7 +927,7 @@ public class ServiceRequestFunctionalTests {
             .isEqualTo(PAID);
 
         PaymentStatusChargebackDto paymentStatusChargebackDto
-            = PaymentFixture.chargebackRequest(paymentReference.get());
+            = PaymentFixture.chargebackRequestService(paymentReference.get(),ccdCaseNumber);
 
         Response chargebackResponse = paymentTestService.postChargeback(
             USER_TOKEN_PAYMENT,
@@ -1046,7 +1046,7 @@ public class ServiceRequestFunctionalTests {
             .isEqualTo(PAID);
 
         PaymentStatusChargebackDto paymentStatusChargebackDto
-            = PaymentFixture.chargebackRequest(paymentReference.get());
+            = PaymentFixture.chargebackRequestService(paymentReference.get(),ccdCaseNumber);
 
         Response chargebackResponse = paymentTestService.postChargeback(
             USER_TOKEN_PAYMENT,
@@ -1173,7 +1173,7 @@ public class ServiceRequestFunctionalTests {
 
         // Ping 1 for Bounced Cheque event
         PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto
-            = PaymentFixture.bouncedChequeRequest(paymentReference.get());
+            = PaymentFixture.bouncedChequeRequestService(paymentReference.get(),ccdCaseNumber);
 
         Response bounceChequeResponse = paymentTestService.postBounceCheque(
             SERVICE_TOKEN,
@@ -1294,7 +1294,7 @@ public class ServiceRequestFunctionalTests {
 
         // Ping 1 for Bounced Cheque event
         PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto
-            = PaymentFixture.bouncedChequeRequest(paymentReference.get());
+            = PaymentFixture.bouncedChequeRequestService(paymentReference.get(),ccdCaseNumber);
 
         Response bounceChequeResponse = paymentTestService.postBounceCheque(
             SERVICE_TOKEN,
@@ -1386,7 +1386,7 @@ public class ServiceRequestFunctionalTests {
 
         // Ping 1 for Bounced Cheque event
         PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto
-            = PaymentFixture.bouncedChequeRequest(paymentReference.get());
+            = PaymentFixture.bouncedChequeRequestService(paymentReference.get(),ccdCaseNumber);
 
         Response bounceChequeResponse = paymentTestService.postBounceCheque(
             SERVICE_TOKEN,
@@ -1530,7 +1530,7 @@ public class ServiceRequestFunctionalTests {
 
         // Ping 1 for Chargeback event
         PaymentStatusChargebackDto paymentStatusChargebackDto
-            = PaymentFixture.chargebackRequest(paymentReference.get());
+            = PaymentFixture.chargebackRequestService(paymentReference.get(),ccdCaseNumber);
 
         Response chargebackResponse = paymentTestService.postChargeback(
             USER_TOKEN_CMC_SOLICITOR,
@@ -1651,7 +1651,7 @@ public class ServiceRequestFunctionalTests {
 
         // Ping 1 for Chargeback event
         PaymentStatusChargebackDto paymentStatusChargebackDto
-            = PaymentFixture.chargebackRequest(paymentReference.get());
+            = PaymentFixture.chargebackRequestService(paymentReference.get(),ccdCaseNumber);
 
         Response chargebackResponse = paymentTestService.postChargeback(
             USER_TOKEN_CMC_SOLICITOR,
@@ -1795,7 +1795,7 @@ public class ServiceRequestFunctionalTests {
 
         // Ping 1 for Chargeback event
         PaymentStatusChargebackDto paymentStatusChargebackDto
-            = PaymentFixture.chargebackRequest(paymentReference.get());
+            = PaymentFixture.chargebackRequestService(paymentReference.get(),ccdCaseNumber);
 
         Response chargebackResponse = paymentTestService.postChargeback(
             USER_TOKEN_CMC_SOLICITOR,

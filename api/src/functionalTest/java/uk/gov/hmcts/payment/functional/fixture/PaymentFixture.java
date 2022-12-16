@@ -14,7 +14,6 @@ import uk.gov.hmcts.payment.api.dto.PaymentStatusChargebackDto;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 
 import java.math.BigDecimal;
-import java.sql.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
@@ -443,8 +442,37 @@ public class PaymentFixture {
             .build();
     }
 
+    public static PaymentStatusBouncedChequeDto bouncedChequeRequestService(String paymentReference, String ccdCaseNumber){
+        String failureReference = "FR-111-CC13-" + RandomUtils.nextInt();
+        DateTime actualDateTime = new DateTime(System.currentTimeMillis());
+        return PaymentStatusBouncedChequeDto.paymentStatusBouncedChequeRequestWith()
+            .reason("RR001")
+            .paymentReference(paymentReference)
+            .eventDateTime(actualDateTime.plusMinutes(5).toString())
+            .additionalReference("AR1234556")
+            .amount(new BigDecimal(100.00))
+            .failureReference(failureReference)
+            .ccdCaseNumber(ccdCaseNumber)
+            .build();
+    }
+
     public static PaymentStatusChargebackDto chargebackRequest(String paymentReference){
         String ccdCaseNumber = "1111-CC13-" + RandomUtils.nextInt();
+        String failureReference = "FR-111-CC13-" + RandomUtils.nextInt();
+        DateTime actualDateTime = new DateTime(System.currentTimeMillis());
+        return PaymentStatusChargebackDto.paymentStatusChargebackRequestWith()
+            .reason("RR001")
+            .paymentReference(paymentReference)
+            .eventDateTime(actualDateTime.plusMinutes(5).toString())
+            .additionalReference("AR1234556")
+            .amount(new BigDecimal(50.00))
+            .failureReference(failureReference)
+            .ccdCaseNumber(ccdCaseNumber)
+            .hasAmountDebited("Yes")
+            .build();
+    }
+
+    public static PaymentStatusChargebackDto chargebackRequestService(String paymentReference, String ccdCaseNumber){
         String failureReference = "FR-111-CC13-" + RandomUtils.nextInt();
         DateTime actualDateTime = new DateTime(System.currentTimeMillis());
         return PaymentStatusChargebackDto.paymentStatusChargebackRequestWith()
