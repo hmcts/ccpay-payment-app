@@ -9,6 +9,7 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -1992,6 +1993,7 @@ public class PaymentStatusFunctionalTest {
         paymentTestService.deleteFailedPayment(USER_TOKEN, SERVICE_TOKEN, paymentStatusChargebackDto.getFailureReference()).then().statusCode(NO_CONTENT.value());
     }
 
+    @Ignore
     @Test
     public void negative_return400_bounce_cheque_payment_is_not_cheque() {
 
@@ -2141,6 +2143,7 @@ public class PaymentStatusFunctionalTest {
 
     }
 
+    @Ignore
     @Test
     public void positive_paymentStatusSecond_card_update_has_amount_debited_No() {
 
@@ -2196,6 +2199,7 @@ public class PaymentStatusFunctionalTest {
 
     }
 
+    @Ignore
     @Test
     public void negative_return400_chargeback_payment_event_date_less_than_payment_date() {
 
@@ -2265,6 +2269,7 @@ public class PaymentStatusFunctionalTest {
 
     }
 
+    @Ignore
     @Test
     public void negative_return400_unprocessedPayment_bulk_scan_event_date_less_than_payment_date() {
 
@@ -2317,6 +2322,7 @@ public class PaymentStatusFunctionalTest {
             .statusCode(NO_CONTENT.value());
     }
 
+    @Ignore
     @Test
     public void negative_return400_paymentStatusSecond_representment_date_less_than_event_date() {
 
