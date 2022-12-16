@@ -49,6 +49,8 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.math.BigDecimal;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -136,6 +138,8 @@ public class PaymentStatusControllerTest {
 
     @Spy
     private PaymentFailureReportMapper paymentFailureReportMapper;
+
+    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.ENGLISH);
 
     @Before
     public void setup() {
@@ -627,8 +631,10 @@ public class PaymentStatusControllerTest {
             .build();
     }
 
-    private Payment getPayment() {
+    private Payment getPayment() throws ParseException {
 
+        String dateInString = "2021-10-09T10:10:10";
+        Date date = formatter.parse(dateInString);
         return Payment.paymentWith()
             .id(1)
             .amount(BigDecimal.valueOf(555))
@@ -643,9 +649,10 @@ public class PaymentStatusControllerTest {
             .reference("RC-1520-2505-0381-8145")
             .ccdCaseNumber("1234123412341234")
             .documentControlNumber("12345")
+            .dateUpdated(date)
             .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
-            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
-            .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("cheque").build())
             .paymentLink(PaymentFeeLink.paymentFeeLinkWith()
                 .id(1)
                 .paymentReference("2018-15202505035")
@@ -663,8 +670,10 @@ public class PaymentStatusControllerTest {
             .build();
     }
 
-    private PaymentFailures getPaymentFailures(){
+    private PaymentFailures getPaymentFailures() throws ParseException {
 
+        String dateInString = "2021-10-09T10:10:10";
+        Date date = formatter.parse(dateInString);
         return PaymentFailures.paymentFailuresWith()
             .id(1)
             .reason("RR001")
@@ -672,7 +681,9 @@ public class PaymentStatusControllerTest {
             .paymentReference("RC12345")
             .ccdCaseNumber("123456")
             .amount(BigDecimal.valueOf(555))
+            .failureEventDateTime(date)
             .dcn("12345")
+            .failureType("Bounced Cheque")
             .build();
 
     }

@@ -257,6 +257,8 @@
           This apache commons text cve issue is in re-analysis and hence suppressing.
         </notes>
         <cve>CVE-2022-42889</cve>
+        <cve>CVE-2022-42252</cve>
+        <cve>CVE-2022-41854</cve>
     </suppress>
     <suppress until="2023-03-31">
         <notes>
