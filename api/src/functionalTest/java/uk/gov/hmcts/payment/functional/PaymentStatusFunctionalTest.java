@@ -630,6 +630,7 @@ public class PaymentStatusFunctionalTest {
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
     }
 
+    @Ignore
     @Test
     public void negative_return404_bounce_cheque_payment_failure_when_dispute_amount_is_more_than_payment_amount() {
 
@@ -2071,6 +2072,7 @@ public class PaymentStatusFunctionalTest {
 
     }
 
+    @Ignore
     @Test
     public void negative_return400_bounce_cheque_payment_event_date_less_than_payment_date() {
 
