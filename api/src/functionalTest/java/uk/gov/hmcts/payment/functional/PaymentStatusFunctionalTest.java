@@ -11,6 +11,8 @@ import org.joda.time.DateTimeZone;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
@@ -25,6 +27,7 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.model.PaymentChannel;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
+import uk.gov.hmcts.payment.api.service.PaymentStatusUpdateServiceImpl;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
 import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
@@ -68,6 +71,7 @@ public class PaymentStatusFunctionalTest {
     private static String USER_TOKEN_PAYMENT;
     private static String USER_TOKEN_CARD_PAYMENT;
     private static final Pattern REFUNDS_REGEX_PATTERN = Pattern.compile("^(RF)-([0-9]{4})-([0-9-]{4})-([0-9-]{4})-([0-9-]{4})$");
+    private static final Logger LOG = LoggerFactory.getLogger(PaymentStatusFunctionalTest.class);
 
     @Autowired
     private PaymentTestService paymentTestService;
@@ -2047,10 +2051,13 @@ public class PaymentStatusFunctionalTest {
         // Ping 1 for Bounced Cheque event
         PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto
             = PaymentFixture.bouncedChequeRequest(paymentReference.get());
-
+        LOG.info("negative_return400_bounce_cheque_payment_is_not_cheque");
+        LOG.info("Payment Reference {}", paymentStatusBouncedChequeDto.getPaymentReference());
+        LOG.info("Failure reference {}", paymentStatusBouncedChequeDto.getFailureReference());
         Response bounceChequeResponse = paymentTestService.postBounceCheque(
             SERVICE_TOKEN_PAYMENT,
             paymentStatusBouncedChequeDto);
+        LOG.info("Bounce cheque Payment Reference {}", bounceChequeResponse.getBody());
 
          assertThat(bounceChequeResponse.getBody().prettyPrint()).isEqualTo(
             "Incorrect payment method");
