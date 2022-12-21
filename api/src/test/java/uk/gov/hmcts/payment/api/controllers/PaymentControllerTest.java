@@ -1698,10 +1698,27 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         db.createPayment(payment);
         // Update payment status with valid payment reference
         restActions
-            .patch("/payments/ccd_case_reference/" + ccdCaseNumber)
+            .patch("/payments/ccd_case_reference/"+ccdCaseNumber+"/lag_time/"+String.valueOf(4 * 24))
             .andExpect(status().isNoContent());
         db.deletePayment(payment);
     }
+
+    @Test
+    public void retrievePaymentsWithEmptyList() throws Exception {
+        MvcResult result = restActions
+            .get("/refunds/payments?paymentReferenceList=")
+            .andExpect(status().isNotFound())
+            .andReturn();
+    }
+
+    @Test
+    public void retrievePaymentsWithNoPaymentFound() throws Exception {
+        MvcResult result = restActions
+            .get("/refunds/payments?paymentReferenceList=aaaa,bbb,ccc")
+            .andExpect(status().isNotFound())
+            .andReturn();
+    }
+
 
     private Date parseDate(String date) {
         try {

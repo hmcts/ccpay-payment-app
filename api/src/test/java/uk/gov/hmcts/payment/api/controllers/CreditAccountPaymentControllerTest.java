@@ -5,7 +5,6 @@ import com.google.common.collect.Lists;
 import org.apache.commons.lang.math.RandomUtils;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -43,6 +42,7 @@ import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.model.StatusHistory;
 import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
+import uk.gov.hmcts.payment.api.service.RefundRemissionEnableService;
 import uk.gov.hmcts.payment.api.util.AccountStatus;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
@@ -110,6 +110,8 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     private ObjectMapper objectMapper;
     @MockBean
     private LaunchDarklyFeatureToggler featureToggler;
+    @MockBean
+    private RefundRemissionEnableService refundRemissionEnableService;
 
     protected CustomResultMatcher body() {
         return new CustomResultMatcher(objectMapper);
@@ -719,8 +721,6 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         assertNotNull(paymentDto);
     }
 
-
-    @Ignore
     @Test
     public void givenLiberataCheckOffAndCheckLiberataAccountForAllSericesOnThenAllServicesTriggerLiberataCheck() throws Exception {
 

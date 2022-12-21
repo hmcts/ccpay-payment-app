@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.api.service;
 
+import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
@@ -19,4 +20,5 @@ public interface PaymentGroupService<T, ID> {
     T addNewBulkScanPayment(Payment payment, String PaymentGroupReference);
 
     List<T> search(String ccdCaseNumber);
+
 }

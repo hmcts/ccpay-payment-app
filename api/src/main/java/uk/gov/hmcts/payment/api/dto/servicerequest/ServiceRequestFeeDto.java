@@ -22,13 +22,13 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @Setter
 public class ServiceRequestFeeDto {
 
-    @NotEmpty
+    @NotEmpty(message = "code should not be empty")
     private String code;
 
-    @NotEmpty
+    @NotEmpty(message = "version should not be empty")
     private String version;
 
-    @Positive
+    @Positive(message = "volume should be positive")
     private Integer volume;
 
     @NotNull

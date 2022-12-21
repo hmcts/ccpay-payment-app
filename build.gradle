@@ -175,14 +175,13 @@ def sonarExclusions = [
         '**/v1/**',
         '**/OtpBootstrap.java',
         '**/api/model/**',
-        '**/api/configuration/security/SpringSecurityConfiguration.java',
         '**/referencedata/model/**',
         '**/api/dto/*.java',
         '**/referencedata/dto/*.java',
         '**/api/service/*Service.java',
+        '**/api/servicebus/TopicClientService.java',
         '**/referencedata/service/*Service.java',
         '**/api/service/MockAccountServiceImpl.java',
-        '**/api/service/PaymentServiceImpl.java',
         '**/api/service/MockCcdDataStoreClientServiceImpl.java',
         '**/api/controllers/mock/MockCallbackControllerForTesting.java',
         '**/api/controllers/ServiceRequestController.java',
@@ -194,7 +193,9 @@ def sonarExclusions = [
         '**/api/external/client/dto/**',
         '**/api/external/client/exceptions/**',
         '**/api/jpaaudit/listner/**',
-        '**/api/jpaaudit/model/**'
+        '**/api/jpaaudit/model/**',
+        '**/api/service/PaymentRefundsServiceImpl.java',
+        '**/api/service/RefundRemissionEnableServiceImpl.java'
 ]
 
 sonarqube {
