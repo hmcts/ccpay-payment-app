@@ -244,6 +244,10 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
                 throw new PaymentNotFoundException("No Payment Failure available for the given Failure reference");
             } else {
                 Date pingTwoDate =  DateTime.parse(paymentStatusUpdateSecond.getRepresentmentDate()).withZone(DateTimeZone.UTC).toDate();
+
+                LOG.info("pingTwoDate time{}", pingTwoDate.getTime());
+                LOG.info("representation Date time{}", DateTime.parse(paymentStatusUpdateSecond.getRepresentmentDate()));
+                LOG.info("getFailureEventDateTime time{}", paymentFailure.get().getFailureEventDateTime().getTime());
                 if (pingTwoDate.before(paymentFailure.get().getFailureEventDateTime())){
                     throw new InvalidPaymentFailureRequestException("Representment date can not be prior to failure event date");
                 }
