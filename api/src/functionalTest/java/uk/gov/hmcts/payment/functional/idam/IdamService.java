@@ -67,6 +67,7 @@ public class IdamService {
 
     public ValidUser createUserWithSearchScope(String userGroup, String... roles) {
         String email = nextUserEmail();
+        LOG.info("email in createUserWithSearchScope >> {}",email);
         CreateUserRequest userRequest = userRequest(email, userGroup, roles);
         LOG.info("idamApi : " + idamApi.toString());
         LOG.info("userRequest : " + userRequest);
@@ -155,11 +156,12 @@ public class IdamService {
         String authorisation = username + ":" + password;
         String base64Authorisation = Base64.getEncoder().encodeToString(authorisation.getBytes());
 
-        LOG.info("username : " + username);
-        LOG.info("password : " + password);
+        LOG.info("username in authenticateUserWithSearchScope: " + username);
+        LOG.info("password in authenticateUserWithSearchScope: " + password);
         LOG.info("base64Authorisation : " + base64Authorisation);
         LOG.info("testConfig.getIdamPayBubbleClientID() : " + testConfig.getIdamPayBubbleClientID());
         LOG.info("testConfig.getIdamPayBubbleClientSecret() : " + testConfig.getIdamPayBubbleClientSecret());
+        LOG.info("testConfig.getOauth2().getRedirectUrl() : " + testConfig.getOauth2().getRedirectUrl());
 
         try {
             TokenExchangeResponse tokenExchangeResponse = idamApi.exchangeCode(username,
