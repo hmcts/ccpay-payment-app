@@ -38,7 +38,7 @@ java:
     GOV_PAY_OPERATIONAL_SERVICES: "ccd_gw,api_gw,xui_webapp"
     PCI_PAL_CALLBACK_URL: https://core-api-mgmt-{{ .Values.global.environment }}.azure-api.net/telephony-api/telephony/callback
 
-    TRUSTED_S2S_SERVICE_NAMES: "refunds_api,cmc,cmc_claim_store,probate_frontend,divorce_frontend,ccd_gw,bar_api,api_gw,finrem_payment_service,ccpay_bubble,jui_webapp,xui_webapp,fpl_case_service,civil_service,iac,paymentoutcome_web,adoption_web,prl_cos_api"
+    TRUSTED_S2S_SERVICE_NAMES: "refunds_api,cmc,cmc_claim_store,probate_frontend,divorce_frontend,ccd_gw,bar_api,api_gw,finrem_payment_service,ccpay_bubble,jui_webapp,xui_webapp,fpl_case_service,civil_service,iac,paymentoutcome_web,adoption_web,prl_cos_api,notifications_service"
     CARD_PAYMENTS_REPORT_SCHEDULER_ENABLED: "true"
     CARD_PAYMENTS_EMAIL_FROM: "no-reply@mail-payment-nonprod.platform.hmcts.net"
     CARD_PAYMENTS_EMAIL_MESSAGE: "Hi, <br/><br/>Please find attached Payment by Account reconciliation report. <br/><br/>Regards, <br/>Fees & Payments Team <br/><br/>"
@@ -75,6 +75,10 @@ java:
     PBA_CIVIL_PAYMENTS_EMAIL_FROM: "no-reply@mail-payment-nonprod.platform.hmcts.net"
     PBA_CIVIL_PAYMENTS_EMAIL_MESSAGE: "Hi, <br/><br/>Please find attached Payment by Account reconciliation report. <br/><br/>Regards, <br/>Fees & Payments Team <br/><br/>"
     PBA_CIVIL_PAYMENTS_EMAIL_SUBJECT: "CNP:PBA Civil Damages Reconciliation Report"
+    PBA_IAC_PAYMENTS_REPORT_SCHEDULER_ENABLED: "true"
+    PBA_IAC_PAYMENTS_EMAIL_FROM: "no-reply@mail-payment-nonprod.platform.hmcts.net"
+    PBA_IAC_PAYMENTS_EMAIL_MESSAGE: "Hi, <br/><br/>Please find attached Payment by Account reconciliation report. <br/><br/>Regards, <br/>Fees & Payments Team <br/><br/>"
+    PBA_IAC_PAYMENTS_EMAIL_SUBJECT: "CNP:PBA IAC Damages Reconciliation Report"
     SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: true
     SPRING_MAIL_PROPERTIES_MAIL_SMTP_SSL_TRUST: "smtp.sendgrid.net"
     SPRING_MAIL_PORT: "587"
@@ -136,6 +140,7 @@ java:
         - pba-fpl-payments-email-to
         - pba-civil-payments-email-to
         - pba-prl-payments-email-to
+        - pba-iac-payments-email-to
         - launch-darkly-sdk-key
         - payment-s2s-secret
         - pci-pal-account-id-finrem

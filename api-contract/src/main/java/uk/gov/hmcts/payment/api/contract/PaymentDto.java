@@ -105,6 +105,8 @@ public class PaymentDto {
 
     private String internalReference;
 
+    private List<DisputeDto> disputes;
+
     private BigDecimal overPayment;
 
     @JsonProperty("_links")
@@ -206,6 +208,7 @@ public class PaymentDto {
     public String toPaymentCsv() {
         return toCreditAccountPaymentCsv();
     }
+
 
     @Override
     public String toString() {

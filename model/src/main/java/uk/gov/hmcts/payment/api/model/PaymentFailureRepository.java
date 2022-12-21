@@ -23,4 +23,7 @@ public interface PaymentFailureRepository extends CrudRepository<PaymentFailures
 
     @Query("select pf from PaymentFailures pf where  (representmentSuccess IS NULL or representmentSuccess ='No') and paymentReference IN(?1)")
     Optional<List<PaymentFailures>> findFailedPayments(List<String> paymentReference);
+
+    Optional<List<PaymentFailures>> findByPaymentReferenceIn(List<String> paymentReference);
+
 }

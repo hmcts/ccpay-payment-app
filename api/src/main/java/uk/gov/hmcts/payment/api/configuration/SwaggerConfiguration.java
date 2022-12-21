@@ -33,21 +33,24 @@ import static org.apache.commons.lang3.StringUtils.splitByCharacterTypeCamelCase
 @EnableSwagger2
 public class SwaggerConfiguration {
 
+    private static final String HEADER = "header";
+    private static final String STRING = "string";
+
     private List<Parameter> getGlobalOperationParameters() {
         return Arrays.asList(
             new ParameterBuilder()
                 .name("Authorization")
                 .description("User authorization header")
                 .required(true)
-                .parameterType("header")
-                .modelRef(new ModelRef("string"))
+                .parameterType(HEADER)
+                .modelRef(new ModelRef(STRING))
                 .build(),
             new ParameterBuilder()
                 .name("ServiceAuthorization")
                 .description("Service authorization header")
                 .required(true)
-                .parameterType("header")
-                .modelRef(new ModelRef("string"))
+                .parameterType(HEADER)
+                .modelRef(new ModelRef(STRING))
                 .build());
     }
 
@@ -65,7 +68,7 @@ public class SwaggerConfiguration {
     }
 
     @Bean
-    public Docket Payment2Api() {
+    public Docket payment2Api() {
         return new Docket(DocumentationType.SWAGGER_2)
             .groupName("payment2")
             .globalOperationParameters(getGlobalOperationParameters())
@@ -98,8 +101,8 @@ public class SwaggerConfiguration {
                     .name("ServiceAuthorization")
                     .description("Service authorization header")
                     .required(true)
-                    .parameterType("header")
-                    .modelRef(new ModelRef("string"))
+                    .parameterType(HEADER)
+                    .modelRef(new ModelRef(STRING))
                     .build())
             )
             .useDefaultResponseMessages(false)

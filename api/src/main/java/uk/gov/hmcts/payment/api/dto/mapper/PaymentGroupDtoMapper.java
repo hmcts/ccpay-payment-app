@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.api.dto.mapper;
 
 import com.google.common.collect.Streams;
+import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.fees2.register.api.contract.FeeVersionDto;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
+import uk.gov.hmcts.payment.api.contract.DisputeDto;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentAllocationDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
@@ -24,6 +26,7 @@ import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentFeeRepository;
 import uk.gov.hmcts.payment.api.model.Remission;
+import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.reports.FeesService;
 import uk.gov.hmcts.payment.api.service.RefundRemissionEnableService;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
@@ -31,8 +34,10 @@ import uk.gov.hmcts.payment.api.util.ServiceRequestUtil;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
@@ -55,6 +60,14 @@ public class PaymentGroupDtoMapper {
     private FeePayApportionRepository feePayApportionRepository;
 
 
+    @Autowired
+   private  PaymentFailureRepository paymentFailureRepository;
+
+    private static final int FIRSTPING = 1;
+    private static final int SECONDPING = 2;
+
+    Optional<List<PaymentFailures>> paymentFailuresList;
+
     public PaymentGroupDto toPaymentGroupDto(PaymentFeeLink paymentFeeLink) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         boolean containsPaymentRole = false;
@@ -69,7 +82,9 @@ public class PaymentGroupDtoMapper {
             }
         }
 
+        List<String> paymentReference = paymentFeeLink.getPayments().stream().map(Payment::getReference).collect(Collectors.toList());
 
+        paymentFailuresList = paymentFailureRepository.findByPaymentReferenceIn(paymentReference);
         PaymentGroupDto paymentGroupDto;
 
         paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
@@ -80,6 +95,20 @@ public class PaymentGroupDtoMapper {
             .payments((!(paymentFeeLink.getPayments() == null) && !paymentFeeLink.getPayments().isEmpty()) ? toPaymentDtos(paymentFeeLink.getPayments()) : null)
             .remissions(!(paymentFeeLink.getRemissions() == null) ? toRemissionDtos(paymentFeeLink.getRemissions()) : null)
             .build();
+
+        if (null != paymentGroupDto.getPayments()) {
+            for (PaymentDto paymentDto : paymentGroupDto.getPayments()) {
+                for (DisputeDto disputeDTO : paymentDto.getDisputes()) {
+
+                    if (disputeDTO.isDispute() && disputeDTO.getPingNumber() == FIRSTPING) {
+
+                        paymentGroupDto.setAnyPaymentDisputed(true);
+                        break;
+                    }
+                }
+
+            }
+        }
 
         String serviceRequestStatus = serviceRequestUtil.getServiceRequestStatus(paymentGroupDto);
 
@@ -126,6 +155,7 @@ public class PaymentGroupDtoMapper {
             .refundEnable(payment.getDateUpdated() != null ? toRefundEligible(payment):false)
             .paymentAllocation(payment.getPaymentAllocation() !=null ? toPaymentAllocationDtos(payment.getPaymentAllocation()) : null)
             .overPayment(setOverpaymentObj(payment.getId()))
+            .disputes(evaluatePaymentDispute(payment))
             .build();
     }
 
@@ -144,9 +174,7 @@ public class PaymentGroupDtoMapper {
             }
         }
         return overpayment.get();
-        }
-
-
+    }
 
     private List<RemissionDto> toRemissionDtos(List<Remission> remissions) {
         return remissions.stream().map(r -> toRemissionDto(r)).collect(Collectors.toList());
@@ -239,7 +267,7 @@ public class PaymentGroupDtoMapper {
     }
 
     private BigDecimal setOverpayment(PaymentFee fee){
-         BigDecimal overpayment =  BigDecimal.ZERO;
+        BigDecimal overpayment =  BigDecimal.ZERO;
         Optional<List<FeePayApportion>> feepayapplist = feePayApportionRepository.findByFeeId(fee.getId());
 
         if(feepayapplist.isPresent() && !feepayapplist.get().isEmpty()) {
@@ -256,4 +284,47 @@ public class PaymentGroupDtoMapper {
         }
         return overpayment;
     }
+
+    private List<DisputeDto> evaluatePaymentDispute(Payment payment) {
+
+        List<DisputeDto> disputeDTOs = new ArrayList<>();
+
+        if (paymentFailuresList.isPresent()) {
+            for (PaymentFailures paymentFailure: paymentFailuresList.get()) {
+                if (paymentFailure.getPaymentReference().equals(payment.getReference())) {
+                    DisputeDto disputeDTO = new DisputeDto();
+                    if (paymentFailure.getRepresentmentSuccess() == null) {
+                        disputeDTO.setDispute(true);
+                        disputeDTO.setPingNumber(FIRSTPING);
+                    } else if (paymentFailure.getRepresentmentSuccess().equalsIgnoreCase("Yes")) {
+                        disputeDTO.setDispute(false);
+                        disputeDTO.setPingNumber(SECONDPING);
+                    } else {
+                        disputeDTO.setDispute(true);
+                        disputeDTO.setPingNumber(SECONDPING);
+                    }
+                    disputeDTO.setAmount(paymentFailure.getAmount());
+                    disputeDTO.setDcn(paymentFailure.getDcn());
+                    disputeDTO.setCcdCaseNumber(paymentFailure.getCcdCaseNumber());
+                    disputeDTO.setPaymentReference(paymentFailure.getPaymentReference());
+                    disputeDTO.setFailureEventDateTime(paymentFailure.getFailureEventDateTime());
+                    disputeDTO.setFailureReference(paymentFailure.getFailureReference());
+                    disputeDTO.setFailureType(paymentFailure.getFailureType());
+                    disputeDTO.setHasAmountDebited(paymentFailure.getHasAmountDebited());
+                    disputeDTO.setReason(paymentFailure.getReason());
+                    disputeDTO.setRepresentmentOutcomeDate(paymentFailure.getRepresentmentOutcomeDate());
+                    disputeDTO.setRepresentmentSuccess(paymentFailure.getRepresentmentSuccess());
+                    disputeDTOs.add(disputeDTO);
+                }
+            }
+        } else {
+            DisputeDto disputeDTO = new DisputeDto();
+            disputeDTO.setDispute(false);
+            disputeDTO.setPingNumber(0);
+            disputeDTOs.add(disputeDTO);
+        }
+
+        return disputeDTOs;
+    }
+
 }

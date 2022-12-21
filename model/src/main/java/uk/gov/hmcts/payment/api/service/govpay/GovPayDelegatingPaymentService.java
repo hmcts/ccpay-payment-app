@@ -63,10 +63,12 @@ public class GovPayDelegatingPaymentService implements DelegatingPaymentService<
 
     @Override
     public void cancel(Payment payment, String ccdCaseNumber) {
+        // Do nothing
     }
 
     @Override
     public void cancel(Payment payment, String ccdCaseNumber, String serviceName) {
+        // Do nothing
     }
 
     @Override

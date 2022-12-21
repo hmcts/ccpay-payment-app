@@ -28,6 +28,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.Assert.assertEquals;
@@ -110,7 +111,7 @@ public class PciPalCallbackTest {
         final String[] reference = new String[1];
         // create card payment
 
-        String ccdCaseNumber = "1111567890123456";
+        String ccdCaseNumber = "198765432101" + String.format("%04d", new Random().nextInt(10000));
 
         List<FeeDto> fees = new ArrayList<>();
         fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
@@ -214,7 +215,7 @@ public class PciPalCallbackTest {
         final String[] reference = new String[1];
         // create card payment
 
-        String ccdCaseNumber = "1234567890623456";
+        String ccdCaseNumber = "198765432101" + String.format("%04d", new Random().nextInt(10000));
 
         List<FeeDto> fees = new ArrayList<>();
         fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))

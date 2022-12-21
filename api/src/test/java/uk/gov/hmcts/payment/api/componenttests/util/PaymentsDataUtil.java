@@ -647,7 +647,7 @@ public class PaymentsDataUtil {
 
     }
 
-    public Payment populateTelephonyPaymentToDb(String reference, boolean withServiceCallbackURL) throws Exception {
+    public Payment populateTelephonyPaymentToDb(String reference, boolean withServiceCallbackURL) {
         //Create a payment in remissionDbBackdoor
         Payment payment = Payment.paymentWith()
             .amount(new BigDecimal("101.99"))
