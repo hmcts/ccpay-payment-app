@@ -4,6 +4,7 @@ import java.math.BigInteger;
 import java.time.temporal.ChronoUnit;
 
 import org.apache.commons.lang3.EnumUtils;
+import org.apache.poi.hpsf.Decimal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -90,7 +91,6 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
         Payment payment = paymentRepository.findByReference(paymentRefundRequest.getPaymentReference()).orElseThrow(PaymentNotFoundException::new);
 
-
         validateRefund(paymentRefundRequest,payment.getPaymentLink().getFees(), payment);
 
         validateThePaymentBeforeInitiatingRefund(payment,headers);
@@ -112,7 +112,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         RefundResponse refundResponse = RefundResponse.RefundResponseWith()
             .refundAmount(paymentRefundRequest.getTotalRefundAmount())
             .refundReference(postToRefundService(refundRequest, headers)).build();
-
+        LOG.info("After return from Refunds service in createRefund PaymentRefundsServiceImpl");
         return new ResponseEntity<>(refundResponse, HttpStatus.CREATED);
 
     }
@@ -397,6 +397,18 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         if(paymentRefundRequest.getTotalRefundAmount().compareTo(BigDecimal.valueOf(0))==0)
             throw new InvalidPartialRefundRequestException("You need to enter a refund amount");
 
+        BigDecimal totalRefundAmount = calculateRefundAmount(paymentRefundRequest, payment.getPaymentLink().getFees());
+
+        if(totalRefundAmount.compareTo(paymentRefundRequest.getTotalRefundAmount()) != 0){
+
+            throw new InvalidPartialRefundRequestException("Invalid request");
+        }
+
+        if(totalRefundAmount.compareTo(payment.getAmount())>0){
+
+            throw new InvalidPartialRefundRequestException("The amount to refund can not be more than £" + payment.getAmount());
+        }
+
         for(PaymentFee paymentFee : paymentFeeList){
             for (RefundsFeeDto feeDto : paymentRefundRequest.getFees()) {
 
@@ -430,6 +442,24 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         }
     }
 
+    private BigDecimal calculateRefundAmount(PaymentRefundRequest paymentRefundRequest, List<PaymentFee> paymentFeeList) {
+
+        if(paymentRefundRequest.getTotalRefundAmount().compareTo(BigDecimal.valueOf(0))==0)
+            throw new InvalidPartialRefundRequestException("You need to enter a refund amount");
+
+        BigDecimal totalRefundAmount = BigDecimal.ZERO;
+        for(PaymentFee paymentFee : paymentFeeList) {
+            for (RefundsFeeDto feeDto : paymentRefundRequest.getFees()) {
+
+                if (feeDto.getId().intValue() == paymentFee.getId().intValue()){
+
+                    totalRefundAmount = feeDto.getRefundAmount().add(totalRefundAmount);
+                }
+            }
+        }
+
+       return totalRefundAmount;
+    }
 
     public boolean isContainsPaymentsRefundRole (){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
