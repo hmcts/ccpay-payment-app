@@ -67,6 +67,7 @@ public class PaymentDtoTest {
     private Boolean refundEnable;
     private Boolean remissionEnable;
     private String internalReference;
+    private List<DisputeDto> disputeDto;
 
     public PaymentDtoTest() {
         feeWithVolumeCode = "X0001";
@@ -132,7 +133,6 @@ public class PaymentDtoTest {
         payerName = "test";
         refundEnable = true;
         remissionEnable=true;
-
     }
 
     @Test
@@ -436,4 +436,5 @@ public class PaymentDtoTest {
 
         assertThat(testDto.toPaymentCsv()).isEqualTo(joiner.toString());
     }
+
 }

@@ -11,6 +11,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Answers;
+import org.mockito.internal.matchers.Any;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -43,6 +44,8 @@ import uk.gov.hmcts.payment.api.model.PaymentMethod;
 import uk.gov.hmcts.payment.api.model.PaymentProvider;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.model.StatusHistory;
+import uk.gov.hmcts.payment.api.external.client.dto.Error;
+import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.reports.FeesService;
 import uk.gov.hmcts.payment.api.service.PaymentRefundsService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataServiceImpl;
@@ -55,10 +58,7 @@ import uk.gov.hmcts.payment.referencedata.service.SiteService;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
@@ -158,6 +158,9 @@ public class CaseControllerTest extends PaymentsDataUtil {
     private ObjectMapper objectMapper;
     @MockBean
     private ServiceRequestDomainService orderDomainService;
+
+    @MockBean
+    private PaymentFailureRepository paymentFailureRepository;
 
     @Before
     public void setup() {
@@ -724,6 +727,65 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .andReturn();
     }
 
+    @Test
+    public void returnDisputedWhenPaymentHaveDispoutePingOneWhenPaymentSuccess() throws Exception {
+
+        populateCardPaymentToDb("1");
+       List<String> paymentRef = new ArrayList<>();
+        paymentRef.add("RC-1519-9028-2432-0001");
+       when(paymentFailureRepository.findByPaymentReferenceIn(paymentRef)).thenReturn(Optional.of(getPaymentFailuresList()));
+        MvcResult result = restActions
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
+            .get("/cases/ccdCaseNumber1/paymentgroups")
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentGroupResponse paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentGroupResponse>(){});
+
+        assertThat(paymentGroups.getPaymentGroups().get(0).getServiceRequestStatus()).isEqualTo("Disputed");
+
+    }
+
+    @Test
+    public void returnDisputedWhenPaymentHaveDispoutePingOneWhenPaymentPartialSuccess() throws Exception {
+
+        populateCardPaymentToDbWithPartiallyPaidPayment("1");
+        List<String> paymentRef = new ArrayList<>();
+        paymentRef.add("RC-1519-9028-2432-0001");
+        when(paymentFailureRepository.findByPaymentReferenceIn(paymentRef)).thenReturn(Optional.of(getPaymentFailuresList()));
+        MvcResult result = restActions
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
+            .get("/cases/ccdCaseNumber1/paymentgroups")
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentGroupResponse paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentGroupResponse>(){});
+
+        assertThat(paymentGroups.getPaymentGroups().get(0).getServiceRequestStatus()).isEqualTo("Disputed");
+
+    }
+
+
+    private List<PaymentFailures> getPaymentFailuresList(){
+
+        List<PaymentFailures> paymentFailuresList = new ArrayList<>();
+        PaymentFailures paymentFailures = PaymentFailures.paymentFailuresWith()
+            .id(1)
+            .reason("test")
+            .failureReference("Bounce Cheque")
+            .paymentReference("RC-1519-9028-2432-0001")
+            .ccdCaseNumber("123456")
+            .amount(BigDecimal.valueOf(99))
+            .failureType("Chargeback")
+            .additionalReference("AR12345")
+            .build();
+
+        paymentFailuresList.add(paymentFailures);
+        return paymentFailuresList;
+
+    }
     private FeePayApportion getFeePayApportion() {
         return FeePayApportion.feePayApportionWith()
             .apportionAmount(new BigDecimal("99.99"))

@@ -19,20 +19,19 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.payment.api.contract.exception.ValidationErrorDTO;
-import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.dto.PaymentStatus;
+import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentFailureReportMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentStatusDtoMapper;
 import uk.gov.hmcts.payment.api.exception.FailureReferenceNotFoundException;
+import uk.gov.hmcts.payment.api.exception.InvalidPaymentFailureRequestException;
 import uk.gov.hmcts.payment.api.exception.InvalidRefundRequestException;
 import uk.gov.hmcts.payment.api.exception.ValidationErrorException;
-import uk.gov.hmcts.payment.api.exception.InvalidPaymentFailureRequestException;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.math.BigDecimal;
-import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -42,6 +41,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
     private static final Logger LOG = LoggerFactory.getLogger(PaymentStatusUpdateServiceImpl.class);
     private static final String TOO_MANY_RQUESTS_EXCEPTION_MSG = "Request already received for this failure reference";
     private static final String PAYMENT_METHOD = "cheque";
+    private static final String FAILURE_AMOUNT_VALIDATION = "Failure amount is more than the possible amount";
 
     @Autowired
     PaymentStatusDtoMapper paymentStatusDtoMapper;
@@ -89,7 +89,8 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
             throw new PaymentNotFoundException("No Payments available for the given Payment reference");
         }
 
-        validatePaymentFailureAmount(paymentStatusBouncedChequeDto.getAmount(),payment.get());
+        validateBounceChequeRequest(paymentStatusBouncedChequeDto, payment.get());
+        validatePingOneDate(paymentStatusBouncedChequeDto.getEventDateTime(), payment.get().getDateUpdated());
 
         PaymentFailures paymentFailuresMap = paymentStatusDtoMapper.bounceChequeRequestMapper(paymentStatusBouncedChequeDto);
         try{
@@ -151,7 +152,8 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
             throw new PaymentNotFoundException("No Payments available for the given Payment reference");
         }
 
-        validatePaymentFailureAmount(paymentStatusChargebackDto.getAmount(),payment.get());
+        validatePaymentFailureAmount(paymentStatusChargebackDto,payment.get());
+        validatePingOneDate(paymentStatusChargebackDto.getEventDateTime(), payment.get().getDateUpdated());
         PaymentFailures paymentFailuresMap = paymentStatusDtoMapper.ChargebackRequestMapper(paymentStatusChargebackDto);
 
         try{
@@ -183,9 +185,49 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         }
     }
 
-    private void validatePaymentFailureAmount(BigDecimal disputeAmount, Payment payment){
-        if(disputeAmount.compareTo(payment.getAmount()) > 0){
-            throw new InvalidPaymentFailureRequestException("Failure amount cannot be more than payment amount");
+    private void validatePaymentFailureAmount(PaymentStatusChargebackDto paymentStatusChargebackDto, Payment payment){
+
+        if (paymentStatusChargebackDto.getAmount().compareTo(payment.getAmount()) > 0) {
+            throw new InvalidPaymentFailureRequestException(FAILURE_AMOUNT_VALIDATION);
+        }
+
+        Optional < List < PaymentFailures >> paymentFailuresList = paymentFailureRepository.findByPaymentReference(paymentStatusChargebackDto.getPaymentReference());
+
+        BigDecimal totalDisputeAmount = BigDecimal.ZERO;
+
+        if (paymentFailuresList.isPresent()) {
+
+            for (PaymentFailures paymentFailure: paymentFailuresList.get()) {
+
+                totalDisputeAmount = paymentFailure.getAmount().add(totalDisputeAmount);
+            }
+
+            totalDisputeAmount = paymentStatusChargebackDto.getAmount().add(totalDisputeAmount);
+        }
+
+        if (totalDisputeAmount.compareTo(payment.getAmount()) > 0) {
+            throw new InvalidPaymentFailureRequestException(FAILURE_AMOUNT_VALIDATION);
+        }
+    }
+
+    private void validateBounceChequeRequest(PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto, Payment payment){
+
+        if (!(payment.getPaymentMethod().getName().equals(PAYMENT_METHOD))){
+            throw new InvalidPaymentFailureRequestException("Incorrect payment method");
+        }
+
+        int amountCompare = paymentStatusBouncedChequeDto.getAmount().compareTo(payment.getAmount());
+
+        if (amountCompare != 0) {
+            throw new InvalidPaymentFailureRequestException("Dispute amount can not be less than payment amount");
+        }
+    }
+
+    private void validatePingOneDate(String pingOneDateStr, Date paymentDate){
+
+       Date pingOneDate =  DateTime.parse(pingOneDateStr).withZone(DateTimeZone.UTC).toDate();
+        if (pingOneDate.before(paymentDate)){
+            throw new InvalidPaymentFailureRequestException("Failure event date can not be prior to payment date");
         }
     }
 
@@ -201,6 +243,18 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
             if (!paymentFailure.isPresent()) {
                 throw new PaymentNotFoundException("No Payment Failure available for the given Failure reference");
             } else {
+                Date pingTwoDate =  DateTime.parse(paymentStatusUpdateSecond.getRepresentmentDate()).withZone(DateTimeZone.UTC).toDate();
+
+                LOG.info("pingTwoDate time{}", pingTwoDate.getTime());
+                LOG.info("representation Date time{}", DateTime.parse(paymentStatusUpdateSecond.getRepresentmentDate()));
+                LOG.info("getFailureEventDateTime time{}", paymentFailure.get().getFailureEventDateTime().getTime());
+                if (pingTwoDate.before(paymentFailure.get().getFailureEventDateTime())){
+                    throw new InvalidPaymentFailureRequestException("Representment date can not be prior to failure event date");
+                }
+                if (paymentStatusUpdateSecond.getRepresentmentStatus().equals(RepresentmentStatus.Yes)
+                    && paymentFailure.get().getFailureType().equals("Chargeback")) {
+                    paymentFailure.get().setHasAmountDebited("No");
+                }
                 paymentFailure.get()
                         .setRepresentmentSuccess(paymentStatusUpdateSecond.getRepresentmentStatus().getStatus());
                 paymentFailure.get()
@@ -311,7 +365,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
     public PaymentFailures unprocessedPayment(UnprocessedPayment unprocessedPayment,
                                               MultiValueMap<String, String> headers) {
 
-        if (!validateDcn(unprocessedPayment.getDcn(), unprocessedPayment.getAmount(), headers)) {
+        if (!validateDcn(unprocessedPayment, headers)) {
             throw new PaymentNotFoundException("No Payments available for the given document reference number");
         }
 
@@ -325,7 +379,10 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         }
     }
 
-    private boolean validateDcn(String dcn, BigDecimal amount, MultiValueMap<String, String> headers) {
+    private boolean validateDcn(UnprocessedPayment unprocessedPayment, MultiValueMap<String, String> headers) {
+        String dcn = unprocessedPayment.getDcn();
+        BigDecimal amount = unprocessedPayment.getAmount();
+
         String bsURL = bulkScanPaymentsProcessedUrl + casesPath + "/{document_control_number}?internalFlag=true";
         Map<String, String> params = new HashMap<>();
         params.put("document_control_number", dcn);
@@ -351,17 +408,26 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         } else {
             SearchResponse searchResponse = responseEntity.getBody();
             LOG.info("Search Response from Bulk Scanning app: {}", searchResponse);
-            if (null != searchResponse && PaymentStatus.COMPLETE.equals(searchResponse.getAllPaymentsStatus())) {
-                for (PaymentMetadataDto paymentMetadataDto : searchResponse.getPayments()) {
-                    LOG.info("dcn comparison: {}", dcn.equals(paymentMetadataDto.getDcnReference()));
-                    LOG.info("amount comparison: {}", amount.compareTo(paymentMetadataDto.getAmount()));
-                    if (dcn.equals(paymentMetadataDto.getDcnReference()) && amount.compareTo(paymentMetadataDto.getAmount()) > 0) {
-                        throw new InvalidPaymentFailureRequestException("Failure amount cannot be more than payment amount");
-                    }
+            validateUnprocessedPayment(searchResponse, unprocessedPayment, dcn, amount);
+        }
+        return true;
+    }
+
+    private void validateUnprocessedPayment(SearchResponse searchResponse,UnprocessedPayment unprocessedPayment, String dcn, BigDecimal amount){
+
+        if (null != searchResponse && PaymentStatus.COMPLETE.equals(searchResponse.getAllPaymentsStatus())) {
+            for (PaymentMetadataDto paymentMetadataDto : searchResponse.getPayments()) {
+                LOG.info("dcn comparison: {}", dcn.equals(paymentMetadataDto.getDcnReference()));
+                LOG.info("amount comparison: {}", amount.compareTo(paymentMetadataDto.getAmount()));
+                if (dcn.equals(paymentMetadataDto.getDcnReference()) && amount.compareTo(paymentMetadataDto.getAmount()) > 0) {
+                    throw new InvalidPaymentFailureRequestException("Failure amount cannot be more than payment amount");
+                }
+                if(dcn.equals(paymentMetadataDto.getDcnReference())) {
+                    validatePingOneDate(unprocessedPayment.getEventDateTime(), paymentMetadataDto.getDateUpdated());
                 }
             }
         }
-        return true;
+
     }
 
     @Transactional
@@ -374,8 +440,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
 
         List<String> paymentFailuresListWithNoDcn = paymentFailuresListWithNoRC.stream().map(PaymentFailures::getDcn).collect(Collectors.toList());
 
-        List<Payment> paymentList = paymentRepository.findByDocumentControlNumberInAndPaymentMethod(paymentFailuresListWithNoDcn, PaymentMethod
-                .paymentMethodWith().name(PAYMENT_METHOD).build());
+        List<Payment> paymentList = paymentRepository.findByDocumentControlNumberInAndPaymentMethod(paymentFailuresListWithNoDcn, PaymentMethod.paymentMethodWith().name(PAYMENT_METHOD).build());
 
         if(paymentList != null){
             paymentFailuresListWithNoRC.forEach(paymentFailure -> {

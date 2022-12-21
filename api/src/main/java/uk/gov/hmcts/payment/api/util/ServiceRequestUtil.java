@@ -1,10 +1,15 @@
 package uk.gov.hmcts.payment.api.util;
 
+import uk.gov.hmcts.payment.api.contract.DisputeDto;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class ServiceRequestUtil {
+
+    private static final String DISPUTED = "Disputed";
 
     public String getServiceRequestStatus(PaymentGroupDto paymentGroupDto){
         //Calculate the fee total in a payment group
@@ -19,15 +24,16 @@ public class ServiceRequestUtil {
         //Calculate the pending amount for a payment group
         BigDecimal orderPendingTotal = (orderFeeTotal.subtract(orderRemissionTotal)).subtract(orderPaymentTotal);
 
-        if(orderPendingTotal.compareTo(BigDecimal.ZERO) <= 0 && orderPaymentTotal.compareTo(BigDecimal.ZERO) > 0){
-            return "Paid";
-        }
-        else if(orderFeeTotal.compareTo(BigDecimal.ZERO) > 0 && (orderPaymentTotal.compareTo(BigDecimal.ZERO) > 0
+        if (paymentGroupDto.isAnyPaymentDisputed()) {
+                return DISPUTED;
+        } else if(orderPendingTotal.compareTo(BigDecimal.ZERO) <= 0 && orderPaymentTotal.compareTo(BigDecimal.ZERO) >= 0) {
+                return "Paid";
+        } else if(orderFeeTotal.compareTo(BigDecimal.ZERO) > 0 && (orderPaymentTotal.compareTo(BigDecimal.ZERO) > 0
             || orderRemissionTotal.compareTo(BigDecimal.ZERO) > 0) && orderPendingTotal.compareTo(BigDecimal.ZERO) > 0){
-            return "Partially paid";
-        }
+                return "Partially paid";
+            }
         else{
-            return "Not paid";
+                return "Not paid";
         }
     }
 
@@ -65,7 +71,14 @@ public class ServiceRequestUtil {
         if(paymentGroupDto.getPayments() != null) {
             for (int i = 0; i < paymentGroupDto.getPayments().size(); i++) {
                 if (paymentGroupDto.getPayments().get(i).getStatus().equals("Success") && paymentGroupDto.getPayments().get(i).getAmount() != null) {
-                    orderPaymentTotal = orderPaymentTotal.add(paymentGroupDto.getPayments().get(i).getAmount());
+                 List<DisputeDto> disputeDTO =  paymentGroupDto.getPayments().get(i).getDisputes().stream().filter(DisputeDto::isDispute).collect(Collectors.toList());
+               BigDecimal totalDispute = BigDecimal.ZERO;
+                 for(DisputeDto disputeDto1 :disputeDTO) {
+
+                     totalDispute = totalDispute.add(disputeDto1.getAmount());
+                 }
+
+                    orderPaymentTotal = orderPaymentTotal.add(paymentGroupDto.getPayments().get(i).getAmount().subtract(totalDispute));
                 }
             }
         }
