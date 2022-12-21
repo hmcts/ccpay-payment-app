@@ -78,7 +78,7 @@ public class IdamService {
         }
 
         String accessToken = authenticateUserWithSearchScope(email, testConfig.getTestUserPassword());
-
+        LOG.info("accessToken in createUserWithSearchScope >>  ",accessToken);
         return new ValidUser(email, accessToken);
     }
 
