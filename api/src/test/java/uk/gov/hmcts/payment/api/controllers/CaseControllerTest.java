@@ -733,7 +733,10 @@ public class CaseControllerTest extends PaymentsDataUtil {
         populateCardPaymentToDb("1");
        List<String> paymentRef = new ArrayList<>();
         paymentRef.add("RC-1519-9028-2432-0001");
+        PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
+            .serviceRequestStatus("Disputed").build();
        when(paymentFailureRepository.findByPaymentReferenceIn(paymentRef)).thenReturn(Optional.of(getPaymentFailuresList()));
+        commonMock(paymentGroupDto, 1);
         MvcResult result = restActions
             .withAuthorizedUser(USER_ID)
             .withUserId(USER_ID)
@@ -753,7 +756,10 @@ public class CaseControllerTest extends PaymentsDataUtil {
         populateCardPaymentToDbWithPartiallyPaidPayment("1");
         List<String> paymentRef = new ArrayList<>();
         paymentRef.add("RC-1519-9028-2432-0001");
+        PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
+            .serviceRequestStatus("Disputed").build();
         when(paymentFailureRepository.findByPaymentReferenceIn(paymentRef)).thenReturn(Optional.of(getPaymentFailuresList()));
+        commonMock(paymentGroupDto, 1);
         MvcResult result = restActions
             .withAuthorizedUser(USER_ID)
             .withUserId(USER_ID)
