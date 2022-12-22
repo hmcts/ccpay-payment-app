@@ -305,6 +305,7 @@ public class PaymentFixture {
                     .calculatedAmount(new BigDecimal(amountString))
                     .code("FEE0001")
                     .version("1")
+                    .feeAmount(new BigDecimal(amountString))
                     .build())
             )
             .build();
