@@ -103,7 +103,11 @@ public class PaymentStatusFunctionalTest {
         if (!TOKENS_INITIALIZED) {
             USER_TOKEN = idamService.createUserWith(CMC_CASE_WORKER_GROUP, "caseworker-cmc-solicitor")
                 .getAuthorisationToken();
+            System.out.println("USER_TOKEN in Payment_app >> "+ USER_TOKEN);
+            System.out.println("testProps.s2sServiceName in Payment_app >> "+ testProps.s2sServiceName);
+            System.out.println("testProps.s2sServiceSecret in Payment_app >> "+ testProps.s2sServiceSecret);
             SERVICE_TOKEN = s2sTokenService.getS2sToken(testProps.s2sServiceName, testProps.s2sServiceSecret);
+            System.out.println("SERVICE_TOKEN in Payment_app >> "+ SERVICE_TOKEN);
             USER_TOKEN_PAYMENT = idamService.createUserWith(CMC_CITIZEN_GROUP, "payments").getAuthorisationToken();
             USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE =
                 idamService.createUserWithSearchScope(CMC_CASE_WORKER_GROUP, "payments-refund")
