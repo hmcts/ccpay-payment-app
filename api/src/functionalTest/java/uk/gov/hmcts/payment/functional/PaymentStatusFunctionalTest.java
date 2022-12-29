@@ -113,6 +113,7 @@ public class PaymentStatusFunctionalTest {
                 idamService.createUserWithSearchScope(CMC_CASE_WORKER_GROUP, "payments-refund")
                     .getAuthorisationToken();
             SERVICE_TOKEN_PAYMENT = s2sTokenService.getS2sToken("ccpay_bubble", testProps.payBubbleS2SSecret);
+            System.out.println("SERVICE_TOKEN_PAYMENT >> "+SERVICE_TOKEN_PAYMENT);
             TOKENS_INITIALIZED = true;
 
             USER_TOKEN_CARD_PAYMENT = idamService.createUserWith(CMC_CITIZEN_GROUP, "citizen").getAuthorisationToken();
