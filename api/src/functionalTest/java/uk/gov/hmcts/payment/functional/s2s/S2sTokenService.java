@@ -26,6 +26,8 @@ public class S2sTokenService {
     public String getS2sToken(String microservice, String secret) {
         String otp = oneTimePasswordFactory.validOneTimePassword(secret);
         System.out.println("otp >> "+otp);
+        System.out.println("microservice >> "+microservice);
+        System.out.println("secret >> "+secret);
         System.out.println("testProps.getS2sBaseUrl() >> "+testProps.getS2sBaseUrl());
         String s2sToken = s2sApi.serviceToken(microservice, otp);
         System.out.println("s2sToken >> "+s2sToken);
