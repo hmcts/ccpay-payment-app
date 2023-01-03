@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.functional;
 
 import io.restassured.response.Response;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
+import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -336,14 +337,14 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         String paymentReference = paymentsResponse.getPaymentReference();
         Integer paymentId = paymentsResponse.getFees().get(1).getId();
         PaymentRefundRequest paymentRefundRequest
-            = PaymentFixture.aRefundRequest(paymentId, "RR001", paymentReference, "640.00", "640");
+            = PaymentFixture.aRefundRequest(paymentId, "RR001", paymentReference, "90", "90");
         Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentRefundRequest);
 
         assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
         RefundResponse refundResponseFromPost = refundResponse.getBody().as(RefundResponse.class);
-        assertThat(refundResponseFromPost.getRefundAmount()).isEqualTo(new BigDecimal("640.00"));
+        assertThat(refundResponseFromPost.getRefundAmount()).isEqualTo(new BigDecimal("90"));
         assertTrue(REFUNDS_REGEX_PATTERN.matcher(refundResponseFromPost.getRefundReference()).matches());
 
         // Delete payment records
@@ -1152,7 +1153,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         String paymentReference = paymentsResponse.getPaymentReference();
         int paymentId = paymentsResponse.getFees().get(0).getId();
         PaymentRefundRequest paymentRefundRequest
-            = PaymentFixture.aRefundRequest(paymentId, "RR001", paymentReference, "9", "0");
+            = PaymentFixture.aRefundRequest(paymentId, "RR001", paymentReference, "90", "90");
         RefundResponse refundInitiatedResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentRefundRequest).then()
@@ -1486,7 +1487,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         String paymentReference = paymentsResponse.getPaymentReference();
         int paymentId = paymentsResponse.getFees().get(0).getId();
         PaymentRefundRequest paymentRefundRequest
-            = PaymentFixture.aRefundRequest(paymentId, "RR001", paymentReference, "50", "40");
+            = PaymentFixture.aRefundRequest(paymentId, "RR001", paymentReference, "90", "90");
         Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentRefundRequest);
@@ -1499,7 +1500,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
             paymentStatusChargebackDto);
         assertThat(chargebackResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         PaymentRefundRequest paymentRefundRequest1
-            = PaymentFixture.aRefundRequest(paymentId, "RR001", paymentDto.getReference(), "50", "40");
+            = PaymentFixture.aRefundRequest(paymentId, "RR001", paymentDto.getReference(), "90", "90");
         Response refundResponseFail = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentRefundRequest1);
@@ -1644,6 +1645,8 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
             .aPbaPaymentRequestForProbate("100.00",
                 "PROBATE", accountNumber);
 
+        DateTime actualDateTime = new DateTime(System.currentTimeMillis());
+
         String ccdCaseNumber = accountPaymentRequest.getCcdCaseNumber();
 
         PaymentDto paymentDto = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
@@ -1681,7 +1684,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         // Ping 2
         PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
             .representmentStatus(RepresentmentStatus.No)
-            .representmentDate("2022-10-10T10:10:10")
+            .representmentDate(actualDateTime.plusMinutes(55).toString())
             .build();
         Response ping2Response = paymentTestService.paymentStatusSecond(
             SERVICE_TOKEN_PAYMENT, paymentStatusChargebackDto.getFailureReference(),
@@ -1811,9 +1814,10 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         assertThat(chargebackResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
 
         // Ping 2
+        DateTime actualDateTime = new DateTime(System.currentTimeMillis());
         PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
             .representmentStatus(RepresentmentStatus.No)
-            .representmentDate("2022-10-10T10:10:10")
+            .representmentDate(actualDateTime.plusMinutes(55).toString())
             .build();
         Response ping2Response = paymentTestService.paymentStatusSecond(
             SERVICE_TOKEN_PAYMENT, paymentStatusChargebackDto.getFailureReference(),

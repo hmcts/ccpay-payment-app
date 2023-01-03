@@ -25,6 +25,7 @@ import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.dto.*;
+import uk.gov.hmcts.payment.api.model.ContactDetails;
 import uk.gov.hmcts.payment.api.model.PaymentChannel;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
@@ -1961,13 +1962,38 @@ public class PaymentStatusFunctionalTest {
 
         String remissionReference = response.getBody().jsonPath().getString("remission_reference");
         String remissionReference1 = response1.getBody().jsonPath().getString("remission_reference");
+
+        String ccdCaseNumber = accountPaymentRequest.getCcdCaseNumber();
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
+            ccdCaseNumber, "20");
+
         Response refundResponse = paymentTestService.postSubmitRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
-            RetrospectiveRemissionRequest.retrospectiveRemissionRequestWith().remissionReference(remissionReference).build());
+            RetrospectiveRemissionRequest.retrospectiveRemissionRequestWith().remissionReference(remissionReference)
+            .contactDetails(ContactDetails.contactDetailsWith().
+                addressLine("High Street 112")
+                .country("UK")
+                .county("Londonshire")
+                .city("London")
+                .postalCode("P1 1PO")
+                .email("person@gmail.com")
+                .notificationType("EMAIL")
+                .build())
+            .build());
 
         Response refundResponse1 = paymentTestService.postSubmitRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
-            RetrospectiveRemissionRequest.retrospectiveRemissionRequestWith().remissionReference(remissionReference1).build());
+            RetrospectiveRemissionRequest.retrospectiveRemissionRequestWith().remissionReference(remissionReference1)
+                .contactDetails(ContactDetails.contactDetailsWith().
+                    addressLine("High Street 112")
+                    .country("UK")
+                    .county("Londonshire")
+                    .city("London")
+                    .postalCode("P1 1PO")
+                    .email("person@gmail.com")
+                    .notificationType("EMAIL")
+                    .build())
+                .build());
 
         assertThat(refundResponse.statusCode()).isEqualTo(HttpStatus.CREATED.value());
         assertThat(refundResponse1.statusCode()).isEqualTo(HttpStatus.CREATED.value());
