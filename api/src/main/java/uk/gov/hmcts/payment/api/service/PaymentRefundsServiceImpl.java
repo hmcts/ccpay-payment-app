@@ -426,7 +426,17 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                     LOG.info("feeDto.getRefundAmount(): {}", feeDto.getRefundAmount());
                     LOG.info("paymentFee.getFeeAmount(): {}", paymentFee.getFeeAmount());
                     LOG.info("feeDto.getUpdatedVolume(): {}", feeDto.getUpdatedVolume());
-                    if(feeDto.getRefundAmount().compareTo(paymentFee.getFeeAmount().multiply(new BigDecimal(feeDto.getUpdatedVolume())))>0 && !(paymentRefundRequest.isOverPayment())) {
+
+                    BigDecimal feeVolume =
+                        new BigDecimal(paymentFee.getVolume());
+                        BigDecimal dividedAmount  = paymentFee.getCalculatedAmount()
+                        .divide(feeVolume);
+                    BigDecimal refundVolume =
+                        new BigDecimal(feeDto.getUpdatedVolume());
+
+                    BigDecimal multipliedResult = dividedAmount.multiply(refundVolume);
+
+                    if(feeDto.getRefundAmount().compareTo(multipliedResult) !=0 && !(paymentRefundRequest.isOverPayment())) {
                         LOG.info("Refund amount : {}", paymentFee.getFeeAmount().intValue());
                         LOG.info("RefundxVolume : {}", BigDecimal.valueOf((long) paymentFee.getFeeAmount().intValue() *feeDto.getUpdatedVolume()));
                         LOG.info("Volume : {}", feeDto.getUpdatedVolume());

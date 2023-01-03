@@ -60,7 +60,7 @@ public class PaymentRefundsServiceTest {
     PaymentRefundRequest paymentRefundRequest = PaymentRefundRequest.refundRequestWith()
         .paymentReference("RC-1649-7555-9551-8774")
         .refundReason("RR037")
-        .totalRefundAmount(BigDecimal.valueOf(100))
+        .totalRefundAmount(BigDecimal.valueOf(550))
         .fees(
             Arrays.asList(
                 RefundsFeeDto.refundFeeDtoWith()
@@ -74,7 +74,7 @@ public class PaymentRefundsServiceTest {
 //                        .naturalAccountCode("21245654433")
                     .version("2")
 //                        .volume(1)
-                    .refundAmount(new BigDecimal("100.00"))
+                    .refundAmount(new BigDecimal("550.00"))
                     .updatedVolume(1)
 //                        .reference("REF_123")
                     .build()
@@ -85,12 +85,12 @@ public class PaymentRefundsServiceTest {
 
 
     Payment mockPaymentSuccess = Payment.paymentWith().reference("RC-1234-1234-1234-1234")
-        .amount(BigDecimal.valueOf(100))
+        .amount(BigDecimal.valueOf(550))
         .id(1)
         .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
         .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
         .paymentChannel(PaymentChannel.ONLINE)
-        .paymentLink(PaymentFeeLink.paymentFeeLinkWith().fees(Arrays.asList(PaymentFee.feeWith().id(1).feeAmount(new BigDecimal(550)).volume(1).build())).build())
+        .paymentLink(PaymentFeeLink.paymentFeeLinkWith().fees(Arrays.asList(PaymentFee.feeWith().id(1).feeAmount(new BigDecimal(550)).calculatedAmount(new BigDecimal(550)).volume(1).build())).build())
         .build();
     RetrospectiveRemissionRequest retrospectiveRemissionRequest =
         RetrospectiveRemissionRequest.retrospectiveRemissionRequestWith()
@@ -1415,7 +1415,7 @@ public class PaymentRefundsServiceTest {
             .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
             .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
             .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
-            .paymentLink(PaymentFeeLink.paymentFeeLinkWith().fees(Arrays.asList(PaymentFee.feeWith().id(1).feeAmount(new BigDecimal(550)).volume(1).build())).build())
+            .paymentLink(PaymentFeeLink.paymentFeeLinkWith().fees(Arrays.asList(PaymentFee.feeWith().id(1).feeAmount(new BigDecimal(550)).volume(1).calculatedAmount(new BigDecimal(550)).build())).build())
             .build();
         return payment;
     }
@@ -1423,7 +1423,7 @@ public class PaymentRefundsServiceTest {
     PaymentRefundRequest paymentRefundRequest1 = PaymentRefundRequest.refundRequestWith()
         .paymentReference("RC-1649-7555-9551-8774")
         .refundReason("RR037")
-        .totalRefundAmount(BigDecimal.valueOf(118))
+        .totalRefundAmount(BigDecimal.valueOf(550))
         .fees(
             Arrays.asList(
                 RefundsFeeDto.refundFeeDtoWith()
@@ -1437,7 +1437,7 @@ public class PaymentRefundsServiceTest {
 //                        .naturalAccountCode("21245654433")
                     .version("2")
 //                        .volume(1)
-                    .refundAmount(new BigDecimal("118.00"))
+                    .refundAmount(new BigDecimal("550.00"))
                     .updatedVolume(1)
 //                        .reference("REF_123")
                     .build()
