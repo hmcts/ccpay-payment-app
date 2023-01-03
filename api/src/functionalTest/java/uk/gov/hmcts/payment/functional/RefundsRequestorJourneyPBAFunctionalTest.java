@@ -1082,7 +1082,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         String paymentReference = paymentsResponse.getPaymentReference();
         int paymentId = paymentsResponse.getFees().get(0).getId();
         PaymentRefundRequest paymentRefundRequest
-            = PaymentFixture.aRefundRequest(paymentId, "RR001", paymentReference, "85.00", "85.00");
+            = PaymentFixture.aRefundRequest(paymentId, "RR001", paymentReference, "85.00", "90.00");
         Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentRefundRequest);
@@ -1153,7 +1153,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         String paymentReference = paymentsResponse.getPaymentReference();
         int paymentId = paymentsResponse.getFees().get(0).getId();
         PaymentRefundRequest paymentRefundRequest
-            = PaymentFixture.aRefundRequest(paymentId, "RR001", paymentReference, "90", "90");
+            = PaymentFixture.aRefundRequest(paymentId, "RR001", paymentReference, "85", "90");
         RefundResponse refundInitiatedResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentRefundRequest).then()
