@@ -239,7 +239,6 @@ public class PaymentStatusFunctionalTest {
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
     }
 
-    @Ignore
     @Test
     public void return_Success_Get_for_payment_failure() {
 
@@ -653,7 +652,6 @@ public class PaymentStatusFunctionalTest {
         assertEquals(BAD_REQUEST.value(), ping2Response.getStatusCode());
     }
 
-    @Ignore
     @Test
     public void negative_return404_chargeback_payment_failure_when_dispute_amount_is_more_than_payment_amount() {
 
@@ -678,7 +676,6 @@ public class PaymentStatusFunctionalTest {
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
     }
 
-    @Ignore
     @Test
     public void negative_return404_bounce_cheque_payment_failure_when_dispute_amount_is_more_than_payment_amount() {
 
