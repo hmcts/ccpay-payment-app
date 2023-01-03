@@ -424,7 +424,6 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                         throw new InvalidPartialRefundRequestException("The quantity you want to refund is more than the available quantity");
 
                     LOG.info("feeDto.getRefundAmount(): {}", feeDto.getRefundAmount());
-                    LOG.info("paymentFee.getFeeAmount(): {}", paymentFee.getFeeAmount());
                     LOG.info("feeDto.getUpdatedVolume(): {}", feeDto.getUpdatedVolume());
 
                     BigDecimal feeVolume =
@@ -437,8 +436,6 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                     BigDecimal multipliedResult = dividedAmount.multiply(refundVolume);
 
                     if(feeDto.getRefundAmount().compareTo(multipliedResult) !=0 && !(paymentRefundRequest.isOverPayment())) {
-                        LOG.info("Refund amount : {}", paymentFee.getFeeAmount().intValue());
-                        LOG.info("RefundxVolume : {}", BigDecimal.valueOf((long) paymentFee.getFeeAmount().intValue() *feeDto.getUpdatedVolume()));
                         LOG.info("Volume : {}", feeDto.getUpdatedVolume());
                         throw new InvalidPartialRefundRequestException("The Amount to Refund should be equal to the product of Fee Amount and quantity");
                     }
