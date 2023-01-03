@@ -1082,14 +1082,14 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         String paymentReference = paymentsResponse.getPaymentReference();
         int paymentId = paymentsResponse.getFees().get(0).getId();
         PaymentRefundRequest paymentRefundRequest
-            = PaymentFixture.aRefundRequest(paymentId, "RR001", paymentReference, "90.00", "0");
+            = PaymentFixture.aRefundRequest(paymentId, "RR001", paymentReference, "85.00", "85.00");
         Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentRefundRequest);
 
         assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
         RefundResponse refundResponseFromPost = refundResponse.getBody().as(RefundResponse.class);
-        assertThat(refundResponseFromPost.getRefundAmount()).isEqualTo(new BigDecimal("90.00"));
+        assertThat(refundResponseFromPost.getRefundAmount()).isEqualTo(new BigDecimal("85.00"));
         assertThat(refundResponseFromPost.getRefundReference()).startsWith("RF-");
 
         // Delete payment record
