@@ -113,7 +113,7 @@ public class RefundRequestorJourneyBulkscanPaymentFunctionalTest {
             String dcn = "3456908723459" + RandomUtils.nextInt();
 
             BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
-                .amount(new BigDecimal("100.00"))
+                .amount(new BigDecimal("450.00"))
                 .service("DIVORCE")
                 .siteId("AA01")
                 .currency(CurrencyCode.GBP)
@@ -171,14 +171,14 @@ public class RefundRequestorJourneyBulkscanPaymentFunctionalTest {
             int paymentId = paymentsResponse.getFees().get(0).getId();
 
             PaymentRefundRequest paymentRefundRequest
-                = PaymentFixture.aRefundRequest(paymentId, "RR001", paymentReference.get(), "100.00", "450");
+                = PaymentFixture.aRefundRequest(paymentId, "RR001", paymentReference.get(), "225.00", "450");
             LOG.info("Calling Refund Service to Create Refund (ln 175) {}", paymentRefundRequest.getPaymentReference());
             RefundResponse refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
                 SERVICE_TOKEN_PAYMENT,
                 paymentRefundRequest).
                     then().statusCode(CREATED.value()).extract().as(RefundResponse.class);
             LOG.info("Refunds response received after creating refund");
-            assertThat(refundResponse.getRefundAmount()).isEqualTo(new BigDecimal("100.00"));
+            assertThat(refundResponse.getRefundAmount()).isEqualTo(new BigDecimal("225.00"));
             assertThat(REFUNDS_REGEX_PATTERN.matcher(refundResponse.getRefundReference()).matches()).isEqualTo(true);
 
             LOG.info("Refund Reference: {}", refundResponse.getRefundReference());
