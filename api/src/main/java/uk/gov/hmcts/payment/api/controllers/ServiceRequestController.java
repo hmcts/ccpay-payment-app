@@ -148,10 +148,14 @@ public class ServiceRequestController {
         String serviceRequestStatusDisplay = ow.writeValueAsString(serviceRequestPaymentDto);
         LOG.info("Passed service Request Status Display PBA payment : {} ", serviceRequestStatusDisplay);
 
+
+
         Function<IdempotencyKeys, ResponseEntity<?>> validateHashcodeForRequest = idempotencyKeys -> {
 
             ServiceRequestPaymentBo responseBO;
             try {
+                LOG.info("idempontency keys get hashcode: ", idempotencyKeys.getRequest_hashcode());
+                LOG.info("serviceRequestPaymentDto hashCodeWithServiceRequestReference", serviceRequestPaymentDto.hashCodeWithServiceRequestReference(serviceRequestReference));
                 if (!idempotencyKeys.getRequest_hashcode().equals(serviceRequestPaymentDto.hashCodeWithServiceRequestReference(serviceRequestReference))) {
                     return new ResponseEntity<>("Payment already present for idempotency key with different payment details", HttpStatus.CONFLICT); // 409 if hashcode not matched
                 }
@@ -165,7 +169,6 @@ public class ServiceRequestController {
             return new ResponseEntity<>(responseBO, HttpStatus.valueOf(idempotencyKeys.getResponseCode())); // if hashcode matched
         };
 
-
         //Idempotency Check
         Optional<IdempotencyKeys> idempotencyKeysRow = getIdempotencyKey.apply(idempotencyKey);
         if (idempotencyKeysRow.isPresent()) {
@@ -173,8 +176,13 @@ public class ServiceRequestController {
             return responseEntity;
         }
 
+        //TODO: remove 'ResponseEntity DELETETHISTEST = ' once test is completed.
+        ResponseEntity DELETETHISTEST = serviceRequestDomainService.createIdempotencyRecordWithoutResponse(objectMapper, idempotencyKey, serviceRequestReference, serviceRequestPaymentDto);
+
         //business validations for serviceRequest
+        LOG.info("Business valid start + Service Request Reference passed to business validation", serviceRequestReference);
         PaymentFeeLink serviceRequest = serviceRequestDomainService.businessValidationForServiceRequests(serviceRequestDomainService.find(serviceRequestReference), serviceRequestPaymentDto);
+        LOG.info("Business validation end");
 
         //PBA Payment
         ServiceRequestPaymentBo serviceRequestPaymentBo = null;
@@ -202,7 +210,15 @@ public class ServiceRequestController {
         }
 
         //Create Idempotency Record
-        return serviceRequestDomainService.createIdempotencyRecord(objectMapper, idempotencyKey, serviceRequestReference, responseJson, responseEntity, serviceRequestPaymentDto);
+        LOG.info("Create Idemptotency Record {} {}", objectMapper, idempotencyKey);
+
+        LOG.info("Last log before return, here is return {}", DELETETHISTEST);
+        return DELETETHISTEST;
+
+//        TODO: Uncomment below once updateIdemptoencyRecord is fixed.
+//        return serviceRequestDomainService.updateIdempotencyRecord(objectMapper, idempotencyKey, responseJson, responseEntity, serviceRequestReference, serviceRequestPaymentDto);
+
+//        return serviceRequestDomainService.createIdempotencyRecord(objectMapper, idempotencyKey, serviceRequestReference, responseJson, responseEntity, serviceRequestPaymentDto);
     }
 
     private TopicClient topicClient;
