@@ -792,6 +792,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
         return paymentFailuresList;
 
     }
+
     private FeePayApportion getFeePayApportion() {
         return FeePayApportion.feePayApportionWith()
             .apportionAmount(new BigDecimal("99.99"))
@@ -832,5 +833,6 @@ public class CaseControllerTest extends PaymentsDataUtil {
         when(paymentRefundsService.checkRefundAgainstRemissionV2(any(),any(PaymentGroupResponse.class),anyString()))
             .thenReturn(paymentGroupResponse);
     }
+
 
 }

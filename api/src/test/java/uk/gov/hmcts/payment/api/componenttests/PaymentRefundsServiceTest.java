@@ -60,7 +60,7 @@ public class PaymentRefundsServiceTest {
     PaymentRefundRequest paymentRefundRequest = PaymentRefundRequest.refundRequestWith()
         .paymentReference("RC-1649-7555-9551-8774")
         .refundReason("RR037")
-        .totalRefundAmount(BigDecimal.valueOf(118))
+        .totalRefundAmount(BigDecimal.valueOf(550))
         .fees(
             Arrays.asList(
                 RefundsFeeDto.refundFeeDtoWith()
@@ -69,12 +69,12 @@ public class PaymentRefundsServiceTest {
 //                        .feeAmount(new BigDecimal("550.00"))
                     .code("FEE0326")
 //                        .volume(1)
-                    .id(610)
+                    .id(1)
 //                        .memoLine("Bar Cash")
 //                        .naturalAccountCode("21245654433")
                     .version("2")
 //                        .volume(1)
-                    .refundAmount(new BigDecimal("118.00"))
+                    .refundAmount(new BigDecimal("550.00"))
                     .updatedVolume(1)
 //                        .reference("REF_123")
                     .build()
@@ -85,12 +85,12 @@ public class PaymentRefundsServiceTest {
 
 
     Payment mockPaymentSuccess = Payment.paymentWith().reference("RC-1234-1234-1234-1234")
-        .amount(BigDecimal.valueOf(100))
+        .amount(BigDecimal.valueOf(550))
         .id(1)
         .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
         .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
         .paymentChannel(PaymentChannel.ONLINE)
-        .paymentLink(PaymentFeeLink.paymentFeeLinkWith().fees(Arrays.asList(PaymentFee.feeWith().id(1).feeAmount(new BigDecimal(550)).volume(1).build())).build())
+        .paymentLink(PaymentFeeLink.paymentFeeLinkWith().fees(Arrays.asList(PaymentFee.feeWith().id(1).feeAmount(new BigDecimal(550)).calculatedAmount(new BigDecimal(550)).volume(1).build())).build())
         .build();
     RetrospectiveRemissionRequest retrospectiveRemissionRequest =
         RetrospectiveRemissionRequest.retrospectiveRemissionRequestWith()
@@ -1113,7 +1113,7 @@ public class PaymentRefundsServiceTest {
         paymentFailuresList.add(paymentFailures);
         Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(getpayment()));
         Mockito.when(paymentFailureRepository.findByPaymentReference(getpayment().getReference())).thenReturn(Optional.of(paymentFailuresList));
-        paymentRefundsService.createRefund(paymentRefundRequest, header);
+        paymentRefundsService.createRefund(paymentRefundRequest1, header);
     }
 
     @Test(expected = PaymentNotSuccessException.class)
@@ -1411,11 +1411,39 @@ public class PaymentRefundsServiceTest {
             .pbaNumber("pbaNumer")
             .reference("RC-1520-2505-0381-8145")
             .ccdCaseNumber("1234123412341234")
+            .amount(new BigDecimal(550))
             .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
             .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
             .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
-            .paymentLink(PaymentFeeLink.paymentFeeLinkWith().fees(Arrays.asList(PaymentFee.feeWith().id(1).feeAmount(new BigDecimal(550)).volume(1).build())).build())
+            .paymentLink(PaymentFeeLink.paymentFeeLinkWith().fees(Arrays.asList(PaymentFee.feeWith().id(1).feeAmount(new BigDecimal(550)).volume(1).calculatedAmount(new BigDecimal(550)).build())).build())
             .build();
         return payment;
     }
-    }
+
+    PaymentRefundRequest paymentRefundRequest1 = PaymentRefundRequest.refundRequestWith()
+        .paymentReference("RC-1649-7555-9551-8774")
+        .refundReason("RR037")
+        .totalRefundAmount(BigDecimal.valueOf(550))
+        .fees(
+            Arrays.asList(
+                RefundsFeeDto.refundFeeDtoWith()
+                    .calculatedAmount(new BigDecimal("232"))
+                    .apportionAmount(new BigDecimal("232"))
+//                        .feeAmount(new BigDecimal("550.00"))
+                    .code("FEE0326")
+//                        .volume(1)
+                    .id(1)
+//                        .memoLine("Bar Cash")
+//                        .naturalAccountCode("21245654433")
+                    .version("2")
+//                        .volume(1)
+                    .refundAmount(new BigDecimal("550.00"))
+                    .updatedVolume(1)
+//                        .reference("REF_123")
+                    .build()
+            ))
+        .contactDetails(ContactDetails.contactDetailsWith().notificationType(Notification.EMAIL.getNotification())
+            .email("a@a.com").build())
+        .build();
+
+}

@@ -305,6 +305,7 @@ public class PaymentFixture {
                     .calculatedAmount(new BigDecimal(amountString))
                     .code("FEE0001")
                     .version("1")
+                    .feeAmount(new BigDecimal(amountString))
                     .build())
             )
             .build();
@@ -422,9 +423,11 @@ public class PaymentFixture {
             .build();
     }
 
-    public static PaymentRefundRequest aRefundRequest(final String refundReason,
+    public static PaymentRefundRequest aRefundRequest(final int paymentId,
+                                                      final String refundReason,
                                                       final String paymentReference,
-                                                      final String refundAmount, final String feeAmount) {
+                                                      final String refundAmount,
+                                                      final String feeAmount) {
         return PaymentRefundRequest
             .refundRequestWith().paymentReference(paymentReference)
             .refundReason(refundReason)
@@ -434,7 +437,7 @@ public class PaymentFixture {
                     .apportionAmount(BigDecimal.valueOf(0))
                     .calculatedAmount(new BigDecimal(feeAmount))
                     .code("FEE0001")
-                    .id(0)
+                    .id(paymentId)
                     .version("1")
                     .updatedVolume(1)
                     .refundAmount(new BigDecimal(refundAmount))
