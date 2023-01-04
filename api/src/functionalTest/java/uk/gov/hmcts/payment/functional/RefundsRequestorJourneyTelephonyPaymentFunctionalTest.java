@@ -109,6 +109,7 @@ public class RefundsRequestorJourneyTelephonyPaymentFunctionalTest {
                 .ccdCaseNumber(ccdCaseNumber)
                 .version("4")
                 .code("FEE0002")
+                .volume(1)
                 .description("Application for a third party debt order")
                 .build();
 
@@ -194,6 +195,7 @@ public class RefundsRequestorJourneyTelephonyPaymentFunctionalTest {
                 .version("4")
                 .code("FEE0002")
                 .description("Application for a third party debt order")
+                .volume(1)
                 .build();
 
         TelephonyCardPaymentsRequest telephonyPaymentRequest =
