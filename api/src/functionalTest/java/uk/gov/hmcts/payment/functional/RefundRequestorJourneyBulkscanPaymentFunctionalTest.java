@@ -229,7 +229,7 @@ public class RefundRequestorJourneyBulkscanPaymentFunctionalTest {
                     .code("FEE3132")
                     .version("1")
                     .reference("testRef1")
-                    .volume(2)
+                    .volume(1)
                     .ccdCaseNumber(ccdCaseNumber1)
                     .build())).build();
 
