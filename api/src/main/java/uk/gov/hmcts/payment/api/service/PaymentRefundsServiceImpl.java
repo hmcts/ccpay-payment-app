@@ -426,19 +426,18 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                     LOG.info("feeDto.getRefundAmount(): {}", feeDto.getRefundAmount());
                     LOG.info("feeDto.getUpdatedVolume(): {}", feeDto.getUpdatedVolume());
 
-                    BigDecimal feeVolume =
-                        new BigDecimal(paymentFee.getVolume());
-                        BigDecimal dividedAmount  = paymentFee.getCalculatedAmount()
-                        .divide(feeVolume);
-                    BigDecimal refundVolume =
-                        new BigDecimal(feeDto.getUpdatedVolume());
+                   if(paymentFee.getVolume().intValue()>1){
 
-                    BigDecimal multipliedResult = dividedAmount.multiply(refundVolume);
+                       BigDecimal dividedAmount  = paymentFee.getCalculatedAmount()
+                           .divide(new BigDecimal(paymentFee.getVolume()));
 
-                    if(feeDto.getRefundAmount().compareTo(multipliedResult) !=0 && !(paymentRefundRequest.isOverPayment())) {
-                        LOG.info("Volume : {}", feeDto.getUpdatedVolume());
-                        throw new InvalidPartialRefundRequestException("The Amount to Refund should be equal to the product of Fee Amount and quantity");
-                    }
+                       BigDecimal multipliedResult = dividedAmount.multiply(new BigDecimal(feeDto.getUpdatedVolume()));
+
+                       if(feeDto.getRefundAmount().compareTo(multipliedResult) !=0 && !(paymentRefundRequest.isOverPayment())) {
+                           LOG.info("Volume : {}", feeDto.getUpdatedVolume());
+                           throw new InvalidPartialRefundRequestException("The Amount to Refund should be equal to the product of Fee Amount and quantity");
+                       }
+                   }
 
                     if(feeDto.getRefundAmount().compareTo(feeDto.getApportionAmount())==0 && feeDto.getUpdatedVolume()<paymentFee.getVolume()
                         && feeDto.getUpdatedVolume()>1)
