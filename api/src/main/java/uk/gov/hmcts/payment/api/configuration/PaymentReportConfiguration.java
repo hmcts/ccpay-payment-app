@@ -14,6 +14,7 @@ import uk.gov.hmcts.payment.api.reports.config.PbaFinremPaymentReportConfig;
 import uk.gov.hmcts.payment.api.reports.config.PbaProbatePaymentReportConfig;
 import uk.gov.hmcts.payment.api.reports.config.PbaFplPaymentReportConfig;
 import uk.gov.hmcts.payment.api.reports.config.PbaPrlPaymentReportConfig;
+import uk.gov.hmcts.payment.api.reports.config.PbaIacPaymentReportConfig;
 
 import java.util.Map;
 
@@ -29,7 +30,8 @@ public class PaymentReportConfiguration {
                                                                  PbaDivorcePaymentReportConfig pbaDivorcePaymentReportConfig,
                                                                  PbaFplPaymentReportConfig pbaFplPaymentReportConfig,
                                                                  PbaCivilPaymentReportConfig pbaCivilPaymentReportConfig,
-                                                                 PbaPrlPaymentReportConfig pbaPrlPaymentReportConfig) {
+                                                                 PbaPrlPaymentReportConfig pbaPrlPaymentReportConfig,
+                                                                 PbaIacPaymentReportConfig pbaIacPaymentReportConfig) {
         return ImmutableMap.<PaymentReportType, PaymentReportConfig>builder()
             .put(PaymentReportType.CARD, cardPaymentReportConfig)
             .put(PaymentReportType.DIGITAL_BAR, barPaymentReportConfig)
@@ -40,6 +42,7 @@ public class PaymentReportConfiguration {
             .put(PaymentReportType.PBA_FPL, pbaFplPaymentReportConfig)
             .put(PaymentReportType.PBA_CIVIL, pbaCivilPaymentReportConfig)
             .put(PaymentReportType.PBA_PRL, pbaPrlPaymentReportConfig)
+            .put(PaymentReportType.PBA_IAC, pbaIacPaymentReportConfig)
             .build();
 
     }
