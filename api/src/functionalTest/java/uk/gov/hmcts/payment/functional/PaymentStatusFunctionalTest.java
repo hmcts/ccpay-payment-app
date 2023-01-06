@@ -635,7 +635,7 @@ public class PaymentStatusFunctionalTest {
     public void negative_return404_bounce_cheque_payment_failure_when_dispute_amount_is_more_than_payment_amount() {
 
         String ccdCaseNumber = "1111221233124419";
-        String dcn = "3456908723459901" + RandomUtils.nextInt();
+        String dcn = "3456908723459910" + RandomUtils.nextInt();
         dcn=  dcn.substring(0,21);
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal("110.00"))
@@ -981,7 +981,7 @@ public class PaymentStatusFunctionalTest {
             rand.nextInt(99));
 
         String ccdCaseNumber1 = "1111-CC12-" + RandomUtils.nextInt();
-        String dcn = "3456908723459901" + RandomUtils.nextInt();
+        String dcn = "3456908723459909" + RandomUtils.nextInt();
         dcn=  dcn.substring(0,21);
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal("100.00"))
@@ -1253,7 +1253,7 @@ public class PaymentStatusFunctionalTest {
     public void positive_unprocessedPayment_bulk_scan() {
 
         // Create a Bulk scan payment
-        String dcn = "3456908723459901" + RandomUtils.nextInt();
+        String dcn = "3456908723459907" + RandomUtils.nextInt();
         String failureReference = "FR-123-456" + RandomUtils.nextInt();
 
         dcn=  dcn.substring(0,21);
@@ -1321,7 +1321,7 @@ public class PaymentStatusFunctionalTest {
     public void negative_return404_unprocessedPayment_bulk_scan() {
 
         // Create a Bulk scan payment
-        String dcn = "3456908723459901" + RandomUtils.nextInt();
+        String dcn = "3456908723459902" + RandomUtils.nextInt();
         dcn=  dcn.substring(0,21);
         BulkScanPayment bulkScanPayment = BulkScanPayment.createPaymentRequestWith()
                 .amount(new BigDecimal("555"))
@@ -1373,7 +1373,7 @@ public class PaymentStatusFunctionalTest {
     public void negative_return429_unprocessedPayment_bulk_scan() {
 
         // Create a Bulk scan payment
-        String dcn = "3456908723459901" + RandomUtils.nextInt();
+        String dcn = "3456908723459903" + RandomUtils.nextInt();
         String failureReference = "FR-123-456" + RandomUtils.nextInt();
         dcn=  dcn.substring(0,21);
         BulkScanPayment bulkScanPayment = BulkScanPayment.createPaymentRequestWith()
@@ -1436,7 +1436,7 @@ public class PaymentStatusFunctionalTest {
     public void negative_return400_unprocessedPayment_bulk_scan() {
 
         // Create a Bulk scan payment
-        String dcn = "3456908723459901" + RandomUtils.nextInt();
+        String dcn = "3456908723459904" + RandomUtils.nextInt();
         String failureReference = "FR-123-456" + RandomUtils.nextInt();
         dcn=  dcn.substring(0,21);
         BulkScanPayment bulkScanPayment = BulkScanPayment.createPaymentRequestWith()
@@ -1486,7 +1486,7 @@ public class PaymentStatusFunctionalTest {
     @Test
     public void positive_unprocessedPayment_update_payment() {
 
-        String dcn = "3456908723459901" + RandomUtils.nextInt();
+        String dcn = "3456908723459905" + RandomUtils.nextInt();
         String failureReference = "FR-123-456" + RandomUtils.nextInt();
         dcn=  dcn.substring(0,21);
         BulkScanPayment bulkScanPayment = BulkScanPayment.createPaymentRequestWith()
@@ -1603,7 +1603,7 @@ public class PaymentStatusFunctionalTest {
     public void positive_unprocessedPayment_update_payment_after_second_ping() {
 
         // Create a Bulk scan payment
-        String dcn = "3456908723459901" + RandomUtils.nextInt();
+        String dcn = "3456908723459906" + RandomUtils.nextInt();
         String failureReference = "FR-123-456" + RandomUtils.nextInt();
         dcn=  dcn.substring(0,21);
         BulkScanPayment bulkScanPayment = BulkScanPayment.createPaymentRequestWith()
@@ -2001,7 +2001,7 @@ public class PaymentStatusFunctionalTest {
 
         // Create a Bulk scan payment
         String ccdCaseNumber = "1111221233124419";
-        String dcn = "3456908723459901" + RandomUtils.nextInt();
+        String dcn = "3456908723459911" + RandomUtils.nextInt();
         dcn=  dcn.substring(0,21);
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal("100.00"))
@@ -2078,7 +2078,7 @@ public class PaymentStatusFunctionalTest {
 
         // Create a Bulk scan payment
         String ccdCaseNumber = "1111221233124419";
-        String dcn = "3456908723459901" + RandomUtils.nextInt();
+        String dcn = "3456908723459908" + RandomUtils.nextInt();
         dcn=  dcn.substring(0,21);
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal("100.00"))
@@ -2277,7 +2277,7 @@ public class PaymentStatusFunctionalTest {
     public void negative_return400_unprocessedPayment_bulk_scan_event_date_less_than_payment_date() {
 
         // Create a Bulk scan payment
-        String dcn = "3456908723459901" + RandomUtils.nextInt();
+        String dcn = "3456908723459912" + RandomUtils.nextInt();
         dcn=  dcn.substring(0,21);
         BulkScanPayment bulkScanPayment = BulkScanPayment.createPaymentRequestWith()
             .amount(new BigDecimal("555"))
