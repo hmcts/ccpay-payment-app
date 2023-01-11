@@ -1710,7 +1710,7 @@ public class ServiceRequestFunctionalTests {
 
         // Create a Telephony payment
 
-        String ccdCaseNumber = "11111234" + RandomUtils.nextInt();
+        String ccdCaseNumber = "11111235" + RandomUtils.nextInt();
         if(ccdCaseNumber.length()>16){
             ccdCaseNumber = ccdCaseNumber.substring(0,16);
         }
