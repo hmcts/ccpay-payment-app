@@ -1103,7 +1103,7 @@ public class ServiceRequestFunctionalTests {
 
         // Create a Bulk scan payment
         String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
-        String dcn = "3456908723459901" + RandomUtils.nextInt();
+        String dcn = "3456908723459913" + RandomUtils.nextInt();
         dcn=  dcn.substring(0,21);
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal("100.00"))
@@ -1224,7 +1224,7 @@ public class ServiceRequestFunctionalTests {
 
         // Create a Bulk scan payment
         String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
-        String dcn = "3456908723459901" + RandomUtils.nextInt();
+        String dcn = "3456908723459914" + RandomUtils.nextInt();
         dcn=  dcn.substring(0,21);
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal("100.00"))
@@ -1322,7 +1322,7 @@ public class ServiceRequestFunctionalTests {
 
         // Create a Bulk scan payment
         String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
-        String dcn = "3456908723459901" + RandomUtils.nextInt();
+        String dcn = "3456908723459915" + RandomUtils.nextInt();
         dcn=  dcn.substring(0,21);
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal("100.00"))
