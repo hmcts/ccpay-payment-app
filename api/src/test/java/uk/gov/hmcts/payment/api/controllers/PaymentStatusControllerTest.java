@@ -392,8 +392,8 @@ public class PaymentStatusControllerTest {
         when(featureToggler.getBooleanValue(eq("payment-status-update-flag"), anyBoolean())).thenReturn(true);
         restActions
                 .patch("/payment-failures/failureReference", PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
-                        .representmentStatus(RepresentmentStatus.No)
-                        .representmentDate("2022-10-10T10:10:10")
+                        .representmentSuccess(RepresentmentSuccess.No)
+                        .representmentOutcomeDate("2022-10-10T10:10:10")
                         .build())
                 .andExpect(status().isServiceUnavailable())
                 .andReturn();
@@ -417,7 +417,7 @@ public class PaymentStatusControllerTest {
     @Test
     public void givenNoRepresentmentStatusWhenPaymentStatusSecondThenBadRequestException() throws Exception {
         PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
-                .representmentDate("2022-10-10T10:10:10")
+                .representmentOutcomeDate("2022-10-10T10:10:10")
                 .build();
 
         MvcResult result = restActions
@@ -444,8 +444,8 @@ public class PaymentStatusControllerTest {
     @Test
     public void givenNoPaymentFailureWhenPaymentStatusSecondThenPaymentNotFoundException() throws Exception {
         PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
-                .representmentStatus(RepresentmentStatus.Yes)
-                .representmentDate("2022-10-10T10:10:10")
+                .representmentSuccess(RepresentmentSuccess.Yes)
+                .representmentOutcomeDate("2022-10-10T10:10:10")
                 .build();
         when(paymentFailureRepository.findByFailureReference(any())).thenReturn(Optional.empty());
 
@@ -461,8 +461,8 @@ public class PaymentStatusControllerTest {
     @Test
     public void givenPaymentFailureWhenPaymentStatusSecondThenSuccess() throws Exception {
         PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
-                .representmentStatus(RepresentmentStatus.Yes)
-                .representmentDate("2022-10-10T10:10:10")
+                .representmentSuccess(RepresentmentSuccess.Yes)
+                .representmentOutcomeDate("2022-10-10T10:10:10")
                 .build();
         when(paymentFailureRepository.findByFailureReference(any())).thenReturn(Optional.of(getPaymentFailures()));
         MvcResult result = restActions

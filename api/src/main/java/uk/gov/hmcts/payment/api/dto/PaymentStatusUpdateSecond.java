@@ -16,7 +16,7 @@ import lombok.Setter;
 @Builder(builderMethodName = "paymentStatusUpdateSecondWith")
 public class PaymentStatusUpdateSecond {
 
-    private RepresentmentStatus representmentStatus;
+    private RepresentmentSuccess representmentSuccess;
 
-    private String representmentDate;
+    private String representmentOutcomeDate;
 }

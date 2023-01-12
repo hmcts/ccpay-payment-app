@@ -41,7 +41,7 @@ import static org.mockito.Mockito.when;
 
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentFailureReportMapper;
 import uk.gov.hmcts.payment.api.dto.PaymentStatusUpdateSecond;
-import uk.gov.hmcts.payment.api.dto.RepresentmentStatus;
+import uk.gov.hmcts.payment.api.dto.RepresentmentSuccess;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentStatusDtoMapper;
 import uk.gov.hmcts.payment.api.exception.InvalidRefundRequestException;
 import uk.gov.hmcts.payment.api.exception.ValidationErrorException;
@@ -238,8 +238,8 @@ public class PaymentStatusUpdateServiceImplTest {
     @Test
     public void givenValidInputWhenUpdatePaymentFailureThenValidOutput() throws ParseException {
         PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
-                .representmentDate("2021-10-10T10:10:10")
-                .representmentStatus(RepresentmentStatus.Yes)
+                .representmentOutcomeDate("2021-10-10T10:10:10")
+                .representmentSuccess(RepresentmentSuccess.Yes)
                 .build();
 
 
@@ -254,7 +254,7 @@ public class PaymentStatusUpdateServiceImplTest {
                 .id(1)
                 .reason("RR001")
                 .failureEventDateTime(date)
-                .representmentOutcomeDate(DateTime.parse(paymentStatusUpdateSecond.getRepresentmentDate()).withZone(
+                .representmentOutcomeDate(DateTime.parse(paymentStatusUpdateSecond.getRepresentmentOutcomeDate()).withZone(
                         DateTimeZone.UTC)
                         .toDate())
                 .representmentSuccess("Yes")
@@ -491,8 +491,8 @@ public class PaymentStatusUpdateServiceImplTest {
     @Test
     public void givenInvalidInputWhenUpdatePaymentFailureThenThrowsException() throws ParseException {
         PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
-            .representmentDate("2021-10-08T10:10:10")
-            .representmentStatus(RepresentmentStatus.Yes)
+            .representmentOutcomeDate("2021-10-08T10:10:10")
+            .representmentSuccess(RepresentmentSuccess.Yes)
             .build();
 
         String dateInString = "2021-10-09T10:10:10";
@@ -506,7 +506,7 @@ public class PaymentStatusUpdateServiceImplTest {
             .id(1)
             .reason("RR001")
             .failureEventDateTime(date)
-            .representmentOutcomeDate(DateTime.parse(paymentStatusUpdateSecond.getRepresentmentDate()).withZone(
+            .representmentOutcomeDate(DateTime.parse(paymentStatusUpdateSecond.getRepresentmentOutcomeDate()).withZone(
                     DateTimeZone.UTC)
                 .toDate())
             .representmentSuccess("Yes")

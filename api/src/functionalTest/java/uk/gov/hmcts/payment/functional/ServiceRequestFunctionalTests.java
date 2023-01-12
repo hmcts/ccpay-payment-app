@@ -952,8 +952,8 @@ public class ServiceRequestFunctionalTests {
         // Ping 2
         DateTime actualDateTime = new DateTime(System.currentTimeMillis());
         PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
-            .representmentStatus(RepresentmentStatus.Yes)
-            .representmentDate(actualDateTime.plusMinutes(15).toString())
+            .representmentSuccess(RepresentmentSuccess.Yes)
+            .representmentOutcomeDate(actualDateTime.plusMinutes(15).toString())
             .build();
         Response ping2Response = paymentTestService.paymentStatusSecond(
             SERVICE_TOKEN, paymentStatusChargebackDto.getFailureReference(),
@@ -1071,8 +1071,8 @@ public class ServiceRequestFunctionalTests {
         // Ping 2
         DateTime actualDateTime = new DateTime(System.currentTimeMillis());
         PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
-            .representmentStatus(RepresentmentStatus.No)
-            .representmentDate(actualDateTime.plusMinutes(15).toString())
+            .representmentSuccess(RepresentmentSuccess.No)
+            .representmentOutcomeDate(actualDateTime.plusMinutes(15).toString())
             .build();
         Response ping2Response = paymentTestService.paymentStatusSecond(
             SERVICE_TOKEN, paymentStatusChargebackDto.getFailureReference(),
@@ -1192,8 +1192,8 @@ public class ServiceRequestFunctionalTests {
         // Ping 2
         DateTime actualDateTime = new DateTime(System.currentTimeMillis());
         PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
-            .representmentStatus(RepresentmentStatus.Yes)
-            .representmentDate(actualDateTime.plusMinutes(15).toString())
+            .representmentSuccess(RepresentmentSuccess.Yes)
+            .representmentOutcomeDate(actualDateTime.plusMinutes(15).toString())
             .build();
         Response ping2Response = paymentTestService.paymentStatusSecond(
             SERVICE_TOKEN, paymentStatusBouncedChequeDto.getFailureReference(),
@@ -1405,8 +1405,8 @@ public class ServiceRequestFunctionalTests {
         // Ping 2
         DateTime actualDateTime = new DateTime(System.currentTimeMillis());
         PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
-            .representmentStatus(RepresentmentStatus.No)
-            .representmentDate(actualDateTime.plusMinutes(15).toString())
+            .representmentSuccess(RepresentmentSuccess.No)
+            .representmentOutcomeDate(actualDateTime.plusMinutes(15).toString())
             .build();
         Response ping2Response = paymentTestService.paymentStatusSecond(
             SERVICE_TOKEN, paymentStatusBouncedChequeDto.getFailureReference(),
@@ -1677,8 +1677,8 @@ public class ServiceRequestFunctionalTests {
         // Ping 2
         DateTime actualDateTime = new DateTime(System.currentTimeMillis());
         PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
-            .representmentStatus(RepresentmentStatus.Yes)
-            .representmentDate(actualDateTime.plusMinutes(15).toString())
+            .representmentSuccess(RepresentmentSuccess.Yes)
+            .representmentOutcomeDate(actualDateTime.plusMinutes(15).toString())
             .build();
         Response ping2Response = paymentTestService.paymentStatusSecond(
             SERVICE_TOKEN, paymentStatusChargebackDto.getFailureReference(),
@@ -1821,8 +1821,8 @@ public class ServiceRequestFunctionalTests {
         // Ping 2
         DateTime actualDateTime = new DateTime(System.currentTimeMillis());
         PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
-            .representmentStatus(RepresentmentStatus.No)
-            .representmentDate(actualDateTime.plusMinutes(15).toString())
+            .representmentSuccess(RepresentmentSuccess.No)
+            .representmentOutcomeDate(actualDateTime.plusMinutes(15).toString())
             .build();
         Response ping2Response = paymentTestService.paymentStatusSecond(
             SERVICE_TOKEN, paymentStatusChargebackDto.getFailureReference(),

@@ -1,12 +1,12 @@
 package uk.gov.hmcts.payment.api.dto;
 
-public enum RepresentmentStatus {
+public enum RepresentmentSuccess {
     Yes("Yes"),
     No("No");
 
     private String status;
 
-    RepresentmentStatus(String status) {
+    RepresentmentSuccess(String status) {
         this.status = status;
     }
 

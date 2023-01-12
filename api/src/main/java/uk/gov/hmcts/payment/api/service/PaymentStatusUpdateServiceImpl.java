@@ -234,32 +234,32 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
     @Override
     public PaymentFailures updatePaymentFailure(String failureReference, PaymentStatusUpdateSecond paymentStatusUpdateSecond) {
 
-        if (null != paymentStatusUpdateSecond && null != paymentStatusUpdateSecond.getRepresentmentStatus() &&
-                null != paymentStatusUpdateSecond.getRepresentmentDate() &&
-                !paymentStatusUpdateSecond.getRepresentmentDate().isEmpty()) {
+        if (null != paymentStatusUpdateSecond && null != paymentStatusUpdateSecond.getRepresentmentSuccess() &&
+                null != paymentStatusUpdateSecond.getRepresentmentOutcomeDate() &&
+                !paymentStatusUpdateSecond.getRepresentmentOutcomeDate().isEmpty()) {
 
             Optional<PaymentFailures> paymentFailure = paymentFailureRepository.findByFailureReference(failureReference);
 
             if (!paymentFailure.isPresent()) {
                 throw new PaymentNotFoundException("No Payment Failure available for the given Failure reference");
             } else {
-                Date pingTwoDate =  DateTime.parse(paymentStatusUpdateSecond.getRepresentmentDate()).withZone(DateTimeZone.UTC).toDate();
+                Date pingTwoDate =  DateTime.parse(paymentStatusUpdateSecond.getRepresentmentOutcomeDate()).withZone(DateTimeZone.UTC).toDate();
 
                 LOG.info("pingTwoDate time{}", pingTwoDate.getTime());
-                LOG.info("representation Date time{}", DateTime.parse(paymentStatusUpdateSecond.getRepresentmentDate()));
+                LOG.info("representation Date time{}", DateTime.parse(paymentStatusUpdateSecond.getRepresentmentOutcomeDate()));
                 LOG.info("getFailureEventDateTime time{}", paymentFailure.get().getFailureEventDateTime().getTime());
                 if (pingTwoDate.before(paymentFailure.get().getFailureEventDateTime())){
                     throw new InvalidPaymentFailureRequestException("Representment date can not be prior to failure event date");
                 }
-                if (paymentStatusUpdateSecond.getRepresentmentStatus().equals(RepresentmentStatus.Yes)
+                if (paymentStatusUpdateSecond.getRepresentmentSuccess().equals(RepresentmentSuccess.Yes)
                     && paymentFailure.get().getFailureType().equals("Chargeback")) {
                     paymentFailure.get().setHasAmountDebited("No");
                 }
                 paymentFailure.get()
-                        .setRepresentmentSuccess(paymentStatusUpdateSecond.getRepresentmentStatus().getStatus());
+                        .setRepresentmentSuccess(paymentStatusUpdateSecond.getRepresentmentSuccess().getStatus());
                 paymentFailure.get()
                         .setRepresentmentOutcomeDate(
-                                DateTime.parse(paymentStatusUpdateSecond.getRepresentmentDate()).withZone(
+                                DateTime.parse(paymentStatusUpdateSecond.getRepresentmentOutcomeDate()).withZone(
                                         DateTimeZone.UTC)
                                         .toDate());
                 PaymentFailures updatedPaymentFailure = paymentFailureRepository.save(paymentFailure.get());
