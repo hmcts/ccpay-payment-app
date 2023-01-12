@@ -267,6 +267,38 @@ public class PaymentStatusUpdateServiceImplTest {
     }
 
     @Test
+    public void givenValidInputWhenUpdatePaymentFailureThenValidOutputforChargeBack() throws ParseException {
+        PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
+            .representmentOutcomeDate("2021-10-10T10:10:10")
+            .representmentSuccess(RepresentmentSuccess.Yes)
+            .build();
+
+
+        String dateInString = "2021-10-09T10:10:10";
+        Date date = formatter.parse(dateInString);
+        PaymentFailures paymentFailure = PaymentFailures.paymentFailuresWith()
+            .failureType("Chargeback")
+            .paymentReference("RC1234")
+            .amount(BigDecimal.valueOf(555))
+            .ccdCaseNumber("123456789")
+            .failureReference("FR12345")
+            .id(1)
+            .reason("RR001")
+            .failureEventDateTime(date)
+            .representmentOutcomeDate(DateTime.parse(paymentStatusUpdateSecond.getRepresentmentOutcomeDate()).withZone(
+                    DateTimeZone.UTC)
+                .toDate())
+            .representmentSuccess("Yes")
+            .build();
+        when(paymentFailureRepository.findByFailureReference(anyString())).thenReturn(Optional.of(paymentFailure));
+        when(paymentFailureRepository.save(any())).thenReturn(paymentFailure);
+        PaymentFailures result = paymentStatusUpdateServiceImpl.updatePaymentFailure("dummy", paymentStatusUpdateSecond);
+        assertEquals(result.getRepresentmentSuccess(), paymentFailure.getRepresentmentSuccess());
+        assertEquals(result.getRepresentmentOutcomeDate(), paymentFailure.getRepresentmentOutcomeDate());
+    }
+
+
+    @Test
     public void testSuccessPaymentFailureReport(){
         when(paymentFailureRepository.findByDatesBetween(any(),any())).thenReturn(getPaymentFailuresList());
         when(paymentRepository.findByReferenceIn(any())).thenReturn(getPaymentList());
@@ -521,6 +553,19 @@ public class PaymentStatusUpdateServiceImplTest {
         assertEquals("Representment date can not be prior to failure event date", actualMessage);
     }
 
+    @Test
+    public void givenInvalidInputWhenUpdatePaymentFailureThenThrowsBadRequest() throws ParseException {
+        PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
+            .representmentSuccess(RepresentmentSuccess.Yes)
+            .build();
+
+        Exception exception = assertThrows(
+            InvalidPaymentFailureRequestException.class,
+            () -> paymentStatusUpdateServiceImpl.updatePaymentFailure("dummy", paymentStatusUpdateSecond)
+        );
+        String actualMessage = exception.getMessage();
+        assertEquals("Bad request", actualMessage);
+    }
 
     private PaymentStatusBouncedChequeDto getPaymentStatusBouncedChequeDto() {
 
