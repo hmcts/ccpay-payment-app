@@ -32,7 +32,6 @@ import static org.mockito.Mockito.when;
 @PactBroker(scheme = "${PACT_BROKER_SCHEME:http}", host = "${PACT_BROKER_URL:localhost}", port = "${PACT_BROKER_PORT:80}", consumerVersionSelectors = {
     @VersionSelector(tag = "master")})
 @Import(CreditAccountPaymentProviderTestConfiguration.class)
-@IgnoreNoPactsToVerify
 public class AccountProviderTest {
 
     @Value("${PACT_BRANCH_NAME}")
