@@ -18,16 +18,11 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.payment.api.controllers.ServiceRequestController;
-import uk.gov.hmcts.payment.api.domain.model.ServiceRequestBo;
 import uk.gov.hmcts.payment.api.domain.service.ServiceRequestDomainService;
-import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.ServiceRequestResponseDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
-import uk.gov.hmcts.payment.api.util.AccountStatus;
 
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.util.Date;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -37,7 +32,8 @@ import static org.mockito.Mockito.when;
 @PactBroker(scheme = "${PACT_BROKER_SCHEME:http}", host = "${PACT_BROKER_URL:localhost}", port = "${PACT_BROKER_PORT:80}", consumerVersionSelectors = {
     @VersionSelector(tag = "master")})
 @Import(ServiceRequestProviderTestConfiguration.class)
-public class ServiceRequestProviderTest {
+@IgnoreNoPactsToVerify
+class ServiceRequestProviderTest {
 
     @Value("${PACT_BRANCH_NAME}")
     String branchName;
