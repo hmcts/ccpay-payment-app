@@ -203,12 +203,10 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
     @Override
     public ResponseEntity updateTheRemissionAmount(String paymentReference, ResubmitRefundRemissionRequest request) {
         //Payment not found exception
-        BigDecimal refundEligibleAmount;
         Payment payment = paymentRepository.findByReference(paymentReference).orElseThrow(PaymentNotFoundException::new);
 
-        refundEligibleAmount = payment.getAmount().subtract(request.getTotalRefundedAmount());
             if (payment.getAmount().compareTo(request.getTotalRefundedAmount()) < 0) {
-                throw new InvalidRefundRequestException("The amount to refund can not be more than" + " " + "£" + refundEligibleAmount);
+                throw new InvalidRefundRequestException("Refund amount should not be more than Payment amount");
             }
 
             //If refund reason is retro-remission
