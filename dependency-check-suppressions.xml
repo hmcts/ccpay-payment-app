@@ -251,7 +251,6 @@
         </notes>
         <cve>CVE-2022-42003</cve>
         <cve>CVE-2022-42004</cve>
-        <cve>CVE-2022-42252</cve>
     </suppress>
     <suppress until="2023-03-31">
         <notes>
@@ -273,9 +272,28 @@
         </notes>
         <cve>CVE-2021-37533</cve>
     </suppress>
-
-    <suppress until="2022-12-31">
-        <cve>CVE-2021-37533</cve>
+    <suppress until="2023-03-31">
+        <notes>
+            A vulnerability, which was classified as problematic, has been found in fredsmith utils. This issue affects
+            some unknown processing of the file screenshot_sync of the component Filename Handler. The manipulation
+            leads to predictable from observable state. The name of the patch is
+            dbab1b66955eeb3d76b34612b358307f5c4e3944. It is recommended to apply a patch to fix this issue. The
+            identifier VDB-216749 was assigned to this vulnerability.
+        </notes>
+        <cve>CVE-2021-4277</cve>
+    </suppress>
+    <suppress until="2023-03-31">
+        <notes>
+            Due to unbounded alias chasing, a maliciously crafted YAML file can cause the system to consume significant
+            system resources. If parsing user input, this may be used as a denial of service vector.
+        </notes>
+        <cve>CVE-2021-4235</cve>
+    </suppress>
+    <suppress until="2023-03-31">
+        <notes>
+            Parsing malicious or large YAML documents can consume excessive amounts of CPU or memory.
+        </notes>
+        <cve>CVE-2022-3064</cve>
     </suppress>
     <!-- Supression Group ends here -->
 </suppressions>
