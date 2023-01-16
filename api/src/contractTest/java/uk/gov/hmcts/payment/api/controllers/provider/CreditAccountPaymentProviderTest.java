@@ -39,6 +39,7 @@ import uk.gov.hmcts.payment.api.service.FeePayApportionService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.util.AccountStatus;
+import uk.gov.hmcts.payment.api.util.ServiceRequestCaseUtil;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
 import uk.gov.hmcts.payment.api.validators.DuplicatePaymentValidator;
@@ -58,6 +59,7 @@ import static org.mockito.Mockito.when;
 @PactBroker(scheme = "${PACT_BROKER_SCHEME:http}", host = "${PACT_BROKER_URL:localhost}", port = "${PACT_BROKER_PORT:80}", consumerVersionSelectors = {
     @VersionSelector(tag = "master")})
 @Import(CreditAccountPaymentProviderTestConfiguration.class)
+@IgnoreNoPactsToVerify
 class CreditAccountPaymentProviderTest {
 
     private static final String ACCOUNT_NUMBER_KEY = "accountNumber";
@@ -115,6 +117,12 @@ class CreditAccountPaymentProviderTest {
     AuthTokenGenerator authTokenGenerator;
     @Autowired
     PaymentService<PaymentFeeLink, String> paymentService;
+
+    @Autowired
+    ServiceRequestCaseUtil serviceRequestCaseUtil;
+
+    @Autowired
+    PaymentFeeLinkRepository paymentFeeLinkRepository;
 
     private final static String PAYMENT_CHANNEL_ONLINE = "online";
 

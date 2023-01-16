@@ -22,15 +22,13 @@ import uk.gov.hmcts.payment.api.domain.service.ServiceRequestDomainService;
 import uk.gov.hmcts.payment.api.dto.ServiceRequestResponseDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
 
-import java.io.IOException;
-
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
 @Provider("payment_accounts")
 @PactBroker(scheme = "${PACT_BROKER_SCHEME:http}", host = "${PACT_BROKER_URL:localhost}", port = "${PACT_BROKER_PORT:80}", consumerVersionSelectors = {
-    @VersionSelector(tag = "master")})
+    @VersionSelector(tag = "Dev")})
 @Import(ServiceRequestProviderTestConfiguration.class)
 @IgnoreNoPactsToVerify
 class ServiceRequestProviderTest {
@@ -60,7 +58,7 @@ class ServiceRequestProviderTest {
     }
 
     @State({"A Service Request Can be Created for a valid Payload"})
-    public void toReturnAccountDetails() throws IOException, JSONException {
+    public void toReturnAccountDetails() throws JSONException {
 
         ServiceRequestResponseDto serviceRequestResponseDto
             = ServiceRequestResponseDto.serviceRequestResponseDtoWith().serviceRequestReference("2020-1234567890123").build();

@@ -69,7 +69,8 @@ import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 @PactBroker(scheme = "${PACT_BROKER_SCHEME:http}", host = "${PACT_BROKER_URL:localhost}", port = "${PACT_BROKER_PORT:80}", consumerVersionSelectors = {
     @VersionSelector(tag = "master")})
 @Import(CardPaymentProviderTestConfiguration.class)
-public class CardPaymentProviderTest {
+@IgnoreNoPactsToVerify
+class CardPaymentProviderTest {
 
     @Autowired
     PaymentDtoMapper paymentDtoMapper;
