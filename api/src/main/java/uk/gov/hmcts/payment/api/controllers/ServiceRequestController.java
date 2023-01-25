@@ -31,11 +31,7 @@ import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
 import uk.gov.hmcts.payment.api.exception.LiberataServiceTimeoutException;
 import uk.gov.hmcts.payment.api.exceptions.PaymentServiceNotFoundException;
-import uk.gov.hmcts.payment.api.model.FeePayApportion;
-import uk.gov.hmcts.payment.api.model.IdempotencyKeys;
-import uk.gov.hmcts.payment.api.model.Payment;
-import uk.gov.hmcts.payment.api.model.PaymentFee;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.service.FeePayApportionService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
@@ -144,6 +140,9 @@ public class ServiceRequestController {
         ObjectMapper objectMapper = new ObjectMapper();
         Function<String, Optional<IdempotencyKeys>> getIdempotencyKey = idempotencyKeyToCheck -> idempotencyService.findTheRecordByIdempotencyKey(idempotencyKeyToCheck);
 
+        //TODO: remove 'ResponseEntity DELETETHISTEST = ' once test is completed.
+        ResponseEntity DELETETHISTEST = serviceRequestDomainService.createIdempotencyRecordWithoutResponse(objectMapper, idempotencyKey, serviceRequestReference, serviceRequestPaymentDto);
+
         ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
         String serviceRequestStatusDisplay = ow.writeValueAsString(serviceRequestPaymentDto);
         LOG.info("Passed service Request Status Display PBA payment : {} ", serviceRequestStatusDisplay);
@@ -174,9 +173,6 @@ public class ServiceRequestController {
             ResponseEntity responseEntity = validateHashcodeForRequest.apply(idempotencyKeysRow.get());
             return responseEntity;
         }
-
-        //TODO: remove 'ResponseEntity DELETETHISTEST = ' once test is completed.
-        ResponseEntity DELETETHISTEST = serviceRequestDomainService.createIdempotencyRecordWithoutResponse(objectMapper, idempotencyKey, serviceRequestReference, serviceRequestPaymentDto);
 
         //business validations for serviceRequest
         LOG.info("Business valid start + Service Request Reference passed to business validation {}", serviceRequestReference);
