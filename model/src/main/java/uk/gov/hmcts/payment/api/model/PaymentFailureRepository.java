@@ -20,4 +20,7 @@ public interface PaymentFailureRepository extends CrudRepository<PaymentFailures
 
     @Query("select pf from PaymentFailures pf where  (paymentReference IS NULL or paymentReference ='') and dcn IS NOT NULL")
     List<PaymentFailures> findDcn();
+
+    Optional<List<PaymentFailures>> findByPaymentReferenceIn(List<String> paymentReference);
+
 }
