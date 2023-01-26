@@ -135,6 +135,7 @@ public class ServiceRequestController {
                                                                                                @PathVariable("service-request-reference") String serviceRequestReference,
                                                                                                @Valid @RequestBody ServiceRequestPaymentDto serviceRequestPaymentDto) throws CheckDigitException, JsonProcessingException {
 
+
         idempotencyKey = serviceRequestPaymentDto.getIdempotencyKey();
         LOG.info("PBA payment started");
         ObjectMapper objectMapper = new ObjectMapper();
