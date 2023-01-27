@@ -83,26 +83,21 @@ public class FeePayApportionController {
             List<FeePayApportion> feePayApportionList = paymentService.findByPaymentId(payment.get().getId());
             if(feePayApportionList != null && !feePayApportionList.isEmpty()) {
                 LOG.info("Apportion details available in FeePayApportionController size {}", feePayApportionList.size());
+                List<Integer> feeIdList = feePayApportionList.stream().map(FeePayApportion::getFeeId).collect(Collectors.toList());
+                LOG.info("feeIdList size {}", feeIdList.size());
                 List<PaymentFee> feeList = new ArrayList<>();
-                List<PaymentFee> paymentFeeList = new ArrayList<>();
-                try {
-                    paymentFeeList = paymentFeeRepository.findAll();
-                }
-                catch(Exception e) {
-                    LOG.error(e.getMessage());
-                }
+                List<PaymentFee> paymentFeeList = paymentFeeRepository.findByIdIn(feeIdList);
                 LOG.info("paymentFeeList Size {}", paymentFeeList.size());
                 for (FeePayApportion feePayApportion : feePayApportionList)
                 {
                     LOG.info("Inside FeePayApportion section in FeePayApportionController");
-                    Optional<PaymentFee> apportionedFee = Optional.ofNullable(paymentFeeList.stream().filter(e->e.getId().equals(feePayApportion.getFeeId())).collect(Collectors.toList()).get(0));
-                    if(apportionedFee.isPresent())
-                    {
-                        LOG.info("Apportioned fee is present");
-                        PaymentFee fee = apportionedFee.get();
-                        LOG.info("apportion amount value in FeePayApportionController: {}", feePayApportion.getApportionAmount());
-                        fee.setApportionAmount(feePayApportion.getApportionAmount());
-                        feeList.add(fee);
+                    for (PaymentFee apportionedFee : paymentFeeList) {
+                        if (null != apportionedFee) {
+                            LOG.info("Apportioned fee is present");
+                            LOG.info("apportion amount value in FeePayApportionController: {}", feePayApportion.getApportionAmount());
+                            apportionedFee.setApportionAmount(feePayApportion.getApportionAmount());
+                            feeList.add(apportionedFee);
+                        }
                     }
                 }
                 LOG.info("feeList size {}", feeList.size());
