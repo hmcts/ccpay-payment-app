@@ -23,22 +23,14 @@ import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.mapper.CreditAccountPaymentRequestMapper;
 import uk.gov.hmcts.payment.api.mapper.PBAStatusErrorMapper;
-import uk.gov.hmcts.payment.api.model.FeePayApportionRepository;
-import uk.gov.hmcts.payment.api.model.PaymentChannel;
-import uk.gov.hmcts.payment.api.model.PaymentChannelRepository;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
-import uk.gov.hmcts.payment.api.model.PaymentFeeRepository;
-import uk.gov.hmcts.payment.api.model.PaymentMethod;
-import uk.gov.hmcts.payment.api.model.PaymentMethodRepository;
-import uk.gov.hmcts.payment.api.model.PaymentStatus;
-import uk.gov.hmcts.payment.api.model.PaymentStatusRepository;
+import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.service.CreditAccountPaymentService;
 import uk.gov.hmcts.payment.api.service.FeePayApportionService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.util.AccountStatus;
+import uk.gov.hmcts.payment.api.util.ServiceRequestCaseUtil;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
 import uk.gov.hmcts.payment.api.validators.DuplicatePaymentValidator;
@@ -59,7 +51,7 @@ import static org.mockito.Mockito.when;
     @VersionSelector(tag = "master")})
 @Import(CreditAccountPaymentProviderTestConfiguration.class)
 @IgnoreNoPactsToVerify
-public class CreditAccountPaymentProviderTest {
+class CreditAccountPaymentProviderTest {
 
     private static final String ACCOUNT_NUMBER_KEY = "accountNumber";
     private static final String ACCOUNT_NAME_KEY = "accountName";
@@ -116,6 +108,12 @@ public class CreditAccountPaymentProviderTest {
     AuthTokenGenerator authTokenGenerator;
     @Autowired
     PaymentService<PaymentFeeLink, String> paymentService;
+
+    @Autowired
+    ServiceRequestCaseUtil serviceRequestCaseUtil;
+
+    @Autowired
+    PaymentFeeLinkRepository paymentFeeLinkRepository;
 
     private final static String PAYMENT_CHANNEL_ONLINE = "online";
 
@@ -195,7 +193,30 @@ public class CreditAccountPaymentProviderTest {
             .build();
 
         when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenReturn(organisationalServiceDto);
-    }
 
+        Payment payment = Payment.paymentWith().userId("ABC")
+                .amount(new BigDecimal("22.89"))
+                .description("DEF")
+                .ccdCaseNumber("1234567890123456")
+                .caseReference("GHI")
+                .siteId("AA007")
+                .serviceType("Probate")
+                .s2sServiceName("JKL")
+                .paymentChannel(PaymentChannel.ONLINE)
+                .paymentMethod(PaymentMethod.paymentMethodWith().description("Payment by account").name("Payment by account").build())
+                .paymentProvider(PaymentProvider.paymentProviderWith().description("Gov pay").name("gov pay").build())
+                .paymentStatus(PaymentStatus.paymentStatusWith().description(s).name(success).build())
+                .reference("paymentReference")
+                .serviceCallbackUrl("dummy.com")
+                .build();
+        PaymentFee paymentFee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("22.89")).version("1").code("X0011").build();
+        PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith()
+                .paymentReference("RC-1634-1251-8187-7595")
+                .payments(Collections.singletonList(payment))
+                .fees(Arrays.asList(paymentFee))
+                .build();
+        when(serviceRequestCaseUtil.enhanceWithServiceRequestCaseDetails(any(), (Payment) any())).thenReturn(paymentFeeLink);
+        when(paymentFeeLinkRepository.save(any())).thenReturn(paymentFeeLink);
+    }
 
 }

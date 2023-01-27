@@ -18,16 +18,9 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.payment.api.controllers.ServiceRequestController;
-import uk.gov.hmcts.payment.api.domain.model.ServiceRequestBo;
 import uk.gov.hmcts.payment.api.domain.service.ServiceRequestDomainService;
-import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.ServiceRequestResponseDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
-import uk.gov.hmcts.payment.api.util.AccountStatus;
-
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.util.Date;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -38,7 +31,7 @@ import static org.mockito.Mockito.when;
     @VersionSelector(tag = "master")})
 @Import(ServiceRequestProviderTestConfiguration.class)
 @IgnoreNoPactsToVerify
-public class ServiceRequestProviderTest {
+class ServiceRequestProviderTest {
 
     @Value("${PACT_BRANCH_NAME}")
     String branchName;
@@ -65,7 +58,7 @@ public class ServiceRequestProviderTest {
     }
 
     @State({"A Service Request Can be Created for a valid Payload"})
-    public void toReturnAccountDetails() throws IOException, JSONException {
+    public void toReturnAccountDetails() throws JSONException {
 
         ServiceRequestResponseDto serviceRequestResponseDto
             = ServiceRequestResponseDto.serviceRequestResponseDtoWith().serviceRequestReference("2020-1234567890123").build();
