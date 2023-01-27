@@ -84,7 +84,13 @@ public class FeePayApportionController {
             if(feePayApportionList != null && !feePayApportionList.isEmpty()) {
                 LOG.info("Apportion details available in FeePayApportionController size {}", feePayApportionList.size());
                 List<PaymentFee> feeList = new ArrayList<>();
-                List<PaymentFee> paymentFeeList = paymentFeeRepository.findAll();
+                List<PaymentFee> paymentFeeList = null;
+                try {
+                    paymentFeeList = paymentFeeRepository.findAll();
+                }
+                catch(Exception e) {
+                    LOG.error(e.getMessage());
+                }
                 LOG.info("paymentFeeList Size {}", paymentFeeList.size());
                 for (FeePayApportion feePayApportion : feePayApportionList)
                 {
