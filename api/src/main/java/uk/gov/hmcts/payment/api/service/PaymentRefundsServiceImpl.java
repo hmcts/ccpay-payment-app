@@ -735,6 +735,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                         }
                     }
         }
+        LOG.info("Before returning paymentGroupDto from checkRefundAgainstRemissionFeeApportion {}", paymentGroupDto.getPaymentGroupReference());
         return paymentGroupDto;
     }
 
