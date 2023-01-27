@@ -60,11 +60,11 @@ withNightlyPipeline("java", product, component) {
     enableFullFunctionalTest()
     enableSlackNotifications('#cc-payments-tech')
 
-    after('fortify-scan') {
+    afterAlways('fortify-scan') {
         steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/Fortify Scan/**/*'
     }
 
-    after('test') {
+    afterAlways('test') {
 
         publishHTML target: [
             allowMissing         : true,
@@ -104,7 +104,7 @@ withNightlyPipeline("java", product, component) {
 
     }
 
-    after('fullFunctionalTest') {
+    afterAlways('fullFunctionalTest') {
 
         publishHTML target: [
             allowMissing         : true,
