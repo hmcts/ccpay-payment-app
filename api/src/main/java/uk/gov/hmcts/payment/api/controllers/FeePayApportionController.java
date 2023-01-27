@@ -70,7 +70,7 @@ public class FeePayApportionController {
     })
     @GetMapping(value = "/payment-groups/fee-pay-apportion/{paymentreference}")
     public ResponseEntity<PaymentGroupDto> retrieveApportionDetails(@PathVariable("paymentreference") String paymentReference,@RequestHeader(required = false) MultiValueMap<String, String> headers) {
-        LOG.info("Invoking new API in FeePayApportionController");
+        LOG.info("Invoking GET API retrieveApportionDetails in FeePayApportionController {}", paymentReference);
         PaymentFeeLink paymentFeeLink = paymentService.retrieve(paymentReference);
         boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
         LOG.info("apportionFeature value in FeePayApportionController: {}", apportionFeature);
@@ -82,9 +82,10 @@ public class FeePayApportionController {
             LOG.info("Apportion feature is true and payment is available in FeePayApportionController");
             List<FeePayApportion> feePayApportionList = paymentService.findByPaymentId(payment.get().getId());
             if(feePayApportionList != null && !feePayApportionList.isEmpty()) {
-                LOG.info("Apportion details available in FeePayApportionController");
+                LOG.info("Apportion details available in FeePayApportionController size {}", feePayApportionList.size());
                 List<PaymentFee> feeList = new ArrayList<>();
                 List<PaymentFee> paymentFeeList = paymentFeeRepository.findAll();
+                LOG.info("paymentFeeList Size {}", paymentFeeList.size());
                 for (FeePayApportion feePayApportion : feePayApportionList)
                 {
                     LOG.info("Inside FeePayApportion section in FeePayApportionController");
@@ -98,11 +99,13 @@ public class FeePayApportionController {
                         feeList.add(fee);
                     }
                 }
+                LOG.info("feeList size {}", feeList.size());
                 paymentFeeLink.setFees(feeList);
             }
-
         }
+        LOG.info("Before calling toPaymentGroupDto payment Ref {}", paymentFeeLink.getPaymentReference());
         PaymentGroupDto paymentGroupDto  = paymentGroupDtoMapper.toPaymentGroupDto(paymentFeeLink);
+        LOG.info("Before checking Refund");
         paymentGroupDto = paymentRefundsService.checkRefundAgainstRemissionFeeApportion(headers, paymentGroupDto, paymentReference);
         return new ResponseEntity<>(paymentGroupDto, HttpStatus.OK);
     }
