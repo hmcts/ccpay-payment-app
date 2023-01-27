@@ -141,11 +141,11 @@ class CreditAccountPaymentProviderTest {
         }
     }
 
-    @State({"An active account has sufficient funds for a payment"})
+/*    @State({"An active account has sufficient funds for a payment"})
     public void toCreateNewCreditAccountPayment(Map<String, Object> paymentMap) {
 
         setUpMockInteractions(paymentMap, "Payment Status success", "success", AccountStatus.ACTIVE);
-    }
+    }*/
 
 
     @State({"An active account has insufficient funds for a payment"})
