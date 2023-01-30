@@ -24,11 +24,7 @@ import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.mapper.CreditAccountPaymentRequestMapper;
 import uk.gov.hmcts.payment.api.mapper.PBAStatusErrorMapper;
 import uk.gov.hmcts.payment.api.model.*;
-import uk.gov.hmcts.payment.api.service.AccountService;
-import uk.gov.hmcts.payment.api.service.CreditAccountPaymentService;
-import uk.gov.hmcts.payment.api.service.FeePayApportionService;
-import uk.gov.hmcts.payment.api.service.PaymentService;
-import uk.gov.hmcts.payment.api.service.ReferenceDataService;
+import uk.gov.hmcts.payment.api.service.*;
 import uk.gov.hmcts.payment.api.util.AccountStatus;
 import uk.gov.hmcts.payment.api.util.ServiceRequestCaseUtil;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
@@ -39,16 +35,18 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Map;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.payment.api.model.PaymentFee.feeWith;
+import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 
 @ExtendWith(SpringExtension.class)
 @Provider("payment_creditAccountPayment")
 @PactBroker(scheme = "${PACT_BROKER_SCHEME:http}", host = "${PACT_BROKER_URL:localhost}", port = "${PACT_BROKER_PORT:80}", consumerVersionSelectors = {
-    @VersionSelector(tag = "master")})
+    @VersionSelector(tag = "Dev")})
 @Import(CreditAccountPaymentProviderTestConfiguration.class)
 @IgnoreNoPactsToVerify
 class CreditAccountPaymentProviderTest {
@@ -112,9 +110,6 @@ class CreditAccountPaymentProviderTest {
     @Autowired
     ServiceRequestCaseUtil serviceRequestCaseUtil;
 
-    @Autowired
-    PaymentFeeLinkRepository paymentFeeLinkRepository;
-
     private final static String PAYMENT_CHANNEL_ONLINE = "online";
 
     private final static String PAYMENT_METHOD = "payment by account";
@@ -141,11 +136,11 @@ class CreditAccountPaymentProviderTest {
         }
     }
 
-/*    @State({"An active account has sufficient funds for a payment"})
+    @State({"An active account has sufficient funds for a payment"})
     public void toCreateNewCreditAccountPayment(Map<String, Object> paymentMap) {
 
         setUpMockInteractions(paymentMap, "Payment Status success", "success", AccountStatus.ACTIVE);
-    }*/
+    }
 
 
     @State({"An active account has insufficient funds for a payment"})
@@ -194,6 +189,13 @@ class CreditAccountPaymentProviderTest {
 
         when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenReturn(organisationalServiceDto);
 
+        PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith()
+                .paymentReference("RC-1634-1251-8187-7595")
+                .orgId("")
+                .enterpriseServiceName("")
+                .ccdCaseNumber("")
+                .caseReference("")
+                .build();
         Payment payment = Payment.paymentWith().userId("ABC")
                 .amount(new BigDecimal("22.89"))
                 .description("DEF")
@@ -208,15 +210,57 @@ class CreditAccountPaymentProviderTest {
                 .paymentStatus(PaymentStatus.paymentStatusWith().description(s).name(success).build())
                 .reference("paymentReference")
                 .serviceCallbackUrl("dummy.com")
+                .paymentLink(paymentFeeLink)
                 .build();
         PaymentFee paymentFee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("22.89")).version("1").code("X0011").build();
-        PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith()
+        PaymentFeeLink paymentFeeLink1 = PaymentFeeLink.paymentFeeLinkWith()
                 .paymentReference("RC-1634-1251-8187-7595")
                 .payments(Collections.singletonList(payment))
                 .fees(Arrays.asList(paymentFee))
+                .orgId("")
+                .enterpriseServiceName("")
+                .ccdCaseNumber("")
+                .caseReference("")
                 .build();
         when(serviceRequestCaseUtil.enhanceWithServiceRequestCaseDetails(any(), (Payment) any())).thenReturn(paymentFeeLink);
-        when(paymentFeeLinkRepository.save(any())).thenReturn(paymentFeeLink);
+        PaymentFeeLink paymentLink = populateCreditPaymentToDb("1", "e2kkddts5215h9qqoeuth5c0v", "ccd_gw").getPaymentLink();
+
+        when(paymentFeeLinkRepositoryMock.save(any(PaymentFeeLink.class))).thenReturn(paymentLink);
+
+    }
+
+    private Payment populateCreditPaymentToDb(String number, String externalReference, String s2sServiceName) {
+        //Create a payment in remissionDbBackdoor
+        Date now = new Date();
+        StatusHistory statusHistory = StatusHistory.statusHistoryWith().status("Initiated").externalStatus("created").build();
+        Payment payment = Payment.paymentWith()
+                .amount(new BigDecimal("99.99"))
+                .caseReference("Reference" + number)
+                .ccdCaseNumber("ccdCaseNumber" + number)
+                .description("Test payments statuses for " + number)
+                .serviceType("Divorce")
+                .s2sServiceName(s2sServiceName)
+                .currency("GBP")
+                .siteId("AA0" + number)
+                .userId("USER_ID")
+                .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+                .paymentMethod(PaymentMethod.paymentMethodWith().name("Payment by account").build())
+                .paymentProvider(PaymentProvider.paymentProviderWith().name("gov pay").build())
+                .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
+                .externalReference(externalReference)
+                .reference("RC-1519-9028-2432-000" + number)
+                .status("submitted")
+                .statusHistories(Arrays.asList(statusHistory))
+                .dateUpdated(now)
+                .dateCreated(now)
+                .build();
+
+        PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE000" + number).volume(1).build();
+
+        PaymentFeeLink paymentFeeLink =
+                paymentFeeLinkWith().paymentReference("2018-0000000000" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)).build();
+        payment.setPaymentLink(paymentFeeLink);
+        return payment;
     }
 
 }
