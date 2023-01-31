@@ -138,7 +138,6 @@ public class ServiceRequestController {
         LOG.info("idempotencyKey {} {}", idempotencyKey, serviceRequestReference);
         LOG.info("serviceRequestReference {}", serviceRequestReference);
         LOG.info("serviceRequestPaymentDto {} {}", serviceRequestPaymentDto, serviceRequestReference);
-        LOG.info("");
 
         idempotencyKey = serviceRequestPaymentDto.getIdempotencyKey();
         LOG.info("PBA payment started {}", serviceRequestReference);
@@ -160,12 +159,12 @@ public class ServiceRequestController {
                 LOG.info("idempontency keys get hashcode: {} {}", idempotencyKeys.getRequest_hashcode(), serviceRequestReference);
                 LOG.info("serviceRequestPaymentDto hashCodeWithServiceRequestReference: {} {}", serviceRequestPaymentDto.hashCodeWithServiceRequestReference(serviceRequestReference), serviceRequestReference);
                 if (!idempotencyKeys.getRequest_hashcode().equals(serviceRequestPaymentDto.hashCodeWithServiceRequestReference(serviceRequestReference))) {
+                    LOG.info("inside duplicate payment {}", serviceRequestReference);
                     return new ResponseEntity<>("Payment already present for idempotency key with different payment details", HttpStatus.CONFLICT); // 409 if hashcode not matched
-                    LOG.info("inside duplicate payment {}", serviceRequestReference)
                 }
                 if (idempotencyKeys.getResponseCode() >= 500) {
+                    LOG.info("inside 500+ response", serviceRequestReference);
                     return new ResponseEntity<>(idempotencyKeys.getResponseBody(), HttpStatus.valueOf(idempotencyKeys.getResponseCode()));
-                    LOG.info("inside 500+ response", serviceRequestReference)
                 }
                 responseBO = objectMapper.readValue(idempotencyKeys.getResponseBody(), ServiceRequestPaymentBo.class);
             } catch (JsonProcessingException e) {
@@ -179,9 +178,9 @@ public class ServiceRequestController {
         //Idempotency Check
         Optional<IdempotencyKeys> idempotencyKeysRow = getIdempotencyKey.apply(idempotencyKey);
         if (idempotencyKeysRow.isPresent()) {
-            LOG.info("inside line 182 idempotency check {}", serviceRequestReference)
+            LOG.info("inside line 182 idempotency check {}", serviceRequestReference);
             ResponseEntity responseEntity = validateHashcodeForRequest.apply(idempotencyKeysRow.get());
-            LOG.info("reponse entity {} {}", responseEntity, serviceRequestReference)
+            LOG.info("reponse entity {} {}", responseEntity, serviceRequestReference);
             return responseEntity;
         }
 
