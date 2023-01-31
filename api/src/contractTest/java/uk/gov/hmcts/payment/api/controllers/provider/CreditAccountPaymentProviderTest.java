@@ -46,7 +46,7 @@ import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 @ExtendWith(SpringExtension.class)
 @Provider("payment_creditAccountPayment")
 @PactBroker(scheme = "${PACT_BROKER_SCHEME:http}", host = "${PACT_BROKER_URL:localhost}", port = "${PACT_BROKER_PORT:80}", consumerVersionSelectors = {
-    @VersionSelector(tag = "Dev")})
+    @VersionSelector(tag = "master")})
 @Import(CreditAccountPaymentProviderTestConfiguration.class)
 @IgnoreNoPactsToVerify
 class CreditAccountPaymentProviderTest {
@@ -189,43 +189,8 @@ class CreditAccountPaymentProviderTest {
 
         when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenReturn(organisationalServiceDto);
 
-        PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith()
-                .paymentReference("RC-1634-1251-8187-7595")
-                .orgId("")
-                .enterpriseServiceName("")
-                .ccdCaseNumber("")
-                .caseReference("")
-                .build();
-        Payment payment = Payment.paymentWith().userId("ABC")
-                .amount(new BigDecimal("22.89"))
-                .description("DEF")
-                .ccdCaseNumber("1234567890123456")
-                .caseReference("GHI")
-                .siteId("AA007")
-                .serviceType("Probate")
-                .s2sServiceName("JKL")
-                .paymentChannel(PaymentChannel.ONLINE)
-                .paymentMethod(PaymentMethod.paymentMethodWith().description("Payment by account").name("Payment by account").build())
-                .paymentProvider(PaymentProvider.paymentProviderWith().description("Gov pay").name("gov pay").build())
-                .paymentStatus(PaymentStatus.paymentStatusWith().description(s).name(success).build())
-                .reference("paymentReference")
-                .serviceCallbackUrl("dummy.com")
-                .paymentLink(paymentFeeLink)
-                .build();
-        PaymentFee paymentFee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("22.89")).version("1").code("X0011").build();
-        PaymentFeeLink paymentFeeLink1 = PaymentFeeLink.paymentFeeLinkWith()
-                .paymentReference("RC-1634-1251-8187-7595")
-                .payments(Collections.singletonList(payment))
-                .fees(Arrays.asList(paymentFee))
-                .orgId("")
-                .enterpriseServiceName("")
-                .ccdCaseNumber("")
-                .caseReference("")
-                .build();
-        when(serviceRequestCaseUtil.enhanceWithServiceRequestCaseDetails(any(), (Payment) any())).thenReturn(paymentFeeLink);
         PaymentFeeLink paymentLink = populateCreditPaymentToDb("1", "e2kkddts5215h9qqoeuth5c0v", "ccd_gw").getPaymentLink();
-
-        when(paymentFeeLinkRepositoryMock.save(any(PaymentFeeLink.class))).thenReturn(paymentLink);
+        when(serviceRequestCaseUtil.enhanceWithServiceRequestCaseDetails(any(), (Payment) any())).thenReturn(paymentLink);
 
     }
 
