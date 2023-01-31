@@ -295,5 +295,19 @@
         </notes>
         <cve>CVE-2022-3064</cve>
     </suppress>
+    <suppress until="2023-03-31">
+        <notes>
+            spring-cloud-starter needs major version upgrade.
+        </notes>
+        <cve>CVE-2020-5412</cve>
+    </suppress>
+    <suppress until="2023-03-31">
+        <notes>
+            spring-security needs version upgrade
+        </notes>
+        <cve>CVE-2022-31692</cve>
+        <cve>CVE-2022-31692</cve>
+    </suppress>
+
     <!-- Supression Group ends here -->
 </suppressions>
