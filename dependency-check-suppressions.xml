@@ -305,7 +305,7 @@
         <notes>
             spring-security needs version upgrade
         </notes>
-        <cve>CVE-2022-31692</cve>
+        <cve>CVE-2022-31690</cve>
         <cve>CVE-2022-31692</cve>
     </suppress>
 
