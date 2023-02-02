@@ -21,7 +21,6 @@ import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.util.AccountStatus;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Date;
 
@@ -33,7 +32,7 @@ import static org.mockito.Mockito.when;
     @VersionSelector(tag = "master")})
 @Import(CreditAccountPaymentProviderTestConfiguration.class)
 @IgnoreNoPactsToVerify
-public class AccountProviderTest {
+class AccountProviderTest {
 
     @Value("${PACT_BRANCH_NAME}")
     String branchName;
@@ -60,7 +59,7 @@ public class AccountProviderTest {
     }
 
     @State({"An account exists with identifier PBA1234"})
-    public void toReturnAccountDetails() throws IOException, JSONException {
+    public void toReturnAccountDetails() throws JSONException {
 
         AccountDto expectedDto = new AccountDto("PBA1234", "accountName", new BigDecimal(100),
             new BigDecimal(100), AccountStatus.ACTIVE, new Date());

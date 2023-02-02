@@ -296,5 +296,11 @@
         <cve>CVE-2022-3064</cve>
         <cve>CVE-2022-45143</cve>
     </suppress>
+    <suppress until="2023-03-31">
+        <notes>
+            Spring Cloud Netflix
+        </notes>
+        <cve>CVE-2020-5412</cve>
+    </suppress>
     <!-- Supression Group ends here -->
 </suppressions>
