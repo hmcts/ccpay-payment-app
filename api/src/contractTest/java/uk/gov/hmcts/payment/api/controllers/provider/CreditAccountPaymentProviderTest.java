@@ -23,22 +23,10 @@ import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.mapper.CreditAccountPaymentRequestMapper;
 import uk.gov.hmcts.payment.api.mapper.PBAStatusErrorMapper;
-import uk.gov.hmcts.payment.api.model.FeePayApportionRepository;
-import uk.gov.hmcts.payment.api.model.PaymentChannel;
-import uk.gov.hmcts.payment.api.model.PaymentChannelRepository;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
-import uk.gov.hmcts.payment.api.model.PaymentFeeRepository;
-import uk.gov.hmcts.payment.api.model.PaymentMethod;
-import uk.gov.hmcts.payment.api.model.PaymentMethodRepository;
-import uk.gov.hmcts.payment.api.model.PaymentStatus;
-import uk.gov.hmcts.payment.api.model.PaymentStatusRepository;
-import uk.gov.hmcts.payment.api.service.AccountService;
-import uk.gov.hmcts.payment.api.service.CreditAccountPaymentService;
-import uk.gov.hmcts.payment.api.service.FeePayApportionService;
-import uk.gov.hmcts.payment.api.service.PaymentService;
-import uk.gov.hmcts.payment.api.service.ReferenceDataService;
+import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.service.*;
 import uk.gov.hmcts.payment.api.util.AccountStatus;
+import uk.gov.hmcts.payment.api.util.ServiceRequestCaseUtil;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
 import uk.gov.hmcts.payment.api.validators.DuplicatePaymentValidator;
@@ -47,11 +35,13 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Map;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.payment.api.model.PaymentFee.feeWith;
+import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 
 @ExtendWith(SpringExtension.class)
 @Provider("payment_creditAccountPayment")
@@ -59,7 +49,7 @@ import static org.mockito.Mockito.when;
     @VersionSelector(tag = "master")})
 @Import(CreditAccountPaymentProviderTestConfiguration.class)
 @IgnoreNoPactsToVerify
-public class CreditAccountPaymentProviderTest {
+class CreditAccountPaymentProviderTest {
 
     private static final String ACCOUNT_NUMBER_KEY = "accountNumber";
     private static final String ACCOUNT_NAME_KEY = "accountName";
@@ -116,6 +106,9 @@ public class CreditAccountPaymentProviderTest {
     AuthTokenGenerator authTokenGenerator;
     @Autowired
     PaymentService<PaymentFeeLink, String> paymentService;
+
+    @Autowired
+    ServiceRequestCaseUtil serviceRequestCaseUtil;
 
     private final static String PAYMENT_CHANNEL_ONLINE = "online";
 
@@ -195,7 +188,44 @@ public class CreditAccountPaymentProviderTest {
             .build();
 
         when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenReturn(organisationalServiceDto);
+
+        PaymentFeeLink paymentLink = populateCreditPaymentToDb("1", "e2kkddts5215h9qqoeuth5c0v", "ccd_gw").getPaymentLink();
+        when(serviceRequestCaseUtil.enhanceWithServiceRequestCaseDetails(any(), (Payment) any())).thenReturn(paymentLink);
+
     }
 
+    private Payment populateCreditPaymentToDb(String number, String externalReference, String s2sServiceName) {
+        //Create a payment in remissionDbBackdoor
+        Date now = new Date();
+        StatusHistory statusHistory = StatusHistory.statusHistoryWith().status("Initiated").externalStatus("created").build();
+        Payment payment = Payment.paymentWith()
+                .amount(new BigDecimal("99.99"))
+                .caseReference("Reference" + number)
+                .ccdCaseNumber("ccdCaseNumber" + number)
+                .description("Test payments statuses for " + number)
+                .serviceType("Divorce")
+                .s2sServiceName(s2sServiceName)
+                .currency("GBP")
+                .siteId("AA0" + number)
+                .userId("USER_ID")
+                .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+                .paymentMethod(PaymentMethod.paymentMethodWith().name("Payment by account").build())
+                .paymentProvider(PaymentProvider.paymentProviderWith().name("gov pay").build())
+                .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
+                .externalReference(externalReference)
+                .reference("RC-1519-9028-2432-000" + number)
+                .status("submitted")
+                .statusHistories(Arrays.asList(statusHistory))
+                .dateUpdated(now)
+                .dateCreated(now)
+                .build();
+
+        PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE000" + number).volume(1).build();
+
+        PaymentFeeLink paymentFeeLink =
+                paymentFeeLinkWith().paymentReference("2018-0000000000" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)).build();
+        payment.setPaymentLink(paymentFeeLink);
+        return payment;
+    }
 
 }
