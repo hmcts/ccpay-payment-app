@@ -144,10 +144,6 @@ public class ServiceRequestController {
         ObjectMapper objectMapper = new ObjectMapper();
         Function<String, Optional<IdempotencyKeys>> getIdempotencyKey = idempotencyKeyToCheck -> idempotencyService.findTheRecordByIdempotencyKey(idempotencyKeyToCheck);
 
-
-        //TODO: remove 'ResponseEntity DELETETHISTEST = ' once test is completed.
-        ResponseEntity DELETETHISTEST = serviceRequestDomainService.createIdempotencyRecordWithoutResponse(objectMapper, idempotencyKey, serviceRequestReference, serviceRequestPaymentDto);
-
         ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
         String serviceRequestStatusDisplay = ow.writeValueAsString(serviceRequestPaymentDto);
         LOG.info("Passed service Request Status Display PBA payment : {} {}", serviceRequestStatusDisplay, serviceRequestReference);
@@ -176,13 +172,18 @@ public class ServiceRequestController {
 
 
         //Idempotency Check
+        LOG.info("idempotencyKey 175 {} {}", idempotencyKey, serviceRequestReference);
         Optional<IdempotencyKeys> idempotencyKeysRow = getIdempotencyKey.apply(idempotencyKey);
+        LOG.info("idempotencyKey 177 {} {}", idempotencyKey, serviceRequestReference);
         if (idempotencyKeysRow.isPresent()) {
-            LOG.info("inside line 182 idempotency check {}", serviceRequestReference);
+            LOG.info("inside line 179 idempotency check {}", serviceRequestReference);
             ResponseEntity responseEntity = validateHashcodeForRequest.apply(idempotencyKeysRow.get());
             LOG.info("reponse entity {} {}", responseEntity, serviceRequestReference);
             return responseEntity;
         }
+
+        //TODO: remove 'ResponseEntity DELETETHISTEST = ' once test is completed.
+        ResponseEntity DELETETHISTEST = serviceRequestDomainService.createIdempotencyRecordWithoutResponse(objectMapper, idempotencyKey, serviceRequestReference, serviceRequestPaymentDto);
 
         //business validations for serviceRequest
         LOG.info("Business valid start and Service Request Reference passed to business validation: {}", serviceRequestReference);
