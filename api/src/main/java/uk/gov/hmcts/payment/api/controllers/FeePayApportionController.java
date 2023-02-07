@@ -91,13 +91,15 @@ public class FeePayApportionController {
                 for (FeePayApportion feePayApportion : feePayApportionList)
                 {
                     LOG.info("Inside FeePayApportion section in FeePayApportionController");
-                    for (PaymentFee apportionedFee : paymentFeeList) {
-                        if (null != apportionedFee) {
-                            LOG.info("Apportioned fee is present");
-                            LOG.info("apportion amount value in FeePayApportionController: {}", feePayApportion.getApportionAmount());
-                            apportionedFee.setApportionAmount(feePayApportion.getApportionAmount());
-                            feeList.add(apportionedFee);
-                        }
+                    LOG.info("FeePayApportion FeeId {}", feePayApportion.getFeeId());
+                    Optional<PaymentFee> apportionedFee = Optional.ofNullable(paymentFeeList.stream().filter
+                        (e->e.getId().equals(feePayApportion.getFeeId())).collect(Collectors.toList()).get(0));
+                    if(apportionedFee.isPresent()) {
+                        LOG.info("Apportioned fee is present");
+                        PaymentFee fee = apportionedFee.get();
+                        LOG.info("apportion amount value in FeePayApportionController: {}", feePayApportion.getApportionAmount());
+                        fee.setApportionAmount(feePayApportion.getApportionAmount());
+                        feeList.add(fee);
                     }
                 }
                 LOG.info("feeList size {}", feeList.size());
