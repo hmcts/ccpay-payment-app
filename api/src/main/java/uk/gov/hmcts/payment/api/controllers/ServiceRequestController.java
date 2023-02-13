@@ -135,7 +135,7 @@ public class ServiceRequestController {
     @ResponseBody
     @ResponseStatus(HttpStatus.CREATED)
     @Transactional
-    public ResponseEntity<ServiceRequestPaymentBo> createCreditAccountPaymentForServiceRequest(@ApiParam(value = "idempotency_key", hidden = true)@RequestHeader(required = false) String idempotencyKey,
+    public synchronized ResponseEntity<ServiceRequestPaymentBo> createCreditAccountPaymentForServiceRequest(@ApiParam(value = "idempotency_key", hidden = true)@RequestHeader(required = false) String idempotencyKey,
                                                                                                @PathVariable("service-request-reference") String serviceRequestReference,
                                                                                                @Valid @RequestBody ServiceRequestPaymentDto serviceRequestPaymentDto) throws CheckDigitException, JsonProcessingException {
 
