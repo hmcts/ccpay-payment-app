@@ -182,8 +182,8 @@ public class ServiceRequestController {
             return responseEntity;
         }
 
-        //TODO: remove 'ResponseEntity DELETETHISTEST = ' once test is completed.
-        ResponseEntity DELETETHISTEST = serviceRequestDomainService.createIdempotencyRecordWithoutResponse(objectMapper, idempotencyKey, serviceRequestReference, serviceRequestPaymentDto);
+        //TODO: remove 'ResponseEntity IdempotencyWithoutResponse = ' once test is completed.
+        ResponseEntity IdempotencyWithoutResponse = serviceRequestDomainService.createIdempotencyRecordWithoutResponse(objectMapper, idempotencyKey, serviceRequestReference, serviceRequestPaymentDto);
 
         //business validations for serviceRequest
         LOG.info("Business valid start and Service Request Reference passed to business validation: {}", serviceRequestReference);
@@ -219,8 +219,8 @@ public class ServiceRequestController {
         //Create Idempotency Record
         LOG.info("Create Idemptotency Record {} {} {}", objectMapper, idempotencyKey, serviceRequestReference);
 
-        LOG.info("Last log before return, here is return {} {}", DELETETHISTEST, serviceRequestReference);
-        return DELETETHISTEST;
+        LOG.info("Last log before return, here is return {} {}", IdempotencyWithoutResponse, serviceRequestReference);
+        return IdempotencyWithoutResponse;
 
 //        TODO: Uncomment below once updateIdemptoencyRecord is fixed.
 //        return serviceRequestDomainService.updateIdempotencyRecord(objectMapper, idempotencyKey, responseJson, responseEntity, serviceRequestReference, serviceRequestPaymentDto);
