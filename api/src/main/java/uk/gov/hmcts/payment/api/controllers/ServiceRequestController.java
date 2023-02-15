@@ -138,49 +138,65 @@ public class ServiceRequestController {
     public synchronized ResponseEntity<ServiceRequestPaymentBo> createCreditAccountPaymentForServiceRequest(@ApiParam(value = "idempotency_key", hidden = true)@RequestHeader(required = false) String idempotencyKey,
                                                                                                @PathVariable("service-request-reference") String serviceRequestReference,
                                                                                                @Valid @RequestBody ServiceRequestPaymentDto serviceRequestPaymentDto) throws CheckDigitException, JsonProcessingException {
+    //TODO: Adding additional logging to troubleshoot issue -> remove these later on to clean up code.
+        LOG.info("idempotencyKey {} {}", idempotencyKey, serviceRequestReference);
+        LOG.info("serviceRequestReference {}", serviceRequestReference);
+        LOG.info("serviceRequestPaymentDto {} {}", serviceRequestPaymentDto, serviceRequestReference);
 
         idempotencyKey = serviceRequestPaymentDto.getIdempotencyKey();
-        LOG.info("PBA payment started");
+        LOG.info("PBA payment started {}", serviceRequestReference);
         ObjectMapper objectMapper = new ObjectMapper();
         Function<String, Optional<IdempotencyKeys>> getIdempotencyKey = idempotencyKeyToCheck -> idempotencyService.findTheRecordByIdempotencyKey(idempotencyKeyToCheck);
 
         ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
         String serviceRequestStatusDisplay = ow.writeValueAsString(serviceRequestPaymentDto);
-        LOG.info("Passed service Request Status Display PBA payment : {} ", serviceRequestStatusDisplay);
+        LOG.info("Passed service Request Status Display PBA payment : {} {}", serviceRequestStatusDisplay, serviceRequestReference);
 
         Function<IdempotencyKeys, ResponseEntity<?>> validateHashcodeForRequest = idempotencyKeys -> {
 
             ServiceRequestPaymentBo responseBO;
             try {
+                LOG.info("idempontency keys get hashcode: {} {}", idempotencyKeys.getRequest_hashcode(), serviceRequestReference);
+                LOG.info("serviceRequestPaymentDto hashCodeWithServiceRequestReference: {} {}", serviceRequestPaymentDto.hashCodeWithServiceRequestReference(serviceRequestReference), serviceRequestReference);
                 if (!idempotencyKeys.getRequest_hashcode().equals(serviceRequestPaymentDto.hashCodeWithServiceRequestReference(serviceRequestReference))) {
+                    LOG.info("inside duplicate payment {}", serviceRequestReference);
                     return new ResponseEntity<>("Payment already present for idempotency key with different payment details", HttpStatus.CONFLICT); // 409 if hashcode not matched
                 }
                 if (idempotencyKeys.getResponseCode() >= 500) {
+                    LOG.info("inside 500+ response", serviceRequestReference);
                     return new ResponseEntity<>(idempotencyKeys.getResponseBody(), HttpStatus.valueOf(idempotencyKeys.getResponseCode()));
                 }
                 responseBO = objectMapper.readValue(idempotencyKeys.getResponseBody(), ServiceRequestPaymentBo.class);
             } catch (JsonProcessingException e) {
                 return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
             }
+            LOG.info("hashcode matched {}", serviceRequestReference);
             return new ResponseEntity<>(responseBO, HttpStatus.valueOf(idempotencyKeys.getResponseCode())); // if hashcode matched
         };
 
 
         //Idempotency Check
+        LOG.info("idempotencyKey 175 {} {}", idempotencyKey, serviceRequestReference);
         Optional<IdempotencyKeys> idempotencyKeysRow = getIdempotencyKey.apply(idempotencyKey);
+        LOG.info("idempotencyKey 177 {} {}", idempotencyKey, serviceRequestReference);
         if (idempotencyKeysRow.isPresent()) {
+            LOG.info("inside line 179 idempotency check {}", serviceRequestReference);
             ResponseEntity responseEntity = validateHashcodeForRequest.apply(idempotencyKeysRow.get());
+            LOG.info("reponse entity {} {}", responseEntity, serviceRequestReference);
             return responseEntity;
         }
 
         //business validations for serviceRequest
+        LOG.info("Business valid start and Service Request Reference passed to business validation: {}", serviceRequestReference);
         PaymentFeeLink serviceRequest = serviceRequestDomainService.businessValidationForServiceRequests(serviceRequestDomainService.find(serviceRequestReference), serviceRequestPaymentDto);
+        LOG.info("Business validation end {}", serviceRequestReference);
 
         //PBA Payment
         ServiceRequestPaymentBo serviceRequestPaymentBo = null;
         ResponseEntity responseEntity;
         String responseJson;
         try {
+            LOG.info("enetered payment block pba {}", serviceRequestReference);
             serviceRequestPaymentBo = serviceRequestDomainService.addPayments(serviceRequest, serviceRequestReference, serviceRequestPaymentDto);
             HttpStatus httpStatus;
             if(serviceRequestPaymentBo.getError() != null && serviceRequestPaymentBo.getError().getErrorCode().equals("CA-E0004")) {
@@ -192,7 +208,7 @@ public class ServiceRequestController {
             }else{
                 httpStatus = HttpStatus.CREATED;
             }
-            LOG.info("PBA payment status : {}" ,httpStatus );
+            LOG.info("PBA payment status : {} {}" ,httpStatus, serviceRequestReference);
             responseEntity = new ResponseEntity<>(serviceRequestPaymentBo, httpStatus);
             responseJson = objectMapper.writeValueAsString(serviceRequestPaymentBo);
         } catch (LiberataServiceTimeoutException liberataServiceTimeoutException) {
@@ -200,6 +216,8 @@ public class ServiceRequestController {
             responseEntity = new ResponseEntity<>(liberataServiceTimeoutException.getMessage(), HttpStatus.GATEWAY_TIMEOUT);
             responseJson = liberataServiceTimeoutException.getMessage();
         }
+
+        LOG.info("Create Idemptotency Record {} {} {}", objectMapper, idempotencyKey, serviceRequestReference);
 
         //Create Idempotency Record
         return serviceRequestDomainService.createIdempotencyRecord(objectMapper, idempotencyKey, serviceRequestReference, responseJson, responseEntity, serviceRequestPaymentDto);
