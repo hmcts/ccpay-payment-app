@@ -27,10 +27,9 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
 @Provider("payment_accounts")
-@PactBroker(scheme = "${PACT_BROKER_SCHEME:http}", host = "${PACT_BROKER_URL:localhost}", port = "${PACT_BROKER_PORT:80}", consumerVersionSelectors = {
+@PactBroker(scheme = "https", host = "pact-broker.platform.hmcts.net", port = "443", consumerVersionSelectors = {
     @VersionSelector(tag = "master")})
 @Import(ServiceRequestProviderTestConfiguration.class)
-@IgnoreNoPactsToVerify
 class ServiceRequestProviderTest {
 
     @Value("${PACT_BRANCH_NAME}")
@@ -49,6 +48,7 @@ class ServiceRequestProviderTest {
 
     @BeforeEach
     void before(PactVerificationContext context) {
+        System.getProperties().setProperty("pact.verifier.publishResults", "true");
         MockMvcTestTarget testTarget = new MockMvcTestTarget();
         testTarget.setControllers(
             new ServiceRequestController(serviceRequestDomainServiceMock));
