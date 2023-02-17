@@ -96,7 +96,7 @@ dependencies {
     compile group: 'org.springframework.boot', name: 'spring-boot-starter-security'
     compile group: 'org.springframework.boot', name: 'spring-boot-starter-actuator', version: '2.3.6.RELEASE'
     compile group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa'
-    compile group: 'org.springframework.cloud', name: 'spring-cloud-starter-netflix-hystrix', version: '2.1.2.RELEASE'
+    compile group: 'org.springframework.cloud', name: 'spring-cloud-starter-netflix-hystrix', version: '2.1.6.RELEASE'
     compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.9'
     compile group: 'net.logstash.logback', name: 'logstash-logback-encoder', version: '5.0'
     compile group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.11'
@@ -237,6 +237,7 @@ task providerContractTest(type: Test) {
 
 task runProviderPactVerification(type: Test) {
     logger.lifecycle("Runs pact provider Tests")
+    systemProperty 'pact.verifier.publishResults','true'
     testClassesDirs = sourceSets.contractTest.output.classesDirs
     classpath = sourceSets.contractTest.runtimeClasspath
 }
