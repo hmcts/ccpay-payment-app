@@ -69,7 +69,6 @@ import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 @PactBroker(scheme = "${PACT_BROKER_SCHEME:http}", host = "${PACT_BROKER_URL:localhost}", port = "${PACT_BROKER_PORT:80}", consumerVersionSelectors = {
     @VersionSelector(tag = "master")})
 @Import(CardPaymentProviderTestConfiguration.class)
-@IgnoreNoPactsToVerify
 class CardPaymentProviderTest {
 
     @Autowired
@@ -145,6 +144,7 @@ class CardPaymentProviderTest {
 
     @BeforeEach
     void before(PactVerificationContext context) {
+        System.getProperties().setProperty("pact.verifier.publishResults", "true");
         MockMvcTestTarget testTarget = new MockMvcTestTarget();
         testTarget.setControllers(
             new CardPaymentController(cardDelegatingPaymentService, paymentDtoMapper, cardDetailsService, pciPalPaymentService, ff4j,

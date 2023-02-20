@@ -48,7 +48,6 @@ import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 @PactBroker(scheme = "${PACT_BROKER_SCHEME:http}", host = "${PACT_BROKER_URL:localhost}", port = "${PACT_BROKER_PORT:80}", consumerVersionSelectors = {
     @VersionSelector(tag = "master")})
 @Import(CreditAccountPaymentProviderTestConfiguration.class)
-@IgnoreNoPactsToVerify
 class CreditAccountPaymentProviderTest {
 
     private static final String ACCOUNT_NUMBER_KEY = "accountNumber";
@@ -125,7 +124,7 @@ class CreditAccountPaymentProviderTest {
     @BeforeEach
     void before(PactVerificationContext context) {
         // Uncomment the line below in order to pubish verification to pact broker (not for PR pipeline!!!)
-        // System.getProperties().setProperty("pact.verifier.publishResults", "true");
+        System.getProperties().setProperty("pact.verifier.publishResults", "true");
         MockMvcTestTarget testTarget = new MockMvcTestTarget();
         testTarget.setControllers(
             new CreditAccountPaymentController(creditAccountPaymentService, creditAccountDtoMapper, accountServiceMock, paymentValidator,
@@ -189,15 +188,29 @@ class CreditAccountPaymentProviderTest {
 
         when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenReturn(organisationalServiceDto);
 
-        PaymentFeeLink paymentLink = populateCreditPaymentToDb("1", "e2kkddts5215h9qqoeuth5c0v", "ccd_gw").getPaymentLink();
+        PaymentFeeLink paymentLink = populateCreditPaymentToDb("1", "e2kkddts5215h9qqoeuth5c0v", "ccd_gw", success, s, accountStatus).getPaymentLink();
         when(serviceRequestCaseUtil.enhanceWithServiceRequestCaseDetails(any(), (Payment) any())).thenReturn(paymentLink);
 
     }
 
-    private Payment populateCreditPaymentToDb(String number, String externalReference, String s2sServiceName) {
+    private Payment populateCreditPaymentToDb(String number, String externalReference, String s2sServiceName, String success, String desc, AccountStatus accountStatus) {
+
+        String errorCode = null;
+        String errorMessage = null;
+        if (AccountStatus.ACTIVE.equals(accountStatus)) {
+            errorCode = "CA-E0001";
+            errorMessage = "Payment request failed . PBA account CAERPHILLY COUNTY BOROUGH COUNCIL have insufficient funds available";
+        } else if (AccountStatus.ON_HOLD.equals(accountStatus)) {
+            errorCode = "CA-E0003";
+            errorMessage = "Your account is on hold";
+        } else if (AccountStatus.DELETED.equals(accountStatus)) {
+            errorCode = "CA-E0004";
+            errorMessage = "Your account is deleted";
+        }
+
         //Create a payment in remissionDbBackdoor
         Date now = new Date();
-        StatusHistory statusHistory = StatusHistory.statusHistoryWith().status("Initiated").externalStatus("created").build();
+        StatusHistory statusHistory = StatusHistory.statusHistoryWith().message(errorMessage).status(success).externalStatus(success).errorCode(errorCode).build();
         Payment payment = Payment.paymentWith()
                 .amount(new BigDecimal("99.99"))
                 .caseReference("Reference" + number)
@@ -211,7 +224,7 @@ class CreditAccountPaymentProviderTest {
                 .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
                 .paymentMethod(PaymentMethod.paymentMethodWith().name("Payment by account").build())
                 .paymentProvider(PaymentProvider.paymentProviderWith().name("gov pay").build())
-                .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
+                .paymentStatus(PaymentStatus.paymentStatusWith().name(success).description(desc).build())
                 .externalReference(externalReference)
                 .reference("RC-1519-9028-2432-000" + number)
                 .status("submitted")
