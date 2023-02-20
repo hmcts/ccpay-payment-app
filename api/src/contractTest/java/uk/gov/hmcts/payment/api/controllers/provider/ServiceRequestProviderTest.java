@@ -27,7 +27,7 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
 @Provider("payment_accounts")
-@PactBroker(scheme = "https", host = "pact-broker.platform.hmcts.net", port = "443", consumerVersionSelectors = {
+@PactBroker(scheme = "${PACT_BROKER_SCHEME:http}", host = "${PACT_BROKER_URL:localhost}", port = "${PACT_BROKER_PORT:80}", consumerVersionSelectors = {
     @VersionSelector(tag = "master")})
 @Import(ServiceRequestProviderTestConfiguration.class)
 class ServiceRequestProviderTest {
