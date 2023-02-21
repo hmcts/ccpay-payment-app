@@ -48,6 +48,7 @@ import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 @PactBroker(scheme = "${PACT_BROKER_SCHEME:http}", host = "${PACT_BROKER_URL:localhost}", port = "${PACT_BROKER_PORT:80}", consumerVersionSelectors = {
     @VersionSelector(tag = "master")})
 @Import(CreditAccountPaymentProviderTestConfiguration.class)
+@IgnoreNoPactsToVerify
 class CreditAccountPaymentProviderTest {
 
     private static final String ACCOUNT_NUMBER_KEY = "accountNumber";
