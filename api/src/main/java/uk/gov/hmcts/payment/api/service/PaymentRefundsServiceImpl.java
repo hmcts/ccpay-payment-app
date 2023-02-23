@@ -752,7 +752,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             List<String> paymentList = new ArrayList<>();
             for (PaymentGroupDto paymentGroupDto : paymentGroupResponse.getPaymentGroups()) {
 
-                if(!paymentGroupDto.getPayments().isEmpty()) {
+                if(null != paymentGroupDto.getPayments()) {
                     for (PaymentDto payment : paymentGroupDto.getPayments()) {
 
                         paymentList.add(payment.getReference());
