@@ -88,7 +88,7 @@ public class RefundRequestorJourneyBulkscanPaymentFunctionalTest {
             TOKENS_INITIALIZED = true;
 
             USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE =
-                idamService.createUserWithSearchScope(CMC_CASE_WORKER_GROUP, "payments-refund")
+                idamService.createUserWithSearchScope(CMC_CASE_WORKER_GROUP, "payments-refund", "payments-refund-divorce")
                     .getAuthorisationToken();
             SERVICE_TOKEN_PAYMENT = s2sTokenService.getS2sToken("ccpay_bubble", testProps.payBubbleS2SSecret);
         }
