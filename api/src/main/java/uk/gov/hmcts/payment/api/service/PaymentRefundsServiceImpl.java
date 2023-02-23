@@ -223,8 +223,10 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             RefundListDtoResponse refundListDtoResponse = getRefundsFromRefundService(ccdCaseNumber, headers);
 
             LOG.info("refundListDtoResponse : {}", refundListDtoResponse);
+            LOG.info("paymentGroupResponse.getPaymentGroups() : {}", paymentGroupResponse.getPaymentGroups().size());
 
             paymentGroupResponse.getPaymentGroups().forEach(paymentGroup -> {
+            LOG.info("paymentGroupResponse.getPaymentGroups() : {}", paymentGroup.getPayments().size());
 
                 paymentGroup.getPayments().forEach(paymentDto -> {
 
