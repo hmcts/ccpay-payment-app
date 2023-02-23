@@ -6,13 +6,15 @@ import uk.gov.hmcts.payment.api.dto.PaymentGroupResponse;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 
+import java.util.List;
+
 public interface RefundRemissionEnableService {
 
     Boolean returnRefundEligible(Payment payment);
 
     Boolean returnRemissionEligible(PaymentFee fee);
 
-    boolean isRolePresent(MultiValueMap<String, String> headers);
+    void setUserRoles(MultiValueMap<String, String> headers);
 
 }
 

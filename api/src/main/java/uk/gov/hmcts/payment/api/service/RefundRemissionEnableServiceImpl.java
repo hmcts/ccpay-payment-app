@@ -1,9 +1,11 @@
 package uk.gov.hmcts.payment.api.service;
 
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,6 +51,8 @@ public class RefundRemissionEnableServiceImpl implements RefundRemissionEnableSe
 
     boolean isRoles=false;
 
+    List<String> roles = null;
+
     public Boolean returnRefundEligible(Payment payment) {
 
         boolean refundEligibleDate;
@@ -59,10 +63,10 @@ public class RefundRemissionEnableServiceImpl implements RefundRemissionEnableSe
         if(refundLagTimeFeature){
             refundEligibleDate = calculateLagDate(payment);
             return payment.getPaymentStatus().getName().equalsIgnoreCase(STATUS) && refundEligibleDate
-                && isRoles;
+                && validateRefundRoleWithServiceName(payment.getPaymentLink().getEnterpriseServiceName());
         }
         else{
-            return payment.getPaymentStatus().getName().equalsIgnoreCase(STATUS) && isRoles;
+            return payment.getPaymentStatus().getName().equalsIgnoreCase(STATUS) && validateRefundRoleWithServiceName(payment.getPaymentLink().getEnterpriseServiceName());
         }
 
     }
@@ -98,25 +102,49 @@ public class RefundRemissionEnableServiceImpl implements RefundRemissionEnableSe
                 }
             }
 
-            return !isRemission && remissionEligible && isRoles;
+            return !isRemission && remissionEligible && validateRefundRoleWithServiceName(fee.getPaymentLink().getEnterpriseServiceName());
         }
         else{
-            return !isRemission && isRoles;
+            return !isRemission && validateRefundRoleWithServiceName(fee.getPaymentLink().getEnterpriseServiceName());
         }
 
     }
 
-    public boolean isRolePresent(MultiValueMap<String, String> headers) {
+    public void setUserRoles(MultiValueMap<String, String> headers) {
 
         if (!headers.isEmpty()) {
             IdamUserIdResponse uid = idamService.getUserId(headers);
             if(!uid.getRoles().isEmpty()){
-                isRoles=uid.getRoles().contains(AUTHORISED_REFUNDS_ROLE) || uid.getRoles().contains(AUTHORISED_REFUNDS_APPROVER_ROLE);
+                roles = new ArrayList<String>();
+                roles.addAll(uid.getRoles());
             }
         }
-        return isRoles;
     }
 
+    private boolean validateRefundRoleWithServiceName(String serviceName) {
+
+        boolean isRefundRoleForService = true;
+        LOG.info("Validate Refund Role With Service Name ---> roles {}", roles.toString());
+        LOG.info("Validate Refund Role With Service Name ---> serviceName {}", serviceName);
+        String serviceNameRefundRole = AUTHORISED_REFUNDS_ROLE + "-" + serviceName.replace(" ","-")
+            .toLowerCase();
+        String serviceNameRefundApprovalRole = AUTHORISED_REFUNDS_APPROVER_ROLE + "-" + serviceName.replace(" ","-")
+            .toLowerCase();
+        LOG.info("Validate Refund Role With Service Name ---> roles {}", roles.toString());
+        LOG.info("Validate Refund Role With Service Name ---> serviceName {}", serviceName);
+        List<String> refundServiceRoles = roles.stream().filter(role ->
+                role.toLowerCase().contains(serviceNameRefundRole.toLowerCase())
+                    || role.toLowerCase().contains(serviceNameRefundApprovalRole.toLowerCase()))
+            .collect(Collectors.toList());
+
+        LOG.info("Validate Refund Role With Service Name ---> roles {}", roles.toString());
+        LOG.info("Validate Refund Role With Service Name ---> serviceName {}", serviceName);
+        LOG.info("Validate Refund Role With Service Name ---> refundServiceRoles {}", refundServiceRoles.toString());
+        if (refundServiceRoles == null || refundServiceRoles.isEmpty()) {
+            isRefundRoleForService = false;
+        }
+        return isRefundRoleForService;
+    }
 }
 
 
