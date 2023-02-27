@@ -180,7 +180,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                         .ccdCaseNumber(payment.getCcdCaseNumber()) // ccd case number
                         .refundReason("RR036")//Refund reason category would be other
                         .feeIds(getFeeIdsUsingPaymentFees(Collections.singletonList(paymentFee)))
-                        .refundFees(getRefundFeesUsingPaymentFee(Collections.singletonList(paymentFee)))
+                        .refundFees(getRefundFeesUsingPaymentFee(Collections.singletonList(paymentFee),remissionAmount ))
                         .serviceType(payment.getServiceType())
                         .paymentMethod(payment.getPaymentMethod().getName())
                         .contactDetails(retrospectiveRemissionRequest.getContactDetails())
@@ -368,14 +368,14 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             .collect(Collectors.toList());
     }
 
-    private List<RefundFeesDto> getRefundFeesUsingPaymentFee(List<PaymentFee> paymentFees) {
+    private List<RefundFeesDto> getRefundFeesUsingPaymentFee(List<PaymentFee> paymentFees, BigDecimal remissionAmount) {
         return paymentFees.stream()
             .map(fee -> RefundFeesDto.refundFeesDtoWith()
                 .fee_id(fee.getId())
                 .code(fee.getCode())
                 .version(fee.getVersion())
                 .volume(fee.getVolume())
-                .refundAmount(fee.getNetAmount())
+                .refundAmount(remissionAmount)
                 .build())
             .collect(Collectors.toList());
     }
