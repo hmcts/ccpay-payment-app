@@ -128,19 +128,19 @@ public class PaymentGroupServiceImpl implements PaymentGroupService<PaymentFeeLi
 
         List<PaymentFeeLink> paymentFeeLinkWithMatchingPayments
             = paymentFeeLinkRepository.findAll(findPaymentGroupsWithMatchingCriteria(ccdCaseNumber, PAYMENTS));
-
+        LOG.info("paymentFeeLinkWithMatchingPayments size {}",paymentFeeLinkWithMatchingPayments.size());
         List<PaymentFeeLink> paymentFeeLinkWithMatchingFees
             = paymentFeeLinkRepository.findAll(findPaymentGroupsWithMatchingCriteria(ccdCaseNumber, FEES));
-
+        LOG.info("paymentFeeLinkWithMatchingFees size {}",paymentFeeLinkWithMatchingFees.size());
         List<PaymentFeeLink> paymentFeeLinkWithMatchingRemissions
             = paymentFeeLinkRepository.findAll(findPaymentGroupsWithMatchingCriteria(ccdCaseNumber, REMISSIONS));
-
+        LOG.info("paymentFeeLinkWithMatchingRemissions size {}",paymentFeeLinkWithMatchingRemissions.size());
         List<PaymentFeeLink> paymentFeeLinks = Stream.of(paymentFeeLinkWithMatchingPayments, paymentFeeLinkWithMatchingFees,
             paymentFeeLinkWithMatchingRemissions)
             .flatMap(Collection::stream)
             .distinct()
             .collect(Collectors.toList());
-
+        LOG.info("paymentFeeLinks size {}",paymentFeeLinks.size());
         paymentFeeLinks.sort(Comparator.comparing(PaymentFeeLink::getDateUpdated));
 
         return paymentFeeLinks;

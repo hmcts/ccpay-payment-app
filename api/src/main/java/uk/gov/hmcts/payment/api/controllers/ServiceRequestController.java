@@ -288,7 +288,6 @@ public class ServiceRequestController {
         PaymentStatusDto paymentStatusDto = paymentDtoMapper.toPaymentStatusDto(serviceRequestReference, "", paymentNew, serviceRequestStatus);
         serviceRequestDomainService.sendMessageToTopic(paymentStatusDto, paymentFeeLink.getCallBackUrl());
         String jsonpaymentStatusDto = ow.writeValueAsString(paymentStatusDto);
-        LOG.info("json format paymentStatusDto to Topic {}",jsonpaymentStatusDto);
         LOG.info("callback URL paymentStatusDto to Topic {}",paymentFeeLink.getCallBackUrl());
         return paymentDtoMapper.toRetrieveCardPaymentResponseDtoWithoutExtReference( retrieveDelegatingPaymentService, internalReference);
     }
