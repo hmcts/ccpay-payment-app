@@ -269,7 +269,6 @@ public class ServiceRequestController {
     public PaymentDto retrieveStatusByInternalReference(@PathVariable("internal-reference") String internalReference) throws JsonProcessingException {
         LOG.info("Entered /card-payments/{internal-reference}/status using internalReference: {}", internalReference);
         Payment payment = paymentService.findPayment(internalReference);
-        LOG.info("internalReference: {} - Payment: {}", internalReference, payment);
         List<FeePayApportion> feePayApportionList = paymentService.findByPaymentId(payment.getId());
         if(feePayApportionList.isEmpty()){
             throw new PaymentNotSuccessException("Payment is not successful");
