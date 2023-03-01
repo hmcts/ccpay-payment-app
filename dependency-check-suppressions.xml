@@ -301,6 +301,7 @@
             Spring Cloud Netflix
         </notes>
         <cve>CVE-2020-5412</cve>
+        <cve>CVE-2022-45688</cve>
     </suppress>
     <!-- Supression Group ends here -->
 </suppressions>
