@@ -302,5 +302,9 @@
         </notes>
         <cve>CVE-2020-5412</cve>
     </suppress>
+    <suppress until="2023-03-31">
+        <cve>CVE-2022-45688</cve>
+        <cve>CVE-2023-24998</cve>
+    </suppress>
     <!-- Supression Group ends here -->
 </suppressions>
