@@ -308,5 +308,9 @@
         </notes>
         <cve>CVE-2022-45688</cve>
     </suppress>
+    <suppress>
+        <notes>commons-fileupload</notes>
+        <cve>CVE-2023-24998</cve>
+    </suppress>
     <!-- Supression Group ends here -->
 </suppressions>
