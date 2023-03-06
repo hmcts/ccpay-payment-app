@@ -294,7 +294,6 @@
             Parsing malicious or large YAML documents can consume excessive amounts of CPU or memory.
         </notes>
         <cve>CVE-2022-3064</cve>
-        <cve>CVE-2022-45143</cve>
     </suppress>
     <suppress until="2023-03-31">
         <notes>
@@ -302,19 +301,16 @@
         </notes>
         <cve>CVE-2020-5412</cve>
     </suppress>
-    <suppress until="2023-03-31">
-        <notes>
-            Apache Commons FileUpload before 1.5 does not limit the number of request parts to be processed
-            resulting in the possibility of an attacker triggering a DoS with a malicious upload or series of uploads.
-        </notes>
-        <cve>CVE-2023-24998</cve>
-    </suppress>
-    <suppress until="2023-03-31">
-        <notes>
-            The XML.toJSONObject component of hutool-json v5.8.10 allows attackers to cause a Denial of Service (DoS)
-            via crafted JSON or XML data.
+    <suppress>
+        <notes>A stack overflow in the XML.toJSONObject component of hutool-json v5.8.10
+            allows attackers to cause a Denial of Service (DoS) via crafted JSON or XML data.
+            New version of jackson-core needed to resolve this issue.
         </notes>
         <cve>CVE-2022-45688</cve>
+    </suppress>
+    <suppress>
+        <notes>commons-fileupload</notes>
+        <cve>CVE-2023-24998</cve>
     </suppress>
     <!-- Supression Group ends here -->
 </suppressions>
