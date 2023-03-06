@@ -17,6 +17,7 @@ public class ServiceToTokenMap {
         servicesMap.put("specified money claims", "cmc");
         servicesMap.put("family private law", "prl_cos_api");
         servicesMap.put("immigration and asylum appeals", "iac");
+        servicesMap.put("damages", "cmc");
     }
 
     public String getServiceKeyVaultName(String serviceName) {
