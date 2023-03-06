@@ -309,6 +309,12 @@
         <cve>CVE-2022-45688</cve>
     </suppress>
     <suppress>
+        <notes>The JsonErrorReportValve in Apache Tomcat 8.5.83, 9.0.40 to 9.0.68 and
+            10.1.0-M1 to 10.1.1 did not escape the type, message or description values.
+        </notes>
+        <cve>CVE-2022-45143</cve>
+    </suppress>
+    <suppress>
         <notes>commons-fileupload</notes>
         <cve>CVE-2023-24998</cve>
     </suppress>
