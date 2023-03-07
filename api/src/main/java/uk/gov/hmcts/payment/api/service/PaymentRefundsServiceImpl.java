@@ -838,9 +838,6 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                                             }
                                         }
                                     );
-                                    for (PaymentDto payment : paymentGroupDto.getPayments()) {
-                                        payment.setIssueRefund(true);
-                                    }
                                     paymentGroupDto.getPayments().forEach(paymentDto -> {
 
                                         BigDecimal netAmount = fee.getCalculatedAmount().subtract(remission.getHwfAmount());
