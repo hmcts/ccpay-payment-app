@@ -92,7 +92,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         validateBounceChequeRequest(paymentStatusBouncedChequeDto, payment.get());
         validatePingOneDate(paymentStatusBouncedChequeDto.getEventDateTime(), payment.get().getDateUpdated());
 
-        PaymentFailures paymentFailuresMap = paymentStatusDtoMapper.bounceChequeRequestMapper(paymentStatusBouncedChequeDto);
+        PaymentFailures paymentFailuresMap = paymentStatusDtoMapper.bounceChequeRequestMapper(paymentStatusBouncedChequeDto, payment.get());
         try{
 
             PaymentFailures insertPaymentFailure = paymentFailureRepository.save(paymentFailuresMap);

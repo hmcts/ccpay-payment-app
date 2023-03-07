@@ -109,7 +109,7 @@ public class PaymentStatusUpdateServiceImplTest {
         Payment payment = getPayment();
         PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto =getPaymentStatusBouncedChequeDto();
         when(paymentRepository.findByReference(any())).thenReturn(Optional.of(payment));
-        when(paymentStatusDtoMapper.bounceChequeRequestMapper(any())).thenReturn(paymentFailures);
+        when(paymentStatusDtoMapper.bounceChequeRequestMapper(any(), any())).thenReturn(paymentFailures);
         when(paymentFailureRepository.save(any())).thenReturn(paymentFailures);
         PaymentFailures paymentFailures = paymentStatusUpdateServiceImpl.insertBounceChequePaymentFailure(paymentStatusBouncedChequeDto);
         assertNotNull(paymentFailures);
