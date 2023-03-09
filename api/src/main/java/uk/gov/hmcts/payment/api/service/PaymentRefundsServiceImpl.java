@@ -846,8 +846,6 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
                                             if (amountCompare == amountCompareValue) {
                                                 remission.setAddRefund(true);
-                                            }else {
-                                                remission.setAddRefund(false);
                                             }
                                     }
                                     );
