@@ -54,7 +54,6 @@ public class ServiceRequestDomainDataEntityMapper {
     }
 
     public Payment toPaymentEntity(ServiceRequestOnlinePaymentBo requestOnlinePaymentBo, GovPayPayment govPayPayment, PaymentFeeLink serviceRequest) {
-    
         BigDecimal amountInPounds = new BigDecimal(govPayPayment.getAmount());
         amountInPounds = amountInPounds.divide(new BigDecimal(100));
         return Payment.paymentWith()
