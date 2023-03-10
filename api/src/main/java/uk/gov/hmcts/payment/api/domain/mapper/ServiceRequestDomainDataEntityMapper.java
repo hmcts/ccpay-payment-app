@@ -54,6 +54,9 @@ public class ServiceRequestDomainDataEntityMapper {
     }
 
     public Payment toPaymentEntity(ServiceRequestOnlinePaymentBo requestOnlinePaymentBo, GovPayPayment govPayPayment, PaymentFeeLink serviceRequest) {
+    
+        BigDecimal amountInPounds = new BigDecimal(govPayPayment.getAmount());
+        amountInPounds = amountInPounds.divide(new BigDecimal(100));
         return Payment.paymentWith()
             .ccdCaseNumber(serviceRequest.getCcdCaseNumber())
             .siteId(serviceRequest.getOrgId())
@@ -65,7 +68,7 @@ public class ServiceRequestDomainDataEntityMapper {
             .userId(requestOnlinePaymentBo.getUserId())
             .s2sServiceName(requestOnlinePaymentBo.getS2sServiceName())
             .reference(requestOnlinePaymentBo.getPaymentReference())
-            .amount(new BigDecimal(govPayPayment.getAmount()))
+            .amount(amountInPounds)
             .paymentChannel(PaymentChannel.ONLINE)
             .paymentProvider(PaymentProvider.GOV_PAY)
             .status(govPayPayment.getState().getStatus())
