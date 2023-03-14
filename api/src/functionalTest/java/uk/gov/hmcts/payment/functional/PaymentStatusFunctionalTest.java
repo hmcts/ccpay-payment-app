@@ -2353,7 +2353,7 @@ public class PaymentStatusFunctionalTest {
     public void negative_return400_unprocessedPayment_bulk_scan_event_date_less_than_payment_date() {
 
         // Create a Bulk scan payment
-        String dcn = "3456908723459912" + RandomUtils.nextInt();
+        String dcn = "3456908723459919" + RandomUtils.nextInt();
         dcn=  dcn.substring(0,21);
         BulkScanPayment bulkScanPayment = BulkScanPayment.createPaymentRequestWith()
             .amount(new BigDecimal("555"))

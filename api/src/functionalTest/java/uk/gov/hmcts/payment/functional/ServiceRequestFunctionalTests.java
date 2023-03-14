@@ -765,7 +765,7 @@ public class ServiceRequestFunctionalTests {
     @Test
     public void return_disputed_when_failure_event_has_happen_ping_one() {
 
-        String ccdCaseNumber = "11111234" + RandomUtils.nextInt();
+        String ccdCaseNumber = "11111235" + RandomUtils.nextInt();
         if(ccdCaseNumber.length()>16){
             ccdCaseNumber = ccdCaseNumber.substring(0,16);
         }
