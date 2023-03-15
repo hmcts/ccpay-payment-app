@@ -52,6 +52,8 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
     private static final String AUTHORISED_REFUNDS_APPROVER_ROLE = "payments-refund-approver";
     private static final Pattern EMAIL_ID_REGEX = Pattern.compile("^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}$", Pattern.CASE_INSENSITIVE);
 
+    private static int amountCompareValue = 1;
+
     final Predicate<Payment> paymentSuccessCheck =
         payment -> payment.getPaymentStatus().getName().equals(PaymentStatus.SUCCESS.getName());
 
@@ -833,6 +835,17 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
                                                     }
                                                 });
+                                            }
+                                        }
+                                    );
+                                    paymentGroupDto.getPayments().forEach(paymentDto -> {
+
+                                            BigDecimal netAmount = fee.getCalculatedAmount().subtract(remission.getHwfAmount());
+
+                                            int amountCompare = paymentDto.getAmount().compareTo(netAmount);
+
+                                            if (amountCompare == amountCompareValue) {
+                                                remission.setAddRefund(true);
                                             }
                                         }
                                     );
