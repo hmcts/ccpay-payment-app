@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.domain.service.ServiceRequestDomainService;
@@ -116,6 +117,11 @@ public class CaseController {
 
         paymentGroupResponse = paymentRefundsService.checkRefundAgainstRemissionV2(headers, paymentGroupResponse, ccdCaseNumber);
 
+        if(!paymentGroupResponse.getPaymentGroups().isEmpty()) {
+            paymentGroupResponse.getPaymentGroups().stream().forEach(
+                paymentGroupDto -> setRemissionsFlag(paymentGroupDto.getFees())
+            );
+        }
         return paymentGroupResponse;
     }
 
@@ -129,6 +135,16 @@ public class CaseController {
     @ExceptionHandler(PaymentGroupNotFoundException.class)
     public String notFound(PaymentGroupNotFoundException ex) {
         return ex.getMessage();
+    }
+
+    private void setRemissionsFlag(List<FeeDto> feeDtoList){
+
+        if(feeDtoList != null && !feeDtoList.isEmpty()){
+            feeDtoList.forEach(feeDto -> {
+                feeDto.setAddRemission(true);
+                feeDto.setRemissionEnable(true);
+            });
+        }
     }
 
 }
