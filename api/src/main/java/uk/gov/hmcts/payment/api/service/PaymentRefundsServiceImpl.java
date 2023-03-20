@@ -52,7 +52,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
     private static final String AUTHORISED_REFUNDS_APPROVER_ROLE = "payments-refund-approver";
     private static final Pattern EMAIL_ID_REGEX = Pattern.compile("^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}$", Pattern.CASE_INSENSITIVE);
 
-    private static int amountCompareValue = 1;
+    private static int amountCompareValue = -1;
 
     final Predicate<Payment> paymentSuccessCheck =
         payment -> payment.getPaymentStatus().getName().equals(PaymentStatus.SUCCESS.getName());
@@ -447,6 +447,20 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
                 }
             }
+
+           Optional<Remission> remission = remissionRepository.findByFeeId(paymentFee.getId());
+
+            if(remission.isPresent()){
+                BigDecimal netAmount = paymentFee.getCalculatedAmount().subtract(remission.get().getHwfAmount());
+
+                int amountCompare = payment.getAmount().compareTo(netAmount);
+
+                if (amountCompare == amountCompareValue) {
+                    throw new InvalidPartialRefundRequestException("Refund can not be added for upfront remission");
+                }
+            }
+
+
         }
     }
 
@@ -458,7 +472,6 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         BigDecimal totalRefundAmount = BigDecimal.ZERO;
         for(PaymentFee paymentFee : paymentFeeList) {
             for (RefundsFeeDto feeDto : paymentRefundRequest.getFees()) {
-
                 if (feeDto.getId().intValue() == paymentFee.getId().intValue()){
 
                     totalRefundAmount = feeDto.getRefundAmount().add(totalRefundAmount);
@@ -835,17 +848,6 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
                                                     }
                                                 });
-                                            }
-                                        }
-                                    );
-                                    paymentGroupDto.getPayments().forEach(paymentDto -> {
-
-                                            BigDecimal netAmount = fee.getCalculatedAmount().subtract(remission.getHwfAmount());
-
-                                            int amountCompare = paymentDto.getAmount().compareTo(netAmount);
-
-                                            if (amountCompare == amountCompareValue) {
-                                                remission.setAddRefund(true);
                                             }
                                         }
                                     );
