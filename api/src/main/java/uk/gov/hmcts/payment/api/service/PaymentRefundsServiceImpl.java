@@ -174,6 +174,14 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
                     BigDecimal remissionAmount = remission.get().getHwfAmount();
                      validateThePaymentBeforeInitiatingRefund(payment, headers);
+                        BigDecimal netAmount = paymentFee.getCalculatedAmount().subtract(remissionAmount);
+
+                        int amountCompare = payment.getAmount().compareTo(netAmount);
+
+                        if (amountCompare != amountCompareValue )  {
+                            throw new InvalidRefundRequestException("Refund can not be added for upfront remission");
+                        }
+
 
                     RefundRequestDto refundRequest = RefundRequestDto.refundRequestDtoWith()
                         .paymentReference(payment.getReference()) //RC reference
@@ -447,19 +455,6 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
                 }
             }
-
-           Optional<Remission> remission = remissionRepository.findByFeeId(paymentFee.getId());
-
-            if(remission.isPresent()){
-                BigDecimal netAmount = paymentFee.getCalculatedAmount().subtract(remission.get().getHwfAmount());
-
-                int amountCompare = payment.getAmount().compareTo(netAmount);
-
-                if (amountCompare != amountCompareValue )  {
-                    throw new InvalidPartialRefundRequestException("Refund can not be added for upfront remission");
-                }
-            }
-
 
         }
     }
