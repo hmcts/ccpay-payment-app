@@ -3,11 +3,19 @@ package uk.gov.hmcts.payment.api.dto.servicerequest;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import uk.gov.hmcts.payment.api.dto.CasePaymentRequest;
 
 import javax.validation.Valid;
-import javax.validation.constraints.*;
+import javax.validation.constraints.AssertFalse;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -33,13 +41,13 @@ public class ServiceRequestDto {
     @NotNull
     private @Valid CasePaymentRequest casePaymentRequest;
 
-    @NotBlank
+    @NotBlank(message = "Case Reference should not be blank")
     private String caseReference;
 
-    @NotBlank
+    @NotBlank(message = "callBackUrl should not be blank")
     private String callBackUrl;
 
-    @NotBlank
+    @NotBlank(message = "hmctsOrgId should not be blank")
     private String hmctsOrgId;
 
     @AssertFalse(message = "Fee code cannot be duplicated")

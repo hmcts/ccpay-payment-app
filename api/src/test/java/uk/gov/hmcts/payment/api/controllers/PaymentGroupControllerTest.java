@@ -56,6 +56,7 @@ import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.service.PciPalPaymentService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
+import uk.gov.hmcts.payment.api.service.RefundRemissionEnableService;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
@@ -129,6 +130,8 @@ public class PaymentGroupControllerTest {
     private ServiceAuthorisationHealthApi serviceAuthorisationHealthApi;
     @MockBean
     private LaunchDarklyFeatureToggler featureToggler;
+    @MockBean
+    private RefundRemissionEnableService refundRemissionEnableService;
 
     protected CustomResultMatcher body() {
         return new CustomResultMatcher(objectMapper);
@@ -405,7 +408,7 @@ public class PaymentGroupControllerTest {
 
         PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(getConsecutiveFee())).build();
-
+        when(refundRemissionEnableService.returnRemissionEligible(any())).thenReturn(true);
         MvcResult result = restActions
             .post("/payment-groups", request)
             .andExpect(status().isCreated())
@@ -562,7 +565,7 @@ public class PaymentGroupControllerTest {
         PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(getConsecutiveFee()))
             .build();
-
+        when(refundRemissionEnableService.returnRemissionEligible(any())).thenReturn(true);
         MvcResult result = restActions
             .post("/payment-groups", request)
             .andExpect(status().isCreated())
@@ -639,7 +642,7 @@ public class PaymentGroupControllerTest {
             .put("/payment-groups/" + createPaymentResponseDto.getPaymentGroupReference(), request)
             .andReturn();
 
-
+        when(refundRemissionEnableService.returnRemissionEligible(any())).thenReturn(true);
         // Retrieve payment by payment group reference
         MvcResult result3 = restActions
             .get("/payment-groups/" + createPaymentResponseDto.getPaymentGroupReference())
@@ -661,7 +664,6 @@ public class PaymentGroupControllerTest {
 
     @Test
     public void addNewPaymenttoExistingPaymentGroupTest() throws Exception {
-
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(getNewFee()))
             .build();
@@ -797,7 +799,7 @@ public class PaymentGroupControllerTest {
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(getNewFee()))
             .build();
-
+        when(refundRemissionEnableService.returnRemissionEligible(any())).thenReturn(true);
         PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(getConsecutiveFee())).build();
 
@@ -886,40 +888,40 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("200");
         TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
-            .caseType("PROBATE_ExceptionRecord")
-            .amount(amount)
-            .ccdCaseNumber("2154234356342357")
-            .returnURL("https://www.google.com")
-            .currency(CurrencyCode.GBP)
-            .build();
+                .caseType("PROBATE_ExceptionRecord")
+                .amount(amount)
+                .ccdCaseNumber("2154234356342357")
+                .returnURL("https://www.google.com")
+                .currency(CurrencyCode.GBP)
+                .build();
 
         when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
-            .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
+                .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
 
         when(pciPalPaymentService.getPaymentProviderAutorisationTokens()).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         when(pciPalPaymentService.getTelephonyProviderLink(any(PciPalPaymentRequest.class)
-            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
+                , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
-            .serviceCode("AA001")
-            .serviceDescription("Probate")
-            .build();
+                .serviceCode("AA001")
+                .serviceDescription("Probate")
+                .build();
 
         when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenReturn(organisationalServiceDto);
 
         MvcResult result3 = restActions
-            .withReturnUrl("https://www.google.com")
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyPaymentRequest)
-            .andExpect(status().isCreated())
-            .andReturn();
+                .withReturnUrl("https://www.google.com")
+                .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyPaymentRequest)
+                .andExpect(status().isCreated())
+                .andReturn();
 
         PaymentDto paymentDtoResult = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentDto.class);
 
         MvcResult result4 = restActions
-            .get("/card-payments/" + paymentDtoResult.getPaymentReference())
-            .andExpect(status().isOk())
-            .andReturn();
+                .get("/card-payments/" + paymentDtoResult.getPaymentReference())
+                .andExpect(status().isOk())
+                .andReturn();
 
         PaymentDto paymentsResponse = objectMapper.readValue(result4.getResponse().getContentAsString(), PaymentDto.class);
 

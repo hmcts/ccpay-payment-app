@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 
 @RunWith(SpringRunner.class)
@@ -24,13 +26,18 @@ public class SmokeTest {
     }
 
     @Test
-    public void shouldReturnChannels() {
+    public void testHealthCheck() {
+        log.info("TEST - healthCheck() started");
         given()
             .relaxedHTTPSValidation()
             .header(CONTENT_TYPE, "application/json")
             .when()
-            .get("/refdata/channels")
+            .get("/health")
             .then()
-            .statusCode(200);
+            .statusCode(200)
+            .body(
+                "status", equalTo("UP"));
+        assertFalse(testUrl.isEmpty(), "Sample Test for the template....");
+        log.info("TEST - healthCheck() finished");
     }
 }

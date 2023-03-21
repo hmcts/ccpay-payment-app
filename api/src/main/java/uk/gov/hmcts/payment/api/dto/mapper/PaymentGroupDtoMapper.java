@@ -1,5 +1,7 @@
 package uk.gov.hmcts.payment.api.dto.mapper;
 
+import com.google.common.collect.Streams;
+import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,8 +18,17 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.RemissionDto;
+import uk.gov.hmcts.payment.api.model.FeePayApportion;
+import uk.gov.hmcts.payment.api.model.FeePayApportionRepository;
+import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.PaymentAllocation;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentFeeRepository;
+import uk.gov.hmcts.payment.api.model.Remission;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.reports.FeesService;
+import uk.gov.hmcts.payment.api.service.RefundRemissionEnableService;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 import uk.gov.hmcts.payment.api.util.ServiceRequestUtil;
 
@@ -41,6 +52,13 @@ public class PaymentGroupDtoMapper {
 
     @Autowired
     private PaymentFeeRepository paymentFeeRepository;
+
+    @Autowired
+    private RefundRemissionEnableService refundRemissionEnableService;
+
+    @Autowired
+    private FeePayApportionRepository feePayApportionRepository;
+
 
     @Autowired
    private  PaymentFailureRepository paymentFailureRepository;
@@ -134,9 +152,28 @@ public class PaymentGroupDtoMapper {
             .documentControlNumber(payment.getDocumentControlNumber())
             .bankedDate(payment.getBankedDate())
             .payerName(payment.getPayerName())
+            .refundEnable(payment.getDateUpdated() != null ? toRefundEligible(payment):false)
             .paymentAllocation(payment.getPaymentAllocation() !=null ? toPaymentAllocationDtos(payment.getPaymentAllocation()) : null)
+            .overPayment(setOverpaymentObj(payment.getId()))
             .disputes(evaluatePaymentDispute(payment))
             .build();
+    }
+
+    private BigDecimal setOverpaymentObj(Integer id) {
+        AtomicReference<BigDecimal> overpayment = new AtomicReference<>(BigDecimal.ZERO);
+        Optional<List<FeePayApportion>> feepayapplist = feePayApportionRepository.findByPaymentId(id);
+
+        if(feepayapplist.isPresent()){
+            List<FeePayApportion> feeList = feepayapplist.get()
+                .stream()
+                .filter(c -> (c.getCallSurplusAmount() !=null && c.getCallSurplusAmount().intValue()> 0))
+                .collect(Collectors.toList());
+
+            if (!feeList.isEmpty()) {
+                overpayment.set(feeList.get(0).getCallSurplusAmount());
+            }
+        }
+        return overpayment.get();
     }
 
     private List<RemissionDto> toRemissionDtos(List<Remission> remissions) {
@@ -197,6 +234,8 @@ public class PaymentGroupDtoMapper {
             .dateUpdated(fee.getDateUpdated())
             .dateApportioned(fee.getDateApportioned())
             .amountDue(fee.getAmountDue())
+            .overPayment(setOverpayment(fee))
+            .remissionEnable(toRemissionEnable(fee))
             .netAmount(fee.getNetAmount())
             .build();
     }
@@ -215,6 +254,35 @@ public class PaymentGroupDtoMapper {
             .reference(feeDto.getReference())
             .dateCreated(apportionFeature ? timestamp: null)
             .build();
+    }
+
+    private Boolean toRefundEligible(Payment payment) {
+
+        return refundRemissionEnableService.returnRefundEligible(payment);
+    }
+
+    private Boolean toRemissionEnable(PaymentFee fee){
+
+        return refundRemissionEnableService.returnRemissionEligible(fee);
+    }
+
+    private BigDecimal setOverpayment(PaymentFee fee){
+        BigDecimal overpayment =  BigDecimal.ZERO;
+        Optional<List<FeePayApportion>> feepayapplist = feePayApportionRepository.findByFeeId(fee.getId());
+
+        if(feepayapplist.isPresent() && !feepayapplist.get().isEmpty()) {
+            List<FeePayApportion> feeList = feepayapplist.get()
+                .stream()
+                .filter(c -> (c.getCallSurplusAmount() !=null && c.getCallSurplusAmount().intValue()> 0))
+                .collect(Collectors.toList());
+            if (!feeList.isEmpty()) {
+                Optional<FeePayApportion> feepayapp = feePayApportionRepository.findByFeeIdAndPaymentId(feeList.get(0).getFeeId(), feeList.get(0).getPaymentId());
+                if (feepayapp.isPresent()) {
+                    overpayment = feepayapp.get().getCallSurplusAmount();
+                }
+            }
+        }
+        return overpayment;
     }
 
     private List<DisputeDto> evaluatePaymentDispute(Payment payment) {

@@ -38,6 +38,12 @@ public class PaymentTestService {
             .get("/card-payments/{reference}", paymentReference);
     }
 
+    public Response getPayments(String userToken, String serviceToken, String paymentReference) {
+        return givenWithAuthHeaders(userToken, serviceToken)
+            .when()
+            .get("/payments/{reference}", paymentReference);
+    }
+
     public Response postPbaPayment(String userToken, String serviceToken, CreditAccountPaymentRequest request) {
         return givenWithAuthHeaders(userToken, serviceToken)
             .contentType(ContentType.JSON)
@@ -48,7 +54,7 @@ public class PaymentTestService {
 
     public Response postInitiateRefund(String userToken, String serviceToken,
                                        PaymentRefundRequest paymentRefundRequest) {
-        return givenWithAuthHeaders(userToken,serviceToken)
+        return givenWithAuthHeaders(userToken, serviceToken)
             .contentType(ContentType.JSON)
             .body(paymentRefundRequest)
             .when()
@@ -56,20 +62,21 @@ public class PaymentTestService {
     }
 
     public Response postSubmitRefund(String userToken, String serviceToken,
-                                     RetroSpectiveRemissionRequest retroSpectiveRemissionRequest) {
-        return givenWithAuthHeaders(userToken,serviceToken)
+                                     RetrospectiveRemissionRequest retrospectiveRemissionRequest) {
+        return givenWithAuthHeaders(userToken, serviceToken)
             .contentType(ContentType.JSON)
-            .body(retroSpectiveRemissionRequest)
+            .body(retrospectiveRemissionRequest)
             .when()
             .post("/refund-retro-remission");
     }
 
-    public Response updateThePaymentDateByCCDCaseNumber(final String userToken,
-                                                        final String serviceToken,
-                                                        final String ccdCaseNumber) {
+    public Response updateThePaymentDateByCcdCaseNumberForCertainHours(final String userToken,
+                                                                       final String serviceToken,
+                                                                       final String ccdCaseNumber,
+                                                                       final String lagTime) {
         return givenWithAuthHeaders(userToken, serviceToken)
             .when()
-            .patch("/payments/ccd_case_reference/{ccd_case_number}", ccdCaseNumber);
+            .patch("/payments/ccd_case_reference/{ccd_case_number}/lag_time/{lag_time}", ccdCaseNumber, lagTime);
     }
 
     public Response recordBarPayment(String userToken, String serviceToken, PaymentRecordRequest request) {
@@ -104,18 +111,20 @@ public class PaymentTestService {
             .get("/reconciliation-payments?ccd_case_number={ccdCaseNumber}", ccdCaseNumber);
     }
 
-    public ValidatableResponse getLiberatePullPaymentsByStartAndEndDate(String serviceToken, String startDate, String endDate, Long responseTime) {
+    public ValidatableResponse getLiberatePullPaymentsByStartAndEndDate(String serviceToken, String startDate, String endDate,
+                                                                        Long responseTime) {
         return givenWithServiceHeaders(serviceToken)
             .when()
             .get("/reconciliation-payments?end_date={endDate}&start_date={startDate}", endDate,startDate)
             .then().time(lessThan(responseTime),TimeUnit.SECONDS);
     }
 
-    public ValidatableResponse getLiberatePullPaymentsByStartAndEndDateApproach1(String serviceToken, String startDate, String endDate, Long responseTime) {
+    public ValidatableResponse getLiberatePullPaymentsByStartAndEndDateApproach1(String serviceToken, String startDate,
+                                                                                 String endDate, Long responseTime) {
         return givenWithServiceHeaders(serviceToken)
             .when()
-            .get("/reconciliation-payments?end_date={endDate}&start_date={startDate}", endDate,startDate)
-            .then().time(lessThan(responseTime),TimeUnit.SECONDS);
+            .get("/reconciliation-payments?end_date={endDate}&start_date={startDate}", endDate, startDate)
+            .then().time(lessThan(responseTime), TimeUnit.SECONDS);
     }
 
 
@@ -129,8 +138,17 @@ public class PaymentTestService {
     public Response getLiberatePullPaymentsTimeByStartAndEndDateApproach1(String serviceToken, String startDate, String endDate) {
         return givenWithServiceHeaders(serviceToken)
             .when()
-            .get("/reconciliation-payments?end_date={endDate}&start_date={startDate}", endDate,startDate);
+            .get("/reconciliation-payments?end_date={endDate}&start_date={startDate}", endDate, startDate);
 
+    }
+
+    public Response getPaymentGroupsForCase(final String userToken,
+                                            final String serviceToken,
+                                            final String ccdCaseNumber) {
+        return givenWithAuthHeaders(userToken, serviceToken)
+            .contentType(ContentType.JSON)
+            .when()
+            .get("/cases/{ccdcasenumber}/paymentgroups",ccdCaseNumber);
     }
 
     public RequestSpecification givenWithAuthHeaders(String userToken, String serviceToken) {
@@ -148,6 +166,13 @@ public class PaymentTestService {
         return givenWithAuthHeaders(userToken, serviceToken)
                 .when()
                 .delete("/credit-account-payments/{paymentReference}", paymentReference);
+    }
+
+    public Response deleteRefund(final String userToken, final String serviceToken,
+                                 final String refundReference) {
+        return givenWithAuthHeaders(userToken, serviceToken)
+                .when()
+                .delete("/refund/{reference}", refundReference);
     }
 
     public Response postBounceCheque(String serviceToken,
@@ -229,4 +254,20 @@ public class PaymentTestService {
                 .when()
                 .delete("/bulk-scan-payment/{dcn}", dcn);
     }
+
+    public Response getPbaPaymentsByReferenceNumberList(String serviceToken, String paymentReferenceList) {
+        return givenWithServiceHeaders(serviceToken)
+            .when()
+            .get("/refunds/payments?paymentReferenceList={paymentReferenceList}", paymentReferenceList);
+    }
+
+    public Response getPaymentApportion(final String userToken,
+                                            final String serviceToken,
+                                            final String paymentreference) {
+        return givenWithAuthHeaders(userToken, serviceToken)
+            .contentType(ContentType.JSON)
+            .when()
+            .get("/payment-groups/fee-pay-apportion/{paymentreference}",paymentreference);
+    }
+
 }

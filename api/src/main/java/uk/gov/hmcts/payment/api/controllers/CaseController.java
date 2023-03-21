@@ -8,12 +8,15 @@ import io.swagger.annotations.SwaggerDefinition;
 import io.swagger.annotations.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.util.MultiValueMap;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.domain.service.ServiceRequestDomainService;
@@ -24,7 +27,9 @@ import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.PaymentGroupService;
+import uk.gov.hmcts.payment.api.service.PaymentRefundsService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
+import uk.gov.hmcts.payment.api.service.RefundRemissionEnableService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentGroupNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
@@ -47,6 +52,12 @@ public class CaseController {
 
     @Autowired
     private ServiceRequestDomainService orderDomainService;
+
+    @Autowired
+    private RefundRemissionEnableService refundRemissionEnableService;
+
+    @Autowired
+    private PaymentRefundsService paymentRefundsService;
 
     @Autowired
     public CaseController(PaymentService<PaymentFeeLink, String> paymentService, PaymentGroupService paymentGroupService,
@@ -88,8 +99,10 @@ public class CaseController {
         @ApiResponse(code = 404, message = "Payment Groups not found")
     })
     @RequestMapping(value = "/cases/{ccdcasenumber}/paymentgroups", method = GET)
-    public PaymentGroupResponse retrieveCasePaymentGroups(@PathVariable(name = "ccdcasenumber") String ccdCaseNumber) {
+    public PaymentGroupResponse retrieveCasePaymentGroups(@PathVariable(name = "ccdcasenumber") String ccdCaseNumber,
+        @RequestHeader(required = false) MultiValueMap<String, String> headers) {
 
+        refundRemissionEnableService.isRolePresent(headers);
         List<PaymentGroupDto> paymentGroups = paymentGroupService
             .search(ccdCaseNumber)
             .stream()
@@ -100,7 +113,27 @@ public class CaseController {
             throw new PaymentGroupNotFoundException("No Service found for given CaseType or HMCTS Org Id");
         }
 
-        return new PaymentGroupResponse(paymentGroups);
+        PaymentGroupResponse paymentGroupResponse = new PaymentGroupResponse(paymentGroups);
+
+        paymentGroupResponse = paymentRefundsService.checkRefundAgainstRemissionV2(headers, paymentGroupResponse, ccdCaseNumber);
+
+        if(!paymentGroupResponse.getPaymentGroups().isEmpty()) {
+            paymentGroupResponse.getPaymentGroups().stream().forEach(
+                paymentGroupDto -> setRemissionsFlag(paymentGroupDto.getFees())
+            );
+        }
+
+        return paymentGroupResponse;
+    }
+
+    private void setRemissionsFlag(List<FeeDto> feeDtoList){
+
+        if(feeDtoList != null && !feeDtoList.isEmpty()){
+            feeDtoList.forEach(feeDto -> {
+                feeDto.setAddRemission(true);
+                feeDto.setRemissionEnable(true);
+            });
+        }
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
