@@ -650,6 +650,7 @@ public class PaymentStatusControllerTest {
             .ccdCaseNumber("1234123412341234")
             .documentControlNumber("12345")
             .dateUpdated(date)
+            .bankedDate(date)
             .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
             .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
             .paymentMethod(PaymentMethod.paymentMethodWith().name("cheque").build())
