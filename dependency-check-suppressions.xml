@@ -71,6 +71,7 @@
         <cve>CVE-2022-38749</cve>
         <cve>CVE-2022-38750</cve>
         <cve>CVE-2022-38751</cve>
+        <cve>CVE-2022-45143</cve>
     </suppress>
 
     <suppress until="2023-03-31">
