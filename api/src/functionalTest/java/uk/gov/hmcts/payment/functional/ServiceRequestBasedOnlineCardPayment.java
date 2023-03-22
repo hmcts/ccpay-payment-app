@@ -222,7 +222,7 @@ public class ServiceRequestBasedOnlineCardPayment {
         final String paymentReference = onlineCardPaymentResponse.getPaymentReference();
         assertThat(paymentReference).matches(PAYMENTS_REGEX_PATTERN);
         assertThat(onlineCardPaymentResponse.getStatus()).isEqualTo("Initiated");
-        assertThat(onlineCardPaymentResponse.getNextUrl()).startsWith("https://www.payments.service.gov.uk/secure/");
+        assertThat(onlineCardPaymentResponse.getNextUrl()).startsWith("https://card.payments.service.gov.uk/secure/");
         assertThat(onlineCardPaymentResponse.getExternalReference()).isNotNull().isNotBlank();
 
         // Retrieve card payment
