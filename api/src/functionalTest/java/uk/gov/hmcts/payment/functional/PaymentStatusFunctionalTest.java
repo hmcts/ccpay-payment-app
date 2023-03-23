@@ -2217,7 +2217,7 @@ public class PaymentStatusFunctionalTest {
             paymentStatusBouncedChequeDto);
 
         assertThat(bounceChequeResponse.getBody().prettyPrint()).isEqualTo(
-            "Failure event date can not be prior to payment date");
+            "Failure event date can not be prior to banked date");
         assertThat(bounceChequeResponse.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
 
         // delete payment record
