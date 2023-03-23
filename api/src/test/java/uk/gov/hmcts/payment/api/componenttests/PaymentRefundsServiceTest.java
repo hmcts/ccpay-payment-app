@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.api.componenttests;
 
 
+import com.github.dockerjava.api.exception.BadRequestException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -46,6 +47,7 @@ import java.math.BigDecimal;
 import java.util.*;
 
 import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -1392,6 +1394,19 @@ public class PaymentRefundsServiceTest {
         paymentRefundsService.deleteByRefundReference("RF-4321-4321-4321-4321", header);
 
         assertNotNull(responseEntity);
+    }
+
+    @Test
+    public void deleteRefundWithException() throws Exception {
+
+        InternalRefundResponse mockRefundResponse = InternalRefundResponse.InternalRefundResponseWith().refundReference("RF-4321-4321-4321-4321").build();
+
+        ResponseEntity<InternalRefundResponse> responseEntity = new ResponseEntity<>(mockRefundResponse, HttpStatus.CREATED);
+
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+            eq(InternalRefundResponse.class))).thenThrow(new BadRequestException("In Valid Request"));
+
+        assertThrows(BadRequestException.class, () -> paymentRefundsService.deleteByRefundReference("RF-4321-4321-4321-4321", header));
     }
 
     private List<PaymentFailures> getPaymentFailureList(){
