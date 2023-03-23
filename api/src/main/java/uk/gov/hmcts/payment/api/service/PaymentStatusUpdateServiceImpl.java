@@ -90,7 +90,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         }
 
         validateBounceChequeRequest(paymentStatusBouncedChequeDto, payment.get());
-        validatePingOneDate(paymentStatusBouncedChequeDto.getEventDateTime(), payment.get().getBankedDate());
+        validatePingOneDate(paymentStatusBouncedChequeDto.getEventDateTime(), payment.get().getBankedDate(), "Failure event date can not be prior to banked date");
         LOG.info("paymentStatusBouncedChequeDto.getEventDateTime(): {}",paymentStatusBouncedChequeDto.getEventDateTime());
         LOG.info(" payment.get().getBankedDate(): {}", payment.get().getBankedDate());
 
@@ -156,7 +156,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         }
 
         validatePaymentFailureAmount(paymentStatusChargebackDto,payment.get());
-        validatePingOneDate(paymentStatusChargebackDto.getEventDateTime(), payment.get().getDateUpdated());
+        validatePingOneDate(paymentStatusChargebackDto.getEventDateTime(), payment.get().getDateUpdated(), "Failure event date can not be prior to payment date");
         PaymentFailures paymentFailuresMap = paymentStatusDtoMapper.ChargebackRequestMapper(paymentStatusChargebackDto);
 
         try{
@@ -226,13 +226,13 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         }
     }
 
-    private void validatePingOneDate(String pingOneDateStr, Date paymentDate){
+    private void validatePingOneDate(String pingOneDateStr, Date paymentDate , String message){
 
        Date pingOneDate =  DateTime.parse(pingOneDateStr).withZone(DateTimeZone.UTC).toDate();
        LOG.info("validatePingOneDate pingOneDateStr: {}", pingOneDate);
        LOG.info("validatePingOneDate paymentDate : {}", paymentDate);
         if (pingOneDate.before(paymentDate)){
-            throw new InvalidPaymentFailureRequestException("Failure event date can not be prior to payment date");
+            throw new InvalidPaymentFailureRequestException(message);
         }
     }
 
