@@ -484,7 +484,7 @@ public class PaymentStatusUpdateServiceImplTest {
             () -> paymentStatusUpdateServiceImpl.insertBounceChequePaymentFailure(paymentStatusBouncedChequeDto)
         );
         String actualMessage = exception.getMessage();
-        assertEquals("Failure event date can not be prior to payment date", actualMessage);
+        assertEquals("Failure event date can not be prior to banked date", actualMessage);
 
     }
 
