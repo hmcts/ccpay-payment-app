@@ -4,7 +4,6 @@ import java.math.BigInteger;
 import java.time.temporal.ChronoUnit;
 
 import org.apache.commons.lang3.EnumUtils;
-import org.apache.poi.hpsf.Decimal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +37,7 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -174,15 +174,6 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
                     BigDecimal remissionAmount = remission.get().getHwfAmount();
                      validateThePaymentBeforeInitiatingRefund(payment, headers);
-                        BigDecimal netAmount = paymentFee.getCalculatedAmount().subtract(remissionAmount);
-
-                        int amountCompare = payment.getAmount().compareTo(netAmount);
-
-                        if (amountCompare != amountCompareValue )  {
-                            throw new InvalidRefundRequestException("Refund can not be added for upfront remission");
-                        }
-
-
                     RefundRequestDto refundRequest = RefundRequestDto.refundRequestDtoWith()
                         .paymentReference(payment.getReference()) //RC reference
                         .refundAmount(remissionAmount) //Refund amount
@@ -783,6 +774,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             for(PaymentGroupDto paymentGroupDto : paymentGroupResponse.getPaymentGroups()){
 
                 boolean activeRemission = false;
+                AtomicBoolean checkUpfrontRemission = new AtomicBoolean(false);
                 refundRole = checkRefundsRole(paymentGroupDto);
                 balanceAvailable = getAvailableBalance(paymentGroupDto, refundListDtoResponse);
 
@@ -798,6 +790,18 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                                 //Makes sure that the fee ID matches with the fee ID in remission
                                 if (fee.getId() == remission.getFeeId()) {
 
+                                    paymentGroupDto.getPayments().forEach(paymentDto -> {
+
+                                            BigDecimal netAmount = fee.getCalculatedAmount().subtract(remission.getHwfAmount());
+
+                                            int amountCompare = paymentDto.getAmount().compareTo(netAmount);
+
+                                            if (amountCompare !=amountCompareValue) {
+                                                remission.setAddRefund(false);
+                                                checkUpfrontRemission.set(true);
+                                            }
+                                        }
+                                    );
                                     //IF THERE IS NO PROCESSED REFUND FOR THE FEE BUT THERE IS AN ACTIVE REMISSION
 
                                     if (!refundedFees.stream().flatMap(List::stream).anyMatch(fee.getId().toString()::equals)
@@ -806,7 +810,10 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
                                         activeRemission =true;
                                         fee.setAddRemission(false);
-                                        remission.setAddRefund(true);
+                                        if(checkUpfrontRemission.get() == false){
+                                            remission.setAddRefund(true);
+                                        }
+
                                         for (PaymentDto payment : paymentGroupDto.getPayments()) {
                                             payment.setIssueRefund(false);
                                         }
