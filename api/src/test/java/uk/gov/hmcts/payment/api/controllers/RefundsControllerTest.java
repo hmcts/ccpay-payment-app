@@ -18,6 +18,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.contract.RefundsFeeDto;
 import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
@@ -42,6 +44,8 @@ import java.util.Arrays;
 import static java.lang.String.format;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -136,6 +140,18 @@ public class RefundsControllerTest {
 
         assertEquals("RF-4321-4321-4321-4321", refundResponse.getRefundReference());
         assertEquals(amount, refundResponse.getRefundAmount());
+
+    }
+
+    @Test
+    public void testDeleteByRefundReference() throws Exception{
+
+
+        doNothing().when(paymentRefundsService).deleteByRefundReference(anyString(), any());
+
+        restActions.delete("/refund/RF-1234-1234-1234-1234")
+            .andExpect(status().isNoContent())
+            .andReturn();
 
     }
 
@@ -255,5 +271,21 @@ public class RefundsControllerTest {
             .andExpect(status().isBadRequest())
             .andReturn();
 
+    }
+
+    @Test
+    public void testReturnClientException() throws Exception {
+
+        HttpClientErrorException exception = new HttpClientErrorException(HttpStatus.BAD_REQUEST, "Invalid request");
+        ResponseEntity responseEntity = refundsController.returnClientException(exception);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+    }
+
+    @Test
+    public void testReturnServerException() throws Exception {
+
+        HttpServerErrorException exception = new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error");
+        String returnStr = refundsController.returnServerException(exception);
+        assertEquals("", returnStr);
     }
 }

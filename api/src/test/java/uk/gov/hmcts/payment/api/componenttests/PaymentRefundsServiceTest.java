@@ -1379,6 +1379,20 @@ public class PaymentRefundsServiceTest {
 
     }
 
+    @Test
+    public void deleteRefund() throws Exception {
+
+        InternalRefundResponse mockRefundResponse = InternalRefundResponse.InternalRefundResponseWith().refundReference("RF-4321-4321-4321-4321").build();
+
+        ResponseEntity<InternalRefundResponse> responseEntity = new ResponseEntity<>(mockRefundResponse, HttpStatus.CREATED);
+
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+            eq(InternalRefundResponse.class))).thenReturn(responseEntity);
+
+        paymentRefundsService.deleteByRefundReference("RF-4321-4321-4321-4321", header);
+
+        assertNotNull(responseEntity);
+    }
 
     private List<PaymentFailures> getPaymentFailureList(){
 
