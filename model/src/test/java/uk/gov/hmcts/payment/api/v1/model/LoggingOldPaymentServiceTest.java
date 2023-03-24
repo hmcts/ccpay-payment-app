@@ -8,7 +8,6 @@ import org.junit.Test;
 import org.slf4j.LoggerFactory;
 import uk.gov.hmcts.payment.api.v1.model.logging.TestAppender;
 
-import static ch.qos.logback.classic.Level.DEBUG;
 import static ch.qos.logback.classic.Level.INFO;
 import static org.slf4j.Logger.ROOT_LOGGER_NAME;
 
@@ -30,7 +29,7 @@ public class LoggingOldPaymentServiceTest {
     @Test
     public void createPaymentShouldBeLogged() {
         loggingOldPaymentService.create(100, "reference", "any", "any",null);
-        testAppender.assertEvent(0, DEBUG, "PaymentOld event", ImmutableMap.of(
+        testAppender.assertEvent(0, INFO, "PaymentOld event", ImmutableMap.of(
             "paymentId", 1,
             "userId", "userId",
             "eventType", "create",
