@@ -347,11 +347,9 @@ public class PaymentDtoMapper {
 
 
     private PaymentDto enrichWithFeeData(PaymentDto paymentDto) {
-        LOG.info("Start of enrichWithFeeData!!!");
         paymentDto.getFees().forEach(fee -> {
             Optional<Map<String, Fee2Dto>> optFrFeeMap = Optional.ofNullable(feesService.getFeesDtoMap());
             if (optFrFeeMap.isPresent()) {
-                LOG.info("Fee details retrieved from fees-register!!!");
                 Map<String, Fee2Dto> frFeeMap = optFrFeeMap.get();
 
                 if (frFeeMap.containsKey(fee.getCode())) {
@@ -364,7 +362,6 @@ public class PaymentDtoMapper {
                         fee.setMemoLine(optionalFeeVersionDto.get().getMemoLine());
                         fee.setNaturalAccountCode(optionalFeeVersionDto.get().getNaturalAccountCode());
                     }
-                    LOG.info("End of enrichWithFeeData!!!");
                 } else {
                     LOG.info("No fee found with the code: {}", fee.getCode());
                 }
@@ -419,8 +416,6 @@ public class PaymentDtoMapper {
             .dateCreated(apportionFeature ? timestamp: null)
             .build();
     }
-
-
 
 
     private FeeDto toFeeDto(PaymentFee fee) {
@@ -567,5 +562,16 @@ public class PaymentDtoMapper {
         return PaymentAllocationDto.paymentAllocationDtoWith()
             .allocationStatus(paymentAllocation.getPaymentAllocationStatus().getName())
             .build();
+    }
+
+    public List<PaymentDto> toGetPaymentResponseDtos(List<Payment> paymentList) {
+        if (null != paymentList && !paymentList.isEmpty()) {
+            List<PaymentDto> paymentDtoList = new ArrayList<>();
+            for (Payment payment : paymentList) {
+                paymentDtoList.add(toGetPaymentResponseDtos(payment));
+            }
+            return paymentDtoList;
+        }
+        throw new PaymentNotFoundException("No Payment found");
     }
 }
