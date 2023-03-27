@@ -163,4 +163,5 @@ withPipeline(type, product, app) {
 
     //Sync demo,ithc and perftest with master branch
     syncBranchesWithMaster(branchesToSync)
+
 }

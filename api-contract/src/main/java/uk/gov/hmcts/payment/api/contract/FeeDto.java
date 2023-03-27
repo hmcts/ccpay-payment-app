@@ -82,7 +82,16 @@ public class FeeDto {
     private BigDecimal apportionedPayment;
 
     private Date dateReceiptProcessed;
-    
+
+    private Boolean remissionEnable;
+
+    private boolean issueRefundAddRefundAddRemission;
+
+    private BigDecimal overPayment;
+
+    private boolean addRemission;
+
+
     @Override
     public String toString() {
         return
@@ -94,5 +103,4 @@ public class FeeDto {
                 "calculatedAmount ='" + calculatedAmount + '\''
                 ;
     }
-
 }

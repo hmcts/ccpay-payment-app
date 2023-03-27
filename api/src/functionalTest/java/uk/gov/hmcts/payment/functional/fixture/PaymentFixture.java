@@ -6,9 +6,12 @@ import org.joda.time.DateTime;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
+import uk.gov.hmcts.payment.api.contract.RefundsFeeDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
 import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
+import uk.gov.hmcts.payment.api.dto.RetrospectiveRemissionRequest;
+import uk.gov.hmcts.payment.api.model.ContactDetails;
 import uk.gov.hmcts.payment.api.dto.PaymentStatusBouncedChequeDto;
 import uk.gov.hmcts.payment.api.dto.PaymentStatusChargebackDto;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
@@ -302,6 +305,7 @@ public class PaymentFixture {
                     .calculatedAmount(new BigDecimal(amountString))
                     .code("FEE0001")
                     .version("1")
+                    .feeAmount(new BigDecimal(amountString))
                     .build())
             )
             .build();
@@ -419,11 +423,36 @@ public class PaymentFixture {
             .build();
     }
 
-    public static PaymentRefundRequest aRefundRequest(final String refundReason,
-                                                      final String paymentReference) {
+    public static PaymentRefundRequest aRefundRequest(final int paymentId,
+                                                      final String refundReason,
+                                                      final String paymentReference,
+                                                      final String refundAmount,
+                                                      final String feeAmount) {
         return PaymentRefundRequest
             .refundRequestWith().paymentReference(paymentReference)
-            .refundReason(refundReason).build();
+            .refundReason(refundReason)
+            .totalRefundAmount(new BigDecimal(refundAmount))
+            .fees(Lists.newArrayList(
+                RefundsFeeDto.refundFeeDtoWith()
+                    .apportionAmount(BigDecimal.valueOf(0))
+                    .calculatedAmount(new BigDecimal(feeAmount))
+                    .code("FEE0001")
+                    .id(paymentId)
+                    .version("1")
+                    .updatedVolume(1)
+                    .refundAmount(new BigDecimal(refundAmount))
+                    .build())
+            )
+            .contactDetails(ContactDetails.contactDetailsWith().
+                addressLine("High Street 112")
+                .country("UK")
+                .county("Londonshire")
+                .city("London")
+                .postalCode("P1 1PO")
+                .email("person@gmail.com")
+                .notificationType("EMAIL")
+                .build())
+            .build();
 
     }
 
@@ -547,4 +576,20 @@ public class PaymentFixture {
             .build();
     }
 
+
+    public static RetrospectiveRemissionRequest aRetroRemissionRequest(final String remissionReference) {
+
+        return RetrospectiveRemissionRequest
+            .retrospectiveRemissionRequestWith().remissionReference(remissionReference)
+            .contactDetails(ContactDetails.contactDetailsWith()
+                .addressLine("High Street 112")
+                .country("UK")
+                .county("Londonshire")
+                .city("London")
+                .postalCode("P1 1PO")
+                .email("person@gmail.com")
+                .notificationType("EMAIL")
+                .build())
+            .build();
+    }
 }

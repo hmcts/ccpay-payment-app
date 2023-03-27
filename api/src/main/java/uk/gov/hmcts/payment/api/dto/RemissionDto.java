@@ -47,4 +47,9 @@ public class RemissionDto {
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone = "GMT")
     private Date dateCreated;
+
+    private boolean addRefund;
+
+    private boolean issueRefundAddRefundAddRemission;
+
 }

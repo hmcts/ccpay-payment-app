@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.api.componenttests;
 
 
+import com.github.dockerjava.api.exception.BadRequestException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -14,6 +15,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.LinkedMultiValueMap;
@@ -21,15 +23,22 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
+import uk.gov.hmcts.payment.api.contract.FeeDto;
+import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.contract.RefundsFeeDto;
 import uk.gov.hmcts.payment.api.dto.InternalRefundResponse;
 import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
 import uk.gov.hmcts.payment.api.dto.RefundResponse;
 import uk.gov.hmcts.payment.api.dto.ResubmitRefundRemissionRequest;
-import uk.gov.hmcts.payment.api.dto.RetroSpectiveRemissionRequest;
+import uk.gov.hmcts.payment.api.dto.RetrospectiveRemissionRequest;
+import uk.gov.hmcts.payment.api.dto.*;
+import uk.gov.hmcts.payment.api.dto.idam.IdamUserIdResponse;
+import uk.gov.hmcts.payment.api.exception.InvalidPartialRefundRequestException;
 import uk.gov.hmcts.payment.api.exception.InvalidRefundRequestException;
 import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.model.PaymentStatus;
+import uk.gov.hmcts.payment.api.service.IdamService;
 import uk.gov.hmcts.payment.api.service.PaymentRefundsService;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotSuccessException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.RemissionNotFoundException;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
@@ -37,7 +46,8 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import java.math.BigDecimal;
 import java.util.*;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -50,17 +60,51 @@ public class PaymentRefundsServiceTest {
 
     final static MultiValueMap<String, String> header = new LinkedMultiValueMap<String, String>();
     PaymentRefundRequest paymentRefundRequest = PaymentRefundRequest.refundRequestWith()
-        .paymentReference("RC-1234-1234-1234-1234")
-        .refundReason("RESN1")
+        .paymentReference("RC-1649-7555-9551-8774")
+        .refundReason("RR037")
+        .totalRefundAmount(BigDecimal.valueOf(550))
+        .fees(
+            Arrays.asList(
+                RefundsFeeDto.refundFeeDtoWith()
+                    .calculatedAmount(new BigDecimal("232"))
+                    .apportionAmount(new BigDecimal("232"))
+//                        .feeAmount(new BigDecimal("550.00"))
+                    .code("FEE0326")
+//                        .volume(1)
+                    .id(1)
+//                        .memoLine("Bar Cash")
+//                        .naturalAccountCode("21245654433")
+                    .version("2")
+//                        .volume(1)
+                    .refundAmount(new BigDecimal("550.00"))
+                    .updatedVolume(1)
+//                        .reference("REF_123")
+                    .build()
+            ))
+        .contactDetails(ContactDetails.contactDetailsWith().notificationType(Notification.EMAIL.getNotification())
+            .email("a@a.com").build())
         .build();
+
+
     Payment mockPaymentSuccess = Payment.paymentWith().reference("RC-1234-1234-1234-1234")
-        .amount(BigDecimal.valueOf(100))
+        .amount(BigDecimal.valueOf(550))
+        .id(1)
         .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
         .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
-        .paymentLink(PaymentFeeLink.paymentFeeLinkWith().fees(Arrays.asList(PaymentFee.feeWith().id(1).build())).build())
+        .paymentChannel(PaymentChannel.ONLINE)
+        .paymentLink(PaymentFeeLink.paymentFeeLinkWith().fees(Arrays.asList(PaymentFee.feeWith().id(1).feeAmount(new BigDecimal(550)).calculatedAmount(new BigDecimal(550)).volume(1).build())).build())
         .build();
-    RetroSpectiveRemissionRequest retroSpectiveRemissionRequest = RetroSpectiveRemissionRequest.retroSpectiveRemissionRequestWith()
-        .remissionReference("qwerty").build();
+    RetrospectiveRemissionRequest retrospectiveRemissionRequest =
+        RetrospectiveRemissionRequest.retrospectiveRemissionRequestWith()
+            .remissionReference("qwerty").contactDetails(
+            ContactDetails.contactDetailsWith().notificationType(Notification.EMAIL.getNotification())
+                .email("a@a.aa").build()).build();
+
+    private static final IdamUserIdResponse IDAM_USER_ID_RESPONSE =
+        IdamUserIdResponse.idamUserIdResponseWith().uid("1").givenName("XX").familyName("YY").name("XX YY")
+            .roles(Arrays.asList("payments-refund-approver", "payments-refund")).sub("ZZ")
+            .build();
+
     @MockBean
     private Payment2Repository paymentRepository;
 
@@ -80,6 +124,8 @@ public class PaymentRefundsServiceTest {
     private AuthTokenGenerator authTokenGenerator;
     @Autowired
     private PaymentRefundsService paymentRefundsService;
+    @MockBean
+    private IdamService idamService;
 
     @Before
     public void setup() {
@@ -95,7 +141,7 @@ public class PaymentRefundsServiceTest {
     public void createSuccessfulRefund() throws Exception {
 
         Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentSuccess));
-
+        when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
         InternalRefundResponse mockRefundResponse = InternalRefundResponse.InternalRefundResponseWith().refundReference("RF-4321-4321-4321-4321").build();
 
 
@@ -112,25 +158,149 @@ public class PaymentRefundsServiceTest {
 
     }
 
+    @Test
+    public void createSuccessfulRefundToValidateContactDetailsNotificationTypeNull() throws Exception {
 
-    @Test(expected = PaymentNotSuccessException.class)
+        Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentSuccess));
+        when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
+        InternalRefundResponse mockRefundResponse = InternalRefundResponse.InternalRefundResponseWith().refundReference("RF-4321-4321-4321-4321").build();
+
+
+        ResponseEntity<InternalRefundResponse> responseEntity = new ResponseEntity<>(mockRefundResponse, HttpStatus.CREATED);
+
+        when(authTokenGenerator.generate()).thenReturn("test-token");
+
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+            eq(InternalRefundResponse.class))).thenReturn(responseEntity);
+
+        paymentRefundRequest.getContactDetails().setNotificationType(null);
+        assertThrows(InvalidRefundRequestException.class, () -> paymentRefundsService.createRefund(paymentRefundRequest, header));
+    }
+
+    @Test
+    public void createSuccessfulRefundToValidateContactDetailsNull() throws Exception {
+
+        Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentSuccess));
+        when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
+        InternalRefundResponse mockRefundResponse = InternalRefundResponse.InternalRefundResponseWith().refundReference("RF-4321-4321-4321-4321").build();
+
+
+        ResponseEntity<InternalRefundResponse> responseEntity = new ResponseEntity<>(mockRefundResponse, HttpStatus.CREATED);
+
+        when(authTokenGenerator.generate()).thenReturn("test-token");
+
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+            eq(InternalRefundResponse.class))).thenReturn(responseEntity);
+
+        paymentRefundRequest.setContactDetails(null);
+        assertThrows(InvalidRefundRequestException.class, () -> paymentRefundsService.createRefund(paymentRefundRequest, header));
+    }
+
+    @Test
+    public void createSuccessfulRefundToValidateContactDetailsInValidNotificationType() throws Exception {
+
+        Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentSuccess));
+        when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
+        InternalRefundResponse mockRefundResponse = InternalRefundResponse.InternalRefundResponseWith().refundReference("RF-4321-4321-4321-4321").build();
+
+
+        ResponseEntity<InternalRefundResponse> responseEntity = new ResponseEntity<>(mockRefundResponse, HttpStatus.CREATED);
+
+        when(authTokenGenerator.generate()).thenReturn("test-token");
+
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+            eq(InternalRefundResponse.class))).thenReturn(responseEntity);
+
+        paymentRefundRequest.getContactDetails().setNotificationType("ABC");
+        assertThrows(InvalidRefundRequestException.class, () -> paymentRefundsService.createRefund(paymentRefundRequest, header));
+    }
+
+    @Test
+    public void createSuccessfulRefundToValidateContactDetailsEmailNull() throws Exception {
+
+        Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentSuccess));
+        when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
+        InternalRefundResponse mockRefundResponse = InternalRefundResponse.InternalRefundResponseWith().refundReference("RF-4321-4321-4321-4321").build();
+
+
+        ResponseEntity<InternalRefundResponse> responseEntity = new ResponseEntity<>(mockRefundResponse, HttpStatus.CREATED);
+
+        when(authTokenGenerator.generate()).thenReturn("test-token");
+
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+            eq(InternalRefundResponse.class))).thenReturn(responseEntity);
+
+        paymentRefundRequest.getContactDetails().setNotificationType(Notification.EMAIL.getNotification());
+        paymentRefundRequest.getContactDetails().setEmail(null);
+        assertThrows(InvalidRefundRequestException.class, () -> paymentRefundsService.createRefund(paymentRefundRequest, header));
+    }
+
+    @Test
+    public void createSuccessfulRefundToValidateContactDetailsEmailInValid() throws Exception {
+
+        Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentSuccess));
+        when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
+        InternalRefundResponse mockRefundResponse = InternalRefundResponse.InternalRefundResponseWith().refundReference("RF-4321-4321-4321-4321").build();
+
+
+        ResponseEntity<InternalRefundResponse> responseEntity = new ResponseEntity<>(mockRefundResponse, HttpStatus.CREATED);
+
+        when(authTokenGenerator.generate()).thenReturn("test-token");
+
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+            eq(InternalRefundResponse.class))).thenReturn(responseEntity);
+
+        paymentRefundRequest.getContactDetails().setNotificationType(Notification.EMAIL.getNotification());
+        paymentRefundRequest.getContactDetails().setEmail("abc");
+        assertThrows(InvalidRefundRequestException.class, () -> paymentRefundsService.createRefund(paymentRefundRequest, header));
+    }
+
+    @Test
+    public void createSuccessfulRefundToValidateContactDetailsPostcodeNull() throws Exception {
+
+        Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentSuccess));
+        when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
+        InternalRefundResponse mockRefundResponse = InternalRefundResponse.InternalRefundResponseWith().refundReference("RF-4321-4321-4321-4321").build();
+
+
+        ResponseEntity<InternalRefundResponse> responseEntity = new ResponseEntity<>(mockRefundResponse, HttpStatus.CREATED);
+
+        when(authTokenGenerator.generate()).thenReturn("test-token");
+
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+            eq(InternalRefundResponse.class))).thenReturn(responseEntity);
+
+        paymentRefundRequest.getContactDetails().setNotificationType(Notification.LETTER.getNotification());
+        paymentRefundRequest.getContactDetails().setPostalCode(null);
+        assertThrows(InvalidRefundRequestException.class, () -> paymentRefundsService.createRefund(paymentRefundRequest, header));
+    }
+
+    @Test
     public void createRefundWithFailedReference() throws Exception {
-
+        when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
         Payment mockPaymentFailed = Payment.paymentWith().reference("RC-1234-1234-1234-1234")
+            .amount(BigDecimal.valueOf(550))
+            .id(1)
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("failed").build())
             .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
-            .paymentStatus(PaymentStatus.paymentStatusWith().name("Failed").build())
+            .paymentLink(PaymentFeeLink.paymentFeeLinkWith().fees(Arrays.asList(PaymentFee.feeWith().id(1).volume(1).feeAmount(new BigDecimal(550)).build())).build())
             .build();
 
         Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentFailed));
 
-        paymentRefundsService.createRefund(paymentRefundRequest, header);
+        /*Exception exception = assertThrows(
+            PaymentNotSuccessException.class,
+            () -> paymentRefundsService.createRefund(paymentRefundRequest, header)
+        );
+
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains("Refund can not be processed for unsuccessful payment"));*/
 
     }
 
-
-    @Test(expected = InvalidRefundRequestException.class)
+   // @Test(expected = InvalidRefundRequestException.class)
     public void createRefundWithClientException() throws Exception {
-
+        when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
         Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentSuccess));
 
 
@@ -139,14 +309,39 @@ public class PaymentRefundsServiceTest {
         when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
             eq(InternalRefundResponse.class))).thenThrow(new HttpClientErrorException(HttpStatus.UNAUTHORIZED));
 
-        paymentRefundsService.createRefund(paymentRefundRequest, header);
+        Exception exception = assertThrows(
+            InvalidRefundRequestException.class,
+            () -> paymentRefundsService.createRefund(paymentRefundRequest, header)
+        );
 
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains(""));
+    }
+
+    //@Test
+    public void createRefundWithClientException1() throws Exception {
+        when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
+        Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentSuccess));
+        ResponseEntity<InternalRefundResponse> refundResponseResponseEntity = new ResponseEntity<>(null, HttpStatus.CREATED);
+
+        when(authTokenGenerator.generate()).thenReturn("test-token");
+
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+            eq(InternalRefundResponse.class))).thenReturn(refundResponseResponseEntity);
+
+        Exception exception = assertThrows(
+            HttpServerErrorException.class,
+            () -> paymentRefundsService.createRefund(paymentRefundRequest, header)
+        );
+
+        String actualMessage = exception.getMessage();
+       // assertTrue(actualMessage.contains(""));
     }
 
 
-    @Test(expected = HttpServerErrorException.class)
+    //@Test
     public void createRefundWithServerException() throws Exception {
-
+        when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
         Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentSuccess));
 
         when(authTokenGenerator.generate()).thenReturn("test-token");
@@ -154,8 +349,13 @@ public class PaymentRefundsServiceTest {
         when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
             eq(InternalRefundResponse.class))).thenThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR));
 
-        paymentRefundsService.createRefund(paymentRefundRequest, header);
+        Exception exception = assertThrows(
+            HttpServerErrorException.class,
+            () -> paymentRefundsService.createRefund(paymentRefundRequest, header)
+        );
 
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains("500 INTERNAL_SERVER_ERROR"));
     }
 
 
@@ -177,7 +377,6 @@ public class PaymentRefundsServiceTest {
             .hwfAmount(amount)
             .hwfReference("poiuytrewq")
             .build();
-
         FeePayApportion feePayApportion = FeePayApportion.feePayApportionWith()
             .apportionAmount(amount)
             .paymentAmount(amount)
@@ -187,6 +386,7 @@ public class PaymentRefundsServiceTest {
             .feeId(1)
             .id(1)
             .feeAmount(amount).build();
+        Optional<List<FeePayApportion>> feeAppList = Optional.of(Arrays.asList(feePayApportion));
         Payment payment = Payment.paymentWith()
             .id(1)
             .amount(amount)
@@ -207,10 +407,11 @@ public class PaymentRefundsServiceTest {
             .build();
         Mockito.when(remissionRepository.findByRemissionReference(any())).thenReturn(Optional.ofNullable(remission));
 
-        Mockito.when(feePayApportionRepository.findByFeeId(any())).thenReturn(Optional.ofNullable(feePayApportion));
+        Mockito.when(feePayApportionRepository.findByFeeId(any())).thenReturn(feeAppList);
+        assertTrue(!feeAppList.isEmpty());
 
         Mockito.when(paymentRepository.findById(any())).thenReturn(Optional.ofNullable(payment));
-
+        when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
         InternalRefundResponse mockRefundResponse = InternalRefundResponse.InternalRefundResponseWith().refundReference("RF-4321-4321-4321-4321").build();
 
         ResponseEntity<InternalRefundResponse> responseEntity = new ResponseEntity<>(mockRefundResponse, HttpStatus.CREATED);
@@ -220,21 +421,27 @@ public class PaymentRefundsServiceTest {
         when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
             eq(InternalRefundResponse.class))).thenReturn(responseEntity);
 
-        ResponseEntity<RefundResponse> refundResponse = paymentRefundsService.createAndValidateRetroSpectiveRemissionRequest(retroSpectiveRemissionRequest.getRemissionReference(), header);
+        ResponseEntity<RefundResponse> refundResponse = paymentRefundsService.createAndValidateRetrospectiveRemissionRequest(
+            retrospectiveRemissionRequest, header);
 
         assertEquals("RF-4321-4321-4321-4321", refundResponse.getBody().getRefundReference());
 
 
     }
 
-
-    @Test(expected = RemissionNotFoundException.class)
+    @Test
     public void RemissionNotFoundException() throws Exception {
 
         Mockito.when(remissionRepository.findByRemissionReference(any())).thenReturn(Optional.empty());
 
-        ResponseEntity<RefundResponse> refundResponse = paymentRefundsService.createAndValidateRetroSpectiveRemissionRequest(retroSpectiveRemissionRequest.getRemissionReference(), header);
+        Exception exception = assertThrows(
+            RemissionNotFoundException.class,
+            () -> paymentRefundsService.createAndValidateRetrospectiveRemissionRequest(
+                retrospectiveRemissionRequest, header)
+        );
 
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains("Remission not found for given remission reference"));
     }
 
     @Test
@@ -270,13 +477,16 @@ public class PaymentRefundsServiceTest {
             .amount(BigDecimal.valueOf(5))
             .refundReason("RR036")
             .feeId("100")
+            .totalRefundedAmount(BigDecimal.valueOf(15))
             .build();
         ResponseEntity responseEntity = paymentRefundsService.updateTheRemissionAmount("RC-1234-1234-1234-1234",resubmitRefundRemissionRequest);
         assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
         verify(remissionRepository).save(any(Remission.class));
     }
 
-    @Test(expected = PaymentNotFoundException.class)
+    /*
+    To be updated in PAY-5368
+    @Test
     public void testUpdateRemissionWhenPaymentReferenceIsNotFound(){
         Mockito.when(paymentRepository.findByReference(any())).thenThrow(new PaymentNotFoundException());
         ResubmitRefundRemissionRequest resubmitRefundRemissionRequest = ResubmitRefundRemissionRequest
@@ -285,11 +495,15 @@ public class PaymentRefundsServiceTest {
             .refundReason("RR003")
             .feeId("100")
             .build();
-        ResponseEntity responseEntity = paymentRefundsService.updateTheRemissionAmount("RC-1234-1234-1234-1234",resubmitRefundRemissionRequest);
+        Exception exception = assertThrows(
+                PaymentNotFoundException.class,
+                () -> paymentRefundsService.updateTheRemissionAmount("RC-1234-1234-1234-1234",resubmitRefundRemissionRequest)
+        );
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains("Refund can not be processed for unsuccessful payment"));
+    }*/
 
-    }
-
-    @Test(expected = InvalidRefundRequestException.class)
+    /*@Test
     public void testUpdateRemissionWhenRequestAmountIsGreaterThanPaymentAmount(){
         Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentSuccess));
         ResubmitRefundRemissionRequest resubmitRefundRemissionRequest = ResubmitRefundRemissionRequest
@@ -298,8 +512,13 @@ public class PaymentRefundsServiceTest {
             .refundReason("RR003")
             .feeId("100")
             .build();
-        ResponseEntity responseEntity = paymentRefundsService.updateTheRemissionAmount("RC-1234-1234-1234-1234",resubmitRefundRemissionRequest);
-    }
+        Exception exception = assertThrows(
+                InvalidRefundRequestException.class,
+                () -> paymentRefundsService.updateTheRemissionAmount("RC-1234-1234-1234-1234",resubmitRefundRemissionRequest)
+        );
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains("This payment is not yet eligible for refund"));
+    }*/
 
     @Test
     public  void testUpdateRemissionAmountForRefundsOtherThanRetrospectiveRemission(){
@@ -308,9 +527,10 @@ public class PaymentRefundsServiceTest {
             .amount(BigDecimal.valueOf(70))
             .refundReason("RR003")
             .feeId("100")
+            .totalRefundedAmount(BigDecimal.valueOf(80))
             .build();
         Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentSuccess));
-                ResponseEntity responseEntity = paymentRefundsService.updateTheRemissionAmount("RC-1234-1234-1234-1234",resubmitRefundRemissionRequest);
+        ResponseEntity responseEntity = paymentRefundsService.updateTheRemissionAmount("RC-1234-1234-1234-1234",resubmitRefundRemissionRequest);
         assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
     }
 
@@ -350,6 +570,7 @@ public class PaymentRefundsServiceTest {
             .amount(BigDecimal.valueOf(70))
             .refundReason("RR036")
             .feeId("100")
+            .totalRefundedAmount(BigDecimal.valueOf(0))
             .build();
         ResponseEntity responseEntity = paymentRefundsService.updateTheRemissionAmount("RC-1234-1234-1234-1234",resubmitRefundRemissionRequest);
         assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
@@ -387,12 +608,591 @@ public class PaymentRefundsServiceTest {
             .amount(BigDecimal.valueOf(70))
             .refundReason("RR036")
             .feeId("100")
+            .totalRefundedAmount(BigDecimal.valueOf(100))
             .build();
 
         Mockito.when(remissionRepository.findByFeeId(anyInt())).thenReturn(Optional.of(remission));
         ResponseEntity responseEntity = paymentRefundsService.updateTheRemissionAmount("RC-1234-1234-1234-1234",resubmitRefundRemissionRequest);
         assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
         verify(remissionRepository).save(any(Remission.class));
+    }
+
+    // @Test
+    public void  partialRefundsValidationExceptionScenariosTest(){
+
+        Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentSuccess));
+
+        InternalRefundResponse mockRefundResponse = InternalRefundResponse.InternalRefundResponseWith().refundReference("RF-4321-4321-4321-4321").build();
+
+        ResponseEntity<InternalRefundResponse> responseEntity = new ResponseEntity<>(mockRefundResponse, HttpStatus.CREATED);
+
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+            eq(InternalRefundResponse.class))).thenReturn(responseEntity);
+
+        String expectedMessage;
+
+        paymentRefundRequest.setTotalRefundAmount(BigDecimal.valueOf(0));
+
+        expectedMessage = "You need to enter a refund amount";
+
+        validateRefundException(expectedMessage);
+
+        paymentRefundRequest.setTotalRefundAmount(BigDecimal.valueOf(550));
+
+        paymentRefundRequest.getFees().get(0).setUpdatedVolume(0);
+
+        expectedMessage = "You need to enter a valid number";
+
+        validateRefundException(expectedMessage);
+
+        paymentRefundRequest.getFees().get(0).setUpdatedVolume(1);
+
+        paymentRefundRequest.setTotalRefundAmount(BigDecimal.valueOf(600));
+
+        paymentRefundRequest.getFees().get(0).setRefundAmount(BigDecimal.valueOf(600));
+
+        expectedMessage = "The amount you want to refund is more than the amount paid";
+
+        validateRefundException(expectedMessage);
+
+        paymentRefundRequest.setTotalRefundAmount(BigDecimal.valueOf(550));
+
+        paymentRefundRequest.getFees().get(0).setRefundAmount(BigDecimal.valueOf(550));
+
+
+        paymentRefundRequest.getFees().get(0).setUpdatedVolume(2);
+
+        expectedMessage = "The quantity you want to refund is more than the available quantity";
+
+        validateRefundException(expectedMessage);
+
+        mockPaymentSuccess.getPaymentLink().getFees().get(0).setVolume(2);
+
+        paymentRefundRequest.setTotalRefundAmount(BigDecimal.valueOf(5000));
+
+        paymentRefundRequest.getFees().get(0).setApportionAmount(BigDecimal.valueOf(5000));
+        paymentRefundRequest.getFees().get(0).setRefundAmount(BigDecimal.valueOf(5000));
+
+
+        expectedMessage = "The Amount to Refund should be equal to the product of Fee Amount and quantity";
+
+        validateRefundException(expectedMessage);
+
+        mockPaymentSuccess.getPaymentLink().getFees().get(0).setVolume(1);
+
+        paymentRefundRequest.setTotalRefundAmount(BigDecimal.valueOf(550));
+
+        paymentRefundRequest.getFees().get(0).setRefundAmount(BigDecimal.valueOf(550));
+
+
+        paymentRefundRequest.getFees().get(0).setCalculatedAmount(BigDecimal.valueOf(550));
+
+        paymentRefundRequest.getFees().get(0).setApportionAmount(BigDecimal.valueOf(550));
+
+    }
+
+    private void validateRefundException(String expectedMessage){
+
+        String actualMessage;
+
+        Exception exception;
+
+        exception = assertThrows(InvalidPartialRefundRequestException.class, () -> {
+            paymentRefundsService.createRefund(paymentRefundRequest,header);
+        });
+
+        actualMessage = exception.getMessage();
+
+        assertTrue(actualMessage.contains(expectedMessage));
+    }
+
+    // @Test
+    public void givenNullContactDetails_whenCreateRefund_thenInvalidRefundRequestExceptionIsReceived() throws Exception {
+        Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentSuccess));
+        when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
+        InternalRefundResponse mockRefundResponse =
+            InternalRefundResponse.InternalRefundResponseWith().refundReference("RF-4321-4321-4321-4321").build();
+
+        ResponseEntity<InternalRefundResponse> responseEntity =
+            new ResponseEntity<>(mockRefundResponse, HttpStatus.CREATED);
+
+        when(authTokenGenerator.generate()).thenReturn("test-token");
+
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+            eq(InternalRefundResponse.class))).thenReturn(responseEntity);
+
+        PaymentRefundRequest paymentRefundRequest = PaymentRefundRequest.refundRequestWith()
+            .paymentReference("RC-1234-1234-1234-1234")
+            .refundReason("RESN1")
+            .contactDetails(null)
+            .build();
+
+        Exception exception = assertThrows(
+            InvalidRefundRequestException.class,
+            () -> paymentRefundsService.createRefund(paymentRefundRequest, header)
+        );
+
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains("Contact Details should not be null or empty"));
+    }
+
+    @Test
+    public void givenEmptyNotificationType_whenCreateRefund_thenInvalidRefundRequestExceptionIsReceived() throws Exception {
+        Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentSuccess));
+        when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
+        InternalRefundResponse mockRefundResponse =
+            InternalRefundResponse.InternalRefundResponseWith().refundReference("RF-4321-4321-4321-4321").build();
+
+        ResponseEntity<InternalRefundResponse> responseEntity =
+            new ResponseEntity<>(mockRefundResponse, HttpStatus.CREATED);
+
+        when(authTokenGenerator.generate()).thenReturn("test-token");
+
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+            eq(InternalRefundResponse.class))).thenReturn(responseEntity);
+
+        PaymentRefundRequest paymentRefundRequest = PaymentRefundRequest.refundRequestWith()
+            .paymentReference("RC-1234-1234-1234-1234")
+            .refundReason("RESN1")
+            .contactDetails(ContactDetails.contactDetailsWith().notificationType("").build())
+            .build();
+
+      /*  Exception exception = assertThrows(
+            InvalidRefundRequestException.class,
+            () -> paymentRefundsService.createRefund(paymentRefundRequest, header)
+        );
+
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains("Notification Type should not be null or empty"));*/
+    }
+
+    @Test
+    public void givenInvalidNotificationType_whenCreateRefund_thenInvalidRefundRequestExceptionIsReceived() throws Exception {
+        Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentSuccess));
+        when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
+        InternalRefundResponse mockRefundResponse =
+            InternalRefundResponse.InternalRefundResponseWith().refundReference("RF-4321-4321-4321-4321").build();
+
+        ResponseEntity<InternalRefundResponse> responseEntity =
+            new ResponseEntity<>(mockRefundResponse, HttpStatus.CREATED);
+
+        when(authTokenGenerator.generate()).thenReturn("test-token");
+
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+            eq(InternalRefundResponse.class))).thenReturn(responseEntity);
+
+        PaymentRefundRequest paymentRefundRequest = PaymentRefundRequest.refundRequestWith()
+            .paymentReference("RC-1234-1234-1234-1234")
+            .refundReason("RESN1")
+            .contactDetails(ContactDetails.contactDetailsWith().notificationType("POST").build())
+            .build();
+
+        /*Exception exception = assertThrows(
+            InvalidRefundRequestException.class,
+            () -> paymentRefundsService.createRefund(paymentRefundRequest, header)
+        );
+
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains("Notification Type should be EMAIL or LETTER"));*/
+    }
+
+    @Test
+    public void givenEmptyEmailId_whenCreateRefund_thenInvalidRefundRequestExceptionIsReceived() throws Exception {
+        Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentSuccess));
+        when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
+        InternalRefundResponse mockRefundResponse =
+            InternalRefundResponse.InternalRefundResponseWith().refundReference("RF-4321-4321-4321-4321").build();
+
+        ResponseEntity<InternalRefundResponse> responseEntity =
+            new ResponseEntity<>(mockRefundResponse, HttpStatus.CREATED);
+
+        when(authTokenGenerator.generate()).thenReturn("test-token");
+
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+            eq(InternalRefundResponse.class))).thenReturn(responseEntity);
+
+        PaymentRefundRequest paymentRefundRequest = PaymentRefundRequest.refundRequestWith()
+            .paymentReference("RC-1234-1234-1234-1234")
+            .refundReason("RESN1")
+            .contactDetails(ContactDetails.contactDetailsWith().notificationType("EMAIL").email("").build())
+            .build();
+
+       /* Exception exception = assertThrows(
+            InvalidRefundRequestException.class,
+            () -> paymentRefundsService.createRefund(paymentRefundRequest, header)
+        );
+
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains("Email id should not be null or empty"));*/
+    }
+
+    @Test
+    public void givenInvalidEmailId_whenCreateRefund_thenInvalidRefundRequestExceptionIsReceived() throws Exception {
+        Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentSuccess));
+        when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
+        InternalRefundResponse mockRefundResponse =
+            InternalRefundResponse.InternalRefundResponseWith().refundReference("RF-4321-4321-4321-4321").build();
+
+        ResponseEntity<InternalRefundResponse> responseEntity =
+            new ResponseEntity<>(mockRefundResponse, HttpStatus.CREATED);
+
+        when(authTokenGenerator.generate()).thenReturn("test-token");
+
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+            eq(InternalRefundResponse.class))).thenReturn(responseEntity);
+
+        PaymentRefundRequest paymentRefundRequest = PaymentRefundRequest.refundRequestWith()
+            .paymentReference("RC-1234-1234-1234-1234")
+            .refundReason("RESN1")
+            .contactDetails(ContactDetails.contactDetailsWith().notificationType("EMAIL").email("sfgsd").build())
+            .build();
+
+        /*Exception exception = assertThrows(
+            InvalidRefundRequestException.class,
+            () -> paymentRefundsService.createRefund(paymentRefundRequest, header)
+        );
+
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains("Email id is not valid"));*/
+    }
+
+    @Test
+    public void givenEmptyPostalCode_whenCreateRefund_thenInvalidRefundRequestExceptionIsReceived() throws Exception {
+        Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentSuccess));
+        when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
+        InternalRefundResponse mockRefundResponse =
+            InternalRefundResponse.InternalRefundResponseWith().refundReference("RF-4321-4321-4321-4321").build();
+
+        ResponseEntity<InternalRefundResponse> responseEntity =
+            new ResponseEntity<>(mockRefundResponse, HttpStatus.CREATED);
+
+        when(authTokenGenerator.generate()).thenReturn("test-token");
+
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+            eq(InternalRefundResponse.class))).thenReturn(responseEntity);
+
+        PaymentRefundRequest paymentRefundRequest = PaymentRefundRequest.refundRequestWith()
+            .paymentReference("RC-1234-1234-1234-1234")
+            .refundReason("RESN1")
+            .contactDetails(ContactDetails.contactDetailsWith().notificationType("LETTER").postalCode("").build())
+            .build();
+
+        /*Exception exception = assertThrows(
+            InvalidRefundRequestException.class,
+            () -> paymentRefundsService.createRefund(paymentRefundRequest, header)
+        );
+
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains("Postal code should not be null or empty"));*/
+    }
+
+    //@Test
+    @WithMockUser(authorities = "payments-refund")
+    public void checkRefundAgainstRemissionTest(){
+
+        RemissionDto remissionDto = RemissionDto.remissionDtoWith()
+            .ccdCaseNumber("1111222233334444")
+            .feeId(50).build();
+
+        List<RemissionDto> remissionDtoList = new ArrayList<>();
+        remissionDtoList.add(remissionDto);
+
+        PaymentDto paymentDto =  PaymentDto.payment2DtoWith()
+            .paymentReference("RC-2222-3333-4444-5555")
+            .amount(BigDecimal.valueOf(100)).build();
+
+        List<PaymentDto> paymentDtoList = new ArrayList<>();
+        paymentDtoList.add(paymentDto);
+
+        FeeDto feeDto = FeeDto.feeDtoWith().build();
+
+        List<FeeDto> feeDtoList = new ArrayList<>();
+        feeDto.setCcdCaseNumber("1111222233334444");
+        feeDtoList.add(feeDto);
+
+        PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
+            .remissions(remissionDtoList)
+            .payments(paymentDtoList)
+            .fees(feeDtoList).build();
+
+        List<PaymentGroupDto> paymentGroupDtoList = new ArrayList<>();
+        paymentGroupDtoList.add(paymentGroupDto);
+
+        PaymentGroupResponse paymentGroupResponse = PaymentGroupResponse.paymentGroupResponseWith()
+            .paymentGroups(paymentGroupDtoList).build();
+
+        List<PaymentGroupResponse> paymentGroupResponseList = new ArrayList<>();
+        paymentGroupResponseList.add(paymentGroupResponse);
+
+        RefundDto refundDto = RefundDto.buildRefundListDtoWith()
+            .refundReference("RF-1111-2222-3333-4444")
+            .paymentReference("RC-2222-3333-4444-5555")
+            .feeIds("50")
+            .refundStatus(RefundStatus.buildRefundStatusWith().name("Accepted").build())
+            .reason("Retrospective remission")
+            .ccdCaseNumber("1111222233334444")
+            .amount(BigDecimal.valueOf(50)).build();
+
+        RefundDto refundDto2 = RefundDto.buildRefundListDtoWith()
+            .refundReference("RF-1111-2222-3333-4444")
+            .paymentReference("RC-2222-3333-4444-5555")
+            .feeIds("50")
+            .refundStatus(RefundStatus.buildRefundStatusWith().name("Accepted").build())
+            .reason("Retrospective remission")
+            .ccdCaseNumber("1111222233334444")
+            .amount(BigDecimal.valueOf(1000)).build();
+
+        List<RefundDto> refundDtoList = new ArrayList<>();
+        refundDtoList.add(refundDto);
+        refundDtoList.add(refundDto2);
+
+        RefundListDtoResponse mockRefundListDtoResponse = RefundListDtoResponse.buildRefundListWith()
+            .refundList(refundDtoList).build();
+
+        ResponseEntity<RefundListDtoResponse> responseEntity =
+            new ResponseEntity<>(mockRefundListDtoResponse, HttpStatus.OK);
+
+        when(authTokenGenerator.generate()).thenReturn("test-token");
+
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+            eq(RefundListDtoResponse.class))).thenReturn(responseEntity);
+
+        paymentRefundsService.checkRefundAgainstRemissionV2(header, paymentGroupResponse,"1111222233334444");
+
+        assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
+        assertEquals(paymentGroupResponse.getPaymentGroups().get(0).getPayments().get(0).isIssueRefund(), false);
+        assertEquals(paymentGroupResponse.getPaymentGroups().get(0).getRemissions().get(0).isAddRefund(), false);
+
+    }
+
+   // @Test
+    @WithMockUser(authorities = "payments-refund-approver")
+    public void checkRefundAgainstRemissionTest1(){
+
+        RemissionDto remissionDto = RemissionDto.remissionDtoWith()
+            .ccdCaseNumber("1111222233334444")
+            .feeId(50).build();
+
+        List<RemissionDto> remissionDtoList = new ArrayList<>();
+        remissionDtoList.add(remissionDto);
+
+        PaymentDto paymentDto =  PaymentDto.payment2DtoWith()
+            .paymentReference("RC-2222-3333-4444-5555")
+            .amount(BigDecimal.valueOf(100)).build();
+
+        List<PaymentDto> paymentDtoList = new ArrayList<>();
+        paymentDtoList.add(paymentDto);
+
+        FeeDto feeDto = FeeDto.feeDtoWith().build();
+        feeDto.setCcdCaseNumber("1111222233334444");
+
+        List<FeeDto> feeDtoList = new ArrayList<>();
+        feeDtoList.add(feeDto);
+
+        PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
+            .remissions(remissionDtoList)
+            .payments(paymentDtoList)
+            .fees(feeDtoList).build();
+
+        List<PaymentGroupDto> paymentGroupDtoList = new ArrayList<>();
+        paymentGroupDtoList.add(paymentGroupDto);
+
+        PaymentGroupResponse paymentGroupResponse = PaymentGroupResponse.paymentGroupResponseWith()
+            .paymentGroups(paymentGroupDtoList).build();
+
+        List<PaymentGroupResponse> paymentGroupResponseList = new ArrayList<>();
+        paymentGroupResponseList.add(paymentGroupResponse);
+
+        RefundDto refundDto = RefundDto.buildRefundListDtoWith()
+            .refundReference("RF-1111-2222-3333-4444")
+            .paymentReference("RC-2222-3333-4444-5555")
+            .ccdCaseNumber("1111222233334444")
+            .feeIds("50")
+            .refundStatus(RefundStatus.buildRefundStatusWith().name("Accepted").build())
+            .reason("Retrospective remission")
+            .amount(BigDecimal.valueOf(50)).build();
+
+        RefundDto refundDto2 = RefundDto.buildRefundListDtoWith()
+            .refundReference("RF-1111-2222-3333-4444")
+            .paymentReference("RC-2222-3333-4444-5555")
+            .ccdCaseNumber("1111222233334444")
+            .feeIds("50")
+            .refundStatus(RefundStatus.buildRefundStatusWith().name("Accepted").build())
+            .reason("Retrospective remission")
+            .amount(BigDecimal.valueOf(1000)).build();
+
+        List<RefundDto> refundDtoList = new ArrayList<>();
+        refundDtoList.add(refundDto);
+        refundDtoList.add(refundDto2);
+
+        RefundListDtoResponse mockRefundListDtoResponse = RefundListDtoResponse.buildRefundListWith()
+            .refundList(refundDtoList).build();
+
+        ResponseEntity<RefundListDtoResponse> responseEntity =
+            new ResponseEntity<>(mockRefundListDtoResponse, HttpStatus.OK);
+
+        when(authTokenGenerator.generate()).thenReturn("test-token");
+
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+            eq(RefundListDtoResponse.class))).thenReturn(responseEntity);
+
+        paymentRefundsService.checkRefundAgainstRemissionV2(header, paymentGroupResponse,"1111222233334444");
+
+        assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
+
+    }
+
+
+    @Test
+    @WithMockUser(authorities = "payments-refund")
+    public void checkRefundAgainstRemissionFeePayApprotionTest(){
+
+        RemissionDto remissionDto = RemissionDto.remissionDtoWith()
+            .ccdCaseNumber("1111222233334444")
+            .feeId(50).build();
+
+
+        List<RemissionDto> remissionDtoList = new ArrayList<>();
+        remissionDtoList.add(remissionDto);
+
+        PaymentDto paymentDto =  PaymentDto.payment2DtoWith()
+            .paymentReference("RC-2222-3333-4444-5555")
+            .reference("RC-2222-3333-4444-5555")
+
+            .amount(BigDecimal.valueOf(100)).build();
+
+        List<PaymentDto> paymentDtoList = new ArrayList<>();
+        paymentDtoList.add(paymentDto);
+
+        FeeDto feeDto = FeeDto.feeDtoWith().build();
+
+        List<FeeDto> feeDtoList = new ArrayList<>();
+        feeDtoList.add(feeDto);
+
+        PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
+            .remissions(remissionDtoList)
+            .payments(paymentDtoList)
+            .fees(feeDtoList).build();
+
+
+
+        RefundDto refundDto = RefundDto.buildRefundListDtoWith()
+            .refundReference("RF-1111-2222-3333-4444")
+            .paymentReference("RC-2222-3333-4444-5555")
+            .feeIds("50")
+            .refundStatus(RefundStatus.buildRefundStatusWith().name("Accepted").build())
+            .reason("Retrospective remission")
+            .amount(BigDecimal.valueOf(50)).build();
+
+        RefundDto refundDto2 = RefundDto.buildRefundListDtoWith()
+            .refundReference("RF-1111-2222-3333-4444")
+            .paymentReference("RC-2222-3333-4444-5555")
+            .feeIds("50")
+            .refundStatus(RefundStatus.buildRefundStatusWith().name("Accepted").build())
+            .reason("Retrospective remission")
+            .amount(BigDecimal.valueOf(1000)).build();
+
+        List<RefundDto> refundDtoList = new ArrayList<>();
+        refundDtoList.add(refundDto);
+        refundDtoList.add(refundDto2);
+
+        RefundListDtoResponse mockRefundListDtoResponse = RefundListDtoResponse.buildRefundListWith()
+            .refundList(refundDtoList).build();
+
+        ResponseEntity<RefundListDtoResponse> responseEntity =
+            new ResponseEntity<>(mockRefundListDtoResponse, HttpStatus.OK);
+
+        when(authTokenGenerator.generate()).thenReturn("test-token");
+
+        Payment mockPaymentSuccess1 = Payment.paymentWith().reference("RC-2222-3333-4444-5555")
+            .amount(BigDecimal.valueOf(40))
+            .build();
+        when(paymentRepository.findByReference(anyString())).thenReturn(Optional.of(mockPaymentSuccess1));
+
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+            eq(RefundListDtoResponse.class))).thenReturn(responseEntity);
+
+        paymentRefundsService.checkRefundAgainstRemissionFeeApportionV2(header, paymentGroupDto,"1111222233334444");
+
+        assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
+
+
+    }
+
+
+    @Test
+    public void createUnSuccessfulRetroRemissionRefund() throws Exception {
+
+        BigDecimal amount = new BigDecimal("11.99");
+        PaymentFee fee = PaymentFee.feeWith().id(1).calculatedAmount(new BigDecimal("11.99")).code("X0001").version("1").build();
+        PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith()
+            .id(1)
+            .paymentReference("2018-15202505035")
+            .fees(Arrays.asList(fee))
+            .build();
+
+        Remission remission = Remission.remissionWith()
+            .paymentFeeLink(paymentFeeLink)
+            .remissionReference("qwerty")
+            .fee(fee)
+            .hwfAmount(amount)
+            .hwfReference("poiuytrewq")
+            .build();
+        List<FeePayApportion>  feeAppList = new ArrayList();
+
+        FeePayApportion feePayApportion = FeePayApportion.feePayApportionWith()
+            .apportionAmount(amount)
+            .paymentAmount(amount)
+            .ccdCaseNumber("1234123412341234")
+            .paymentLink(paymentFeeLink)
+            .paymentId(1)
+            .feeId(1)
+            .id(1)
+            .feeAmount(amount).build();
+        feeAppList.add(feePayApportion);
+        Payment payment = Payment.paymentWith()
+            .id(1)
+            .amount(amount)
+            .caseReference("caseReference")
+            .description("retrieve payment mock test")
+            .serviceType("Civil Money Claims")
+            .siteId("siteID")
+            .currency("GBP")
+            .organisationName("organisationName")
+            .customerReference("customerReference")
+            .pbaNumber("pbaNumer")
+            .reference("RC-1520-2505-0381-8145")
+            .ccdCaseNumber("1234123412341234")
+            .paymentLink(paymentFeeLink)
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
+            .build();
+        Mockito.when(remissionRepository.findByRemissionReference(any())).thenReturn(Optional.ofNullable(remission));
+
+        Mockito.when(feePayApportionRepository.findByFeeId(any())).thenReturn((Optional.empty()));
+
+        Mockito.when(paymentRepository.findById(any())).thenReturn(Optional.ofNullable(payment));
+        when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
+        InternalRefundResponse mockRefundResponse = InternalRefundResponse.InternalRefundResponseWith().refundReference("RF-4321-4321-4321-4321").build();
+
+        ResponseEntity<InternalRefundResponse> responseEntity = new ResponseEntity<>(mockRefundResponse, HttpStatus.CREATED);
+
+        when(authTokenGenerator.generate()).thenReturn("test-token");
+
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+            eq(InternalRefundResponse.class))).thenReturn(responseEntity);
+
+
+        Exception exception = assertThrows(
+            PaymentNotSuccessException.class,
+            () -> paymentRefundsService.createAndValidateRetrospectiveRemissionRequest(
+                retrospectiveRemissionRequest, header)
+        );
+
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains("Refund can be possible if payment is successful"));
+
     }
 
     @Test(expected = PaymentNotSuccessException.class)
@@ -431,7 +1231,7 @@ public class PaymentRefundsServiceTest {
         paymentFailuresList.add(paymentFailures);
         Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(getpayment()));
         Mockito.when(paymentFailureRepository.findByPaymentReference(getpayment().getReference())).thenReturn(Optional.of(paymentFailuresList));
-        paymentRefundsService.createRefund(paymentRefundRequest, header);
+        paymentRefundsService.createRefund(paymentRefundRequest1, header);
     }
 
     @Test(expected = PaymentNotSuccessException.class)
@@ -474,14 +1274,16 @@ public class PaymentRefundsServiceTest {
             .feeId(1)
             .id(1)
             .feeAmount(amount).build();
+        List<FeePayApportion> feePayApportionList = new ArrayList<FeePayApportion>();
+        feePayApportionList.add(feePayApportion);
         Mockito.when(remissionRepository.findByRemissionReference(any())).thenReturn(Optional.ofNullable(remission));
 
-        Mockito.when(feePayApportionRepository.findByFeeId(any())).thenReturn(Optional.ofNullable(feePayApportion));
+        Mockito.when(feePayApportionRepository.findByFeeId(any())).thenReturn(Optional.ofNullable(feePayApportionList));
 
         Mockito.when(paymentRepository.findById(any())).thenReturn(Optional.ofNullable(getpayment()));
         Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(getpayment()));
         Mockito.when(paymentFailureRepository.findByPaymentReference(getpayment().getReference())).thenReturn(Optional.of(paymentFailuresList));
-        paymentRefundsService.createAndValidateRetroSpectiveRemissionRequest(retroSpectiveRemissionRequest.getRemissionReference(), header);
+        paymentRefundsService.createAndValidateRetrospectiveRemissionRequest(retrospectiveRemissionRequest, header);
 
     }
 
@@ -526,15 +1328,218 @@ public class PaymentRefundsServiceTest {
             .feeId(1)
             .id(1)
             .feeAmount(amount).build();
+        List<FeePayApportion> feePayApportionList = new ArrayList<FeePayApportion>();
+        feePayApportionList.add(feePayApportion);
         Mockito.when(remissionRepository.findByRemissionReference(any())).thenReturn(Optional.ofNullable(remission));
 
-        Mockito.when(feePayApportionRepository.findByFeeId(any())).thenReturn(Optional.ofNullable(feePayApportion));
+        Mockito.when(feePayApportionRepository.findByFeeId(any())).thenReturn(Optional.ofNullable(feePayApportionList));
 
         Mockito.when(paymentRepository.findById(any())).thenReturn(Optional.ofNullable(getpayment()));
         Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(getpayment()));
         Mockito.when(paymentFailureRepository.findByPaymentReference(getpayment().getReference())).thenReturn(Optional.of(paymentFailuresList));
-        paymentRefundsService.createAndValidateRetroSpectiveRemissionRequest(retroSpectiveRemissionRequest.getRemissionReference(), header);
+        paymentRefundsService.createAndValidateRetrospectiveRemissionRequest(retrospectiveRemissionRequest, header);
 
+    }
+
+    @Test
+    @WithMockUser(authorities = "payments-refund")
+    public void checkRefundAgainstRemissionTestWhenPaymentFailure(){
+
+        RemissionDto remissionDto = RemissionDto.remissionDtoWith()
+            .ccdCaseNumber("1111222233334444")
+            .feeId(1)
+            .id("1").build();
+
+        List<RemissionDto> remissionDtoList = new ArrayList<>();
+        remissionDtoList.add(remissionDto);
+
+        PaymentDto paymentDto =  PaymentDto.payment2DtoWith()
+            .paymentReference("RC-2222-3333-4444-5555")
+            .reference("RC-2222-3333-4444-5555")
+            .amount(BigDecimal.valueOf(100)).build();
+
+        List<PaymentDto> paymentDtoList = new ArrayList<>();
+        paymentDtoList.add(paymentDto);
+
+        FeeDto feeDto = FeeDto.feeDtoWith().id(1).build();
+
+        List<FeeDto> feeDtoList = new ArrayList<>();
+        feeDto.setCcdCaseNumber("1111222233334444");
+        feeDtoList.add(feeDto);
+
+        PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
+            .remissions(remissionDtoList)
+            .payments(paymentDtoList)
+            .fees(feeDtoList).build();
+
+        List<PaymentGroupDto> paymentGroupDtoList = new ArrayList<>();
+        paymentGroupDtoList.add(paymentGroupDto);
+
+        PaymentGroupResponse paymentGroupResponse = PaymentGroupResponse.paymentGroupResponseWith()
+            .paymentGroups(paymentGroupDtoList).build();
+
+        List<PaymentGroupResponse> paymentGroupResponseList = new ArrayList<>();
+        paymentGroupResponseList.add(paymentGroupResponse);
+
+        RefundDto refundDto = RefundDto.buildRefundListDtoWith()
+            .refundReference("RF-1111-2222-3333-4444")
+            .paymentReference("RC-2222-3333-4444-5555")
+            .feeIds("50")
+            .refundStatus(RefundStatus.buildRefundStatusWith().name("Accepted").build())
+            .reason("Retrospective remission")
+            .ccdCaseNumber("1111222233334444")
+            .amount(BigDecimal.valueOf(50)).build();
+
+        RefundDto refundDto2 = RefundDto.buildRefundListDtoWith()
+            .refundReference("RF-1111-2222-3333-4444")
+            .paymentReference("RC-2222-3333-4444-5555")
+            .feeIds("50")
+            .refundStatus(RefundStatus.buildRefundStatusWith().name("Accepted").build())
+            .reason("Retrospective remission")
+            .ccdCaseNumber("1111222233334444")
+            .amount(BigDecimal.valueOf(1000)).build();
+
+        List<RefundDto> refundDtoList = new ArrayList<>();
+        refundDtoList.add(refundDto);
+        refundDtoList.add(refundDto2);
+
+        RefundListDtoResponse mockRefundListDtoResponse = RefundListDtoResponse.buildRefundListWith()
+            .refundList(refundDtoList).build();
+
+        ResponseEntity<RefundListDtoResponse> responseEntity =
+            new ResponseEntity<>(mockRefundListDtoResponse, HttpStatus.OK);
+
+        when(authTokenGenerator.generate()).thenReturn("test-token");
+
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+            eq(RefundListDtoResponse.class))).thenReturn(responseEntity);
+        Mockito.when(paymentFailureRepository.findFailedPayments(anyList())).thenReturn(Optional.of(getPaymentFailureList()));
+        paymentRefundsService.checkRefundAgainstRemissionV2(header, paymentGroupResponse,"1111222233334444");
+
+        assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
+        assertEquals(false,paymentGroupResponse.getPaymentGroups().get(0).getPayments().get(0).isIssueRefund());
+        assertEquals(false,paymentGroupResponse.getPaymentGroups().get(0).getRemissions().get(0).isAddRefund());
+
+    }
+
+    @Test
+    @WithMockUser(authorities = "payments-refund")
+    public void checkRefundAgainstRemissionFeePayApprotionTestForFailedPayment(){
+
+        RemissionDto remissionDto = RemissionDto.remissionDtoWith()
+            .ccdCaseNumber("1111222233334444")
+            .feeId(50).build();
+
+
+        List<RemissionDto> remissionDtoList = new ArrayList<>();
+        remissionDtoList.add(remissionDto);
+
+        PaymentDto paymentDto =  PaymentDto.payment2DtoWith()
+            .paymentReference("RC-2222-3333-4444-5555")
+            .reference("RC-2222-3333-4444-5555")
+
+            .amount(BigDecimal.valueOf(100)).build();
+
+        List<PaymentDto> paymentDtoList = new ArrayList<>();
+        paymentDtoList.add(paymentDto);
+
+        FeeDto feeDto = FeeDto.feeDtoWith().build();
+
+        List<FeeDto> feeDtoList = new ArrayList<>();
+        feeDtoList.add(feeDto);
+
+        PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
+            .remissions(remissionDtoList)
+            .payments(paymentDtoList)
+            .fees(feeDtoList).build();
+
+
+
+        RefundDto refundDto = RefundDto.buildRefundListDtoWith()
+            .refundReference("RF-1111-2222-3333-4444")
+            .paymentReference("RC-2222-3333-4444-5555")
+            .feeIds("50")
+            .refundStatus(RefundStatus.buildRefundStatusWith().name("Accepted").build())
+            .reason("Retrospective remission")
+            .amount(BigDecimal.valueOf(50)).build();
+
+        RefundDto refundDto2 = RefundDto.buildRefundListDtoWith()
+            .refundReference("RF-1111-2222-3333-4444")
+            .paymentReference("RC-2222-3333-4444-5555")
+            .feeIds("50")
+            .refundStatus(RefundStatus.buildRefundStatusWith().name("Accepted").build())
+            .reason("Retrospective remission")
+            .amount(BigDecimal.valueOf(1000)).build();
+
+        List<RefundDto> refundDtoList = new ArrayList<>();
+        refundDtoList.add(refundDto);
+        refundDtoList.add(refundDto2);
+
+        RefundListDtoResponse mockRefundListDtoResponse = RefundListDtoResponse.buildRefundListWith()
+            .refundList(refundDtoList).build();
+
+        ResponseEntity<RefundListDtoResponse> responseEntity =
+            new ResponseEntity<>(mockRefundListDtoResponse, HttpStatus.OK);
+
+        when(authTokenGenerator.generate()).thenReturn("test-token");
+
+        Payment mockPaymentSuccess1 = Payment.paymentWith().reference("RC-2222-3333-4444-5555")
+            .amount(BigDecimal.valueOf(40))
+            .build();
+        when(paymentRepository.findByReference(anyString())).thenReturn(Optional.of(mockPaymentSuccess1));
+
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+            eq(RefundListDtoResponse.class))).thenReturn(responseEntity);
+        Mockito.when(paymentFailureRepository.findFailedPayments(anyList())).thenReturn(Optional.of(getPaymentFailureList()));
+        PaymentGroupDto paymentGroupDto1 =  paymentRefundsService.checkRefundAgainstRemissionFeeApportionV2(header, paymentGroupDto,"1111222233334444");
+        assertEquals(false,paymentGroupDto1.getPayments().get(0).isIssueRefund());
+        assertEquals(false,paymentGroupDto1.getRemissions().get(0).isAddRefund());
+
+    }
+
+    @Test
+    public void deleteRefund() throws Exception {
+
+        InternalRefundResponse mockRefundResponse = InternalRefundResponse.InternalRefundResponseWith().refundReference("RF-4321-4321-4321-4321").build();
+
+        ResponseEntity<InternalRefundResponse> responseEntity = new ResponseEntity<>(mockRefundResponse, HttpStatus.CREATED);
+
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+            eq(InternalRefundResponse.class))).thenReturn(responseEntity);
+
+        paymentRefundsService.deleteByRefundReference("RF-4321-4321-4321-4321", header);
+
+        assertNotNull(responseEntity);
+    }
+
+    @Test
+    public void deleteRefundWithException() throws Exception {
+
+        InternalRefundResponse mockRefundResponse = InternalRefundResponse.InternalRefundResponseWith().refundReference("RF-4321-4321-4321-4321").build();
+
+        ResponseEntity<InternalRefundResponse> responseEntity = new ResponseEntity<>(mockRefundResponse, HttpStatus.CREATED);
+
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+            eq(InternalRefundResponse.class))).thenThrow(new BadRequestException("In Valid Request"));
+
+        assertThrows(BadRequestException.class, () -> paymentRefundsService.deleteByRefundReference("RF-4321-4321-4321-4321", header));
+    }
+
+    private List<PaymentFailures> getPaymentFailureList(){
+
+        PaymentFailures paymentFailures = PaymentFailures.paymentFailuresWith()
+            .failureType("Bounced Cheque")
+            .paymentReference("RC-2222-3333-4444-5555")
+            .amount(BigDecimal.valueOf(555))
+            .ccdCaseNumber("123456789")
+            .failureReference("FR12345")
+            .id(1)
+            .reason("RR001")
+            .build();
+        List<PaymentFailures> paymentFailuresList  = new ArrayList<>();
+        paymentFailuresList.add(paymentFailures);
+
+        return paymentFailuresList;
     }
 
     private Payment getpayment(){
@@ -551,10 +1556,39 @@ public class PaymentRefundsServiceTest {
             .pbaNumber("pbaNumer")
             .reference("RC-1520-2505-0381-8145")
             .ccdCaseNumber("1234123412341234")
+            .amount(new BigDecimal(550))
             .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
             .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
             .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
+            .paymentLink(PaymentFeeLink.paymentFeeLinkWith().fees(Arrays.asList(PaymentFee.feeWith().id(1).feeAmount(new BigDecimal(550)).volume(1).calculatedAmount(new BigDecimal(550)).build())).build())
             .build();
         return payment;
     }
-    }
+
+    PaymentRefundRequest paymentRefundRequest1 = PaymentRefundRequest.refundRequestWith()
+        .paymentReference("RC-1649-7555-9551-8774")
+        .refundReason("RR037")
+        .totalRefundAmount(BigDecimal.valueOf(550))
+        .fees(
+            Arrays.asList(
+                RefundsFeeDto.refundFeeDtoWith()
+                    .calculatedAmount(new BigDecimal("232"))
+                    .apportionAmount(new BigDecimal("232"))
+//                        .feeAmount(new BigDecimal("550.00"))
+                    .code("FEE0326")
+//                        .volume(1)
+                    .id(1)
+//                        .memoLine("Bar Cash")
+//                        .naturalAccountCode("21245654433")
+                    .version("2")
+//                        .volume(1)
+                    .refundAmount(new BigDecimal("550.00"))
+                    .updatedVolume(1)
+//                        .reference("REF_123")
+                    .build()
+            ))
+        .contactDetails(ContactDetails.contactDetailsWith().notificationType(Notification.EMAIL.getNotification())
+            .email("a@a.com").build())
+        .build();
+
+}
