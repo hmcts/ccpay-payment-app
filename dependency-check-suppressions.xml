@@ -324,5 +324,10 @@
         </notes>
         <cve>CVE-2022-1471</cve>
     </suppress>
+    <suppress>
+        <notes>When using the RemoteIpFilter with requests received from a reverse proxy via HTTP that include the X-Forwarded-Proto header set to https, session cookies created by Apache Tomcat
+        </notes>
+        <cve>CVE-2023-28708</cve>
+    </suppress>
     <!-- Supression Group ends here -->
 </suppressions>
