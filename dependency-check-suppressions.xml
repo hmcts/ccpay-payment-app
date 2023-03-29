@@ -34,7 +34,7 @@
         <notes>
             liquibase-core version 3.8.9 in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
         </notes>
-        <cve>CVE-2022-0839 </cve>
+        <cve>CVE-2022-0839</cve>
     </suppress>
     <!-- Supression Group ends here -->
 </suppressions>
