@@ -576,7 +576,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             Payment payment = paymentRepository.findByReference(paymentReference).orElseThrow(PaymentNotFoundException::new);
             BigDecimal balanceAvailable;
             Boolean refundRole;
-            AtomicBoolean checkUpfrontRemissionFeeApportion = new AtomicBoolean(false);
+            Boolean checkUpfrontRemissionFeeApportion = false;
             List<String> paymentList = new ArrayList<>();
             for (PaymentDto payment1 : paymentGroupDto.getPayments()) {
 
@@ -623,7 +623,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
                                     if (amountCompare !=amountCompareValue) {
                                         remission.setAddRefund(false);
-                                        checkUpfrontRemissionFeeApportion.set(true);
+                                        checkUpfrontRemissionFeeApportion = true;
                                     }
 
                                     //IF THERE IS NO PROCESSED REFUND FOR THE FEE BUT THERE IS AN ACTIVE REMISSION
@@ -633,7 +633,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
                                         activeRemission =true;
                                         fee.setAddRemission(false);
-                                        if(checkUpfrontRemissionFeeApportion.get() == false){
+                                        if(!checkUpfrontRemissionFeeApportion){
                                             remission.setAddRefund(true);
                                         }
                                         paymentDto.setIssueRefund(false);
