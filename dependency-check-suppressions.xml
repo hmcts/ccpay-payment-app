@@ -36,5 +36,11 @@
         </notes>
         <cve>CVE-2022-0839</cve>
     </suppress>
+    <suppress until="2023-06-30">
+        <notes>
+            commons-fileupload-core version 1.4 in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
+        </notes>
+        <cve>CVE-2023-24998</cve>
+    </suppress>
     <!-- Supression Group ends here -->
 </suppressions>
