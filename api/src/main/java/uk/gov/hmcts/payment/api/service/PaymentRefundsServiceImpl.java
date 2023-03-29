@@ -587,7 +587,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
             //gets a list of all the refunded fee ids for this case
             List<List<String>> refundedFees= getAllRefundedFeeIds(refundListDtoResponse);
-
+            AtomicBoolean checkUpfrontRemissionFeeApportion = new AtomicBoolean(false);
             for(PaymentDto paymentDto : paymentGroupDto.getPayments()){
                 LOG.info("INSIDE MAIN LOOP");
 
@@ -615,6 +615,14 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                                 if (fee.getId() == remission.getFeeId()) {
                                     LOG.info("FEE ID MATCHES REMISSION FEE ID");
 
+                                    BigDecimal netAmount = fee.getCalculatedAmount().subtract(remission.getHwfAmount());
+
+                                    int amountCompare = paymentDto.getAmount().compareTo(netAmount);
+
+                                    if (amountCompare !=amountCompareValue) {
+                                        remission.setAddRefund(false);
+                                        checkUpfrontRemissionFeeApportion.set(true);
+                                    }
 
                                     //IF THERE IS NO PROCESSED REFUND FOR THE FEE BUT THERE IS AN ACTIVE REMISSION
                                     if (!refundedFees.stream().flatMap(List::stream).anyMatch(fee.getId().toString()::equals)
@@ -623,7 +631,9 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
                                         activeRemission =true;
                                         fee.setAddRemission(false);
-                                        remission.setAddRefund(true);
+                                        if(checkUpfrontRemissionFeeApportion.get() == false){
+                                            remission.setAddRefund(true);
+                                        }
                                         paymentDto.setIssueRefund(false);
                                     }
                                     //IF THERE IS A PROCESSED REFUND FOR THE FEE
