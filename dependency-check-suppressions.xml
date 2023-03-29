@@ -26,9 +26,9 @@
     </suppress>
     <suppress until="2023-06-30">
         <notes>
-            Tomcat version 9.0.73 in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
+            adal4j version 1.3.0 in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
         </notes>
-        <cve>CVE-2023-28708</cve>
+        <cve>CVE-2021-42306</cve>
     </suppress>
     <!-- Supression Group ends here -->
 </suppressions>
