@@ -6,10 +6,9 @@
     <!-- New Supressions for June  -->
     <suppress until="2023-06-30">
         <notes>
-            Postgres version 42.4.3 in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
+            Postgres version 42.2.27 in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
         </notes>
-        <cve>CVE-2022-31197</cve>
-        <cve>CVE-2022-41946</cve>
+        <cve>CVE-2022-21724</cve>
     </suppress>
     <suppress until="2023-06-30">
         <notes>
@@ -24,6 +23,12 @@
         <cve>CVE-2022-22970</cve>
         <cve>CVE-2021-22060</cve>
         <cve>CVE-2021-22096</cve>
+    </suppress>
+    <suppress until="2023-06-30">
+        <notes>
+            Tomcat version 9.0.73 in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
+        </notes>
+        <cve>CVE-2023-28708</cve>
     </suppress>
     <!-- Supression Group ends here -->
 </suppressions>
