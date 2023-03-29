@@ -42,5 +42,123 @@
         </notes>
         <cve>CVE-2023-24998</cve>
     </suppress>
+    <suppress until="2023-06-30">
+        <notes>
+            commons-text version 1.7 in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
+        </notes>
+        <cve>CVE-2022-42889</cve>
+    </suppress>
+    <suppress until="2023-06-30">
+        <notes>
+            handlebars version 4.2.1 in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
+        </notes>
+        <cve>CVE-2022-42889</cve>
+    </suppress>
+    <suppress until="2023-06-30">
+        <notes>
+            jackson-core version 2.12.7 in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
+        </notes>
+        <cve>CVE-2022-45688</cve>
+    </suppress>
+    <suppress until="2023-06-30">
+        <notes>
+            json-path version 2.4.0 in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
+        </notes>
+        <cve>CVE-2022-45688</cve>
+    </suppress>
+    <suppress until="2023-06-30">
+        <notes>
+            json-smart version 2.4.10 in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
+        </notes>
+        <cve>CVE-2022-45688</cve>
+    </suppress>
+    <suppress until="2023-06-30">
+        <notes>
+            json-smart version 2.4.10 in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
+        </notes>
+        <cve>CVE-2022-45688</cve>
+    </suppress>
+    <suppress until="2023-06-30">
+        <notes>
+            postgresql version 2.4.10 in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
+        </notes>
+        <cve>CVE-2022-45688</cve>
+    </suppress>
+    <suppress until="2023-06-30">
+        <notes>
+            Postgres version 42.4.18 in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
+        </notes>
+        <cve>CVE-2022-31197</cve>
+        <cve>CVE-2022-41946</cve>
+    </suppress>
+    <suppress until="2023-06-30">
+        <notes>
+            snakeyaml version 1.32 in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
+        </notes>
+        <cve>CVE-2022-1471</cve>
+    </suppress>
+    <suppress until="2023-06-30">
+        <notes>
+            spring-cloud-netflix-archaius version 2.0.4.RELEASE in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
+        </notes>
+        <cve>CVE-2020-5412</cve>
+    </suppress>
+    <suppress until="2023-06-30">
+        <notes>
+            spring-cloud-netflix-core version 2.0.4.RELEASE in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
+        </notes>
+        <cve>CVE-2020-5412</cve>
+    </suppress>
+    <suppress until="2023-06-30">
+        <notes>
+            spring-cloud-netflix-ribbon version 2.0.4.RELEASE in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
+        </notes>
+        <cve>CVE-2020-5412</cve>
+    </suppress>
+    <suppress until="2023-06-30">
+        <notes>
+            spring-cloud-starter-netflix-archaius version 2.0.4.RELEASE in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
+        </notes>
+        <cve>CVE-2020-5412</cve>
+    </suppress>
+    <suppress until="2023-06-30">
+        <notes>
+            spring-cloud-starter-netflix-hystrix version 2.0.4.RELEASE in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
+        </notes>
+        <cve>CVE-2020-5412</cve>
+    </suppress>
+    <suppress until="2023-06-30">
+        <notes>
+            spring-security-config version 5.4.11 in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
+        </notes>
+        <cve>CVE-2022-22978</cve>
+        <cve>CVE-2022-22976</cve>
+    </suppress>
+    <suppress until="2023-06-30">
+        <notes>
+            spring-security-crypto version 5.4.11 in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
+        </notes>
+        <cve>CVE-2022-22978</cve>
+        <cve>CVE-2022-22976</cve>
+    </suppress>
+    <suppress until="2023-06-30">
+        <notes>
+            spring-security-web version 5.4.11 in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
+        </notes>
+        <cve>CVE-2022-22978</cve>
+        <cve>CVE-2022-22976</cve>
+    </suppress>
+    <suppress until="2023-06-30">
+        <notes>
+            tomcat-embed-core version 9.0.73'in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
+        </notes>
+        <cve>CVE-2023-28708</cve>
+    </suppress>
+    <suppress until="2023-06-30">
+        <notes>
+            tomcat-embed-websocket version 9.0.73'in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
+        </notes>
+        <cve>CVE-2023-28708</cve>
+    </suppress>
     <!-- Supression Group ends here -->
 </suppressions>
