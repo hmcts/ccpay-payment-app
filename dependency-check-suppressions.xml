@@ -30,5 +30,6 @@
         </notes>
         <cve>CVE-2021-42306</cve>
     </suppress>
+
     <!-- Supression Group ends here -->
 </suppressions>
