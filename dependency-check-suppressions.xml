@@ -6,11 +6,24 @@
     <!-- New Supressions for June  -->
     <suppress until="2023-06-30">
         <notes>
+            Postgres version 42.4.3 in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
+        </notes>
+        <cve>CVE-2022-31197</cve>
+        <cve>CVE-2022-41946</cve>
+    </suppress>
+    <suppress until="2023-06-30">
+        <notes>
             spring-webmvc version 5.3.26 casues issues that fail unit test cases due it not being able to create test environment correctly.
             Likely will need tests to be re-written when upgrading due to interface change.
         </notes>
-        <cve></cve>
-
+        <cve>CVE-2022-22965</cve>
+        <cve>CVE-2021-22118</cve>
+        <cve>CVE-2022-22950</cve>
+        <cve>CVE-2022-22971</cve>
+        <cve>CVE-2022-22968</cve>
+        <cve>CVE-2022-22970</cve>
+        <cve>CVE-2021-22060</cve>
+        <cve>CVE-2021-22096</cve>
     </suppress>
     <!-- Supression Group ends here -->
 </suppressions>
