@@ -24,6 +24,8 @@
         <cve>CVE-2021-22060</cve>
         <cve>CVE-2021-22096</cve>
         <cve>CVE-2023-20861</cve>
+        <cve>CVE-2021-22044</cve>
+        <cve>CVE-2022-22969</cve>
     </suppress>
     <suppress until="2023-06-30">
         <notes>
