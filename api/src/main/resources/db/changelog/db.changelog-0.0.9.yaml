@@ -528,6 +528,15 @@ databaseChangeLog:
             INSERT INTO site (site_id, name, sop_reference, service) VALUES ('Y683', 'YEOVIL COUNTY COURT', '10253121', 'COUNTY');
             INSERT INTO site (site_id, name, sop_reference, service) VALUES ('Y684', 'YORK COUNTY COURT', '10257203', 'COUNTY');
             INSERT INTO site (site_id, name, sop_reference, service) VALUES ('W880', 'YORK CROWN COURT', '10257302', 'CROWN');
+            
+- changeSet:
+    id: 1529403181339-5
+    author: anshika
+    changes:
+    - sql:
+        splitStatements:
+        sql: >
+          INSERT INTO site (site_id, name, sop_reference, service) VALUES ('ABA1', 'Divorce Service - Stoke CTSC', '10251832', 'Divorce');
 
 
 - changeSet:
