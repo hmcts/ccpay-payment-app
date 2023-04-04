@@ -320,9 +320,18 @@
         <cve>CVE-2022-1471</cve>
     </suppress>
     <suppress>
-        <notes>When using the RemoteIpFilter with requests received from a reverse proxy via HTTP that include the X-Forwarded-Proto header set to https, session cookies created by Apache Tomcat
+        <notes>When using the RemoteIpFilter with requests received from a reverse proxy via HTTP that include the
+            X-Forwarded-Proto header set to https, session cookies created by Apache Tomcat
         </notes>
         <cve>CVE-2023-28708</cve>
+    </suppress>
+
+    <suppress>
+        <notes>In Spring Framework versions 6.0.0 - 6.0.6, 5.3.0 - 5.3.25, 5.2.0.RELEASE - 5.2.22.RELEASE, and
+            older unsupported versions, it is possible for a user to provide a specially crafted SpEL expression
+            that may cause a denial-of-service (DoS) condition
+        </notes>
+        <cve>CVE-2023-20861</cve>
     </suppress>
     <!-- Supression Group ends here -->
 </suppressions>
