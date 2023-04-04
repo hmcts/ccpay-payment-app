@@ -34,6 +34,7 @@ import uk.gov.hmcts.payment.functional.service.CaseTestService;
 import uk.gov.hmcts.payment.functional.service.PaymentTestService;
 import uk.gov.hmcts.payment.functional.service.ServiceRequestTestService;
 
+import javax.inject.Inject;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -43,7 +44,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
-import javax.inject.Inject;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;

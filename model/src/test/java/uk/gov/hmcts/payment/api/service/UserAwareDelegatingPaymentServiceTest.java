@@ -151,4 +151,5 @@ public class UserAwareDelegatingPaymentServiceTest {
         assertEquals("GGG", paymentFeeLink.getPaymentReference());
         assertEquals(1, paymentFeeLink.getPayments().size());
     }
+
 }

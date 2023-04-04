@@ -35,6 +35,7 @@ import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.external.client.dto.CardDetails;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayCancellationFailedException;
+import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayException;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayPaymentNotFoundException;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
@@ -44,6 +45,7 @@ import uk.gov.hmcts.payment.api.service.FeePayApportionService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.service.PciPalPaymentService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.GatewayTimeoutException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.NoServiceFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
@@ -56,6 +58,7 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 
@@ -246,6 +249,12 @@ public class CardPaymentController {
         return new ResponseEntity(NOT_FOUND);
     }
 
+    @ExceptionHandler(value = {GovPayException.class})
+    public ResponseEntity httpClientErrorException(GovPayException e) {
+        LOG.error("Error while calling payments", e);
+        return new ResponseEntity(INTERNAL_SERVER_ERROR);
+    }
+
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(value = {NoServiceFoundException.class})
     public String return404(NoServiceFoundException ex) {
@@ -258,4 +267,9 @@ public class CardPaymentController {
         return ex.getMessage();
     }
 
+    @ResponseStatus(HttpStatus.GATEWAY_TIMEOUT)
+    @ExceptionHandler(GatewayTimeoutException.class)
+    public String return504(GatewayTimeoutException ex) {
+        return ex.getMessage();
+    }
 }

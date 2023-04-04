@@ -87,6 +87,12 @@ public class PaymentDto {
 
     private String payerName;
 
+    private Boolean refundEnable;
+
+    private boolean issueRefundAddRefundAddRemission;
+
+    private boolean issueRefund;
+
     //@JsonUnwrapped
     @NotNull
     private List<FeeDto> fees;
@@ -100,6 +106,8 @@ public class PaymentDto {
     private String internalReference;
 
     private List<DisputeDto> disputes;
+
+    private BigDecimal overPayment;
 
     @JsonProperty("_links")
     private LinksDto links;
@@ -200,6 +208,7 @@ public class PaymentDto {
     public String toPaymentCsv() {
         return toCreditAccountPaymentCsv();
     }
+
 
     @Override
     public String toString() {
