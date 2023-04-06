@@ -90,9 +90,11 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         }
 
         validateBounceChequeRequest(paymentStatusBouncedChequeDto, payment.get());
-        validatePingOneDate(paymentStatusBouncedChequeDto.getEventDateTime(), payment.get().getDateUpdated());
+        validatePingOneDate(paymentStatusBouncedChequeDto.getEventDateTime(), payment.get().getBankedDate(), "Failure event date can not be prior to banked date");
+        LOG.info("paymentStatusBouncedChequeDto.getEventDateTime(): {}",paymentStatusBouncedChequeDto.getEventDateTime());
+        LOG.info(" payment.get().getBankedDate(): {}", payment.get().getBankedDate());
 
-        PaymentFailures paymentFailuresMap = paymentStatusDtoMapper.bounceChequeRequestMapper(paymentStatusBouncedChequeDto);
+        PaymentFailures paymentFailuresMap = paymentStatusDtoMapper.bounceChequeRequestMapper(paymentStatusBouncedChequeDto, payment.get());
         try{
 
             PaymentFailures insertPaymentFailure = paymentFailureRepository.save(paymentFailuresMap);
@@ -153,7 +155,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         }
 
         validatePaymentFailureAmount(paymentStatusChargebackDto,payment.get());
-        validatePingOneDate(paymentStatusChargebackDto.getEventDateTime(), payment.get().getDateUpdated());
+        validatePingOneDate(paymentStatusChargebackDto.getEventDateTime(), payment.get().getDateUpdated(), "Failure event date can not be prior to payment date");
         PaymentFailures paymentFailuresMap = paymentStatusDtoMapper.ChargebackRequestMapper(paymentStatusChargebackDto);
 
         try{
@@ -223,11 +225,13 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         }
     }
 
-    private void validatePingOneDate(String pingOneDateStr, Date paymentDate){
+    private void validatePingOneDate(String pingOneDateStr, Date paymentDate , String message){
 
-       Date pingOneDate =  DateTime.parse(pingOneDateStr).withZone(DateTimeZone.UTC).toDate();
+        Date pingOneDate =  DateTime.parse(pingOneDateStr).withZone(DateTimeZone.UTC).toDate();
+        LOG.info("validatePingOneDate pingOneDateStr: {}", pingOneDate);
+        LOG.info("validatePingOneDate paymentDate : {}", paymentDate);
         if (pingOneDate.before(paymentDate)){
-            throw new InvalidPaymentFailureRequestException("Failure event date can not be prior to payment date");
+            throw new InvalidPaymentFailureRequestException(message);
         }
     }
 
@@ -423,7 +427,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
                     throw new InvalidPaymentFailureRequestException("Failure amount cannot be more than payment amount");
                 }
                 if(dcn.equals(paymentMetadataDto.getDcnReference())) {
-                    validatePingOneDate(unprocessedPayment.getEventDateTime(), paymentMetadataDto.getDateUpdated());
+                    validatePingOneDate(unprocessedPayment.getEventDateTime(), paymentMetadataDto.getDateUpdated(), "Failure event date can not be prior to payment date");
                 }
             }
         }

@@ -67,7 +67,7 @@ public class RemissionServiceImpl implements RemissionService {
         PaymentFeeLink paymentFeeLink =
             paymentFeeLinkRepository.findByPaymentReference(paymentGroupReference)
                 .orElseGet(() -> paymentFeeLinkRepository.findByPaymentReferenceAndCcdCaseNumber(paymentGroupReference, remissionServiceRequest.getCcdCaseNumber())
-                    .orElseThrow(() -> new InvalidPaymentGroupReferenceException("Payment TTT group " + paymentGroupReference + MESSAGE)));
+                    .orElseThrow(() -> new InvalidPaymentGroupReferenceException("Payment group " + paymentGroupReference + MESSAGE)));
 
         serviceRequestCaseUtil.updateServiceRequestCaseDetails(paymentFeeLink, remissionServiceRequest);
 

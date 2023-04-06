@@ -6,13 +6,14 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.dto.PaymentStatusBouncedChequeDto;
 import uk.gov.hmcts.payment.api.dto.PaymentStatusChargebackDto;
 import uk.gov.hmcts.payment.api.dto.UnprocessedPayment;
+import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFailures;
 
 @Component
 public class PaymentStatusDtoMapper {
     private static final String BOUNCEDCHEQUE = "Bounced Cheque";
     private static final String CHARGEBACK = "Chargeback";
-    public PaymentFailures bounceChequeRequestMapper(PaymentStatusBouncedChequeDto PaymentStatusBouncedChequeDto) {
+    public PaymentFailures bounceChequeRequestMapper(PaymentStatusBouncedChequeDto PaymentStatusBouncedChequeDto, Payment payment) {
 
         PaymentFailures paymentFailures = PaymentFailures.paymentFailuresWith()
                 .paymentReference(PaymentStatusBouncedChequeDto.getPaymentReference())

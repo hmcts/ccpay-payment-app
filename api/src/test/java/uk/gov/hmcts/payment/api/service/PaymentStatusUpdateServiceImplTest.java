@@ -109,7 +109,7 @@ public class PaymentStatusUpdateServiceImplTest {
         Payment payment = getPayment();
         PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto =getPaymentStatusBouncedChequeDto();
         when(paymentRepository.findByReference(any())).thenReturn(Optional.of(payment));
-        when(paymentStatusDtoMapper.bounceChequeRequestMapper(any())).thenReturn(paymentFailures);
+        when(paymentStatusDtoMapper.bounceChequeRequestMapper(any(), any())).thenReturn(paymentFailures);
         when(paymentFailureRepository.save(any())).thenReturn(paymentFailures);
         PaymentFailures paymentFailures = paymentStatusUpdateServiceImpl.insertBounceChequePaymentFailure(paymentStatusBouncedChequeDto);
         assertNotNull(paymentFailures);
@@ -484,7 +484,7 @@ public class PaymentStatusUpdateServiceImplTest {
             () -> paymentStatusUpdateServiceImpl.insertBounceChequePaymentFailure(paymentStatusBouncedChequeDto)
         );
         String actualMessage = exception.getMessage();
-        assertEquals("Failure event date can not be prior to payment date", actualMessage);
+        assertEquals("Failure event date can not be prior to banked date", actualMessage);
 
     }
 
@@ -612,6 +612,7 @@ public class PaymentStatusUpdateServiceImplTest {
             .reference("RC-1520-2505-0381-8145")
             .ccdCaseNumber("1234123412341234")
             .dateUpdated(date)
+            .bankedDate(date)
             .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
             .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
             .paymentMethod(PaymentMethod.paymentMethodWith().name("cheque").build())
