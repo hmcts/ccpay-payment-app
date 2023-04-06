@@ -12,6 +12,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidPaymentGroupReference
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
@@ -101,6 +102,35 @@ public class RemissionServiceTest {
             .build();
 
         when(paymentFeeLinkRepository.findByPaymentReference("2019-123456799")).thenReturn(Optional.ofNullable(paymentFeeLink));
+
+        RemissionServiceRequest remissionServiceRequest = RemissionServiceRequest.remissionServiceRequestWith()
+            .paymentGroupReference("2019-123456799")
+            .ccdCaseNumber("1111-2222-3333-4444")
+            .beneficiaryName("testCreateRemission")
+            .hwfAmount(new BigDecimal("100.99"))
+            .hwfReference("hwf123456789")
+            .fee(fee)
+            .build();
+
+        PaymentFeeLink res = remissionService.createRetrospectiveRemission(remissionServiceRequest, paymentFeeLink.getPaymentReference(), 1);
+        assertThat(res).isNotNull();
+        assertThat(res.getPaymentReference()).isEqualTo(paymentFeeLink.getPaymentReference());
+
+        verify(paymentFeeLinkRepository, atLeastOnce()).findByPaymentReference(paymentFeeLink.getPaymentReference());
+    }
+
+    @Test
+    public void createPartialRemissionWithPaymentGroupReferenceAndCcdCaseNumberTest() throws Exception {
+        Remission remission = getRemission();
+        PaymentFee fee = getFee();
+
+        PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith()
+            .paymentReference("2019-123456799")
+            .remissions(Collections.singletonList(remission))
+            .fees(Arrays.asList(fee))
+            .build();
+
+        when(paymentFeeLinkRepository.findByPaymentReferenceAndCcdCaseNumber("2019-123456799", "1111-2222-3333-4444")).thenReturn(Optional.ofNullable(paymentFeeLink));
 
         RemissionServiceRequest remissionServiceRequest = RemissionServiceRequest.remissionServiceRequestWith()
             .paymentGroupReference("2019-123456799")

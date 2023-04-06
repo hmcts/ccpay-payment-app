@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.api.service;
 
 import com.google.common.collect.Lists;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,8 +20,10 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.RemissionNotFoundException;
 
 import javax.transaction.Transactional;
 import java.util.Collections;
+import java.util.Optional;
 
 @Service
+@Slf4j
 public class RemissionServiceImpl implements RemissionService {
 
     private final PaymentFeeLinkRepository paymentFeeLinkRepository;
@@ -61,8 +64,10 @@ public class RemissionServiceImpl implements RemissionService {
     @Override
     @Transactional
     public PaymentFeeLink createRetrospectiveRemission(RemissionServiceRequest remissionServiceRequest, String paymentGroupReference, Integer feeId) throws CheckDigitException {
-        PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.findByPaymentReference(paymentGroupReference)
-            .orElseThrow(() -> new InvalidPaymentGroupReferenceException("Payment group " + paymentGroupReference + MESSAGE));
+        PaymentFeeLink paymentFeeLink =
+            paymentFeeLinkRepository.findByPaymentReference(paymentGroupReference)
+                .orElseGet(() -> paymentFeeLinkRepository.findByPaymentReferenceAndCcdCaseNumber(paymentGroupReference, remissionServiceRequest.getCcdCaseNumber())
+                    .orElseThrow(() -> new InvalidPaymentGroupReferenceException("Payment TTT group " + paymentGroupReference + MESSAGE)));
 
         serviceRequestCaseUtil.updateServiceRequestCaseDetails(paymentFeeLink, remissionServiceRequest);
 

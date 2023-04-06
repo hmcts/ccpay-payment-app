@@ -12,6 +12,8 @@ public interface PaymentFeeLinkRepository extends CrudRepository<PaymentFeeLink,
 
     Optional<PaymentFeeLink> findByPaymentReference(String id);
 
+    Optional<PaymentFeeLink> findByPaymentReferenceAndCcdCaseNumber(String id, String ccdCaseNumber);
+
     Optional<List<PaymentFeeLink>> findByCcdCaseNumber(String ccdCaseNumber);
 
 }
