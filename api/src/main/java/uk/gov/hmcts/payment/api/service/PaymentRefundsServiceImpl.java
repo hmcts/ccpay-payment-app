@@ -814,6 +814,9 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                                             if (amountCompare !=amountCompareValue) {
                                                 remission.setAddRefund(false);
                                                 checkUpfrontRemission.set(true);
+                                                for (PaymentDto payment : paymentGroupDto.getPayments()) {
+                                                    payment.setIssueRefund(true);
+                                                }
                                             }
                                         }
                                     );
@@ -827,9 +830,9 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                                         fee.setAddRemission(false);
                                         if(checkUpfrontRemission.get() == false){
                                             remission.setAddRefund(true);
-                                        }
                                         for (PaymentDto payment : paymentGroupDto.getPayments()) {
                                             payment.setIssueRefund(false);
+                                        }
                                         }
                                     }
                                     //IF THERE IS A PROCESSED REFUND FOR THE FEE
