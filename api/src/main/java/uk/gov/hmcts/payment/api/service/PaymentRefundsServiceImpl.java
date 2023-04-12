@@ -624,19 +624,23 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                                     if (amountCompare !=amountCompareValue) {
                                         remission.setAddRefund(false);
                                         checkUpfrontRemissionFeeApportion = true;
+                                        paymentDto.setIssueRefund(true);
                                     }
+
 
                                     //IF THERE IS NO PROCESSED REFUND FOR THE FEE BUT THERE IS AN ACTIVE REMISSION
                                     if (!refundedFees.stream().flatMap(List::stream).anyMatch(fee.getId().toString()::equals)
-                                        && fee.getId() == remission.getFeeId()) {
+                                        && fee.getId() == remission.getFeeId())  {
                                         LOG.info("ENTERED NO PROCESSED REFUND IF");
 
                                         activeRemission =true;
                                         fee.setAddRemission(false);
                                         if(!checkUpfrontRemissionFeeApportion){
                                             remission.setAddRefund(true);
+                                            paymentDto.setIssueRefund(false);
                                         }
-                                        paymentDto.setIssueRefund(false);
+
+
                                     }
                                     //IF THERE IS A PROCESSED REFUND FOR THE FEE
                                     else if (refundedFees.stream().flatMap(List::stream).anyMatch(fee.getId().toString()::equals)) {
