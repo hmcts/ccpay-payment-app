@@ -129,7 +129,7 @@ public class RefundEligibilityUtilTest {
     public void returnFalseWhenPaymentMethodIsChequeAndPaymentUpdatedDateIsBeforeLagTime() {
 //Given
         Payment payment = Payment.paymentWith()
-            .paymentMethod(PaymentMethod.paymentMethodWith().name("postal order").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("cheque").build())
             .dateUpdated(paymentUpdateDate)
             .build();
         boolean isRefundEligible = refundEligibilityUtil.getRefundEligiblityStatus(payment, 479);
