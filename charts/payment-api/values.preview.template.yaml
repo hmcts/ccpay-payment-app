@@ -18,7 +18,9 @@ java:
     IAC_SERVICE_API_URL: http://ia-case-access-api-aat.service.core-compute-aat.internal
     PBA_CONFIG1_SERVICE_NAMES: dummy
     PCI_PAL_API_URL: https://ip3cloud.com/clients/hmcts/payments/index.php
+    # PAY-5841-Onboarding-W2P-Civil-ITHC
     REFUND_API_URL: http://ccpay-refunds-api-pr-299-java
+    # REFUND_API_URL: http://ccpay-refunds-api-pr-357-java
 
   keyVaults:
     "ccpay":
