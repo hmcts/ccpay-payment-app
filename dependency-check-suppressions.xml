@@ -2,315 +2,188 @@
 <suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
 
     <!-- Below are the supressions added fpr False Positive CVEs -->
-    <suppress until="2023-03-31">
-        <notes>The CVE-2018-1258 occurs from spring security libraries, despite the latest versions are used. This is
-            confirmed as false positive
-            and hence it is suppressed (https://github.com/jeremylong/DependencyCheck/issues/2952).
-            see (https://pivotal.io/security/cve-2018-1258)
-        </notes>
-        <cve>CVE-2018-1258</cve>
-    </suppress>
 
-    <suppress until="2023-03-31">
-        <notes>These CVE's are coming from Dhowden tag library and it impacts only MP3/MP4/OGG/FLAC metadata parsing
-            library. Also it is declared as false positive in
-            (https://github.com/jeremylong/DependencyCheck/issues/3043)
-        </notes>
-        <cve>CVE-2020-29242</cve>
-        <cve>CVE-2020-29243</cve>
-        <cve>CVE-2020-29244</cve>
-        <cve>CVE-2020-29245</cve>
-    </suppress>
-
-    <suppress until="2023-03-31">
-        <notes><![CDATA[False positive reported for Oauth2-oidc-sdk at (https://github.com/jeremylong/DependencyCheck/issues/1658) and
-            (https://github.com/jeremylong/DependencyCheck/issues/2866)]]></notes>
-        <cve>CVE-2007-1651</cve>
-        <cve>CVE-2007-1652</cve>
-    </suppress>
-
-    <!-- False Positive CVE supressions ends here-->
-
-    <!-- Below are the supressions that are made for the CVEs which occur in the latest version -->
-    <suppress until="2023-03-31">
+    <!-- New Supressions for June  -->
+    <suppress until="2023-06-30">
         <notes>
-            <![CDATA[This CVE appears in the latest version of wiremock, WireMock 2.27.2 JRE 8 embeds jquery-3.4.1.min.js. see(https://github.com/tomakehurst/wiremock/issues/1417)]]></notes>
-        <cve>CVE-2020-11022</cve>
-        <cve>CVE-2020-11023</cve>
+            Postgres version 42.2.27 in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
+        </notes>
+        <cve>CVE-2022-21724</cve>
     </suppress>
-
-    <!-- Below are the supressions that are made for the CVEs which occur in the latest version -->
-    <suppress until="2023-03-31">
+    <suppress until="2023-06-30">
         <notes>
-            <![CDATA[This CVE appears in the latest version of jakarta]]></notes>
-        <cve>CVE-2021-28170</cve>
-    </suppress>
-
-    <suppress until="2023-03-31">
-        <notes>A vulnerability in all versions of Nim-lang allows unauthenticated attackers to write files to
-            arbitrary directories via a crafted zip file with dot-slash characters included in the name of the
-            crafted file
-        </notes>
-        <cve>CVE-2020-23171</cve>
-    </suppress>
-
-    <suppress until="2023-03-31">
-
-        <notes>Temporary suppression
-        </notes>
-        <cve>CVE-2020-29243</cve>
-        <cve>CVE-2020-29242</cve>
-        <cve>CVE-2020-29245</cve>
-        <cve>CVE-2020-29244</cve>
-        <cve>CVE-2007-1652</cve>
-        <cve>CVE-2007-1651</cve>
-        <cve>CVE-2018-1258</cve>
-        <cve>CVE-2022-29885</cve>
-        <cve>CVE-2022-22971</cve>
-        <cve>CVE-2022-22970</cve>
-        <cve>CVE-2022-38749</cve>
-        <cve>CVE-2022-38750</cve>
-        <cve>CVE-2022-38751</cve>
-    </suppress>
-
-    <suppress until="2023-03-31">
-        <notes>A vulnerability in all versions of adal4j, this library is an internal dependency in azure libraries. Hence this is suppressed</notes>
-        <cve>CVE-2021-42306</cve>
-    </suppress>
-
-    <suppress until="2023-03-31">
-        <notes>
-            In logback version 1.2.7 and prior versions, an attacker with the required privileges to edit configurations
-            files could craft a malicious configuration allowing to execute arbitrary code loaded from LDAP servers.
-        </notes>
-        <cve>CVE-2021-42550</cve>
-    </suppress>
-
-    <suppress until="2023-03-31">
-        <notes>
-            Need to resolve Liquibase issue before updating the library
-        </notes>
-        <cve>CVE-2022-0839</cve>
-    </suppress>
-
-    <suppress until="2023-03-31">
-        <notes>
-            jackson-databind before 2.13.0 allows a Java StackOverflow exception and denial of service via a large depth of nested objects.
-        </notes>
-        <cve>CVE-2020-36518</cve>
-    </suppress>
-
-    <suppress until="2023-03-31">
-        <notes>
-            Need to resolve Liquibase issue before updating the library
-        </notes>
-        <cve>CVE-2022-0839</cve>
-    </suppress>
-
-    <suppress until="2023-03-31">
-        <notes>A Spring MVC or Spring WebFlux application running on JDK 9+ may be vulnerable to remote code execution (RCE)
-            via data binding. The specific exploit requires the application to run on Tomcat as a WAR deployment. If the
-            application is deployed as a Spring Boot executable jar, i.e. the default, it is not vulnerable to the exploit.
-            However, the nature of the vulnerability is more general, and there may be other ways to exploit it.
+            spring-webmvc version 5.3.26 casues issues that fail unit test cases due it not being able to create test environment correctly.
+            Likely will need tests to be re-written when upgrading due to interface change.
         </notes>
         <cve>CVE-2022-22965</cve>
-    </suppress>
-
-    <suppress until="2023-03-31">
-        <notes>In Spring Framework versions 5.3.0 - 5.3.16 and older unsupported versions, it is possible for a user to
-            provide a specially crafted SpEL expression that may cause a denial of service condition.
-        </notes>
+        <cve>CVE-2021-22118</cve>
         <cve>CVE-2022-22950</cve>
-    </suppress>
-
-    <suppress until="2023-03-31">
-        <notes>Pivotal Spring Framework through 5.3.16 suffers from a potential remote code execution (RCE) issue if used
-            for Java deserialization of untrusted data. Depending on how the library is implemented within a product, this
-            issue may or not occur, and authentication may be required. NOTE: the vendor's position is that untrusted data is
-            not an intended use case. The product's behavior will not be changed because some users rely on deserialization of
-            trusted data.
-        </notes>
-        <cve>CVE-2016-1000027</cve>
-    </suppress>
-
-    <suppress until="2023-03-31">
-        <notes>In Spring Framework versions 5.3.0 - 5.3.18, 5.2.0 - 5.2.20, and older unsupported versions, the patterns for
-            disallowedFields on a DataBinder are case sensitive which means a field is not effectively protected unless it is
-            listed with both upper and lower case for the first character of the field, including upper and lower case for the
-            first character of all nested fields within the property path.
-        </notes>
-        <cve>CVE-2022-22968</cve>
-    </suppress>
-
-    <suppress until="2023-03-31">
-        <notes>In spring framework versions prior to 5.3.20+, 5.2.22+ and old unsupported versions, applications that
-            handle file uploads are vulnerable to DoS attack if they rely on data binding to set a MultipartFile or
-            javax.servlet.Part to a field in a model object.
-        </notes>
-        <cve>CVE-2022-22970</cve>
-    </suppress>
-
-    <suppress until="2023-03-31">
-        <notes>In spring framework versions prior to 5.3.20+, 5.2.22+ and old unsupported versions, application with a
-            STOMP over WebSocket endpoint is vulnerable to a denial of service attack by an authenticated user.
-        </notes>
         <cve>CVE-2022-22971</cve>
-    </suppress>
-
-    <suppress until="2023-03-31">
-        <notes>Spring framework vulnaribilities
-        </notes>
-        <cve>CVE-2021-22044</cve>
-        <cve>CVE-2020-5408</cve>
-        <cve>CVE-2022-22976</cve>
-        <cve>CVE-2022-22969</cve>
-        <cve>CVE-2022-22978</cve>
+        <cve>CVE-2022-22968</cve>
+        <cve>CVE-2022-22970</cve>
         <cve>CVE-2021-22060</cve>
-        <cve>CVE-2021-43466</cve>
+        <cve>CVE-2021-22096</cve>
+        <cve>CVE-2023-20861</cve>
+        <cve>CVE-2021-22044</cve>
+        <cve>CVE-2022-22969</cve>
     </suppress>
-
-    <suppress until="2023-03-31">
+    <suppress until="2023-06-30">
         <notes>
-            In Apache Tomcat 10.1.0-M1 to 10.1.0-M16, 10.0.0-M1 to 10.0.22, 9.0.30 to 9.0.64 and 8.5.50 to 8.5.81 the
-            Form authentication example in the examples web application displayed user provided data without filtering,
-            exposing a XSS vulnerability. It can looked into in the next major releases, if any latest versions released.
+            adal4j version 1.3.0 in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
         </notes>
-        <cve>CVE-2022-34305</cve>
+        <cve>CVE-2021-42306</cve>
     </suppress>
-
-    <suppress until="2023-03-31">
+    <suppress until="2023-06-30">
         <notes>
-            Versions of the Amazon AWS Apache Log4j hotpatch package before log4j-cve-2021-44228-hotpatch-1.3.5 are
-            affected by a race condition that could lead to a local privilege escalation. CVE-2022-33915 occured,
-            despite latest versions used.
+            liquibase-core version 3.8.9 in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
         </notes>
-        <cve>CVE-2022-33915</cve>
+        <cve>CVE-2022-0839</cve>
     </suppress>
-
-    <suppress until="2023-03-31">
+    <suppress until="2023-06-30">
         <notes>
-            The RipudamanKaushikDal/projects repository through 2022-04-03 on GitHub allows absolute path traversal
-            because the Flask send_file function is used unsafely.
+            commons-fileupload-core version 1.4 in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
         </notes>
-        <cve>CVE-2022-31569</cve>
+        <cve>CVE-2023-24998</cve>
     </suppress>
-
-    <suppress until="2023-03-31">
+    <suppress until="2023-06-30">
         <notes>
-            The nrlakin/homepage repository through 2017-03-06 on GitHub allows absolute path traversal because the
-            Flask send_file function is used unsafely.
-        </notes>
-        <cve>CVE-2022-31548</cve>
-    </suppress>
-
-    <suppress until="2023-03-31">
-        <notes>
-            In Eclipse Jetty versions 9.4.0 thru 9.4.46, and 10.0.0 thru 10.0.9, and 11.0.0 thru 11.0.9 versions, the
-            parsing of the authority segment of an http scheme URI, the Jetty HttpURI class improperly detects an
-            invalid input as a hostname. This can lead to failures in a Proxy scenario.
-        </notes>
-        <cve>CVE-2022-2047</cve>
-    </suppress>
-
-    <suppress until="2023-03-31">
-        <notes>
-            In Eclipse Jetty HTTP/2 server implementation, when encountering an invalid HTTP/2 request, the error
-            handling has a bug that can wind up not properly cleaning up the active connections and associated
-            resources. This can lead to a Denial of Service scenario where there are no enough resources left to process
-            good requests.
-        </notes>
-        <cve>CVE-2022-2048</cve>
-    </suppress>
-
-    <suppress until="2023-03-31">
-        <notes>
-            The PGJDBC implementation of the java.sql.ResultRow.refreshRow() method is not performing escaping of column names
-            so a malicious column name that contains a statement terminator, e.g. ; could lead to SQL injection. This could
-            lead to executing additional SQL commands as the application's JDBC user. User applications that do not invoke the
-            ResultSet.refreshRow() method are not impacted.
-        </notes>
-        <cve>CVE-2022-31197</cve>
-    </suppress>
-    <suppress until="2023-03-31">
-        <notes>
-            The package org.yaml:snakeyaml from 0 and before 1.31 are vulnerable to
-            Denial of Service (DoS) due missing to nested depth limitation for collections.
-            snakeyaml v1.31 (most recent patch available currently) does not resolve the issue.
-        </notes>
-        <cve>CVE-2022-25857</cve>
-        <cve>CVE-2022-38749</cve>
-        <cve>CVE-2022-38750</cve>
-        <cve>CVE-2022-38751</cve>
-        <cve>CVE-2022-38752</cve>
-    </suppress>
-    <suppress until="2023-03-31">
-        <notes>
-          In FasterXML jackson-databind before 2.14.0-rc1, resource exhaustion can occur because of a lack of a check in
-          primitive value deserializers to avoid deep wrapper array nesting,
-          when the UNWRAP_SINGLE_VALUE_ARRAYS feature is enabled
-        </notes>
-        <cve>CVE-2022-42003</cve>
-        <cve>CVE-2022-42004</cve>
-    </suppress>
-    <suppress until="2023-03-31">
-        <notes>
-          This apache commons text cve issue is in re-analysis and hence suppressing.
+            commons-text version 1.7 in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
         </notes>
         <cve>CVE-2022-42889</cve>
-        <cve>CVE-2022-42252</cve>
-        <cve>CVE-2022-41854</cve>
     </suppress>
-    <suppress until="2023-03-31">
+    <suppress until="2023-06-30">
         <notes>
-            Postgres jdbc vulnerability is not resolved by the most recent patch 42.4.3 and is being supressed until a newer version is available.
+            handlebars version 4.2.1 in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
         </notes>
-        <cve>CVE-2022-41946</cve>
+        <cve>CVE-2022-42889</cve>
     </suppress>
-    <suppress until="2023-03-31">
+    <suppress until="2023-06-30">
         <notes>
-          apache commons_net
-        </notes>
-        <cve>CVE-2021-37533</cve>
-    </suppress>
-    <suppress until="2023-03-31">
-        <notes>
-            A vulnerability, which was classified as problematic, has been found in fredsmith utils. This issue affects
-            some unknown processing of the file screenshot_sync of the component Filename Handler. The manipulation
-            leads to predictable from observable state. The name of the patch is
-            dbab1b66955eeb3d76b34612b358307f5c4e3944. It is recommended to apply a patch to fix this issue. The
-            identifier VDB-216749 was assigned to this vulnerability.
-        </notes>
-        <cve>CVE-2021-4277</cve>
-    </suppress>
-    <suppress until="2023-03-31">
-        <notes>
-            Due to unbounded alias chasing, a maliciously crafted YAML file can cause the system to consume significant
-            system resources. If parsing user input, this may be used as a denial of service vector.
-        </notes>
-        <cve>CVE-2021-4235</cve>
-    </suppress>
-    <suppress until="2023-03-31">
-        <notes>
-            Parsing malicious or large YAML documents can consume excessive amounts of CPU or memory.
-        </notes>
-        <cve>CVE-2022-3064</cve>
-    </suppress>
-    <suppress until="2023-03-31">
-        <notes>
-            Spring Cloud Netflix
-        </notes>
-        <cve>CVE-2020-5412</cve>
-    </suppress>
-    <suppress>
-        <notes>A stack overflow in the XML.toJSONObject component of hutool-json v5.8.10
-            allows attackers to cause a Denial of Service (DoS) via crafted JSON or XML data.
-            New version of jackson-core needed to resolve this issue.
+            jackson-core version 2.12.7 in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
         </notes>
         <cve>CVE-2022-45688</cve>
     </suppress>
-    <suppress>
-        <notes>commons-fileupload</notes>
+    <suppress until="2023-06-30">
+        <notes>
+            json-path version 2.4.0 in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
+        </notes>
+        <cve>CVE-2022-45688</cve>
+    </suppress>
+    <suppress until="2023-06-30">
+        <notes>
+            json-smart version 2.4.10 in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
+        </notes>
+        <cve>CVE-2022-45688</cve>
+    </suppress>
+    <suppress until="2023-06-30">
+        <notes>
+            json-smart version 2.4.10 in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
+        </notes>
+        <cve>CVE-2022-45688</cve>
+    </suppress>
+    <suppress until="2023-06-30">
+        <notes>
+            postgresql version 2.4.10 in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
+        </notes>
+        <cve>CVE-2022-45688</cve>
+    </suppress>
+    <suppress until="2023-06-30">
+        <notes>
+            Postgres version 42.4.18 in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
+        </notes>
+        <cve>CVE-2022-31197</cve>
+        <cve>CVE-2022-41946</cve>
+    </suppress>
+    <suppress until="2023-06-30">
+        <notes>
+            snakeyaml version 1.32 in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
+        </notes>
+        <cve>CVE-2022-1471</cve>
+    </suppress>
+    <suppress until="2023-06-30">
+        <notes>
+            spring-cloud-netflix-archaius version 2.0.4.RELEASE in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
+        </notes>
+        <cve>CVE-2020-5412</cve>
+    </suppress>
+    <suppress until="2023-06-30">
+        <notes>
+            spring-cloud-netflix-core version 2.0.4.RELEASE in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
+        </notes>
+        <cve>CVE-2020-5412</cve>
+    </suppress>
+    <suppress until="2023-06-30">
+        <notes>
+            spring-cloud-netflix-ribbon version 2.0.4.RELEASE in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
+        </notes>
+        <cve>CVE-2020-5412</cve>
+    </suppress>
+    <suppress until="2023-06-30">
+        <notes>
+            spring-cloud-starter-netflix-archaius version 2.0.4.RELEASE in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
+        </notes>
+        <cve>CVE-2020-5412</cve>
+    </suppress>
+    <suppress until="2023-06-30">
+        <notes>
+            spring-cloud-starter-netflix-hystrix version 2.0.4.RELEASE in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
+        </notes>
+        <cve>CVE-2020-5412</cve>
+    </suppress>
+    <suppress until="2023-06-30">
+        <notes>
+            spring-security-config version 5.4.11 in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
+        </notes>
+        <cve>CVE-2022-22978</cve>
+        <cve>CVE-2022-22976</cve>
+    </suppress>
+    <suppress until="2023-06-30">
+        <notes>
+            spring-security-crypto version 5.4.11 in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
+        </notes>
+        <cve>CVE-2022-22978</cve>
+        <cve>CVE-2022-22976</cve>
+    </suppress>
+    <suppress until="2023-06-30">
+        <notes>
+            spring-security-web version 5.4.11 in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
+        </notes>
+        <cve>CVE-2022-22978</cve>
+        <cve>CVE-2022-22976</cve>
+    </suppress>
+    <suppress until="2023-06-30">
+        <notes>
+            tomcat-embed-core version 9.0.73'in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
+        </notes>
+        <cve>CVE-2023-28708</cve>
+    </suppress>
+    <suppress until="2023-06-30">
+        <notes>
+            commons-fileupload need major version upgrade.
+        </notes>
         <cve>CVE-2023-24998</cve>
     </suppress>
+    <suppress until="2023-06-30">
+        <notes>
+            Jackson core needs major version latest 2.12.7  not resolving current CVE issue. Same applies to json-path version 2.4.0.
+            Same applies to json-smart version 2.4.10
+        </notes>
+        <cve>CVE-2022-45688</cve>
+    </suppress>
+    <suppress until="2023-06-30">
+        <notes>
+            Jackson-databind version 2.12.7.1 in combination with postgres has interface changes in DBUtils that cause unit tests to fail.
+        </notes>
+        <cve>CVE-2020-36518</cve>
+        <cve>CVE-2022-42003</cve>
+        <cve>CVE-2022-42004</cve>
+    </suppress>
+
+    <suppress>
+        <notes>SnakeYaml's Constructor() class does not restrict types which can be instantiated during deserialization.
+        </notes>
+        <cve>CVE-2022-1471</cve>
+    </suppress>
+
     <!-- Supression Group ends here -->
 </suppressions>
