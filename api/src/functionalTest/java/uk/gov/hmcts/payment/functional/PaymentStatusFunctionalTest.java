@@ -9,7 +9,6 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -26,9 +25,9 @@ import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.dto.*;
+import uk.gov.hmcts.payment.api.model.ContactDetails;
 import uk.gov.hmcts.payment.api.model.PaymentChannel;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
-import uk.gov.hmcts.payment.api.service.PaymentStatusUpdateServiceImpl;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
 import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
@@ -126,8 +125,20 @@ public class PaymentStatusFunctionalTest {
         PaymentDto paymentDto = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
 
+        String ccdCaseNumber = accountPaymentRequest.getCcdCaseNumber();
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
+            ccdCaseNumber, "5");
+
+        // Get pba payment by reference
+        PaymentDto paymentsResponse =
+            paymentTestService.getPayments(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then()
+                .statusCode(OK.value()).extract().as(PaymentDto.class);
+
+        // issue a refund
+        String paymentReference = paymentsResponse.getPaymentReference();
+        int paymentId = paymentsResponse.getFees().get(0).getId();
         PaymentRefundRequest paymentRefundRequest
-            = PaymentFixture.aRefundRequest("RR001", paymentDto.getReference());
+            = PaymentFixture.aRefundRequest(paymentId, "RR001", paymentReference, "90", "90");
         Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentRefundRequest);
@@ -190,8 +201,20 @@ public class PaymentStatusFunctionalTest {
         PaymentDto paymentDto = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
 
+        String ccdCaseNumber = accountPaymentRequest.getCcdCaseNumber();
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
+            ccdCaseNumber, "5");
+
+        // Get pba payment by reference
+        PaymentDto paymentsResponse =
+            paymentTestService.getPayments(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then()
+                .statusCode(OK.value()).extract().as(PaymentDto.class);
+
+        // issue a refund
+        String paymentReference = paymentsResponse.getPaymentReference();
+        int paymentId = paymentsResponse.getFees().get(0).getId();
         PaymentRefundRequest paymentRefundRequest
-            = PaymentFixture.aRefundRequest("RR001", paymentDto.getReference());
+            = PaymentFixture.aRefundRequest(paymentId, "RR001", paymentReference, "90", "90");
         Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentRefundRequest);
@@ -226,8 +249,20 @@ public class PaymentStatusFunctionalTest {
         PaymentDto paymentDto = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
 
+        String ccdCaseNumber = accountPaymentRequest.getCcdCaseNumber();
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
+            ccdCaseNumber, "5");
+
+        // Get pba payment by reference
+        PaymentDto paymentsResponse =
+            paymentTestService.getPayments(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then()
+                .statusCode(OK.value()).extract().as(PaymentDto.class);
+
+        // issue a refund
+        String paymentReference = paymentsResponse.getPaymentReference();
+        int paymentId = paymentsResponse.getFees().get(0).getId();
         PaymentRefundRequest paymentRefundRequest
-            = PaymentFixture.aRefundRequest("RR001", paymentDto.getReference());
+            = PaymentFixture.aRefundRequest(paymentId, "RR001", paymentReference, "90", "90");
         Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentRefundRequest);
@@ -294,8 +329,20 @@ public class PaymentStatusFunctionalTest {
                 .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
 
         // Create a Refund on same payment
+        String ccdCaseNumber = accountPaymentRequest.getCcdCaseNumber();
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
+            ccdCaseNumber, "5");
+
+        // Get pba payment by reference
+        PaymentDto paymentsResponse =
+            paymentTestService.getPayments(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then()
+                .statusCode(OK.value()).extract().as(PaymentDto.class);
+
+        // issue a refund
+        String paymentReference = paymentsResponse.getPaymentReference();
+        int paymentId = paymentsResponse.getFees().get(0).getId();
         PaymentRefundRequest paymentRefundRequest
-                = PaymentFixture.aRefundRequest("RR001", paymentDto.getReference());
+            = PaymentFixture.aRefundRequest(paymentId, "RR001", paymentReference, "90", "90");
         Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
                 SERVICE_TOKEN_PAYMENT,
                 paymentRefundRequest);
@@ -1761,8 +1808,20 @@ public class PaymentStatusFunctionalTest {
         PaymentDto paymentDto = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
 
+        // Get pba payment by reference
+        PaymentDto paymentsResponse =
+            paymentTestService.getPayments(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then()
+                .statusCode(OK.value()).extract().as(PaymentDto.class);
+
+        // issue a refund
+        String paymentReference = paymentsResponse.getPaymentReference();
+        int paymentId = paymentsResponse.getFees().get(0).getId();
+
+        String ccdCaseNumber = accountPaymentRequest.getCcdCaseNumber();
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
+            ccdCaseNumber, "5");
         PaymentRefundRequest paymentRefundRequest
-            = PaymentFixture.aRefundRequest("RR001", paymentDto.getReference());
+            = PaymentFixture.aRefundRequest(paymentId, "RR001", paymentReference, "125", "125");
         Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentRefundRequest);
@@ -1926,13 +1985,38 @@ public class PaymentStatusFunctionalTest {
 
         String remissionReference = response.getBody().jsonPath().getString("remission_reference");
         String remissionReference1 = response1.getBody().jsonPath().getString("remission_reference");
+
+        String ccdCaseNumber = accountPaymentRequest.getCcdCaseNumber();
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
+            ccdCaseNumber, "20");
+
         Response refundResponse = paymentTestService.postSubmitRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
-            RetroSpectiveRemissionRequest.retroSpectiveRemissionRequestWith().remissionReference(remissionReference).build());
+            RetrospectiveRemissionRequest.retrospectiveRemissionRequestWith().remissionReference(remissionReference)
+            .contactDetails(ContactDetails.contactDetailsWith().
+                addressLine("High Street 112")
+                .country("UK")
+                .county("Londonshire")
+                .city("London")
+                .postalCode("P1 1PO")
+                .email("person@gmail.com")
+                .notificationType("EMAIL")
+                .build())
+            .build());
 
         Response refundResponse1 = paymentTestService.postSubmitRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
-            RetroSpectiveRemissionRequest.retroSpectiveRemissionRequestWith().remissionReference(remissionReference1).build());
+            RetrospectiveRemissionRequest.retrospectiveRemissionRequestWith().remissionReference(remissionReference1)
+                .contactDetails(ContactDetails.contactDetailsWith().
+                    addressLine("High Street 112")
+                    .country("UK")
+                    .county("Londonshire")
+                    .city("London")
+                    .postalCode("P1 1PO")
+                    .email("person@gmail.com")
+                    .notificationType("EMAIL")
+                    .build())
+                .build());
 
         assertThat(refundResponse.statusCode()).isEqualTo(HttpStatus.CREATED.value());
         assertThat(refundResponse1.statusCode()).isEqualTo(HttpStatus.CREATED.value());

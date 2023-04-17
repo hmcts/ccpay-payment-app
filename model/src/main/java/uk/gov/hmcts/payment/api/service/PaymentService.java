@@ -10,7 +10,9 @@ import java.util.List;
 
 public interface PaymentService<T, ID> {
 
-    T retrieve(ID id);
+    T retrievePayment(ID id);
+
+    List<Payment> retrievePayment(List<ID> id);
 
     List<Reference> listInitiatedStatusPaymentsReferences();
 
@@ -30,7 +32,7 @@ public interface PaymentService<T, ID> {
 
     Payment findSavedPayment(String reference);
 
-    void updatePaymentsForCCDCaseNumberByCertainDays(final String ccd_case_number);
+    void updatePaymentsForCCDCaseNumberByCertainDays(String ccd_case_number, String days);
 
     Payment findPayment(String internalReference);
 

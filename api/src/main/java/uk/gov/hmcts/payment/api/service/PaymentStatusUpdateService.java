@@ -1,7 +1,6 @@
 package uk.gov.hmcts.payment.api.service;
 
 import org.springframework.util.MultiValueMap;
-import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.payment.api.dto.PaymentFailureReportDto;
 import uk.gov.hmcts.payment.api.dto.PaymentStatusBouncedChequeDto;
 import uk.gov.hmcts.payment.api.dto.PaymentStatusChargebackDto;
