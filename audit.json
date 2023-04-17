@@ -17,5 +17,9 @@
   "10021_X-Content-Type-Options Header Missing_http://payment-api-aat.service.core-compute-aat.internal_GET":"ignore",
   "10021_X-Content-Type-Options Header Missing_http://payment-api-aat.service.core-compute-aat.internal/_GET":"ignore",
   "10021_X-Content-Type-Options Header Missing_http://payment-api-aat.service.core-compute-aat.internal_GET":"ignore",
-  "10021_X-Content-Type-Options Header Missing_http://payment-api-aat.service.core-compute-aat.internal/_GET":"ignore"
+  "10021_X-Content-Type-Options Header Missing_http://payment-api-aat.service.core-compute-aat.internal/_GET":"ignore",
+  "90022_Application Error Disclosure_http://payment-api-aat.service.core-compute-aat.internal_GET":"ignore",
+  "90022_Application Error Disclosure_http://payment-api-aat.service.core-compute-aat.internal/_GET":"ignore",
+  "90022_Application Error Disclosure_http://payment-api-aat.service.core-compute-aat.internal/v2/api-docs_GET":"ignore",
+  "90022_Application Error Disclosure_http://payment-api-aat.service.core-compute-aat.internal/v2/api-docs_GET":"ignore"
 }
