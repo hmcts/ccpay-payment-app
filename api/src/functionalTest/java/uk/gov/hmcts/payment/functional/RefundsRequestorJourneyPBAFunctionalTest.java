@@ -1301,7 +1301,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
 
         // Create a PBA payment
         this.add_remisssions_and_add_refund_for_a_failed_payment("100.00",
-            "PBAFUNC12350",
+            "PBAFUNC12345",
             "Your account is deleted");
     }
 
@@ -1310,7 +1310,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
 
         // Create a PBA payment
         this.add_remisssions_and_add_refund_for_a_failed_payment("100.00",
-            "PBAFUNC12355",
+            "PBAFUNC12345",
             "Your account is on hold");
     }
 
