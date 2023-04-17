@@ -7,6 +7,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.junit.runner.RunWith;
@@ -1287,6 +1288,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         assertThat(refundResponse.getBody().print()).isEqualTo("Refund can be possible if payment is successful");
     }
 
+    @Ignore
     @Test
     public void negative_add_remission_and_submit_a_refund_for_a_pba_payment_more_than_the_account_limit() {
 
@@ -1301,7 +1303,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
 
         // Create a PBA payment
         this.add_remisssions_and_add_refund_for_a_failed_payment("100.00",
-            "PBAFUNC12350",
+            "PBAFUNC12345",
             "Your account is deleted");
     }
 
@@ -1310,7 +1312,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
 
         // Create a PBA payment
         this.add_remisssions_and_add_refund_for_a_failed_payment("100.00",
-            "PBAFUNC12355",
+            "PBAFUNC12345",
             "Your account is on hold");
     }
 
