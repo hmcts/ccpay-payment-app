@@ -13,11 +13,10 @@ import java.math.BigDecimal;
 import java.util.*;
 import static org.junit.Assert.*;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.ArgumentMatchers.anyList;
 
 public class PaymentServiceImplTest {
 
@@ -137,6 +136,45 @@ public class PaymentServiceImplTest {
         assertNotNull(payments);
         assertEquals(1, payments.size());
         assertEquals("RC-1519-9028-2432-000", payments.get(0).getReference());
+    }
+
+    @Test
+    public void testGetPaymentByIdSuccess() {
+
+        when(paymentRepository.findById(anyInt())).thenReturn(Optional.of(getPayment()));
+        assertNotNull(paymentService.getPaymentById(1));
+    }
+
+    @Test
+    public void testGetPaymentByIdThrowError() {
+        when(paymentRepository.findById(anyInt())).thenReturn(Optional.empty());
+        assertThrows(PaymentNotFoundException.class, () -> paymentService.getPaymentById(1));
+    }
+
+    @Test
+    public void testFindSavedPaymentSuccess() {
+
+        when(paymentRepository.findByReference(anyString())).thenReturn(Optional.of(getPayment()));
+        assertNotNull(paymentService.findSavedPayment("Ref-1"));
+    }
+
+    @Test
+    public void testFindSavedPaymentThrowError() {
+        when(paymentRepository.findByReference(anyString())).thenReturn(Optional.empty());
+        assertThrows(PaymentNotFoundException.class, () -> paymentService.findSavedPayment("Ref-1"));
+    }
+
+    @Test
+    public void testFindPaymentSuccess() {
+
+        when(paymentRepository.findByInternalReference(anyString())).thenReturn(Optional.of(getPayment()));
+        assertNotNull(paymentService.findPayment("Ref-1"));
+    }
+
+    @Test
+    public void testFindPaymentThrowError() {
+        when(paymentRepository.findByInternalReference(anyString())).thenReturn(Optional.empty());
+        assertThrows(PaymentNotFoundException.class, () -> paymentService.findPayment("Ref-1"));
     }
 
     private Payment getPayment() {
