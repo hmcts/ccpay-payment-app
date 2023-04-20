@@ -7,7 +7,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.junit.runner.RunWith;
@@ -1288,7 +1287,6 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         assertThat(refundResponse.getBody().print()).isEqualTo("Refund can be possible if payment is successful");
     }
 
-    @Ignore
     @Test
     public void negative_add_remission_and_submit_a_refund_for_a_pba_payment_more_than_the_account_limit() {
 
@@ -1298,8 +1296,6 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
             "Payment request failed. PBA account CAERPHILLY COUNTY BOROUGH COUNCIL have insufficient funds available");
     }
 
-
-    @Ignore
     @Test
     public void negative_add_remission_and_submit_a_refund_for_a_pba_payment_with_account_deleted() {
 
@@ -1309,7 +1305,6 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
             "Your account is deleted");
     }
 
-    @Ignore
     @Test
     public void negative_add_remission_and_submit_a_refund_for_a_pba_payment_with_account_on_hold() {
 
