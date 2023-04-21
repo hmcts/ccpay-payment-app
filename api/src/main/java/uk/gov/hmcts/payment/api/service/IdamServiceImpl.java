@@ -14,9 +14,10 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.payment.api.dto.IdamFullNameRetrivalResponse;
-import uk.gov.hmcts.payment.api.dto.IdamUserIdResponse;
+import uk.gov.hmcts.payment.api.dto.idam.IdamUserIdResponse;
+import uk.gov.hmcts.payment.api.dto.IdamUserIdDetailsResponse;
 import uk.gov.hmcts.payment.api.dto.UserIdentityDataDto;
-import uk.gov.hmcts.payment.api.exceptions.UserNotFoundException;
+import uk.gov.hmcts.payment.api.exception.UserNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.GatewayTimeoutException;
 
 
@@ -29,9 +30,12 @@ public class IdamServiceImpl implements IdamService {
 
     private static final Logger LOG = LoggerFactory.getLogger(IdamServiceImpl.class);
 
-    public static final String USERID_ENDPOINT = "/details";
+    public static final String USERDETAILS_ENDPOINT = "/details";
+    public static final String USERID_ENDPOINT = "/o/userinfo";
 
     public static final String USER_FULL_NAME_ENDPOINT = "/api/v1/users";
+    private static final String INTERNAL_SERVER_ERROR_MSG = "Internal Server error. Please, try again later";
+    private static final String USER_DETAILS_NOT_FOUND_ERROR_MSG = "User details not found for these roles in IDAM";
 
     private static final String INTERNAL_SERVER_ERR = "Internal Server error. Please, try again later";
 
@@ -43,17 +47,38 @@ public class IdamServiceImpl implements IdamService {
     private RestTemplate restTemplateIdam;
 
     @Override
-    public String getUserId(MultiValueMap<String, String> headers) {
+    public IdamUserIdResponse getUserId(MultiValueMap<String, String> headers) {
+        try {
+            ResponseEntity<IdamUserIdResponse> responseEntity = getResponseEntity(headers);
+            if (responseEntity != null) {
+                IdamUserIdResponse idamUserIdDetailsResponse = responseEntity.getBody();
+                if (idamUserIdDetailsResponse != null) {
+                    return idamUserIdDetailsResponse;
+                }
+            }
+            LOG.error("Parse error user not found");
+            throw new UserNotFoundException(USER_DETAILS_NOT_FOUND_ERROR_MSG);
+        } catch (HttpClientErrorException e) {
+            LOG.error("client err ", e);
+            throw new UserNotFoundException(INTERNAL_SERVER_ERROR_MSG);
+        } catch (HttpServerErrorException e) {
+            LOG.error("server err ", e);
+            throw new GatewayTimeoutException("Unable to retrieve User information. Please try again later");
+        }
+    }
+
+    @Override
+    public String getUserDetails(MultiValueMap<String, String> headers) {
 
 //         to test locally
 //         return "asdfghjk-kjhgfds-dfghj-sdfghjk";
         try {
-            ResponseEntity<IdamUserIdResponse> responseEntity = getResponseEntity(headers);
+            ResponseEntity<IdamUserIdDetailsResponse> responseEntity = getUserDetailsResponseEntity(headers);
             if (responseEntity != null) {
-                IdamUserIdResponse idamUserIdResponse = responseEntity.getBody();
-                if (idamUserIdResponse != null) {
-                    LOG.info("User id from IDAM service {} " ,idamUserIdResponse.getEmail());
-                    return idamUserIdResponse.getEmail();
+                IdamUserIdDetailsResponse idamUserIdDetailsResponse = responseEntity.getBody();
+                if (idamUserIdDetailsResponse != null) {
+                    LOG.info("User id from IDAM service {} " ,idamUserIdDetailsResponse.getEmail());
+                    return idamUserIdDetailsResponse.getEmail();
                 }
             }
             LOG.error("Parse error user not found");
@@ -69,12 +94,23 @@ public class IdamServiceImpl implements IdamService {
 
     private ResponseEntity<IdamUserIdResponse> getResponseEntity(MultiValueMap<String, String> headers) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(idamBaseURL + USERID_ENDPOINT);
-        LOG.error("builder.toUriString() : {}", builder.toUriString());
+        LOG.info("builder.toUriString() : {}", builder.toUriString());
         return restTemplateIdam
             .exchange(
                 builder.toUriString(),
                 HttpMethod.GET,
                 getEntity(headers), IdamUserIdResponse.class
+            );
+    }
+
+    private ResponseEntity<IdamUserIdDetailsResponse> getUserDetailsResponseEntity(MultiValueMap<String, String> headers) {
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(idamBaseURL + USERDETAILS_ENDPOINT);
+        LOG.info("builder.toUriString() : {}", builder.toUriString());
+        return restTemplateIdam
+            .exchange(
+                builder.toUriString(),
+                HttpMethod.GET,
+                getEntity(headers), IdamUserIdDetailsResponse.class
             );
     }
 

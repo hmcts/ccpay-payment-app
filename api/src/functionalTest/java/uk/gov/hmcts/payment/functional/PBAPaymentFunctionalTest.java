@@ -101,9 +101,7 @@ public class PBAPaymentFunctionalTest {
 
     @Test
     public void makeAndRetrievePBAPaymentByProbateTestShouldReturnAutoApportionedFees() {
-
         String accountNumber = testProps.existingAccountNumber;
-
         String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
         // create card payment
         List<FeeDto> fees = new ArrayList<>();
@@ -390,7 +388,6 @@ public class PBAPaymentFunctionalTest {
 
         // delete payment record
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
-
 
     }
 
