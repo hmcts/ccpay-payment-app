@@ -126,6 +126,7 @@ public class PaymentsSearchFunctionalTest {
 
     @Test
     public void givenTwoPaymentsInPeriodWhensearchPaymentsWithStartDateEndDateThenShouldPass() throws InterruptedException {
+        Thread.sleep(2000);
         String startDate = LocalDateTime.now(zoneUTC).toString(DATE_TIME_FORMAT);
 
         dsl.given().userToken(USER_TOKEN)

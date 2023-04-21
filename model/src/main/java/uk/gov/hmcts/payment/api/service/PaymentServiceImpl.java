@@ -15,14 +15,25 @@ import uk.gov.hmcts.payment.api.audit.AuditRepository;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
 import uk.gov.hmcts.payment.api.dto.Reference;
-import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.model.FeePayApportion;
+import uk.gov.hmcts.payment.api.model.FeePayApportionRepository;
+import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.Payment2Repository;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentProvider;
+import uk.gov.hmcts.payment.api.model.PaymentStatus;
+import uk.gov.hmcts.payment.api.model.PaymentStatusRepository;
+import uk.gov.hmcts.payment.api.model.StatusHistory;
+import uk.gov.hmcts.payment.api.model.TelephonyCallback;
+import uk.gov.hmcts.payment.api.model.TelephonyRepository;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
-import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.stream.Collectors;
+import javax.validation.constraints.NotNull;
 
 
 @Service
@@ -52,12 +63,14 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
     private int paymentsCutOffTime;
 
     @Autowired
-    public PaymentServiceImpl(@Qualifier("loggingPaymentService") DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService,
-                              Payment2Repository paymentRepository, CallbackService callbackService, PaymentStatusRepository paymentStatusRepository,
-                              TelephonyRepository telephonyRepository, AuditRepository paymentAuditRepository,
-                              FeePayApportionService feePayApportionService,
-                              FeePayApportionRepository feePayApportionRepository,
-                              LaunchDarklyFeatureToggler featureToggler) {
+    public PaymentServiceImpl(
+            @Qualifier("loggingPaymentService") DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService,
+            Payment2Repository paymentRepository, CallbackService callbackService,
+            PaymentStatusRepository paymentStatusRepository,
+            TelephonyRepository telephonyRepository, AuditRepository paymentAuditRepository,
+            FeePayApportionService feePayApportionService,
+            FeePayApportionRepository feePayApportionRepository,
+            LaunchDarklyFeatureToggler featureToggler) {
         this.paymentRepository = paymentRepository;
         this.delegatingPaymentService = delegatingPaymentService;
         this.callbackService = callbackService;
@@ -89,7 +102,7 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
     }
 
     @Override
-    public PaymentFeeLink retrieve(String reference) {
+    public PaymentFeeLink retrievePayment(String reference) {
         Payment payment = findSavedPayment(reference);
 
         return payment.getPaymentLink();
@@ -100,7 +113,8 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
     public void updateTelephonyPaymentStatus(String paymentReference, String status, String payload) {
         Payment payment = paymentRepository.findByReferenceAndPaymentProvider(paymentReference,
             PaymentProvider.paymentProviderWith().name(PCI_PAL).build()).orElseThrow(PaymentNotFoundException::new);
-        if(payment.getPaymentStatus() != null && !payment.getPaymentStatus().getName().equalsIgnoreCase(PaymentStatus.SUCCESS.getName())){
+        if (payment.getPaymentStatus() != null &&
+            !payment.getPaymentStatus().getName().equalsIgnoreCase(PaymentStatus.SUCCESS.getName())) {
             payment.setPaymentStatus(paymentStatusRepository.findByNameOrThrow(status));
 
             payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
@@ -109,18 +123,19 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
             if (payment.getServiceCallbackUrl() != null) {
                 callbackService.callback(payment.getPaymentLink(), payment);
             }
-            telephonyRepository.save(TelephonyCallback.telephonyCallbackWith().paymentReference(paymentReference).payload(payload).build());
+            telephonyRepository
+                .save(TelephonyCallback.telephonyCallbackWith().paymentReference(paymentReference).payload(payload).build());
             //1. Update Fee Amount Due as Payment Status received from PCI PAL as SUCCESS
             //2. Rollback Fees already Apportioned for Payments in FAILED status based on launch darkly feature flag
-            boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
+            boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature", false);
             LOG.info("ApportionFeature Flag Value in UserAwareDelegatingPaymentService : {}", apportionFeature);
-            if(apportionFeature) {
-                if(status.equalsIgnoreCase("success")) {
+            if (apportionFeature) {
+                if (status.equalsIgnoreCase("success")) {
                     LOG.info("Update Fee Amount Due as Payment Status received from GovPAY as SUCCESS!!!");
                     feePayApportionService.updateFeeAmountDue(payment);
                 }
             }
-        }else {
+        } else {
             Map<String, String> properties = new ImmutableMap.Builder<String, String>()
                 .put("PaymentReference", paymentReference)
                 .put("RequestedStatus", status)
@@ -133,19 +148,12 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
 
     @Override
     @Transactional
-    public void updatePaymentsForCCDCaseNumberByCertainDays(final String ccd_case_number) {
-
-      Optional<List<Payment>>  optionalPaymentList = paymentRepository.findByCcdCaseNumber(ccd_case_number);
-      List<Payment> paymentList = optionalPaymentList.orElseThrow();
-
-        paymentList.stream().forEach(payment -> {
-            Date dateCreated = payment.getDateCreated();
-            LocalDateTime localDateTime = LocalDateTime.ofInstant(dateCreated.toInstant(), ZoneId.systemDefault());
-            LocalDateTime rolledbackDateTime = localDateTime.minusDays(4);
-            payment.setDateCreated(Date.from(rolledbackDateTime.atZone(ZoneId.systemDefault()).toInstant()));
-            payment.setDateUpdated(Date.from(rolledbackDateTime.atZone(ZoneId.systemDefault()).toInstant()));
-            Payment paymentSaved = paymentRepository.save(payment);
-        });
+    public void updatePaymentsForCCDCaseNumberByCertainDays(final String ccd_case_number, final String days) {
+        LOG.info("The value of the ccd_case_number :" + ccd_case_number);
+        LOG.info("The value of the days :" + days);
+        LocalDateTime localDateTime = LocalDateTime.now();
+        LocalDateTime rolledbackDateTime = localDateTime.minusDays(Integer.parseInt(days));
+        paymentRepository.updatePaymentUpdatedDateTime(rolledbackDateTime,ccd_case_number);
         return;
     }
 
@@ -175,18 +183,17 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
 
 
     @Override
-    public List<FeePayApportion> findByPaymentId(Integer paymentId)
-    {
+    public List<FeePayApportion> findByPaymentId(Integer paymentId) {
         return feePayApportionRepository.findByPaymentId(paymentId).orElse(Collections.EMPTY_LIST);
     }
 
     @Override
     public String getServiceNameByCode(String serviceCode) {
-        if(serviceNameMap.containsKey(serviceCode))
-        {
+        if (serviceNameMap.containsKey(serviceCode)) {
             return serviceNameMap.get(serviceCode);
+        } else {
+            throw new PaymentException("Service in Request is Invalid !!!");
         }
-        else throw new PaymentException("Service in Request is Invalid !!!");
     }
 
 
@@ -203,5 +210,31 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
     @Override
     public Payment findPayment(@NotNull String internalReference) {
         return paymentRepository.findByInternalReference(internalReference).orElseThrow(() -> new PaymentNotFoundException("The internal Reference is not found"));
+    }
+
+    @Override
+    public List<Payment> retrievePayment(List<String> referenceList) {
+
+        List<Payment> paymentList = new ArrayList<>();
+
+        List<Payment> payments =
+            paymentRepository.findByReferenceIn(referenceList);
+
+        if (null != payments && !payments.isEmpty()) {
+            List<PaymentFeeLink> paymentFeeLinks = payments.stream()
+                .map(Payment::getPaymentLink)
+                .collect(Collectors.toList());
+
+            for (PaymentFeeLink paymentFeeLink : paymentFeeLinks) {
+                Optional<Payment> payment = paymentFeeLink.getPayments().stream()
+                    .filter(p -> referenceList.contains(p.getReference())).findAny();
+                if (payment.isPresent()) {
+                    paymentList.add(payment.get());
+                }
+            }
+        } else {
+            throw new PaymentNotFoundException("No Payments found");
+        }
+        return paymentList;
     }
 }
