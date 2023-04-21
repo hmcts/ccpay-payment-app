@@ -31,7 +31,7 @@ import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
 import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
-import uk.gov.hmcts.payment.api.dto.order.ServiceRequestCpoDto;
+import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestCpoDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.DeadLetterDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
@@ -188,11 +188,6 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         CreatePaymentRequest createGovPayRequest = serviceRequestDtoDomainMapper.createGovPayRequest(requestOnlinePaymentBo);
         LOG.info("Reaching card payment");
         GovPayPayment govPayPayment = delegateGovPay.create(createGovPayRequest, serviceRequest.getEnterpriseServiceName());
-        if(govPayPayment != null){
-            if(!(govPayPayment.getAmount().toString().equals(onlineCardPaymentRequest.getAmount().toString()))){
-                govPayPayment.setAmount(onlineCardPaymentRequest.getAmount().intValue());
-            }
-        }
 
         //Payment - Entity creation
         Payment paymentEntity = serviceRequestDomainDataEntityMapper.toPaymentEntity(requestOnlinePaymentBo, govPayPayment, serviceRequest);
@@ -412,7 +407,6 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         IMessageReceiver subscriptionClient = ClientFactory.createMessageReceiverFromConnectionStringBuilder(new ConnectionStringBuilder(connectionString, topic+"/subscriptions/" + subName+"/$deadletterqueue"), ReceiveMode.RECEIVEANDDELETE);
         return subscriptionClient;
     }
-
 
     @Override
 

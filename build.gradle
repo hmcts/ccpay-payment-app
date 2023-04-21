@@ -3,6 +3,7 @@ plugins {
     id "org.sonarqube" version "3.0"
     id 'org.springframework.boot' version '2.3.6.RELEASE'
     id 'io.spring.dependency-management' version '1.0.9.RELEASE'
+    id 'org.owasp.dependencycheck' version '8.0.2'
     id "uk.gov.hmcts.java" version '0.12.0'
     id "com.gorylenko.gradle-git-properties" version "1.4.21"
     id 'jacoco'
@@ -175,26 +176,29 @@ def sonarExclusions = [
         '**/v1/**',
         '**/OtpBootstrap.java',
         '**/api/model/**',
-        '**/api/configuration/security/SpringSecurityConfiguration.java',
         '**/referencedata/model/**',
         '**/api/dto/*.java',
         '**/referencedata/dto/*.java',
         '**/api/service/*Service.java',
+        '**/api/servicebus/TopicClientService.java',
         '**/referencedata/service/*Service.java',
         '**/api/service/MockAccountServiceImpl.java',
-        '**/api/service/PaymentServiceImpl.java',
         '**/api/service/MockCcdDataStoreClientServiceImpl.java',
         '**/api/controllers/mock/MockCallbackControllerForTesting.java',
         '**/api/controllers/ServiceRequestController.java',
         '**/api/domain/mapper/**',
+        '**/api/dto/mapper/*Mapper.java',
         '**/api/domain/service/**',
         '**/api/contract/**',
+        '**/api/contract/*Dto.java',
         '**/api/dto/mapper/**',
         '**/api/reports/config/**',
         '**/api/external/client/dto/**',
         '**/api/external/client/exceptions/**',
         '**/api/jpaaudit/listner/**',
-        '**/api/jpaaudit/model/**'
+        '**/api/jpaaudit/model/**',
+        '**/api/service/PaymentRefundsServiceImpl.java',
+        '**/api/service/RefundRemissionEnableServiceImpl.java'
 ]
 
 sonarqube {

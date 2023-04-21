@@ -22,14 +22,13 @@ import uk.gov.hmcts.payment.functional.idam.IdamService;
 import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
 import uk.gov.hmcts.payment.functional.service.ServiceRequestTestService;
 
+import javax.inject.Inject;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.regex.Pattern;
-import javax.inject.Inject;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CASE_WORKER_GROUP;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
 
@@ -222,7 +221,7 @@ public class ServiceRequestBasedOnlineCardPayment {
         final String paymentReference = onlineCardPaymentResponse.getPaymentReference();
         assertThat(paymentReference).matches(PAYMENTS_REGEX_PATTERN);
         assertThat(onlineCardPaymentResponse.getStatus()).isEqualTo("Initiated");
-        assertThat(onlineCardPaymentResponse.getNextUrl()).startsWith("https://www.payments.service.gov.uk/secure/");
+        assertThat(onlineCardPaymentResponse.getNextUrl()).startsWith("https://card.payments.service.gov.uk/secure/");
         assertThat(onlineCardPaymentResponse.getExternalReference()).isNotNull().isNotBlank();
 
         // Retrieve card payment

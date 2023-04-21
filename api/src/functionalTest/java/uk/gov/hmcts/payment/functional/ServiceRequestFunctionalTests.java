@@ -34,6 +34,7 @@ import uk.gov.hmcts.payment.functional.service.CaseTestService;
 import uk.gov.hmcts.payment.functional.service.PaymentTestService;
 import uk.gov.hmcts.payment.functional.service.ServiceRequestTestService;
 
+import javax.inject.Inject;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -43,7 +44,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
-import javax.inject.Inject;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -762,11 +762,10 @@ public class ServiceRequestFunctionalTests {
             .isEqualTo("No Service found for given CaseType or HMCTS Org Id");
     }
 
-    @Ignore
     @Test
     public void return_disputed_when_failure_event_has_happen_ping_one() {
 
-        String ccdCaseNumber = "11111234" + RandomUtils.nextInt();
+        String ccdCaseNumber = "11111235" + RandomUtils.nextInt();
         if(ccdCaseNumber.length()>16){
             ccdCaseNumber = ccdCaseNumber.substring(0,16);
         }
@@ -861,7 +860,6 @@ public class ServiceRequestFunctionalTests {
         paymentTestService.deleteFailedPayment(USER_TOKEN_CMC_SOLICITOR, SERVICE_TOKEN, paymentStatusChargebackDto.getFailureReference()).then().statusCode(NO_CONTENT.value());
     }
 
-    @Ignore
     @Test
     public void return_paid_when_failure_event_and_HMCTS_won_dispute_ping_two() {
 
@@ -981,7 +979,6 @@ public class ServiceRequestFunctionalTests {
         paymentTestService.deleteFailedPayment(USER_TOKEN_CMC_SOLICITOR, SERVICE_TOKEN, paymentStatusChargebackDto.getFailureReference()).then().statusCode(NO_CONTENT.value());
     }
 
-    @Ignore
     @Test
     public void return_partially_paid_when_failure_event_and_HMCTS_lost_dispute_ping_two() {
 
@@ -1101,13 +1098,12 @@ public class ServiceRequestFunctionalTests {
         paymentTestService.deleteFailedPayment(USER_TOKEN_CMC_SOLICITOR, SERVICE_TOKEN, paymentStatusChargebackDto.getFailureReference()).then().statusCode(NO_CONTENT.value());
     }
 
-    @Ignore
     @Test
     public void return_paid_when_failure_event_and_HMCTS_received_money_retro_remission_ping_two() {
 
         // Create a Bulk scan payment
         String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
-        String dcn = "3456908723459901" + RandomUtils.nextInt();
+        String dcn = "3456908723459913" + RandomUtils.nextInt();
         dcn=  dcn.substring(0,21);
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal("100.00"))
@@ -1223,13 +1219,12 @@ public class ServiceRequestFunctionalTests {
         paymentTestService.deleteFailedPayment(USER_TOKEN_CMC_SOLICITOR, SERVICE_TOKEN, paymentStatusBouncedChequeDto.getFailureReference()).then().statusCode(NO_CONTENT.value());
     }
 
-    @Ignore
     @Test
     public void return_disputed_when_failure_event_has_happen_full_remission_ping_one() {
 
         // Create a Bulk scan payment
         String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
-        String dcn = "3456908723459901" + RandomUtils.nextInt();
+        String dcn = "3456908723459914" + RandomUtils.nextInt();
         dcn=  dcn.substring(0,21);
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal("100.00"))
@@ -1322,13 +1317,12 @@ public class ServiceRequestFunctionalTests {
         paymentTestService.deleteFailedPayment(USER_TOKEN_CMC_SOLICITOR, SERVICE_TOKEN, paymentStatusBouncedChequeDto.getFailureReference()).then().statusCode(NO_CONTENT.value());
     }
 
-    @Ignore
     @Test
     public void return_paid_when_failure_event_and_HMCTS_not_received_money_full_retro_remission_ping_two() {
 
         // Create a Bulk scan payment
         String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
-        String dcn = "3456908723459901" + RandomUtils.nextInt();
+        String dcn = "3456908723459915" + RandomUtils.nextInt();
         dcn=  dcn.substring(0,21);
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal("100.00"))
@@ -1446,7 +1440,6 @@ public class ServiceRequestFunctionalTests {
         paymentTestService.deleteFailedPayment(USER_TOKEN_CMC_SOLICITOR, SERVICE_TOKEN, paymentStatusBouncedChequeDto.getFailureReference()).then().statusCode(NO_CONTENT.value());
     }
 
-    @Ignore
     @Test
     public void return_disputed_when_failure_event_has_happen_partial_remission_ping_one() {
 
@@ -1568,7 +1561,6 @@ public class ServiceRequestFunctionalTests {
 
   }
 
-    @Ignore
     @Test
     public void return_paid_when_failure_event_has_happen_partial_remission__HMCTS_received_money_ping_two() {
 
@@ -1713,13 +1705,12 @@ public class ServiceRequestFunctionalTests {
 
     }
 
-    @Ignore
     @Test
     public void return_partially_paid_when_failure_event_has_happen_partial_remission__HMCTS_received_money_ping_two() {
 
         // Create a Telephony payment
 
-        String ccdCaseNumber = "11111234" + RandomUtils.nextInt();
+        String ccdCaseNumber = "11111236" + RandomUtils.nextInt();
         if(ccdCaseNumber.length()>16){
             ccdCaseNumber = ccdCaseNumber.substring(0,16);
         }

@@ -57,7 +57,7 @@ withPipeline(type, product, app) {
     loadVaultSecrets(secrets)
     enableDbMigration('ccpay') // for liquibase update
 
-    after('test') {
+    afterAlways('test') {
 
         publishHTML target: [
             allowMissing         : true,
@@ -97,7 +97,7 @@ withPipeline(type, product, app) {
 
     }
 
-    after('smoketest:preview') {
+    afterAlways('smoketest:preview') {
 
         publishHTML target: [
             allowMissing         : true,
@@ -109,7 +109,7 @@ withPipeline(type, product, app) {
         ]
     }
 
-    after('smoketest:aat') {
+    afterAlways('smoketest:aat') {
         publishHTML target: [
             allowMissing         : true,
             alwaysLinkToLastBuild: true,
@@ -120,7 +120,7 @@ withPipeline(type, product, app) {
         ]
     }
 
-    after('functionalTest:preview') {
+    afterAlways('functionalTest:preview') {
 
         publishHTML target: [
             allowMissing         : true,
@@ -132,7 +132,7 @@ withPipeline(type, product, app) {
         ]
     }
 
-    after('functionalTest:aat') {
+    afterAlways('functionalTest:aat') {
 
         publishHTML target: [
             allowMissing         : true,
@@ -163,4 +163,5 @@ withPipeline(type, product, app) {
 
     //Sync demo,ithc and perftest with master branch
     syncBranchesWithMaster(branchesToSync)
+
 }
