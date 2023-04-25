@@ -38,6 +38,7 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -51,6 +52,8 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
     private static final String AUTHORISED_REFUNDS_ROLE = "payments-refund";
     private static final String AUTHORISED_REFUNDS_APPROVER_ROLE = "payments-refund-approver";
     private static final Pattern EMAIL_ID_REGEX = Pattern.compile("^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}$", Pattern.CASE_INSENSITIVE);
+
+    private static int amountCompareValue = 1;
 
     final Predicate<Payment> paymentSuccessCheck =
         payment -> payment.getPaymentStatus().getName().equals(PaymentStatus.SUCCESS.getName());
@@ -573,6 +576,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             Payment payment = paymentRepository.findByReference(paymentReference).orElseThrow(PaymentNotFoundException::new);
             BigDecimal balanceAvailable;
             Boolean refundRole;
+            Boolean checkUpfrontRemissionFeeApportion = false;
             List<String> paymentList = new ArrayList<>();
             for (PaymentDto payment1 : paymentGroupDto.getPayments()) {
 
@@ -613,17 +617,30 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                                 //Makes sure that the fee ID matches with the fee ID in remission
                                 if (fee.getId() == remission.getFeeId()) {
                                     LOG.info("FEE ID MATCHES REMISSION FEE ID");
+                                    BigDecimal netAmount = fee.getCalculatedAmount().subtract(remission.getHwfAmount());
+
+                                    int amountCompare = paymentDto.getAmount().compareTo(netAmount);
+
+                                    if (amountCompare !=amountCompareValue) {
+                                        remission.setAddRefund(false);
+                                        checkUpfrontRemissionFeeApportion = true;
+                                        paymentDto.setIssueRefund(true);
+                                    }
 
 
                                     //IF THERE IS NO PROCESSED REFUND FOR THE FEE BUT THERE IS AN ACTIVE REMISSION
                                     if (!refundedFees.stream().flatMap(List::stream).anyMatch(fee.getId().toString()::equals)
-                                        && fee.getId() == remission.getFeeId()) {
+                                        && fee.getId() == remission.getFeeId())  {
                                         LOG.info("ENTERED NO PROCESSED REFUND IF");
 
                                         activeRemission =true;
                                         fee.setAddRemission(false);
-                                        remission.setAddRefund(true);
-                                        paymentDto.setIssueRefund(false);
+                                        if(!checkUpfrontRemissionFeeApportion){
+                                            remission.setAddRefund(true);
+                                            paymentDto.setIssueRefund(false);
+                                        }
+
+
                                     }
                                     //IF THERE IS A PROCESSED REFUND FOR THE FEE
                                     else if (refundedFees.stream().flatMap(List::stream).anyMatch(fee.getId().toString()::equals)) {
@@ -748,7 +765,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
             BigDecimal balanceAvailable;
             Boolean refundRole;
-
+            AtomicBoolean checkUpfrontRemission = new AtomicBoolean(false);
             List<String> paymentList = new ArrayList<>();
             for (PaymentGroupDto paymentGroupDto : paymentGroupResponse.getPaymentGroups()) {
 
@@ -788,6 +805,21 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                                 //Makes sure that the fee ID matches with the fee ID in remission
                                 if (fee.getId() == remission.getFeeId()) {
 
+                                    paymentGroupDto.getPayments().forEach(paymentDto -> {
+
+                                            BigDecimal netAmount = fee.getCalculatedAmount().subtract(remission.getHwfAmount());
+
+                                            int amountCompare = paymentDto.getAmount().compareTo(netAmount);
+
+                                            if (amountCompare !=amountCompareValue) {
+                                                remission.setAddRefund(false);
+                                                checkUpfrontRemission.set(true);
+                                                for (PaymentDto payment : paymentGroupDto.getPayments()) {
+                                                    payment.setIssueRefund(true);
+                                                }
+                                            }
+                                        }
+                                    );
                                     //IF THERE IS NO PROCESSED REFUND FOR THE FEE BUT THERE IS AN ACTIVE REMISSION
 
                                     if (!refundedFees.stream().flatMap(List::stream).anyMatch(fee.getId().toString()::equals)
@@ -796,9 +828,11 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
                                         activeRemission =true;
                                         fee.setAddRemission(false);
-                                        remission.setAddRefund(true);
+                                        if(checkUpfrontRemission.get() == false){
+                                            remission.setAddRefund(true);
                                         for (PaymentDto payment : paymentGroupDto.getPayments()) {
                                             payment.setIssueRefund(false);
+                                        }
                                         }
                                     }
                                     //IF THERE IS A PROCESSED REFUND FOR THE FEE
