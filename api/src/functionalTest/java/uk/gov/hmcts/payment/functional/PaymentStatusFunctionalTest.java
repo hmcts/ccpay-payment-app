@@ -1299,7 +1299,10 @@ public class PaymentStatusFunctionalTest {
         // Create a Bulk scan payment
         String dcn = "3456908723459907" + RandomUtils.nextInt();
         String failureReference = "FR-123-456" + RandomUtils.nextInt();
-
+        String ccdCaseNumber = "11111244" + RandomUtils.nextInt();
+        if(ccdCaseNumber.length()>16){
+            ccdCaseNumber = ccdCaseNumber.substring(0,16);
+        }
         dcn=  dcn.substring(0,21);
         BulkScanPayment bulkScanPayment = BulkScanPayment.createPaymentRequestWith()
                 .amount(new BigDecimal("555"))
@@ -1315,7 +1318,7 @@ public class PaymentStatusFunctionalTest {
 
         // Complete a Bulk scan payment
         BulkScanPayments bulkScanPayments = BulkScanPayments.createBSPaymentRequestWith()
-                .ccdCaseNumber("1234567890123456")
+                .ccdCaseNumber(ccdCaseNumber)
                 .documentControlNumbers(new String[]{dcn})
                 .isExceptionRecord(false)
                 .responsibleServiceId("AA07")
@@ -1367,6 +1370,10 @@ public class PaymentStatusFunctionalTest {
         // Create a Bulk scan payment
         String dcn = "3456908723459902" + RandomUtils.nextInt();
         dcn=  dcn.substring(0,21);
+        String ccdCaseNumber = "11111245" + RandomUtils.nextInt();
+        if(ccdCaseNumber.length()>16){
+            ccdCaseNumber = ccdCaseNumber.substring(0,16);
+        }
         BulkScanPayment bulkScanPayment = BulkScanPayment.createPaymentRequestWith()
                 .amount(new BigDecimal("555"))
                 .bankGiroCreditSlipNumber(Integer.valueOf("5"))
@@ -1381,7 +1388,7 @@ public class PaymentStatusFunctionalTest {
 
         // Complete a Bulk scan payment
         BulkScanPayments bulkScanPayments = BulkScanPayments.createBSPaymentRequestWith()
-                .ccdCaseNumber("1234567890123456")
+                .ccdCaseNumber(ccdCaseNumber)
                 .documentControlNumbers(new String[]{dcn})
                 .isExceptionRecord(false)
                 .responsibleServiceId("AA07")
@@ -1420,6 +1427,10 @@ public class PaymentStatusFunctionalTest {
         String dcn = "3456908723459903" + RandomUtils.nextInt();
         String failureReference = "FR-123-456" + RandomUtils.nextInt();
         dcn=  dcn.substring(0,21);
+        String ccdCaseNumber = "11112235" + RandomUtils.nextInt();
+        if(ccdCaseNumber.length()>16){
+            ccdCaseNumber = ccdCaseNumber.substring(0,16);
+        }
         BulkScanPayment bulkScanPayment = BulkScanPayment.createPaymentRequestWith()
                 .amount(new BigDecimal("999"))
                 .bankGiroCreditSlipNumber(Integer.valueOf("5"))
@@ -1434,7 +1445,7 @@ public class PaymentStatusFunctionalTest {
 
         // Complete a Bulk scan payment
         BulkScanPayments bulkScanPayments = BulkScanPayments.createBSPaymentRequestWith()
-                .ccdCaseNumber("1234567890123456")
+                .ccdCaseNumber(ccdCaseNumber)
                 .documentControlNumbers(new String[]{dcn})
                 .isExceptionRecord(false)
                 .responsibleServiceId("AA07")
@@ -1483,6 +1494,10 @@ public class PaymentStatusFunctionalTest {
         String dcn = "3456908723459904" + RandomUtils.nextInt();
         String failureReference = "FR-123-456" + RandomUtils.nextInt();
         dcn=  dcn.substring(0,21);
+        String ccdCaseNumber = "11117235" + RandomUtils.nextInt();
+        if(ccdCaseNumber.length()>16){
+            ccdCaseNumber = ccdCaseNumber.substring(0,16);
+        }
         BulkScanPayment bulkScanPayment = BulkScanPayment.createPaymentRequestWith()
                 .amount(new BigDecimal("555"))
                 .bankGiroCreditSlipNumber(Integer.valueOf("5"))
@@ -1497,7 +1512,7 @@ public class PaymentStatusFunctionalTest {
 
         // Complete a Bulk scan payment
         BulkScanPayments bulkScanPayments = BulkScanPayments.createBSPaymentRequestWith()
-                .ccdCaseNumber("1234567890123456")
+                .ccdCaseNumber(ccdCaseNumber)
                 .documentControlNumbers(new String[]{dcn})
                 .isExceptionRecord(false)
                 .responsibleServiceId("AA07")
@@ -1533,6 +1548,10 @@ public class PaymentStatusFunctionalTest {
         String dcn = "3456908723459905" + RandomUtils.nextInt();
         String failureReference = "FR-123-456" + RandomUtils.nextInt();
         dcn=  dcn.substring(0,21);
+        String ccdCaseNumber = "11118235" + RandomUtils.nextInt();
+        if(ccdCaseNumber.length()>16){
+            ccdCaseNumber = ccdCaseNumber.substring(0,16);
+        }
         BulkScanPayment bulkScanPayment = BulkScanPayment.createPaymentRequestWith()
             .amount(new BigDecimal("555"))
             .bankGiroCreditSlipNumber(Integer.valueOf("5"))
@@ -1547,7 +1566,7 @@ public class PaymentStatusFunctionalTest {
 
         // Complete a Bulk scan payment
         BulkScanPayments bulkScanPayments = BulkScanPayments.createBSPaymentRequestWith()
-            .ccdCaseNumber("1234567890123456")
+            .ccdCaseNumber(ccdCaseNumber)
             .documentControlNumbers(new String[]{dcn})
             .isExceptionRecord(false)
             .responsibleServiceId("AA07")
@@ -1578,7 +1597,7 @@ public class PaymentStatusFunctionalTest {
             .siteId("AA01")
             .currency(CurrencyCode.GBP)
             .documentControlNumber(dcn)
-            .ccdCaseNumber("1234567890123456")
+            .ccdCaseNumber(ccdCaseNumber)
             .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
             .payerName("CCD User1")
             .bankedDate(DateTime.now().toString())
@@ -1594,7 +1613,7 @@ public class PaymentStatusFunctionalTest {
                 .version("1")
                 .reference("testRef1")
                 .volume(2)
-                .ccdCaseNumber("1234567890123456")
+                .ccdCaseNumber(ccdCaseNumber)
                 .build())).build();
 
         AtomicReference<String> paymentReference = new AtomicReference<>();
@@ -1650,6 +1669,10 @@ public class PaymentStatusFunctionalTest {
         String dcn = "3456908723459906" + RandomUtils.nextInt();
         String failureReference = "FR-123-456" + RandomUtils.nextInt();
         dcn=  dcn.substring(0,21);
+        String ccdCaseNumber = "11114335" + RandomUtils.nextInt();
+        if(ccdCaseNumber.length()>16){
+            ccdCaseNumber = ccdCaseNumber.substring(0,16);
+        }
         BulkScanPayment bulkScanPayment = BulkScanPayment.createPaymentRequestWith()
             .amount(new BigDecimal("555"))
             .bankGiroCreditSlipNumber(Integer.valueOf("5"))
@@ -1664,7 +1687,7 @@ public class PaymentStatusFunctionalTest {
 
         // Complete a Bulk scan payment
         BulkScanPayments bulkScanPayments = BulkScanPayments.createBSPaymentRequestWith()
-            .ccdCaseNumber("1234567890123456")
+            .ccdCaseNumber(ccdCaseNumber)
             .documentControlNumbers(new String[]{dcn})
             .isExceptionRecord(false)
             .responsibleServiceId("AA07")
@@ -1695,7 +1718,7 @@ public class PaymentStatusFunctionalTest {
             .siteId("AA01")
             .currency(CurrencyCode.GBP)
             .documentControlNumber(dcn)
-            .ccdCaseNumber("1234567890123456")
+            .ccdCaseNumber(ccdCaseNumber)
             .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
             .payerName("CCD User1")
             .bankedDate(DateTime.now().toString())
@@ -1711,7 +1734,7 @@ public class PaymentStatusFunctionalTest {
                 .version("1")
                 .reference("testRef1")
                 .volume(2)
-                .ccdCaseNumber("1234567890123456")
+                .ccdCaseNumber(ccdCaseNumber)
                 .build())).build();
 
         AtomicReference<String> paymentReference = new AtomicReference<>();
@@ -2355,6 +2378,10 @@ public class PaymentStatusFunctionalTest {
         // Create a Bulk scan payment
         String dcn = "3456908723459919" + RandomUtils.nextInt();
         dcn=  dcn.substring(0,21);
+        String ccdCaseNumber = "11671235" + RandomUtils.nextInt();
+        if(ccdCaseNumber.length()>16){
+            ccdCaseNumber = ccdCaseNumber.substring(0,16);
+        }
         BulkScanPayment bulkScanPayment = BulkScanPayment.createPaymentRequestWith()
             .amount(new BigDecimal("555"))
             .bankGiroCreditSlipNumber(Integer.valueOf("5"))
@@ -2369,7 +2396,7 @@ public class PaymentStatusFunctionalTest {
 
         // Complete a Bulk scan payment
         BulkScanPayments bulkScanPayments = BulkScanPayments.createBSPaymentRequestWith()
-            .ccdCaseNumber("1234567890123456")
+            .ccdCaseNumber(ccdCaseNumber)
             .documentControlNumbers(new String[]{dcn})
             .isExceptionRecord(false)
             .responsibleServiceId("AA07")
