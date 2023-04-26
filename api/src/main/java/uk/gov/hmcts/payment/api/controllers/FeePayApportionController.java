@@ -28,6 +28,7 @@ import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentFeeRepository;
 import uk.gov.hmcts.payment.api.service.PaymentRefundsService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
+import uk.gov.hmcts.payment.api.service.RefundRemissionEnableService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import java.util.ArrayList;
@@ -51,6 +52,9 @@ public class FeePayApportionController {
 
     @Autowired
     private PaymentRefundsService paymentRefundsService;
+
+    @Autowired
+    private RefundRemissionEnableService refundRemissionEnableService;
 
     private static final Logger LOG = LoggerFactory.getLogger(FeePayApportionController.class);
 
@@ -107,6 +111,7 @@ public class FeePayApportionController {
             }
         }
         LOG.info("Before calling toPaymentGroupDto payment Ref {}", paymentFeeLink.getPaymentReference());
+        refundRemissionEnableService.isRolePresent(headers);
         PaymentGroupDto paymentGroupDto  = paymentGroupDtoMapper.toPaymentGroupDto(paymentFeeLink);
         LOG.info("Before checking Refund");
         paymentGroupDto = paymentRefundsService.checkRefundAgainstRemissionFeeApportionV2(headers, paymentGroupDto, paymentReference);
