@@ -495,7 +495,8 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
        public boolean checkRefundsRole(PaymentGroupDto paymentGroupDto){
         if(null != paymentGroupDto && null != paymentGroupDto.getPayments()) {
             for (PaymentDto payment : paymentGroupDto.getPayments()) {
-
+                LOG.info("Payment getRefundEnable --> {}",payment.getRefundEnable() );
+                LOG.info("Payment Reference --> {}",payment.getReference() );
                 if (payment.getRefundEnable() != null && payment.getRefundEnable()) {
                     return true;
                 }
@@ -593,6 +594,9 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                 boolean activeRemission = false;
                 refundRole = checkRefundsRole(paymentGroupDto);
                 balanceAvailable = getAvailableBalance(paymentGroupDto, refundListDtoResponse);
+
+                LOG.info("balanceAvailable----> {}",balanceAvailable);
+                LOG.info("refundRole----> {}",refundRole);
 
                 //Main check: if the payment has refund role and there is available balance
                 if(refundRole && balanceAvailable.compareTo(BigDecimal.ZERO) > 0){
