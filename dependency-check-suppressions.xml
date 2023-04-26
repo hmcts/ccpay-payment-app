@@ -179,7 +179,6 @@
         <cve>CVE-2022-42004</cve>
         <cve>CVE-2023-20863</cve>
     </suppress>
-
     <suppress>
         <notes>SnakeYaml's Constructor() class does not restrict types which can be instantiated during deserialization.
         </notes>
@@ -190,6 +189,5 @@
         </notes>
         <cve>CVE-2023-20863</cve>
     </suppress>
-
     <!-- Supression Group ends here -->
 </suppressions>

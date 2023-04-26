@@ -94,7 +94,6 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         LOG.info("paymentStatusBouncedChequeDto.getEventDateTime(): {}",paymentStatusBouncedChequeDto.getEventDateTime());
         LOG.info(" payment.get().getBankedDate(): {}", payment.get().getBankedDate());
 
-
         PaymentFailures paymentFailuresMap = paymentStatusDtoMapper.bounceChequeRequestMapper(paymentStatusBouncedChequeDto, payment.get());
         try{
 
@@ -228,9 +227,9 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
 
     private void validatePingOneDate(String pingOneDateStr, Date paymentDate , String message){
 
-       Date pingOneDate =  DateTime.parse(pingOneDateStr).withZone(DateTimeZone.UTC).toDate();
-       LOG.info("validatePingOneDate pingOneDateStr: {}", pingOneDate);
-       LOG.info("validatePingOneDate paymentDate : {}", paymentDate);
+        Date pingOneDate =  DateTime.parse(pingOneDateStr).withZone(DateTimeZone.UTC).toDate();
+        LOG.info("validatePingOneDate pingOneDateStr: {}", pingOneDate);
+        LOG.info("validatePingOneDate paymentDate : {}", paymentDate);
         if (pingOneDate.before(paymentDate)){
             throw new InvalidPaymentFailureRequestException(message);
         }
