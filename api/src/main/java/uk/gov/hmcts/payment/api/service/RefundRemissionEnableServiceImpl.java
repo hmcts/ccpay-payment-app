@@ -58,11 +58,8 @@ public class RefundRemissionEnableServiceImpl implements RefundRemissionEnableSe
 
         if(refundLagTimeFeature){
             refundEligibleDate = calculateLagDate(payment);
-
-            LOG.info("Payment reference--->  {}",payment.getReference());
             LOG.info("refundEligibleDate--->  {}",refundEligibleDate);
             LOG.info("isRoles--->  {}",isRoles);
-            LOG.info("Payment Status --->  {}", payment.getPaymentStatus().getName().equalsIgnoreCase(STATUS));
 
             return payment.getPaymentStatus().getName().equalsIgnoreCase(STATUS) && refundEligibleDate
                 && isRoles;
@@ -75,7 +72,6 @@ public class RefundRemissionEnableServiceImpl implements RefundRemissionEnableSe
     private Boolean calculateLagDate(Payment payment) {
 
         long timeDuration= ChronoUnit.HOURS.between( payment.getDateUpdated().toInstant(), new Date().toInstant());
-        LOG.info("timeDuration--->  {}",timeDuration);
 
         return refundEligibilityUtil.getRefundEligiblityStatus(payment,timeDuration);
     }
