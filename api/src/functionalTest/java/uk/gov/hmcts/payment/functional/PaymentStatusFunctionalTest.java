@@ -2176,7 +2176,7 @@ public class PaymentStatusFunctionalTest {
     }
 
     @Test
-    public void negative_return400_bounce_cheque_payment_event_date_less_than_payment_date() {
+    public void negative_return400_bounce_cheque_payment_event_date_less_than_banked_date() {
 
         // Create a Bulk scan payment
         String ccdCaseNumber = "1111221233124419";
@@ -2373,7 +2373,7 @@ public class PaymentStatusFunctionalTest {
     }
 
     @Test
-    public void negative_return400_unprocessedPayment_bulk_scan_event_date_less_than_payment_date() {
+    public void negative_return400_unprocessedPayment_bulk_scan_event_date_less_than_banked_date() {
 
         // Create a Bulk scan payment
         String dcn = "3456908723459919" + RandomUtils.nextInt();
@@ -2416,12 +2416,12 @@ public class PaymentStatusFunctionalTest {
             .poBoxNumber("8")
             .build();
 
-        Response bounceChequeResponse = paymentTestService.postUnprocessedPayment(
+        Response unprocessedPaymentResponse = paymentTestService.postUnprocessedPayment(
             SERVICE_TOKEN_PAYMENT,
             unprocessedPayment);
-        assertThat(bounceChequeResponse.getBody().prettyPrint()).isEqualTo(
-            "Failure event date can not be prior to payment date");
-        assertThat(bounceChequeResponse.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+        assertThat(unprocessedPaymentResponse.getBody().prettyPrint()).isEqualTo(
+            "Failure event date can not be prior to banked date");
+        assertThat(unprocessedPaymentResponse.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
 
         // delete payment record
         paymentTestService.deleteBulkScanPayment(SERVICE_TOKEN, dcn, testProps.bulkScanUrl).then()

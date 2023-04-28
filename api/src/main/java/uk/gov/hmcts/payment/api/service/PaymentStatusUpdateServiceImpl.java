@@ -427,7 +427,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
                     throw new InvalidPaymentFailureRequestException("Failure amount cannot be more than payment amount");
                 }
                 if(dcn.equals(paymentMetadataDto.getDcnReference())) {
-                    validatePingOneDate(unprocessedPayment.getEventDateTime(), paymentMetadataDto.getDateUpdated(), "Failure event date can not be prior to payment date");
+                    validatePingOneDate(unprocessedPayment.getEventDateTime(), paymentMetadataDto.getDateBanked(), "Failure event date can not be prior to banked date");
                 }
             }
         }
