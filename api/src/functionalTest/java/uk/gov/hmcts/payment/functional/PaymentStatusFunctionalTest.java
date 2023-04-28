@@ -71,6 +71,8 @@ public class PaymentStatusFunctionalTest {
     private static String USER_TOKEN_PAYMENT;
     private static String USER_TOKEN_CARD_PAYMENT;
     private static final Pattern REFUNDS_REGEX_PATTERN = Pattern.compile("^(RF)-([0-9]{4})-([0-9-]{4})-([0-9-]{4})-([0-9-]{4})$");
+    private static final int CCD_EIGHT_DIGIT_UPPER = 99999999;
+    private static final int CCD_EIGHT_DIGIT_LOWER = 10000000;
     private static final Logger LOG = LoggerFactory.getLogger(PaymentStatusFunctionalTest.class);
 
     @Autowired
@@ -1299,10 +1301,7 @@ public class PaymentStatusFunctionalTest {
         // Create a Bulk scan payment
         String dcn = "3456908723459907" + RandomUtils.nextInt();
         String failureReference = "FR-123-456" + RandomUtils.nextInt();
-        String ccdCaseNumber = "11111244" + RandomUtils.nextInt();
-        if(ccdCaseNumber.length()>16){
-            ccdCaseNumber = ccdCaseNumber.substring(0,16);
-        }
+        String ccdCaseNumber = "11111244" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
         dcn=  dcn.substring(0,21);
         BulkScanPayment bulkScanPayment = BulkScanPayment.createPaymentRequestWith()
                 .amount(new BigDecimal("555"))
@@ -1370,10 +1369,7 @@ public class PaymentStatusFunctionalTest {
         // Create a Bulk scan payment
         String dcn = "3456908723459902" + RandomUtils.nextInt();
         dcn=  dcn.substring(0,21);
-        String ccdCaseNumber = "11111245" + RandomUtils.nextInt();
-        if(ccdCaseNumber.length()>16){
-            ccdCaseNumber = ccdCaseNumber.substring(0,16);
-        }
+        String ccdCaseNumber = "11111245" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
         BulkScanPayment bulkScanPayment = BulkScanPayment.createPaymentRequestWith()
                 .amount(new BigDecimal("555"))
                 .bankGiroCreditSlipNumber(Integer.valueOf("5"))
@@ -1427,10 +1423,7 @@ public class PaymentStatusFunctionalTest {
         String dcn = "3456908723459903" + RandomUtils.nextInt();
         String failureReference = "FR-123-456" + RandomUtils.nextInt();
         dcn=  dcn.substring(0,21);
-        String ccdCaseNumber = "11112235" + RandomUtils.nextInt();
-        if(ccdCaseNumber.length()>16){
-            ccdCaseNumber = ccdCaseNumber.substring(0,16);
-        }
+        String ccdCaseNumber = "11112235" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
         BulkScanPayment bulkScanPayment = BulkScanPayment.createPaymentRequestWith()
                 .amount(new BigDecimal("999"))
                 .bankGiroCreditSlipNumber(Integer.valueOf("5"))
@@ -1494,10 +1487,7 @@ public class PaymentStatusFunctionalTest {
         String dcn = "3456908723459904" + RandomUtils.nextInt();
         String failureReference = "FR-123-456" + RandomUtils.nextInt();
         dcn=  dcn.substring(0,21);
-        String ccdCaseNumber = "11117235" + RandomUtils.nextInt();
-        if(ccdCaseNumber.length()>16){
-            ccdCaseNumber = ccdCaseNumber.substring(0,16);
-        }
+        String ccdCaseNumber = "11117235" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
         BulkScanPayment bulkScanPayment = BulkScanPayment.createPaymentRequestWith()
                 .amount(new BigDecimal("555"))
                 .bankGiroCreditSlipNumber(Integer.valueOf("5"))
@@ -1548,10 +1538,7 @@ public class PaymentStatusFunctionalTest {
         String dcn = "3456908723459905" + RandomUtils.nextInt();
         String failureReference = "FR-123-456" + RandomUtils.nextInt();
         dcn=  dcn.substring(0,21);
-        String ccdCaseNumber = "11118235" + RandomUtils.nextInt();
-        if(ccdCaseNumber.length()>16){
-            ccdCaseNumber = ccdCaseNumber.substring(0,16);
-        }
+        String ccdCaseNumber = "11118235" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
         BulkScanPayment bulkScanPayment = BulkScanPayment.createPaymentRequestWith()
             .amount(new BigDecimal("555"))
             .bankGiroCreditSlipNumber(Integer.valueOf("5"))
