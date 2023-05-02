@@ -392,7 +392,7 @@ public class PaymentStatusUpdateServiceImplTest {
         MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
         headers.add("ServiceAuthorization", "service-auth");
         PaymentMetadataDto metadataDto =
-                PaymentMetadataDto.paymentMetadataDtoWith().dcnReference("88").amount(new BigDecimal("888")).dateUpdated(date).build();
+                PaymentMetadataDto.paymentMetadataDtoWith().dcnReference("88").amount(new BigDecimal("888")).dateBanked(date).build();
         SearchResponse searchResponse = SearchResponse.searchResponseWith()
                 .ccdReference("9881231111111111")
                 .allPaymentsStatus(uk.gov.hmcts.payment.api.dto.PaymentStatus.COMPLETE)
