@@ -57,8 +57,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import static org.springframework.web.bind.annotation.RequestMethod.PATCH;
 
+import static org.springframework.web.bind.annotation.RequestMethod.PATCH;
 
 @RestController
 @Api(tags = {"Payment"})
@@ -126,12 +126,19 @@ public class PaymentController {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @RequestMapping(value = "/payments/ccd_case_reference/{ccd_case_number}", method = PATCH)
+    /*
+     * This API is used only for testing purposes mainly for the Refunds feature.
+     * There is a requirement for Testing mainly for the Front End Tests to rollback the
+     * payment made by the hours so that the payment can be eligible for a Refund.
+     * All the Refunds tests hinge on this requirement.
+     * Please do not use this for an Application  feature or build purposes.
+     */
+    @RequestMapping(value = "/payments/ccd_case_reference/{ccd_case_number}/lag_time/{lag_time}", method = PATCH)
     @Transactional
     public ResponseEntity
         updatePaymentsForCCDCaseNumberByCertainDays(@PathVariable("ccd_case_number")
-                                                        String ccd_case_number) {
-        paymentService.updatePaymentsForCCDCaseNumberByCertainDays(ccd_case_number);
+                                                        final String ccd_case_number, @PathVariable("lag_time") final String lag_time) {
+        paymentService.updatePaymentsForCCDCaseNumberByCertainDays(ccd_case_number, lag_time);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
@@ -211,7 +218,6 @@ public class PaymentController {
         if(iacPaymentAny.isPresent() && iacSupplementaryDetailsFeature){
             return iacService.getIacSupplementaryInfo(paymentDtos,paymentService.getServiceNameByCode("IAC"));
         }
-
         return new ResponseEntity(new PaymentsResponse(paymentDtos),HttpStatus.OK);
 
     }
@@ -248,7 +254,7 @@ public class PaymentController {
     @GetMapping(value = "/payments/{reference}")
     public PaymentDto retrievePayment(@PathVariable("reference") String paymentReference) {
 
-        PaymentFeeLink paymentFeeLink = paymentService.retrieve(paymentReference);
+        PaymentFeeLink paymentFeeLink = paymentService.retrievePayment(paymentReference);
         Optional<Payment> payment = paymentFeeLink.getPayments().stream()
             .filter(p -> p.getReference().equals(paymentReference)).findAny();
         Payment payment1 = null;
@@ -256,6 +262,21 @@ public class PaymentController {
             payment1 = payment.get();
         }
         return paymentDtoMapper.toGetPaymentResponseDtos(payment1);
+    }
+
+    @ApiOperation(value = "Get payment details by multiple payment references", notes = "Get payment details for supplied list of payment references")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Payment retrieved"),
+        @ApiResponse(code = 403, message = "Payment info forbidden"),
+        @ApiResponse(code = 404, message = "Payment not found")
+    })
+    @GetMapping(value = "/refunds/payments")
+    @PaymentExternalAPI
+    public List<PaymentDto> retrievePayments(@RequestParam List<String> paymentReferenceList) {
+
+        List<Payment> paymentList = paymentService.retrievePayment(paymentReferenceList);
+
+        return paymentDtoMapper.toGetPaymentResponseDtos(paymentList);
     }
 
     private PaymentSearchCriteria getSearchCriteria(@RequestParam(name = "payment_method", required = false) Optional<String> paymentMethodType, @RequestParam(name = "service_name", required = false) Optional<String> serviceType, @RequestParam(name = "ccd_case_number", required = false) String ccdCaseNumber, @RequestParam(name = "pba_number", required = false) String pbaNumber, Date fromDateTime, Date toDateTime) {
@@ -291,7 +312,7 @@ public class PaymentController {
     }
 
     private Optional<Payment> getPaymentByReference(String reference) {
-        PaymentFeeLink paymentFeeLink = paymentService.retrieve(reference);
+        PaymentFeeLink paymentFeeLink = paymentService.retrievePayment(reference);
         return paymentFeeLink.getPayments().stream()
             .filter(p -> p.getReference().equals(reference)).findAny();
     }
@@ -421,7 +442,7 @@ public class PaymentController {
     public String return400(PaymentException ex) {
         return ex.getMessage();
     }
-    
+
     private PaymentDto filterFeeCode(PaymentDto paymentDto) {
         LOG.info("Start Function filterFeeCode: {}" , paymentDto);
             List<List<FeeDto>> groupedFee = paymentDto.getFees().stream()

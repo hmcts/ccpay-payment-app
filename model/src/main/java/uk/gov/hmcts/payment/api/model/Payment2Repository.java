@@ -2,9 +2,13 @@ package uk.gov.hmcts.payment.api.model;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
 import uk.gov.hmcts.payment.api.dto.Reference;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -36,4 +40,10 @@ public interface Payment2Repository extends CrudRepository<Payment, Integer>, Jp
     List<Payment> findByReferenceIn(List<String> reference);
 
     List<Payment> findByDocumentControlNumberInAndPaymentMethod(List<String> dcn, PaymentMethod paymentMethod);
+
+    @Modifying
+    @Query(value = "UPDATE payment SET date_updated = :rollbackdate where ccd_case_number = :ccdcasenumber",nativeQuery = true)
+    int updatePaymentUpdatedDateTime(@Param("rollbackdate") LocalDateTime rollbackDate,
+                                   @Param("ccdcasenumber") String ccdCaseNumber);
+
 }

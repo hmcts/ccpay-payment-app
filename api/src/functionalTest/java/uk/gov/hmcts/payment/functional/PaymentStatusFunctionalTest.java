@@ -9,7 +9,6 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -26,9 +25,9 @@ import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.dto.*;
+import uk.gov.hmcts.payment.api.model.ContactDetails;
 import uk.gov.hmcts.payment.api.model.PaymentChannel;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
-import uk.gov.hmcts.payment.api.service.PaymentStatusUpdateServiceImpl;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
 import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
@@ -72,6 +71,8 @@ public class PaymentStatusFunctionalTest {
     private static String USER_TOKEN_PAYMENT;
     private static String USER_TOKEN_CARD_PAYMENT;
     private static final Pattern REFUNDS_REGEX_PATTERN = Pattern.compile("^(RF)-([0-9]{4})-([0-9-]{4})-([0-9-]{4})-([0-9-]{4})$");
+    private static final int CCD_EIGHT_DIGIT_UPPER = 99999999;
+    private static final int CCD_EIGHT_DIGIT_LOWER = 10000000;
     private static final Logger LOG = LoggerFactory.getLogger(PaymentStatusFunctionalTest.class);
 
     @Autowired
@@ -126,8 +127,20 @@ public class PaymentStatusFunctionalTest {
         PaymentDto paymentDto = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
 
+        String ccdCaseNumber = accountPaymentRequest.getCcdCaseNumber();
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
+            ccdCaseNumber, "5");
+
+        // Get pba payment by reference
+        PaymentDto paymentsResponse =
+            paymentTestService.getPayments(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then()
+                .statusCode(OK.value()).extract().as(PaymentDto.class);
+
+        // issue a refund
+        String paymentReference = paymentsResponse.getPaymentReference();
+        int paymentId = paymentsResponse.getFees().get(0).getId();
         PaymentRefundRequest paymentRefundRequest
-            = PaymentFixture.aRefundRequest("RR001", paymentDto.getReference());
+            = PaymentFixture.aRefundRequest(paymentId, "RR001", paymentReference, "90", "90");
         Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentRefundRequest);
@@ -190,8 +203,20 @@ public class PaymentStatusFunctionalTest {
         PaymentDto paymentDto = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
 
+        String ccdCaseNumber = accountPaymentRequest.getCcdCaseNumber();
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
+            ccdCaseNumber, "5");
+
+        // Get pba payment by reference
+        PaymentDto paymentsResponse =
+            paymentTestService.getPayments(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then()
+                .statusCode(OK.value()).extract().as(PaymentDto.class);
+
+        // issue a refund
+        String paymentReference = paymentsResponse.getPaymentReference();
+        int paymentId = paymentsResponse.getFees().get(0).getId();
         PaymentRefundRequest paymentRefundRequest
-            = PaymentFixture.aRefundRequest("RR001", paymentDto.getReference());
+            = PaymentFixture.aRefundRequest(paymentId, "RR001", paymentReference, "90", "90");
         Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentRefundRequest);
@@ -226,8 +251,20 @@ public class PaymentStatusFunctionalTest {
         PaymentDto paymentDto = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
 
+        String ccdCaseNumber = accountPaymentRequest.getCcdCaseNumber();
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
+            ccdCaseNumber, "5");
+
+        // Get pba payment by reference
+        PaymentDto paymentsResponse =
+            paymentTestService.getPayments(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then()
+                .statusCode(OK.value()).extract().as(PaymentDto.class);
+
+        // issue a refund
+        String paymentReference = paymentsResponse.getPaymentReference();
+        int paymentId = paymentsResponse.getFees().get(0).getId();
         PaymentRefundRequest paymentRefundRequest
-            = PaymentFixture.aRefundRequest("RR001", paymentDto.getReference());
+            = PaymentFixture.aRefundRequest(paymentId, "RR001", paymentReference, "90", "90");
         Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentRefundRequest);
@@ -294,8 +331,20 @@ public class PaymentStatusFunctionalTest {
                 .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
 
         // Create a Refund on same payment
+        String ccdCaseNumber = accountPaymentRequest.getCcdCaseNumber();
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
+            ccdCaseNumber, "5");
+
+        // Get pba payment by reference
+        PaymentDto paymentsResponse =
+            paymentTestService.getPayments(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then()
+                .statusCode(OK.value()).extract().as(PaymentDto.class);
+
+        // issue a refund
+        String paymentReference = paymentsResponse.getPaymentReference();
+        int paymentId = paymentsResponse.getFees().get(0).getId();
         PaymentRefundRequest paymentRefundRequest
-                = PaymentFixture.aRefundRequest("RR001", paymentDto.getReference());
+            = PaymentFixture.aRefundRequest(paymentId, "RR001", paymentReference, "90", "90");
         Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
                 SERVICE_TOKEN_PAYMENT,
                 paymentRefundRequest);
@@ -1252,7 +1301,7 @@ public class PaymentStatusFunctionalTest {
         // Create a Bulk scan payment
         String dcn = "3456908723459907" + RandomUtils.nextInt();
         String failureReference = "FR-123-456" + RandomUtils.nextInt();
-
+        String ccdCaseNumber = "11111244" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
         dcn=  dcn.substring(0,21);
         BulkScanPayment bulkScanPayment = BulkScanPayment.createPaymentRequestWith()
                 .amount(new BigDecimal("555"))
@@ -1268,7 +1317,7 @@ public class PaymentStatusFunctionalTest {
 
         // Complete a Bulk scan payment
         BulkScanPayments bulkScanPayments = BulkScanPayments.createBSPaymentRequestWith()
-                .ccdCaseNumber("1234567890123456")
+                .ccdCaseNumber(ccdCaseNumber)
                 .documentControlNumbers(new String[]{dcn})
                 .isExceptionRecord(false)
                 .responsibleServiceId("AA07")
@@ -1320,6 +1369,7 @@ public class PaymentStatusFunctionalTest {
         // Create a Bulk scan payment
         String dcn = "3456908723459902" + RandomUtils.nextInt();
         dcn=  dcn.substring(0,21);
+        String ccdCaseNumber = "11111245" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
         BulkScanPayment bulkScanPayment = BulkScanPayment.createPaymentRequestWith()
                 .amount(new BigDecimal("555"))
                 .bankGiroCreditSlipNumber(Integer.valueOf("5"))
@@ -1334,7 +1384,7 @@ public class PaymentStatusFunctionalTest {
 
         // Complete a Bulk scan payment
         BulkScanPayments bulkScanPayments = BulkScanPayments.createBSPaymentRequestWith()
-                .ccdCaseNumber("1234567890123456")
+                .ccdCaseNumber(ccdCaseNumber)
                 .documentControlNumbers(new String[]{dcn})
                 .isExceptionRecord(false)
                 .responsibleServiceId("AA07")
@@ -1373,6 +1423,7 @@ public class PaymentStatusFunctionalTest {
         String dcn = "3456908723459903" + RandomUtils.nextInt();
         String failureReference = "FR-123-456" + RandomUtils.nextInt();
         dcn=  dcn.substring(0,21);
+        String ccdCaseNumber = "11112235" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
         BulkScanPayment bulkScanPayment = BulkScanPayment.createPaymentRequestWith()
                 .amount(new BigDecimal("999"))
                 .bankGiroCreditSlipNumber(Integer.valueOf("5"))
@@ -1387,7 +1438,7 @@ public class PaymentStatusFunctionalTest {
 
         // Complete a Bulk scan payment
         BulkScanPayments bulkScanPayments = BulkScanPayments.createBSPaymentRequestWith()
-                .ccdCaseNumber("1234567890123456")
+                .ccdCaseNumber(ccdCaseNumber)
                 .documentControlNumbers(new String[]{dcn})
                 .isExceptionRecord(false)
                 .responsibleServiceId("AA07")
@@ -1436,6 +1487,7 @@ public class PaymentStatusFunctionalTest {
         String dcn = "3456908723459904" + RandomUtils.nextInt();
         String failureReference = "FR-123-456" + RandomUtils.nextInt();
         dcn=  dcn.substring(0,21);
+        String ccdCaseNumber = "11117235" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
         BulkScanPayment bulkScanPayment = BulkScanPayment.createPaymentRequestWith()
                 .amount(new BigDecimal("555"))
                 .bankGiroCreditSlipNumber(Integer.valueOf("5"))
@@ -1450,7 +1502,7 @@ public class PaymentStatusFunctionalTest {
 
         // Complete a Bulk scan payment
         BulkScanPayments bulkScanPayments = BulkScanPayments.createBSPaymentRequestWith()
-                .ccdCaseNumber("1234567890123456")
+                .ccdCaseNumber(ccdCaseNumber)
                 .documentControlNumbers(new String[]{dcn})
                 .isExceptionRecord(false)
                 .responsibleServiceId("AA07")
@@ -1486,6 +1538,7 @@ public class PaymentStatusFunctionalTest {
         String dcn = "3456908723459905" + RandomUtils.nextInt();
         String failureReference = "FR-123-456" + RandomUtils.nextInt();
         dcn=  dcn.substring(0,21);
+        String ccdCaseNumber = "11118235" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
         BulkScanPayment bulkScanPayment = BulkScanPayment.createPaymentRequestWith()
             .amount(new BigDecimal("555"))
             .bankGiroCreditSlipNumber(Integer.valueOf("5"))
@@ -1500,7 +1553,7 @@ public class PaymentStatusFunctionalTest {
 
         // Complete a Bulk scan payment
         BulkScanPayments bulkScanPayments = BulkScanPayments.createBSPaymentRequestWith()
-            .ccdCaseNumber("1234567890123456")
+            .ccdCaseNumber(ccdCaseNumber)
             .documentControlNumbers(new String[]{dcn})
             .isExceptionRecord(false)
             .responsibleServiceId("AA07")
@@ -1531,7 +1584,7 @@ public class PaymentStatusFunctionalTest {
             .siteId("AA01")
             .currency(CurrencyCode.GBP)
             .documentControlNumber(dcn)
-            .ccdCaseNumber("1234567890123456")
+            .ccdCaseNumber(ccdCaseNumber)
             .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
             .payerName("CCD User1")
             .bankedDate(DateTime.now().toString())
@@ -1547,7 +1600,7 @@ public class PaymentStatusFunctionalTest {
                 .version("1")
                 .reference("testRef1")
                 .volume(2)
-                .ccdCaseNumber("1234567890123456")
+                .ccdCaseNumber(ccdCaseNumber)
                 .build())).build();
 
         AtomicReference<String> paymentReference = new AtomicReference<>();
@@ -1603,6 +1656,10 @@ public class PaymentStatusFunctionalTest {
         String dcn = "3456908723459906" + RandomUtils.nextInt();
         String failureReference = "FR-123-456" + RandomUtils.nextInt();
         dcn=  dcn.substring(0,21);
+        String ccdCaseNumber = "11114335" + RandomUtils.nextInt();
+        if(ccdCaseNumber.length()>16){
+            ccdCaseNumber = ccdCaseNumber.substring(0,16);
+        }
         BulkScanPayment bulkScanPayment = BulkScanPayment.createPaymentRequestWith()
             .amount(new BigDecimal("555"))
             .bankGiroCreditSlipNumber(Integer.valueOf("5"))
@@ -1617,7 +1674,7 @@ public class PaymentStatusFunctionalTest {
 
         // Complete a Bulk scan payment
         BulkScanPayments bulkScanPayments = BulkScanPayments.createBSPaymentRequestWith()
-            .ccdCaseNumber("1234567890123456")
+            .ccdCaseNumber(ccdCaseNumber)
             .documentControlNumbers(new String[]{dcn})
             .isExceptionRecord(false)
             .responsibleServiceId("AA07")
@@ -1648,7 +1705,7 @@ public class PaymentStatusFunctionalTest {
             .siteId("AA01")
             .currency(CurrencyCode.GBP)
             .documentControlNumber(dcn)
-            .ccdCaseNumber("1234567890123456")
+            .ccdCaseNumber(ccdCaseNumber)
             .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
             .payerName("CCD User1")
             .bankedDate(DateTime.now().toString())
@@ -1664,7 +1721,7 @@ public class PaymentStatusFunctionalTest {
                 .version("1")
                 .reference("testRef1")
                 .volume(2)
-                .ccdCaseNumber("1234567890123456")
+                .ccdCaseNumber(ccdCaseNumber)
                 .build())).build();
 
         AtomicReference<String> paymentReference = new AtomicReference<>();
@@ -1738,8 +1795,20 @@ public class PaymentStatusFunctionalTest {
         PaymentDto paymentDto = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
 
+        // Get pba payment by reference
+        PaymentDto paymentsResponse =
+            paymentTestService.getPayments(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then()
+                .statusCode(OK.value()).extract().as(PaymentDto.class);
+
+        // issue a refund
+        String paymentReference = paymentsResponse.getPaymentReference();
+        int paymentId = paymentsResponse.getFees().get(0).getId();
+
+        String ccdCaseNumber = accountPaymentRequest.getCcdCaseNumber();
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
+            ccdCaseNumber, "5");
         PaymentRefundRequest paymentRefundRequest
-            = PaymentFixture.aRefundRequest("RR001", paymentDto.getReference());
+            = PaymentFixture.aRefundRequest(paymentId, "RR001", paymentReference, "125", "125");
         Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentRefundRequest);
@@ -1903,13 +1972,38 @@ public class PaymentStatusFunctionalTest {
 
         String remissionReference = response.getBody().jsonPath().getString("remission_reference");
         String remissionReference1 = response1.getBody().jsonPath().getString("remission_reference");
+
+        String ccdCaseNumber = accountPaymentRequest.getCcdCaseNumber();
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
+            ccdCaseNumber, "20");
+
         Response refundResponse = paymentTestService.postSubmitRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
-            RetroSpectiveRemissionRequest.retroSpectiveRemissionRequestWith().remissionReference(remissionReference).build());
+            RetrospectiveRemissionRequest.retrospectiveRemissionRequestWith().remissionReference(remissionReference)
+            .contactDetails(ContactDetails.contactDetailsWith().
+                addressLine("High Street 112")
+                .country("UK")
+                .county("Londonshire")
+                .city("London")
+                .postalCode("P1 1PO")
+                .email("person@gmail.com")
+                .notificationType("EMAIL")
+                .build())
+            .build());
 
         Response refundResponse1 = paymentTestService.postSubmitRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
-            RetroSpectiveRemissionRequest.retroSpectiveRemissionRequestWith().remissionReference(remissionReference1).build());
+            RetrospectiveRemissionRequest.retrospectiveRemissionRequestWith().remissionReference(remissionReference1)
+                .contactDetails(ContactDetails.contactDetailsWith().
+                    addressLine("High Street 112")
+                    .country("UK")
+                    .county("Londonshire")
+                    .city("London")
+                    .postalCode("P1 1PO")
+                    .email("person@gmail.com")
+                    .notificationType("EMAIL")
+                    .build())
+                .build());
 
         assertThat(refundResponse.statusCode()).isEqualTo(HttpStatus.CREATED.value());
         assertThat(refundResponse1.statusCode()).isEqualTo(HttpStatus.CREATED.value());
@@ -2271,6 +2365,10 @@ public class PaymentStatusFunctionalTest {
         // Create a Bulk scan payment
         String dcn = "3456908723459919" + RandomUtils.nextInt();
         dcn=  dcn.substring(0,21);
+        String ccdCaseNumber = "11671235" + RandomUtils.nextInt();
+        if(ccdCaseNumber.length()>16){
+            ccdCaseNumber = ccdCaseNumber.substring(0,16);
+        }
         BulkScanPayment bulkScanPayment = BulkScanPayment.createPaymentRequestWith()
             .amount(new BigDecimal("555"))
             .bankGiroCreditSlipNumber(Integer.valueOf("5"))
@@ -2285,7 +2383,7 @@ public class PaymentStatusFunctionalTest {
 
         // Complete a Bulk scan payment
         BulkScanPayments bulkScanPayments = BulkScanPayments.createBSPaymentRequestWith()
-            .ccdCaseNumber("1234567890123456")
+            .ccdCaseNumber(ccdCaseNumber)
             .documentControlNumbers(new String[]{dcn})
             .isExceptionRecord(false)
             .responsibleServiceId("AA07")
