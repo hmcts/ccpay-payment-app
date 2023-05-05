@@ -159,6 +159,9 @@ public class ServiceRequestController {
         val requestHashCode = serviceRequestPaymentDto.hashCodeWithServiceRequestReference(serviceRequestReference);
         val conflictResponse = new ResponseEntity("Payment already present for idempotency key with different payment details", HttpStatus.CONFLICT); // 409 if hashcode not matched
 
+        //business validations for serviceRequest
+        PaymentFeeLink serviceRequest = serviceRequestDomainService.businessValidationForServiceRequests(serviceRequestDomainService.find(serviceRequestReference), serviceRequestPaymentDto);
+
         val isAnotherPaymentForThisServiceRequest = idempotencyService.findTheRecordByRequestHashcode(requestHashCode);
         if (!isAnotherPaymentForThisServiceRequest.isEmpty() &&  IsAnyCreatedPaymentForThisServiceRequest(isAnotherPaymentForThisServiceRequest)) {
             return conflictResponse;
@@ -195,8 +198,6 @@ public class ServiceRequestController {
             return responseEntity;
         }
 
-        //business validations for serviceRequest
-        PaymentFeeLink serviceRequest = serviceRequestDomainService.businessValidationForServiceRequests(serviceRequestDomainService.find(serviceRequestReference), serviceRequestPaymentDto);
 
         //PBA Payment
         ServiceRequestPaymentBo serviceRequestPaymentBo = null;
