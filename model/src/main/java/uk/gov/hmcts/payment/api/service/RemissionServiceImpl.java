@@ -102,14 +102,15 @@ public class RemissionServiceImpl implements RemissionService {
     @Override
     @Transactional
     public Remission createRetrospectiveRemissionForPayment(RetroRemissionServiceRequest remissionServiceRequest, String paymentGroupReference, Integer feeId) throws CheckDigitException {
-        PaymentFeeLink paymentFeeLink = populatePaymentFeeLink(paymentGroupReference);
+        PaymentFeeLink paymentFeeLink = populatePaymentFeeLink(paymentGroupReference, feeId);
         PaymentFee fee = populatePaymentFee(feeId, paymentFeeLink, remissionServiceRequest);
         return buildRemissionForPayment(paymentFeeLink, fee, remissionServiceRequest);
     }
 
-    private PaymentFeeLink populatePaymentFeeLink(String paymentGroupReference) {
+    private PaymentFeeLink populatePaymentFeeLink(String paymentGroupReference, Integer feeId) {
         return paymentFeeLinkRepository.findByPaymentReference(paymentGroupReference)
-            .orElseThrow(() -> new InvalidPaymentGroupReferenceException("Payment group " + paymentGroupReference + MESSAGE));
+                .orElseGet(() -> paymentFeeLinkRepository.findByPaymentReferenceAndFeeId(paymentGroupReference, feeId)
+                    .orElseThrow(() -> new InvalidPaymentGroupReferenceException("Payment group " + paymentGroupReference + MESSAGE)));
     }
 
     private PaymentFee populatePaymentFee(Integer feeId, PaymentFeeLink paymentFeeLink, RetroRemissionServiceRequest remissionServiceRequest) {

@@ -87,10 +87,60 @@ public class CardPaymentComponentTest extends TestUtil {
 
         PaymentFeeLink foundPayment = paymentFeeLinkRepository.findByPaymentReference("00000004").orElseThrow(PaymentNotFoundException::new);
 
+        Payment payment = foundPayment.getPayments().get(0);
+        assertNotNull(payment.getId());
+        assertEquals(payment.getAmount(), new BigDecimal(3000000));
+    }
+
+    @Test
+    public void testRetrieveCardPaymentWithDuplicatePaymentReferenceUsingCcdCaseNumber() throws Exception {
+
+        PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.save(PaymentFeeLink.paymentFeeLinkWith().paymentReference("00000004")
+            .ccdCaseNumber("1282584933728640")
+            .payments(Arrays.asList(getPaymentsData().get(1)))
+            .fees(PaymentsDataUtil.getFeesData())
+            .build());
+
+        PaymentFeeLink paymentFeeLink2 = paymentFeeLinkRepository.save(PaymentFeeLink.paymentFeeLinkWith().paymentReference("00000004")
+            .ccdCaseNumber("1282584933728642")
+            .payments(Arrays.asList(getPaymentsData().get(2)))
+            .fees(PaymentsDataUtil.getFeesData())
+            .build());
+
+        PaymentFeeLink foundPayment = paymentFeeLinkRepository.findByPaymentReferenceAndCcdCaseNumber("00000004", "1282584933728642").orElseThrow(PaymentNotFoundException::new);
 
         Payment payment = foundPayment.getPayments().get(0);
         assertNotNull(payment.getId());
         assertEquals(payment.getAmount(), new BigDecimal(3000000));
+    }
+
+    @Test
+    public void testRetrieveCardPaymentWithDuplicatePaymentReferenceUsingFeeId() throws Exception {
+
+        PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.save(PaymentFeeLink.paymentFeeLinkWith().paymentReference("00000004")
+            .ccdCaseNumber("ccdCaseNo2")
+            .payments(Arrays.asList(getPaymentsData().get(1)))
+            .fees(PaymentsDataUtil.getFeesData())
+            .build());
+
+        PaymentFeeLink paymentFeeLink2 = paymentFeeLinkRepository.save(PaymentFeeLink.paymentFeeLinkWith().paymentReference("00000004")
+            .ccdCaseNumber("ccdCaseNo3")
+            .payments(Arrays.asList(getPaymentsData().get(2)))
+            .fees(PaymentsDataUtil.getFeesData2())
+            .build());
+
+        PaymentFeeLink foundPayment1 = paymentFeeLinkRepository.findByPaymentReferenceAndFeeId("00000004", 2).orElseThrow(PaymentNotFoundException::new);
+        PaymentFeeLink foundPayment2 = paymentFeeLinkRepository.findByPaymentReferenceAndFeeId("00000004", 6).orElseThrow(PaymentNotFoundException::new);
+
+        Payment payment1 = foundPayment1.getPayments().get(0);
+        assertNotNull(payment1.getId());
+        assertEquals(payment1.getCcdCaseNumber(), "ccdCaseNo2");
+        assertEquals(payment1.getAmount(), new BigDecimal(2000000));
+
+        Payment payment2 = foundPayment2.getPayments().get(0);
+        assertNotNull(payment2.getId());
+        assertEquals(payment2.getCcdCaseNumber(), "ccdCaseNo3");
+        assertEquals(payment2.getAmount(), new BigDecimal(3000000));
     }
 
     @Test(expected = PaymentNotFoundException.class)

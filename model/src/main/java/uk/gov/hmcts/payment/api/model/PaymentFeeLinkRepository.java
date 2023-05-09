@@ -1,8 +1,13 @@
 package uk.gov.hmcts.payment.api.model;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
 
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,5 +20,13 @@ public interface PaymentFeeLinkRepository extends CrudRepository<PaymentFeeLink,
     Optional<PaymentFeeLink> findByPaymentReferenceAndCcdCaseNumber(String id, String ccdCaseNumber);
 
     Optional<List<PaymentFeeLink>> findByCcdCaseNumber(String ccdCaseNumber);
+
+    @Query(value = "SELECT pfl.* FROM payment_fee_link pfl "
+        + "LEFT JOIN fee f ON f.payment_link_id = pfl.id "
+        + "WHERE pfl.payment_reference = cast(:paymentReference as text) "
+        + "AND f.id = cast(:feeId as bigInt)",
+        nativeQuery = true)
+    Optional<PaymentFeeLink> findByPaymentReferenceAndFeeId(final @Param("paymentReference") String paymentReference,
+                                         final @Param("feeId") Integer feeId);
 
 }
