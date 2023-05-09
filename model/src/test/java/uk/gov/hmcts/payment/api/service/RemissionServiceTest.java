@@ -150,16 +150,19 @@ public class RemissionServiceTest {
     }
 
     @Test
-    public void createRetroRemissionWithPaymentGroupReferenceAndFeeIdTest() throws Exception {
+    public void createPartialRetroRemissionWithPaymentGroupReferenceAndFeeIdTest() throws Exception {
         PaymentFee fee = getFee();
-        List<Remission> remissions = new ArrayList<>();
+        Remission remission = getRemission();
+        List<Remission> emptyRemissions = new ArrayList<>();
+        fee.setRemissions(Collections.singletonList(remission));
 
         PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith()
             .paymentReference("2019-123456799")
+            .remissions(Collections.singletonList(remission))
             .fees(Arrays.asList(fee))
             .build();
 
-        fee.setRemissions(remissions);
+        fee.setRemissions(emptyRemissions);
         when(paymentFeeLinkRepository.findByPaymentReferenceAndFeeId("2019-123456799", 1)).thenReturn(Optional.ofNullable(paymentFeeLink));
 
         RetroRemissionServiceRequest remissionServiceRequest = RetroRemissionServiceRequest.retroRemissionServiceRequestWith()

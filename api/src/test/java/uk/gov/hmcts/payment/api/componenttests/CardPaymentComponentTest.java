@@ -1,8 +1,10 @@
 package uk.gov.hmcts.payment.api.componenttests;
 
 
+import lombok.extern.slf4j.Slf4j;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.model.*;
@@ -20,7 +22,11 @@ import static uk.gov.hmcts.payment.api.model.Payment.paymentWith;
 import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 
 @DirtiesContext(classMode= DirtiesContext.ClassMode.BEFORE_CLASS)
+@Slf4j
 public class CardPaymentComponentTest extends TestUtil {
+
+    @Autowired
+    protected PaymentFeeRepository paymentFeeRepository;
 
     @Test
     public void testSaveOfSinglePaymentWithSingleFee() {
@@ -117,20 +123,22 @@ public class CardPaymentComponentTest extends TestUtil {
     @Test
     public void testRetrieveCardPaymentWithDuplicatePaymentReferenceUsingFeeId() throws Exception {
 
-        PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.save(PaymentFeeLink.paymentFeeLinkWith().paymentReference("00000004")
+        PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.save(PaymentFeeLink.paymentFeeLinkWith().paymentReference("00000005")
             .ccdCaseNumber("ccdCaseNo2")
             .payments(Arrays.asList(getPaymentsData().get(1)))
             .fees(PaymentsDataUtil.getFeesData())
             .build());
 
-        PaymentFeeLink paymentFeeLink2 = paymentFeeLinkRepository.save(PaymentFeeLink.paymentFeeLinkWith().paymentReference("00000004")
+        PaymentFeeLink paymentFeeLink2 = paymentFeeLinkRepository.save(PaymentFeeLink.paymentFeeLinkWith().paymentReference("00000005")
             .ccdCaseNumber("ccdCaseNo3")
             .payments(Arrays.asList(getPaymentsData().get(2)))
             .fees(PaymentsDataUtil.getFeesData2())
             .build());
 
-        PaymentFeeLink foundPayment1 = paymentFeeLinkRepository.findByPaymentReferenceAndFeeId("00000004", 2).orElseThrow(PaymentNotFoundException::new);
-        PaymentFeeLink foundPayment2 = paymentFeeLinkRepository.findByPaymentReferenceAndFeeId("00000004", 6).orElseThrow(PaymentNotFoundException::new);
+        List<PaymentFee> fees = paymentFeeRepository.findAll();
+
+        PaymentFeeLink foundPayment1 = paymentFeeLinkRepository.findByPaymentReferenceAndFeeId("00000005", fees.get(1).getId()).orElseThrow(PaymentNotFoundException::new);
+        PaymentFeeLink foundPayment2 = paymentFeeLinkRepository.findByPaymentReferenceAndFeeId("00000005", fees.get(5).getId()).orElseThrow(PaymentNotFoundException::new);
 
         Payment payment1 = foundPayment1.getPayments().get(0);
         assertNotNull(payment1.getId());
@@ -145,14 +153,13 @@ public class CardPaymentComponentTest extends TestUtil {
 
     @Test(expected = PaymentNotFoundException.class)
     public void testRetrieveCardPaymentWithNonExistingPaymentReferenceShouldThrowException() throws Exception {
-        PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.save(PaymentFeeLink.paymentFeeLinkWith().paymentReference("00000005")
+        PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.save(PaymentFeeLink.paymentFeeLinkWith().paymentReference("00000006")
             .payments(Arrays.asList(getPaymentsData().get(2)))
             .fees(PaymentsDataUtil.getFeesData())
             .build());
 
-        PaymentFeeLink foundPayment = paymentFeeLinkRepository.findByPaymentReference("00000006").orElseThrow(PaymentNotFoundException::new);
+        PaymentFeeLink foundPayment = paymentFeeLinkRepository.findByPaymentReference("00000007").orElseThrow(PaymentNotFoundException::new);
     }
-
 
     public static List<Payment> getPaymentsData() {
         List<Payment> payments = new ArrayList<>();
