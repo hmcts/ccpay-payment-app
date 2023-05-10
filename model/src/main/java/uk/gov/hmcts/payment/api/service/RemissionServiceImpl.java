@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.payment.api.dto.RemissionServiceRequest;
 import uk.gov.hmcts.payment.api.dto.RetroRemissionServiceRequest;
@@ -64,11 +65,7 @@ public class RemissionServiceImpl implements RemissionService {
     @Override
     @Transactional
     public PaymentFeeLink createRetrospectiveRemission(RemissionServiceRequest remissionServiceRequest, String paymentGroupReference, Integer feeId) throws CheckDigitException {
-        PaymentFeeLink paymentFeeLink =
-            paymentFeeLinkRepository.findByPaymentReference(paymentGroupReference)
-                .orElseGet(() -> paymentFeeLinkRepository.findByPaymentReferenceAndCcdCaseNumber(paymentGroupReference, remissionServiceRequest.getCcdCaseNumber())
-                    .orElseThrow(() -> new InvalidPaymentGroupReferenceException("Payment group " + paymentGroupReference + MESSAGE)));
-
+        PaymentFeeLink paymentFeeLink = findByPaymentReferenceAndOrCcdCaseNumber(paymentGroupReference, remissionServiceRequest.getCcdCaseNumber());
         serviceRequestCaseUtil.updateServiceRequestCaseDetails(paymentFeeLink, remissionServiceRequest);
 
         // Tactical check where feeId is null
@@ -102,15 +99,29 @@ public class RemissionServiceImpl implements RemissionService {
     @Override
     @Transactional
     public Remission createRetrospectiveRemissionForPayment(RetroRemissionServiceRequest remissionServiceRequest, String paymentGroupReference, Integer feeId) throws CheckDigitException {
-        PaymentFeeLink paymentFeeLink = populatePaymentFeeLink(paymentGroupReference, feeId);
+        PaymentFeeLink paymentFeeLink = findByPaymentReferenceAndOrFeeId(paymentGroupReference, feeId);
         PaymentFee fee = populatePaymentFee(feeId, paymentFeeLink, remissionServiceRequest);
         return buildRemissionForPayment(paymentFeeLink, fee, remissionServiceRequest);
     }
 
-    private PaymentFeeLink populatePaymentFeeLink(String paymentGroupReference, Integer feeId) {
-        return paymentFeeLinkRepository.findByPaymentReference(paymentGroupReference)
-                .orElseGet(() -> paymentFeeLinkRepository.findByPaymentReferenceAndFeeId(paymentGroupReference, feeId)
-                    .orElseThrow(() -> new InvalidPaymentGroupReferenceException("Payment group " + paymentGroupReference + MESSAGE)));
+    private PaymentFeeLink findByPaymentReferenceAndOrCcdCaseNumber(String paymentGroupReference, String ccdCaseNumber) {
+        Optional<PaymentFeeLink> paymentFeeLink;
+        try {
+            paymentFeeLink = paymentFeeLinkRepository.findByPaymentReference(paymentGroupReference);
+        } catch (IncorrectResultSizeDataAccessException error) {
+            paymentFeeLink = paymentFeeLinkRepository.findByPaymentReferenceAndCcdCaseNumber(paymentGroupReference, ccdCaseNumber);
+        }
+        return paymentFeeLink.orElseThrow(() -> new InvalidPaymentGroupReferenceException("Payment group " + paymentGroupReference + MESSAGE));
+    }
+
+    private PaymentFeeLink findByPaymentReferenceAndOrFeeId(String paymentGroupReference, Integer feeId) {
+        Optional<PaymentFeeLink> paymentFeeLink;
+        try {
+            paymentFeeLink = paymentFeeLinkRepository.findByPaymentReference(paymentGroupReference);
+        } catch (IncorrectResultSizeDataAccessException error) {
+            paymentFeeLink = paymentFeeLinkRepository.findByPaymentReferenceAndFeeId(paymentGroupReference, feeId);
+        }
+        return paymentFeeLink.orElseThrow(() -> new InvalidPaymentGroupReferenceException("Payment group " + paymentGroupReference + MESSAGE));
     }
 
     private PaymentFee populatePaymentFee(Integer feeId, PaymentFeeLink paymentFeeLink, RetroRemissionServiceRequest remissionServiceRequest) {
