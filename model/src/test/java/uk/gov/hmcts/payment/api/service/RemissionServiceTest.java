@@ -3,6 +3,7 @@ package uk.gov.hmcts.payment.api.service;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.*;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import uk.gov.hmcts.payment.api.dto.RemissionServiceRequest;
 import uk.gov.hmcts.payment.api.dto.RetroRemissionServiceRequest;
 import uk.gov.hmcts.payment.api.model.*;
@@ -130,6 +131,7 @@ public class RemissionServiceTest {
             .fees(Arrays.asList(fee))
             .build();
 
+        when(paymentFeeLinkRepository.findByPaymentReference("2019-123456799")).thenThrow(new IncorrectResultSizeDataAccessException(2));
         when(paymentFeeLinkRepository.findByPaymentReferenceAndCcdCaseNumber("2019-123456799", "1111-2222-3333-4444")).thenReturn(Optional.ofNullable(paymentFeeLink));
 
         RemissionServiceRequest remissionServiceRequest = RemissionServiceRequest.remissionServiceRequestWith()
@@ -163,6 +165,7 @@ public class RemissionServiceTest {
             .build();
 
         fee.setRemissions(emptyRemissions);
+        when(paymentFeeLinkRepository.findByPaymentReference("2019-123456799")).thenThrow(new IncorrectResultSizeDataAccessException(2));
         when(paymentFeeLinkRepository.findByPaymentReferenceAndFeeId("2019-123456799", 1)).thenReturn(Optional.ofNullable(paymentFeeLink));
 
         RetroRemissionServiceRequest remissionServiceRequest = RetroRemissionServiceRequest.retroRemissionServiceRequestWith()
