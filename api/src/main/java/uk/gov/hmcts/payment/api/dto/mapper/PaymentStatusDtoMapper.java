@@ -13,6 +13,7 @@ import uk.gov.hmcts.payment.api.model.PaymentFailures;
 public class PaymentStatusDtoMapper {
     private static final String BOUNCEDCHEQUE = "Bounced Cheque";
     private static final String CHARGEBACK = "Chargeback";
+    private static final String UNPROCESSED = "Unprocessed";
     public PaymentFailures bounceChequeRequestMapper(PaymentStatusBouncedChequeDto PaymentStatusBouncedChequeDto, Payment payment) {
 
         PaymentFailures paymentFailures = PaymentFailures.paymentFailuresWith()
@@ -60,7 +61,7 @@ public class PaymentStatusDtoMapper {
                 .failureEventDateTime(
                         DateTime.parse(unprocessedPayment.getEventDateTime()).withZone(DateTimeZone.UTC)
                                 .toDate())
-                .failureType(BOUNCEDCHEQUE)
+                .failureType(UNPROCESSED)
                 .build();
         return paymentFailures;
     }
