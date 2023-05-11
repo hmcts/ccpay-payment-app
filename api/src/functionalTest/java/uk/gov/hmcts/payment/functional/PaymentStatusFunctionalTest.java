@@ -40,6 +40,8 @@ import uk.gov.hmcts.payment.functional.service.PaymentTestService;
 import javax.inject.Inject;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Locale;
@@ -2372,7 +2374,7 @@ public class PaymentStatusFunctionalTest {
         BulkScanPayment bulkScanPayment = BulkScanPayment.createPaymentRequestWith()
             .amount(new BigDecimal("555"))
             .bankGiroCreditSlipNumber(Integer.valueOf("5"))
-            .bankedDate("2022-01-01")
+            .bankedDate(DateTimeFormatter.ofPattern("yyyy-MM-dd", Locale.ENGLISH).format(LocalDateTime.now()))
             .currency("GBP")
             .dcnReference(dcn)
             .method("Cash")
@@ -2397,7 +2399,7 @@ public class PaymentStatusFunctionalTest {
         UnprocessedPayment unprocessedPayment = UnprocessedPayment.unprocessedPayment()
             .amount(BigDecimal.valueOf(55))
             .failureReference("FR3333")
-            .eventDateTime(actualDateTime.minusHours(5).toString())
+            .eventDateTime(actualDateTime.minusDays(5).toString())
             .reason("RR001")
             .dcn(dcn)
             .poBoxNumber("8")

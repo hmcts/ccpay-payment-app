@@ -226,7 +226,6 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
     }
 
     private void validatePingOneDate(String pingOneDateStr, Date paymentDate , String message){
-
         Date pingOneDate =  DateTime.parse(pingOneDateStr).withZone(DateTimeZone.UTC).toDate();
         LOG.info("validatePingOneDate pingOneDateStr: {}", pingOneDate);
         LOG.info("validatePingOneDate paymentDate : {}", paymentDate);
