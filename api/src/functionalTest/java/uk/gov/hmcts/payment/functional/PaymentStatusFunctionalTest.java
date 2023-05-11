@@ -2378,9 +2378,11 @@ public class PaymentStatusFunctionalTest {
 
         // Ping 1 for Unprocessed Payment event
         DateTime actualDateTime = new DateTime(System.currentTimeMillis());
+        String failureReference = "FR-123-456" + RandomUtils.nextInt();
+
         UnprocessedPayment unprocessedPayment = UnprocessedPayment.unprocessedPayment()
             .amount(BigDecimal.valueOf(55))
-            .failureReference("FR3333")
+            .failureReference(failureReference)
             .eventDateTime(actualDateTime.minusDays(5).toString())
             .reason("RR001")
             .dcn(dcn)
@@ -2392,6 +2394,64 @@ public class PaymentStatusFunctionalTest {
             unprocessedPayment);
         assertThat(unprocessedPaymentResponse.getBody().prettyPrint()).isEqualTo(
             "Failure event date can not be prior to banked date");
+        assertThat(unprocessedPaymentResponse.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+
+        // delete payment record
+        paymentTestService.deleteBulkScanPayment(SERVICE_TOKEN, dcn, testProps.bulkScanUrl).then()
+            .statusCode(NO_CONTENT.value());
+    }
+
+    @Test
+    public void negative_return400_unprocessedPayment_when_failure_amount_is_more_than_cheque_payment_amount() {
+
+        // Create a Bulk scan payment
+        String dcn = "3456908723459919" + RandomUtils.nextInt();
+        dcn=  dcn.substring(0,21);
+        String ccdCaseNumber = "11671235" + RandomUtils.nextInt();
+        if(ccdCaseNumber.length()>16){
+            ccdCaseNumber = ccdCaseNumber.substring(0,16);
+        }
+        BulkScanPayment bulkScanPayment = BulkScanPayment.createPaymentRequestWith()
+            .amount(new BigDecimal("555"))
+            .bankGiroCreditSlipNumber(Integer.valueOf("5"))
+            .bankedDate("2022-01-01")
+            .currency("GBP")
+            .dcnReference(dcn)
+            .method("Cash")
+            .build();
+        paymentTestService.createBulkScanPayment(
+            SERVICE_TOKEN_PAYMENT,
+            bulkScanPayment, testProps.bulkScanUrl).then().statusCode(CREATED.value());
+
+        // Complete a Bulk scan payment
+        BulkScanPayments bulkScanPayments = BulkScanPayments.createBSPaymentRequestWith()
+            .ccdCaseNumber(ccdCaseNumber)
+            .documentControlNumbers(new String[]{dcn})
+            .isExceptionRecord(false)
+            .responsibleServiceId("AA07")
+            .build();
+        paymentTestService.completeBulkScanPayment(
+            SERVICE_TOKEN_PAYMENT,
+            bulkScanPayments, testProps.bulkScanUrl).then().statusCode(CREATED.value());
+
+        // Ping 1 for Unprocessed Payment event
+        DateTime actualDateTime = new DateTime(System.currentTimeMillis());
+        String failureReference = "FR-123-456" + RandomUtils.nextInt();
+
+        UnprocessedPayment unprocessedPayment = UnprocessedPayment.unprocessedPayment()
+            .amount(BigDecimal.valueOf(556))
+            .failureReference(failureReference)
+            .eventDateTime(actualDateTime.minusHours(5).toString())
+            .reason("RR001")
+            .dcn(dcn)
+            .poBoxNumber("8")
+            .build();
+
+        Response unprocessedPaymentResponse = paymentTestService.postUnprocessedPayment(
+            SERVICE_TOKEN_PAYMENT,
+            unprocessedPayment);
+        assertThat(unprocessedPaymentResponse.getBody().prettyPrint()).isEqualTo(
+            "Failure amount cannot be more than payment amount");
         assertThat(unprocessedPaymentResponse.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
 
         // delete payment record
