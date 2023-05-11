@@ -1847,13 +1847,7 @@ public class PaymentStatusFunctionalTest {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("date_from", getReportDate(new Date(System.currentTimeMillis())));
         params.add("date_to", getReportDate(new Date(System.currentTimeMillis())));
-        Response response = RestAssured.given()
-            .header("Authorization", USER_TOKEN_PAYMENT)
-            .header("ServiceAuthorization", SERVICE_TOKEN_PAYMENT)
-            .contentType(ContentType.JSON)
-            .params(params)
-            .when()
-            .get("/payment-failures/failure-report");
+        Response response = paymentTestService.paymentFailureReport(USER_TOKEN_PAYMENT, SERVICE_TOKEN_PAYMENT, params);
 
         PaymentFailureReportResponse paymentFailureReportResponse = response.getBody().as(PaymentFailureReportResponse.class);
 
@@ -1911,13 +1905,7 @@ public class PaymentStatusFunctionalTest {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("date_from", getReportDate(new Date(System.currentTimeMillis())));
         params.add("date_to", getReportDate(new Date(System.currentTimeMillis())));
-        Response response = RestAssured.given()
-            .header("Authorization", USER_TOKEN_PAYMENT)
-            .header("ServiceAuthorization", SERVICE_TOKEN_PAYMENT)
-            .contentType(ContentType.JSON)
-            .params(params)
-            .when()
-            .get("/payment-failures/failure-report");
+        Response response = paymentTestService.paymentFailureReport(USER_TOKEN_PAYMENT, SERVICE_TOKEN_PAYMENT, params);
 
         PaymentFailureReportResponse paymentFailureReportResponse = response.getBody().as(PaymentFailureReportResponse.class);
 
@@ -2046,13 +2034,7 @@ public class PaymentStatusFunctionalTest {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("date_from", getReportDate(new Date(System.currentTimeMillis())));
         params.add("date_to", getReportDate(new Date(System.currentTimeMillis())));
-        Response responseReport = RestAssured.given()
-            .header("Authorization", USER_TOKEN_PAYMENT)
-            .header("ServiceAuthorization", SERVICE_TOKEN_PAYMENT)
-            .contentType(ContentType.JSON)
-            .params(params)
-            .when()
-            .get("/payment-failures/failure-report");
+        Response responseReport = paymentTestService.paymentFailureReport(USER_TOKEN_PAYMENT, SERVICE_TOKEN_PAYMENT, params);
 
         PaymentFailureReportResponse paymentFailureReportResponse = responseReport.getBody().as(PaymentFailureReportResponse.class);
         String joinedRefundReference = String.join(",", refundResponseFromPost.getRefundReference(), refundResponseFromPost1.getRefundReference());
