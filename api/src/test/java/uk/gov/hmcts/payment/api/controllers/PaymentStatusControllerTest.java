@@ -162,7 +162,7 @@ public class PaymentStatusControllerTest {
     public void returnsPaymentNotFoundExceptionWhenNoPaymentFoundForPaymentReferenceForBounceCheque() throws Exception {
 
         PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto =getPaymentStatusBouncedChequeDto();
-        when(paymentStatusDtoMapper.bounceChequeRequestMapper(any())).thenReturn(paymentFailures);
+        when(paymentStatusDtoMapper.bounceChequeRequestMapper(any(), any())).thenReturn(paymentFailures);
         when(paymentRepository.findByReference(any())).thenReturn(Optional.empty());
         MvcResult result = restActions
             .post("/payment-failures/bounced-cheque", paymentStatusBouncedChequeDto)
@@ -180,7 +180,7 @@ public class PaymentStatusControllerTest {
         Payment payment = getPayment();
         PaymentFailures paymentFailures = getPaymentFailures();
         PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto =getPaymentStatusBouncedChequeDto();
-        when(paymentStatusDtoMapper.bounceChequeRequestMapper(any())).thenReturn(paymentFailures);
+        when(paymentStatusDtoMapper.bounceChequeRequestMapper(any(), any())).thenReturn(paymentFailures);
         when(paymentFailureRepository.findByFailureReference(any())).thenReturn(Optional.of(paymentFailures));
         when(paymentFailureRepository.save(any())).thenThrow(DataIntegrityViolationException.class);
         when(paymentRepository.findByReference(any())).thenReturn(Optional.of(payment));
@@ -213,7 +213,7 @@ public class PaymentStatusControllerTest {
 
         PaymentFailures paymentFailures = getPaymentFailures();
         PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto =getPaymentStatusBouncedChequeDto();
-        when(paymentStatusDtoMapper.bounceChequeRequestMapper(any())).thenReturn(paymentFailures);
+        when(paymentStatusDtoMapper.bounceChequeRequestMapper(any(), any())).thenReturn(paymentFailures);
         when(paymentFailureRepository.findByFailureReference(any())).thenReturn(Optional.empty());
         when(paymentFailureRepository.save(any())).thenReturn(paymentFailures);
         when(paymentRepository.findByReference(any())).thenReturn(Optional.of(payment));
@@ -650,6 +650,7 @@ public class PaymentStatusControllerTest {
             .ccdCaseNumber("1234123412341234")
             .documentControlNumber("12345")
             .dateUpdated(date)
+            .bankedDate(date)
             .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
             .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
             .paymentMethod(PaymentMethod.paymentMethodWith().name("cheque").build())

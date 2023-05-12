@@ -54,6 +54,14 @@ public class PaymentsDataUtil {
         return fees;
     }
 
+    public static List<PaymentFee> getFeesData2() {
+        List<PaymentFee> fees = new ArrayList<>();
+        fees.add(feeWith().code("X0055").version("5").calculatedAmount(new BigDecimal(600)).build());
+        fees.add(feeWith().code("X0066").version("6").calculatedAmount(new BigDecimal(750)).build());
+
+        return fees;
+    }
+
     public List<Payment> getCreditAccountPaymentsData() {
         List<Payment> payments = new ArrayList<>();
         payments.add(paymentWith().amount(BigDecimal.valueOf(10000).movePointRight(2)).reference("reference1").description("desc1")
