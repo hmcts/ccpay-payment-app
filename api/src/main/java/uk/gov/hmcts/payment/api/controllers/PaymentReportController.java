@@ -57,4 +57,24 @@ public class PaymentReportController {
 
         paymentsReportFacade.generateCsvAndSendEmail(fromDate, toDate, paymentMethodTypeName, service);
     }
+
+    @PostMapping(value = "/jobs/duplicate-payment-process")
+    public void duplicatePaymentEmailReport(@RequestParam(name = "payment_method", required = false) Optional<String> paymentMethodType,
+                                       @RequestParam(name = "service_name", required = false) Optional<String> serviceType,
+                                       @RequestParam(name = "start_date", required = false) Optional<String> startDateString,
+                                       @RequestParam(name = "end_date", required = false) Optional<String> endDateString) {
+
+
+        LOG.info("Inside /jobs/duplicate-payment-process");
+        validator.validate(paymentMethodType, startDateString, endDateString);
+
+        Date fromDate = startDateString.map(s -> clock.atStartOfDay(s, FORMATTER)).orElseGet(clock::getYesterdayDate);
+        Date toDate = endDateString.map(s -> clock.atEndOfDay(s, FORMATTER)).orElseGet(clock::getTodayDate);
+        String service = serviceType.isPresent() ? serviceType.get() : null;
+        PaymentMethodType paymentMethodTypeName = paymentMethodType.map(value -> PaymentMethodType.valueOf(value.toUpperCase())).orElse(null);
+
+        paymentsReportFacade.generateCsvAndSendEmail(fromDate, toDate, paymentMethodTypeName, service);
+    }
+
+
 }

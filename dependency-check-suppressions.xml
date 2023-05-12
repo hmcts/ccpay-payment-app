@@ -3,6 +3,7 @@
 
     <!-- Below are the supressions added fpr False Positive CVEs -->
 
+
     <!-- New Supressions for June  -->
     <suppress until="2023-06-30">
         <notes>
@@ -130,6 +131,7 @@
         </notes>
         <cve>CVE-2020-5412</cve>
     </suppress>
+
     <suppress until="2023-06-30">
         <notes>
             spring-security-config version 5.4.11 in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
