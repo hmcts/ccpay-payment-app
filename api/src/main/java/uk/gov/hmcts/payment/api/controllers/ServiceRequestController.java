@@ -162,6 +162,8 @@ public class ServiceRequestController {
         //business validations for serviceRequest
         PaymentFeeLink serviceRequest = serviceRequestDomainService.businessValidationForServiceRequests(serviceRequestDomainService.find(serviceRequestReference), serviceRequestPaymentDto);
 
+        LOG.info("PBA TEST TOBIAS");
+        LOG.error("PBA TEST TOBIAS");
         val isAnotherPaymentForThisServiceRequest = idempotencyService.findTheRecordByRequestHashcode(requestHashCode);
         if (!isAnotherPaymentForThisServiceRequest.isEmpty() &&  IsAnyCreatedPaymentForThisServiceRequest(isAnotherPaymentForThisServiceRequest)) {
             return conflictResponse;
