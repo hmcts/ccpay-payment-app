@@ -15,7 +15,6 @@
             spring-webmvc version 5.3.26 casues issues that fail unit test cases due it not being able to create test environment correctly.
             Likely will need tests to be re-written when upgrading due to interface change.
         </notes>
-<<<<<<< HEAD
         <cve>CVE-2020-29243</cve>
         <cve>CVE-2020-29242</cve>
         <cve>CVE-2023-24998</cve>
@@ -25,11 +24,6 @@
         <cve>CVE-2007-1651</cve>
         <cve>CVE-2018-1258</cve>
         <cve>CVE-2022-29885</cve>
-=======
-        <cve>CVE-2022-22965</cve>
-        <cve>CVE-2021-22118</cve>
-        <cve>CVE-2022-22950</cve>
->>>>>>> cce04a159d78011aa4a460f0dc1615b1a7fe008a
         <cve>CVE-2022-22971</cve>
         <cve>CVE-2022-22968</cve>
         <cve>CVE-2022-22970</cve>
@@ -53,9 +47,6 @@
     </suppress>
     <suppress until="2023-06-30">
         <notes>
-<<<<<<< HEAD
-            Need to resolve Liquibase issue before updating the library
-=======
             commons-fileupload-core version 1.4 in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
         </notes>
         <cve>CVE-2023-24998</cve>
@@ -63,7 +54,6 @@
     <suppress until="2023-06-30">
         <notes>
             commons-text version 1.7 in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
->>>>>>> cce04a159d78011aa4a460f0dc1615b1a7fe008a
         </notes>
         <cve>CVE-2022-42889</cve>
     </suppress>
