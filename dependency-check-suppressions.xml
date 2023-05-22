@@ -178,6 +178,7 @@
         <cve>CVE-2022-42003</cve>
         <cve>CVE-2022-42004</cve>
         <cve>CVE-2023-20863</cve>
+        <cve>CVE-2023-30614</cve>
     </suppress>
 
     <suppress>
@@ -194,6 +195,13 @@
         <notes>Pay is a payments engine for Ruby on Rails 6.0. In versions prior to 6.3.2 a payments info page of Pay is susceptible to reflected Cross-site scripting.
         </notes>
         <cve>CVE-2023-30614</cve>
+    </suppress>
+
+    <suppress>
+        <notes>
+            jackson-databind 2.10.x through 2.12.x before 2.12.6 and 2.13.x before 2.13.1 allows attackers to cause a denial of service (2 GB transient heap usage per read) in uncommon situations involving JsonNode JDK serialization.
+        </notes>
+        <cve>CVE-2021-46877</cve>
     </suppress>
 
     <!-- Supression Group ends here -->
