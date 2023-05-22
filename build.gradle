@@ -1,7 +1,7 @@
 plugins {
     id 'application'
     id "org.sonarqube" version "3.0"
-    id 'org.springframework.boot' version '2.3.6.RELEASE'
+    id 'org.springframework.boot' version '2.3.12.RELEASE'
     id 'io.spring.dependency-management' version '1.0.9.RELEASE'
     id 'org.owasp.dependencycheck' version '8.0.2'
     id "uk.gov.hmcts.java" version '0.12.0'
@@ -187,8 +187,10 @@ def sonarExclusions = [
         '**/api/controllers/mock/MockCallbackControllerForTesting.java',
         '**/api/controllers/ServiceRequestController.java',
         '**/api/domain/mapper/**',
+        '**/api/dto/mapper/*Mapper.java',
         '**/api/domain/service/**',
         '**/api/contract/**',
+        '**/api/contract/*Dto.java',
         '**/api/dto/mapper/**',
         '**/api/reports/config/**',
         '**/api/external/client/dto/**',

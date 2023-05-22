@@ -7,6 +7,7 @@ import io.restassured.response.ValidatableResponse;
 import io.restassured.specification.RequestSpecification;
 import net.serenitybdd.rest.SerenityRest;
 import org.springframework.stereotype.Component;
+import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.*;
@@ -268,6 +269,16 @@ public class PaymentTestService {
             .contentType(ContentType.JSON)
             .when()
             .get("/payment-groups/fee-pay-apportion/{paymentreference}",paymentreference);
+    }
+
+    public Response paymentFailureReport(final String userToken,
+                                        final String serviceToken,
+                                         MultiValueMap<String, String> params) {
+        return givenWithAuthHeaders(userToken, serviceToken)
+            .contentType(ContentType.JSON)
+            .params(params)
+            .when()
+            .get("/payment-failures/failure-report");
     }
 
 }
