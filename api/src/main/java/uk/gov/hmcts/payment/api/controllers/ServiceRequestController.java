@@ -154,17 +154,14 @@ public class ServiceRequestController {
                                                                                                @Valid @RequestBody ServiceRequestPaymentDto serviceRequestPaymentDto) throws CheckDigitException, JsonProcessingException {
 
         idempotencyKey = serviceRequestPaymentDto.getIdempotencyKey();
-        LOG.info("PBA TEST TOBIAS 1");
         LOG.info("PBA payment started");
         val objectMapper = new ObjectMapper();
         val requestHashCode = serviceRequestPaymentDto.hashCodeWithServiceRequestReference(serviceRequestReference);
         val conflictResponse = new ResponseEntity("Payment already present for idempotency key with different payment details", HttpStatus.CONFLICT); // 409 if hashcode not matched
 
-        //business validations for serviceRequest
+        LOG.error("PBA payment business validations for serviceRequest");
         PaymentFeeLink serviceRequest = serviceRequestDomainService.businessValidationForServiceRequests(serviceRequestDomainService.find(serviceRequestReference), serviceRequestPaymentDto);
-
-        LOG.info("PBA TEST TOBIAS 2");
-        LOG.error("PBA TEST TOBIAS 3");
+        LOG.error("PBA payment idempotency validation");
         val isAnotherPaymentForThisServiceRequest = idempotencyService.findTheRecordByRequestHashcode(requestHashCode);
         if (!isAnotherPaymentForThisServiceRequest.isEmpty() &&  IsAnyCreatedPaymentForThisServiceRequest(isAnotherPaymentForThisServiceRequest)) {
             return conflictResponse;
