@@ -96,13 +96,6 @@
 
     <suppress until="2023-03-31">
         <notes>
-            jackson-databind before 2.13.0 allows a Java StackOverflow exception and denial of service via a large depth of nested objects.
-        </notes>
-        <cve>CVE-2020-36518</cve>
-    </suppress>
-
-    <suppress until="2023-03-31">
-        <notes>
             Need to resolve Liquibase issue before updating the library
         </notes>
         <cve>CVE-2022-0839</cve>
@@ -243,15 +236,6 @@
         <cve>CVE-2022-38750</cve>
         <cve>CVE-2022-38751</cve>
         <cve>CVE-2022-38752</cve>
-    </suppress>
-    <suppress until="2023-03-31">
-        <notes>
-          In FasterXML jackson-databind before 2.14.0-rc1, resource exhaustion can occur because of a lack of a check in
-          primitive value deserializers to avoid deep wrapper array nesting,
-          when the UNWRAP_SINGLE_VALUE_ARRAYS feature is enabled
-        </notes>
-        <cve>CVE-2022-42003</cve>
-        <cve>CVE-2022-42004</cve>
     </suppress>
     <suppress until="2023-03-31">
         <notes>
