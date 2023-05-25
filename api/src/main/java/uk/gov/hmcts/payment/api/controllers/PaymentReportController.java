@@ -56,5 +56,6 @@ public class PaymentReportController {
         PaymentMethodType paymentMethodTypeName = paymentMethodType.map(value -> PaymentMethodType.valueOf(value.toUpperCase())).orElse(null);
 
         paymentsReportFacade.generateCsvAndSendEmail(fromDate, toDate, paymentMethodTypeName, service);
+
     }
 }
