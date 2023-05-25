@@ -40,6 +40,8 @@ import uk.gov.hmcts.payment.functional.service.PaymentTestService;
 import javax.inject.Inject;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Locale;
@@ -1847,13 +1849,7 @@ public class PaymentStatusFunctionalTest {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("date_from", getReportDate(new Date(System.currentTimeMillis())));
         params.add("date_to", getReportDate(new Date(System.currentTimeMillis())));
-        Response response = RestAssured.given()
-            .header("Authorization", USER_TOKEN_PAYMENT)
-            .header("ServiceAuthorization", SERVICE_TOKEN_PAYMENT)
-            .contentType(ContentType.JSON)
-            .params(params)
-            .when()
-            .get("/payment-failures/failure-report");
+        Response response = paymentTestService.paymentFailureReport(USER_TOKEN_PAYMENT, SERVICE_TOKEN_PAYMENT, params);
 
         PaymentFailureReportResponse paymentFailureReportResponse = response.getBody().as(PaymentFailureReportResponse.class);
 
@@ -1911,13 +1907,7 @@ public class PaymentStatusFunctionalTest {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("date_from", getReportDate(new Date(System.currentTimeMillis())));
         params.add("date_to", getReportDate(new Date(System.currentTimeMillis())));
-        Response response = RestAssured.given()
-            .header("Authorization", USER_TOKEN_PAYMENT)
-            .header("ServiceAuthorization", SERVICE_TOKEN_PAYMENT)
-            .contentType(ContentType.JSON)
-            .params(params)
-            .when()
-            .get("/payment-failures/failure-report");
+        Response response = paymentTestService.paymentFailureReport(USER_TOKEN_PAYMENT, SERVICE_TOKEN_PAYMENT, params);
 
         PaymentFailureReportResponse paymentFailureReportResponse = response.getBody().as(PaymentFailureReportResponse.class);
 
@@ -2046,13 +2036,7 @@ public class PaymentStatusFunctionalTest {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("date_from", getReportDate(new Date(System.currentTimeMillis())));
         params.add("date_to", getReportDate(new Date(System.currentTimeMillis())));
-        Response responseReport = RestAssured.given()
-            .header("Authorization", USER_TOKEN_PAYMENT)
-            .header("ServiceAuthorization", SERVICE_TOKEN_PAYMENT)
-            .contentType(ContentType.JSON)
-            .params(params)
-            .when()
-            .get("/payment-failures/failure-report");
+        Response responseReport = paymentTestService.paymentFailureReport(USER_TOKEN_PAYMENT, SERVICE_TOKEN_PAYMENT, params);
 
         PaymentFailureReportResponse paymentFailureReportResponse = responseReport.getBody().as(PaymentFailureReportResponse.class);
         String joinedRefundReference = String.join(",", refundResponseFromPost.getRefundReference(), refundResponseFromPost1.getRefundReference());
@@ -2163,7 +2147,7 @@ public class PaymentStatusFunctionalTest {
     }
 
     @Test
-    public void negative_return400_bounce_cheque_payment_event_date_less_than_payment_date() {
+    public void negative_return400_bounce_cheque_payment_event_date_less_than_banked_date() {
 
         // Create a Bulk scan payment
         String ccdCaseNumber = "1111221233124419";
@@ -2227,7 +2211,7 @@ public class PaymentStatusFunctionalTest {
             paymentStatusBouncedChequeDto);
 
         assertThat(bounceChequeResponse.getBody().prettyPrint()).isEqualTo(
-            "Failure event date can not be prior to payment date");
+            "Failure event date can not be prior to banked date");
         assertThat(bounceChequeResponse.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
 
         // delete payment record
@@ -2360,7 +2344,65 @@ public class PaymentStatusFunctionalTest {
     }
 
     @Test
-    public void negative_return400_unprocessedPayment_bulk_scan_event_date_less_than_payment_date() {
+    public void negative_return400_unprocessedPayment_bulk_scan_event_date_less_than_banked_date() {
+
+        // Create a Bulk scan payment
+        String dcn = "3456908723459919" + RandomUtils.nextInt();
+        dcn=  dcn.substring(0,21);
+        String ccdCaseNumber = "11671235" + RandomUtils.nextInt();
+        if(ccdCaseNumber.length()>16){
+            ccdCaseNumber = ccdCaseNumber.substring(0,16);
+        }
+        BulkScanPayment bulkScanPayment = BulkScanPayment.createPaymentRequestWith()
+            .amount(new BigDecimal("555"))
+            .bankGiroCreditSlipNumber(Integer.valueOf("5"))
+            .bankedDate(DateTimeFormatter.ofPattern("yyyy-MM-dd", Locale.ENGLISH).format(LocalDateTime.now()))
+            .currency("GBP")
+            .dcnReference(dcn)
+            .method("Cash")
+            .build();
+        paymentTestService.createBulkScanPayment(
+            SERVICE_TOKEN_PAYMENT,
+            bulkScanPayment, testProps.bulkScanUrl).then().statusCode(CREATED.value());
+
+        // Complete a Bulk scan payment
+        BulkScanPayments bulkScanPayments = BulkScanPayments.createBSPaymentRequestWith()
+            .ccdCaseNumber(ccdCaseNumber)
+            .documentControlNumbers(new String[]{dcn})
+            .isExceptionRecord(false)
+            .responsibleServiceId("AA07")
+            .build();
+        paymentTestService.completeBulkScanPayment(
+            SERVICE_TOKEN_PAYMENT,
+            bulkScanPayments, testProps.bulkScanUrl).then().statusCode(CREATED.value());
+
+        // Ping 1 for Unprocessed Payment event
+        DateTime actualDateTime = new DateTime(System.currentTimeMillis());
+        String failureReference = "FR-123-456" + RandomUtils.nextInt();
+
+        UnprocessedPayment unprocessedPayment = UnprocessedPayment.unprocessedPayment()
+            .amount(BigDecimal.valueOf(55))
+            .failureReference(failureReference)
+            .eventDateTime(actualDateTime.minusDays(5).toString())
+            .reason("RR001")
+            .dcn(dcn)
+            .poBoxNumber("8")
+            .build();
+
+        Response unprocessedPaymentResponse = paymentTestService.postUnprocessedPayment(
+            SERVICE_TOKEN_PAYMENT,
+            unprocessedPayment);
+        assertThat(unprocessedPaymentResponse.getBody().prettyPrint()).isEqualTo(
+            "Failure event date can not be prior to banked date");
+        assertThat(unprocessedPaymentResponse.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+
+        // delete payment record
+        paymentTestService.deleteBulkScanPayment(SERVICE_TOKEN, dcn, testProps.bulkScanUrl).then()
+            .statusCode(NO_CONTENT.value());
+    }
+
+    @Test
+    public void negative_return400_unprocessedPayment_when_failure_amount_is_more_than_cheque_payment_amount() {
 
         // Create a Bulk scan payment
         String dcn = "3456908723459919" + RandomUtils.nextInt();
@@ -2394,21 +2436,23 @@ public class PaymentStatusFunctionalTest {
 
         // Ping 1 for Unprocessed Payment event
         DateTime actualDateTime = new DateTime(System.currentTimeMillis());
+        String failureReference = "FR-123-456" + RandomUtils.nextInt();
+
         UnprocessedPayment unprocessedPayment = UnprocessedPayment.unprocessedPayment()
-            .amount(BigDecimal.valueOf(55))
-            .failureReference("FR3333")
+            .amount(BigDecimal.valueOf(556))
+            .failureReference(failureReference)
             .eventDateTime(actualDateTime.minusHours(5).toString())
             .reason("RR001")
             .dcn(dcn)
             .poBoxNumber("8")
             .build();
 
-        Response bounceChequeResponse = paymentTestService.postUnprocessedPayment(
+        Response unprocessedPaymentResponse = paymentTestService.postUnprocessedPayment(
             SERVICE_TOKEN_PAYMENT,
             unprocessedPayment);
-        assertThat(bounceChequeResponse.getBody().prettyPrint()).isEqualTo(
-            "Failure event date can not be prior to payment date");
-        assertThat(bounceChequeResponse.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+        assertThat(unprocessedPaymentResponse.getBody().prettyPrint()).isEqualTo(
+            "Failure amount cannot be more than payment amount");
+        assertThat(unprocessedPaymentResponse.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
 
         // delete payment record
         paymentTestService.deleteBulkScanPayment(SERVICE_TOKEN, dcn, testProps.bulkScanUrl).then()

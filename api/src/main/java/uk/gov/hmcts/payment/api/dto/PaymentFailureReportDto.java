@@ -47,4 +47,6 @@ public class PaymentFailureReportDto {
 
     private String refundDate;
 
+    private String documentControlNumber;
+
 }

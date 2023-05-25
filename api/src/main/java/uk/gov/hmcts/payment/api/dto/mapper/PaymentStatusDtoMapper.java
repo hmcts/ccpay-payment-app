@@ -6,26 +6,28 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.dto.PaymentStatusBouncedChequeDto;
 import uk.gov.hmcts.payment.api.dto.PaymentStatusChargebackDto;
 import uk.gov.hmcts.payment.api.dto.UnprocessedPayment;
+import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFailures;
 
 @Component
 public class PaymentStatusDtoMapper {
     private static final String BOUNCEDCHEQUE = "Bounced Cheque";
     private static final String CHARGEBACK = "Chargeback";
-    public PaymentFailures bounceChequeRequestMapper(PaymentStatusBouncedChequeDto PaymentStatusBouncedChequeDto) {
+    public PaymentFailures bounceChequeRequestMapper(PaymentStatusBouncedChequeDto PaymentStatusBouncedChequeDto, Payment payment) {
 
         PaymentFailures paymentFailures = PaymentFailures.paymentFailuresWith()
-                .paymentReference(PaymentStatusBouncedChequeDto.getPaymentReference())
-                .failureReference(PaymentStatusBouncedChequeDto.getFailureReference())
-                .reason(PaymentStatusBouncedChequeDto.getReason())
-                .ccdCaseNumber(PaymentStatusBouncedChequeDto.getCcdCaseNumber())
-                .amount(PaymentStatusBouncedChequeDto.getAmount())
-                .additionalReference(PaymentStatusBouncedChequeDto.getAdditionalReference())
-                .failureEventDateTime(
-                        DateTime.parse(PaymentStatusBouncedChequeDto.getEventDateTime()).withZone(DateTimeZone.UTC)
-                                .toDate())
-                .failureType(BOUNCEDCHEQUE)
-                .build();
+            .paymentReference(PaymentStatusBouncedChequeDto.getPaymentReference())
+            .failureReference(PaymentStatusBouncedChequeDto.getFailureReference())
+            .reason(PaymentStatusBouncedChequeDto.getReason())
+            .ccdCaseNumber(PaymentStatusBouncedChequeDto.getCcdCaseNumber())
+            .amount(PaymentStatusBouncedChequeDto.getAmount())
+            .additionalReference(PaymentStatusBouncedChequeDto.getAdditionalReference())
+            .dcn(payment.getDocumentControlNumber())
+            .failureEventDateTime(
+                DateTime.parse(PaymentStatusBouncedChequeDto.getEventDateTime()).withZone(DateTimeZone.UTC)
+                    .toDate())
+            .failureType(BOUNCEDCHEQUE)
+            .build();
         return paymentFailures;
     }
 
