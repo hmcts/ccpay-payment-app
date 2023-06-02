@@ -411,8 +411,7 @@ public class ServiceRequestFunctionalTests {
     // @Ignore("Test Build")
     public void positive_create_service_request_and_a_pba_payment_and_a_duplicate_payment_for_same_idempotent_key()
         throws Exception {
-
-        String ccdCaseNumber = "11111234" + String.format("%04d", new Random().nextInt(10000000));
+        String ccdCaseNumber = "11111234" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
         final ServiceRequestDto serviceRequestDto
             = ServiceRequestFixture.buildServiceRequestDTO("ABA6", ccdCaseNumber);
         final Response createServiceRequestResponse
