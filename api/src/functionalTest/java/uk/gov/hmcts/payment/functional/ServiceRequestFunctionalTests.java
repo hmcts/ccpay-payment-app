@@ -766,7 +766,7 @@ public class ServiceRequestFunctionalTests {
     @Test
     public void return_disputed_when_failure_event_has_happen_ping_one() {
 
-        String ccdCaseNumber = "11111235" + String.format("%04d", new Random().nextInt(10000000));
+        String ccdCaseNumber = "11111235" + String.format("%04d", new Random().nextInt(100000000));
         FeeDto feeDto = FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("550.00"))
             .ccdCaseNumber(ccdCaseNumber)
@@ -860,7 +860,7 @@ public class ServiceRequestFunctionalTests {
 
     @Test
     public void return_paid_when_failure_event_and_HMCTS_won_dispute_ping_two() {
-        String ccdCaseNumber = "11111234" + String.format("%04d", new Random().nextInt(10000000));
+        String ccdCaseNumber = "11111234" + String.format("%04d", new Random().nextInt(100000000));
         FeeDto feeDto = FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("550.00"))
             .ccdCaseNumber(ccdCaseNumber)
@@ -976,7 +976,7 @@ public class ServiceRequestFunctionalTests {
     @Test
     public void return_partially_paid_when_failure_event_and_HMCTS_lost_dispute_ping_two() {
 
-        String ccdCaseNumber = "11111234" + String.format("%04d", new Random().nextInt(10000000));
+        String ccdCaseNumber = "11111234" + String.format("%04d", new Random().nextInt(100000000));
         FeeDto feeDto = FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("550.00"))
             .ccdCaseNumber(ccdCaseNumber)
@@ -1093,7 +1093,7 @@ public class ServiceRequestFunctionalTests {
     public void return_paid_when_failure_event_and_HMCTS_received_money_retro_remission_ping_two() {
 
         // Create a Bulk scan payment
-        String ccdCaseNumber = "1111-CC12" + String.format("%04d", new Random().nextInt(10000000));
+        String ccdCaseNumber = "1111-CC12" + String.format("%04d", new Random().nextInt(100000000));
         String dcn = "3456908723459913" + RandomUtils.nextInt();
         dcn=  dcn.substring(0,21);
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
@@ -1214,7 +1214,7 @@ public class ServiceRequestFunctionalTests {
     public void return_disputed_when_failure_event_has_happen_full_remission_ping_one() {
 
         // Create a Bulk scan payment
-        String ccdCaseNumber = "1111-CC12" + String.format("%04d", new Random().nextInt(10000000));
+        String ccdCaseNumber = "1111-CC12" + String.format("%04d", new Random().nextInt(100000000));
         String dcn = "3456908723459914" + RandomUtils.nextInt();
         dcn=  dcn.substring(0,21);
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
@@ -1312,7 +1312,7 @@ public class ServiceRequestFunctionalTests {
     public void return_paid_when_failure_event_and_HMCTS_not_received_money_full_retro_remission_ping_two() {
 
         // Create a Bulk scan payment
-        String ccdCaseNumber = "1111-CC12" + String.format("%04d", new Random().nextInt(10000000));
+        String ccdCaseNumber = "1111-CC12" + String.format("%04d", new Random().nextInt(100000000));
         String dcn = "3456908723459915" + RandomUtils.nextInt();
         dcn=  dcn.substring(0,21);
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
@@ -1435,7 +1435,7 @@ public class ServiceRequestFunctionalTests {
     public void return_disputed_when_failure_event_has_happen_partial_remission_ping_one() {
 
         // Create a Telephony payment
-        String ccdCaseNumber = "11111234" + String.format("%04d", new Random().nextInt(10000000));
+        String ccdCaseNumber = "11111234" + String.format("%04d", new Random().nextInt(100000000));
 
         FeeDto feeDto = FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("550.00"))
@@ -1552,7 +1552,7 @@ public class ServiceRequestFunctionalTests {
     public void return_paid_when_failure_event_has_happen_partial_remission__HMCTS_received_money_ping_two() {
 
         // Create a Telephony payment
-        String ccdCaseNumber = "11111234" + String.format("%04d", new Random().nextInt(10000000));
+        String ccdCaseNumber = "11111234" + String.format("%04d", new Random().nextInt(100000000));
 
         FeeDto feeDto = FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("550.00"))
@@ -1692,7 +1692,7 @@ public class ServiceRequestFunctionalTests {
     public void return_partially_paid_when_failure_event_has_happen_partial_remission__HMCTS_received_money_ping_two() {
 
         // Create a Telephony payment
-        String ccdCaseNumber = "11111236" + String.format("%04d", new Random().nextInt(10000000));
+        String ccdCaseNumber = "11111236" + String.format("%04d", new Random().nextInt(100000000));
 
         FeeDto feeDto = FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("550.00"))
