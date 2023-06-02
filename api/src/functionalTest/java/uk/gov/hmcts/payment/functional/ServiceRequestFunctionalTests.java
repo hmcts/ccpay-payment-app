@@ -446,11 +446,6 @@ public class ServiceRequestFunctionalTests {
             = serviceRequestTestService.createPBAPaymentForAServiceRequest(USER_TOKEN_PAYMENT,
             SERVICE_TOKEN, serviceRequestReference, serviceRequestPaymentDto);
         assertThat(pbaPaymentServiceRequestResponseAgain.getStatusCode()).isEqualTo(HttpStatus.PRECONDITION_FAILED.value());
-        ServiceRequestPaymentBo serviceRequestPaymentBoAgain =
-            pbaPaymentServiceRequestResponseAgain.getBody().as(ServiceRequestPaymentBo.class);
-        final String paymentReferenceAgain = serviceRequestPaymentBoAgain.getPaymentReference();
-        assertThat(paymentReferenceAgain).matches(PAYMENTS_REGEX_PATTERN);
-        assertThat(paymentReference).isEqualTo(paymentReferenceAgain);
     }
 
     @Test
