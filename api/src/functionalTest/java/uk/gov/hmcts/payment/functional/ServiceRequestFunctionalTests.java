@@ -863,8 +863,7 @@ public class ServiceRequestFunctionalTests {
 
     @Test
     public void return_paid_when_failure_event_and_HMCTS_won_dispute_ping_two() {
-
-        String ccdCaseNumber = "11111234" + RandomUtils.nextInt();
+        String ccdCaseNumber = "11111234" + String.format("%04d", new Random().nextInt(10000000));
         if(ccdCaseNumber.length()>16){
             ccdCaseNumber = ccdCaseNumber.substring(0,16);
         }
@@ -983,7 +982,7 @@ public class ServiceRequestFunctionalTests {
     @Test
     public void return_partially_paid_when_failure_event_and_HMCTS_lost_dispute_ping_two() {
 
-        String ccdCaseNumber = "11111234" + RandomUtils.nextInt();
+        String ccdCaseNumber = "11111234" + String.format("%04d", new Random().nextInt(10000000));
         if(ccdCaseNumber.length()>16){
             ccdCaseNumber = ccdCaseNumber.substring(0,16);
         }
@@ -1562,8 +1561,7 @@ public class ServiceRequestFunctionalTests {
     public void return_paid_when_failure_event_has_happen_partial_remission__HMCTS_received_money_ping_two() {
 
         // Create a Telephony payment
-
-        String ccdCaseNumber = "11111234" + RandomUtils.nextInt();
+        String ccdCaseNumber = "11111234" + String.format("%04d", new Random().nextInt(10000000));
         if(ccdCaseNumber.length()>16){
             ccdCaseNumber = ccdCaseNumber.substring(0,16);
         }
