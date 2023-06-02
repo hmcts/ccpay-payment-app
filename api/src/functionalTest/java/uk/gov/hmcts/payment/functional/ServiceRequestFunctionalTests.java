@@ -436,7 +436,7 @@ public class ServiceRequestFunctionalTests {
             = serviceRequestTestService.createPBAPaymentForAServiceRequest(USER_TOKEN_PAYMENT,
             SERVICE_TOKEN,
             serviceRequestReference, serviceRequestPaymentDto);
-        assertThat(pbaPaymentServiceRequestResponse.getStatusCode()).isEqualTo(HttpStatus.PRECONDITION_FAILED.value());
+        assertThat(pbaPaymentServiceRequestResponse.getStatusCode()).isEqualTo(CREATED.value());
         ServiceRequestPaymentBo serviceRequestPaymentBo =
             pbaPaymentServiceRequestResponse.getBody().as(ServiceRequestPaymentBo.class);
         final String paymentReference = serviceRequestPaymentBo.getPaymentReference();
