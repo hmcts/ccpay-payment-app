@@ -42,6 +42,7 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 
@@ -1444,11 +1445,7 @@ public class ServiceRequestFunctionalTests {
     public void return_disputed_when_failure_event_has_happen_partial_remission_ping_one() {
 
         // Create a Telephony payment
-
-        String ccdCaseNumber = "11111234" + RandomUtils.nextInt();
-        if(ccdCaseNumber.length()>16) {
-            ccdCaseNumber = ccdCaseNumber.substring(0,16);
-        }
+        String ccdCaseNumber = "11111234" + String.format("%04d", new Random().nextInt(10000000));
 
         FeeDto feeDto = FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("550.00"))
