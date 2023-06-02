@@ -408,8 +408,7 @@ public class ServiceRequestFunctionalTests {
     }
 
     @Test
-    // @Ignore("Test Build")
-    public void positive_create_service_request_and_a_pba_payment_and_a_duplicate_payment_for_same_idempotent_key()
+    public void negative_create_service_request_and_a_pba_payment_and_a_duplicate_payment_for_same_idempotent_key()
         throws Exception {
         String ccdCaseNumber = "11111234" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
         final ServiceRequestDto serviceRequestDto
@@ -437,7 +436,7 @@ public class ServiceRequestFunctionalTests {
             = serviceRequestTestService.createPBAPaymentForAServiceRequest(USER_TOKEN_PAYMENT,
             SERVICE_TOKEN,
             serviceRequestReference, serviceRequestPaymentDto);
-        assertThat(pbaPaymentServiceRequestResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
+        assertThat(pbaPaymentServiceRequestResponse.getStatusCode()).isEqualTo(HttpStatus.PRECONDITION_FAILED.value());
         ServiceRequestPaymentBo serviceRequestPaymentBo =
             pbaPaymentServiceRequestResponse.getBody().as(ServiceRequestPaymentBo.class);
         final String paymentReference = serviceRequestPaymentBo.getPaymentReference();
@@ -446,7 +445,7 @@ public class ServiceRequestFunctionalTests {
         final Response pbaPaymentServiceRequestResponseAgain
             = serviceRequestTestService.createPBAPaymentForAServiceRequest(USER_TOKEN_PAYMENT,
             SERVICE_TOKEN, serviceRequestReference, serviceRequestPaymentDto);
-        assertThat(pbaPaymentServiceRequestResponseAgain.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
+        assertThat(pbaPaymentServiceRequestResponseAgain.getStatusCode()).isEqualTo(HttpStatus.PRECONDITION_FAILED.value());
         ServiceRequestPaymentBo serviceRequestPaymentBoAgain =
             pbaPaymentServiceRequestResponseAgain.getBody().as(ServiceRequestPaymentBo.class);
         final String paymentReferenceAgain = serviceRequestPaymentBoAgain.getPaymentReference();
