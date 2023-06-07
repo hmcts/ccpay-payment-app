@@ -64,7 +64,6 @@ public class PaymentReportController {
                                        @RequestParam(name = "start_date", required = false) Optional<String> startDateString,
                                        @RequestParam(name = "end_date", required = false) Optional<String> endDateString) {
 
-
         LOG.info("Inside /jobs/duplicate-payment-process");
         validator.validate(paymentMethodType, startDateString, endDateString);
 
@@ -75,6 +74,5 @@ public class PaymentReportController {
 
         paymentsReportFacade.generateCsvAndSendEmail(fromDate, toDate, paymentMethodTypeName, service);
     }
-
 
 }
