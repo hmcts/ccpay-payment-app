@@ -132,4 +132,19 @@ public class PaymentReportControllerMockTest {
 
         verifyNoInteractions(paymentsReportFacade);
     }
+    @Test
+    public void paymentReport_withDuplicatePayment() throws Exception {
+        // given
+        given(clock.atStartOfDay("2018-06-30", DateTimeFormatter.ISO_DATE)).willReturn(FROM_DATE);
+        given(clock.atEndOfDay("2018-07-01", DateTimeFormatter.ISO_DATE)).willReturn(TO_DATE);
+
+        // when & then
+        this.mockMvc.perform(post("/jobs/duplicate-payment-process")
+                .param("payment_method", "CARD")
+                .param("start_date", "2018-06-30")
+                .param("end_date", "2018-07-01")
+                .param("service_name", "Divorce"))
+            .andExpect(status().isOk());
+        verify(paymentsReportFacade).generateCsvAndSendEmail(FROM_DATE, TO_DATE, PaymentMethodType.CARD, "Divorce");
+    }
 }
