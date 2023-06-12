@@ -75,3 +75,4 @@ public class PaymentReportController {
         paymentsReportFacade.generateCsvAndSendEmail(fromDate, toDate, paymentMethodTypeName, service);
     }
 }
+
