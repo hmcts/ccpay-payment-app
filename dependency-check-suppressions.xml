@@ -210,5 +210,12 @@
         <cve>CVE-2023-28709</cve>
     </suppress>
 
+    <suppress>
+        <notes>CVE-2023-20883: Spring Boot Welcome Page DoS Vulnerability</notes>
+        <cve>CVE-2023-20883</cve>
+    </suppress>
+
+
+
     <!-- Supression Group ends here -->
 </suppressions>
