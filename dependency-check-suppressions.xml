@@ -209,5 +209,4 @@
         </notes>
         <cve>CVE-2021-46877</cve>
     </suppress>
-    <!-- Supression Group ends here -->
 </suppressions>
