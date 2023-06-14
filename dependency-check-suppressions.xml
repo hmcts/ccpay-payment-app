@@ -201,6 +201,11 @@
         </notes>
         <cve>CVE-2021-46877</cve>
     </suppress>
-
+    <suppress until="2030-01-01">
+        <notes>
+            Spring context requires major update. Currently version 2.3.11 reuires major update to atleast 2.5
+        </notes>
+        <cve>CVE-2023-20883</cve>
+    </suppress>
     <!-- Supression Group ends here -->
 </suppressions>
