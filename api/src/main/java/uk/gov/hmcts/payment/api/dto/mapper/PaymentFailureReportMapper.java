@@ -29,6 +29,7 @@ public class PaymentFailureReportMapper {
             .representmentDate(paymentFailures.getRepresentmentOutcomeDate())
             .representmentStatus(paymentFailures.getRepresentmentSuccess())
             .serviceName(null != payment ? payment.getServiceType():null)
+            .documentControlNumber(paymentFailures.getDcn())
             .build();
         return paymentFailureReportDto;
     }

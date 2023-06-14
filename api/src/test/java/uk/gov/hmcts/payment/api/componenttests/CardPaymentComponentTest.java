@@ -1,18 +1,22 @@
 package uk.gov.hmcts.payment.api.componenttests;
 
 
-import org.junit.Ignore;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.test.annotation.DirtiesContext;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.v1.componenttests.TestUtil;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidPaymentGroupReferenceException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -20,7 +24,11 @@ import static uk.gov.hmcts.payment.api.model.Payment.paymentWith;
 import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 
 @DirtiesContext(classMode= DirtiesContext.ClassMode.BEFORE_CLASS)
+@Slf4j
 public class CardPaymentComponentTest extends TestUtil {
+
+    @Autowired
+    protected PaymentFeeRepository paymentFeeRepository;
 
     @Test
     public void testSaveOfSinglePaymentWithSingleFee() {
@@ -87,22 +95,109 @@ public class CardPaymentComponentTest extends TestUtil {
 
         PaymentFeeLink foundPayment = paymentFeeLinkRepository.findByPaymentReference("00000004").orElseThrow(PaymentNotFoundException::new);
 
-
         Payment payment = foundPayment.getPayments().get(0);
         assertNotNull(payment.getId());
         assertEquals(payment.getAmount(), new BigDecimal(3000000));
     }
 
-    @Test(expected = PaymentNotFoundException.class)
-    public void testRetrieveCardPaymentWithNonExistingPaymentReferenceShouldThrowException() throws Exception {
-        PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.save(PaymentFeeLink.paymentFeeLinkWith().paymentReference("00000005")
+    @Test
+    public void testRetrieveCardPaymentWithDuplicatePaymentReferenceUsingCcdCaseNumber() throws Exception {
+
+        PaymentFeeLink paymentFeeLinkSingle = paymentFeeLinkRepository.save(PaymentFeeLink.paymentFeeLinkWith().paymentReference("00000004")
+            .ccdCaseNumber("1282584933728638")
+            .payments(Arrays.asList(getPaymentsData().get(1)))
+            .fees(PaymentsDataUtil.getFeesData())
+            .build());
+
+        PaymentFeeLink paymentFeeLinkDup1of2 = paymentFeeLinkRepository.save(PaymentFeeLink.paymentFeeLinkWith().paymentReference("00000005")
+            .ccdCaseNumber("1282584933728640")
+            .payments(Arrays.asList(getPaymentsData().get(1)))
+            .fees(PaymentsDataUtil.getFeesData())
+            .build());
+
+        PaymentFeeLink paymentFeeLinkDup2of2 = paymentFeeLinkRepository.save(PaymentFeeLink.paymentFeeLinkWith().paymentReference("00000005")
+            .ccdCaseNumber("1282584933728642")
             .payments(Arrays.asList(getPaymentsData().get(2)))
             .fees(PaymentsDataUtil.getFeesData())
             .build());
 
-        PaymentFeeLink foundPayment = paymentFeeLinkRepository.findByPaymentReference("00000006").orElseThrow(PaymentNotFoundException::new);
+        PaymentFeeLink foundPayment1 = findByPaymentReferenceAndOrCcdCaseNumber("00000004", null);
+        PaymentFeeLink foundPayment2 = findByPaymentReferenceAndOrCcdCaseNumber("00000005", "1282584933728640");
+        PaymentFeeLink foundPayment3 = findByPaymentReferenceAndOrCcdCaseNumber("00000005", "1282584933728642");
+
+        Payment payment1 = foundPayment1.getPayments().get(0);
+        assertNotNull(payment1.getId());
+        assertEquals(payment1.getAmount(), new BigDecimal(2000000));
+
+        Payment payment2 = foundPayment2.getPayments().get(0);
+        assertNotNull(payment2.getId());
+        assertEquals(payment2.getAmount(), new BigDecimal(2000000));
+
+        Payment payment3 = foundPayment3.getPayments().get(0);
+        assertNotNull(payment3.getId());
+        assertEquals(payment3.getAmount(), new BigDecimal(3000000));
     }
 
+    @Test
+    public void testRetrieveCardPaymentWithDuplicatePaymentReferenceUsingFeeId() throws Exception {
+
+        PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.save(PaymentFeeLink.paymentFeeLinkWith().paymentReference("00000006")
+            .ccdCaseNumber("ccdCaseNo2")
+            .payments(Arrays.asList(getPaymentsData().get(1)))
+            .fees(PaymentsDataUtil.getFeesData())
+            .build());
+
+        PaymentFeeLink paymentFeeLink2 = paymentFeeLinkRepository.save(PaymentFeeLink.paymentFeeLinkWith().paymentReference("00000006")
+            .ccdCaseNumber("ccdCaseNo3")
+            .payments(Arrays.asList(getPaymentsData().get(2)))
+            .fees(PaymentsDataUtil.getFeesData2())
+            .build());
+
+        List<PaymentFee> fees = paymentFeeRepository.findAll();
+
+        PaymentFeeLink foundPayment1 = findByPaymentReferenceAndOrFeeId("00000006", fees.get(1).getId());
+        PaymentFeeLink foundPayment2 = findByPaymentReferenceAndOrFeeId("00000006", fees.get(5).getId());
+
+        Payment payment1 = foundPayment1.getPayments().get(0);
+        assertNotNull(payment1.getId());
+        assertEquals(payment1.getCcdCaseNumber(), "ccdCaseNo2");
+        assertEquals(payment1.getAmount(), new BigDecimal(2000000));
+
+        Payment payment2 = foundPayment2.getPayments().get(0);
+        assertNotNull(payment2.getId());
+        assertEquals(payment2.getCcdCaseNumber(), "ccdCaseNo3");
+        assertEquals(payment2.getAmount(), new BigDecimal(3000000));
+    }
+
+    @Test(expected = PaymentNotFoundException.class)
+    public void testRetrieveCardPaymentWithNonExistingPaymentReferenceShouldThrowException() throws Exception {
+        PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.save(PaymentFeeLink.paymentFeeLinkWith().paymentReference("00000007")
+            .payments(Arrays.asList(getPaymentsData().get(2)))
+            .fees(PaymentsDataUtil.getFeesData())
+            .build());
+
+        PaymentFeeLink foundPayment = paymentFeeLinkRepository.findByPaymentReference("00000008").orElseThrow(PaymentNotFoundException::new);
+    }
+
+    private PaymentFeeLink findByPaymentReferenceAndOrCcdCaseNumber(String paymentGroupReference, String ccdCaseNumber) {
+        Optional<PaymentFeeLink> paymentFeeLink;
+        try {
+            paymentFeeLink = paymentFeeLinkRepository.findByPaymentReference(paymentGroupReference);
+        } catch (IncorrectResultSizeDataAccessException error) {
+            paymentFeeLink = paymentFeeLinkRepository.findByPaymentReferenceAndCcdCaseNumber(paymentGroupReference, ccdCaseNumber);
+        }
+        return paymentFeeLink.orElseThrow(() -> new InvalidPaymentGroupReferenceException("Payment group " + paymentGroupReference + " ERROR"));
+    }
+
+    private PaymentFeeLink findByPaymentReferenceAndOrFeeId(String paymentGroupReference, Integer feeId) {
+        Optional<PaymentFeeLink> paymentFeeLink;
+        try {
+            paymentFeeLink = paymentFeeLinkRepository.findByPaymentReference(paymentGroupReference);
+        } catch (IncorrectResultSizeDataAccessException error) {
+            paymentFeeLink = paymentFeeLinkRepository.findByPaymentReferenceAndFeeId(paymentGroupReference, feeId);
+        }
+        return paymentFeeLink.orElseThrow(() -> new InvalidPaymentGroupReferenceException("Payment group " + paymentGroupReference + " ERROR"));
+    }
 
     public static List<Payment> getPaymentsData() {
         List<Payment> payments = new ArrayList<>();

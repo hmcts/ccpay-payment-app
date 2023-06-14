@@ -171,7 +171,7 @@ public class ServiceRequestControllerTest {
             .idempotencyKey(UUID.randomUUID().toString())
             .organisationName("sommin")
             .customerReference("testCustReference").
-            build();
+                build();
 
 
         AccountDto liberataAccountResponse = AccountDto.accountDtoWith()
@@ -196,10 +196,10 @@ public class ServiceRequestControllerTest {
             new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.CREATED);
 
         ResponseEntity<ServiceRequestPaymentBo> responseEntity2 =
-                    new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.CONFLICT);
+            new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.CONFLICT);
 
         ResponseEntity<ServiceRequestPaymentBo> responseEntity3 =
-                            new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.PRECONDITION_FAILED);
+            new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.PRECONDITION_FAILED);
 
         when(serviceRequestDomainService.addPayments(any(),any(),any())).thenReturn(serviceRequestPaymentBo);
 
@@ -275,7 +275,7 @@ public class ServiceRequestControllerTest {
             .idempotencyKey(UUID.randomUUID().toString())
             .organisationName("sommin")
             .customerReference("testCustReference").
-            build();
+                build();
 
         //ServiceRequest reference creation
 
@@ -354,7 +354,7 @@ public class ServiceRequestControllerTest {
             .currency("GBP")
             .organisationName("sommin")
             .customerReference("testCustReference").
-            build();
+                build();
 
         Error error = new Error();
         error.setErrorCode("CA-E0003");
@@ -640,7 +640,7 @@ public class ServiceRequestControllerTest {
             .organisationName("sommin")
             .idempotencyKey(UUID.randomUUID().toString())
             .customerReference("testCustReference").
-            build();
+                build();
 
         ServiceRequestPaymentBo serviceRequestPaymentBoSample = ServiceRequestPaymentBo.serviceRequestPaymentBoWith().
             paymentReference("reference").
@@ -653,7 +653,7 @@ public class ServiceRequestControllerTest {
             new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.NOT_FOUND);
 
         ResponseEntity<ServiceRequestPaymentBo> responseEntity2 =
-                    new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.GATEWAY_TIMEOUT);
+            new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.GATEWAY_TIMEOUT);
 
         when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any())).thenReturn(responseEntity,responseEntity2);
 
@@ -693,7 +693,7 @@ public class ServiceRequestControllerTest {
             .idempotencyKey(UUID.randomUUID().toString())
             .organisationName("sommin")
             .customerReference("testCustReference").
-            build();
+                build();
 
         ServiceRequestPaymentBo serviceRequestPaymentBoSample = ServiceRequestPaymentBo.serviceRequestPaymentBoWith().
             paymentReference("reference").
@@ -726,7 +726,7 @@ public class ServiceRequestControllerTest {
             .amount(BigDecimal.valueOf(100))
             .currency("GBP")
             .customerReference("testCustReference1").
-            build();
+                build();
 
         //assert not equal scenario
         assertNotEquals(serviceRequestPaymentDto, serviceRequestPaymentDto2);
@@ -755,7 +755,7 @@ public class ServiceRequestControllerTest {
             .organisationName("sommin")
             .currency("INR") //instead of GBP
             .customerReference("testCustReference").
-            build();
+                build();
 
         restActions
             .post("/service-request/" + "2021-1621352112222" + "/pba-payments", serviceRequestPaymentDto)
@@ -775,7 +775,7 @@ public class ServiceRequestControllerTest {
             .organisationName("sommin")
             .idempotencyKey(UUID.randomUUID().toString())
             .customerReference("testCustReference").
-            build();
+                build();
 
         ServiceRequestPaymentBo serviceRequestPaymentBoSample = ServiceRequestPaymentBo.serviceRequestPaymentBoWith().
             paymentReference("reference").
@@ -812,8 +812,8 @@ public class ServiceRequestControllerTest {
             .build();
 
         OnlineCardPaymentResponse onlineCardPaymentResponse = OnlineCardPaymentResponse.onlineCardPaymentResponseWith()
-                .paymentReference("RC-ref")
-                    .build();
+            .paymentReference("RC-ref")
+            .build();
 
         when(serviceRequestDomainService.create(any(),any(),any(),any())).thenReturn(onlineCardPaymentResponse);
 
@@ -1137,5 +1137,3 @@ public class ServiceRequestControllerTest {
     }
 
 }
-
-

@@ -11,9 +11,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
@@ -24,12 +26,15 @@ import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentFeeRepository;
+import uk.gov.hmcts.payment.api.service.PaymentRefundsService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
+import uk.gov.hmcts.payment.api.service.RefundRemissionEnableService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @Api(tags = {"PaymentApportion"})
@@ -44,6 +49,12 @@ public class FeePayApportionController {
 
     @Autowired
     private LaunchDarklyFeatureToggler featureToggler;
+
+    @Autowired
+    private PaymentRefundsService paymentRefundsService;
+
+    @Autowired
+    private RefundRemissionEnableService refundRemissionEnableService;
 
     private static final Logger LOG = LoggerFactory.getLogger(FeePayApportionController.class);
 
@@ -62,9 +73,9 @@ public class FeePayApportionController {
         @ApiResponse(code = 404, message = "Payment not found")
     })
     @GetMapping(value = "/payment-groups/fee-pay-apportion/{paymentreference}")
-    public ResponseEntity<PaymentGroupDto> retrieveApportionDetails(@PathVariable("paymentreference") String paymentReference) {
-        LOG.info("Invoking new API in FeePayApportionController");
-        PaymentFeeLink paymentFeeLink = paymentService.retrieve(paymentReference);
+    public ResponseEntity<PaymentGroupDto> retrieveApportionDetails(@PathVariable("paymentreference") String paymentReference,@RequestHeader(required = false) MultiValueMap<String, String> headers) {
+        LOG.info("Invoking GET API retrieveApportionDetails in FeePayApportionController {}", paymentReference);
+        PaymentFeeLink paymentFeeLink = paymentService.retrievePayment(paymentReference);
         boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
         LOG.info("apportionFeature value in FeePayApportionController: {}", apportionFeature);
         Optional<Payment> payment = paymentFeeLink.getPayments().stream()
@@ -75,14 +86,19 @@ public class FeePayApportionController {
             LOG.info("Apportion feature is true and payment is available in FeePayApportionController");
             List<FeePayApportion> feePayApportionList = paymentService.findByPaymentId(payment.get().getId());
             if(feePayApportionList != null && !feePayApportionList.isEmpty()) {
-                LOG.info("Apportion details available in FeePayApportionController");
+                LOG.info("Apportion details available in FeePayApportionController size {}", feePayApportionList.size());
+                List<Integer> feeIdList = feePayApportionList.stream().map(FeePayApportion::getFeeId).collect(Collectors.toList());
+                LOG.info("feeIdList size {}", feeIdList.size());
                 List<PaymentFee> feeList = new ArrayList<>();
+                List<PaymentFee> paymentFeeList = paymentFeeRepository.findByIdIn(feeIdList);
+                LOG.info("paymentFeeList Size {}", paymentFeeList.size());
                 for (FeePayApportion feePayApportion : feePayApportionList)
                 {
                     LOG.info("Inside FeePayApportion section in FeePayApportionController");
-                    Optional<PaymentFee> apportionedFee = paymentFeeRepository.findById(feePayApportion.getFeeId());
-                    if(apportionedFee.isPresent())
-                    {
+                    LOG.info("FeePayApportion FeeId {}", feePayApportion.getFeeId());
+                    Optional<PaymentFee> apportionedFee = Optional.ofNullable(paymentFeeList.stream().filter
+                        (e->e.getId().equals(feePayApportion.getFeeId())).collect(Collectors.toList()).get(0));
+                    if(apportionedFee.isPresent()) {
                         LOG.info("Apportioned fee is present");
                         PaymentFee fee = apportionedFee.get();
                         LOG.info("apportion amount value in FeePayApportionController: {}", feePayApportion.getApportionAmount());
@@ -90,11 +106,16 @@ public class FeePayApportionController {
                         feeList.add(fee);
                     }
                 }
+                LOG.info("feeList size {}", feeList.size());
                 paymentFeeLink.setFees(feeList);
             }
-
         }
-        return new ResponseEntity<>(paymentGroupDtoMapper.toPaymentGroupDto(paymentFeeLink), HttpStatus.OK);
+        LOG.info("Before calling toPaymentGroupDto payment Ref {}", paymentFeeLink.getPaymentReference());
+        refundRemissionEnableService.isRolePresent(headers);
+        PaymentGroupDto paymentGroupDto  = paymentGroupDtoMapper.toPaymentGroupDto(paymentFeeLink);
+        LOG.info("Before checking Refund");
+        paymentGroupDto = paymentRefundsService.checkRefundAgainstRemissionFeeApportionV2(headers, paymentGroupDto, paymentReference);
+        return new ResponseEntity<>(paymentGroupDto, HttpStatus.OK);
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)

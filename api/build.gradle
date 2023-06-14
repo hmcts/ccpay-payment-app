@@ -146,7 +146,7 @@ dependencies {
     testCompile group: 'org.projectlombok', name: 'lombok', version: versions.lombok
     testCompile group: 'io.rest-assured', name: 'rest-assured', version: '3.0.7'
     testCompile group: 'org.springframework.boot', name: 'spring-boot-starter-thymeleaf'
-    testCompile group: 'org.testcontainers', name: 'postgresql', version: '1.15.1'
+    testCompile group: 'org.testcontainers', name: 'postgresql', version: '1.15.3'
     testCompile 'org.awaitility:awaitility:3.1.6'
     testCompile group: 'org.powermock', name: 'powermock-module-junit4', version: '2.0.9'
     testCompile 'org.powermock:powermock-api-mockito2:2.0.9'
@@ -185,9 +185,6 @@ dependencies {
     functionalTestImplementation group: 'io.rest-assured', name: 'json-path', version: versions.restAssured
 }
 
-
-
-
 test {
     // Base test class for other tests - has no runnable test methods
     exclude 'uk/gov/hmcts/payment/api/v1/**'
@@ -211,7 +208,7 @@ functionalTest.finalizedBy(aggregate)
 
 project.ext {
     pactVersion = getCheckedOutGitCommitHash()
-    pacticipant = 'payment_App'
+    pacticipant = 'no'
     pacticipantVersion = getCheckedOutGitCommitHash()
 }
 
@@ -313,3 +310,4 @@ pitest {
     failWhenNoMutations = false
     detectInlinedCode = true
 }
+

@@ -18,12 +18,16 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.context.WebApplicationContext;
+import uk.gov.hmcts.payment.api.contract.RefundsFeeDto;
 import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
 import uk.gov.hmcts.payment.api.dto.RefundResponse;
 import uk.gov.hmcts.payment.api.dto.ResubmitRefundRemissionRequest;
-import uk.gov.hmcts.payment.api.dto.RetroSpectiveRemissionRequest;
+import uk.gov.hmcts.payment.api.dto.RetrospectiveRemissionRequest;
 import uk.gov.hmcts.payment.api.exception.InvalidRefundRequestException;
+import uk.gov.hmcts.payment.api.model.ContactDetails;
 import uk.gov.hmcts.payment.api.service.PaymentRefundsServiceImpl;
 import uk.gov.hmcts.payment.api.service.PaymentServiceImpl;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
@@ -35,10 +39,13 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotSuccessException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.RemissionNotFoundException;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 
 import static java.lang.String.format;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -56,10 +63,26 @@ public class RefundsControllerTest {
     PaymentRefundRequest paymentRefundRequest = PaymentRefundRequest.refundRequestWith()
         .paymentReference("RC-1234-1234-1234-1234")
         .refundReason("RESN1")
+        .totalRefundAmount(BigDecimal.valueOf(550))
+        .fees(
+            Arrays.asList(
+                RefundsFeeDto.refundFeeDtoWith()
+                    .calculatedAmount(new BigDecimal("550.00"))
+                    .apportionAmount(new BigDecimal("550.00"))
+                    .refundAmount(new BigDecimal("550.00"))
+                    .code("FEE0333")
+                    .id(1)
+                    .version("1")
+                    .updatedVolume(1)
+                    .build()
+            ))
+        .contactDetails(ContactDetails.contactDetailsWith().build())
         .build();
 
-    RetroSpectiveRemissionRequest retroSpectiveRemissionRequest = RetroSpectiveRemissionRequest.retroSpectiveRemissionRequestWith()
-        .remissionReference("qwerty").build();
+    RetrospectiveRemissionRequest retrospectiveRemissionRequest = RetrospectiveRemissionRequest.retrospectiveRemissionRequestWith()
+        .remissionReference("qwerty")
+        .contactDetails(ContactDetails.contactDetailsWith().build())
+        .build();
     MockMvc mvc;
     @Autowired
     private WebApplicationContext webApplicationContext;
@@ -121,6 +144,18 @@ public class RefundsControllerTest {
     }
 
     @Test
+    public void testDeleteByRefundReference() throws Exception{
+
+
+        doNothing().when(paymentRefundsService).deleteByRefundReference(anyString(), any());
+
+        restActions.delete("/refund/RF-1234-1234-1234-1234")
+            .andExpect(status().isNoContent())
+            .andReturn();
+
+    }
+
+    @Test
     public void createRefundWithInvalidRequestReturns404() throws Exception {
 
         when(paymentRefundsService.createRefund(any(), any())).thenThrow(new PaymentNotFoundException("reference not found"));
@@ -136,6 +171,7 @@ public class RefundsControllerTest {
             .resubmitRefundRemissionRequestWith()
             .amount(BigDecimal.valueOf(100))
             .refundReason("RR036")
+            .totalRefundedAmount(BigDecimal.valueOf(100))
             .build();
 
 
@@ -158,6 +194,7 @@ public class RefundsControllerTest {
             .amount(BigDecimal.valueOf(100))
             .refundReason("RR036")
             .feeId("100")
+            .totalRefundedAmount(BigDecimal.valueOf(200))
             .build();
         when(paymentRefundsService.updateTheRemissionAmount("RC-1111-2222-5555-2222",resubmitRefundRemissionRequest))
             .thenThrow(new InvalidRefundRequestException("Amount should not be more than Remission amount"));
@@ -186,10 +223,10 @@ public class RefundsControllerTest {
             .refundReference("RF-4321-4321-4321-4321")
             .build(), HttpStatus.CREATED);
 
-        when(paymentRefundsService.createAndValidateRetroSpectiveRemissionRequest(any(), any())).thenReturn(mockRefundResponse);
+        when(paymentRefundsService.createAndValidateRetrospectiveRemissionRequest(any(), any())).thenReturn(mockRefundResponse);
 
         MvcResult result = restActions
-            .post("/refund-retro-remission", retroSpectiveRemissionRequest)
+            .post("/refund-retro-remission", retrospectiveRemissionRequest)
             .andExpect(status().isCreated())
             .andReturn();
 
@@ -203,10 +240,10 @@ public class RefundsControllerTest {
     @Test
     public void createRetroRemissionRefundWithInvalidRequestReturnsNonPbaPaymentException() throws Exception {
 
-        when(paymentRefundsService.createAndValidateRetroSpectiveRemissionRequest(any(), any())).thenThrow(new NonPBAPaymentException("test 123"));
+        when(paymentRefundsService.createAndValidateRetrospectiveRemissionRequest(any(), any())).thenThrow(new NonPBAPaymentException("test 123"));
 
         MvcResult result = restActions
-            .post("/refund-retro-remission", retroSpectiveRemissionRequest)
+            .post("/refund-retro-remission", retrospectiveRemissionRequest)
             .andExpect(status().isBadRequest())
             .andReturn();
 
@@ -215,10 +252,10 @@ public class RefundsControllerTest {
     @Test
     public void createRetroRemissionRefundWithInvalidRequestReturnsRemissionNotFoundException() throws Exception {
 
-        when(paymentRefundsService.createAndValidateRetroSpectiveRemissionRequest(any(), any())).thenThrow(new RemissionNotFoundException("test 123"));
+        when(paymentRefundsService.createAndValidateRetrospectiveRemissionRequest(any(), any())).thenThrow(new RemissionNotFoundException("test 123"));
 
         MvcResult result = restActions
-            .post("/refund-retro-remission", retroSpectiveRemissionRequest)
+            .post("/refund-retro-remission", retrospectiveRemissionRequest)
             .andExpect(status().isBadRequest())
             .andReturn();
 
@@ -227,12 +264,28 @@ public class RefundsControllerTest {
     @Test
     public void createRetroRemissionRefundWithInvalidRequestReturnsPaymentNotSuccessException() throws Exception {
 
-        when(paymentRefundsService.createAndValidateRetroSpectiveRemissionRequest(any(), any())).thenThrow(new PaymentNotSuccessException("test 123"));
+        when(paymentRefundsService.createAndValidateRetrospectiveRemissionRequest(any(), any())).thenThrow(new PaymentNotSuccessException("test 123"));
 
         MvcResult result = restActions
-            .post("/refund-retro-remission", retroSpectiveRemissionRequest)
+            .post("/refund-retro-remission", retrospectiveRemissionRequest)
             .andExpect(status().isBadRequest())
             .andReturn();
 
+    }
+
+    @Test
+    public void testReturnClientException() throws Exception {
+
+        HttpClientErrorException exception = new HttpClientErrorException(HttpStatus.BAD_REQUEST, "Invalid request");
+        ResponseEntity responseEntity = refundsController.returnClientException(exception);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+    }
+
+    @Test
+    public void testReturnServerException() throws Exception {
+
+        HttpServerErrorException exception = new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error");
+        String returnStr = refundsController.returnServerException(exception);
+        assertEquals("", returnStr);
     }
 }
