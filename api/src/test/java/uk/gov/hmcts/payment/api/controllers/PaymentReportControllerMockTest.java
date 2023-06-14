@@ -133,7 +133,7 @@ public class PaymentReportControllerMockTest {
         verifyNoInteractions(paymentsReportFacade);
     }
     @Test
-    public void paymentReport_withDuplicatePayment() throws Exception {
+    public void duplicatePaymentReportWithInputDates() throws Exception {
         // given
         given(clock.atStartOfDay("2018-06-30", DateTimeFormatter.ISO_DATE)).willReturn(FROM_DATE);
         given(clock.atEndOfDay("2018-07-01", DateTimeFormatter.ISO_DATE)).willReturn(TO_DATE);
@@ -146,5 +146,61 @@ public class PaymentReportControllerMockTest {
                 .param("service_name", "Divorce"))
             .andExpect(status().isOk());
         verify(paymentsReportFacade).generateCsvAndSendEmail(FROM_DATE, TO_DATE, PaymentMethodType.CARD, "Divorce");
+    }
+
+    @Test
+    public void duplicatePaymentReportWithNoInputDates() throws Exception {
+        // given
+        given(clock.getYesterdayDate()).willReturn(FROM_DATE);
+        given(clock.getTodayDate()).willReturn(TO_DATE);
+        // when & then
+        this.mockMvc.perform(post("/jobs/duplicate-payment-process")
+                .param("payment_method", "CARD"))
+            .andExpect(status().isOk());
+
+        verify(paymentsReportFacade).generateCsvAndSendEmail(FROM_DATE, TO_DATE, PaymentMethodType.CARD, null);
+    }
+
+    @Test
+    public void duplicatePaymentReportWithNoInputDatesOnlyServiceName() throws Exception {
+        // given
+        given(clock.getYesterdayDate()).willReturn(FROM_DATE);
+        given(clock.getTodayDate()).willReturn(TO_DATE);
+        // when & then
+        this.mockMvc.perform(post("/jobs/duplicate-payment-process")
+                .param("service_name", "Digital Bar"))
+            .andExpect(status().isOk());
+
+        verify(paymentsReportFacade).generateCsvAndSendEmail(FROM_DATE, TO_DATE, null, "Digital Bar");
+    }
+
+    @Test
+    public void duplicatePaymentReportWithNoInputDatesOnlyServiceNameAndStartDate() throws Exception {
+        // given
+        given(clock.atStartOfDay(WEEK_AGO_DATE.toString(), FORMATTER)).willReturn(WEEK_AGO_DATE);
+        given(clock.getTodayDate()).willReturn(TO_DATE);
+        // when & then
+        this.mockMvc.perform(post("/jobs/duplicate-payment-process")
+                .param("service_name", "Digital Bar").param("start_date", WEEK_AGO_DATE.toString()))
+            .andExpect(status().isOk());
+
+        verify(paymentsReportFacade).generateCsvAndSendEmail(WEEK_AGO_DATE, TO_DATE, null, "Digital Bar");
+    }
+
+    @Test
+    public void duplicatePaymentReport_shouldThrowValidationError() throws Exception {
+        // given
+
+        doThrow(new ValidationErrorException("validation failed", null))
+            .when(validator).validate(Optional.of("CARD"), Optional.of("2018-06-30"), Optional.of("2018-07-01"));
+        // when & then
+        this.mockMvc.perform(post("/jobs/duplicate-payment-process")
+                .param("payment_method", "CARD")
+                .param("start_date", "2018-06-30")
+                .param("end_date", "2018-07-01")
+                .param("service_name", "UNKNOWN"))
+            .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(paymentsReportFacade);
     }
 }
