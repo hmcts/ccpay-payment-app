@@ -1,3 +1,10 @@
+ccpay-refunds-api:
+  enabled: false
+ccpay-bulkscanning-api:
+  enabled: false
+ccpay-notifications-service:
+  enabled: false
+
 java:
   image: hmctspublic.azurecr.io/payment/api:latest
   applicationPort: 8080
