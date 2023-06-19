@@ -52,6 +52,13 @@ java:
         - ccpay-cpo-user-id
   postgresql:
     enabled: true
+    primary:
+      initdb:
+        scripts:
+          init.sql: |
+            CREATE DATABASE refunds WITH OWNER = hmcts ENCODING = 'UTF-8' CONNECTION LIMIT = -1;
+            CREATE DATABASE bulkscanning WITH OWNER = hmcts ENCODING = 'UTF-8' CONNECTION LIMIT = -1;
+            CREATE DATABASE notifications WITH OWNER = hmcts ENCODING = 'UTF-8' CONNECTION LIMIT = -1;
 
 ccpay-refunds-api:
   enabled: true
@@ -61,7 +68,7 @@ ccpay-refunds-api:
     ingressHost: ccpay-refunds-api-${SERVICE_NAME}.preview.platform.hmcts.net
     environment:
       POSTGRES_HOST: "{{ .Release.Name }}-postgresql"
-      POSTGRES_NAME: "{{ .Values.postgresql.auth.database}}"
+      POSTGRES_NAME: refunds
       POSTGRES_USERNAME: "{{ .Values.postgresql.auth.username}}"
       POSTGRES_PASSWORD: "{{ .Values.postgresql.auth.password}}"
       POSTGRES_CONNECTION_OPTIONS: "?sslmode=allow"
@@ -134,7 +141,7 @@ ccpay-bulkscanning-api:
     ingressHost: ccpay-bulkscanning-api-${SERVICE_NAME}.preview.platform.hmcts.net
     environment:
       POSTGRES_HOST: "{{ .Release.Name }}-postgresql"
-      POSTGRES_NAME: "{{ .Values.postgresql.auth.database}}"
+      POSTGRES_NAME: bulkscanning
       POSTGRES_USERNAME: "{{ .Values.postgresql.auth.username}}"
       POSTGRES_PASSWORD: "{{ .Values.postgresql.auth.password}}"
       POSTGRES_CONNECTION_OPTIONS: "?sslmode=allow"
@@ -158,7 +165,7 @@ ccpay-notifications-service:
     ingressHost: ccpay-notifications-service-${SERVICE_NAME}.preview.platform.hmcts.net
     environment:
       POSTGRES_HOST: "{{ .Release.Name }}-postgresql"
-      POSTGRES_NAME: "{{ .Values.postgresql.auth.database}}"
+      POSTGRES_NAME: notifications
       POSTGRES_USERNAME: "{{ .Values.postgresql.auth.username}}"
       POSTGRES_PASSWORD: "{{ .Values.postgresql.auth.password}}"
       POSTGRES_CONNECTION_OPTIONS: "?sslmode=allow"
