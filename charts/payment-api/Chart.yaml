@@ -11,3 +11,15 @@ dependencies:
   - name: java
     version: 4.0.13
     repository: 'https://hmctspublic.azurecr.io/helm/v1/repo/'
+  - name: ccpay-refunds-api
+    version: 0.2.12
+    repository: 'https://hmctspublic.azurecr.io/helm/v1/repo/'
+    condition: ccpay-refunds-api.enabled
+  - name: ccpay-bulkscanning-api
+    version: 1.0.20
+    repository: 'https://hmctspublic.azurecr.io/helm/v1/repo/'
+    condition: ccpay-bulkscanning-api.enabled
+  - name: ccpay-notifications-service
+    version: 1.0.5
+    repository: 'https://hmctspublic.azurecr.io/helm/v1/repo/'
+    condition: ccpay-notifications-service.enabled
