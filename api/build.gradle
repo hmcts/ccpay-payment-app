@@ -59,6 +59,7 @@ idea {
     }
 }
 
+
 sonarqube {
     properties {
         property "sonar.pitest.mode", "reuseReport"
