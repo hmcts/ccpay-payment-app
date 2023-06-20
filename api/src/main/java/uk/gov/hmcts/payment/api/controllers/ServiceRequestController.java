@@ -56,6 +56,7 @@ import java.util.stream.Collectors;
 @RestController
 @Api(tags = {"service-request"})
 @SwaggerDefinition(tags = {@Tag(name = "ServiceRequestController", description = "Service Request REST API")})
+@SuppressWarnings("all")
 public class ServiceRequestController {
 
     private static final Logger LOG = LoggerFactory.getLogger(ServiceRequestController.class);
@@ -109,7 +110,6 @@ public class ServiceRequestController {
     @PostMapping(value = "/service-request")
     @Transactional
     @ResponseStatus(HttpStatus.CREATED)
-    @SuppressWarnings("all")
     public ResponseEntity<ServiceRequestResponseDto> create(@Valid @RequestBody ServiceRequestDto serviceRequestDto,
                                                             @RequestHeader(required = false) MultiValueMap<String, String> headers,
                                                             BindingResult result){
