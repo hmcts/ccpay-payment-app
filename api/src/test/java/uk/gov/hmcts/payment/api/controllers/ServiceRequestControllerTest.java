@@ -326,6 +326,77 @@ public class ServiceRequestControllerTest {
     }
 
     @Test
+    public void createPBAPaymentWithServiceRequestFailDueToConflictHascode() throws Exception {
+
+        //Creation of serviceRequest-reference
+        String serviceRequestReferenceResult = getServiceRequestReference();
+
+        //ServiceRequest Payment DTO
+        ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
+            .paymentDtoWith().accountNumber("PBAFUNC12345")
+            .amount(BigDecimal.valueOf(300))
+            .currency("GBP")
+            .idempotencyKey(UUID.randomUUID().toString())
+            .organisationName("sommin")
+            .customerReference("testCustReference").
+            build();
+
+
+        AccountDto liberataAccountResponse = AccountDto.accountDtoWith()
+            .accountNumber("PBAFUNC12345")
+            .accountName("CAERPHILLY COUNTY BOROUGH COUNCIL")
+            .creditLimit(BigDecimal.valueOf(28879))
+            .availableBalance(BigDecimal.valueOf(30000))
+            .status(AccountStatus.ACTIVE)
+            .build();
+
+        IdempotencyKeys idempotencyKeys = IdempotencyKeys.idempotencyKeysWith()
+            .responseCode(HttpStatus.CONFLICT.value())
+            .requestHashcode(-1644540583)
+            .idempotencyKey("")
+            .requestBody("")
+            .build();
+
+        List<IdempotencyKeys> result = List.of(idempotencyKeys);
+        when(idempotencyService.findTheRecordByRequestHashcode(any())).thenReturn(result);
+        when(idempotencyService.findTheRecordByIdempotencyKey(any())).thenReturn(Optional.of(idempotencyKeys));
+        when(accountService.retrieve("PBAFUNC12345")).thenReturn(liberataAccountResponse);
+
+
+
+        ServiceRequestPaymentBo serviceRequestPaymentBo = ServiceRequestPaymentBo.serviceRequestPaymentBoWith().
+            paymentReference("RC-reference").
+            dateCreated("20-09-2021").
+            status("success").
+            build();
+
+        ResponseEntity<ServiceRequestPaymentBo> responseEntity =
+            new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.CREATED);
+
+        ResponseEntity<ServiceRequestPaymentBo> responseEntity2 =
+            new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.CONFLICT);
+
+        ResponseEntity<ServiceRequestPaymentBo> responseEntity3 =
+            new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.PRECONDITION_FAILED);
+
+        when(serviceRequestDomainService.addPayments(any(),any(),any())).thenReturn(serviceRequestPaymentBo);
+
+        when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any())).
+            thenReturn(responseEntity, responseEntity, responseEntity2,responseEntity3);
+
+        ServiceRequestResponseDto serviceRequestResponseDtoSample = ServiceRequestResponseDto.serviceRequestResponseDtoWith()
+            .serviceRequestReference("2021-1632746723494").build();
+
+        when(serviceRequestDomainService.create(any(),any())).thenReturn(serviceRequestResponseDtoSample);
+
+        MvcResult successServiceRequestPaymentResult = restActions
+            .post("/service-request/" + serviceRequestReferenceResult + "/pba-payments", serviceRequestPaymentDto)
+            .andExpect(status().isConflict())
+            .andReturn();
+
+    }
+
+    @Test
     public void createPBAPaymentWithServiceRequestTimeOutTest() throws Exception {
         when(accountService.retrieve("PBA12346")).thenThrow(
             new HystrixRuntimeException(HystrixRuntimeException.FailureType.TIMEOUT, HystrixCommand.class, "Unable to retrieve account information", null, null));
