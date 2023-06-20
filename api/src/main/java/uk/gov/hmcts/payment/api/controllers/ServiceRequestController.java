@@ -109,6 +109,7 @@ public class ServiceRequestController {
     @PostMapping(value = "/service-request")
     @Transactional
     @ResponseStatus(HttpStatus.CREATED)
+    @SuppressWarnings("all")
     public ResponseEntity<ServiceRequestResponseDto> create(@Valid @RequestBody ServiceRequestDto serviceRequestDto,
                                                             @RequestHeader(required = false) MultiValueMap<String, String> headers,
                                                             BindingResult result){
