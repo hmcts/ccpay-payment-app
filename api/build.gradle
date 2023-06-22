@@ -122,8 +122,12 @@ dependencies {
     compile group: 'org.springframework.retry', name: 'spring-retry'
     compile group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign', version: '2.2.1.RELEASE'
 
-    compile group: 'com.github.hmcts.ccfr-fees-register-app', name: 'fees-register-api-contract', version: '2.3.1'
-    compile group: 'com.github.hmcts.ccfr-fees-register-app', name: 'fees-register-model', version: '2.3.1'
+    compile(group: 'com.github.hmcts.ccfr-fees-register-app', name: 'fees-register-api-contract', version: '2.3.1') {
+        exclude(module: 'properties-volume-spring-boot-starter')
+    }
+    compile(group: 'com.github.hmcts.ccfr-fees-register-app', name: 'fees-register-model', version: '2.3.1') {
+        exclude(module: 'properties-volume-spring-boot-starter')
+    }
 
     compile group: 'com.github.hmcts', name: 'properties-volume-spring-boot-starter', version: '0.0.4'
     //Added this for spring boot upgrade as swagger was not working with the latest version.
