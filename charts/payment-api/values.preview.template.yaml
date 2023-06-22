@@ -52,13 +52,11 @@ java:
         - ccpay-cpo-user-id
   postgresql:
     enabled: true
-    primary:
-      initdb:
-        scripts:
-          init.sql: |-
-            CREATE DATABASE refunds WITH OWNER = hmcts ENCODING = 'UTF-8' CONNECTION LIMIT = -1;
-            CREATE DATABASE bulkscanning WITH OWNER = hmcts ENCODING = 'UTF-8' CONNECTION LIMIT = -1;
-            CREATE DATABASE notifications WITH OWNER = hmcts ENCODING = 'UTF-8' CONNECTION LIMIT = -1;
+    initdbScripts:
+      init.sql: |-
+        CREATE DATABASE refunds WITH OWNER = hmcts ENCODING = 'UTF-8' CONNECTION LIMIT = -1;
+        CREATE DATABASE bulkscanning WITH OWNER = hmcts ENCODING = 'UTF-8' CONNECTION LIMIT = -1;
+        CREATE DATABASE notifications WITH OWNER = hmcts ENCODING = 'UTF-8' CONNECTION LIMIT = -1;
 
 ccpay-refunds-api:
   enabled: true
