@@ -79,7 +79,7 @@ def versions = [
         serenity        : '2.2.12',
         serenityreporter: '2.1.4',
         serenityCucumber: '1.9.51',
-        javaLoggingVersion: '5.1.1'
+        javaLoggingVersion: '6.0.1'
 ]
 
 dependencies {
@@ -106,6 +106,7 @@ dependencies {
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.14.2'
     implementation group: 'io.springfox', name: 'springfox-swagger-ui', version: '2.9.2'
     implementation group: 'io.springfox', name: 'springfox-swagger2', version: '2.9.2'
+
     implementation 'com.github.hmcts.liquibase:liquibase-core:3.8.2'
     implementation group: 'com.microsoft.azure', name: 'azure-servicebus-spring-boot-starter', version: '2.1.6'
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-cache'
