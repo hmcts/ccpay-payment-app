@@ -1,13 +1,8 @@
 package uk.gov.hmcts.payment.functional;
 
 import io.restassured.response.Response;
-import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +27,7 @@ import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
 
-@RunWith(SpringIntegrationSerenityRunner.class)
+/* These are data generation tooling tests when PBA went live, no need to run in the pipeline  */
 @ContextConfiguration(classes = TestContextConfiguration.class)
 public class CMCCardPaymentPerformanceLiberataTest {
 
@@ -69,7 +64,7 @@ public class CMCCardPaymentPerformanceLiberataTest {
 
     private static DateTimeZone zoneUTC = DateTimeZone.UTC;
 
-    @Before
+    // @Before
     public void setUp() throws Exception {
         if (!TOKENS_INITIALIZED) {
             USER_TOKEN = idamService.createUserWith(CMC_CITIZEN_GROUP, "citizen").getAuthorisationToken();
@@ -79,7 +74,6 @@ public class CMCCardPaymentPerformanceLiberataTest {
         }
     }
 
-    @Test @Ignore
     public void makeAndRetrieve500CardPaymentsByProbateFromLiberata() throws InterruptedException {
         // create Card payments
         final Integer PaymentCount = 500;
@@ -133,7 +127,6 @@ public class CMCCardPaymentPerformanceLiberataTest {
 
     }
 
-    @Test @Ignore
     public void makeAndRetrieve5CardPaymentsByProbateFromLiberata() throws InterruptedException {
         // create Card payments
         final Integer PaymentCount = 5;
@@ -187,7 +180,6 @@ public class CMCCardPaymentPerformanceLiberataTest {
 
     }
 
-    @Test @Ignore
     public void makeAndRetrieve800CardPaymentsByCmcFromLiberata() throws InterruptedException {
         // create Card payments
         final Integer PaymentCount = 800;
@@ -238,7 +230,6 @@ public class CMCCardPaymentPerformanceLiberataTest {
         LOG.info("Response time in milliseconds approach 1 api 800 card payment is : {}",liberataResponseTimeApproach1.getTime());
     }
 
-    @Test @Ignore
     public void makeAndRetrieve5CardPaymentsByCmcFromLiberata() throws InterruptedException {
         // create Card payments
         final Integer PaymentCount = 5;
@@ -289,7 +280,6 @@ public class CMCCardPaymentPerformanceLiberataTest {
         LOG.info("Response time in milliseconds approach 1 api 5 card payment is : {}",liberataResponseTimeApproach1.getTime());
     }
 
-    @Test @Ignore
     public void makeAndRetrieve1000CardPaymentsByFinremFromLiberata() throws InterruptedException {
         // create Card payments
         final Integer PaymentCount = 1000;
@@ -340,7 +330,6 @@ public class CMCCardPaymentPerformanceLiberataTest {
         LOG.info("Response time in milliseconds approach 1 api 1000 card payemnt is : {}",liberataResponseTimeApproach1.getTime());
     }
 
-    @Test @Ignore
     public void makeAndRetrieve5CardPaymentsByFinremFromLiberata() throws InterruptedException {
         // create Card payments
         final Integer PaymentCount = 5;
@@ -391,7 +380,6 @@ public class CMCCardPaymentPerformanceLiberataTest {
         LOG.info("Response time in milliseconds approach 1 api 5 card payemnt is : {}",liberataResponseTimeApproach1.getTime());
     }
 
-    @Test @Ignore
     public void makeAndRetrieve1300CardPaymentsByDivorceFromLiberata() throws InterruptedException {
         // create Card payments
         final Integer PaymentCount = 1300;
@@ -442,7 +430,6 @@ public class CMCCardPaymentPerformanceLiberataTest {
         LOG.info("Response time in milliseconds approach 1 api 1300 card payment is : {}",liberataResponseTimeApproach1.getTime());
     }
 
-    @Test @Ignore
     public void makeAndRetrieve5CardPaymentsByDivorceFromLiberata() throws InterruptedException {
         // create Card payments
         final Integer PaymentCount = 5;
@@ -493,7 +480,6 @@ public class CMCCardPaymentPerformanceLiberataTest {
         LOG.info("Response time in milliseconds approach 1 api 5 card payment is : {}",liberataResponseTimeApproach1.getTime());
     }
 
-    @Test @Ignore
     public void makeAndRetrieveResponseTime30CardPaymentsByProbateFromLiberata() throws InterruptedException {
         // create Card payments
         final Integer PaymentCount = 30;

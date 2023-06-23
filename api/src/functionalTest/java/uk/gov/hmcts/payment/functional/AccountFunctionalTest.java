@@ -19,7 +19,6 @@ import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP
 
 @RunWith(SpringIntegrationSerenityRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
-@Ignore
 public class AccountFunctionalTest {
     @Autowired
     private TestConfigProperties testProps;
