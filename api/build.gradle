@@ -3,9 +3,6 @@ buildscript {
         mavenLocal()
         mavenCentral()
         jcenter()
-        maven {
-            url 'https://jitpack.io'
-        }
     }
     dependencies {
         classpath("net.serenity-bdd:serenity-gradle-plugin:2.1.4")
@@ -83,11 +80,11 @@ def versions = [
 ]
 
 dependencies {
-    implementation project(':payment-gov-pay-client')
-    implementation project(':payment-api-contract')
-    implementation project(':payment-model')
-    implementation project(':payment-reference-data')
-    implementation project(':case-payment-orders-client')
+    compile project(':payment-gov-pay-client')
+    compile project(':payment-api-contract')
+    compile project(':payment-model')
+    compile project(':payment-reference-data')
+    compile project(':case-payment-orders-client')
     implementation group: 'com.github.hmcts', name: 'java-logging', version: versions.javaLoggingVersion
     implementation (group: 'com.github.hmcts', name: 'auth-checker-lib', version: '2.1.4') {
         exclude(module: 'java-logging-spring')
