@@ -6,12 +6,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.FieldSetter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.oauth2.client.OAuth2RestOperations;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
+import uk.gov.hmcts.payment.api.componenttests.util.ReflectUtil;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.service.AccountServiceImpl;
 import uk.gov.hmcts.payment.api.util.AccountStatus;
@@ -41,7 +41,7 @@ public class AccountServiceTest {
     @Test
     public void retrieveExistingAccountReturnsAccountDto() throws Exception {
         String pbaCode = "PBA1234";
-        FieldSetter.setField(accountServiceImpl, accountServiceImpl.getClass().getDeclaredField("baseUrl"), baseUrl);
+        ReflectUtil.setField(accountServiceImpl,"baseUrl", baseUrl);
         AccountDto expectedDto = new AccountDto(pbaCode, "accountName", new BigDecimal(100),
             new BigDecimal(100), AccountStatus.ACTIVE, new Date());
         when(restTemplateMock.getForObject(baseUrl + "/" + pbaCode, AccountDto.class)).thenReturn(expectedDto);
