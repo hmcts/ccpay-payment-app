@@ -74,12 +74,8 @@
             json-smart version 2.4.10 in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
         </notes>
         <cve>CVE-2022-45688</cve>
-    </suppress>
-    <suppress until="2023-10-30">
-        <notes>
-            json-smart version 2.4.10 in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
-        </notes>
-        <cve>CVE-2022-45688</cve>
+        <cve>CVE-2021-31684</cve>
+        <cve>CVE-2021-27568</cve>
     </suppress>
     <suppress until="2023-10-30">
         <notes>
@@ -169,6 +165,8 @@
             Same applies to json-smart version 2.4.10
         </notes>
         <cve>CVE-2022-45688</cve>
+        <cve>CVE-2021-31684</cve>
+        <cve>CVE-2021-27568</cve>
     </suppress>
     <suppress until="2023-10-30">
         <notes>
