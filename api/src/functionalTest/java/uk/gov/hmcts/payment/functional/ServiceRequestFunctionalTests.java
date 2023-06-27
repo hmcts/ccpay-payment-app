@@ -589,8 +589,7 @@ public class ServiceRequestFunctionalTests {
     }
 
     @Test
-    public void positive_create_service_request_and_a_duplicate_service_request_post_failed_payment_account_over_limit()
-        throws Exception {
+    public void positive_create_service_request_and_a_duplicate_service_request_post_failed_payment_account_over_limit() {
 
         final ServiceRequestDto serviceRequestDto
             = ServiceRequestFixture.buildServiceRequestDTOWithFees35000("ABA6", null);
@@ -734,7 +733,7 @@ public class ServiceRequestFunctionalTests {
     }
 
     @Test
-    public void negative_get_service_request_for_invalid_ccd_case_number() throws Exception {
+    public void negative_get_service_request_for_invalid_ccd_case_number() {
         Response getPaymentGroupResponse =
             serviceRequestTestService.getPaymentGroups(USER_TOKEN_PAYMENT, SERVICE_TOKEN, "Test-Invalid");
         assertThat(getPaymentGroupResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND.value());
@@ -1083,7 +1082,7 @@ public class ServiceRequestFunctionalTests {
 
         // Create a Bulk scan payment
         String ccdCaseNumber = "1111-CC12" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
-        String dcn = "3456908723459913" + RandomUtils.nextInt();
+        String dcn = "6600000000001" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
         dcn=  dcn.substring(0,21);
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal("100.00"))
@@ -1204,7 +1203,7 @@ public class ServiceRequestFunctionalTests {
 
         // Create a Bulk scan payment
         String ccdCaseNumber = "1111-CC12" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
-        String dcn = "3456908723459914" + RandomUtils.nextInt();
+        String dcn = "6600000000001" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
         dcn=  dcn.substring(0,21);
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal("100.00"))
@@ -1302,7 +1301,7 @@ public class ServiceRequestFunctionalTests {
 
         // Create a Bulk scan payment
         String ccdCaseNumber = "1111-CC12" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
-        String dcn = "3456908723459915" + RandomUtils.nextInt();
+        String dcn = "6600000000001" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
         dcn=  dcn.substring(0,21);
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal("100.00"))

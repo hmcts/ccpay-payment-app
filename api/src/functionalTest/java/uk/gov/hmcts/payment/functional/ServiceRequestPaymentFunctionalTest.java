@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.functional;
 
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
+import org.apache.commons.lang3.RandomUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -46,6 +47,9 @@ public class ServiceRequestPaymentFunctionalTest {
     private static String SERVICE_TOKEN;
     private static boolean TOKENS_INITIALIZED = false;
 
+    private static final int CCD_EIGHT_DIGIT_UPPER = 99999999;
+    private static final int CCD_EIGHT_DIGIT_LOWER = 10000000;
+
     @Before
     public void setUp() throws Exception {
         if (!TOKENS_INITIALIZED) {
@@ -58,10 +62,12 @@ public class ServiceRequestPaymentFunctionalTest {
 
     @Test
     public void createAnServiceRequestAndMakePBAPayment(){
+        String ccdCaseNumber = "11116464" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
+
         UUID randomUUID = UUID.randomUUID();
         ServiceRequestDto serviceRequestDto = ServiceRequestDto.serviceRequestDtoWith()
             .hmctsOrgId("ABA1")
-            .ccdCaseNumber("1234567890123456")
+            .ccdCaseNumber(ccdCaseNumber)
             .caseReference("abcd-defg-hjik-1234")
             .casePaymentRequest(getCasePaymentRequest())
             .callBackUrl("http://callback.hmcts.net")

@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.functional;
 
 
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
+import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.junit.Before;
 import org.junit.Test;
@@ -48,6 +49,9 @@ public class RemissionFunctionalTest {
     @Autowired
     private S2sTokenService s2sTokenService;
 
+    private static final int CCD_EIGHT_DIGIT_UPPER = 99999999;
+    private static final int CCD_EIGHT_DIGIT_LOWER = 10000000;
+
     @Before
     public void setUp() throws Exception {
         if (!TOKENS_INITIALIZED) {
@@ -59,23 +63,25 @@ public class RemissionFunctionalTest {
     }
 
     @Test
-    public void createUpfrontRemission() throws Exception {
+    public void createUpfrontRemission() {
+        String ccdCaseNumber = "11115677" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
 
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
-            .when().createUpfrontRemission(getRemissionRequest())
+            .when().createUpfrontRemission(getRemissionRequest(ccdCaseNumber))
             .then().gotCreated(RemissionDto.class, remissionDto -> {
             assertThat(remissionDto).isNotNull();
-            assertThat(remissionDto.getFee()).isEqualToComparingOnlyGivenFields(getFee());
+            assertThat(remissionDto.getFee()).isEqualToComparingOnlyGivenFields(getFee(ccdCaseNumber));
         });
     }
 
     @Test
     public void createRetrospectiveRemissionAndRetrieveRemissionByPaymentGroupTest() throws Exception {
+        String ccdCaseNumber = "11115652" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
 
         TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
             .amount(new BigDecimal("99.99"))
-            .ccdCaseNumber("1234567890123456")
+            .ccdCaseNumber(ccdCaseNumber)
             .currency(CurrencyCode.GBP)
             .caseType("LegacySearch")
             .returnURL("https://www.moneyclaims.service.gov.uk")
@@ -110,7 +116,7 @@ public class RemissionFunctionalTest {
             // TEST create retrospective remission
             dsl.given().userToken(USER_TOKEN)
                 .s2sToken(SERVICE_TOKEN)
-                .when().createRetrospectiveRemission(getRemissionRequest(), paymentGroupReference, feeId)
+                .when().createRetrospectiveRemission(getRemissionRequest(ccdCaseNumber), paymentGroupReference, feeId)
                 .then().gotCreated(RemissionDto.class, remissionDto -> {
                 assertThat(remissionDto).isNotNull();
                 assertThat(remissionDto.getPaymentGroupReference()).isEqualTo(paymentGroupReference);
@@ -124,8 +130,8 @@ public class RemissionFunctionalTest {
                 .then().got(PaymentGroupDto.class, paymentGroupDto -> {
                 assertThat(paymentGroupDto).isNotNull();
                 assertThat(paymentGroupDto.getPayments().get(0)).isEqualToComparingOnlyGivenFields(telephonyPaymentRequest);
-                assertThat(paymentGroupDto.getRemissions().get(0)).isEqualToComparingOnlyGivenFields(getRemissionRequest());
-                assertThat(paymentGroupDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(getFee());
+                assertThat(paymentGroupDto.getRemissions().get(0)).isEqualToComparingOnlyGivenFields(getRemissionRequest(ccdCaseNumber));
+                assertThat(paymentGroupDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(getFee(ccdCaseNumber));
 
                 BigDecimal netAmount = paymentGroupDto.getFees().get(0).getCalculatedAmount()
                     .subtract(paymentGroupDto.getRemissions().get(0).getHwfAmount());
@@ -136,35 +142,21 @@ public class RemissionFunctionalTest {
     }
 
 
-    private CardPaymentRequest getCardPaymentRequest() {
-        return CardPaymentRequest.createCardPaymentRequestDtoWith()
-            .amount(new BigDecimal("550"))
-            .ccdCaseNumber("1111-2222-3333-4444")
-            .channel("telephony")
-            .currency(CurrencyCode.GBP)
-            .description("A test telephony payment")
-            .provider("pci pal")
-            .service("DIVORCE")
-            .caseType("DIVORCE_ExceptionRecord")
-            .fees(Collections.singletonList(getFee()))
-            .build();
-    }
-
-    private RemissionRequest getRemissionRequest() {
+    private RemissionRequest getRemissionRequest(String ccdCaseNumber) {
         return RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("A partial remission")
-            .ccdCaseNumber("1111-2222-3333-4444")
+            .ccdCaseNumber(ccdCaseNumber)
             .hwfAmount(new BigDecimal("50"))
             .hwfReference("HR1111")
             .caseType("DIVORCE_ExceptionRecord")
-            .fee(getFee())
+            .fee(getFee(ccdCaseNumber))
             .build();
     }
 
-    private FeeDto getFee() {
+    private FeeDto getFee(String ccdCaseNumber) {
         return FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("550.00"))
-            .ccdCaseNumber("1111-2222-3333-4444")
+            .ccdCaseNumber(ccdCaseNumber)
             .version("1")
             .code("FEE0123")
             .build();
