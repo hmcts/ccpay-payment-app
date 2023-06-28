@@ -359,7 +359,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         final HttpEntity<List<RefundDto>> entity = new HttpEntity<>(httpHeaders);
 
         return restTemplateGetRefund.exchange(builder.toUriString(), HttpMethod.GET, entity,
-                new ParameterizedTypeReference<>() {
+                new ParameterizedTypeReference<RefundPaymentFailureReportDtoResponse>() {
                 });
     }
 

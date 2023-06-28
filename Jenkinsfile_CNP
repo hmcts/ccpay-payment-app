@@ -132,6 +132,14 @@ withPipeline(type, product, app) {
         ]
     }
 
+    before('functionalTest:aat') {
+        env.REFUND_API_URL = 'http://ccpay-refunds-api-aat.service.core-compute-aat.internal'
+        env.CCPAY_BULK_SCANNING_API_URL = 'http://ccpay-bulkscanning-api-aat.service.core-compute-aat.internal'
+        println """\
+                Using REFUND_API_URL: ${env.REFUND_API_URL}
+                Using CCPAY_BULK_SCANNING_API_URL: ${env.CCPAY_BULK_SCANNING_API_URL}""".stripIndent()
+    }
+
     afterAlways('functionalTest:aat') {
 
         publishHTML target: [

@@ -47,6 +47,12 @@ public class TestConfigProperties {
     @Value("${payments.account.fake.account.number}")
     public String fakeAccountNumber;
 
+    @Value("${payments.account.onhold.account.number}")
+    public String onHoldAccountNumber;
+
+    @Value("${payments.account.deleted.account.number}")
+    public String deletedAccountNumber;
+
     @Value("${payments.account.probate.account.number}")
     public String probatePbaAccountNumber;
 

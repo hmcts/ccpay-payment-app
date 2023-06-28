@@ -54,6 +54,8 @@ public class PaymentBulkscanPerformanceLiberataTest {
     private static boolean TOKENS_INITIALIZED = false;
     private static final String PAYMENT_REFERENCE_REGEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
     private static final String REMISSION_REFERENCE_REGEX = "^[RM-]{3}(\\w{4}-){3}(\\w{4})";
+    private static final int CCD_EIGHT_DIGIT_UPPER = 99999999;
+    private static final int CCD_EIGHT_DIGIT_LOWER = 10000000;
 
    @Before
     public void setUp() throws Exception {
@@ -67,9 +69,9 @@ public class PaymentBulkscanPerformanceLiberataTest {
 
     @Test
     public void givenAFeeInPG_WhenABulkScanPaymentNeedsMappingthenPaymentShouldBeAddedToExistingGroup() throws Exception {
-        String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
-        String ccdCaseNumber1 = "1111-CC12-" + RandomUtils.nextInt();
-        String dcn = "3456908723459" + RandomUtils.nextInt();
+        String ccdCaseNumber = "11115656" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);;
+        String ccdCaseNumber1 = "11115656" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);;
+        String dcn = "6600000000001" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal(100.00))

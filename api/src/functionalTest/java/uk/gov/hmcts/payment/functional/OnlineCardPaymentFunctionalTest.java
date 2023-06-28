@@ -77,6 +77,9 @@ public class OnlineCardPaymentFunctionalTest {
 
     private static final Logger LOG = LoggerFactory.getLogger(OnlineCardPaymentFunctionalTest.class);
 
+    private static final int CCD_EIGHT_DIGIT_UPPER = 99999999;
+    private static final int CCD_EIGHT_DIGIT_LOWER = 10000000;
+
     @Before
     public void setUp() throws Exception {
         if (!TOKENS_INITIALIZED) {
@@ -348,7 +351,7 @@ public class OnlineCardPaymentFunctionalTest {
     public void retrieveCMCCardPaymentTestShouldReturnAutoApportionedFees() {
         final String[] reference = new String[1];
 
-        String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
+        String ccdCaseNumber = "11115656" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);;
         // create card payment
         List<FeeDto> fees = new ArrayList<>();
         fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))

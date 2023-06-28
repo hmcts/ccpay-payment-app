@@ -78,6 +78,8 @@ public class RefundRequestorJourneyBulkscanPaymentFunctionalTest {
     private static final String PAYMENT_REFERENCE_REGEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
     private static final String REMISSION_REFERENCE_REGEX = "^[RM-]{3}(\\w{4}-){3}(\\w{4})";
     private static final Pattern REFUNDS_REGEX_PATTERN = Pattern.compile("^(RF)-([0-9]{4})-([0-9-]{4})-([0-9-]{4})-([0-9-]{4})$");
+    private static final int CCD_EIGHT_DIGIT_UPPER = 99999999;
+    private static final int CCD_EIGHT_DIGIT_LOWER = 10000000;
 
     @Before
     public void setUp() throws Exception {
@@ -109,8 +111,8 @@ public class RefundRequestorJourneyBulkscanPaymentFunctionalTest {
                 rand.nextInt(10000),
                 rand.nextInt(99));
 
-            String ccdCaseNumber1 = "1111-CC12-" + RandomUtils.nextInt();
-            String dcn = "3456908723459" + RandomUtils.nextInt();
+            String ccdCaseNumber1 = "11115656" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);;
+            String dcn = "6600000000001" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
 
             BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
                 .amount(new BigDecimal("450.00"))
@@ -205,8 +207,8 @@ public class RefundRequestorJourneyBulkscanPaymentFunctionalTest {
                 rand.nextInt(10000),
                 rand.nextInt(99));
 
-            String ccdCaseNumber1 = "1111-CC12-" + RandomUtils.nextInt();
-            String dcn = "3456908723459" + RandomUtils.nextInt();
+            String ccdCaseNumber1 = "11115656" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);;
+            String dcn = "6600000000001" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
 
             BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
                 .amount(new BigDecimal("100.00"))
