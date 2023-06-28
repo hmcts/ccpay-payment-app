@@ -183,6 +183,7 @@ dependencies {
 
 test {
     // Base test class for other tests - has no runnable test methods
+    maxHeapSize '1g'
     exclude 'uk/gov/hmcts/payment/api/v1/**'
 }
 
