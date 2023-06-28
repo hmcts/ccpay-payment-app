@@ -80,6 +80,7 @@
             json-smart version 2.4.10 in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
         </notes>
         <cve>CVE-2022-45688</cve>
+        <cve>CVE-2023-35116</cve>
     </suppress>
     <suppress until="2023-06-30">
         <notes>
