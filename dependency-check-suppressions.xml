@@ -178,9 +178,7 @@
         <cve>CVE-2022-42003</cve>
         <cve>CVE-2022-42004</cve>
         <cve>CVE-2023-20863</cve>
-        <cve>CVE-2023-30614</cve>
     </suppress>
-
     <suppress>
         <notes>SnakeYaml's Constructor() class does not restrict types which can be instantiated during deserialization.
         </notes>
@@ -213,16 +211,12 @@
     </suppress>
 
     <suppress>
-        <notes>The fix for CVE-2023-24998 was incomplete for Apache Tomcat 11.0.0-M2 to 11.0.0-M4, 10.1.5 to 10.1.7, 9.0.71 to 9.0.73 and 8.5.85 to 8.5.87.
+        <notes>
+            Use of Java's default temporary directory for file creation in `FileBackedOutputStream` in Google Guava
+            versions 1.0 to 31.1 on Unix systems
         </notes>
-        <cve>CVE-2023-28709</cve>
+        <cve>CVE-2023-2976</cve>
     </suppress>
-
-    <suppress>
-        <notes>CVE-2023-20883: Spring Boot Welcome Page DoS Vulnerability</notes>
-        <cve>CVE-2023-20883</cve>
-    </suppress>
-
 
 
     <!-- Supression Group ends here -->
