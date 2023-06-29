@@ -7,6 +7,7 @@ import com.microsoft.azure.servicebus.IMessageReceiver;
 import com.microsoft.azure.servicebus.TopicClient;
 import com.microsoft.azure.servicebus.primitives.ServiceBusException;
 import io.swagger.annotations.*;
+import lombok.val;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,6 +56,7 @@ import java.util.stream.Collectors;
 @RestController
 @Api(tags = {"service-request"})
 @SwaggerDefinition(tags = {@Tag(name = "ServiceRequestController", description = "Service Request REST API")})
+@SuppressWarnings("all")
 public class ServiceRequestController {
 
     private static final Logger LOG = LoggerFactory.getLogger(ServiceRequestController.class);
@@ -154,7 +156,18 @@ public class ServiceRequestController {
 
         idempotencyKey = serviceRequestPaymentDto.getIdempotencyKey();
         LOG.info("PBA payment started");
-        ObjectMapper objectMapper = new ObjectMapper();
+        val objectMapper = new ObjectMapper();
+        val requestHashCode = serviceRequestPaymentDto.hashCodeWithServiceRequestReference(serviceRequestReference);
+        val conflictResponse = new ResponseEntity("Payment already present for idempotency key with different payment details", HttpStatus.CONFLICT); // 409 if hashcode not matched
+
+        LOG.error("PBA payment business validations for serviceRequest");
+        PaymentFeeLink serviceRequest = serviceRequestDomainService.businessValidationForServiceRequests(serviceRequestDomainService.find(serviceRequestReference), serviceRequestPaymentDto);
+        LOG.error("PBA payment idempotency validation");
+        val isAnotherPaymentForThisServiceRequest = idempotencyService.findTheRecordByRequestHashcode(requestHashCode);
+        if (!isAnotherPaymentForThisServiceRequest.isEmpty() &&  IsAnyCreatedPaymentForThisServiceRequest(isAnotherPaymentForThisServiceRequest)) {
+            return conflictResponse;
+        }
+
         Function<String, Optional<IdempotencyKeys>> getIdempotencyKey = idempotencyKeyToCheck -> idempotencyService.findTheRecordByIdempotencyKey(idempotencyKeyToCheck);
 
         ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
@@ -165,8 +178,8 @@ public class ServiceRequestController {
 
             ServiceRequestPaymentBo responseBO;
             try {
-                if (!idempotencyKeys.getRequest_hashcode().equals(serviceRequestPaymentDto.hashCodeWithServiceRequestReference(serviceRequestReference))) {
-                    return new ResponseEntity<>("Payment already present for idempotency key with different payment details", HttpStatus.CONFLICT); // 409 if hashcode not matched
+                if (!idempotencyKeys.getRequestHashcode().equals(serviceRequestPaymentDto.hashCodeWithServiceRequestReference(serviceRequestReference))) {
+                    return conflictResponse;
                 }
                 if (idempotencyKeys.getResponseCode() >= 500) {
                     return new ResponseEntity<>(idempotencyKeys.getResponseBody(), HttpStatus.valueOf(idempotencyKeys.getResponseCode()));
@@ -186,8 +199,6 @@ public class ServiceRequestController {
             return responseEntity;
         }
 
-        //business validations for serviceRequest
-        PaymentFeeLink serviceRequest = serviceRequestDomainService.businessValidationForServiceRequests(serviceRequestDomainService.find(serviceRequestReference), serviceRequestPaymentDto);
 
         //PBA Payment
         ServiceRequestPaymentBo serviceRequestPaymentBo = null;
@@ -216,6 +227,10 @@ public class ServiceRequestController {
 
         //Create Idempotency Record
         return serviceRequestDomainService.createIdempotencyRecord(objectMapper, idempotencyKey, serviceRequestReference, responseJson, responseEntity, serviceRequestPaymentDto);
+    }
+
+    private boolean IsAnyCreatedPaymentForThisServiceRequest(List<IdempotencyKeys> idempotencyKeys) {
+        return idempotencyKeys.stream().filter(a -> a.getResponseCode().equals(HttpStatus.CREATED.value())).findAny().isPresent();
     }
 
     private TopicClient topicClient;

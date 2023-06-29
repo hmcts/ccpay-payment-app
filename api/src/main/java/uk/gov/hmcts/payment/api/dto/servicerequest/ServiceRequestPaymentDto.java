@@ -66,7 +66,7 @@ public class ServiceRequestPaymentDto {
     }
 
     public int hashCodeWithServiceRequestReference(String orderReference) {
-        return Objects.hash(orderReference.trim(), amount.abs().toString(), currency, customerReference.trim(), accountNumber.trim());
+        return Objects.hash(orderReference.trim());
     }
 
     @JsonIgnore

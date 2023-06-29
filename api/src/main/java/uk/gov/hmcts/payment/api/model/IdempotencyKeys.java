@@ -37,7 +37,7 @@ public class IdempotencyKeys {
 
     @Id
     @Column(name = "request_hashcode")
-    private Integer request_hashcode;
+    private Integer requestHashcode;
 
     @CreationTimestamp
     @Column(name = "date_created", nullable = false)

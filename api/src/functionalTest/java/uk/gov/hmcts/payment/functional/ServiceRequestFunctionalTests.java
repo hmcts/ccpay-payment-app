@@ -42,6 +42,7 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 
@@ -403,10 +404,11 @@ public class ServiceRequestFunctionalTests {
     }
 
     @Test
-    public void positive_create_service_request_and_a_pba_payment_and_a_duplicate_payment_for_same_idempotent_key() {
-
+    public void negative_create_service_request_and_a_pba_payment_and_a_duplicate_payment_for_same_idempotent_key()
+        throws Exception {
+        String ccdCaseNumber = "11111234" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
         final ServiceRequestDto serviceRequestDto
-            = ServiceRequestFixture.buildServiceRequestDTO("ABA6", null);
+            = ServiceRequestFixture.buildServiceRequestDTO("ABA6", ccdCaseNumber);
         final Response createServiceRequestResponse
             = serviceRequestTestService.createServiceRequest(USER_TOKEN_PAYMENT, SERVICE_TOKEN,
             serviceRequestDto);
@@ -430,7 +432,7 @@ public class ServiceRequestFunctionalTests {
             = serviceRequestTestService.createPBAPaymentForAServiceRequest(USER_TOKEN_PAYMENT,
             SERVICE_TOKEN,
             serviceRequestReference, serviceRequestPaymentDto);
-        assertThat(pbaPaymentServiceRequestResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
+        assertThat(pbaPaymentServiceRequestResponse.getStatusCode()).isEqualTo(CREATED.value());
         ServiceRequestPaymentBo serviceRequestPaymentBo =
             pbaPaymentServiceRequestResponse.getBody().as(ServiceRequestPaymentBo.class);
         final String paymentReference = serviceRequestPaymentBo.getPaymentReference();
@@ -439,12 +441,7 @@ public class ServiceRequestFunctionalTests {
         final Response pbaPaymentServiceRequestResponseAgain
             = serviceRequestTestService.createPBAPaymentForAServiceRequest(USER_TOKEN_PAYMENT,
             SERVICE_TOKEN, serviceRequestReference, serviceRequestPaymentDto);
-        assertThat(pbaPaymentServiceRequestResponseAgain.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
-        ServiceRequestPaymentBo serviceRequestPaymentBoAgain =
-            pbaPaymentServiceRequestResponseAgain.getBody().as(ServiceRequestPaymentBo.class);
-        final String paymentReferenceAgain = serviceRequestPaymentBoAgain.getPaymentReference();
-        assertThat(paymentReferenceAgain).matches(PAYMENTS_REGEX_PATTERN);
-        assertThat(paymentReference).isEqualTo(paymentReferenceAgain);
+        assertThat(pbaPaymentServiceRequestResponseAgain.getStatusCode()).isEqualTo(HttpStatus.PRECONDITION_FAILED.value());
     }
 
     @Test

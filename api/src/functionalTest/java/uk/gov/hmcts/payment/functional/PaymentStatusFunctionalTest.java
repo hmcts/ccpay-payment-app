@@ -1635,11 +1635,9 @@ public class PaymentStatusFunctionalTest {
         // Create a Bulk scan payment
         String dcn = "6600000000001" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
         String failureReference = "FR-123-456" + RandomUtils.nextInt();
-        dcn = dcn.substring(0, 21);
-        String ccdCaseNumber = "11114335" + RandomUtils.nextInt();
-        if (ccdCaseNumber.length() > 16) {
-            ccdCaseNumber = ccdCaseNumber.substring(0, 16);
-        }
+        dcn=  dcn.substring(0,21);
+        String ccdCaseNumber = "11114335" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
+      
         BulkScanPayment bulkScanPayment = BulkScanPayment.createPaymentRequestWith()
             .amount(new BigDecimal("555"))
             .bankGiroCreditSlipNumber(Integer.valueOf("5"))
