@@ -208,6 +208,9 @@
         </notes>
         <cve>CVE-2023-20883</cve>
     </suppress>
+    <suppress>
+        <cve>CVE-2023-35116</cve>
+    </suppress>
 
     <suppress>
         <notes>The fix for CVE-2023-24998 was incomplete for Apache Tomcat 11.0.0-M2 to 11.0.0-M4, 10.1.5 to 10.1.7, 9.0.71 to 9.0.73 and 8.5.85 to 8.5.87.

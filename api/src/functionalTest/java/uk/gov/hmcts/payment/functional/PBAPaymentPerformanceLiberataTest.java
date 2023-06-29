@@ -1,13 +1,8 @@
 package uk.gov.hmcts.payment.functional;
 
 import io.restassured.response.Response;
-import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,8 +29,7 @@ import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CASE_WORKER_G
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
 
 
-/* Temporarily ignoring tests, for org id release, will be fix as a hotfix on 18.07.2021 */
-@RunWith(SpringIntegrationSerenityRunner.class)
+/* These are data generation tooling tests when PBA went live, no need to run in the pipeline  */
 @ContextConfiguration(classes = TestContextConfiguration.class)
 public class PBAPaymentPerformanceLiberataTest {
 
@@ -66,7 +60,7 @@ public class PBAPaymentPerformanceLiberataTest {
 
 
 
-   @Before
+//   @Before
     public void setUp() {
         if (!TOKENS_INITIALIZED) {
             USER_TOKEN = idamService.createUserWith(CMC_CASE_WORKER_GROUP, "caseworker-cmc-solicitor").getAuthorisationToken();
@@ -76,7 +70,6 @@ public class PBAPaymentPerformanceLiberataTest {
         }
     }
 
-    @Test @Ignore
     public void makeAndRetrievePba500PaymentsByProbateFromLiberata() throws InterruptedException {
         // create a PBA payment
         final Integer PaymentCount = 500;
@@ -127,7 +120,6 @@ public class PBAPaymentPerformanceLiberataTest {
         LOG.info("Response time in milliseconds approach 1 api for 500 PBA payment is : {}",liberataResponseTimeApproach1.getTime());
     }
 
-    @Test @Ignore
     public void makeAndRetrievePba5PaymentsByProbateFromLiberata() throws InterruptedException {
         // create a PBA payment
         final Integer PaymentCount = 5;
@@ -178,7 +170,6 @@ public class PBAPaymentPerformanceLiberataTest {
         LOG.info("Response time in milliseconds approach 1 api for 5 PBA payment is : {}",liberataResponseTimeApproach1.getTime());
     }
 
-    @Test @Ignore
     public void makeAndRetrievePba800PaymentsByFinremFromLiberata() throws InterruptedException {
         // create a PBA payment
         final Integer PaymentCount = 800;
@@ -229,7 +220,6 @@ public class PBAPaymentPerformanceLiberataTest {
         LOG.info("Response time in milliseconds approach 1 api for 800 PBA payment is : {}",liberataResponseTimeApproach1.getTime());
     }
 
-    @Test @Ignore
     public void makeAndRetrievePba5PaymentsByFinremFromLiberata() throws InterruptedException {
         // create a PBA payment
         final Integer PaymentCount = 5;
@@ -280,7 +270,6 @@ public class PBAPaymentPerformanceLiberataTest {
         LOG.info("Response time in milliseconds approach 1 api for 5 PBA payment is : {}",liberataResponseTimeApproach1.getTime());
     }
 
-    @Test @Ignore
     public void makeAndRetrievePba1000PaymentsByDivorceFromLiberata() throws InterruptedException {
         // create a PBA payment
         final Integer PaymentCount = 1000;
@@ -331,7 +320,6 @@ public class PBAPaymentPerformanceLiberataTest {
         LOG.info("Response time in milliseconds approach 1 api for 1000 PBA payment is : {}",liberataResponseTimeApproach1.getTime());
     }
 
-    @Test @Ignore
     public void makeAndRetrievePba5PaymentsByDivorceFromLiberata() throws InterruptedException {
         // create a PBA payment
         final Integer PaymentCount = 5;
@@ -382,7 +370,6 @@ public class PBAPaymentPerformanceLiberataTest {
         LOG.info("Response time in milliseconds approach 1 api for 5 PBA payment is : {}",liberataResponseTimeApproach1.getTime());
     }
 
-    @Test @Ignore
     public void makeAndRetrievePba1300PaymentsByCmcFromLiberata() throws InterruptedException {
         // create a PBA payment
         final Integer PaymentCount = 1300;
@@ -432,7 +419,6 @@ public class PBAPaymentPerformanceLiberataTest {
         LOG.info("Response time in milliseconds approach 1 api for 1300 PBA payment is : {}",liberataResponseTimeApproach1.getTime());
     }
 
-    @Test @Ignore
     public void makeAndRetrievePba5PaymentsByCmcFromLiberata() throws InterruptedException {
         // create a PBA payment
         final Integer PaymentCount = 5;
@@ -482,7 +468,6 @@ public class PBAPaymentPerformanceLiberataTest {
         LOG.info("Response time in milliseconds approach 1 api for 5 PBA payment is : {}",liberataResponseTimeApproach1.getTime());
     }
 
-    @Test @Ignore
     public void makeAndRetrieveResponseTime30PbaPaymentsByFPLFromLiberata() throws InterruptedException {
         // create PBA payments
         final Integer PaymentCount = 30;
@@ -533,7 +518,6 @@ public class PBAPaymentPerformanceLiberataTest {
 
     }
 
-    @Test @Ignore
     public void makeAndRetrieveResponseTime5PbaPaymentsByFPLFromLiberata() throws InterruptedException {
         // create PBA payments
         final Integer PaymentCount = 5;
@@ -584,7 +568,6 @@ public class PBAPaymentPerformanceLiberataTest {
 
     }
 
-    @Test @Ignore
     public void makeAndRetrieveResponseTime5PbaPaymentsByCivilFromLiberata() throws InterruptedException {
         // create PBA payments
         final Integer PaymentCount = 5;
@@ -635,8 +618,6 @@ public class PBAPaymentPerformanceLiberataTest {
 
     }
 
-    @Test
-    @Ignore
     public void makeAndRetrieveResponseTime5PbaPaymentsByIACFromLiberata() throws InterruptedException {
         // create PBA payments
         final Integer PaymentCount = 5;

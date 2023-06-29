@@ -6,8 +6,8 @@ import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.junit.Assume;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.junit.runner.RunWith;
@@ -1288,34 +1288,38 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         assertThat(refundResponse.getBody().print()).isEqualTo("Refund can be possible if payment is successful");
     }
 
-    @Ignore
     @Test
     public void negative_add_remission_and_submit_a_refund_for_a_pba_payment_more_than_the_account_limit() {
 
+        String accountNumber = testProps.existingAccountNumber;
+
         // Create a PBA payment
         this.add_remisssions_and_add_refund_for_a_failed_payment("350000.00",
-            "PBAFUNC12345",
+            accountNumber,
             "Payment request failed. PBA account CAERPHILLY COUNTY BOROUGH COUNCIL have insufficient funds available");
     }
 
-
-    @Ignore
     @Test
     public void negative_add_remission_and_submit_a_refund_for_a_pba_payment_with_account_deleted() {
+        Assume.assumeTrue(!testProps.baseTestUrl.contains("payment-api-pr-"));
+
+        String accountNumber = testProps.deletedAccountNumber;
 
         // Create a PBA payment
         this.add_remisssions_and_add_refund_for_a_failed_payment("100.00",
-            "PBAFUNC12345",
+            accountNumber,
             "Your account is deleted");
     }
 
-    @Ignore
     @Test
     public void negative_add_remission_and_submit_a_refund_for_a_pba_payment_with_account_on_hold() {
+        Assume.assumeTrue(!testProps.baseTestUrl.contains("payment-api-pr-"));
+
+        String accountNumber = testProps.onHoldAccountNumber;
 
         // Create a PBA payment
         this.add_remisssions_and_add_refund_for_a_failed_payment("100.00",
-            "PBAFUNC12345",
+            accountNumber,
             "Your account is on hold");
     }
 
@@ -1327,8 +1331,17 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
             .aPbaPaymentRequestForProbate(amount,
                 "PROBATE", accountNumber);
         String ccdCaseNumber = accountPaymentRequest.getCcdCaseNumber();
-        paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
-            .statusCode(FORBIDDEN.value());
+
+//        paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
+//            .statusCode(FORBIDDEN.value());
+
+        PaymentDto paymentDto = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).
+            then().statusCode(FORBIDDEN.value())
+            .body("status", equalTo("Failed"))
+            .body("status_histories[0].error_message", equalTo(errorMessage))
+            .extract().as(PaymentDto.class);
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
+            ccdCaseNumber, "5");
 
         Response casePaymentGroupResponse
             = cardTestService
@@ -1349,20 +1362,25 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
 
         // Get pba payments by accountNumber
         String remissionReference = response.getBody().jsonPath().getString("remission_reference");
-        PaymentsResponse paymentsResponse = paymentTestService
-            .getPbaPaymentsByAccountNumber(USER_TOKEN, SERVICE_TOKEN, accountNumber)
-            .then()
-            .statusCode(OK.value()).extract().as(PaymentsResponse.class);
 
-        Optional<PaymentDto> paymentDtoOptional
-                = paymentsResponse.getPayments().stream()
-                .sorted((s1, s2) -> s2.getDateCreated().compareTo(s1.getDateCreated())).findFirst();
+//        PaymentsResponse paymentsResponse = paymentTestService
+//            .getPbaPaymentsByAccountNumber(USER_TOKEN, SERVICE_TOKEN, accountNumber)
+//            .then()
+//            .statusCode(OK.value()).extract().as(PaymentsResponse.class);
 
-        assertThat(paymentDtoOptional.get().getAccountNumber()).isEqualTo(accountNumber);
-        assertThat(paymentDtoOptional.get().getAmount()).isEqualTo(new BigDecimal(amount));
-        assertThat(paymentDtoOptional.get().getCcdCaseNumber()).isEqualTo(ccdCaseNumber);
-        assertThat(paymentDtoOptional.get().getStatus()).isEqualTo("Failed");
-        assertThat(paymentDtoOptional.get().getStatusHistories().get(0).getErrorMessage()).isEqualTo(errorMessage);
+        // Get pba payment by reference
+        PaymentDto paymentDtoResponse =
+            paymentTestService.getPbaPayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then()
+                .statusCode(OK.value()).extract().as(PaymentDto.class);
+
+//        Optional<PaymentDto> paymentDtoOptional
+//                = paymentsResponse.getPayments().stream()
+//                .sorted((s1, s2) -> s2.getDateCreated().compareTo(s1.getDateCreated())).findFirst();
+
+        assertThat(paymentDtoResponse.getAccountNumber()).isEqualTo(accountNumber);
+        assertThat(paymentDtoResponse.getAmount()).isEqualTo(new BigDecimal(amount));
+        assertThat(paymentDtoResponse.getCcdCaseNumber()).isEqualTo(ccdCaseNumber);
+        assertThat(paymentDtoResponse.getStatus()).isEqualTo("Failed");
 
         RetrospectiveRemissionRequest retrospectiveRemissionRequest
             = PaymentFixture.aRetroRemissionRequest(remissionReference);

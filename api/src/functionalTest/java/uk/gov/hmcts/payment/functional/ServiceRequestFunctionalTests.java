@@ -7,8 +7,8 @@ import io.restassured.response.Response;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.apache.commons.lang3.RandomUtils;
 import org.joda.time.DateTime;
+import org.junit.Assume;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -148,7 +148,6 @@ public class ServiceRequestFunctionalTests {
     }
 
     @Test
-//    @Ignore("TODO- Error message is not provided. UPDATE: FIXED")
     public void negative_create_service_request_for_cmc_solicitor_user_professional() throws Exception {
 
         ServiceRequestDto serviceRequestDto
@@ -229,8 +228,8 @@ public class ServiceRequestFunctionalTests {
     }
 
     @Test
-//    @Ignore("No proper Error message for a ccdCaseNumber that is not present")
-    public void negative_create_service_request_service_not_found() throws Exception {
+    //  No proper Error message for a ccdCaseNumber that is not present
+    public void negative_create_service_request_service_not_found() {
 
         Response getPaymentGroupResponse =
             serviceRequestTestService.getPaymentGroups(USER_TOKEN_PAYMENT, SERVICE_TOKEN, "Unknown");
@@ -290,7 +289,6 @@ public class ServiceRequestFunctionalTests {
     }
 
     @Test
-    //@Ignore("Test Build")
     public void negative_duplicate_fees_for_a_create_service_request() throws Exception {
         ServiceRequestDto serviceRequestDto
             = ServiceRequestFixture.buildServiceRequestDTOWithDuplicateFees("ABA6", null);
@@ -347,7 +345,7 @@ public class ServiceRequestFunctionalTests {
     }
 
     @Test
-    public void negative_create_service_request_and_an_overpayment_pba_payment_user_hmcts() throws Exception {
+    public void negative_create_service_request_and_an_overpayment_pba_payment_user_hmcts() {
 
         final ServiceRequestDto serviceRequestDto
             = ServiceRequestFixture.buildServiceRequestDTO("ABA6", null);
@@ -377,9 +375,7 @@ public class ServiceRequestFunctionalTests {
     }
 
     @Test
-    // @Ignore("Test Build")
-    // @Ignore("TODO - The Response Body is not of a proper MIME Type....")
-    public void negative_create_service_request_and_an_underpayment_pba_payment_user_hmcts() throws Exception {
+    public void negative_create_service_request_and_an_underpayment_pba_payment_user_hmcts() {
         final ServiceRequestDto serviceRequestDto
             = ServiceRequestFixture.buildServiceRequestDTO("ABA6", null);
         final Response createServiceRequestResponse
@@ -449,9 +445,7 @@ public class ServiceRequestFunctionalTests {
     }
 
     @Test
-    // @Ignore("Test Build")
-    public void positive_create_service_request_and_a_pba_payment_and_a_duplicate_payment_for_a_different_idempotent_Key()
-        throws Exception {
+    public void positive_create_service_request_and_a_pba_payment_and_a_duplicate_payment_for_a_different_idempotent_Key() {
 
         final ServiceRequestDto serviceRequestDto
             = ServiceRequestFixture.buildServiceRequestDTO("ABA6", null);
@@ -494,9 +488,8 @@ public class ServiceRequestFunctionalTests {
     }
 
     @Test
-    @Ignore("Switching this test off as Liberata Mocking is not switched on when during a release in the AAT environment...hence a prevention of a failure...")
-    public void positive_create_service_request_and_a_duplicate_service_request_post_failed_payment_account_deleted()
-        throws Exception {
+    public void positive_create_service_request_and_a_duplicate_service_request_post_failed_payment_account_deleted() {
+        Assume.assumeTrue(!testProps.baseTestUrl.contains("payment-api-pr-"));
 
         final ServiceRequestDto serviceRequestDto
             = ServiceRequestFixture.buildServiceRequestDTO("ABA6", null);
@@ -511,7 +504,7 @@ public class ServiceRequestFunctionalTests {
         assertThat(serviceRequestReference).matches(SERVICE_REQUEST_REGEX_PATTERN);
 
         final ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
-            .paymentDtoWith().accountNumber("PBAFUNC12350")
+            .paymentDtoWith().accountNumber(testProps.deletedAccountNumber)
             .amount(BigDecimal.valueOf(100.00))
             .currency("GBP")
             .organisationName("TestOrg")
@@ -523,7 +516,8 @@ public class ServiceRequestFunctionalTests {
             = serviceRequestTestService.createPBAPaymentForAServiceRequest(USER_TOKEN_PAYMENT,
             SERVICE_TOKEN,
             serviceRequestReference, serviceRequestPaymentDto);
-        assertThat(pbaPaymentServiceRequestResponse.getStatusCode()).isEqualTo(HttpStatus.GONE.value());
+        assertThat(pbaPaymentServiceRequestResponse.getStatusCode()).isEqualTo(GONE.value());
+
         ServiceRequestPaymentBo serviceRequestPaymentBo =
             pbaPaymentServiceRequestResponse.getBody().as(ServiceRequestPaymentBo.class);
         final String paymentReference = serviceRequestPaymentBo.getPaymentReference();
@@ -543,9 +537,8 @@ public class ServiceRequestFunctionalTests {
     }
 
     @Test
-    @Ignore("Switching this test off as Liberata Mocking is not switched on when during a release in the AAT environment...hence a prevention of a failure...")
-    public void positive_create_service_request_and_a_duplicate_service_request_post_failed_payment_account_on_hold()
-        throws Exception {
+    public void positive_create_service_request_and_a_duplicate_service_request_post_failed_payment_account_on_hold() {
+        Assume.assumeTrue(!testProps.baseTestUrl.contains("payment-api-pr-"));
 
         final ServiceRequestDto serviceRequestDto
             = ServiceRequestFixture.buildServiceRequestDTO("ABA6", null);
@@ -561,7 +554,7 @@ public class ServiceRequestFunctionalTests {
 
 
         final ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
-            .paymentDtoWith().accountNumber("PBAFUNC12355")
+            .paymentDtoWith().accountNumber(testProps.onHoldAccountNumber)
             .amount(BigDecimal.valueOf(100.00))
             .organisationName("TestOrg")
             .currency("GBP")
@@ -593,8 +586,7 @@ public class ServiceRequestFunctionalTests {
     }
 
     @Test
-    public void positive_create_service_request_and_a_duplicate_service_request_post_failed_payment_account_over_limit()
-        throws Exception {
+    public void positive_create_service_request_and_a_duplicate_service_request_post_failed_payment_account_over_limit() {
 
         final ServiceRequestDto serviceRequestDto
             = ServiceRequestFixture.buildServiceRequestDTOWithFees35000("ABA6", null);
@@ -641,7 +633,6 @@ public class ServiceRequestFunctionalTests {
     }
 
     @Test
-    //    @Ignore ("Card payment Failing on the amounts Decimal Point......")
     public void positive_create_service_request_and_a_full_card_payment_user_hmcts() throws Exception {
 
         ServiceRequestDto serviceRequestDto
@@ -689,8 +680,7 @@ public class ServiceRequestFunctionalTests {
     }
 
     @Test
-    //@Ignore("Test Build")
-    public void positive_create_service_request_and_an_underpayment_full_card_payment_user_hmcts() throws Exception {
+    public void positive_create_service_request_and_an_underpayment_full_card_payment_user_hmcts() {
 
         ServiceRequestDto serviceRequestDto
             = ServiceRequestFixture.buildServiceRequestDTO("AAA6", null);
@@ -715,8 +705,7 @@ public class ServiceRequestFunctionalTests {
     }
 
     @Test
-    //@Ignore("Test Build")
-    public void positive_create_service_request_and_an_overpayment_full_card_payment_user_hmcts() throws Exception {
+    public void positive_create_service_request_and_an_overpayment_full_card_payment_user_hmcts() {
 
         ServiceRequestDto serviceRequestDto
             = ServiceRequestFixture.buildServiceRequestDTO("AAA6", null);
@@ -741,15 +730,14 @@ public class ServiceRequestFunctionalTests {
     }
 
     @Test
-    public void negative_get_service_request_for_invalid_ccd_case_number() throws Exception {
+    public void negative_get_service_request_for_invalid_ccd_case_number() {
         Response getPaymentGroupResponse =
             serviceRequestTestService.getPaymentGroups(USER_TOKEN_PAYMENT, SERVICE_TOKEN, "Test-Invalid");
         assertThat(getPaymentGroupResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND.value());
     }
 
     @Test
-    //@Ignore ("Should not be able to Create a Service Request with an Invalid hmctsOrgID")
-    public void negative_create_service_request_for_invalid_hmcts_org_id() throws Exception {
+    public void negative_create_service_request_for_invalid_hmcts_org_id() {
         ServiceRequestDto serviceRequestDto
             = ServiceRequestFixture.buildServiceRequestDTO("ZAM6", null);
         Response createServiceRequestResponse
@@ -1091,7 +1079,7 @@ public class ServiceRequestFunctionalTests {
 
         // Create a Bulk scan payment
         String ccdCaseNumber = "1111-CC12" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
-        String dcn = "3456908723459913" + RandomUtils.nextInt();
+        String dcn = "6600000000001" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
         dcn=  dcn.substring(0,21);
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal("100.00"))
@@ -1212,7 +1200,7 @@ public class ServiceRequestFunctionalTests {
 
         // Create a Bulk scan payment
         String ccdCaseNumber = "1111-CC12" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
-        String dcn = "3456908723459914" + RandomUtils.nextInt();
+        String dcn = "6600000000001" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
         dcn=  dcn.substring(0,21);
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal("100.00"))
@@ -1310,7 +1298,7 @@ public class ServiceRequestFunctionalTests {
 
         // Create a Bulk scan payment
         String ccdCaseNumber = "1111-CC12" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
-        String dcn = "3456908723459915" + RandomUtils.nextInt();
+        String dcn = "6600000000001" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
         dcn=  dcn.substring(0,21);
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal("100.00"))
