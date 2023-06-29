@@ -1,5 +1,5 @@
 def versions = [
-        reformS2sClient : '3.1.1',
+        reformS2sClient : '3.1.4',
         junit           : '5.7.1',
         junitPlatform   : '1.7.1'
 ]
