@@ -4,7 +4,7 @@ plugins {
     id 'org.springframework.boot' version '2.3.12.RELEASE'
     id 'io.spring.dependency-management' version '1.0.9.RELEASE'
     id 'org.owasp.dependencycheck' version '8.0.2'
-    id "uk.gov.hmcts.java" version '0.12.0'
+    id "uk.gov.hmcts.java" version '0.12.43'
     id "com.gorylenko.gradle-git-properties" version "2.4.1"
     id 'jacoco'
 }
