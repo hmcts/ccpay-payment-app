@@ -14,7 +14,7 @@ def springCloudVersion = 'Finchley.SR2'
 
 
 def versions = [
-        lombok: '1.18.12',
+        lombok: '1.18.28',
         javaVersion: '11',
         jacocoVersion: '0.8.5'
 ]
