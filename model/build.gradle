@@ -13,7 +13,7 @@ dependencies {
     compile group: 'commons-validator', name: 'commons-validator', version:'1.6'
     compile group: 'com.github.hmcts.java-logging', name: 'logging-appinsights', version: '6.0.1'
     compile group: 'com.netflix.hystrix', name: 'hystrix-javanica', version: '1.5.18'
-    compile group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '5.10.8'
+    compile group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '5.10.9'
 
     testCompile(group: 'org.springframework.boot', name: 'spring-boot-starter-test') {
       exclude(module: 'commons-logging')
