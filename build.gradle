@@ -20,7 +20,7 @@ def versions = [
 ]
 
 dependencies{
-    testCompile 'com.github.hmcts:fortify-client:1.2.1:all'
+    testCompile 'com.github.hmcts:fortify-client:1.3.0:all'
 }
 
 task fortifyScan(type: JavaExec)  {
