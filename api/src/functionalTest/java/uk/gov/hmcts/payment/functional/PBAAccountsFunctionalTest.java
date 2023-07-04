@@ -1,14 +1,8 @@
 package uk.gov.hmcts.payment.functional;
 
 import io.restassured.response.Response;
-import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.shaded.org.apache.commons.lang.RandomStringUtils;
 import uk.gov.hmcts.payment.api.dto.PBAResponse;
@@ -18,7 +12,6 @@ import uk.gov.hmcts.payment.functional.idam.IdamService;
 import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
 import uk.gov.hmcts.payment.functional.service.PBAAccountsTestService;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
@@ -29,10 +22,8 @@ import static uk.gov.hmcts.payment.functional.service.RefDataTestService.approve
 import static uk.gov.hmcts.payment.functional.service.RefDataTestService.postOrganisation;
 import static uk.gov.hmcts.payment.functional.service.RefDataTestService.readFileContents;
 
-@RunWith(SpringIntegrationSerenityRunner.class)
+/* These are data generation tooling tests when PBA went live, no need to run in the pipeline  */
 @ContextConfiguration(classes = TestContextConfiguration.class)
-@ActiveProfiles({"functional-tests", "liberataMock"})
-@Ignore("As all the tests are Ignored,Switching these tests off....")
 public class PBAAccountsFunctionalTest {
 
     @Autowired
@@ -51,7 +42,7 @@ public class PBAAccountsFunctionalTest {
 
     private static final String INPUT_FILE_PATH = "uk/gov/hmcts/payment/functional/pbaaccounts";
 
-    @Before
+//    @Before
     public void setUp() throws Exception {
         if (!TOKENS_INITIALIZED) {
             SERVICE_TOKEN_PAYMENT_APP = s2sTokenService.getS2sToken("payment_app", testProps.getPaymentAppS2SSecret());
@@ -60,8 +51,7 @@ public class PBAAccountsFunctionalTest {
         }
     }
 
-    @Test
-    @Ignore("Leaving this Test Ignored as this creates an Organisation in AAT")
+    // creates an Organisation in AAT
     public void perform_pba_accounts_lookup_for_valid_user_roles() throws Exception {
         this.performPbaAccountsVerification("pui-finance-manager");
         this.performPbaAccountsVerification("pui-organisation-manager");
@@ -70,22 +60,17 @@ public class PBAAccountsFunctionalTest {
         this.performPbaAccountsVerification("payments");
     }
 
-    @Test
-    @Ignore("A citizen should not be able to look up the PBA Accounts... " +
-        "but this would be a Ref Data Check that has to be checked....Defect RDCC-3876 has been " +
-        "raised with the Ref Data team for the purpose of further investigations")
+    // A citizen should not be able to look up the PBA Accounts
     public void negative_perform_pba_accounts_lookup_for_an_invalid_user_roles() throws Exception {
         this.performPbaAccountsVerification("citizen");
     }
 
-    @Test
-    @Ignore("Leaving this Test Ignored as this creates an Organisation in AAT")
+    //creates an Organisation in AAT
     public void perform_pba_accounts_lookup_for_no_accounts_in_the_organisation() throws Exception {
         this.performOrganisationCreationWithNoAccounts("payments","CreateOrganisation_WithNoAccounts.json");
     }
 
-    @Test
-    @Ignore("To be used for one time Data Creation purposes only")
+    // To be used for one time Data Creation purposes only
     public void perform_pba_accounts_lookup_for_fixed_accounts_in_the_organisation() throws Exception {
         this.performOrganisationCreationWithNoAccounts("payments","CreateOrganisation_WithFixedAccounts.json");
     }

@@ -15,10 +15,13 @@ java:
     SPRING_PROFILES_ACTIVE: "liberataMock,callbackMock,ccdMock"
     CALLBACK_PAYMENTS_CUTOFF_TIME_IN_MINUTES: 0
     CCPAY_BULK_SCANNING_API_URL: http://ccpay-bulkscanning-api-pr-434-java
+    # CCPAY_BULK_SCANNING_API_URL: http://${SERVICE_NAME}-ccpay-bulkscanning-api
     IAC_SERVICE_API_URL: http://ia-case-access-api-aat.service.core-compute-aat.internal
     PBA_CONFIG1_SERVICE_NAMES: dummy
     PCI_PAL_API_URL: https://ip3cloud.com/clients/hmcts/payments/index.php
     REFUND_API_URL: http://ccpay-refunds-api-pr-367-java
+    # REFUND_API_URL: http://${SERVICE_NAME}-ccpay-refunds-api
+
   keyVaults:
     "ccpay":
       resourceGroup: ccpay
@@ -51,3 +54,175 @@ java:
         - ccpay-cpo-user-id
   postgresql:
     enabled: true
+    primary:
+      initdb:
+        scripts:
+          init.sql: |
+            CREATE DATABASE refunds WITH OWNER = javapostgres ENCODING = 'UTF-8' CONNECTION LIMIT = -1;
+            CREATE DATABASE bulkscanning WITH OWNER = javapostgres ENCODING = 'UTF-8' CONNECTION LIMIT = -1;
+            CREATE DATABASE notifications WITH OWNER = javapostgres ENCODING = 'UTF-8' CONNECTION LIMIT = -1;
+
+ccpay-refunds-api:
+  enabled: true
+  java:
+    image: hmctspublic.azurecr.io/ccpay/refunds-api:latest
+    releaseNameOverride: ${SERVICE_NAME}-ccpay-refunds-api
+    ingressHost: ccpay-refunds-api-${SERVICE_NAME}.preview.platform.hmcts.net
+    environment:
+      POSTGRES_HOST: "{{ .Release.Name }}-postgresql"
+      POSTGRES_NAME: refunds
+      POSTGRES_USERNAME: "{{ .Values.postgresql.auth.username}}"
+      POSTGRES_PASSWORD: "{{ .Values.postgresql.auth.password}}"
+      POSTGRES_CONNECTION_OPTIONS: "?sslmode=allow"
+      LOGBACK_REQUIRE_ALERT_LEVEL: 'false'
+      LOGBACK_REQUIRE_ERROR_CODE: 'false'
+      SPRING_LIQUIBASE_ENABLED: true
+      OIDC_ISSUER: https://forgerock-am.service.core-compute-idam-aat2.internal:8443/openam/oauth2/hmcts
+      LAUNCH_DARKLY_USER_NAME_PREFIX: aat
+      PAYMENT_API_URL: "http://${SERVICE_NAME}"
+      LIBERATA_OAUTH2_AUTHORIZE_URL: "https://bpacustomerportal.liberata.com/pba/public/oauth/authorize"
+      LIBERATA_OAUTH2_TOKEN_URL: "https://bpacustomerportal.liberata.com/pba/public/oauth/token"
+      LIBERATA_BASE_URL: "https://lascustomerportaluat.liberata.com"
+      REFUND_STATUS_UPDATE_PATH: "/refunds-api/refund"
+      USER_INFO_SIZE: 300
+      USER_LAST_MODIFIED_TIME: 720d
+      REFUND_SERVICE_ACCOUNT_CLIENT_ID: "refunds_api"
+      REFUND_SERVICE_ACCOUNT_GRANT_TYPE: "password"
+      REFUND_SERVICE_ACCOUNT_USERNAME: "idam.user.ccpayrefundsapi@hmcts.net"
+      REFUND_SERVICE_ACCOUNT_SCOPE: "openid profile roles search-user"
+      REFUND_SERVICE_ACCOUNT_REDIRECT_URI: "http://ccpay-refunds-api-aat.service.core-compute-aat.internal/oauth2/callback"
+      NOTIFICATION_API_URL: "http://${SERVICE_NAME}-ccpay-notifications-service"
+    keyVaults:
+      "ccpay":
+        resourceGroup: ccpay
+        secrets:
+          - name: AppInsightsInstrumentationKey
+            alias: azure.application-insights.instrumentation-key
+          - name: refunds-s2s-secret
+            alias: OIDC_S2S_SECRET
+          - name: paybubble-idam-client-secret
+            alias: OIDC_CLIENT_SECRET
+          - name: launch-darkly-sdk-key
+            alias: LAUNCH_DARKLY_SDK_KEY
+          - name: liberata-keys-oauth2-client-id
+            alias: LIBERATA_OAUTH2_CLIENT_ID
+          - name: liberata-keys-oauth2-client-secret
+            alias: LIBERATA_OAUTH2_CLIENT_SECRET
+          - name: liberata-keys-oauth2-username
+            alias: LIBERATA_OAUTH2_USERNAME
+          - name: liberata-keys-oauth2-password
+            alias: LIBERATA_OAUTH2_PASSWORD
+          - name: liberata-api-key
+            alias: LIBERATA_API_KEY
+          - name: refunds-api-user-password
+            alias: REFUND_SERVICE_ACCOUNT_PASSWORD
+          - name: refunds-api-client-secret
+            alias: REFUND_SERVICE_ACCOUNT_CLIENT_SECRET
+          - name: notifications-letter-template-id
+            alias: NOTIFICATION_LETTER_TEMPLATE_ID
+          - name: notifications-email-template-id
+            alias: NOTIFICATION_EMAIL_TEMPLATE_ID
+          - name: notifications-letter-cheque-po-cash-template-id
+            alias: NOTIFICATIONS_LETTER_CHEQUE_PO_CASH_TEMPLATE_ID
+          - name: notifications-email-cheque-po-cash-template-id
+            alias: NOTIFICATIONS_EMAIL_CHEQUE_PO_CASH_TEMPLATE_ID
+          - name: notifications-letter-card-pba-template-id
+            alias: NOTIFICATION_LETTER_CARD_PBA_TEMPLATE_ID
+          - name: notifications-email-card-pba-template-id
+            alias: NOTIFICATION_EMAIL_CARD_PBA_TEMPLATE_ID
+          - name: notifications-letter-refund-when-contacted-template-id
+            alias: NOTIFICATION_LETTER_REFUND_WHEN_CONTACTED_TEMPLATE_ID
+          - name: notifications-email-refund-when-contacted-template-id
+            alias: NOTIFICATION_EMAIL_REFUND_WHEN_CONTACTED_TEMPLATE_ID
+
+ccpay-bulkscanning-api:
+  enabled: true
+  java: 
+    image: hmctspublic.azurecr.io/ccpay/bulkscanning-api:latest
+    releaseNameOverride: ${SERVICE_NAME}-ccpay-bulkscanning-api
+    ingressHost: ccpay-bulkscanning-api-${SERVICE_NAME}.preview.platform.hmcts.net
+    environment:
+      POSTGRES_HOST: "{{ .Release.Name }}-postgresql"
+      POSTGRES_NAME: bulkscanning
+      POSTGRES_USERNAME: "{{ .Values.postgresql.auth.username}}"
+      POSTGRES_PASSWORD: "{{ .Values.postgresql.auth.password}}"
+      POSTGRES_CONNECTION_OPTIONS: "?sslmode=allow"
+      LOGBACK_REQUIRE_ALERT_LEVEL: 'false'
+      LOGBACK_REQUIRE_ERROR_CODE: 'false'
+      SPRING_LIQUIBASE_ENABLED: true
+      OIDC_ISSUER: https://forgerock-am.service.core-compute-idam-aat2.internal:8443/openam/oauth2/hmcts
+    keyVaults:
+      "ccpay":
+        resourceGroup: ccpay
+        secrets:
+          - AppInsightsInstrumentationKey
+          - paybubble-s2s-secret
+          - paybubble-idam-client-secret
+
+ccpay-notifications-service:
+  enabled: true
+  java:
+    image: hmctspublic.azurecr.io/ccpay/notifications-service:latest
+    releaseNameOverride: ${SERVICE_NAME}-ccpay-notifications-service
+    ingressHost: ccpay-notifications-service-${SERVICE_NAME}.preview.platform.hmcts.net
+    environment:
+      POSTGRES_HOST: "{{ .Release.Name }}-postgresql"
+      POSTGRES_NAME: notifications
+      POSTGRES_USERNAME: "{{ .Values.postgresql.auth.username}}"
+      POSTGRES_PASSWORD: "{{ .Values.postgresql.auth.password}}"
+      POSTGRES_CONNECTION_OPTIONS: "?sslmode=allow"
+      LOGBACK_REQUIRE_ALERT_LEVEL: 'false'
+      LOGBACK_REQUIRE_ERROR_CODE: 'false'
+      SPRING_LIQUIBASE_ENABLED: true
+      OIDC_ISSUER: https://forgerock-am.service.core-compute-idam-aat2.internal:8443/openam/oauth2/hmcts
+      LAUNCH_DARKLY_USER_NAME_PREFIX: aat
+      LIBERATA_OAUTH2_AUTHORIZE_URL: "https://bpacustomerportal.liberata.com/pba/public/oauth/authorize"
+      LIBERATA_OAUTH2_TOKEN_URL: "https://bpacustomerportal.liberata.com/pba/public/oauth/token"
+      LIBERATA_BASE_URL: "https://lascustomerportaluat.liberata.com"
+      REFUND_STATUS_UPDATE_PATH: "/refunds-api/refund"
+      USER_INFO_SIZE: 300
+      USER_LAST_MODIFIED_TIME: 720d
+      REFUND_SERVICE_ACCOUNT_CLIENT_ID: "refunds_api"
+      REFUND_SERVICE_ACCOUNT_GRANT_TYPE: "password"
+      REFUND_SERVICE_ACCOUNT_USERNAME: "idam.user.ccpayrefundsapi@hmcts.net"
+      REFUND_SERVICE_ACCOUNT_SCOPE: "openid profile roles search-user"
+      REFUND_SERVICE_ACCOUNT_REDIRECT_URI: "http://ccpay-refunds-api-aat.service.core-compute-aat.internal/oauth2/callback"
+      PAYMENT_API_URL: "http://${SERVICE_NAME}"
+    keyVaults:
+      "ccpay":
+        resourceGroup: ccpay
+        secrets:
+          - name: notifications-service-POSTGRES-PASS
+            alias: POSTGRES_PASSWORD
+          - name: AppInsightsInstrumentationKey
+            alias: azure.application-insights.instrumentation-key
+          - name: notifications-s2s-secret
+            alias: OIDC_S2S_SECRET
+          - name: notifications-email-apikey
+            alias: EMAIL_APIKEY
+          - name: notifications-letter-apikey
+            alias: LETTER_APIKEY
+          - name: freg-idam-generated-user-email-pattern
+            alias: GENERATED_USER_EMAIL_PATTERN
+          - name: refunds-api-user-password
+            alias: REFUND_SERVICE_ACCOUNT_PASSWORD
+          - name: refunds-api-client-secret
+            alias: REFUND_SERVICE_ACCOUNT_CLIENT_SECRET
+          - name: notifications-letter-template-id
+            alias: NOTIFICATION_LETTER_TEMPLATE_ID
+          - name: notifications-email-template-id
+            alias: NOTIFICATION_EMAIL_TEMPLATE_ID
+          - name: notifications-letter-cheque-po-cash-template-id
+            alias: NOTIFICATIONS_LETTER_CHEQUE_PO_CASH_TEMPLATE_ID
+          - name: notifications-email-cheque-po-cash-template-id
+            alias: NOTIFICATIONS_EMAIL_CHEQUE_PO_CASH_TEMPLATE_ID
+          - name: notifications-letter-card-pba-template-id
+            alias: NOTIFICATION_LETTER_CARD_PBA_TEMPLATE_ID
+          - name: notifications-email-card-pba-template-id
+            alias: NOTIFICATION_EMAIL_CARD_PBA_TEMPLATE_ID
+          - name: notifications-letter-refund-when-contacted-template-id
+            alias: NOTIFICATION_LETTER_REFUND_WHEN_CONTACTED_TEMPLATE_ID
+          - name: notifications-email-refund-when-contacted-template-id
+            alias: NOTIFICATION_EMAIL_REFUND_WHEN_CONTACTED_TEMPLATE_ID
+          - name: postcode-address-lookup-id
+            alias: POSTCODE_ADDRESS_LOOKUP_ID

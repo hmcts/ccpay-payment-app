@@ -1,6 +1,6 @@
 description = 'OTP (One Time Password) utility in Java'
 dependencies {
-    compile 'com.amdelamar:jotp:1.2.0'
+    compile 'com.amdelamar:jotp:1.3.0'
     testCompile(group: 'org.springframework.boot', name: 'spring-boot-starter-test') {
         exclude(module: 'commons-logging')
     }

@@ -14,5 +14,5 @@ import java.io.Serializable;
 public class IdempotencyKeysPK implements Serializable {
     private String idempotencyKey;
 
-    private Integer request_hashcode;
+    private Integer requestHashcode;
 }

@@ -215,7 +215,7 @@ public class ServiceRequestDomainServiceTest {
             .idempotencyKeysWith()
             .idempotencyKey("idempotencyKey")
             .requestBody(requestJson)
-            .request_hashcode(123)   //save the hashcode
+            .requestHashcode(123)   //save the hashcode
             .responseBody("")
             .responseCode(201)
             .build();
