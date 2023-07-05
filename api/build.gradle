@@ -310,3 +310,6 @@ pitest {
     detectInlinedCode = true
 }
 
+tasks.named("processContractTestResources") {
+  duplicatesStrategy = 'include'
+}
