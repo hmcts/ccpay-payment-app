@@ -171,7 +171,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
 
         Optional<List<PaymentFailures>> paymentFailures;
         paymentFailures = paymentFailureRepository.findByPaymentReferenceOrderByFailureEventDateTimeDesc(paymentReference);
-        if (paymentFailures.isPresent()) {
+        if (paymentFailures.isPresent() && !paymentFailures.get().isEmpty()) {
             return paymentFailures.get();
         }
         throw new PaymentNotFoundException("no record found");
@@ -197,7 +197,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
 
         BigDecimal totalDisputeAmount = BigDecimal.ZERO;
 
-        if (paymentFailuresList.isPresent()) {
+        if (paymentFailuresList.isPresent() && !paymentFailuresList.get().isEmpty()) {
 
             for (PaymentFailures paymentFailure: paymentFailuresList.get()) {
 

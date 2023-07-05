@@ -296,7 +296,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         Optional<List<PaymentFailures>> paymentFailuresList;
         paymentFailuresList = paymentFailureRepository.findByPaymentReference(payment.getReference());
 
-        if(paymentFailuresList.isPresent()){
+        if(paymentFailuresList.isPresent() && !paymentFailuresList.get().isEmpty()){
             boolean match = paymentFailuresList.get().stream().anyMatch(paymentFailuresList1 -> paymentFailuresList1.getRepresentmentSuccess() == null || paymentFailuresList1.getRepresentmentSuccess().equalsIgnoreCase("no"));
            if(match) {
                throw new PaymentNotSuccessException("Refund can't be requested for failed payment");
