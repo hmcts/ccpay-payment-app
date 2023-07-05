@@ -6,6 +6,6 @@ description = ''
 dependencies {
     implementation group: 'org.hibernate', name: 'hibernate-validator', version:'6.0.17.Final'
     implementation group: 'org.glassfish', name: 'javax.el', version: '3.0.1-b12'
-    api group: 'com.opencsv', name: 'opencsv', version: '5.0'
+    api group: 'com.opencsv', name: 'opencsv', version: '5.7.1'
     implementation project(':payment-model')
 }
