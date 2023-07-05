@@ -68,6 +68,11 @@ public class PayFeeLinkRepositoryStub implements PaymentFeeLinkRepository {
     }
 
     @Override
+    public void deleteAllById(Iterable<? extends Integer> integers) {
+
+    }
+
+    @Override
     public void deleteAll(Iterable<? extends PaymentFeeLink> entities) {
 
     }
@@ -120,5 +125,10 @@ public class PayFeeLinkRepositoryStub implements PaymentFeeLinkRepository {
     @Override
     public long count(Specification<PaymentFeeLink> spec) {
         return 0;
+    }
+
+    @Override
+    public boolean exists(Specification<PaymentFeeLink> spec) {
+        return false;
     }
 }
