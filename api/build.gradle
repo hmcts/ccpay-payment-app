@@ -143,7 +143,7 @@ dependencies {
     testImplementation group: 'org.hsqldb', name: 'hsqldb', version: '2.3.4'
     testImplementation group: 'com.github.tomakehurst', name: 'wiremock'
     testImplementation group: 'org.projectlombok', name: 'lombok', version: versions.lombok
-    testImplementation group: 'io.rest-assured', name: 'rest-assured', version: '3.0.7'
+    testImplementation group: 'io.rest-assured', name: 'rest-assured'
     testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-thymeleaf'
     testImplementation group: 'org.testcontainers', name: 'postgresql', version: '1.15.3'
     testImplementation 'org.awaitility:awaitility:3.1.6'
