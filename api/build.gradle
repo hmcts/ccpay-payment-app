@@ -5,8 +5,8 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath("net.serenity-bdd:serenity-gradle-plugin:2.1.5")
-        classpath("net.serenity-bdd:serenity-single-page-report:2.1.5")
+        classpath("net.serenity-bdd:serenity-gradle-plugin:2.1.13")
+        classpath("net.serenity-bdd:serenity-single-page-report:2.1.13")
     }
 }
 
