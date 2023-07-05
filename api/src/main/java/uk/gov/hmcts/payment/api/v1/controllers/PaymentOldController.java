@@ -1,9 +1,9 @@
 package uk.gov.hmcts.payment.api.v1.controllers;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +33,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 
 @RestController
-@Api(value = "/payment", description = "PaymentOld REST API")
+@Tag(name = "/payment", description = "PaymentOld REST API")
 public class PaymentOldController {
     private static final Logger LOG = LoggerFactory.getLogger(PaymentOldController.class);
 
@@ -47,11 +47,11 @@ public class PaymentOldController {
         this.paymentDtoFactory = paymentDtoFactory;
     }
 
-    @ApiOperation(value = "Create payment", notes = "Create payment")
+    @Operation(summary = "Create payment", description = "Create payment")
     @ApiResponses(value = {
-            @ApiResponse(code = 201, message = "PaymentOld created"),
-            @ApiResponse(code = 400, message = "PaymentOld creation failed"),
-            @ApiResponse(code = 422, message = "Invalid or missing attribute")
+            @ApiResponse(responseCode = "201", description = "PaymentOld created"),
+            @ApiResponse(responseCode = "400", description = "PaymentOld creation failed"),
+            @ApiResponse(responseCode = "422", description = "Invalid or missing attribute")
     })
     @RequestMapping(value = "/users/{userId}/payments", method = POST)
     public ResponseEntity<PaymentOldDto> create(@PathVariable("userId") String userId,
@@ -66,10 +66,10 @@ public class PaymentOldController {
         return new ResponseEntity<>(paymentDtoFactory.toDto(paymentOld), CREATED);
     }
 
-    @ApiOperation(value = "Get payment details by id", notes = "Get payment details for supplied payment id")
+    @Operation(summary = "Get payment details by id", description = "Get payment details for supplied payment id")
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "PaymentOld retrieved"),
-            @ApiResponse(code = 404, message = "PaymentOld not found")
+            @ApiResponse(responseCode = "200", description = "PaymentOld retrieved"),
+            @ApiResponse(responseCode = "404", description = "PaymentOld not found")
     })
     @RequestMapping(value = "/users/{userId}/payments/{paymentId}", method = GET)
     public PaymentOldDto retrieve(@PathVariable("userId") String userId,
@@ -77,11 +77,11 @@ public class PaymentOldController {
         return paymentDtoFactory.toDto(paymentService.retrieve(paymentId));
     }
 
-    @ApiOperation(value = "Cancel payment", notes = "Cancel payment for supplied payment id")
+    @Operation(summary = "Cancel payment", description = "Cancel payment for supplied payment id")
     @ApiResponses(value = {
-            @ApiResponse(code = 204, message = "PaymentOld canceled"),
-            @ApiResponse(code = 400, message = "Cancellation failed"),
-            @ApiResponse(code = 404, message = "PaymentOld not found")
+            @ApiResponse(responseCode = "204", description = "PaymentOld canceled"),
+            @ApiResponse(responseCode = "400", description = "Cancellation failed"),
+            @ApiResponse(responseCode = "404", description = "PaymentOld not found")
     })
     @RequestMapping(value = "/users/{userId}/payments/{paymentId}/cancel", method = POST)
     public ResponseEntity<?> cancel(@PathVariable("userId") String userId,
@@ -95,11 +95,11 @@ public class PaymentOldController {
         }
     }
 
-    @ApiOperation(value = "Refund payment", notes = "Refund payment for supplied application reference")
+    @Operation(summary = "Refund payment", description = "Refund payment for supplied application reference")
     @ApiResponses(value = {
-            @ApiResponse(code = 201, message = "Refund accepted"),
-            @ApiResponse(code = 412, message = "Refund amount available mismatch"),
-            @ApiResponse(code = 404, message = "PaymentOld not found")
+            @ApiResponse(responseCode = "201", description = "Refund accepted"),
+            @ApiResponse(responseCode = "412", description = "Refund amount available mismatch"),
+            @ApiResponse(responseCode = "404", description = "PaymentOld not found")
     })
     @RequestMapping(value = "/users/{userId}/payments/{paymentId}/refunds", method = POST)
     public ResponseEntity<?> refund(@PathVariable("userId") String userId,

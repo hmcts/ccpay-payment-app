@@ -1,14 +1,15 @@
 package uk.gov.hmcts.payment.api.controllers;
 
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.*;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
-import org.mapstruct.Context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.hateoas.Link;
-import org.springframework.hateoas.config.EnableHypermediaSupport;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
@@ -27,8 +28,7 @@ import java.util.Optional;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 
 @RestController
-@Api(tags = {"Remissions"})
-@SwaggerDefinition(tags = {@Tag(name = "RemissionController", description = "Remission REST API")})
+@Tag(name = "RemissionController", description = "Remission REST API")
 public class RemissionController {
     private static final Logger LOG = LoggerFactory.getLogger(RemissionController.class);
 
@@ -41,12 +41,12 @@ public class RemissionController {
     @Autowired
     private ReferenceDataService referenceDataService;
 
-    @ApiOperation(value = "Create upfront remission record", notes = "Create upfront remission record")
+    @Operation(summary = "Create upfront remission record", description = "Create upfront remission record")
     @ApiResponses(value = {
-        @ApiResponse(code = 201, message = "Remission created"),
-        @ApiResponse(code = 400, message = "Remission creation failed"),
-        @ApiResponse(code = 404, message = "Given payment group reference not found"),
-        @ApiResponse(code = 422, message = "Invalid or missing attribute")
+        @ApiResponse(responseCode = "201", description = "Remission created"),
+        @ApiResponse(responseCode = "400", description = "Remission creation failed"),
+        @ApiResponse(responseCode = "404", description = "Given payment group reference not found"),
+        @ApiResponse(responseCode = "422", description = "Invalid or missing attribute")
     })
     @PostMapping(value = "/remissions")
     @ResponseBody
@@ -64,12 +64,12 @@ public class RemissionController {
         return new ResponseEntity<>(remissionDtoMapper.toCreateRemissionResponse(paymentFeeLink), HttpStatus.CREATED);
     }
 
-    @ApiOperation(value = "Create retrospective remission record(not in use)", notes = "Create retrospective remission record")
+    @Operation(summary = "Create retrospective remission record(not in use)", description = "Create retrospective remission record")
     @ApiResponses(value = {
-        @ApiResponse(code = 201, message = "Remission created"),
-        @ApiResponse(code = 400, message = "Remission creation failed"),
-        @ApiResponse(code = 404, message = "Given payment group reference not found"),
-        @ApiResponse(code = 422, message = "Invalid or missing attribute")
+        @ApiResponse(responseCode = "201", description = "Remission created"),
+        @ApiResponse(responseCode = "400", description = "Remission creation failed"),
+        @ApiResponse(responseCode = "404", description = "Given payment group reference not found"),
+        @ApiResponse(responseCode = "422", description = "Invalid or missing attribute")
     })
     @PostMapping(value = "/payment-groups/{payment-group-reference}/fees/{unique_fee_id}/remissions")
     @ResponseBody
@@ -87,12 +87,12 @@ public class RemissionController {
         return new ResponseEntity<>(remissionDtoMapper.toCreateRemissionResponse(paymentFeeLink), HttpStatus.CREATED);
     }
 
-    @ApiOperation(value = "Create retrospective remission record for payment", notes = "Create retrospective remission record for payment")
+    @Operation(summary = "Create retrospective remission record for payment", description = "Create retrospective remission record for payment")
     @ApiResponses(value = {
-        @ApiResponse(code = 201, message = "Retrospective Remission created"),
-        @ApiResponse(code = 400, message = "Retrospective Remission creation failed"),
-        @ApiResponse(code = 404, message = "Given payment group reference not found"),
-        @ApiResponse(code = 422, message = "Invalid or missing attribute")
+        @ApiResponse(responseCode = "201", description = "Retrospective Remission created"),
+        @ApiResponse(responseCode = "400", description = "Retrospective Remission creation failed"),
+        @ApiResponse(responseCode = "404", description = "Given payment group reference not found"),
+        @ApiResponse(responseCode = "422", description = "Invalid or missing attribute")
     })
     @PostMapping(value = "/payment-groups/{payment-group-reference}/fees/{unique_fee_id}/retro-remission")
     @ResponseBody

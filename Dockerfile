@@ -1,9 +1,12 @@
-ARG APP_INSIGHTS_AGENT_VERSION=3.4.10
-FROM hmctspublic.azurecr.io/base/java:11-distroless
+ARG APP_INSIGHTS_AGENT_VERSION=3.4.14
+FROM hmctspublic.azurecr.io/base/java:17-distroless
 
-COPY lib/AI-Agent.xml /opt/app/
+COPY lib/applicationinsights.json /opt/app/
 COPY build/libs/payment-app.jar /opt/app/
 
 EXPOSE 8080
 
-CMD ["payment-app.jar"]
+CMD [ \
+    "--add-opens", "java.base/java.lang=ALL-UNNAMED", \
+    "payment-app.jar" \
+    ]

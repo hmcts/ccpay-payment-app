@@ -15,7 +15,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Configuration
-public class AuthCheckerConfiguration {
+public class PaymentAuthCheckerConfiguration {
 
     @Value("#{'${trusted.s2s.service.names}'.split(',')}")
     private List<String> authorizedServices;

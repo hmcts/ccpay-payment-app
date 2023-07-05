@@ -63,7 +63,7 @@ public class SwaggerPublisher {
 
     private void generateDocsForGroup(String groupName) throws Exception {
         byte[] specs = mvc.perform(
-            get("/v2/api-docs?group=" + groupName)
+            get("/v3/api-docs?group=" + groupName)
                 .header("Authorization", "Bearer spoof")
         )
             .andExpect(status().isOk())

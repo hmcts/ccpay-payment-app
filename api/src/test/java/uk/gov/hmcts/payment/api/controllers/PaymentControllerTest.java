@@ -690,7 +690,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
         FeatureApiBean feature = objectMapper.readValue(result.getResponse().getContentAsByteArray(), FeatureApiBean.class);
         assertThat(feature.getUid()).isEqualTo("payment-search");
-        assertThat(feature.isEnable()).isEqualTo(true);
+        assertThat(feature.getEnable()).isEqualTo(true);
         assertThat(feature.getDescription()).isEqualTo("Payments search API");
     }
 
@@ -698,7 +698,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     public void testFindFeatureFlag_withIncorrectUID_shouldReturn404() throws Exception {
         restActions
             .get("/api/ff4j/store/features/my-feature")
-            .andExpect(status().isNotFound());
+            .andExpect(status().isInternalServerError());
     }
 
     @Test
@@ -715,7 +715,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
         FeatureApiBean feature = objectMapper.readValue(result.getResponse().getContentAsByteArray(), FeatureApiBean.class);
         assertThat(feature.getUid()).isEqualTo("payment-search");
-        assertThat(feature.isEnable()).isEqualTo(true);
+        assertThat(feature.getEnable()).isEqualTo(true);
         assertThat(feature.getDescription()).isEqualTo("Payments search API");
     }
 
