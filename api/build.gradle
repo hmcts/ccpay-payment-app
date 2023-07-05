@@ -5,8 +5,8 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath("net.serenity-bdd:serenity-gradle-plugin:2.1.4")
-        classpath("net.serenity-bdd:serenity-single-page-report:2.1.4")
+        classpath("net.serenity-bdd:serenity-gradle-plugin:2.6.0")
+        classpath("net.serenity-bdd:serenity-single-page-report:2.6.0")
     }
 }
 
@@ -16,7 +16,7 @@ plugins {
 }
 
 apply from: 'liquibase.gradle'
-apply plugin: 'net.serenity-bdd.aggregator'
+apply plugin: 'net.serenity-bdd.serenity-gradle-plugin'
 
 description = ''
 
