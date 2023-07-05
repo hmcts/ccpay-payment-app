@@ -5,8 +5,8 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath("net.serenity-bdd:serenity-gradle-plugin:2.6.0")
-        classpath("net.serenity-bdd:serenity-single-page-report:2.6.0")
+        classpath("net.serenity-bdd:serenity-gradle-plugin:2.1.4")
+        classpath("net.serenity-bdd:serenity-single-page-report:2.1.4")
     }
 }
 
@@ -16,7 +16,7 @@ plugins {
 }
 
 apply from: 'liquibase.gradle'
-apply plugin: 'net.serenity-bdd.serenity-gradle-plugin'
+apply plugin: 'net.serenity-bdd.aggregator'
 
 description = ''
 
@@ -73,9 +73,8 @@ def versions = [
         lombok          : '1.18.28',
         pact_version    : '4.1.7',
         reformS2sClient : '3.1.4',
-        serenity        : '2.2.12',
-        serenityreporter: '2.1.4',
-        serenityCucumber: '1.9.51',
+        serenity        : '2.6.0',
+        serenityCucumber: '3.0.1',
 ]
 
 def javaLoggingVersion = '6.0.1'
@@ -180,8 +179,8 @@ dependencies {
     functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-rest-assured', version: versions.serenity
     functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-spring', version: versions.serenity
     functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-screenplay', version: versions.serenity
-    functionalTestImplementation group: 'io.rest-assured', name: 'xml-path', version: versions.restAssured
-    functionalTestImplementation group: 'io.rest-assured', name: 'json-path', version: versions.restAssured
+    functionalTestImplementation group: 'io.rest-assured', name: 'xml-path'
+    functionalTestImplementation group: 'io.rest-assured', name: 'json-path'
 }
 
 test {
