@@ -8,7 +8,6 @@ java:
     POSTGRES_USERNAME: "{{ .Values.postgresql.auth.username}}"
     POSTGRES_PASSWORD: "{{ .Values.postgresql.auth.password}}"
     POSTGRES_CONNECTION_OPTIONS: "?sslmode=allow"
-
     SPRING_LIQUIBASE_ENABLED: true
     OIDC_ISSUER: https://forgerock-am.service.core-compute-idam-aat2.internal:8443/openam/oauth2/hmcts
     LAUNCH_DARKLY_USER_NAME_PREFIX: aat
@@ -63,7 +62,7 @@ java:
             CREATE DATABASE notifications WITH OWNER = javapostgres ENCODING = 'UTF-8' CONNECTION LIMIT = -1;
 
 ccpay-refunds-api:
-  enabled: true
+  enabled: false
   java:
     image: hmctspublic.azurecr.io/ccpay/refunds-api:latest
     releaseNameOverride: ${SERVICE_NAME}-ccpay-refunds-api
@@ -136,8 +135,8 @@ ccpay-refunds-api:
             alias: NOTIFICATION_EMAIL_REFUND_WHEN_CONTACTED_TEMPLATE_ID
 
 ccpay-bulkscanning-api:
-  enabled: true
-  java: 
+  enabled: false
+  java:
     image: hmctspublic.azurecr.io/ccpay/bulkscanning-api:latest
     releaseNameOverride: ${SERVICE_NAME}-ccpay-bulkscanning-api
     ingressHost: ccpay-bulkscanning-api-${SERVICE_NAME}.preview.platform.hmcts.net
@@ -160,7 +159,7 @@ ccpay-bulkscanning-api:
           - paybubble-idam-client-secret
 
 ccpay-notifications-service:
-  enabled: true
+  enabled: false
   java:
     image: hmctspublic.azurecr.io/ccpay/notifications-service:latest
     releaseNameOverride: ${SERVICE_NAME}-ccpay-notifications-service
