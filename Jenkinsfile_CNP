@@ -154,7 +154,7 @@ withPipeline(type, product, app) {
 
     //enableDockerBuild()
     //installCharts()
-    enableSlackNotifications('#cc-payments-tech')
+    enableSlackNotifications('#fee-pay-nightly-pipeline')
     disableLegacyDeployment()
     onMaster() {
         enablePactAs([
