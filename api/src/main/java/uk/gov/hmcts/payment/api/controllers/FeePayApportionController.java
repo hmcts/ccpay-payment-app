@@ -111,7 +111,7 @@ public class FeePayApportionController {
             }
         }
         LOG.info("Before calling toPaymentGroupDto payment Ref {}", paymentFeeLink.getPaymentReference());
-        refundRemissionEnableService.isRolePresent(headers);
+        refundRemissionEnableService.setUserRoles(headers);
         PaymentGroupDto paymentGroupDto  = paymentGroupDtoMapper.toPaymentGroupDto(paymentFeeLink);
         LOG.info("Before checking Refund");
         paymentGroupDto = paymentRefundsService.checkRefundAgainstRemissionFeeApportionV2(headers, paymentGroupDto, paymentReference);

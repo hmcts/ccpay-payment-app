@@ -92,7 +92,7 @@ public class RefundsRequestorJourneyTelephonyPaymentFunctionalTest {
             USER_TOKEN_PAYMENT = idamService.createUserWith(CMC_CITIZEN_GROUP, "payments").getAuthorisationToken();
 
             USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE =
-                idamService.createUserWithSearchScope(CMC_CASE_WORKER_GROUP, "payments-refund")
+                idamService.createUserWithSearchScope(CMC_CASE_WORKER_GROUP, "payments-refund", "payments-refund-divorce")
                     .getAuthorisationToken();
             SERVICE_TOKEN_PAYMENT = s2sTokenService.getS2sToken("ccpay_bubble", testProps.payBubbleS2SSecret);
             TOKENS_INITIALIZED = true;

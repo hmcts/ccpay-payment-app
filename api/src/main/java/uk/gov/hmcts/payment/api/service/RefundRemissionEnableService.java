@@ -12,7 +12,7 @@ public interface RefundRemissionEnableService {
 
     Boolean returnRemissionEligible(PaymentFee fee);
 
-    boolean isRolePresent(MultiValueMap<String, String> headers);
+    void setUserRoles(MultiValueMap<String, String> headers);
 
 }
 

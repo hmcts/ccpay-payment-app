@@ -154,7 +154,7 @@ withPipeline(type, product, app) {
 
     //enableDockerBuild()
     //installCharts()
-    enableSlackNotifications('#cc-payments-tech')
+    enableSlackNotifications('#fee-pay-nightly-pipeline')
     disableLegacyDeployment()
     onMaster() {
         enablePactAs([
@@ -167,9 +167,10 @@ withPipeline(type, product, app) {
                 AppPipelineDsl.PactRoles.CONSUMER,
                 AppPipelineDsl.PactRoles.PROVIDER
         ])
-    
-        env.REFUND_API_URL = "https://ccpay-refunds-api-payment-api-pr-${CHANGE_ID}.preview.platform.hmcts.net"
-        env.CCPAY_BULK_SCANNING_API_URL = "https://ccpay-bulkscanning-api-payment-api-pr-${CHANGE_ID}.preview.platform.hmcts.net"
+
+        // Re-enable these when pointing to preview chart apps instead.
+        //env.REFUND_API_URL = "https://ccpay-refunds-api-payment-api-pr-${CHANGE_ID}.preview.platform.hmcts.net"
+        //env.CCPAY_BULK_SCANNING_API_URL = "https://ccpay-bulkscanning-api-payment-api-pr-${CHANGE_ID}.preview.platform.hmcts.net"
     }
 
     //Sync demo,ithc and perftest with master branch
