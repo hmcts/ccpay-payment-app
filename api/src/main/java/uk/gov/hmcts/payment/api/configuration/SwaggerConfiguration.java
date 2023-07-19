@@ -22,6 +22,7 @@ public class SwaggerConfiguration {
             .group("payment")
             .packagesToScan("uk.gov.hmcts.payment.api.v1.controllers")
             .pathsToMatch("/**")
+            .addOperationCustomizer(authorizationHeaders())
             .build();
     }
 
@@ -31,6 +32,7 @@ public class SwaggerConfiguration {
             .group("payment2")
             .packagesToScan("uk.gov.hmcts.payment.api.controllers")
             .pathsToMatch("/**")
+            .addOperationCustomizer(authorizationHeaders())
             .build();
     }
 
@@ -40,6 +42,7 @@ public class SwaggerConfiguration {
             .group("reference-data")
             .packagesToScan("uk.gov.hmcts.payment.referencedata.controllers")
             .pathsToMatch("/**")
+            .addOperationCustomizer(authorizationHeaders())
             .build();
     }
 
@@ -48,6 +51,7 @@ public class SwaggerConfiguration {
         return GroupedOpenApi.builder()
             .group("payment-external-api")
             .addOpenApiMethodFilter(method -> method.isAnnotationPresent(PaymentExternalAPI.class))
+            .addOperationCustomizer(authorizationHeaders())
             .build();
     }
 
