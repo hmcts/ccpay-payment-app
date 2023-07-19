@@ -218,6 +218,10 @@
         <cve>CVE-2023-2976</cve>
     </suppress>
 
+    <suppress>
+        <cve>CVE-2023-34036</cve>
+    </suppress>
+
 
     <!-- Supression Group ends here -->
 </suppressions>
