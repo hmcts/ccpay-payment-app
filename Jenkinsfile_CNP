@@ -168,9 +168,8 @@ withPipeline(type, product, app) {
                 AppPipelineDsl.PactRoles.PROVIDER
         ])
 
-        // Re-enable these when pointing to preview chart apps instead.
-        //env.REFUND_API_URL = "https://ccpay-refunds-api-payment-api-pr-${CHANGE_ID}.preview.platform.hmcts.net"
-        //env.CCPAY_BULK_SCANNING_API_URL = "https://ccpay-bulkscanning-api-payment-api-pr-${CHANGE_ID}.preview.platform.hmcts.net"
+        env.REFUND_API_URL = "https://ccpay-refunds-api-payment-api-pr-${CHANGE_ID}.preview.platform.hmcts.net"
+        env.CCPAY_BULK_SCANNING_API_URL = "https://ccpay-bulkscanning-api-payment-api-pr-${CHANGE_ID}.preview.platform.hmcts.net"
     }
 
     //Sync demo,ithc and perftest with master branch

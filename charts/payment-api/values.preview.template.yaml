@@ -13,13 +13,15 @@ java:
     LAUNCH_DARKLY_USER_NAME_PREFIX: aat
     SPRING_PROFILES_ACTIVE: "liberataMock,callbackMock,ccdMock"
     CALLBACK_PAYMENTS_CUTOFF_TIME_IN_MINUTES: 0
-    CCPAY_BULK_SCANNING_API_URL: http://ccpay-bulkscanning-api-pr-434-java
-    # CCPAY_BULK_SCANNING_API_URL: http://${SERVICE_NAME}-ccpay-bulkscanning-api
+    CCPAY_BULK_SCANNING_API_URL: http://${SERVICE_NAME}-ccpay-bulkscanning-api
     IAC_SERVICE_API_URL: http://ia-case-access-api-aat.service.core-compute-aat.internal
     PBA_CONFIG1_SERVICE_NAMES: dummy
     PCI_PAL_API_URL: https://ip3cloud.com/clients/hmcts/payments/index.php
-    REFUND_API_URL: http://ccpay-refunds-api-pr-367-java
-    # REFUND_API_URL: http://${SERVICE_NAME}-ccpay-refunds-api
+    REFUND_API_URL: http://${SERVICE_NAME}-ccpay-refunds-api
+
+    # For PR pointing amend these - not neccessary anymore for PRs to build.
+    # REFUND_API_URL: http://ccpay-refunds-api-pr-367-java
+    # CCPAY_BULK_SCANNING_API_URL: http://ccpay-bulkscanning-api-pr-434-java
 
   keyVaults:
     "ccpay":
@@ -62,7 +64,7 @@ java:
             CREATE DATABASE notifications WITH OWNER = javapostgres ENCODING = 'UTF-8' CONNECTION LIMIT = -1;
 
 ccpay-refunds-api:
-  enabled: false
+  enabled: true
   java:
     image: hmctspublic.azurecr.io/ccpay/refunds-api:latest
     releaseNameOverride: ${SERVICE_NAME}-ccpay-refunds-api
@@ -135,7 +137,7 @@ ccpay-refunds-api:
             alias: NOTIFICATION_EMAIL_REFUND_WHEN_CONTACTED_TEMPLATE_ID
 
 ccpay-bulkscanning-api:
-  enabled: false
+  enabled: true
   java:
     image: hmctspublic.azurecr.io/ccpay/bulkscanning-api:latest
     releaseNameOverride: ${SERVICE_NAME}-ccpay-bulkscanning-api
@@ -159,7 +161,7 @@ ccpay-bulkscanning-api:
           - paybubble-idam-client-secret
 
 ccpay-notifications-service:
-  enabled: false
+  enabled: true
   java:
     image: hmctspublic.azurecr.io/ccpay/notifications-service:latest
     releaseNameOverride: ${SERVICE_NAME}-ccpay-notifications-service
