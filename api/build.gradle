@@ -310,5 +310,5 @@ pitest {
 }
 
 tasks.named("processContractTestResources") {
-  duplicatesStrategy = 'include'
+    duplicatesStrategy = 'include'
 }

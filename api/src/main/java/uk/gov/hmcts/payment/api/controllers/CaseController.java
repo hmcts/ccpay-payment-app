@@ -98,7 +98,7 @@ public class CaseController {
     public PaymentGroupResponse retrieveCasePaymentGroups(@PathVariable(name = "ccdcasenumber") String ccdCaseNumber,
         @RequestHeader(required = false) MultiValueMap<String, String> headers) {
 
-        refundRemissionEnableService.isRolePresent(headers);
+        refundRemissionEnableService.setUserRoles(headers);
         List<PaymentGroupDto> paymentGroups = paymentGroupService
             .search(ccdCaseNumber)
             .stream()
