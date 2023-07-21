@@ -210,6 +210,8 @@ ccpay-notifications-service:
         secrets:
           - name: notifications-service-POSTGRES-PASS
             alias: POSTGRES_PASSWORD
+          - name: app-insights-connection-string
+            alias: app-insights-connection-string
           - name: AppInsightsInstrumentationKey
             alias: azure.application-insights.instrumentation-key
           - name: notifications-s2s-secret
