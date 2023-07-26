@@ -1,0 +1,145 @@
+auth:
+    idam:
+        client:
+            baseUrl: ${AUTH_IDAM_CLIENT_BASEURL:https://idam-api.aat.platform.hmcts.net}
+bulk:
+    scanning:
+        payments:
+            processed:
+                url: ${CCPAY_BULK_SCANNING_API_URL:http://ccpay-bulkscanning-api-aat.service.core-compute-aat.internal}
+generated:
+    user:
+        email:
+            pattern: ${GENERATED_USER_EMAIL_PATTERN:freg-test-functional-aldie-junk-user-%s@feemail.com}
+            pattern.for.ref.data: ${GENERATED_USER_EMAIL_PATTERN_REF_DATA:feeandpay%s_external@mailnesia.com}
+gov:
+    pay:
+        keys:
+            adoption: ${GOV_PAY_AUTH_KEY_ADOPTION}
+            cmc: ${GOV_PAY_AUTH_KEY_CMC:}
+            iac: ${GOV_PAY_AUTH_KEY_IAC}
+            prl: ${GOV_PAY_AUTH_KEY_PRL}
+        url: https://publicapi.payments.service.gov.uk/v1/payments
+idam:
+    api:
+        url: ${IDAM_API_URL:https://idam-api.aat.platform.hmcts.net}
+    paybubble:
+        client:
+            id: ${IDAM_PAYBUBBLE_CLIENT_ID:paybubble}
+            secret: ${IDAM_PAYBUBBLE_CLIENT_SECRET}
+    rd:
+        professional:
+            client:
+                id: ${IDAM_RD_PROFESSIONAL_CLIENT_ID:rd-professional-api}
+                secret: ${IDAM_RD_PROFESSIONAL_CLIENT_SECRET}
+launch:
+    darkly:
+        sdk:
+            key: ${LAUNCH_DARKLY_SDK_KEY:}
+        user:
+            name: ${LAUNCH_DARKLY_USER_NAME_PREFIX:functionaltest}@feesandpay.com
+launchDarkly:
+    connectionTimeout: 3
+    flushInterval: 10
+    socketTimeout: 3
+mock:
+    callback:
+        url:
+            endpoint: ${TEST_URL:http://payment-api-aat-staging.aat.platform.hmcts.net}/mock-api/serviceCallback
+oauth2:
+    client:
+        id: ${OAUTH2_CLIENT_ID:cmc_citizen}
+        secret: ${OAUTH2_CLIENT_SECRET:XXXXXXXX}
+    redirect:
+        uri: ${OAUTH2_REDIRECT_URI:https://moneyclaims.aat.platform.hmcts.net}
+paybubble:
+    s2s:
+        service:
+            secret: ${PAYBUBBLE_S2S_SERVICE_SECRET}
+payments:
+    account:
+        deleted:
+            account:
+                number: PBA0087741
+        existing:
+            account:
+                number: PBAFUNC12345
+        fake:
+            account:
+                number: QWERTYUIOP
+        onhold:
+            account:
+                number: PBA0078303
+        probate:
+            account:
+                number: PBA0082126
+            solicitor:
+                password: ${PROBATE_SOLICITOR_PASSWORD}
+                user: ${PROBATE_SOLICITOR_USER}
+pba:
+    config1:
+        service:
+            names: ${PBA_CONFIG1_SERVICE_NAMES:CMC}
+pci-pal:
+    antenna:
+        client:
+            id: ${PCI_PAL_ANTENNA_CLIENT_ID:HMCTSStage}
+            secret: ${PCI_PAL_ANTENNA_CLIENT_SECRET:}
+        cmc:
+            flow:
+                id: ${PCI_PAL_ANTENNA_CMC_FLOW_ID:1356}
+        divorce:
+            flow:
+                id: ${PCI_PAL_ANTENNA_DIVORCE_FLOW_ID:1356}
+        financial:
+            remedy:
+                flow:
+                    id: ${PCI_PAL_ANTENNA_FINANCIAL_REMEDY_FLOW_ID:1356}
+        get:
+            tokens:
+                url: ${PCI_PAL_ANTENNA_GET_TOKENS_URL:https://pcipalstaging.cloud/api/v1/token}
+        grant:
+            type: ${PCI_PAL_ANTENNA_GRANT_TYPE:client_credentials}
+        launch:
+            url: ${PCI_PAL_ANTENNA_LAUNCH_URL:https://euwest1.pcipalstaging.cloud/api/v1/session/303/launch}
+        probate:
+            flow:
+                id: ${PCI_PAL_ANTENNA_PROBATE_FLOW_ID:1356}
+        return:
+            url: ${PCI_PAL_ANTENNA_RETURN_URL:http://localhost}
+        tenant:
+            name: ${PCI_PAL_ANTENNA_TENANT_NAME:HMCTS}
+        user:
+            name: ${PCI_PAL_ANTENNA_USER_NAME:APIUser}
+        view:
+            id:
+                url: ${PCI_PAL_ANTENNA_VIEW_ID_URL:https://euwest1.pcipalstaging.cloud/session/303/view/}
+ref:
+    data:
+        api:
+            url: ${REF_DATA_API_URL:http://rd-professional-api-aat.service.core-compute-aat.internal}
+refund:
+    api:
+        url: ${REFUND_API_URL:http://ccpay-refunds-api-aat.service.core-compute-aat.internal}
+s2s:
+    service:
+        name: ${S2S_SERVICE_NAME:cmc}
+        payment:
+            app:
+                name: ${S2S_PAYMENT_APP_NAME:payment_app}
+                secret: ${S2S_PAYMENT_APP_SERVICE_SECRET}
+        secret: ${S2S_SERVICE_SECRET:AAAAAAAAAAAAAAAA}
+    url: ${S2S_URL:http://rpe-service-auth-provider-aat.service.core-compute-aat.internal}
+service:
+    request:
+        cpo:
+            update:
+                service:
+                    s2s:
+                        secret: ${SERVICE_REQUEST_CPO_UPDATE_SERVICE_S2S_SECRET}
+                        topic:
+                            name: ${SERVICE_REQUEST_CPO_UPDATE_SERVICE_S2S_TOPIC_NAME}
+test:
+    url: ${TEST_URL:http://payment-api-aat-staging.aat.platform.hmcts.net}}
+    user:
+        password: ${TEST_USER_PASSWORD:password}

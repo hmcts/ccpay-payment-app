@@ -1,0 +1,29 @@
+auth:
+    idam:
+        client:
+            baseurl: ${AUTH_IDAM_CLIENT_BASEURL:http://localhost:5000}
+card:
+    lag:
+        time: 120
+cash:
+    lag:
+        time: 120
+cheques:
+    lag:
+        time: 480
+launch:
+    darkly:
+        sdk:
+            key: test-key
+        user:
+            name: '"testUser"'
+launchDarkly:
+    connectionTimeout: 3
+    flushInterval: 10
+    socketTimeout: 3
+pba:
+    lag:
+        time: 96
+postalorders:
+    lag:
+        time: 480

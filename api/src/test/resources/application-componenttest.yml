@@ -1,0 +1,256 @@
+auth:
+    externalProvider:
+        service:
+            client:
+                baseUrl: http://any.url/
+    idam:
+        client:
+            baseurl: ${AUTH_IDAM_CLIENT_BASEURL:http://localhost:5000}
+    ref:
+        data:
+            baseUrl: ${AUTH_REF_DATA_BASEURL:http://localhost}
+azure:
+    application-insights:
+        instrumentation-key: 0000-0000-0000-0000
+    servicebus:
+        allow-telemetry: false
+        connection-string: Endpoint=sb://ccpay-servicebus-aat.servicebus.windows.net/;SharedAccessKeyName=SendAndListenSharedAccessKey;SharedAccessKey=ATfNGbCzML84hjtH8T0EoAyI1PyLvxMQ/VOd1lr6UCA=
+        subscription-name: defaultServiceCallbackSubscription
+        topic-name: serviceCallbackTopic
+bar:
+    payments:
+        email:
+            from: ${BAR_PAYMENTS_EMAIL_FROM:dummy@gmail.com}
+            message: ${BAR_PAYMENTS_EMAIL_MESSAGE:Hi <br/><br/>Please find attached
+                today's reconciliation report. <br/><br/>Regards <br/><br/>Payments
+                team<br/><br/>}
+            subject: ${BAR_PAYMENTS_EMAIL_SUBJECT:subject}
+            to: ${BAR_PAYMENTS_EMAIL_TO:dummy@gmail.com}
+        report:
+            scheduler:
+                enabled: ${BAR_PAYMENTS_REPORT_SCHEDULER_ENABLED:true}
+callback:
+    payments:
+        cutoff:
+            time:
+                in:
+                    minutes: 0
+card:
+    payments:
+        email:
+            from: ${CARD_PAYMENTS_EMAIL_FROM:dummy@gmail.com}
+            message: ${CARD_PAYMENTS_EMAIL_MESSAGE:Hi <br/><br/>Please find attached
+                today's reconciliation report. <br/><br/>Regards <br/><br/>Payments
+                team<br/><br/>}
+            subject: ${CARD_PAYMENTS_EMAIL_SUBJECT:subject}
+            to: ${CARD_PAYMENTS_EMAIL_TO:dummy@gmail.com}
+        report:
+            scheduler:
+                enabled: ${CARD_PAYMENTS_REPORT_SCHEDULER_ENABLED:true}
+case-payment-orders:
+    api:
+        url: http://localhost:${wiremock.port}
+core_case_data:
+    api:
+        url: http://www.dummy.com
+feature:
+    payments:
+        cancel: true
+        service:
+            callback: false
+fees:
+    register:
+        url: http://localhost:${wiremock.port}
+gov:
+    pay:
+        auth:
+            key:
+                cmc: ${GOV_PAY_AUTH_KEY_CMC:}
+                divorce: ${GOV_PAY_AUTH_KEY_DIVORCE_FRONTEND:}
+        operational_services: ccd
+        url: http://localhost:${wiremock.port}/v1/payments
+iac:
+    supplementary:
+        info:
+            url: http://iac.com
+idam:
+    s2s-auth:
+        microservice: ${PAYMENT_S2S_MICROSERVICE_NAME:internal}
+        totp_secret: ${PAYMENT_S2S_SECRET:}
+        url: ${AUTH_PROVIDER_SERVICE_CLIENT_BASEURL:localhost:8489}
+launch:
+    darkly:
+        sdk:
+            key: ${LAUNCH_DARKLY_SDK_KEY:}
+        user:
+            name: ${LAUNCH_DARKLY_USER_NAME_PREFIX:componenttest}@feesandpay.com
+launchDarkly:
+    connectionTimeout: 3
+    flushInterval: 10
+    socketTimeout: 3
+liberata:
+    api:
+        account:
+            url: http://liberata.com
+logging:
+    level:
+        org:
+            hibernate:
+                SQL: DEBUG
+                type:
+                    descriptor:
+                        sql:
+                            BasicBinder: TRACE
+pba:
+    civil:
+        payments:
+            email:
+                from: ${PBA_CIVIL_PAYMENTS_EMAIL_FROM:dummy@gmail.com}
+                message: ${PBA_CIVIL_PAYMENTS_EMAIL_MESSAGE:Hi <br/><br/>Please find
+                    attached today's Payment by Account reconciliation report. <br/><br/>Regards
+                    <br/><br/>Payments team <br/><br/>}
+                subject: ${PBA_CIVIL_PAYMENTS_EMAIL_SUBJECT:subject}
+                to: ${PBA_CIVIL_PAYMENTS_EMAIL_TO:dummy@gmail.com}
+            report:
+                scheduler:
+                    enabled: ${PBA_CIVIL_PAYMENTS_REPORT_SCHEDULER_ENABLED:true}
+    cmc:
+        payments:
+            email:
+                from: ${CARD_PAYMENTS_EMAIL_FROM:dummy@gmail.com}
+                message: ${PBA_CMC_PAYMENTS_EMAIL_MESSAGE:Hi <br/><br/>Please find
+                    attached today's Payment by Account reconciliation report. <br/><br/>Regards
+                    <br/><br/>Payments team <br/><br/>}
+                subject: ${CARD_PAYMENTS_EMAIL_SUBJECT:subject}
+                to: ${CARD_PAYMENTS_EMAIL_TO:dummy@gmail.com}
+            report:
+                scheduler:
+                    enabled: ${PBA_CMC_PAYMENTS_REPORT_SCHEDULER_ENABLED:true}
+    config1:
+        service:
+            names: ${PBA_CONFIG1_SERVICE_NAMES:CMC}
+    divorce:
+        payments:
+            email:
+                from: ${CARD_PAYMENTS_EMAIL_FROM:dummy@gmail.com}
+                message: ${PBA_DIVORCE_PAYMENTS_EMAIL_MESSAGE:Hi <br/><br/>Please
+                    find attached today's Payment by Account reconciliation report.
+                    <br/><br/>Regards <br/><br/>Payments team <br/><br/>}
+                subject: ${CARD_PAYMENTS_EMAIL_SUBJECT:subject}
+                to: ${CARD_PAYMENTS_EMAIL_TO:dummy@gmail.com}
+            report:
+                scheduler:
+                    enabled: ${PBA_CMC_PAYMENTS_REPORT_SCHEDULER_ENABLED:true}
+    finrem:
+        payments:
+            email:
+                from: ${CARD_PAYMENTS_EMAIL_FROM:dummy@gmail.com}
+                message: ${PBA_FINREM_PAYMENTS_EMAIL_MESSAGE:Hi <br/><br/>Please find
+                    attached today's Payment by Account reconciliation report. <br/><br/>Regards
+                    <br/><br/>Payments team <br/><br/>}
+                subject: ${CARD_PAYMENTS_EMAIL_SUBJECT:subject}
+                to: ${CARD_PAYMENTS_EMAIL_TO:dummy@HMCTS.net}
+            report:
+                scheduler:
+                    enabled: ${PBA_FINREM_PAYMENTS_REPORT_SCHEDULER_ENABLED:true}
+    fpl:
+        payments:
+            email:
+                from: ${PBA_FPL_PAYMENTS_EMAIL_FROM:dummy@gmail.com}
+                message: ${PBA_FPL_PAYMENTS_EMAIL_MESSAGE:Hi <br/><br/>Please find
+                    attached today's Payment by Account reconciliation report. <br/><br/>Regards
+                    <br/><br/>Payments team <br/><br/>}
+                subject: ${PBA_FPL_PAYMENTS_EMAIL_SUBJECT:subject}
+                to: ${PBA_FPL_PAYMENTS_EMAIL_TO:dummy@gmail.com}
+            report:
+                scheduler:
+                    enabled: ${PBA_FPL_PAYMENTS_REPORT_SCHEDULER_ENABLED:true}
+    prl:
+        payments:
+            email:
+                from: ${PBA_PRL_PAYMENTS_EMAIL_FROM:dummy@gmail.com}
+                message: ${PBA_PRL_PAYMENTS_EMAIL_MESSAGE:Hi <br/><br/>Please find
+                    attached today's Payment by Account reconciliation report. <br/><br/>Regards
+                    <br/><br/>Payments team <br/><br/>}
+                subject: ${PBA_PRL_PAYMENTS_EMAIL_SUBJECT:subject}
+                to: ${PBA_PRL_PAYMENTS_EMAIL_TO:dummy@gmail.com}
+            report:
+                scheduler:
+                    enabled: ${PBA_PRL_PAYMENTS_REPORT_SCHEDULER_ENABLED:true}
+    probate:
+        payments:
+            email:
+                from: ${CARD_PAYMENTS_EMAIL_FROM:dummy@gmail.com}
+                message: ${PBA_PROBATE_PAYMENTS_EMAIL_MESSAGE:Hi <br/><br/>Please
+                    find attached today's Payment by Account reconciliation report.
+                    <br/><br/>Regards <br/><br/>Payments team <br/><br/>}
+                subject: ${CARD_PAYMENTS_EMAIL_SUBJECT:subject}
+                to: ${CARD_PAYMENTS_EMAIL_TO:dummy@HMCTS.net}
+            report:
+                scheduler:
+                    enabled: ${PBA_PROBATE_PAYMENTS_REPORT_SCHEDULER_ENABLED:true}
+pci-pal:
+    antenna:
+        client:
+            id: ${PCI_PAL_ANTENNA_CLIENT_ID:HMCTSStage}
+        cmc:
+            flow:
+                id: ${PCI_PAL_ANTENNA_CMC_FLOW_ID:1356}
+        divorce:
+            flow:
+                id: ${PCI_PAL_ANTENNA_DIVORCE_FLOW_ID:1356}
+        financial:
+            remedy:
+                flow:
+                    id: ${PCI_PAL_ANTENNA_FINANCIAL_REMEDY_FLOW_ID:1356}
+        get:
+            tokens:
+                url: ${PCI_PAL_ANTENNA_GET_TOKENS_URL:https://pcipalstaging.cloud/api/v1/token}
+        grant:
+            type: ${PCI_PAL_ANTENNA_GRANT_TYPE:client_credentials}
+        launch:
+            url: ${PCI_PAL_ANTENNA_LAUNCH_URL:https://euwest1.pcipalstaging.cloud/api/v1/session/303/launch}
+        probate:
+            flow:
+                id: ${PCI_PAL_ANTENNA_PROBATE_FLOW_ID:1356}
+        return:
+            url: ${PCI_PAL_ANTENNA_RETURN_URL:http://localhost}
+        tenant:
+            name: ${PCI_PAL_ANTENNA_TENANT_NAME:HMCTS}
+        user:
+            name: ${PCI_PAL_ANTENNA_USER_NAME:APIUser}
+        view:
+            id:
+                url: ${PCI_PAL_ANTENNA_VIEW_ID_URL:https://euwest1.pcipalstaging.cloud/session/303/view/}
+sb-cpo-primary-connection-string: 0000-0000-0000-0000
+service:
+    callback:
+        url: https://payment-node-aat.azurewebsites.net/api/HttpTrigger1?code=d2sOqELbiSwkRpxtduieHlAuJYr8aUqjZpeSiUe6yzP7ESX4AOfboQ==
+spring:
+    datasource:
+        driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+        hikari:
+            maximum-pool-size: 2
+        url: jdbc:tc:postgresql:11.0://localhost/features
+    jpa:
+        properties:
+            hibernate:
+                format_sql: true
+    liquibase:
+        change-log: classpath:/db/changelog/db.changelog-master.xml
+    mail:
+        host: ${SPRING_MAIL_HOST:email.host}
+        port: ${SPRING_MAIL_PORT:25}
+        properties:
+            mail:
+                smtp:
+                    ssl:
+                        trust: ${EMAIL_SMTP_SSL_TRUST:*}
+                    starttls:
+                        enable: ${SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE:true}
+trusted:
+    s2s:
+        service:
+            names: refunds_api,cmc,probate_frontend,divorce,divorce_frontend,ccd_gw,bar_api,finrem_payment_service,ccpay_bubble,jui_webapp,xui_webapp,fpl_case_service,iac,unspec_service,probate_backend,civil_service,notifications_service
+wiremock:
+    port: 9190

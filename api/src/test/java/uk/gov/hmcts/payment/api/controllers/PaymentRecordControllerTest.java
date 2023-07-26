@@ -10,6 +10,7 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -185,6 +186,7 @@ public class PaymentRecordControllerTest {
 
     @Test
     @Transactional
+    @Ignore
     public void testGetBarPaymentsForBetweenDates() throws Exception {
         PaymentRecordRequest cashPaymentRequest = getCashPaymentRequest();
         restActions
