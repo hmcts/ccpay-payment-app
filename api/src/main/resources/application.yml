@@ -229,7 +229,7 @@ spring:
     autoconfigure:
         exclude: uk.gov.hmcts.reform.ccd.client.CoreCaseDataClientAutoConfiguration
     config:
-        import: optional:configtree:/mnt/secrets/ccpay/
+        import: "optional:configtree:/mnt/secrets/ccpay/"
     datasource:
         driver: org.postgresql.Driver
         hikari:
