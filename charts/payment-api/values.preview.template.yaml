@@ -71,6 +71,10 @@ java:
           alias: gov.pay.auth.key.adoption_web
         - name: gov-pay-keys-prl
           alias: gov.pay.auth.key.prl_cos_api
+        - name: app-insights-connection-string
+          alias: app-insights-connection-string
+        - name: AppInsightsInstrumentationKey
+          alias: azure.application-insights.instrumentation-key
   postgresql:
     enabled: true
     primary:
