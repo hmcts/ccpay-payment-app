@@ -1,0 +1,258 @@
+auth:
+    idam:
+        client:
+            baseUrl: ${AUTH_IDAM_CLIENT_BASEURL:http://dummy.dummy.net}
+    provider:
+        service:
+            client:
+                baseUrl: ${AUTH_PROVIDER_SERVICE_CLIENT_BASEURL:http://dummy.dummy.net}
+    ref:
+        data:
+            baseUrl: ${AUTH_REF_DATA_BASEURL:http://dummy.dummy.net}
+azure:
+    application-insights:
+        instrumentation-key: ${ccpay.AppInsightsInstrumentationKey:00000000-0000-0000-0000-000000000000}
+    servicebus:
+        allow-telemetry: false
+        connection-string: ${ASB_CONNECTION_STRING:dummy}
+        subscription-name: defaultServiceCallbackSubscription
+        topic-name: serviceCallbackTopic
+bulk:
+    scanning:
+        cases-path: /case
+        payments:
+            processed:
+                url: ${CCPAY_BULK_SCANNING_API_URL:https://ccpay-bulkscanning-api.platform.hmcts.net}
+callback:
+    payments:
+        cutoff:
+            time:
+                in:
+                    minutes: ${CALLBACK_PAYMENTS_CUTOFF_TIME_IN_MINUTES:0}
+card:
+    lag:
+        time: 120
+    payments:
+        report:
+            endDate: ${CARD_PAYMENTS_REPORT_END_DATE:#{null}}
+            startDate: ${CARD_PAYMENTS_REPORT_START_DATE:#{null}}
+case-payment-orders:
+    api:
+        url: ${CASE_PAYMENT_ORDERS_API_URL:https://cpo-case-payment-orders-api-demo.service.core-compute-demo.internal}
+cash:
+    lag:
+        time: 120
+cheques:
+    lag:
+        time: 480
+core_case_data:
+    api:
+        url: ${CORE_CASE_DATA_API_URL:http://localhost:4452}
+duplicate:
+    payment:
+        check:
+            interval:
+                in:
+                    minutes: 2
+feature:
+    bulk:
+        scan:
+            payments:
+                check: true
+                check.pay.bubble: true
+    case:
+        reference:
+            validation: true
+    check:
+        liberata:
+            account:
+                for:
+                    all:
+                        services: false
+    credit:
+        account:
+            payment:
+                liberata:
+                    check: true
+    discontinued:
+        fees: true
+    duplicate:
+        payment:
+            check: true
+    payments:
+        cancel: true
+        search: true
+        service:
+            callback: true
+fees:
+    register:
+        url: ${FEES_REGISTER_URL:https://fees-register-api.platform.hmcts.net}
+gov:
+    pay:
+        auth:
+            key:
+                adoption_web: ${GOV_PAY_AUTH_KEY_ADOPTION:}
+                cmc: ${GOV_PAY_AUTH_KEY_CMC:}
+                cmc_claim_store: ${GOV_PAY_AUTH_KEY_CMC:}
+                divorce_frontend: ${GOV_PAY_AUTH_KEY_DIVORCE_FRONTEND:}
+                iac: ${GOV_PAY_AUTH_KEY_IAC:}
+                prl_cos_api: ${GOV_PAY_AUTH_KEY_PRL:}
+                probate_frontend: ${GOV_PAY_AUTH_KEY_PROBATE_FRONTEND:}
+        operational_services: ${GOV_PAY_OPERATIONAL_SERVICES:#{ccd_gw,api_gw}}
+        url: ${GOV_PAY_URL:#{https://publicapi.payments.service.gov.uk/v1/payments}}
+iac:
+    connect:
+        timeout: 5000
+    read:
+        timeout: 10000
+    supplementary:
+        info:
+            url: ${IAC_SERVICE_API_URL:http://dummy.dummy.net}
+idam:
+    s2s-auth:
+        microservice: ${PAYMENT_S2S_MICROSERVICE_NAME:payment_app}
+        totp_secret: ${PAYMENT_S2S_SECRET:}
+        url: ${AUTH_PROVIDER_SERVICE_CLIENT_BASEURL:#{http://dummy.dummy.net}}
+launch:
+    darkly:
+        sdk:
+            key: ${LAUNCH_DARKLY_SDK_KEY:}
+        user:
+            name: ${LAUNCH_DARKLY_USER_NAME_PREFIX:dummy}@feesandpay.com
+launchDarkly:
+    connectionTimeout: 3
+    flushInterval: 10
+    socketTimeout: 3
+liberata:
+    api:
+        account:
+            url: ${LIBERATA_API_ACCOUNT_URL:https://bpacustomerportal.liberata.com/pba/public/api/v2/account}
+    oauth2:
+        authorize:
+            url: ${LIBERATA_OAUTH2_AUTHORIZE_URL:https://bpacustomerportal.liberata.com/pba/public/oauth/authorize}
+        base:
+            url: ${LIBERATA_OAUTH2_BASE_URL:https://bpacustomerportal.liberata.com/pba/public/api/v2}
+        client:
+            id: ${LIBERATA_OAUTH2_CLIENT_ID:}
+            secret: ${LIBERATA_OAUTH2_CLIENT_SECRET:}
+        password: ${LIBERATA_OAUTH2_PASSWORD:}
+        token:
+            url: ${LIBERATA_OAUTH2_TOKEN_URL:https://bpacustomerportal.liberata.com/pba/public/oauth/token}
+        username: ${LIBERATA_OAUTH2_USERNAME:}
+logging:
+    level:
+        com:
+            zaxxer:
+                hikari: debug
+management:
+    endpoint:
+        health:
+            show-details: always
+    endpoints:
+        web:
+            base-path: /
+            exposure:
+                include: health,info
+    health:
+        mail:
+            enabled: false
+        probes:
+            enabled: true
+paybubble:
+    home:
+        url: ${PAYBUBBLE_HOME_URL:https://test.url.com}
+pba:
+    config1:
+        service:
+            names: ${PBA_CONFIG1_SERVICE_NAMES:dummy}
+    lag:
+        time: 96
+pci-pal:
+    account:
+        id:
+            cmc: ${PCI_PAL_ACCOUNT_ID_CMC:cmc}
+            divorce: ${PCI_PAL_ACCOUNT_ID_DIVORCE:divorce}
+            finrem: ${PCI_PAL_ACCOUNT_ID_FINREM:finrem}
+            probate: ${PCI_PAL_ACCOUNT_ID_PROBATE:probate}
+    antenna:
+        client:
+            id: ${PCI_PAL_ANTENNA_CLIENT_ID:dummy}
+            secret: ${PCI_PAL_ANTENNA_CLIENT_SECRET:}
+        cmc:
+            flow:
+                id: ${PCI_PAL_ANTENNA_CMC_FLOW_ID:dummy}
+        divorce:
+            flow:
+                id: ${PCI_PAL_ANTENNA_DIVORCE_FLOW_ID:dummy}
+        financial:
+            remedy:
+                flow:
+                    id: ${PCI_PAL_ANTENNA_FINANCIAL_REMEDY_FLOW_ID:dummy}
+        get:
+            tokens:
+                url: ${PCI_PAL_ANTENNA_GET_TOKENS_URL:dummy}
+        grant:
+            type: ${PCI_PAL_ANTENNA_GRANT_TYPE:client_credentials}
+        launch:
+            url: ${PCI_PAL_ANTENNA_LAUNCH_URL:dummy}
+        probate:
+            flow:
+                id: ${PCI_PAL_ANTENNA_PROBATE_FLOW_ID:dummy}
+        return:
+            url: ${PCI_PAL_ANTENNA_RETURN_URL:dummy}
+        tenant:
+            name: ${PCI_PAL_ANTENNA_TENANT_NAME:dummy}
+        user:
+            name: ${PCI_PAL_ANTENNA_USER_NAME:dummy}
+        view:
+            id:
+                url: ${PCI_PAL_ANTENNA_VIEW_ID_URL:dummy}
+    api:
+        key: ${PCI_PAL_API_KEY:}
+        url: ${PCI_PAL_API_URL:https://pci-pal.url.com}
+    callback-url: ${PCI_PAL_CALLBACK_URL:pci-pal-callback-url}
+postalorders:
+    lag:
+        time: 480
+rd:
+    location:
+        url: ${RD_LOCATION_BASE_URL:http://dummy.dummy.net}
+refund:
+    api:
+        url: ${REFUND_API_URL:http://ccpay-refunds-api-aat.service.core-compute-aat.internal}
+sb-cpo-primary-connection-string: ${CPO_SB_CONNECTION_STRING:dummy}
+server:
+    shutdown: ${SERVER_SHUTDOWN_STRATEGY:graceful}
+spring:
+    application:
+        name: payment-api
+    autoconfigure:
+        exclude: uk.gov.hmcts.reform.ccd.client.CoreCaseDataClientAutoConfiguration
+    config:
+        import: optional:configtree:/mnt/secrets/ccpay/
+    datasource:
+        driver: org.postgresql.Driver
+        hikari:
+            leak-detection-threshold: 60000
+        password: ${POSTGRES_PASSWORD}
+        url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_NAME:payment}${POSTGRES_CONNECTION_OPTIONS:}
+        username: ${POSTGRES_USERNAME:payment@payment-postgres-db-v11-demo}
+    jpa:
+        properties:
+            hibernate:
+                jdbc:
+                    lob:
+                        non_contextual_creation: true
+    lifecycle:
+        timeout-per-shutdown-phase: ${TIMEOUT_SERVER_SHUTDOWN_PHASE:30s}
+    liquibase:
+        change-log: classpath:/db/changelog/db.changelog-master.xml
+        enabled: ${SPRING_LIQUIBASE_ENABLED:true}
+    main:
+        allow-bean-definition-overriding: true
+springdoc:
+    writer-with-order-by-keys: true
+trusted:
+    s2s:
+        service:
+            names: ${TRUSTED_S2S_SERVICE_NAMES:cmc,cmc_claim_store,probate_frontend,divorce_frontend,ccd_gw,bar_api,api_gw,finrem_payment_service,ccpay_bubble,jui_webapp,xui_webapp,fpl_case_service,iac,probate_backend,civil_service,paymentoutcome_web,adoption_web,prl_cos_api,refunds_api,civil_general_applications,notifications_service}

@@ -1,0 +1,291 @@
+auth:
+    idam:
+        client:
+            baseUrl: http://localhost:23443
+            baseurl: ${AUTH_IDAM_CLIENT_BASEURL:http://localhost:5000}
+    provider:
+        service:
+            client:
+                baseUrl: http://localhost:23443
+    ref:
+        data:
+            baseUrl: ${AUTH_REF_DATA_BASEURL:http://localhost}
+azure:
+    application-insights:
+        instrumentation-key: ${APPINSIGHTS_INSTRUMENTATIONKEY:dummy}
+    servicebus:
+        connection-string: ${ASB_CONNECTION_STRING:dummy}
+bar:
+    payments:
+        email:
+            from: ${BAR_PAYMENTS_EMAIL_FROM:dummy@gmail.com}
+            message: ${BAR_PAYMENTS_EMAIL_MESSAGE:Hi <br/><br/>Please find attached
+                today's reconciliation report. <br/><br/>Regards <br/><br/>Payments
+                team<br/><br/>}
+            subject: ${BAR_PAYMENTS_EMAIL_SUBJECT:subject}
+            to: ${BAR_PAYMENTS_EMAIL_TO:dummy@HMCTS.net}
+        report:
+            scheduler:
+                enabled: ${BAR_PAYMENTS_REPORT_SCHEDULER_ENABLED:true}
+bulk:
+    scanning:
+        payments:
+            processed:
+                url: http://localhost:8004
+card:
+    lag:
+        time: 120
+    payments:
+        email:
+            from: ${CARD_PAYMENTS_EMAIL_FROM:dummy@gmail.com}
+            message: ${CARD_PAYMENTS_EMAIL_MESSAGE:Hi <br/><br/>Please find attached
+                today's reconciliation report. <br/><br/>Regards <br/><br/>Payments
+                team<br/><br/>}
+            subject: ${CARD_PAYMENTS_EMAIL_SUBJECT:subject}
+            to: ${CARD_PAYMENTS_EMAIL_TO:dummy@HMCTS.net}
+        report:
+            scheduler:
+                enabled: ${CARD_PAYMENTS_REPORT_SCHEDULER_ENABLED:true}
+case-payment-orders:
+    api:
+        url: http://localhost:4457
+cash:
+    lag:
+        time: 120
+cheques:
+    lag:
+        time: 480
+feature:
+    bulk:
+        scan:
+            payments:
+                check: true
+                check.pay.bubble: true
+    case:
+        reference:
+            validation: false
+    discontinued:
+        fees: true
+    payments:
+        cancel: true
+        search: false
+        service:
+            callback: false
+fees:
+    register:
+        url: https://fees-register-api.platform.hmcts.net
+gov:
+    pay:
+        auth:
+            key:
+                probate_frontend: fillThisOut
+        operational_services: ccd_gw
+        url: https://publicapi.payments.service.gov.uk/v1/payments
+iac:
+    connect:
+        timeout: 5000
+    read:
+        timeout: 10000
+    supplementary:
+        info:
+            url: http://localhost:8092
+idam:
+    s2s-auth:
+        microservice: ${PAYMENT_S2S_MICROSERVICE_NAME:internal}
+        totp_secret: ${PAYMENT_S2S_SECRET:}
+        url: ${AUTH_PROVIDER_SERVICE_CLIENT_BASEURL:localhost:23443}
+launch:
+    darkly:
+        sdk:
+            key: ${LAUNCH_DARKLY_SDK_KEY:}
+        user:
+            name: ${LAUNCH_DARKLY_USER_NAME_PREFIX:local}@feesandpay.com
+launchDarkly:
+    connectionTimeout: 3
+    flushInterval: 10
+    socketTimeout: 3
+management:
+    endpoint:
+        health:
+            show-details: always
+    endpoints:
+        web:
+            base-path: /
+            exposure:
+                include: health,info
+payments:
+    account:
+        existing:
+            account:
+                number: PBAFUNC12345
+        fake:
+            account:
+                number: QWERTYUIOP
+pba:
+    civil:
+        payments:
+            email:
+                from: ${PBA_CIVIL_PAYMENTS_EMAIL_FROM:dummy@gmail.com}
+                message: ${PBA_CIVIL_PAYMENTS_EMAIL_MESSAGE:Hi <br/><br/>Please find
+                    attached today's Payment by Account reconciliation report. <br/><br/>Regards
+                    <br/><br/>Payments team <br/><br/>}
+                subject: ${PBA_CIVIL_PAYMENTS_EMAIL_SUBJECT:subject}
+                to: ${PBA_CIVIL_PAYMENTS_EMAIL_TO:dummy@gmail.com}
+            report:
+                scheduler:
+                    enabled: ${PBA_CIVIL_PAYMENTS_REPORT_SCHEDULER_ENABLED:true}
+    cmc:
+        payments:
+            email:
+                from: ${PBA_CMC_PAYMENTS_EMAIL_FROM:dummy@gmail.com}
+                message: ${PBA_CMC_PAYMENTS_EMAIL_MESSAGE:Hi <br/><br/>Please find
+                    attached today's Payment by Account reconciliation report. <br/><br/>Regards
+                    <br/><br/>Payments team <br/><br/>}
+                subject: ${PBA_CMC_PAYMENTS_EMAIL_SUBJECT:subject}
+                to: ${PBA_CMC_PAYMENTS_EMAIL_TO:dummy@HMCTS.net}
+            report:
+                scheduler:
+                    enabled: ${PBA_CMC_PAYMENTS_REPORT_SCHEDULER_ENABLED:true}
+    divorce:
+        payments:
+            email:
+                from: ${PBA_DIVORCE_PAYMENTS_EMAIL_FROM:dummy@gmail.com}
+                message: ${PBA_DIVORCE_PAYMENTS_EMAIL_MESSAGE:Hi <br/><br/>Please
+                    find attached today's Payment by Account reconciliation report.
+                    <br/><br/>Regards <br/><br/>Payments team <br/><br/>}
+                subject: ${PBA_DIVORCE_PAYMENTS_EMAIL_SUBJECT:subject}
+                to: ${PBA_DIVORCE_PAYMENTS_EMAIL_TO:dummy@HMCTS.net}
+            report:
+                scheduler:
+                    enabled: ${PBA_DIVORCE_PAYMENTS_REPORT_SCHEDULER_ENABLED:true}
+    finrem:
+        payments:
+            email:
+                from: ${PBA_FINREM_PAYMENTS_EMAIL_FROM:dummy@gmail.com}
+                message: ${PBA_FINREM_PAYMENTS_EMAIL_MESSAGE:Hi <br/><br/>Please find
+                    attached today's Payment by Account reconciliation report. <br/><br/>Regards
+                    <br/><br/>Payments team <br/><br/>}
+                subject: ${PBA_FINREM_PAYMENTS_EMAIL_SUBJECT:subject}
+                to: ${PBA_FINREM_PAYMENTS_EMAIL_TO:dummy@HMCTS.net}
+            report:
+                scheduler:
+                    enabled: ${PBA_FINREM_PAYMENTS_REPORT_SCHEDULER_ENABLED:true}
+    fpl:
+        payments:
+            email:
+                from: ${PBA_FPL_PAYMENTS_EMAIL_FROM:dummy@gmail.com}
+                message: ${PBA_FPL_PAYMENTS_EMAIL_MESSAGE:Hi <br/><br/>Please find
+                    attached today's Payment by Account reconciliation report. <br/><br/>Regards
+                    <br/><br/>Payments team <br/><br/>}
+                subject: ${PBA_FPL_PAYMENTS_EMAIL_SUBJECT:subject}
+                to: ${PBA_FPL_PAYMENTS_EMAIL_TO:dummy@gmail.com}
+            report:
+                scheduler:
+                    enabled: ${PBA_FPL_PAYMENTS_REPORT_SCHEDULER_ENABLED:true}
+    lag:
+        time: 96
+    prl:
+        payments:
+            email:
+                from: ${PBA_PRL_PAYMENTS_EMAIL_FROM:dummy@gmail.com}
+                message: ${PBA_PRL_PAYMENTS_EMAIL_MESSAGE:Hi <br/><br/>Please find
+                    attached today's Payment by Account reconciliation report. <br/><br/>Regards
+                    <br/><br/>Payments team <br/><br/>}
+                subject: ${PBA_PRL_PAYMENTS_EMAIL_SUBJECT:subject}
+                to: ${PBA_PRL_PAYMENTS_EMAIL_TO:dummy@gmail.com}
+            report:
+                scheduler:
+                    enabled: ${PBA_PRL_PAYMENTS_REPORT_SCHEDULER_ENABLED:true}
+    probate:
+        payments:
+            email:
+                from: ${PBA_PROBATE_PAYMENTS_EMAIL_FROM:dummy@gmail.com}
+                message: ${PBA_PROBATE_PAYMENTS_EMAIL_MESSAGE:Hi <br/><br/>Please
+                    find attached today's Payment by Account reconciliation report.
+                    <br/><br/>Regards <br/><br/>Payments team <br/><br/>}
+                subject: ${PBA_PROBATE_PAYMENTS_EMAIL_SUBJECT:subject}
+                to: ${PBA_PROBATE_PAYMENTS_EMAIL_TO:dummy@HMCTS.net}
+            report:
+                scheduler:
+                    enabled: ${PBA_PROBATE_PAYMENTS_REPORT_SCHEDULER_ENABLED:true}
+pci-pal:
+    antenna:
+        client:
+            id: ${PCI_PAL_ANTENNA_CLIENT_ID:HMCTSStage}
+            secret: ${PCI_PAL_ANTENNA_CLIENT_SECRET:}
+        cmc:
+            flow:
+                id: ${PCI_PAL_ANTENNA_CMC_FLOW_ID:1356}
+        divorce:
+            flow:
+                id: ${PCI_PAL_ANTENNA_DIVORCE_FLOW_ID:1356}
+        financial:
+            remedy:
+                flow:
+                    id: ${PCI_PAL_ANTENNA_FINANCIAL_REMEDY_FLOW_ID:1356}
+        get:
+            tokens:
+                url: ${PCI_PAL_ANTENNA_GET_TOKENS_URL:https://pcipalstaging.cloud/api/v1/token}
+        grant:
+            type: ${PCI_PAL_ANTENNA_GRANT_TYPE:client_credentials}
+        launch:
+            url: ${PCI_PAL_ANTENNA_LAUNCH_URL:https://euwest1.pcipalstaging.cloud/api/v1/session/303/launch}
+        probate:
+            flow:
+                id: ${PCI_PAL_ANTENNA_PROBATE_FLOW_ID:1356}
+        return:
+            url: ${PCI_PAL_ANTENNA_RETURN_URL:http://localhost}
+        tenant:
+            name: ${PCI_PAL_ANTENNA_TENANT_NAME:HMCTS}
+        user:
+            name: ${PCI_PAL_ANTENNA_USER_NAME:APIUser}
+        view:
+            id:
+                url: ${PCI_PAL_ANTENNA_VIEW_ID_URL:https://euwest1.pcipalstaging.cloud/session/303/view/}
+postalorders:
+    lag:
+        time: 480
+rd:
+    location:
+        url: http://localhost:8099
+refund:
+    api:
+        url: http://localhost:8005
+sb-cpo-primary-connection-string: ${CPO_SB_CONNECTION_STRING:dummy}
+server:
+    shutdown: graceful
+spring:
+    application:
+        name: payment
+    autoconfigure:
+        exclude: uk.gov.hmcts.reform.ccd.client.CoreCaseDataClientAutoConfiguration
+    datasource:
+        driver: org.postgresql.Driver
+        password: ${POSTGRES_PASSWORD:}
+        url: jdbc:postgresql://localhost:5432/payment
+        username: payment
+    jpa:
+        properties:
+            hibernate:
+                jdbc:
+                    lob:
+                        non_contextual_creation: true
+    lifecycle:
+        timeout-per-shutdown-phase: 30s
+    liquibase:
+        change-log: classpath:/db/changelog/db.changelog-master.xml
+        enabled: ${SPRING_LIQUIBASE_ENABLED:true}
+    mail:
+        host: ${SPRING_MAIL_HOST:mta.reform.hmcts.net}
+        port: ${SPRING_MAIL_PORT:25}
+        properties:
+            mail:
+                smtp:
+                    ssl:
+                        trust: ${EMAIL_SMTP_SSL_TRUST:*}
+                    starttls:
+                        enable: ${SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE:true}
+trusted:
+    s2s:
+        service:
+            names: cmc,probate_frontend,divorce_frontend,ccd_gw,bar_api,finrem_payment_service,ccpay_bubble,jui_webapp,xui_webapp,fpl_case_service,iac,unspec_service,probate_backend,civil_service,paymentoutcome_web,adoption_web,prl_cos_api
