@@ -1,7 +1,10 @@
 package uk.gov.hmcts.payment.api.controllers;
 
 
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.*;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,8 +30,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.RemissionNotFoundException;
 import javax.validation.Valid;
 
 @RestController
-@Api(tags = {"Refund group"})
-@SwaggerDefinition(tags = {@Tag(name = "RefundsController", description = "Refunds REST API")})
+@Tag(name = "RefundsController", description = "Refunds REST API")
 public class RefundsController {
 
     private static final Logger LOG = LoggerFactory.getLogger(RefundsController.class);
@@ -36,13 +38,13 @@ public class RefundsController {
     @Autowired
     private PaymentRefundsService paymentRefundsService;
 
-    @ApiOperation(value = "Create refund-for-payment", notes = "Create refund payment")
+    @Operation(summary = "Create refund-for-payment", description = "Create refund payment")
     @ApiResponses(value = {
-        @ApiResponse(code = 201, message = "Refund created"),
-        @ApiResponse(code = 400, message = "Refund creation failed"),
-        @ApiResponse(code = 404, message = "Payment reference could not be found"),
-        @ApiResponse(code = 504, message = "Unable to process refund information, please try again later"),
-        @ApiResponse(code = 422, message = "Invalid or missing attribute")
+        @ApiResponse(responseCode = "201", description = "Refund created"),
+        @ApiResponse(responseCode = "400", description = "Refund creation failed"),
+        @ApiResponse(responseCode = "404", description = "Payment reference could not be found"),
+        @ApiResponse(responseCode = "504", description = "Unable to process refund information, please try again later"),
+        @ApiResponse(responseCode = "422", description = "Invalid or missing attribute")
     })
     @PostMapping(value = "/refund-for-payment")
     @ResponseBody
@@ -59,11 +61,11 @@ public class RefundsController {
     }
 
 
-    @ApiOperation(value = "Update the remission amount in resubmit journey", notes = "Update the remission amount in resubmit journey")
+    @Operation(summary = "Update the remission amount in resubmit journey", description = "Update the remission amount in resubmit journey")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Success"),
-        @ApiResponse(code = 400, message = "Amount should not be more than Payment amount"),
-        @ApiResponse(code = 400, message = "Amount should not be more than remission amount")
+        @ApiResponse(responseCode = "200", description = "Success"),
+        @ApiResponse(responseCode = "400", description = "Amount should not be more than Payment amount"),
+        @ApiResponse(responseCode = "400", description = "Amount should not be more than remission amount")
     })
     @PatchMapping("/refund/resubmit/{payment-reference}")
     @Transactional(rollbackFor = Exception.class)
@@ -75,10 +77,10 @@ public class RefundsController {
         return paymentRefundsService.updateTheRemissionAmount(paymentReference, request);
     }
 
-    @ApiOperation(value = "Delete refund details by refund reference", notes = "Delete Refund details for supplied refund reference")
+    @Operation(summary = "Delete refund details by refund reference", description = "Delete Refund details for supplied refund reference")
     @ApiResponses(value = {
-            @ApiResponse(code = 204, message = "Refund deleted successfully"),
-            @ApiResponse(code = 404, message = "Refund not found for the given reference")
+            @ApiResponse(responseCode = "204", description = "Refund deleted successfully"),
+            @ApiResponse(responseCode = "404", description = "Refund not found for the given reference")
     })
     @DeleteMapping(value = "/refund/{refundReference}")
     @ResponseStatus(HttpStatus.NO_CONTENT)

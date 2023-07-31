@@ -1,11 +1,9 @@
 package uk.gov.hmcts.payment.api.controllers;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
-import io.swagger.annotations.SwaggerDefinition;
-import io.swagger.annotations.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,8 +20,7 @@ import uk.gov.hmcts.payment.api.exception.LiberataServiceInaccessibleException;
 import uk.gov.hmcts.payment.api.service.AccountService;
 
 @RestController
-@Api(tags = {"Account"})
-@SwaggerDefinition(tags = {@Tag(name = "AccountController", description = "Account REST API")})
+@Tag(name = "AccountController", description = "Account REST API")
 public class AccountController {
 
 
@@ -39,11 +36,11 @@ public class AccountController {
     }
 
 
-    @ApiOperation(value = "Get the account status and available balance for a PBA account number", notes = "Get the account status and available balance for a PBA account number")
+    @Operation(summary = "Get the account status and available balance for a PBA account number", description = "Get the account status and available balance for a PBA account number")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Account details retrieved"),
-        @ApiResponse(code = 404, message = "Account not found"),
-        @ApiResponse(code = 503, message = "Failed to connect with Liberata")
+        @ApiResponse(responseCode = "200", description = "Account details retrieved"),
+        @ApiResponse(responseCode = "404", description = "Account not found"),
+        @ApiResponse(responseCode = "503", description = "Failed to connect with Liberata")
     })
     @GetMapping(value = "/accounts/{accountNumber}")
     public AccountDto getAccounts(@PathVariable("accountNumber") String accountNumber) {

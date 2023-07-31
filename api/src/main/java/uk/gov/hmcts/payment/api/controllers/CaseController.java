@@ -1,11 +1,9 @@
 package uk.gov.hmcts.payment.api.controllers;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
-import io.swagger.annotations.SwaggerDefinition;
-import io.swagger.annotations.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.MultiValueMap;
@@ -39,8 +37,7 @@ import java.util.stream.Collectors;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 @RestController
-@Api(tags = {"Case"})
-@SwaggerDefinition(tags = {@Tag(name = "CaseController", description = "Case REST API")})
+@Tag(name = "CaseController", description = "Case REST API")
 @Validated
 public class CaseController {
 
@@ -67,10 +64,10 @@ public class CaseController {
         this.paymentGroupDtoMapper = paymentGroupDtoMapper;
     }
 
-    @ApiOperation(value = "Get payments for a case", notes = "Get payments for a case")
+    @Operation(summary = "Get payments for a case", description = "Get payments for a case")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Payments retrieved"),
-        @ApiResponse(code = 400, message = "Bad request")
+        @ApiResponse(responseCode = "200", description = "Payments retrieved"),
+        @ApiResponse(responseCode = "400", description = "Bad request")
     })
     @RequestMapping(value = "/cases/{case}/payments", method = GET)
     @PaymentExternalAPI
@@ -90,12 +87,12 @@ public class CaseController {
     }
 
 
-    @ApiOperation(value = "Get payment groups for a case", notes = "Get payment groups for a case")
+    @Operation(summary = "Get payment groups for a case", description = "Get payment groups for a case")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Payment Groups retrieved"),
-        @ApiResponse(code = 400, message = "Bad request"),
-        @ApiResponse(code = 403, message = "Payment Info Forbidden"),
-        @ApiResponse(code = 404, message = "Payment Groups not found")
+        @ApiResponse(responseCode = "200", description = "Payment Groups retrieved"),
+        @ApiResponse(responseCode = "400", description = "Bad request"),
+        @ApiResponse(responseCode = "403", description = "Payment Info Forbidden"),
+        @ApiResponse(responseCode = "404", description = "Payment Groups not found")
     })
     @RequestMapping(value = "/cases/{ccdcasenumber}/paymentgroups", method = GET)
     public PaymentGroupResponse retrieveCasePaymentGroups(@PathVariable(name = "ccdcasenumber") String ccdCaseNumber,

@@ -162,35 +162,33 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             paymentFee = remission.get().getFee();
             //need to validate if multipleApportionment scenario present for single feeId validation needed
             Optional<List<FeePayApportion>> feePayApportion = feePayApportionRepository.findByFeeId(paymentFee.getId());
-            if (feePayApportion.isPresent()) {
+            if (feePayApportion.isPresent() && !feePayApportion.get().isEmpty()) {
                 Optional<FeePayApportion> result = feePayApportion.get().stream().findFirst();
-                if(result.isPresent()) {
-                    paymentId = result.get().getPaymentId();
+                paymentId = result.get().getPaymentId();
 
-                    Payment payment = paymentRepository
-                        .findById(paymentId).orElseThrow(() -> new PaymentNotFoundException("Payment not found for given apportionment"));
+                Payment payment = paymentRepository
+                    .findById(paymentId).orElseThrow(() -> new PaymentNotFoundException("Payment not found for given apportionment"));
 
-                    BigDecimal remissionAmount = remission.get().getHwfAmount();
-                     validateThePaymentBeforeInitiatingRefund(payment, headers);
+                BigDecimal remissionAmount = remission.get().getHwfAmount();
+                validateThePaymentBeforeInitiatingRefund(payment, headers);
 
-                    RefundRequestDto refundRequest = RefundRequestDto.refundRequestDtoWith()
-                        .paymentReference(payment.getReference()) //RC reference
-                        .refundAmount(remissionAmount) //Refund amount
-                        .paymentAmount(payment.getAmount())
-                        .ccdCaseNumber(payment.getCcdCaseNumber()) // ccd case number
-                        .refundReason("RR036")//Refund reason category would be other
-                        .feeIds(getFeeIdsUsingPaymentFees(Collections.singletonList(paymentFee)))
-                        .refundFees(getRefundFeesUsingPaymentFee(Collections.singletonList(paymentFee),remissionAmount ))
-                        .serviceType(payment.getServiceType())
-                        .paymentMethod(payment.getPaymentMethod().getName())
-                        .contactDetails(retrospectiveRemissionRequest.getContactDetails())
-                        .paymentChannel(payment.getPaymentChannel().getName())
-                        .build();
-                    RefundResponse refundResponse = RefundResponse.RefundResponseWith()
-                        .refundAmount(remissionAmount)
-                        .refundReference(postToRefundService(refundRequest, headers)).build();
-                    return new ResponseEntity<>(refundResponse, HttpStatus.CREATED);
-                }
+                RefundRequestDto refundRequest = RefundRequestDto.refundRequestDtoWith()
+                    .paymentReference(payment.getReference()) //RC reference
+                    .refundAmount(remissionAmount) //Refund amount
+                    .paymentAmount(payment.getAmount())
+                    .ccdCaseNumber(payment.getCcdCaseNumber()) // ccd case number
+                    .refundReason("RR036")//Refund reason category would be other
+                    .feeIds(getFeeIdsUsingPaymentFees(Collections.singletonList(paymentFee)))
+                    .refundFees(getRefundFeesUsingPaymentFee(Collections.singletonList(paymentFee),remissionAmount ))
+                    .serviceType(payment.getServiceType())
+                    .paymentMethod(payment.getPaymentMethod().getName())
+                    .contactDetails(retrospectiveRemissionRequest.getContactDetails())
+                    .paymentChannel(payment.getPaymentChannel().getName())
+                    .build();
+                RefundResponse refundResponse = RefundResponse.RefundResponseWith()
+                    .refundAmount(remissionAmount)
+                    .refundReference(postToRefundService(refundRequest, headers)).build();
+                return new ResponseEntity<>(refundResponse, HttpStatus.CREATED);
             }else{
                 throw new PaymentNotSuccessException("Refund can be possible if payment is successful");
             }
@@ -296,7 +294,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         Optional<List<PaymentFailures>> paymentFailuresList;
         paymentFailuresList = paymentFailureRepository.findByPaymentReference(payment.getReference());
 
-        if(paymentFailuresList.isPresent()){
+        if(paymentFailuresList.isPresent() && !paymentFailuresList.get().isEmpty()){
             boolean match = paymentFailuresList.get().stream().anyMatch(paymentFailuresList1 -> paymentFailuresList1.getRepresentmentSuccess() == null || paymentFailuresList1.getRepresentmentSuccess().equalsIgnoreCase("no"));
            if(match) {
                throw new PaymentNotSuccessException("Refund can't be requested for failed payment");

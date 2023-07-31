@@ -1,11 +1,9 @@
 package uk.gov.hmcts.payment.api.controllers;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
-import io.swagger.annotations.SwaggerDefinition;
-import io.swagger.annotations.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,8 +35,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
-@Api(tags = {"PaymentApportion"})
-@SwaggerDefinition(tags = {@Tag(name = "FeePayApportionController", description = "FeePayApportion REST API")})
+@Tag(name = "FeePayApportionController", description = "FeePayApportion REST API")
 public class FeePayApportionController {
 
     private final PaymentService<PaymentFeeLink, String> paymentService;
@@ -66,11 +63,11 @@ public class FeePayApportionController {
         this.featureToggler = featureToggler;
     }
 
-    @ApiOperation(value = "Get apportion details by payment reference", notes = "Get apportion details for supplied payment reference")
+    @Operation(summary = "Get apportion details by payment reference", description = "Get apportion details for supplied payment reference")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Apportionment Details retrieved"),
-        @ApiResponse(code = 403, message = "Payment info forbidden"),
-        @ApiResponse(code = 404, message = "Payment not found")
+        @ApiResponse(responseCode = "200", description = "Apportionment Details retrieved"),
+        @ApiResponse(responseCode = "403", description = "Payment info forbidden"),
+        @ApiResponse(responseCode = "404", description = "Payment not found")
     })
     @GetMapping(value = "/payment-groups/fee-pay-apportion/{paymentreference}")
     public ResponseEntity<PaymentGroupDto> retrieveApportionDetails(@PathVariable("paymentreference") String paymentReference,@RequestHeader(required = false) MultiValueMap<String, String> headers) {

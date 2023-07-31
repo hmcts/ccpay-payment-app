@@ -27,32 +27,50 @@ java:
     "ccpay":
       resourceGroup: ccpay
       secrets:
-        - gov-pay-keys-cmc
-        - launch-darkly-sdk-key
-        - payment-s2s-secret
-        - pci-pal-antenna-tenant-name
-        - pci-pal-antenna-user-name
-        - pci-pal-antenna-client-id
-        - pci-pal-antenna-client-secret
-        - pci-pal-antenna-get-tokens-url
-        - pci-pal-antenna-launch-url
-        - pci-pal-antenna-view-id-url
-        - pci-pal-antenna-return-url
-        - pci-pal-antenna-cmc-flow-id
-        - pci-pal-antenna-probate-flow-id
-        - pci-pal-antenna-divorce-flow-id
-        - pci-pal-antenna-financial-remedy-flow-id
-        - spring-mail-password
-        - gov-pay-keys-cmc-claim-store
-        - gov-pay-keys-divorce
-        - gov-pay-keys-probate
-        - gov-pay-keys-iac
-        - gov-pay-keys-adoption
-        - gov-pay-keys-prl
-        - ccpay-cpo-client-id
-        - ccpay-cpo-client-secret
-        - ccpay-cpo-user-password
-        - ccpay-cpo-user-id
+        - name: gov-pay-keys-cmc
+          alias: gov.pay.auth.key.cmc
+        - name: launch-darkly-sdk-key
+          alias: launch.darkly.sdk.key
+        - name: payment-s2s-secret
+          alias: PAYMENT_S2S_SECRET
+        - name: pci-pal-antenna-tenant-name
+          alias: pci-pal.antenna.tenant.name
+        - name: pci-pal-antenna-user-name
+          alias: pci-pal.antenna.user.name
+        - name: pci-pal-antenna-client-id
+          alias: pci-pal.antenna.client.id
+        - name: pci-pal-antenna-client-secret
+          alias: pci-pal.antenna.client.secret
+        - name: pci-pal-antenna-get-tokens-url
+          alias: pci-pal.antenna.get.tokens.url
+        - name: pci-pal-antenna-launch-url
+          alias: pci-pal.antenna.launch.url
+        - name: pci-pal-antenna-view-id-url
+          alias: pci-pal.antenna.view.id.url
+        - name: pci-pal-antenna-return-url
+          alias: pci-pal.antenna.return.url
+        - name: pci-pal-antenna-cmc-flow-id
+          alias: pci-pal.antenna.cmc.flow.id
+        - name: pci-pal-antenna-probate-flow-id
+          alias: pci-pal.antenna.probate.flow.id
+        - name: pci-pal-antenna-divorce-flow-id
+          alias: pci-pal.antenna.divorce.flow.id
+        - name: pci-pal-antenna-financial-remedy-flow-id
+          alias: pci-pal.antenna.financial.remedy.flow.id
+        - name: spring-mail-password
+          alias: spring.mail.password
+        - name: gov-pay-keys-cmc-claim-store
+          alias: gov.pay.auth.key.cmc_claim_store
+        - name: gov-pay-keys-divorce
+          alias: gov.pay.auth.key.divorce_frontend
+        - name: gov-pay-keys-probate
+          alias: gov.pay.auth.key.probate_frontend
+        - name: gov-pay-keys-iac
+          alias: gov.pay.auth.key.iac
+        - name: gov-pay-keys-adoption
+          alias: gov.pay.auth.key.adoption_web
+        - name: gov-pay-keys-prl
+          alias: gov.pay.auth.key.prl_cos_api
   postgresql:
     enabled: true
     primary:
@@ -195,6 +213,8 @@ ccpay-notifications-service:
         secrets:
           - name: notifications-service-POSTGRES-PASS
             alias: POSTGRES_PASSWORD
+          - name: app-insights-connection-string
+            alias: app-insights-connection-string
           - name: AppInsightsInstrumentationKey
             alias: azure.application-insights.instrumentation-key
           - name: notifications-s2s-secret

@@ -129,9 +129,6 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     private DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService;
 
     @Autowired
-    private ServiceRequestDomainService serviceRequestDomainService;
-
-    @Autowired
     private TopicClientService topicClientService;
 
     @Autowired

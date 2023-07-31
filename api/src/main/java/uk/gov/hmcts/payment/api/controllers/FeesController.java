@@ -1,6 +1,9 @@
 package uk.gov.hmcts.payment.api.controllers;
 
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,8 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.payment.api.service.FeesService;
 
 @RestController
-@Api(tags = {"Fees"})
-@SwaggerDefinition(tags = {@Tag(name = "Fees", description = "Fees REST API")})
+@Tag(name = "Fees", description = "Fees REST API")
 @Validated
 public class FeesController {
     private static final Logger LOG = LoggerFactory.getLogger(FeesController.class);
@@ -24,10 +26,10 @@ public class FeesController {
         this.feesService = feesService;
     }
 
-    @ApiOperation(value = "Delete Fees by Id", notes = "Delete Fees by Id")
+    @Operation(summary = "Delete Fees by Id", description = "Delete Fees by Id")
     @ApiResponses(value = {
-        @ApiResponse(code = 204, message = "Fees Deleted"),
-        @ApiResponse(code = 400, message = "Fees not found")
+        @ApiResponse(responseCode = "204", description = "Fees Deleted"),
+        @ApiResponse(responseCode = "400", description = "Fees not found")
     })
     @DeleteMapping(value = "/fees/{feeId}")
     public ResponseEntity<Boolean> deleteFee(@PathVariable("feeId") String feeId) throws EmptyResultDataAccessException {

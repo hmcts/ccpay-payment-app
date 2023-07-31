@@ -1,10 +1,10 @@
 package uk.gov.hmcts.payment.api.controllers;
 
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +27,7 @@ import uk.gov.hmcts.payment.api.model.PaymentStatusRepository;
 import java.util.List;
 
 @RestController
-@Api(tags = {"Payment Reference Data"})
+@Tag(name = "Payment Reference Data")
 @RequestMapping("/refdata")
 public class PaymentReferenceDataController {
     private static final Logger LOG = LoggerFactory.getLogger(PaymentReferenceDataController.class);
@@ -53,10 +53,10 @@ public class PaymentReferenceDataController {
         this.legacySiteRepository = legacySiteRepository;
     }
 
-    @ApiOperation(value = "Payment channels", notes = "Get all payment channels")
+    @Operation(summary = "Payment channels", description = "Get all payment channels")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Payment channels found"),
-        @ApiResponse(code = 404, message = "Payment channels not found")
+        @ApiResponse(responseCode = "200", description = "Payment channels found"),
+        @ApiResponse(responseCode = "404", description = "Payment channels not found")
     })
     @GetMapping("/channels")
     @ResponseStatus(HttpStatus.OK)
@@ -66,10 +66,10 @@ public class PaymentReferenceDataController {
         return paymentChannels;
     }
 
-    @ApiOperation(value = "Payment methods", notes = "Get all payment methods")
+    @Operation(summary = "Payment methods", description = "Get all payment methods")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Payment methods found"),
-        @ApiResponse(code = 404, message = "Payment methods not found")
+        @ApiResponse(responseCode = "200", description = "Payment methods found"),
+        @ApiResponse(responseCode = "404", description = "Payment methods not found")
     })
     @GetMapping("/methods")
     public List<PaymentMethod> findAllPaymentMethods() {
@@ -78,10 +78,10 @@ public class PaymentReferenceDataController {
         return paymentMethods;
     }
 
-    @ApiOperation(value = "Payment providers", notes = "Get all payment providers")
+    @Operation(summary = "Payment providers", description = "Get all payment providers")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Payment providers found"),
-        @ApiResponse(code = 404, message = "Payment providers not found")
+        @ApiResponse(responseCode = "200", description = "Payment providers found"),
+        @ApiResponse(responseCode = "404", description = "Payment providers not found")
     })
     @GetMapping("/providers")
     @ResponseStatus(HttpStatus.OK)
@@ -91,10 +91,10 @@ public class PaymentReferenceDataController {
         return paymentProviders;
     }
 
-    @ApiOperation(value = "Payment status", notes = "Get all payment statuses")
+    @Operation(summary = "Payment status", description = "Get all payment statuses")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Payment status found"),
-        @ApiResponse(code = 404, message = "Payment status not found")
+        @ApiResponse(responseCode = "200", description = "Payment status found"),
+        @ApiResponse(responseCode = "404", description = "Payment status not found")
     })
     @GetMapping("/status")
     public List<PaymentStatus> findAllPaymentStatuses() {
@@ -103,11 +103,11 @@ public class PaymentReferenceDataController {
         return paymentStatus;
     }
 
-    @ApiOperation(value = "Get allowed legacy sites")
+    @Operation(summary = "Get allowed legacy sites")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Legacy sites retrieved successfully"),
-        @ApiResponse(code = 404, message = "Legacy sites not found"),
-        @ApiResponse(code = 401, message = "Credentials are required to access this resource")
+        @ApiResponse(responseCode = "200", description = "Legacy sites retrieved successfully"),
+        @ApiResponse(responseCode = "404", description = "Legacy sites not found"),
+        @ApiResponse(responseCode = "401", description = "Credentials are required to access this resource")
     })
     @ResponseStatus(HttpStatus.OK)
     @GetMapping(value = "/legacy-sites")

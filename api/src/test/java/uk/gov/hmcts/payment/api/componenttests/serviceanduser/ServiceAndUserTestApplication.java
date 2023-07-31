@@ -48,7 +48,7 @@ public class ServiceAndUserTestApplication {
 
     @Configuration
     @EnableWebSecurity
-    public class AuthCheckerConfiguration {
+    public class PaymentAuthCheckerConfiguration {
         @Bean
         public Function<HttpServletRequest, Optional<String>> userIdExtractor() {
             return (request) -> Optional.of("1");

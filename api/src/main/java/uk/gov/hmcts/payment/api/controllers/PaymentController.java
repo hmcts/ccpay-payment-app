@@ -1,11 +1,9 @@
 package uk.gov.hmcts.payment.api.controllers;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
-import io.swagger.annotations.SwaggerDefinition;
-import io.swagger.annotations.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.commons.lang3.tuple.Pair;
 import org.ff4j.FF4j;
 import org.joda.time.LocalDateTime;
@@ -61,8 +59,7 @@ import java.util.stream.Collectors;
 import static org.springframework.web.bind.annotation.RequestMethod.PATCH;
 
 @RestController
-@Api(tags = {"Payment"})
-@SwaggerDefinition(tags = {@Tag(name = "PaymentController", description = "Payment REST API")})
+@Tag(name = "PaymentController", description = "Payment REST API")
 public class PaymentController {
 
     private static final Logger LOG = LoggerFactory.getLogger(PaymentController.class);
@@ -99,10 +96,10 @@ public class PaymentController {
         this.featureToggler = featureToggler;
     }
 
-    @ApiOperation(value = "Update case reference by payment reference", notes = "Update case reference by payment reference")
+    @Operation(summary = "Update case reference by payment reference", description = "Update case reference by payment reference")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "No content"),
-        @ApiResponse(code = 404, message = "Payment not found")
+        @ApiResponse(responseCode = "200", description = "No content"),
+        @ApiResponse(responseCode = "404", description = "Payment not found")
     })
     @RequestMapping(value = "/payments/{reference}", method = PATCH)
     @Transactional
@@ -142,11 +139,11 @@ public class PaymentController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @ApiOperation(value = "Get payments for between dates", notes = "Get list of payments. You can optionally provide start date and end dates which can include times as well. Following are the supported date/time formats. These are yyyy-MM-dd, dd-MM-yyyy," +
+    @Operation(summary = "Get payments for between dates", description = "Get list of payments. You can optionally provide start date and end dates which can include times as well. Following are the supported date/time formats. These are yyyy-MM-dd, dd-MM-yyyy," +
         "yyyy-MM-dd HH:mm:ss, dd-MM-yyyy HH:mm:ss, yyyy-MM-dd'T'HH:mm:ss, dd-MM-yyyy'T'HH:mm:ss")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Payments retrieved"),
-        @ApiResponse(code = 400, message = "Bad request")
+        @ApiResponse(responseCode = "200", description = "Payments retrieved"),
+        @ApiResponse(responseCode = "400", description = "Bad request")
     })
     @GetMapping(value = "/payments")
     @PaymentExternalAPI
@@ -177,12 +174,12 @@ public class PaymentController {
         return new PaymentsResponse(paymentDtos);
     }
 
-    @ApiOperation(value = "Get payments for Reconciliation for between dates", notes = "Get list of payments. You can optionally provide start date and end dates which can include times as well. Following are the supported date/time formats. These are yyyy-MM-dd, dd-MM-yyyy," +
+    @Operation(summary = "Get payments for Reconciliation for between dates", description = "Get list of payments. You can optionally provide start date and end dates which can include times as well. Following are the supported date/time formats. These are yyyy-MM-dd, dd-MM-yyyy," +
         "yyyy-MM-dd HH:mm:ss, dd-MM-yyyy HH:mm:ss, yyyy-MM-dd'T'HH:mm:ss, dd-MM-yyyy'T'HH:mm:ss")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Payments retrieved"),
-        @ApiResponse(code = 400, message = "Bad request"),
-        @ApiResponse(code = 206, message = "Supplementary details partially retrieved"),
+        @ApiResponse(responseCode = "200", description = "Payments retrieved"),
+        @ApiResponse(responseCode = "400", description = "Bad request"),
+        @ApiResponse(responseCode = "206", description = "Supplementary details partially retrieved"),
     })
     @GetMapping(value = "/reconciliation-payments")
     @PaymentExternalAPI
@@ -222,10 +219,10 @@ public class PaymentController {
 
     }
 
-    @ApiOperation(value = "Update payment status by payment reference", notes = "Update payment status by payment reference")
+    @Operation(summary = "Update payment status by payment reference", description = "Update payment status by payment reference")
     @ApiResponses(value = {
-        @ApiResponse(code = 204, message = "No content"),
-        @ApiResponse(code = 404, message = "Payment not found")
+        @ApiResponse(responseCode = "204", description = "No content"),
+        @ApiResponse(responseCode = "404", description = "Payment not found")
     })
     @PaymentExternalAPI
     @PatchMapping("/payments/{reference}/status/{status}")
@@ -245,11 +242,11 @@ public class PaymentController {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @ApiOperation(value = "Get payment details by payment reference", notes = "Get payment details for supplied payment reference")
+    @Operation(summary = "Get payment details by payment reference", description = "Get payment details for supplied payment reference")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Payment retrieved"),
-        @ApiResponse(code = 403, message = "Payment info forbidden"),
-        @ApiResponse(code = 404, message = "Payment not found")
+        @ApiResponse(responseCode = "200", description = "Payment retrieved"),
+        @ApiResponse(responseCode = "403", description = "Payment info forbidden"),
+        @ApiResponse(responseCode = "404", description = "Payment not found")
     })
     @GetMapping(value = "/payments/{reference}")
     public PaymentDto retrievePayment(@PathVariable("reference") String paymentReference) {
@@ -264,11 +261,11 @@ public class PaymentController {
         return paymentDtoMapper.toGetPaymentResponseDtos(payment1);
     }
 
-    @ApiOperation(value = "Get payment details by multiple payment references", notes = "Get payment details for supplied list of payment references")
+    @Operation(summary = "Get payment details by multiple payment references", description = "Get payment details for supplied list of payment references")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Payment retrieved"),
-        @ApiResponse(code = 403, message = "Payment info forbidden"),
-        @ApiResponse(code = 404, message = "Payment not found")
+        @ApiResponse(responseCode = "200", description = "Payment retrieved"),
+        @ApiResponse(responseCode = "403", description = "Payment info forbidden"),
+        @ApiResponse(responseCode = "404", description = "Payment not found")
     })
     @GetMapping(value = "/refunds/payments")
     @PaymentExternalAPI

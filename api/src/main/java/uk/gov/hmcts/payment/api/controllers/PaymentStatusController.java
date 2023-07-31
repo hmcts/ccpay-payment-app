@@ -1,6 +1,9 @@
 package uk.gov.hmcts.payment.api.controllers;
 
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.*;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,8 +31,7 @@ import static uk.gov.hmcts.payment.api.util.DateUtil.atStartOfDay;
 
 
 @RestController
-@Api(tags = {"Payment Status"})
-@SwaggerDefinition(tags = {@Tag(name = "PaymentStatusController", description = "Payment Status REST API")})
+@Tag(name = "PaymentStatusController", description = "Payment Status REST API")
 public class PaymentStatusController {
     private static final Logger LOG = LoggerFactory.getLogger(PaymentStatusController.class);
     private static final String PAYMENT_STATUS_UPDATE_FLAG = "payment-status-update-flag";
@@ -45,11 +47,11 @@ public class PaymentStatusController {
     private LaunchDarklyFeatureToggler featureToggler;
 
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "successful operation"),
-        @ApiResponse(code = 400, message = "Bad request"),
-        @ApiResponse(code = 404, message = "No Payments available for the given Payment reference"),
-        @ApiResponse(code = 429, message = "Request already received for this failure reference"),
-        @ApiResponse(code = 500, message = "Internal Server Error")
+        @ApiResponse(responseCode = "200", description = "successful operation"),
+        @ApiResponse(responseCode = "400", description = "Bad request"),
+        @ApiResponse(responseCode = "404", description = "No Payments available for the given Payment reference"),
+        @ApiResponse(responseCode = "429", description = "Request already received for this failure reference"),
+        @ApiResponse(responseCode = "500", description = "Internal Server Error")
 
     })
     @PaymentExternalAPI
@@ -104,11 +106,11 @@ public class PaymentStatusController {
         return new ResponseEntity<>(SUCCESSFUL_OPERATION, HttpStatus.OK);
     }
 
-    @ApiOperation(value = "Get payment failure by payment reference", notes = "Get payment failure for supplied payment reference")
+    @Operation(summary = "Get payment failure by payment reference", description = "Get payment failure for supplied payment reference")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Payment failure retrieved"),
-        @ApiResponse(code = 404, message = "No record found"),
-        @ApiResponse(code = 500, message = "Internal Server Error")
+        @ApiResponse(responseCode = "200", description = "Payment failure retrieved"),
+        @ApiResponse(responseCode = "404", description = "No record found"),
+        @ApiResponse(responseCode = "500", description = "Internal Server Error")
     })
     @GetMapping("/payment-failures/{paymentReference}")
     public PaymentFailureResponse retrievePaymentFailure(@PathVariable("paymentReference") String paymentReference) {
@@ -126,10 +128,10 @@ public class PaymentStatusController {
         return new PaymentFailureResponse(payments);
     }
 
-    @ApiOperation(value = "Delete payment failure by failure reference for functional test", notes = "Delete payment details for supplied failure reference")
+    @Operation(summary = "Delete payment failure by failure reference for functional test", description = "Delete payment details for supplied failure reference")
     @ApiResponses(value = {
-        @ApiResponse(code = 204, message = "Payment status deleted successfully"),
-        @ApiResponse(code = 404, message = "Payment status not found for the given reference")
+        @ApiResponse(responseCode = "204", description = "Payment status deleted successfully"),
+        @ApiResponse(responseCode = "404", description = "Payment status not found for the given reference")
     })
     @DeleteMapping(value = "/payment-status-delete/{failureReference}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -149,9 +151,9 @@ public class PaymentStatusController {
         return new ResponseEntity<>(SUCCESSFUL_OPERATION, HttpStatus.OK);
     }
 
-    @ApiOperation(value = "update payment reference for unprocessed payment", notes = "update payment reference for unprocessed payment")
+    @Operation(summary = "update payment reference for unprocessed payment", description = "update payment reference for unprocessed payment")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "payment reference updated successfully")
+        @ApiResponse(responseCode = "200", description = "payment reference updated successfully")
     })
     @PatchMapping(value = "/jobs/unprocessed-payment-update")
     public void updateUnprocessedPayment(){
@@ -166,11 +168,11 @@ public class PaymentStatusController {
 
     }
 
-    @ApiOperation(value = "API to generate report for payment failure ", notes = "Get list of payments failures by providing date range. MM/dd/yyyy is  the supported date/time format.")
+    @Operation(summary = "API to generate report for payment failure ", description = "Get list of payments failures by providing date range. MM/dd/yyyy is  the supported date/time format.")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Report Generated"),
-        @ApiResponse(code = 404, message = "No Data found to generate Report"),
-        @ApiResponse(code = 500, message = "Internal Server Error")
+        @ApiResponse(responseCode = "200", description = "Report Generated"),
+        @ApiResponse(responseCode = "404", description = "No Data found to generate Report"),
+        @ApiResponse(responseCode = "500", description = "Internal Server Error")
     })
     @GetMapping("/payment-failures/failure-report")
     public PaymentFailureReportResponse retrievePaymentFailureReport(@RequestParam("date_from") Date fromDate,

@@ -1,6 +1,7 @@
 package uk.gov.hmcts;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import liquibase.configuration.GlobalConfiguration;
 import liquibase.configuration.LiquibaseConfiguration;
 import org.slf4j.Logger;
@@ -31,6 +32,7 @@ import java.util.concurrent.TimeUnit;
 @EnableAsync
 @SpringBootApplication
 @EnableCircuitBreaker
+@OpenAPIDefinition
 public class PaymentApiApplication {
     private static final Logger LOG = LoggerFactory.getLogger(PaymentApiApplication.class);
 

@@ -1,7 +1,7 @@
 description = 'OTP (One Time Password) utility in Java'
 dependencies {
-    compile 'com.amdelamar:jotp:1.3.0'
-    testCompile(group: 'org.springframework.boot', name: 'spring-boot-starter-test') {
+    implementation 'com.amdelamar:jotp:1.3.0'
+    testImplementation(group: 'org.springframework.boot', name: 'spring-boot-starter-test') {
         exclude(module: 'commons-logging')
     }
 }
@@ -11,8 +11,9 @@ task customFatJar(type: Jar) {
         attributes 'Main-Class': 'uk.gov.hmcts.payment.OtpBootstrap'
     }
     archiveName = 'payment-otp-all.jar'
-    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    from { configurations.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
     with jar
+    duplicatesStrategy = 'include'
 }
 
 assemble.dependsOn(customFatJar)

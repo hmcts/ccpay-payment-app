@@ -1,7 +1,7 @@
 plugins {
     id 'application'
     id "org.sonarqube" version "3.0"
-    id 'org.springframework.boot' version '2.3.12.RELEASE'
+    id 'org.springframework.boot' version '2.7.13'
     id 'io.spring.dependency-management' version '1.0.9.RELEASE'
     id 'org.owasp.dependencycheck' version '8.0.2'
     id "uk.gov.hmcts.java" version '0.12.43'
@@ -9,18 +9,24 @@ plugins {
     id 'jacoco'
 }
 
-def springBootVersion = '2.3.6.RELEASE'
-def springCloudVersion = 'Finchley.SR2'
+def springBootVersion = '2.7.13'
+def springCloudVersion = '2021.0.3'
 
 
 def versions = [
         lombok: '1.18.28',
-        javaVersion: '11',
+        javaVersion: '17',
         jacocoVersion: '0.8.5'
 ]
 
+java {
+  toolchain {
+    languageVersion = JavaLanguageVersion.of(17)
+  }
+}
+
 dependencies{
-    testCompile 'com.github.hmcts:fortify-client:1.3.0:all'
+    testImplementation 'com.github.hmcts:fortify-client:1.3.0:all'
 }
 
 task fortifyScan(type: JavaExec)  {
@@ -30,7 +36,6 @@ task fortifyScan(type: JavaExec)  {
 }
 
 allprojects {
-    apply plugin: 'maven'
     apply plugin: 'io.spring.dependency-management'
     apply plugin: 'idea'
     apply plugin: 'jacoco'
@@ -40,9 +45,6 @@ allprojects {
         buildNumber = System.getenv("BUILD_NUMBER") ?: '0'
     }
     version = rootProject.file('version.txt').text.trim() + ".${buildNumber}"
-
-    sourceCompatibility = versions.javaVersion
-    targetCompatibility = versions.javaVersion
 
     repositories {
         mavenLocal()
@@ -116,23 +118,24 @@ subprojects {
         }
     }
     dependencies {
-        compile ('com.sun.xml.bind:jaxb-osgi:2.3.8')
-        testCompile 'io.github.openfeign:feign-jackson:9.7.0'
-        compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version:'2.15.2'
-        compile group: 'joda-time', name: 'joda-time', version: '2.10.5'
-        compile group: 'org.jboss.aerogear', name: 'aerogear-otp-java', version:'1.0.0'
-        compile group:'org.apache.poi', name: 'poi-ooxml', version: '5.2.3'
-        compile group: 'com.github.hmcts', name: 'properties-volume-spring-boot-starter', version: '0.1.1'
-        testCompile group: 'junit', name: 'junit', version: '4.12'
-        testCompile group: 'org.assertj', name: 'assertj-core', version: '3.8.0'
+        implementation ('com.sun.xml.bind:jaxb-osgi:2.3.8')
+        testImplementation 'io.github.openfeign:feign-jackson:12.3'
+        implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version:'2.15.2'
+        implementation group: 'joda-time', name: 'joda-time', version: '2.10.5'
+        implementation group: 'org.jboss.aerogear', name: 'aerogear-otp-java', version:'1.0.0'
+        implementation group:'org.apache.poi', name: 'poi-ooxml', version: '5.2.3'
+        implementation group: 'com.github.hmcts', name: 'properties-volume-spring-boot-starter', version: '0.1.1'
+        testImplementation group: 'junit', name: 'junit', version: '4.12'
+        testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.8.0'
+        testImplementation group: 'org.mockito', name: 'mockito-core', version: '3.3.3'
         compileOnly group: 'net.sourceforge.findbugs', name: 'annotations', version: '1.3.2'
-        compile group: 'org.owasp.encoder', name: 'encoder', version: '1.2.3'
-        compile group: 'com.github.tomakehurst', name: 'wiremock', version: '2.27.2'
+        implementation group: 'org.owasp.encoder', name: 'encoder', version: '1.2.3'
+        implementation group: 'com.github.tomakehurst', name: 'wiremock', version: '2.27.2'
         compileOnly group: 'org.projectlombok', name: 'lombok', version: versions.lombok
         annotationProcessor group: 'org.projectlombok', name: 'lombok', version: versions.lombok
         testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: versions.lombok
         implementation 'org.springframework.boot:spring-boot-starter-validation'
-        compile(group: 'com.github.hmcts', name: 'ccd-client', version: '4.9.2') {
+        implementation(group: 'com.github.hmcts', name: 'ccd-client', version: '4.9.2') {
             sourceSets {
                 main {
                     java {
@@ -143,10 +146,16 @@ subprojects {
         }
 
     }
+
+    test {
+        jvmArgs = [
+            '--add-opens', 'java.base/java.lang=ALL-UNNAMED'
+        ]
+    }
 }
 
 dependencies {
-    compile project(':payment-api')
+    implementation project(':payment-api')
 }
 
 mainClassName = 'uk.gov.hmcts.PaymentApiApplication'
@@ -217,6 +226,10 @@ sonarqube {
 }
 
 project.tasks['sonarqube'].dependsOn codeCoverageReport
+
+tasks.withType(JavaExec).configureEach {
+  javaLauncher.set(javaToolchains.launcherFor(java.toolchain))
+}
 
 task smoke(type: GradleBuild, description: 'Runs smoke tests', group: 'Verification') {
     buildFile = './api/build.gradle'

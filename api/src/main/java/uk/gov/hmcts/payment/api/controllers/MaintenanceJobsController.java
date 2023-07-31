@@ -1,6 +1,9 @@
 package uk.gov.hmcts.payment.api.controllers;
 
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,8 +20,7 @@ import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 import java.util.List;
 
 @RestController
-@Api(tags = {"Maintenance Jobs"})
-@SwaggerDefinition(tags = {@Tag(name = "MaintenanceJobsController", description = "Maintainance jobs REST API")})
+@Tag(name = "MaintenanceJobsController", description = "Maintainance jobs REST API")
 public class MaintenanceJobsController {
 
     private static final Logger LOG = LoggerFactory.getLogger(MaintenanceJobsController.class);
@@ -44,9 +46,9 @@ public class MaintenanceJobsController {
         this.feePayApportionService = feePayApportionService;
     }
 
-    @ApiOperation(value = "Update payment status", notes = "Updates the payment status on all gov pay pending card payments")
+    @Operation(summary = "Update payment status", description = "Updates the payment status on all gov pay pending card payments")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Reports sent")
+        @ApiResponse(responseCode = "200", description = "Reports sent")
     })
     @PatchMapping(value = "/jobs/card-payments-status-update")
     public void updatePaymentsStatus() {

@@ -1,6 +1,9 @@
 package uk.gov.hmcts.payment.api.controllers;
 
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,8 +29,7 @@ import static uk.gov.hmcts.payment.api.util.ReportType.PROCESSED_UNALLOCATED;
 import static uk.gov.hmcts.payment.api.util.ReportType.SURPLUS_AND_SHORTFALL;
 
 @RestController
-@Api(tags = {"Bulk Scanning Report"})
-@SwaggerDefinition(tags = {@Tag(name = "BulkScanningReportController", description = "Bulk Scanning report REST API")})
+@Tag(name = "BulkScanningReportController", description = "Bulk Scanning report REST API")
 public class BulkScanningReportController {
     private final PaymentService<PaymentFeeLink, String> paymentService;
     private static final Logger LOG = LoggerFactory.getLogger(BulkScanningReportController.class);
@@ -38,10 +40,10 @@ public class BulkScanningReportController {
         this.paymentService = paymentService;
         this.bulkScanningReportMapper = bulkScanningReportMapper;
     }
-    @ApiOperation("API to generate Report for Bulk Scan Payment System")
-    @ApiResponses({
-        @ApiResponse(code = 200, message = "Report Generated"),
-        @ApiResponse(code = 404, message = "No Data found to generate Report")
+    @Operation(summary = "API to generate Report for Bulk Scan Payment System")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Report Generated"),
+        @ApiResponse(responseCode = "404", description = "No Data found to generate Report")
     })
 
     @GetMapping("/payment/bulkscan-data-report")
