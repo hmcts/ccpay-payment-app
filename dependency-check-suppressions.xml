@@ -234,5 +234,12 @@
         <cve>CVE-2023-38286</cve>
     </suppress>
 
+    <suppress>
+        <notes>
+            Using "**" as a pattern in Spring Security configuration for WebFlux creates a mismatch in pattern matching between Spring Security and Spring WebFlux, and the potential for a security bypass.
+        </notes>
+        <cve>CVE-2023-34034</cve>
+    </suppress>
+
     <!-- Supression Group ends here -->
 </suppressions>
