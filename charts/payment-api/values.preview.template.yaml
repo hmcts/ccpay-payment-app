@@ -49,14 +49,12 @@ java:
           alias: pci-pal.antenna.view.id.url
         - name: pci-pal-antenna-return-url
           alias: pci-pal.antenna.return.url
-        - name: pci-pal-antenna-cmc-flow-id
-          alias: pci-pal.antenna.cmc.flow.id
         - name: pci-pal-antenna-probate-flow-id
           alias: pci-pal.antenna.probate.flow.id
         - name: pci-pal-antenna-divorce-flow-id
           alias: pci-pal.antenna.divorce.flow.id
-        - name: pci-pal-antenna-financial-remedy-flow-id
-          alias: pci-pal.antenna.financial.remedy.flow.id
+        - name: pci-pal-antenna-strategic-flow-id
+          alias: pci-pal.antenna.strategic.flow.id
         - name: spring-mail-password
           alias: spring.mail.password
         - name: gov-pay-keys-cmc-claim-store
