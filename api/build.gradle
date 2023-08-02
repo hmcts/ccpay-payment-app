@@ -300,7 +300,6 @@ pitest {
     outputFormats = ['XML', 'HTML', 'CSV']
     mutationThreshold = 0
     coverageThreshold = 0
-    maxMutationsPerClass = 15
     jvmArgs = ['-Xms1G', '-Xmx3G']
     timestampedReports = false
     failWhenNoMutations = false
