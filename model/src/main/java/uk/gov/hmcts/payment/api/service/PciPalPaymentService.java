@@ -47,6 +47,8 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
     private static final String SERVICE_TYPE_DIVORCE = "Divorce";
     private static final String SERVICE_TYPE_FINREM = "Financial Remedy";
     private static final String SERVICE_TYPE_IAC = "Immigration and Asylum Appeals";
+    private static final String SERVICE_TYPE_FPL = "Family Private Law";
+
     private final String callbackUrl;
     private final String url;
     private final HttpClient httpClient;
@@ -131,6 +133,8 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
         flowIdHashMap.put(SERVICE_TYPE_CMC, strategicFlowId);
         flowIdHashMap.put(SERVICE_TYPE_FINREM, strategicFlowId);
         flowIdHashMap.put(SERVICE_TYPE_IAC, strategicFlowId);
+        flowIdHashMap.put(SERVICE_TYPE_FPL, strategicFlowId);
+
 
         if (flowIdHashMap.containsKey(serviceType)) {
             flowId = flowIdHashMap.get(serviceType);
