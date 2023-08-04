@@ -217,6 +217,7 @@
             versions 1.0 to 31.1 on Unix systems
         </notes>
         <cve>CVE-2023-2976</cve>
+        <cve>CVE-2020-8908</cve>
     </suppress>
     <suppress>
         <notes>
