@@ -1,7 +1,7 @@
 plugins {
     id 'application'
     id "org.sonarqube" version "3.0"
-    id 'org.springframework.boot' version '2.7.13'
+    id 'org.springframework.boot' version '2.7.14'
     id 'io.spring.dependency-management' version '1.0.9.RELEASE'
     id 'org.owasp.dependencycheck' version '8.0.2'
     id "uk.gov.hmcts.java" version '0.12.43'
@@ -9,7 +9,7 @@ plugins {
     id 'jacoco'
 }
 
-def springBootVersion = '2.7.13'
+def springBootVersion = '2.7.14'
 def springCloudVersion = '2021.0.8'
 
 
