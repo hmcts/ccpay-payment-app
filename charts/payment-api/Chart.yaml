@@ -16,7 +16,7 @@ dependencies:
     repository: 'https://hmctspublic.azurecr.io/helm/v1/repo/'
     condition: ccpay-refunds-api.enabled
   - name: ccpay-bulkscanning-api
-    version: 1.0.20
+    version: 1.0.21
     repository: 'https://hmctspublic.azurecr.io/helm/v1/repo/'
     condition: ccpay-bulkscanning-api.enabled
   - name: ccpay-notifications-service
