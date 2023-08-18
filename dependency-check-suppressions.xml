@@ -240,6 +240,12 @@
         </notes>
         <cve>CVE-2023-34034</cve>
     </suppress>
+    <suppress>
+        <notes>
+            A temp directory creation vulnerability exists in all versions of Guava, allowing an attacker with access to the machine to potentially access data in a temporary directory created by the Guava API com.google.common.io.Files.createTempDir().
+      </notes>
+        <cve>CVE-2020-8908</cve>
+    </suppress>
 
     <!-- Supression Group ends here -->
 </suppressions>
