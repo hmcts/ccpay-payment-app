@@ -6,7 +6,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.FieldSetter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.oauth2.client.OAuth2RestOperations;
@@ -16,6 +15,7 @@ import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.service.AccountServiceImpl;
 import uk.gov.hmcts.payment.api.util.AccountStatus;
 
+import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.util.Date;
 
@@ -41,7 +41,7 @@ public class AccountServiceTest {
     @Test
     public void retrieveExistingAccountReturnsAccountDto() throws Exception {
         String pbaCode = "PBA1234";
-        FieldSetter.setField(accountServiceImpl, accountServiceImpl.getClass().getDeclaredField("baseUrl"), baseUrl);
+        setField(accountServiceImpl, accountServiceImpl.getClass().getDeclaredField("baseUrl"), baseUrl);
         AccountDto expectedDto = new AccountDto(pbaCode, "accountName", new BigDecimal(100),
             new BigDecimal(100), AccountStatus.ACTIVE, new Date());
         when(restTemplateMock.getForObject(baseUrl + "/" + pbaCode, AccountDto.class)).thenReturn(expectedDto);
@@ -55,5 +55,15 @@ public class AccountServiceTest {
             new BigDecimal(30000), AccountStatus.ACTIVE,null);
         when(restTemplateMock.getForObject(baseUrl + "/" + pbaCode, AccountDto.class)).thenReturn(expectedDto);
         assertEquals(expectedDto, accountServiceImpl.retrieve(pbaCode));
+    }
+
+    private void setField(Object object, Field fld, Object value) {
+        try {
+            fld.setAccessible(true);
+            fld.set(object, value);
+        } catch (IllegalAccessException e) {
+            String fieldName = null == fld ? "n/a" : fld.getName();
+            throw new RuntimeException("Failed to set " + fieldName + " of object", e);
+        }
     }
 }

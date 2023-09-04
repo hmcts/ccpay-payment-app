@@ -1,7 +1,10 @@
 package uk.gov.hmcts.payment.api.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,8 +36,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@Api(tags = {"Pay By Account"})
-@SwaggerDefinition(tags = {@Tag(name = "PBAController", description = "Pay by account REST API")})
+@Tag(name = "PBAController", description = "Pay by account REST API")
 public class PBAController {
 
     private final PaymentService<PaymentFeeLink, String> paymentService;
@@ -68,10 +70,10 @@ public class PBAController {
         this.authTokenGenerator = authTokenGenerator;
     }
 
-    @ApiOperation(value = "Get payments for a PBA account", notes = "Get list of payments")
+    @Operation(summary = "Get payments for a PBA account", description = "Get list of payments")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Payments retrieved"),
-        @ApiResponse(code = 400, message = "Bad request")
+        @ApiResponse(responseCode = "200", description = "Payments retrieved"),
+        @ApiResponse(responseCode = "400", description = "Bad request")
     })
     @GetMapping(value = "/pba-accounts/{account}/payments")
     @PaymentExternalAPI
@@ -85,18 +87,18 @@ public class PBAController {
         return new PaymentsResponse(paymentDto);
     }
 
-    @ApiOperation(value = "Get PBA account details from ref data", notes = "Get list of PBA account details from ref data")
+    @Operation(summary = "Get PBA account details from ref data", description = "Get list of PBA account details from ref data")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "PBA accounts retrieved"),
-        @ApiResponse(code = 401, message = "Unauthorized"),
-        @ApiResponse(code = 204, message = "No PBA Accounts found."),
-        @ApiResponse(code = 403, message = "Forbidden")
+        @ApiResponse(responseCode = "200", description = "PBA accounts retrieved"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "204", description = "No PBA Accounts found."),
+        @ApiResponse(responseCode = "403", description = "Forbidden")
     })
     @GetMapping(value = "/pba-accounts")
     @PaymentExternalAPI
     public ResponseEntity<PBAResponse> retrievePBADetails(@RequestHeader(required = false) MultiValueMap<String, String> headers) {
 
-        String emailIdFromIdam = idamService.getUserId(headers);
+        String emailIdFromIdam = idamService.getUserDetails(headers);
 
         MultiValueMap<String, String> headerMultiValueMapForRefData = generateHeaders(headers, emailIdFromIdam);
 

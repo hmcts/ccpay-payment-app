@@ -2,10 +2,10 @@ package uk.gov.hmcts.payment.api.controllers;
 
 
 import com.google.common.collect.Lists;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
@@ -44,7 +44,7 @@ import java.util.Optional;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 @RestController
-@Api(tags = {"Credit Account Payment"})
+@Tag(name = "Credit Account Payment")
 public class CreditAccountPaymentController {
 
     private static final Logger LOG = LoggerFactory.getLogger(CreditAccountPaymentController.class);
@@ -89,14 +89,14 @@ public class CreditAccountPaymentController {
         this.authTokenGenerator = authTokenGenerator;
     }
 
-    @ApiOperation(value = "Create credit account payment", notes = "Create credit account payment")
+    @Operation(summary = "Create credit account payment", description = "Create credit account payment")
     @ApiResponses(value = {
-        @ApiResponse(code = 201, message = "Payment created"),
-        @ApiResponse(code = 400, message = "Payment creation failed"),
-        @ApiResponse(code = 403, message = "Payment failed due to insufficient funds or the account being on hold"),
-        @ApiResponse(code = 404, message = "Account information could not be found, \t\n No Service found for given CaseType"),
-        @ApiResponse(code = 504, message = "Unable to retrieve account information, please try again later \t\n Unable to retrieve service information. Please try again later"),
-        @ApiResponse(code = 422, message = "Invalid or missing attribute")
+        @ApiResponse(responseCode = "201", description = "Payment created"),
+        @ApiResponse(responseCode = "400", description = "Payment creation failed"),
+        @ApiResponse(responseCode = "403", description = "Payment failed due to insufficient funds or the account being on hold"),
+        @ApiResponse(responseCode = "404", description = "Account information could not be found, \t\n No Service found for given CaseType"),
+        @ApiResponse(responseCode = "504", description = "Unable to retrieve account information, please try again later \t\n Unable to retrieve service information. Please try again later"),
+        @ApiResponse(responseCode = "422", description = "Invalid or missing attribute")
     })
     @PostMapping(value = "/credit-account-payments")
     @ResponseBody
@@ -180,10 +180,10 @@ public class CreditAccountPaymentController {
         return new ResponseEntity<>(creditAccountDtoMapper.toCreateCreditAccountPaymentResponse(paymentFeeLink), HttpStatus.CREATED);
     }
 
-    @ApiOperation(value = "Get credit account payment details by payment reference", notes = "Get payment details for supplied payment reference")
+    @Operation(summary = "Get credit account payment details by payment reference", description = "Get payment details for supplied payment reference")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Payment retrieved"),
-        @ApiResponse(code = 404, message = "Payment not found")
+        @ApiResponse(responseCode = "200", description = "Payment retrieved"),
+        @ApiResponse(responseCode = "404", description = "Payment not found")
     })
     @RequestMapping(value = "/credit-account-payments/{paymentReference}", method = GET)
     public ResponseEntity<PaymentDto> retrieve(@PathVariable("paymentReference") String paymentReference) {
@@ -195,10 +195,10 @@ public class CreditAccountPaymentController {
         return new ResponseEntity<>(creditAccountDtoMapper.toRetrievePaymentResponse(payment, fees), HttpStatus.OK);
     }
 
-    @ApiOperation(value = "Get credit account payment statuses by payment reference", notes = "Get payment statuses for supplied payment reference")
+    @Operation(summary = "Get credit account payment statuses by payment reference", description = "Get payment statuses for supplied payment reference")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Payment retrieved"),
-        @ApiResponse(code = 404, message = "Payment not found")
+        @ApiResponse(responseCode = "200", description = "Payment retrieved"),
+        @ApiResponse(responseCode = "404", description = "Payment not found")
     })
     @RequestMapping(value = "/credit-account-payments/{paymentReference}/statuses", method = GET)
     public ResponseEntity<PaymentDto> retrievePaymentStatus(@PathVariable("paymentReference") String paymentReference) {
@@ -210,10 +210,10 @@ public class CreditAccountPaymentController {
         return new ResponseEntity<>(creditAccountDtoMapper.toRetrievePaymentStatusResponse(payment), HttpStatus.OK);
     }
 
-    @ApiOperation(value = "Delete credit account payment details by payment reference", notes = "Delete payment details for supplied payment reference")
+    @Operation(summary = "Delete credit account payment details by payment reference", description = "Delete payment details for supplied payment reference")
     @ApiResponses(value = {
-            @ApiResponse(code = 204, message = "Payment deleted successfully"),
-            @ApiResponse(code = 404, message = "Payment not found for the given reference")
+            @ApiResponse(responseCode = "204", description = "Payment deleted successfully"),
+            @ApiResponse(responseCode = "404", description = "Payment not found for the given reference")
     })
     @DeleteMapping(value = "/credit-account-payments/{paymentReference}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -246,9 +246,21 @@ public class CreditAccountPaymentController {
         return ex.getMessage();
     }
 
+    @ResponseStatus(HttpStatus.GATEWAY_TIMEOUT)
+    @ExceptionHandler(AccountServiceUnavailableException.class)
+    public String return504(AccountServiceUnavailableException ex) {
+        return ex.getMessage();
+    }
+
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(value = {NoServiceFoundException.class})
     public String return404(NoServiceFoundException ex) {
+        return ex.getMessage();
+    }
+
+    @ResponseStatus(HttpStatus.GATEWAY_TIMEOUT)
+    @ExceptionHandler(GatewayTimeoutException.class)
+    public String return504(GatewayTimeoutException ex) {
         return ex.getMessage();
     }
 

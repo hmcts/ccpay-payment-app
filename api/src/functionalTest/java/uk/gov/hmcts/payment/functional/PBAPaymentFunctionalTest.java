@@ -64,6 +64,9 @@ public class PBAPaymentFunctionalTest {
     private static final String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
     private static final String DATE_TIME_FORMAT_T_HH_MM_SS = "yyyy-MM-dd'T'HH:mm:ss";
 
+    private static final int CCD_EIGHT_DIGIT_UPPER = 99999999;
+    private static final int CCD_EIGHT_DIGIT_LOWER = 10000000;
+
     @Before
     public void setUp() {
         if (!TOKENS_INITIALIZED) {
@@ -101,10 +104,8 @@ public class PBAPaymentFunctionalTest {
 
     @Test
     public void makeAndRetrievePBAPaymentByProbateTestShouldReturnAutoApportionedFees() {
-
         String accountNumber = testProps.existingAccountNumber;
-
-        String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
+        String ccdCaseNumber = "11115656" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);;
         // create card payment
         List<FeeDto> fees = new ArrayList<>();
         fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
@@ -208,7 +209,7 @@ public class PBAPaymentFunctionalTest {
     @Test
     public void makeAndRetrievePBAPaymentByProbateTestShouldReturnAutoApportionedFeesForSuccessMultipleFeesLiberataValidation() {
         String accountNumber = testProps.existingAccountNumber;
-        String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
+        String ccdCaseNumber = "11115656" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);;
         // create card payment
         List<FeeDto> fees = new ArrayList<>();
         fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
@@ -390,7 +391,6 @@ public class PBAPaymentFunctionalTest {
 
         // delete payment record
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
-
 
     }
 

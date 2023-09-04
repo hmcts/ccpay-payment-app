@@ -1,12 +1,10 @@
 package uk.gov.hmcts.payment.api.controllers;
 
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
-import io.swagger.annotations.SwaggerDefinition;
-import io.swagger.annotations.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -43,8 +41,7 @@ import java.util.stream.Collectors;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 @RestController
-@Api(tags = {"Payment Record"})
-@SwaggerDefinition(tags = {@Tag(name = "PaymentRecordController", description = "Payment record REST API")})
+@Tag(name = "PaymentRecordController", description = "Payment record REST API")
 public class PaymentRecordController {
     private static final Logger LOG = LoggerFactory.getLogger(PaymentRecordController.class);
 
@@ -70,11 +67,11 @@ public class PaymentRecordController {
     }
 
 
-    @ApiOperation(value = "Record a payment", notes = "Record a payment")
+    @Operation(summary = "Record a payment", description = "Record a payment")
     @ApiResponses(value = {
-        @ApiResponse(code = 201, message = "Payment created"),
-        @ApiResponse(code = 400, message = "Payment creation failed"),
-        @ApiResponse(code = 422, message = "Invalid or missing attribute")
+        @ApiResponse(responseCode = "201", description = "Payment created"),
+        @ApiResponse(responseCode = "400", description = "Payment creation failed"),
+        @ApiResponse(responseCode = "422", description = "Invalid or missing attribute")
     })
     @RequestMapping(value = "/payment-records", method = POST)
     @ResponseBody

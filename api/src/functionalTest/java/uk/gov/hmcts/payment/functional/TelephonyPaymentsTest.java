@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.functional;
 
 import com.mifmif.common.regex.Generex;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
+import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -13,7 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
@@ -53,6 +53,9 @@ public class TelephonyPaymentsTest {
     private S2sTokenService s2sTokenService;
 
     private static final Logger LOG = LoggerFactory.getLogger(TelephonyPaymentsTest.class);
+
+    private static final int CCD_EIGHT_DIGIT_UPPER = 99999999;
+    private static final int CCD_EIGHT_DIGIT_LOWER = 10000000;
 
     @Before
     public void setUp() throws Exception {
@@ -219,12 +222,14 @@ public class TelephonyPaymentsTest {
 
     @Test
     public void createASuccessfulCardPaymentWithChannelTelephonyAndProviderPciPal() {
+        String ccdCaseNumber = "11118888" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
+
         String telRefNumber = new Generex("TEL_PAY_\\d{8}").random();
         CardPaymentRequest paymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
             .amount(new BigDecimal("100"))
             .description("description")
             .caseReference(telRefNumber)
-            .ccdCaseNumber("1234")
+            .ccdCaseNumber(ccdCaseNumber)
             .service("PROBATE")
             .currency(CurrencyCode.GBP)
             .provider("pci pal")
@@ -249,11 +254,11 @@ public class TelephonyPaymentsTest {
 
     @Test
     public void retrieveCorrectPciPalUrlWhenCreatingATelephonyCardPayment() {
-
+        String ccdCaseNumber = "11118888" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
 
         TelephonyCardPaymentsRequest paymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
             .amount(new BigDecimal("99.99"))
-            .ccdCaseNumber("1234432112344321")
+            .ccdCaseNumber(ccdCaseNumber)
             .currency(CurrencyCode.GBP)
             .caseType("LegacySearch")
             .returnURL("https://www.moneyclaims.service.gov.uk")

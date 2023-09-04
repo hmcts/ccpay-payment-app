@@ -1,11 +1,9 @@
 package uk.gov.hmcts.payment.api.controllers;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
-import io.swagger.annotations.SwaggerDefinition;
-import io.swagger.annotations.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.ff4j.FF4j;
@@ -35,6 +33,7 @@ import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.external.client.dto.CardDetails;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayCancellationFailedException;
+import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayException;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayPaymentNotFoundException;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
@@ -44,6 +43,7 @@ import uk.gov.hmcts.payment.api.service.FeePayApportionService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.service.PciPalPaymentService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.GatewayTimeoutException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.NoServiceFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
@@ -56,6 +56,7 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 
@@ -64,8 +65,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
  */
 
 @RestController
-@Api(tags = {"Card Payment"})
-@SwaggerDefinition(tags = {@Tag(name = "CardPaymentController", description = "Card payment REST API")})
+@Tag(name = "CardPaymentController", description = "Card payment REST API")
 public class CardPaymentController {
     private static final Logger LOG = LoggerFactory.getLogger(CardPaymentController.class);
 
@@ -96,13 +96,13 @@ public class CardPaymentController {
         this.referenceDataService = referenceDataService;
     }
 
-    @ApiOperation(value = "Create card payment", notes = "Create card payment")
+    @Operation(summary = "Create card payment", description = "Create card payment")
     @ApiResponses(value = {
-        @ApiResponse(code = 201, message = "Payment created"),
-        @ApiResponse(code = 400, message = "Payment creation failed"),
-        @ApiResponse(code = 422, message = "Invalid or missing attribute"),
-        @ApiResponse(code = 404, message = "No Service found for given CaseType"),
-        @ApiResponse(code = 504, message = "Unable to retrieve service information. Please try again later")
+        @ApiResponse(responseCode = "201", description = "Payment created"),
+        @ApiResponse(responseCode = "400", description = "Payment creation failed"),
+        @ApiResponse(responseCode = "422", description = "Invalid or missing attribute"),
+        @ApiResponse(responseCode = "404", description = "No Service found for given CaseType"),
+        @ApiResponse(responseCode = "504", description = "Unable to retrieve service information. Please try again later")
     })
     @PostMapping(value = "/card-payments")
     @ResponseBody
@@ -180,31 +180,31 @@ public class CardPaymentController {
         return new ResponseEntity<>(paymentDto, CREATED);
     }
 
-    @ApiOperation(value = "Get card payment details by payment reference", notes = "Get payment details for supplied payment reference")
+    @Operation(summary = "Get card payment details by payment reference", description = "Get payment details for supplied payment reference")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Payment retrieved"),
-        @ApiResponse(code = 403, message = "Payment info forbidden"),
-        @ApiResponse(code = 404, message = "Payment not found")
+        @ApiResponse(responseCode = "200", description = "Payment retrieved"),
+        @ApiResponse(responseCode = "403", description = "Payment info forbidden"),
+        @ApiResponse(responseCode = "404", description = "Payment not found")
     })
     @GetMapping(value = "/card-payments/{reference}")
     public PaymentDto retrieve(@PathVariable("reference") String paymentReference) {
         return paymentDtoMapper.toRetrieveCardPaymentResponseDto(delegatingPaymentService.retrieve(paymentReference));
     }
 
-    @ApiOperation(value = "Get card payment details with card details by payment reference", notes = "Get payment details with card details for supplied payment reference")
+    @Operation(summary = "Get card payment details with card details by payment reference", description = "Get payment details with card details for supplied payment reference")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Payment card details retrieved"),
-        @ApiResponse(code = 404, message = "Payment card details not found")
+        @ApiResponse(responseCode = "200", description = "Payment card details retrieved"),
+        @ApiResponse(responseCode = "404", description = "Payment card details not found")
     })
     @RequestMapping(value = "/card-payments/{reference}/details", method = GET)
     public CardDetails retrieveWithCardDetails(@PathVariable("reference") String paymentReference) {
         return cardDetailsService.retrieve(paymentReference);
     }
 
-    @ApiOperation(value = "Get card payment statuses by payment reference", notes = "Get payment statuses for supplied payment reference")
+    @Operation(summary = "Get card payment statuses by payment reference", description = "Get payment statuses for supplied payment reference")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Payment retrieved"),
-        @ApiResponse(code = 404, message = "Payment not found")
+        @ApiResponse(responseCode = "200", description = "Payment retrieved"),
+        @ApiResponse(responseCode = "404", description = "Payment not found")
     })
     @GetMapping(value = "/card-payments/{reference}/statuses")
     public PaymentDto retrievePaymentStatus(@PathVariable("reference") String paymentReference) {
@@ -218,14 +218,14 @@ public class CardPaymentController {
         return paymentDtoMapper.toPaymentStatusesDto(payment1);
     }
 
-    @ApiOperation(value = "Cancel payment for supplied payment reference", notes = "Cancel payment for supplied payment reference")
+    @Operation(summary = "Cancel payment for supplied payment reference", description = "Cancel payment for supplied payment reference")
     @ApiResponses(value = {
-        @ApiResponse(code = 204, message = "Cancellation of payment successful"),
-        @ApiResponse(code = 400, message = "Cancellation of payment failed"),
-        @ApiResponse(code = 401, message = "Credentials are required to access this resource"),
-        @ApiResponse(code = 403, message = "Forbidden-Access Denied"),
-        @ApiResponse(code = 404, message = "Payment Not found"),
-        @ApiResponse(code = 500, message = "Downstream system error")
+        @ApiResponse(responseCode = "204", description = "Cancellation of payment successful"),
+        @ApiResponse(responseCode = "400", description = "Cancellation of payment failed"),
+        @ApiResponse(responseCode = "401", description = "Credentials are required to access this resource"),
+        @ApiResponse(responseCode = "403", description = "Forbidden-Access Denied"),
+        @ApiResponse(responseCode = "404", description = "Payment Not found"),
+        @ApiResponse(responseCode = "500", description = "Downstream system error")
     })
     @PostMapping(value = "/card-payments/{reference}/cancel")
     public ResponseEntity cancelPayment(@PathVariable("reference") String paymentReference) {
@@ -246,6 +246,12 @@ public class CardPaymentController {
         return new ResponseEntity(NOT_FOUND);
     }
 
+    @ExceptionHandler(value = {GovPayException.class})
+    public ResponseEntity httpClientErrorException(GovPayException e) {
+        LOG.error("Error while calling payments", e);
+        return new ResponseEntity(INTERNAL_SERVER_ERROR);
+    }
+
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(value = {NoServiceFoundException.class})
     public String return404(NoServiceFoundException ex) {
@@ -258,4 +264,9 @@ public class CardPaymentController {
         return ex.getMessage();
     }
 
+    @ResponseStatus(HttpStatus.GATEWAY_TIMEOUT)
+    @ExceptionHandler(GatewayTimeoutException.class)
+    public String return504(GatewayTimeoutException ex) {
+        return ex.getMessage();
+    }
 }

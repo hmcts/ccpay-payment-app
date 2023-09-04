@@ -1,12 +1,11 @@
 package uk.gov.hmcts.payment.api.controllers;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
-import io.swagger.annotations.SwaggerDefinition;
-import io.swagger.annotations.Tag;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,8 +23,10 @@ import uk.gov.hmcts.payment.api.service.CasePaymentOrdersService;
 import uk.gov.hmcts.payment.casepaymentorders.client.dto.CpoGetResponse;
 import uk.gov.hmcts.payment.casepaymentorders.client.exceptions.CpoBadRequestException;
 import uk.gov.hmcts.payment.casepaymentorders.client.exceptions.CpoClientException;
+import uk.gov.hmcts.payment.casepaymentorders.client.exceptions.CpoInternalServerErrorException;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 /**
@@ -33,8 +34,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
  */
 
 @RestController
-@Api(tags = {"Case Payment Orders"})
-@SwaggerDefinition(tags = {@Tag(name = "CasePaymentOrderController", description = "Case Payment Order REST API")})
+@Tag(name = "CasePaymentOrderController", description = "Case Payment Order REST API")
 public class CasePaymentOrdersController {
     private static final Logger LOG = LoggerFactory.getLogger(CasePaymentOrdersController.class);
 
@@ -48,22 +48,22 @@ public class CasePaymentOrdersController {
         this.casePaymentOrdersMapper = casePaymentOrdersMapper;
     }
 
-    @ApiOperation(value = "Get payment orders for a case", notes = "Get payment orders for a case")
+    @Operation(summary = "Get payment orders for a case", description = "Get payment orders for a case")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Payment orders retrieved"),
-        @ApiResponse(code = 400, message = "Bad request"),
-        @ApiResponse(code = 401, message = "Credentials are required to access this resource"),
-        @ApiResponse(code = 403, message = "Case Payment Orders info forbidden"),
-        @ApiResponse(code = 404, message = "Case Payment Order does not exist"),
-        @ApiResponse(code = 500, message = "Downstream system error")
+        @ApiResponse(responseCode = "200", description = "Payment orders retrieved"),
+        @ApiResponse(responseCode = "400", description = "Bad request"),
+        @ApiResponse(responseCode = "401", description = "Credentials are required to access this resource"),
+        @ApiResponse(responseCode = "403", description = "Case Payment Orders info forbidden"),
+        @ApiResponse(responseCode = "404", description = "Case Payment Order does not exist"),
+        @ApiResponse(responseCode = "500", description = "Downstream system error")
     })
     @RequestMapping(value = "/case-payment-orders", method = GET)
     public CasePaymentOrdersDto retrieveCasePaymentOrders(
-        @ApiParam(value = "Coma separated list of case ids.", required = true)
+        @Parameter(description = "Coma separated list of case ids.", required = true)
         @RequestParam(name = "case_ids") String caseIds,
-        @ApiParam(value = "Page number to be served. 1 based index")
+        @Parameter(description = "Page number to be served. 1 based index")
         @RequestParam(name = "page_number", required = false) String pageNumber,
-        @ApiParam(value = "Page size - number of elements on the page.")
+        @Parameter(description = "Page size - number of elements on the page.")
         @RequestParam(name = "page_size", required = false) String pageSize,
         @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
 
@@ -77,6 +77,12 @@ public class CasePaymentOrdersController {
     public ResponseEntity<String> cpoBadRequestException(CpoBadRequestException e) {
         LOG.error("BadRequest - Error while calling case payment orders", e);
         return new ResponseEntity<>(e.getMessage(), BAD_REQUEST);
+    }
+
+    @ExceptionHandler(value = {CpoInternalServerErrorException.class})
+    public ResponseEntity<String> cpoInternalServerErrorException(CpoInternalServerErrorException e) {
+        LOG.error("InternalServerError - Error while calling case payment orders", e);
+        return new ResponseEntity<>(e.getMessage(), INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(value = {CpoClientException.class})

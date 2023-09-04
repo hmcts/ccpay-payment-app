@@ -6,9 +6,12 @@ import org.joda.time.DateTime;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
+import uk.gov.hmcts.payment.api.contract.RefundsFeeDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
 import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
+import uk.gov.hmcts.payment.api.dto.RetrospectiveRemissionRequest;
+import uk.gov.hmcts.payment.api.model.ContactDetails;
 import uk.gov.hmcts.payment.api.dto.PaymentStatusBouncedChequeDto;
 import uk.gov.hmcts.payment.api.dto.PaymentStatusChargebackDto;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
@@ -20,8 +23,11 @@ import java.util.Random;
 
 public class PaymentFixture {
 
+    private static final int CCD_EIGHT_DIGIT_UPPER = 99999999;
+    private static final int CCD_EIGHT_DIGIT_LOWER = 10000000;
+
     public static CardPaymentRequest aCardPaymentRequest(String amountString) {
-        String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
+        String ccdCaseNumber = "11113333" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
         return CardPaymentRequest.createCardPaymentRequestDtoWith()
             .amount(new BigDecimal(amountString))
             .description("New passport application")
@@ -41,7 +47,7 @@ public class PaymentFixture {
     }
 
     public static CardPaymentRequest cardPaymentRequestProbate(String amountString, String service) {
-        String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
+        String ccdCaseNumber = "11113333" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
         return CardPaymentRequest.createCardPaymentRequestDtoWith()
             .amount(new BigDecimal(amountString))
             .description("description")
@@ -61,7 +67,7 @@ public class PaymentFixture {
     }
 
     public static CardPaymentRequest cardPaymentRequestIAC(String amountString, String service) {
-        String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
+        String ccdCaseNumber = "11113333" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
         return CardPaymentRequest.createCardPaymentRequestDtoWith()
             .amount(new BigDecimal(amountString))
             .description("description")
@@ -81,7 +87,7 @@ public class PaymentFixture {
     }
 
     public static CardPaymentRequest cardPaymentRequestAdoption(String amountString, String service) {
-        String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
+        String ccdCaseNumber = "11113333" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
         return CardPaymentRequest.createCardPaymentRequestDtoWith()
             .amount(new BigDecimal(amountString))
             .description("description")
@@ -101,7 +107,7 @@ public class PaymentFixture {
     }
 
     public static CardPaymentRequest cardPaymentRequestPRL(String amountString, String service) {
-        String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
+        String ccdCaseNumber = "11113333" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
         return CardPaymentRequest.createCardPaymentRequestDtoWith()
             .amount(new BigDecimal(amountString))
             .description("description")
@@ -121,7 +127,7 @@ public class PaymentFixture {
     }
 
     public static CardPaymentRequest cardPaymentRequestall(String amountString, String service) {
-        String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
+        String ccdCaseNumber = "11113333" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
         return CardPaymentRequest.createCardPaymentRequestDtoWith()
             .amount(new BigDecimal(amountString))
             .description("description")
@@ -141,7 +147,7 @@ public class PaymentFixture {
     }
 
     public static CreditAccountPaymentRequest aPbaPaymentRequest(String amountString, String service) {
-        String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
+        String ccdCaseNumber = "11113333" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
         return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
             .amount(new BigDecimal(amountString))
             .description("New passport application")
@@ -164,7 +170,7 @@ public class PaymentFixture {
     }
 
     public static CreditAccountPaymentRequest aPbaPaymentRequestForCivil(String amountString, String service) {
-        String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
+        String ccdCaseNumber = "11113333" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
         return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
             .amount(new BigDecimal(amountString))
             .description("New passport application")
@@ -187,7 +193,7 @@ public class PaymentFixture {
     }
 
     public static CreditAccountPaymentRequest aPbaPaymentRequestForDivorce(String amountString, String service) {
-        String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
+        String ccdCaseNumber = "11113333" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
         return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
             .amount(new BigDecimal(amountString))
             .description("New passport application")
@@ -210,7 +216,7 @@ public class PaymentFixture {
     }
 
     public static CreditAccountPaymentRequest aPbaPaymentRequestForIAC(String amountString, String service) {
-        String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
+        String ccdCaseNumber = "11113333" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
         return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
             .amount(new BigDecimal(amountString))
             .description("New passport application")
@@ -233,7 +239,7 @@ public class PaymentFixture {
     }
 
     public static CreditAccountPaymentRequest aPbaPaymentRequestForFPL(String amountString, String service) {
-        String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
+        String ccdCaseNumber = "11113333" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
         return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
             .amount(new BigDecimal(amountString))
             .description("New passport application")
@@ -256,7 +262,7 @@ public class PaymentFixture {
     }
 
     public static CreditAccountPaymentRequest aPbaPaymentRequestForSPEC(String amountString, String service) {
-        String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
+        String ccdCaseNumber = "11113333" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
         return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
             .amount(new BigDecimal(amountString))
             .description("New passport application")
@@ -280,12 +286,7 @@ public class PaymentFixture {
 
     public static CreditAccountPaymentRequest aPbaPaymentRequestForProbate(
         final String amountString, final String service, final String pbaAccountNumber) {
-        Random rand = new Random();
-        String ccdCaseNumber = String.format((Locale)null, //don't want any thousand separators
-            "111122%04d%04d%02d",
-            rand.nextInt(10000),
-            rand.nextInt(10000),
-            rand.nextInt(99));
+        String ccdCaseNumber = "11113333" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
         return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
             .amount(new BigDecimal(amountString))
             .description("New passport application")
@@ -302,6 +303,7 @@ public class PaymentFixture {
                     .calculatedAmount(new BigDecimal(amountString))
                     .code("FEE0001")
                     .version("1")
+                    .feeAmount(new BigDecimal(amountString))
                     .build())
             )
             .build();
@@ -309,12 +311,8 @@ public class PaymentFixture {
 
     public static CreditAccountPaymentRequest aPbaPaymentRequestForProbateWithFeeCode(
         final String amountString, final String feeCode, final String service, final String pbaAccountNumber) {
-        Random rand = new Random();
-        String ccdCaseNumber = String.format((Locale)null, //don't want any thousand separators
-            "111122%04d%04d%02d",
-            rand.nextInt(10000),
-            rand.nextInt(10000),
-            rand.nextInt(99));
+        String ccdCaseNumber = "11113333" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
+
         return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
             .amount(new BigDecimal(amountString))
             .description("New passport application")
@@ -344,12 +342,8 @@ public class PaymentFixture {
         final String feeAmount1,
         final String feeCode2,
         final String feeAmount2 ) {
-        Random rand = new Random();
-        String ccdCaseNumber = String.format((Locale)null, //don't want any thousand separators
-            "111122%04d%04d%02d",
-            rand.nextInt(10000),
-            rand.nextInt(10000),
-            rand.nextInt(99));
+        String ccdCaseNumber = "11113333" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
+
         return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
             .amount(new BigDecimal(amountString))
             .description("New passport application")
@@ -377,7 +371,7 @@ public class PaymentFixture {
     }
 
     public static CreditAccountPaymentRequest aPbaPaymentRequestForProbateForSuccessLiberataValidation(String amountString, String service) {
-        String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
+        String ccdCaseNumber = "11113333" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
         return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
             .amount(new BigDecimal(amountString))
             .description("New passport application")
@@ -419,16 +413,41 @@ public class PaymentFixture {
             .build();
     }
 
-    public static PaymentRefundRequest aRefundRequest(final String refundReason,
-                                                      final String paymentReference) {
+    public static PaymentRefundRequest aRefundRequest(final int paymentId,
+                                                      final String refundReason,
+                                                      final String paymentReference,
+                                                      final String refundAmount,
+                                                      final String feeAmount) {
         return PaymentRefundRequest
             .refundRequestWith().paymentReference(paymentReference)
-            .refundReason(refundReason).build();
+            .refundReason(refundReason)
+            .totalRefundAmount(new BigDecimal(refundAmount))
+            .fees(Lists.newArrayList(
+                RefundsFeeDto.refundFeeDtoWith()
+                    .apportionAmount(BigDecimal.valueOf(0))
+                    .calculatedAmount(new BigDecimal(feeAmount))
+                    .code("FEE0001")
+                    .id(paymentId)
+                    .version("1")
+                    .updatedVolume(1)
+                    .refundAmount(new BigDecimal(refundAmount))
+                    .build())
+            )
+            .contactDetails(ContactDetails.contactDetailsWith().
+                addressLine("High Street 112")
+                .country("UK")
+                .county("Londonshire")
+                .city("London")
+                .postalCode("P1 1PO")
+                .email("person@gmail.com")
+                .notificationType("EMAIL")
+                .build())
+            .build();
 
     }
 
     public static PaymentStatusBouncedChequeDto bouncedChequeRequest(String paymentReference){
-        String ccdCaseNumber = "1111-CC13-" + RandomUtils.nextInt();
+        String ccdCaseNumber = "11113333" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
         String failureReference = "FR-111-CC13-" + RandomUtils.nextInt();
         DateTime actualDateTime = new DateTime(System.currentTimeMillis());
         return PaymentStatusBouncedChequeDto.paymentStatusBouncedChequeRequestWith()
@@ -457,7 +476,7 @@ public class PaymentFixture {
     }
 
     public static PaymentStatusChargebackDto chargebackRequest(String paymentReference){
-        String ccdCaseNumber = "1111-CC13-" + RandomUtils.nextInt();
+        String ccdCaseNumber = "11113333" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
         String failureReference = "FR-111-CC13-" + RandomUtils.nextInt();
         DateTime actualDateTime = new DateTime(System.currentTimeMillis());
         return PaymentStatusChargebackDto.paymentStatusChargebackRequestWith()
@@ -488,7 +507,7 @@ public class PaymentFixture {
     }
 
     public static PaymentStatusBouncedChequeDto bouncedChequeRequestForFailureRef(String paymentReference, String failureReference){
-        String ccdCaseNumber = "1111-CC13-" + RandomUtils.nextInt();
+        String ccdCaseNumber = "11113333" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
         DateTime actualDateTime = new DateTime(System.currentTimeMillis());
         return PaymentStatusBouncedChequeDto.paymentStatusBouncedChequeRequestWith()
             .reason("RR001")
@@ -502,7 +521,7 @@ public class PaymentFixture {
     }
 
     public static PaymentStatusChargebackDto chargebackRequestForFailureRef(String paymentReference, String failureReference){
-        String ccdCaseNumber = "1111-CC13-" + RandomUtils.nextInt();
+        String ccdCaseNumber = "11113333" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
         DateTime actualDateTime = new DateTime(System.currentTimeMillis());
         return PaymentStatusChargebackDto.paymentStatusChargebackRequestWith()
             .reason("RR001")
@@ -517,7 +536,7 @@ public class PaymentFixture {
     }
 
     public static PaymentStatusBouncedChequeDto bouncedChequeRequestForLessEventTime(String paymentReference){
-        String ccdCaseNumber = "1111-CC13-" + RandomUtils.nextInt();
+        String ccdCaseNumber = "11113333" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
         String failureReference = "FR-111-CC13-" + RandomUtils.nextInt();
         DateTime actualDateTime = new DateTime(System.currentTimeMillis());
         return PaymentStatusBouncedChequeDto.paymentStatusBouncedChequeRequestWith()
@@ -532,7 +551,7 @@ public class PaymentFixture {
     }
 
     public static PaymentStatusChargebackDto chargebackRequestForLessEventTime(String paymentReference){
-        String ccdCaseNumber = "1111-CC13-" + RandomUtils.nextInt();
+        String ccdCaseNumber = "11113333" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
         String failureReference = "FR-111-CC13-" + RandomUtils.nextInt();
         DateTime actualDateTime = new DateTime(System.currentTimeMillis());
         return PaymentStatusChargebackDto.paymentStatusChargebackRequestWith()
@@ -547,4 +566,20 @@ public class PaymentFixture {
             .build();
     }
 
+
+    public static RetrospectiveRemissionRequest aRetroRemissionRequest(final String remissionReference) {
+
+        return RetrospectiveRemissionRequest
+            .retrospectiveRemissionRequestWith().remissionReference(remissionReference)
+            .contactDetails(ContactDetails.contactDetailsWith()
+                .addressLine("High Street 112")
+                .country("UK")
+                .county("Londonshire")
+                .city("London")
+                .postalCode("P1 1PO")
+                .email("person@gmail.com")
+                .notificationType("EMAIL")
+                .build())
+            .build();
+    }
 }

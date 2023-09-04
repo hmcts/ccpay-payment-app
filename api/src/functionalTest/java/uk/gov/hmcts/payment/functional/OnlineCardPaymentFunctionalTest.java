@@ -9,11 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
@@ -80,6 +76,9 @@ public class OnlineCardPaymentFunctionalTest {
     private static boolean TOKENS_INITIALIZED = false;
 
     private static final Logger LOG = LoggerFactory.getLogger(OnlineCardPaymentFunctionalTest.class);
+
+    private static final int CCD_EIGHT_DIGIT_UPPER = 99999999;
+    private static final int CCD_EIGHT_DIGIT_LOWER = 10000000;
 
     @Before
     public void setUp() throws Exception {
@@ -352,7 +351,7 @@ public class OnlineCardPaymentFunctionalTest {
     public void retrieveCMCCardPaymentTestShouldReturnAutoApportionedFees() {
         final String[] reference = new String[1];
 
-        String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
+        String ccdCaseNumber = "11115656" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);;
         // create card payment
         List<FeeDto> fees = new ArrayList<>();
         fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
@@ -428,6 +427,35 @@ public class OnlineCardPaymentFunctionalTest {
                 });
         }));
     }
+
+    // TO BE IMPLEMENTED IN THE CARD PAYMENT SCOPE
+//    @Ignore("This is now a valid scenario")
+//    @Test
+//    public void negative_issue_refund_for_card_payment() {
+//
+//        /*
+//        Refund response returns "Refund can not be processed for unsuccessful payment" for a card payment
+//        Expected :"Refund currently supported for PBA Payment Channel only"
+//         */
+//
+//        PaymentDto paymentDto = paymentsTestDsl.given().userToken(USER_TOKEN_CMC_CITIZEN)
+//            .s2sToken(SERVICE_TOKEN)
+//            .returnUrl("https://www.moneyclaims.service.gov.uk")
+//            .when().createCardPayment(PaymentFixture.aCardPaymentRequest("20.99"))
+//            .then().getByStatusCode(201);
+//
+//        String paymentReference = paymentDto.getReference();
+//        assertNotNull(paymentReference);
+//        assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
+//
+//        PaymentRefundRequest paymentRefundRequest
+//            = PaymentFixture.aRefundRequest("RR001", paymentReference);
+//        Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+//            SERVICE_TOKEN_PAYMENT,
+//            paymentRefundRequest);
+//        assertThat(refundResponse.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+//        assertThat(refundResponse.getBody().print()).isEqualTo("Refund currently supported for PBA Payment Channel only");
+//    }
 
     private CardPaymentRequest getCardPaymentRequest() {
         return PaymentFixture.aCardPaymentRequest("20.99");

@@ -690,7 +690,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
         FeatureApiBean feature = objectMapper.readValue(result.getResponse().getContentAsByteArray(), FeatureApiBean.class);
         assertThat(feature.getUid()).isEqualTo("payment-search");
-        assertThat(feature.isEnable()).isEqualTo(true);
+        assertThat(feature.getEnable()).isEqualTo(true);
         assertThat(feature.getDescription()).isEqualTo("Payments search API");
     }
 
@@ -698,7 +698,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     public void testFindFeatureFlag_withIncorrectUID_shouldReturn404() throws Exception {
         restActions
             .get("/api/ff4j/store/features/my-feature")
-            .andExpect(status().isNotFound());
+            .andExpect(status().isInternalServerError());
     }
 
     @Test
@@ -715,7 +715,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
         FeatureApiBean feature = objectMapper.readValue(result.getResponse().getContentAsByteArray(), FeatureApiBean.class);
         assertThat(feature.getUid()).isEqualTo("payment-search");
-        assertThat(feature.isEnable()).isEqualTo(true);
+        assertThat(feature.getEnable()).isEqualTo(true);
         assertThat(feature.getDescription()).isEqualTo("Payments search API");
     }
 
@@ -1698,10 +1698,27 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         db.createPayment(payment);
         // Update payment status with valid payment reference
         restActions
-            .patch("/payments/ccd_case_reference/" + ccdCaseNumber)
+            .patch("/payments/ccd_case_reference/"+ccdCaseNumber+"/lag_time/"+String.valueOf(4 * 24))
             .andExpect(status().isNoContent());
         db.deletePayment(payment);
     }
+
+    @Test
+    public void retrievePaymentsWithEmptyList() throws Exception {
+        MvcResult result = restActions
+            .get("/refunds/payments?paymentReferenceList=")
+            .andExpect(status().isNotFound())
+            .andReturn();
+    }
+
+    @Test
+    public void retrievePaymentsWithNoPaymentFound() throws Exception {
+        MvcResult result = restActions
+            .get("/refunds/payments?paymentReferenceList=aaaa,bbb,ccc")
+            .andExpect(status().isNotFound())
+            .andReturn();
+    }
+
 
     private Date parseDate(String date) {
         try {

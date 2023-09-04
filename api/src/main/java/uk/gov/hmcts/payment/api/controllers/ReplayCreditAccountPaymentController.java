@@ -3,10 +3,10 @@ package uk.gov.hmcts.payment.api.controllers;
 
 import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@Api(tags = {"Replay Credit Account Payment"})
+@Tag(name = "Replay Credit Account Payment")
 public class ReplayCreditAccountPaymentController {
 
     private static final Logger LOG = LoggerFactory.getLogger(ReplayCreditAccountPaymentController.class);
@@ -58,11 +58,11 @@ public class ReplayCreditAccountPaymentController {
         this.creditAccountPaymentController = creditAccountPaymentController;
     }
 
-    @ApiOperation(value = "Replay credit account payment", notes = "Replay credit account payment")
+    @Operation(summary = "Replay credit account payment", description = "Replay credit account payment")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Replay Payment Completed Successfully"),
-        @ApiResponse(code = 400, message = "BAD Request"),
-        @ApiResponse(code = 500, message = "Replay Payment failed")
+        @ApiResponse(responseCode = "200", description = "Replay Payment Completed Successfully"),
+        @ApiResponse(responseCode = "400", description = "BAD Request"),
+        @ApiResponse(responseCode = "500", description = "Replay Payment failed")
     })
     @PostMapping(value = "/replay-credit-account-payments", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseBody
@@ -184,5 +184,9 @@ public class ReplayCreditAccountPaymentController {
         return new ResponseEntity(HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(value = {PaymentException.class})
+    public ResponseEntity returnInternalError(PaymentException ex) {
+        return new ResponseEntity(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }
 

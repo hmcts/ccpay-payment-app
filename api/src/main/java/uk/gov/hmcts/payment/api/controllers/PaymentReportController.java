@@ -1,6 +1,9 @@
 package uk.gov.hmcts.payment.api.controllers;
 
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.*;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,8 +21,7 @@ import java.util.Optional;
 import static org.slf4j.LoggerFactory.getLogger;
 
 @RestController
-@Api(tags = {"Payment Report"})
-@SwaggerDefinition(tags = {@Tag(name = "PaymentReportController", description = "Payment report REST API")})
+@Tag(name = "PaymentReportController", description = "Payment report REST API")
 public class PaymentReportController {
 
     private static final Logger LOG = getLogger(PaymentReportController.class);
@@ -36,9 +38,9 @@ public class PaymentReportController {
         this.clock = clock;
     }
 
-    @ApiOperation(value = "Email payment csv reports", notes = "fetch payments for between dates, enter the date in format YYYY-MM-DD")
+    @Operation(summary = "Email payment csv reports", description = "fetch payments for between dates, enter the date in format YYYY-MM-DD")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Reports sent")
+        @ApiResponse(responseCode = "200", description = "Reports sent")
     })
     @PostMapping(value = "/jobs/email-pay-reports")
     public void generateAndEmailReport(@RequestParam(name = "payment_method", required = false) Optional<String> paymentMethodType,

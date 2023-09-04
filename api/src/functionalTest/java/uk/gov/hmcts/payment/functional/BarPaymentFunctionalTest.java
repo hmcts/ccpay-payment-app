@@ -246,9 +246,8 @@ public class BarPaymentFunctionalTest {
             .build();
     }
 
-    @Ignore
     @Test
-    public void createBarChequePaymentRecordAndValidateSearchResults() throws Exception {
+    public void createBarChequePaymentRecordAndValidateSearchResults() {
         SimpleDateFormat formatter = new SimpleDateFormat(DATE_TIME_FORMAT);
         String startDate = formatter.format(LocalDateTime.now(zoneUTC).minusSeconds(30).toDate());
 

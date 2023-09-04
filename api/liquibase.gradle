@@ -2,10 +2,6 @@ configurations {
     liquibase
 }
 
-dependencies {
-    liquibase group: 'org.liquibase.ext', name: 'liquibase-hibernate5', version: 3.8
-}
-
 //loading properties file.
 Properties liquibaseProps = new Properties()
 liquibaseProps.load(new FileInputStream("$projectDir/src/main/resources/liquibase.properties"))

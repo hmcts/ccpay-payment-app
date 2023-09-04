@@ -1,9 +1,9 @@
 description = ''
 
 dependencies {
-    compile group: 'org.springframework', name: 'spring-context', version: '5.1.3.RELEASE'
-    compile group: 'org.apache.httpcomponents', name: 'httpclient'
-    compile group: 'com.netflix.hystrix', name: 'hystrix-javanica', version: '1.5.12'
-    testCompile group: 'com.github.tomakehurst', name: 'wiremock'
-    testCompile 'org.powermock:powermock-api-mockito2:2.0.9'
+    implementation group: 'org.springframework', name: 'spring-context'
+    implementation group: 'org.apache.httpcomponents', name: 'httpclient'
+    implementation group: 'com.netflix.hystrix', name: 'hystrix-javanica', version: '1.5.18'
+    testImplementation group: 'com.github.tomakehurst', name: 'wiremock'
+    testImplementation 'org.powermock:powermock-api-mockito2:2.0.9'
 }

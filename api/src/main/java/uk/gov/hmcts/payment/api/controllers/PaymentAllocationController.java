@@ -1,6 +1,9 @@
 package uk.gov.hmcts.payment.api.controllers;
 
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.*;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,8 +23,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@Api(tags = {"PaymentAllocation"})
-@SwaggerDefinition(tags = {@Tag(name = "PaymentAllocationController", description = "Payment Allocation REST API")})
+@Tag(name = "PaymentAllocationController", description = "Payment Allocation REST API")
 public class PaymentAllocationController {
 
     private final PaymentDtoMapper paymentDtoMapper;
@@ -38,15 +40,15 @@ public class PaymentAllocationController {
     }
 
 
-    @ApiOperation(value = "Add Payment Allocations", notes = "Add Payment Allocations")
+    @Operation(summary = "Add Payment Allocations", description = "Add Payment Allocations")
     @ApiResponses(value = {
-        @ApiResponse(code = 201, message = "Payment Allocation created"),
-        @ApiResponse(code = 400, message = "Payment Allocation failed")
+        @ApiResponse(responseCode = "201", description = "Payment Allocation created"),
+        @ApiResponse(responseCode = "400", description = "Payment Allocation failed")
     })
     @PostMapping(value = "/payment-allocations")
     public ResponseEntity<PaymentAllocationDto> addNewFee(@Valid @RequestBody PaymentAllocationDto paymentAllocationDto) {
 
-        PaymentFeeLink paymentFeeLink = paymentService.retrieve(paymentAllocationDto.getPaymentReference());
+        PaymentFeeLink paymentFeeLink = paymentService.retrievePayment(paymentAllocationDto.getPaymentReference());
         Optional<Payment> payment = paymentFeeLink.getPayments().stream()
             .filter(p -> p.getReference().equals(paymentAllocationDto.getPaymentReference())).findAny();
         if (payment.isPresent()) {

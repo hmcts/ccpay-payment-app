@@ -1,12 +1,10 @@
 package uk.gov.hmcts.payment.api.controllers;
 
 import com.google.common.collect.Lists;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
-import io.swagger.annotations.SwaggerDefinition;
-import io.swagger.annotations.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.apache.http.MethodNotSupportedException;
 import org.joda.time.DateTime;
@@ -88,8 +86,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
-@Api(tags = {"Payment group"})
-@SwaggerDefinition(tags = {@Tag(name = "PaymentGroupController", description = "Payment group REST API")})
+@Tag(name = "PaymentGroupController", description = "Payment group REST API")
 public class PaymentGroupController {
 
     private static final Logger LOG = LoggerFactory.getLogger(PaymentGroupController.class);
@@ -146,11 +143,11 @@ public class PaymentGroupController {
         this.telephonyDtoMapper = telephonyDtoMapper;
     }
 
-    @ApiOperation(value = "Get payments/remissions/fees details by payment group reference", notes = "Get payments/remissions/fees details for supplied payment group reference")
+    @Operation(summary = "Get payments/remissions/fees details by payment group reference", description = "Get payments/remissions/fees details for supplied payment group reference")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Payment retrieved"),
-        @ApiResponse(code = 403, message = "Payment info forbidden"),
-        @ApiResponse(code = 404, message = "Payment not found")
+        @ApiResponse(responseCode = "200", description = "Payment retrieved"),
+        @ApiResponse(responseCode = "403", description = "Payment info forbidden"),
+        @ApiResponse(responseCode = "404", description = "Payment not found")
     })
     @GetMapping(value = "/payment-groups/{payment-group-reference}")
     public ResponseEntity<PaymentGroupDto> retrievePayment(@PathVariable("payment-group-reference") String paymentGroupReference) {
@@ -159,10 +156,10 @@ public class PaymentGroupController {
         return new ResponseEntity<>(paymentGroupDtoMapper.toPaymentGroupDto(paymentFeeLink), HttpStatus.OK);
     }
 
-    @ApiOperation(value = "Add Payment Group with Fees", notes = "Add Payment Group with Fees")
+    @Operation(summary = "Add Payment Group with Fees", description = "Add Payment Group with Fees")
     @ApiResponses(value = {
-        @ApiResponse(code = 201, message = "Payment group with fee(s) created"),
-        @ApiResponse(code = 400, message = "Payment group creation failed")
+        @ApiResponse(responseCode = "201", description = "Payment group with fee(s) created"),
+        @ApiResponse(responseCode = "400", description = "Payment group creation failed")
     })
     @PostMapping(value = "/payment-groups")
     public ResponseEntity<PaymentGroupDto> addNewFee(@Valid @RequestBody PaymentGroupDto paymentGroupDto) {
@@ -191,11 +188,11 @@ public class PaymentGroupController {
     }
 
 
-    @ApiOperation(value = "Add new Fee(s) to existing Payment Group", notes = "Add new Fee(s) to existing Payment Group")
+    @Operation(summary = "Add new Fee(s) to existing Payment Group", description = "Add new Fee(s) to existing Payment Group")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Fee(s) added to Payment Group"),
-        @ApiResponse(code = 400, message = "Payment group creation failed"),
-        @ApiResponse(code = 404, message = "Payment Group not found")
+        @ApiResponse(responseCode = "200", description = "Fee(s) added to Payment Group"),
+        @ApiResponse(responseCode = "400", description = "Payment group creation failed"),
+        @ApiResponse(responseCode = "404", description = "Payment Group not found")
     })
     @PutMapping(value = "/payment-groups/{payment-group-reference}")
     public ResponseEntity<PaymentGroupDto> addNewFeetoPaymentGroup(@PathVariable("payment-group-reference") String paymentGroupReference,
@@ -214,11 +211,11 @@ public class PaymentGroupController {
         return new ResponseEntity<>(paymentGroupDtoMapper.toPaymentGroupDto(paymentFeeLink), HttpStatus.OK);
     }
 
-    @ApiOperation(value = "Record a Bulk Scan Payment", notes = "Record a Bulk Scan Payment")
+    @Operation(summary = "Record a Bulk Scan Payment", description = "Record a Bulk Scan Payment")
     @ApiResponses(value = {
-        @ApiResponse(code = 201, message = "Bulk Scan Payment created"),
-        @ApiResponse(code = 400, message = "Bulk Scan Payment creation failed"),
-        @ApiResponse(code = 422, message = "Invalid or missing attribute")
+        @ApiResponse(responseCode = "201", description = "Bulk Scan Payment created"),
+        @ApiResponse(responseCode = "400", description = "Bulk Scan Payment creation failed"),
+        @ApiResponse(responseCode = "422", description = "Invalid or missing attribute")
     })
     @PostMapping(value = "/payment-groups/{payment-group-reference}/bulk-scan-payments")
     @ResponseBody
@@ -275,11 +272,11 @@ public class PaymentGroupController {
         return new ResponseEntity<>(paymentDtoMapper.toBulkScanPaymentDto(newPayment, paymentGroupReference), HttpStatus.CREATED);
     }
 
-    @ApiOperation(value = "Record a Bulk Scan Payment with Payment Group", notes = "Record a Bulk Scan Payment with Payment Group")
+    @Operation(summary = "Record a Bulk Scan Payment with Payment Group", description = "Record a Bulk Scan Payment with Payment Group")
     @ApiResponses(value = {
-        @ApiResponse(code = 201, message = "Bulk Scan Payment with payment group created"),
-        @ApiResponse(code = 400, message = "Bulk Scan Payment creation failed"),
-        @ApiResponse(code = 422, message = "Invalid or missing attribute")
+        @ApiResponse(responseCode = "201", description = "Bulk Scan Payment with payment group created"),
+        @ApiResponse(responseCode = "400", description = "Bulk Scan Payment creation failed"),
+        @ApiResponse(responseCode = "422", description = "Invalid or missing attribute")
     })
     @PostMapping(value = "/payment-groups/bulk-scan-payments")
     @ResponseBody
@@ -328,13 +325,13 @@ public class PaymentGroupController {
             .orElseThrow(() -> new PaymentNotFoundException("Payment with reference " + paymentReference + " does not exists."));
     }
 
-    @ApiOperation(value = "Record a Bulk Scan Payment", notes = "Record a Bulk Scan Payment")
+    @Operation(summary = "Record a Bulk Scan Payment", description = "Record a Bulk Scan Payment")
     @ApiResponses(value = {
-        @ApiResponse(code = 201, message = "Bulk Scan Payment created"),
-        @ApiResponse(code = 400, message = "Bulk Scan Payment creation failed"),
-        @ApiResponse(code = 422, message = "Invalid or missing attribute"),
-        @ApiResponse(code = 404, message = "No Service found for given CaseType"),
-        @ApiResponse(code = 504, message = "Unable to retrieve service information. Please try again later")
+        @ApiResponse(responseCode = "201", description = "Bulk Scan Payment created"),
+        @ApiResponse(responseCode = "400", description = "Bulk Scan Payment creation failed"),
+        @ApiResponse(responseCode = "422", description = "Invalid or missing attribute"),
+        @ApiResponse(responseCode = "404", description = "No Service found for given CaseType"),
+        @ApiResponse(responseCode = "504", description = "Unable to retrieve service information. Please try again later")
     })
     @PostMapping(value = "/payment-groups/{payment-group-reference}/bulk-scan-payments-strategic")
     @ResponseBody
@@ -402,11 +399,11 @@ public class PaymentGroupController {
         }
     }
 
-    @ApiOperation(value = "Record a Bulk Scan Payment with Payment Group", notes = "Record a Bulk Scan Payment with Payment Group")
+    @Operation(summary = "Record a Bulk Scan Payment with Payment Group", description = "Record a Bulk Scan Payment with Payment Group")
     @ApiResponses(value = {
-        @ApiResponse(code = 201, message = "Bulk Scan Payment with payment group created"),
-        @ApiResponse(code = 400, message = "Bulk Scan Payment creation failed"),
-        @ApiResponse(code = 422, message = "Invalid or missing attribute")
+        @ApiResponse(responseCode = "201", description = "Bulk Scan Payment with payment group created"),
+        @ApiResponse(responseCode = "400", description = "Bulk Scan Payment creation failed"),
+        @ApiResponse(responseCode = "422", description = "Invalid or missing attribute")
     })
     @PostMapping(value = "/payment-groups/bulk-scan-payments-strategic")
     @ResponseBody
@@ -514,11 +511,11 @@ public class PaymentGroupController {
         return restTemplatePaymentGroup.exchange(bulkScanPaymentsProcessedUrl + "/bulk-scan-payments/{dcn}/status/{status}", HttpMethod.PATCH, entity, String.class, params);
     }
 
-    @ApiOperation(value = "Create telephony card payment in Payment Group", notes = "Create telephony card payment in Payment Group")
+    @Operation(summary = "Create telephony card payment in Payment Group", description = "Create telephony card payment in Payment Group")
     @ApiResponses(value = {
-        @ApiResponse(code = 201, message = "Payment created"),
-        @ApiResponse(code = 400, message = "Payment creation failed"),
-        @ApiResponse(code = 422, message = "Invalid or missing attribute")
+        @ApiResponse(responseCode = "201", description = "Payment created"),
+        @ApiResponse(responseCode = "400", description = "Payment creation failed"),
+        @ApiResponse(responseCode = "422", description = "Invalid or missing attribute")
     })
     @PostMapping(value = "/payment-groups/{payment-group-reference}/telephony-card-payments")
     @ResponseBody

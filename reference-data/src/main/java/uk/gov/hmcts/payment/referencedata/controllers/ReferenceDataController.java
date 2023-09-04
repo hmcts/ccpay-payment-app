@@ -1,6 +1,9 @@
 package uk.gov.hmcts.payment.referencedata.controllers;
 
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,16 +17,15 @@ import uk.gov.hmcts.payment.referencedata.service.SiteService;
 import java.util.List;
 
 @RestController
-@Api(tags = {"Reference Data"})
-@SwaggerDefinition(tags = {@Tag(name = "ReferenceDataController", description = "Reference Data REST API")})
+@Tag(name = "ReferenceDataController", description = "Reference Data REST API")
 public class ReferenceDataController {
 
     @Autowired
     private SiteService<Site, String> siteService;
 
-    @ApiOperation(value = "Get allowed sites")
+    @Operation(summary = "Get allowed sites")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Sites retrieved successfully")
+        @ApiResponse(responseCode = "200", description = "Sites retrieved successfully")
     })
     @GetMapping(value = "/reference-data/sites")
     @ResponseBody

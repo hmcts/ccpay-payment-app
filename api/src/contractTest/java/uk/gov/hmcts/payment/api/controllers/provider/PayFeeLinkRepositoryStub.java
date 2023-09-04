@@ -68,6 +68,11 @@ public class PayFeeLinkRepositoryStub implements PaymentFeeLinkRepository {
     }
 
     @Override
+    public void deleteAllById(Iterable<? extends Integer> integers) {
+
+    }
+
+    @Override
     public void deleteAll(Iterable<? extends PaymentFeeLink> entities) {
 
     }
@@ -79,6 +84,16 @@ public class PayFeeLinkRepositoryStub implements PaymentFeeLinkRepository {
 
     @Override
     public Optional<PaymentFeeLink> findByPaymentReference(String id) {
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<PaymentFeeLink> findByPaymentReferenceAndCcdCaseNumber(String id, String ccdCaseNumber) {
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<PaymentFeeLink> findByPaymentReferenceAndFeeId(String id, Integer feeId) {
         return Optional.empty();
     }
 
@@ -110,5 +125,10 @@ public class PayFeeLinkRepositoryStub implements PaymentFeeLinkRepository {
     @Override
     public long count(Specification<PaymentFeeLink> spec) {
         return 0;
+    }
+
+    @Override
+    public boolean exists(Specification<PaymentFeeLink> spec) {
+        return false;
     }
 }

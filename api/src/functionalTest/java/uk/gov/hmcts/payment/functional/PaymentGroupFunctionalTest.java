@@ -16,7 +16,6 @@ import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.TelephonyCardPaymentsRequest;
 import uk.gov.hmcts.payment.api.contract.TelephonyCardPaymentsResponse;
-import uk.gov.hmcts.payment.api.contract.TelephonyPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.BulkScanPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
@@ -39,8 +38,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
 
 @RunWith(SpringIntegrationSerenityRunner.class)
@@ -67,6 +64,9 @@ public class PaymentGroupFunctionalTest {
     @Autowired
     private LaunchDarklyFeature featureToggler;
 
+    private static final int CCD_EIGHT_DIGIT_UPPER = 99999999;
+    private static final int CCD_EIGHT_DIGIT_LOWER = 10000000;
+
     @Before
     public void setUp() throws Exception {
         if (!TOKENS_INITIALIZED) {
@@ -78,19 +78,20 @@ public class PaymentGroupFunctionalTest {
     }
 
     @Test
-    public void createUpfrontRemission() throws Exception {
+    public void createUpfrontRemission() {
+        String ccdCaseNumber = "11112222" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
 
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
-            .when().createUpfrontRemission(getRemissionRequest())
+            .when().createUpfrontRemission(getRemissionRequest(ccdCaseNumber))
             .then().gotCreated(RemissionDto.class, remissionDto -> {
             assertThat(remissionDto).isNotNull();
-            assertThat(remissionDto.getFee()).isEqualToComparingOnlyGivenFields(getFee());
+            assertThat(remissionDto.getFee()).isEqualToComparingOnlyGivenFields(getFee(ccdCaseNumber));
         });
     }
 
     @Test
-    public void createNewFeeWithPaymentGroup() throws Exception {
+    public void createNewFeeWithPaymentGroup() {
 
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
@@ -104,10 +105,11 @@ public class PaymentGroupFunctionalTest {
 
     @Test
     public void givenAFeeAndRemissionInPG_WhenAFeeNeedUpdatingthenFeeShouldBeAddedToExistingGroup() throws Exception {
+        String ccdCaseNumber = "11112222" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
 
         TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
             .amount(new BigDecimal("550"))
-            .ccdCaseNumber("1234567890123003")
+            .ccdCaseNumber(ccdCaseNumber)
             .currency(CurrencyCode.GBP)
             .caseType("FinancialRemedyContested")
             .returnURL("https://www.moneyclaims.service.gov.uk")
@@ -120,7 +122,7 @@ public class PaymentGroupFunctionalTest {
                 .version("1")
                 .reference("testRef")
                 .volume(2)
-                .ccdCaseNumber("1111-CCD2-3353-4464")
+                .ccdCaseNumber(ccdCaseNumber)
                 .build())).build();
 
         // TEST create telephony card payment
@@ -158,23 +160,10 @@ public class PaymentGroupFunctionalTest {
                     assertTrue(urlValidator.isValid(telephonyCardPaymentsResponse.getLinks().getNextUrl().getHref()));
                 });
 
-            /*dsl.given().userToken(USER_TOKEN)
-                .s2sToken(SERVICE_TOKEN)
-                .returnUrl("https://www.moneyclaims.service.gov.uk")
-                .when().createTelephonyCardPayment(telephonyPaymentRequest, paymentGroupReference)
-                .then().created(paymentDto -> {
-                assertTrue(paymentDto.getReference().matches(PAYMENT_REFERENCE_REGEX));
-                assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
-                String[] schemes = {"https"};
-                UrlValidator urlValidator = new UrlValidator(schemes);
-                assertNotNull(paymentDto.getLinks().getNextUrl());
-                assertTrue(urlValidator.isValid(paymentDto.getLinks().getNextUrl().getHref()));
-            });*/
-
             // TEST create retrospective remission
             dsl.given().userToken(USER_TOKEN)
                 .s2sToken(SERVICE_TOKEN)
-                .when().createRetrospectiveRemission(getRemissionRequest(), paymentGroupReference, feeId)
+                .when().createRetrospectiveRemission(getRemissionRequest(ccdCaseNumber), paymentGroupReference, feeId)
                 .then().gotCreated(RemissionDto.class, remissionDto -> {
                 assertThat(remissionDto).isNotNull();
                 assertThat(remissionDto.getPaymentGroupReference()).isEqualTo(paymentGroupReference);
@@ -187,9 +176,9 @@ public class PaymentGroupFunctionalTest {
                 .when().getRemissions(paymentGroupReference)
                 .then().got(PaymentGroupDto.class, paymentGroupDto -> {
                 assertThat(paymentGroupDto).isNotNull();
-                assertThat(paymentGroupDto.getPayments().get(0)).isEqualToComparingOnlyGivenFields(getCardPaymentRequest());
-                assertThat(paymentGroupDto.getRemissions().get(0)).isEqualToComparingOnlyGivenFields(getRemissionRequest());
-                assertThat(paymentGroupDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(getFee());
+                assertThat(paymentGroupDto.getPayments().get(0)).isEqualToComparingOnlyGivenFields(getCardPaymentRequest(ccdCaseNumber));
+                assertThat(paymentGroupDto.getRemissions().get(0)).isEqualToComparingOnlyGivenFields(getRemissionRequest(ccdCaseNumber));
+                assertThat(paymentGroupDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(getFee(ccdCaseNumber));
                 assertThat(paymentGroupDto.getFees().size()).isEqualTo(2);
                 assertThat(paymentGroupDto.getFees().get(1)).isEqualToComparingOnlyGivenFields(getPaymentFeeGroupRequest());
 
@@ -206,6 +195,7 @@ public class PaymentGroupFunctionalTest {
 
     @Test
     public void givenAFeeInPG_WhenABulkScanPaymentNeedsMappingthenPaymentShouldBeAddedToExistingGroup() throws Exception {
+        String ccdCaseNumber = "11112222" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal(100.00))
@@ -213,7 +203,7 @@ public class PaymentGroupFunctionalTest {
             .siteId("AA01")
             .currency(CurrencyCode.GBP)
             .documentControlNumber("DCN2903423425343478348")
-            .ccdCaseNumber("1231-1231-3453-4333")
+            .ccdCaseNumber(ccdCaseNumber)
             .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
             .payerName("CCD User1")
             .bankedDate(DateTime.now().toString())
@@ -229,7 +219,7 @@ public class PaymentGroupFunctionalTest {
                 .version("1")
                 .reference("testRef1")
                 .volume(2)
-                .ccdCaseNumber("1111-CCD2-3353-4464")
+                .ccdCaseNumber(ccdCaseNumber)
                 .build())).build();
 
         dsl.given().userToken(USER_TOKEN)
@@ -256,7 +246,7 @@ public class PaymentGroupFunctionalTest {
 
     @Test
     public void makeAndRetrieveBulkScanPayment_TestShouldReturnAutoApportionedFees() {
-        String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
+        String ccdCaseNumber = "11112222" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
 
         List<FeeDto> fees = new ArrayList<>();
         fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
@@ -341,6 +331,7 @@ public class PaymentGroupFunctionalTest {
 
     @Test
     public void givenABulkScanPaymentNeedsMappingthenPaymentShouldBeCreatedWithPaymentGroup() throws Exception {
+        String ccdCaseNumber = "11112222" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal(100.00))
@@ -348,7 +339,7 @@ public class PaymentGroupFunctionalTest {
             .siteId("AA01")
             .currency(CurrencyCode.GBP)
             .documentControlNumber("DCN293842342342834278348")
-            .ccdCaseNumber("1231-1231-3453-4333")
+            .ccdCaseNumber(ccdCaseNumber)
             .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
             .payerName("CCD User")
             .bankedDate(DateTime.now().toString())
@@ -382,13 +373,7 @@ public class PaymentGroupFunctionalTest {
     @Test
     public void givenMultipleFeesAndRemissionWithPaymentInPG_WhenCaseIsSearchedShouldBeReturned() throws Exception {
 
-        String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
-        FeeDto feeDto = FeeDto.feeDtoWith()
-            .calculatedAmount(new BigDecimal("550.00"))
-            .ccdCaseNumber(ccdCaseNumber)
-            .version("1")
-            .code("FEE0123")
-            .build();
+        String ccdCaseNumber = "11112222" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
 
         RemissionRequest remissionRequest = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("A partial remission")
@@ -396,18 +381,8 @@ public class PaymentGroupFunctionalTest {
             .hwfAmount(new BigDecimal("50"))
             .hwfReference("HR1111")
             .caseType("MoneyClaimCase")
-            .fee(getFee())
+            .fee(getFee(ccdCaseNumber))
             .build();
-
-        PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
-            .fees(Arrays.asList(FeeDto.feeDtoWith()
-                .calculatedAmount(new BigDecimal("250.00"))
-                .code("FEE3232")
-                .version("1")
-                .reference("testRef")
-                .volume(2)
-                .ccdCaseNumber(ccdCaseNumber)
-                .build())).build();
 
 
         dsl.given().userToken(USER_TOKEN)
@@ -446,7 +421,8 @@ public class PaymentGroupFunctionalTest {
     @Test
     public void givenMultipleFeesAndRemissionWithPaymentInPG_WhenCaseIsSearchedShouldBeReturnedForFinrem() throws Exception {
 
-        String ccdCaseNumber = "123456789012" + String.format("%04d", new Random().nextInt(10000));
+        String ccdCaseNumber = "11112222" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
+
         FeeDto feeDto = FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("550.00"))
             .ccdCaseNumber(ccdCaseNumber)
@@ -460,7 +436,7 @@ public class PaymentGroupFunctionalTest {
             .hwfAmount(new BigDecimal("50"))
             .hwfReference("HR1111")
             .caseType("MoneyClaimCase")
-            .fee(getFee())
+            .fee(getFee(ccdCaseNumber))
             .build();
 
         TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
@@ -535,7 +511,8 @@ public class PaymentGroupFunctionalTest {
     @Test
     public void givenFeesWithPaymentInPG_WhenCaseIsSearchedShouldBeReturned() throws Exception {
 
-        String ccdCaseNumber = "1234567890123002";
+        String ccdCaseNumber = "11112222" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
+
         FeeDto feeDto = FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("110.00"))
             .ccdCaseNumber(ccdCaseNumber)
@@ -596,8 +573,8 @@ public class PaymentGroupFunctionalTest {
 
     @Test
     public void givenFeesWithPaymentInPG_WhenCaseIsSearchedShouldBeReturnedForPCIPALAntennaChanges() throws Exception {
+        String ccdCaseNumber = "11112222" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
 
-        String ccdCaseNumber = "1345678912345678";
         FeeDto feeDto = FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("110.00"))
             .ccdCaseNumber(ccdCaseNumber)
@@ -643,29 +620,28 @@ public class PaymentGroupFunctionalTest {
 
     }
 
-
-    private CardPaymentRequest getCardPaymentRequest() {
+    private CardPaymentRequest getCardPaymentRequest(String ccdCaseNumber) {
         return CardPaymentRequest.createCardPaymentRequestDtoWith()
             .amount(new BigDecimal("550"))
-            .ccdCaseNumber("1111-CCD2-3333-4444")
+            .ccdCaseNumber(ccdCaseNumber)
             .channel("telephony")
             .currency(CurrencyCode.GBP)
             .description("A test telephony payment")
             .provider("pci pal")
             .service("DIVORCE")
             .siteId("AA001")
-            .fees(Collections.singletonList(getFee()))
+            .fees(Collections.singletonList(getFee(ccdCaseNumber)))
             .build();
     }
 
-    private RemissionRequest getRemissionRequest() {
+    private RemissionRequest getRemissionRequest(String ccdCaseNumber) {
         return RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("A partial remission")
-            .ccdCaseNumber("1111-CCD2-3333-4444")
+            .ccdCaseNumber(ccdCaseNumber)
             .hwfAmount(new BigDecimal("50"))
             .hwfReference("HR1111")
             .caseType("MoneyClaimCase")
-            .fee(getFee())
+            .fee(getFee(ccdCaseNumber))
             .build();
     }
 
@@ -680,10 +656,10 @@ public class PaymentGroupFunctionalTest {
                 .build())).build();
     }
 
-    private FeeDto getFee() {
+    private FeeDto getFee(String ccdCaseNumber) {
         return FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("550.00"))
-            .ccdCaseNumber("1111-CCD2-3333-4444")
+            .ccdCaseNumber(ccdCaseNumber)
             .version("1")
             .code("FEE0123")
             .build();

@@ -6,7 +6,11 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import com.microsoft.azure.servicebus.IMessageReceiver;
 import com.microsoft.azure.servicebus.TopicClient;
 import com.microsoft.azure.servicebus.primitives.ServiceBusException;
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.*;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.val;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,7 +18,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.MultiValueMap;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
@@ -50,8 +57,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @RestController
-@Api(tags = {"service-request"})
-@SwaggerDefinition(tags = {@Tag(name = "ServiceRequestController", description = "Service Request REST API")})
+@Tag(name = "ServiceRequestController", description = "Service Request REST API")
+@SuppressWarnings("all")
 public class ServiceRequestController {
 
     private static final Logger LOG = LoggerFactory.getLogger(ServiceRequestController.class);
@@ -91,21 +98,31 @@ public class ServiceRequestController {
         this.serviceRequestDomainService = serviceRequestDomainService;
     }
 
-    @ApiOperation(value = "Create Service Request", notes = "Create Service Request")
+    @Operation(summary = "Create Service Request", description = "Create Service Request")
     @ApiResponses(value = {
-        @ApiResponse(code = 201, message = "Service Request Created"),
-        @ApiResponse(code = 400, message = "Service Request Creation Failed"),
-        @ApiResponse(code = 401, message = "Credentials are required to access this resource"),
-        @ApiResponse(code = 403, message = "Forbidden-Access Denied"),
-        @ApiResponse(code = 422, message = "Invalid or missing attribute"),
-        @ApiResponse(code = 404, message = "No Service found for given CaseType"),
-        @ApiResponse(code = 504, message = "Unable to retrieve service information. Please try again later"),
-        @ApiResponse(code = 500, message = "Internal Server")
+        @ApiResponse(responseCode = "201", description = "Service Request Created"),
+        @ApiResponse(responseCode = "400", description = "Service Request Creation Failed"),
+        @ApiResponse(responseCode = "401", description = "Credentials are required to access this resource"),
+        @ApiResponse(responseCode = "403", description = "Forbidden-Access Denied"),
+        @ApiResponse(responseCode = "422", description = "Invalid or missing attribute"),
+        @ApiResponse(responseCode = "404", description = "No Service found for given CaseType"),
+        @ApiResponse(responseCode = "504", description = "Unable to retrieve service information. Please try again later"),
+        @ApiResponse(responseCode = "500", description = "Internal Server")
     })
     @PostMapping(value = "/service-request")
     @Transactional
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<ServiceRequestResponseDto> create(@Valid @RequestBody ServiceRequestDto serviceRequestDto, @RequestHeader(required = false) MultiValueMap<String, String> headers){
+    public ResponseEntity<ServiceRequestResponseDto> create(@Valid @RequestBody ServiceRequestDto serviceRequestDto,
+                                                            @RequestHeader(required = false) MultiValueMap<String, String> headers,
+                                                            BindingResult result){
+
+        List<FieldError> errors = result.getFieldErrors();
+        LOG.info("Validation Errors in Service Request {}", errors);
+        if(!CollectionUtils.isEmpty(errors)) {
+            for (FieldError error : errors ) {
+                LOG.error(error.getDefaultMessage());
+            }
+        }
 
         ResponseEntity<ServiceRequestResponseDto> serviceRequestResponseDto = new ResponseEntity<>(serviceRequestDomainService.
             create(serviceRequestDto, headers), HttpStatus.CREATED);
@@ -120,28 +137,39 @@ public class ServiceRequestController {
         return serviceRequestResponseDto;
     }
 
-    @ApiOperation(value = "Create credit account payment", notes = "Create credit account payment")
+    @Operation(summary = "Create credit account payment", description = "Create credit account payment")
     @ApiResponses(value = {
-        @ApiResponse(code = 201, message = "Payment created"),
-        @ApiResponse(code = 400, message = "Payment creation failed"),
-        @ApiResponse(code = 403, message = "Payment failed due to insufficient funds or the account being on hold"),
-        @ApiResponse(code = 404, message = "Account information could not be found"),
-        @ApiResponse(code = 504, message = "Unable to retrieve account information, please try again later"),
-        @ApiResponse(code = 422, message = "Invalid or missing attribute"),
-        @ApiResponse(code = 412, message = "The serviceRequest has already been paid"),
-        @ApiResponse(code = 417, message = "The amount should be equal to serviceRequest balance")
+        @ApiResponse(responseCode = "201", description = "Payment created"),
+        @ApiResponse(responseCode = "400", description = "Payment creation failed"),
+        @ApiResponse(responseCode = "403", description = "Payment failed due to insufficient funds or the account being on hold"),
+        @ApiResponse(responseCode = "404", description = "Account information could not be found"),
+        @ApiResponse(responseCode = "504", description = "Unable to retrieve account information, please try again later"),
+        @ApiResponse(responseCode = "422", description = "Invalid or missing attribute"),
+        @ApiResponse(responseCode = "412", description = "The serviceRequest has already been paid"),
+        @ApiResponse(responseCode = "417", description = "The amount should be equal to serviceRequest balance")
     })
     @PostMapping(value = "/service-request/{service-request-reference}/pba-payments")
     @ResponseBody
     @ResponseStatus(HttpStatus.CREATED)
     @Transactional
-    public ResponseEntity<ServiceRequestPaymentBo> createCreditAccountPaymentForServiceRequest(@ApiParam(value = "idempotency_key", hidden = true)@RequestHeader(required = false) String idempotencyKey,
+    public ResponseEntity<ServiceRequestPaymentBo> createCreditAccountPaymentForServiceRequest(@Parameter(name = "idempotency_key", hidden = true)@RequestHeader(required = false) String idempotencyKey,
                                                                                                @PathVariable("service-request-reference") String serviceRequestReference,
                                                                                                @Valid @RequestBody ServiceRequestPaymentDto serviceRequestPaymentDto) throws CheckDigitException, JsonProcessingException {
 
         idempotencyKey = serviceRequestPaymentDto.getIdempotencyKey();
         LOG.info("PBA payment started");
-        ObjectMapper objectMapper = new ObjectMapper();
+        val objectMapper = new ObjectMapper();
+        val requestHashCode = serviceRequestPaymentDto.hashCodeWithServiceRequestReference(serviceRequestReference);
+        val conflictResponse = new ResponseEntity("Payment already present for idempotency key with different payment details", HttpStatus.CONFLICT); // 409 if hashcode not matched
+
+        LOG.error("PBA payment business validations for serviceRequest");
+        PaymentFeeLink serviceRequest = serviceRequestDomainService.businessValidationForServiceRequests(serviceRequestDomainService.find(serviceRequestReference), serviceRequestPaymentDto);
+        LOG.error("PBA payment idempotency validation");
+        val isAnotherPaymentForThisServiceRequest = idempotencyService.findTheRecordByRequestHashcode(requestHashCode);
+        if (!isAnotherPaymentForThisServiceRequest.isEmpty() &&  IsAnyCreatedPaymentForThisServiceRequest(isAnotherPaymentForThisServiceRequest)) {
+            return conflictResponse;
+        }
+
         Function<String, Optional<IdempotencyKeys>> getIdempotencyKey = idempotencyKeyToCheck -> idempotencyService.findTheRecordByIdempotencyKey(idempotencyKeyToCheck);
 
         ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
@@ -152,8 +180,8 @@ public class ServiceRequestController {
 
             ServiceRequestPaymentBo responseBO;
             try {
-                if (!idempotencyKeys.getRequest_hashcode().equals(serviceRequestPaymentDto.hashCodeWithServiceRequestReference(serviceRequestReference))) {
-                    return new ResponseEntity<>("Payment already present for idempotency key with different payment details", HttpStatus.CONFLICT); // 409 if hashcode not matched
+                if (!idempotencyKeys.getRequestHashcode().equals(serviceRequestPaymentDto.hashCodeWithServiceRequestReference(serviceRequestReference))) {
+                    return conflictResponse;
                 }
                 if (idempotencyKeys.getResponseCode() >= 500) {
                     return new ResponseEntity<>(idempotencyKeys.getResponseBody(), HttpStatus.valueOf(idempotencyKeys.getResponseCode()));
@@ -173,8 +201,6 @@ public class ServiceRequestController {
             return responseEntity;
         }
 
-        //business validations for serviceRequest
-        PaymentFeeLink serviceRequest = serviceRequestDomainService.businessValidationForServiceRequests(serviceRequestDomainService.find(serviceRequestReference), serviceRequestPaymentDto);
 
         //PBA Payment
         ServiceRequestPaymentBo serviceRequestPaymentBo = null;
@@ -205,10 +231,14 @@ public class ServiceRequestController {
         return serviceRequestDomainService.createIdempotencyRecord(objectMapper, idempotencyKey, serviceRequestReference, responseJson, responseEntity, serviceRequestPaymentDto);
     }
 
+    private boolean IsAnyCreatedPaymentForThisServiceRequest(List<IdempotencyKeys> idempotencyKeys) {
+        return idempotencyKeys.stream().filter(a -> a.getResponseCode().equals(HttpStatus.CREATED.value())).findAny().isPresent();
+    }
+
     private TopicClient topicClient;
-    @ApiOperation(value = "Process Dead Letter Queue Messages", notes = "Receive the dead letter queue message from topic and re-process")
+    @Operation(summary = "Process Dead Letter Queue Messages", description = "Receive the dead letter queue message from topic and re-process")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Dead letter queue processed")
+        @ApiResponse(responseCode = "200", description = "Dead letter queue processed")
     })
     @PatchMapping(value = "/jobs/dead-letter-queue-process")
     @Transactional
@@ -219,26 +249,26 @@ public class ServiceRequestController {
     }
 
 
-    @ApiOperation(value = "Create online card payment", notes = "Create online card payment")
+    @Operation(summary = "Create online card payment", description = "Create online card payment")
     @ApiResponses(value = {
-        @ApiResponse(code = 201, message = "Payment created"),
-        @ApiResponse(code = 400, message = "Bad request. Payment creation failed"),
-        @ApiResponse(code = 403, message = "Unauthenticated request"),
-        @ApiResponse(code = 404, message = "Service request not found"),
-        @ApiResponse(code = 409, message = "Idempotency key already exist with different payment details"),
-        @ApiResponse(code = 412, message = "The order has already been paid"),
-        @ApiResponse(code = 422, message = "Invalid or missing attributes"),
-        @ApiResponse(code = 425, message = "Too many requests.\n There is already a payment request is in process for this service request."),
-        @ApiResponse(code = 452, message = "The servicerequest has already been paid.\nThe payment amount should be equal to service request balance"),
-        @ApiResponse(code = 500, message = "Internal server error"),
-        @ApiResponse(code = 504, message = "Unable to connect to online card payment provider, please try again later"),
+        @ApiResponse(responseCode = "201", description = "Payment created"),
+        @ApiResponse(responseCode = "400", description = "Bad request. Payment creation failed"),
+        @ApiResponse(responseCode = "403", description = "Unauthenticated request"),
+        @ApiResponse(responseCode = "404", description = "Service request not found"),
+        @ApiResponse(responseCode = "409", description = "Idempotency key already exist with different payment details"),
+        @ApiResponse(responseCode = "412", description = "The order has already been paid"),
+        @ApiResponse(responseCode = "422", description = "Invalid or missing attributes"),
+        @ApiResponse(responseCode = "425", description = "Too many requests.\n There is already a payment request is in process for this service request."),
+        @ApiResponse(responseCode = "452", description = "The servicerequest has already been paid.\nThe payment amount should be equal to service request balance"),
+        @ApiResponse(responseCode = "500", description = "Internal server error"),
+        @ApiResponse(responseCode = "504", description = "Unable to connect to online card payment provider, please try again later"),
     })
     @PostMapping(value = "/service-request/{service-request-reference}/card-payments")
     @ResponseBody
     @ResponseStatus(HttpStatus.CREATED)
     @Transactional
 
-    public ResponseEntity<OnlineCardPaymentResponse> createCardPayment(@ApiParam(value = "return-url", hidden = true) @RequestHeader(required = false) String returnURL,
+    public ResponseEntity<OnlineCardPaymentResponse> createCardPayment(@Parameter(name = "return-url", hidden = true) @RequestHeader(required = false) String returnURL,
                                                                        @RequestHeader(value = "service-callback-url", required = false) String serviceCallbackURL,
                                                                        @PathVariable("service-request-reference") String serviceRequestReference,
                                                                        @Valid @RequestBody OnlineCardPaymentRequest onlineCardPaymentRequest) throws CheckDigitException, JsonProcessingException {
@@ -246,10 +276,10 @@ public class ServiceRequestController {
         return new ResponseEntity<>(serviceRequestDomainService.create(onlineCardPaymentRequest, serviceRequestReference, returnURL, serviceCallbackURL), HttpStatus.CREATED);
     }
 
-    @ApiOperation(value = "Get card payment status by Internal Reference", notes = "Get payment status for supplied Internal Reference")
+    @Operation(summary = "Get card payment status by Internal Reference", description = "Get payment status for supplied Internal Reference")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Payment status retrieved"),
-        @ApiResponse(code = 404, message = "Internal reference not found"),
+        @ApiResponse(responseCode = "200", description = "Payment status retrieved"),
+        @ApiResponse(responseCode = "404", description = "Internal reference not found"),
     })
     @PaymentExternalAPI
     @GetMapping(value = "/card-payments/{internal-reference}/status")
