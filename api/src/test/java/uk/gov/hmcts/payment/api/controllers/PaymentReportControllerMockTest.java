@@ -21,7 +21,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -142,11 +141,9 @@ public class PaymentReportControllerMockTest {
 
         // when & then
         this.mockMvc.perform(post("/jobs/duplicate-payment-process")
-                .param("payment_method", "CARD")
                 .param("start_date", "2018-06-30")
-                .param("end_date", "2018-07-01")
-                .param("service_name", "Divorce"))
+                .param("end_date", "2018-07-01"))
             .andExpect(status().isOk());
-        verify(paymentsReportFacade).generateCsvAndSendEmail(FROM_DATE, TO_DATE, PaymentMethodType.CARD, "Divorce");
+        verify(paymentsReportFacade).generateDuplicatePaymentCsvAndSendEmail(FROM_DATE, TO_DATE);
     }
 }

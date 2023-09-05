@@ -14,6 +14,9 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Component
 public class PaymentsReportFacade {
 
+    private static final String REPORT_TYPE_ALL_PAYMENTS = "";
+    private static final String REPORT_TYPE_DUPLICATE_PAYMENTS = "";
+
     private static final Logger LOG = getLogger(PaymentsReportFacade.class);
 
     private final PaymentsReportService reportService;
@@ -31,9 +34,30 @@ public class PaymentsReportFacade {
         PaymentReportConfig reportConfig = configMap.get(PaymentReportType.from(paymentMethodType, serviceType));
         if (reportConfig.isEnabled()) {
             LOG.info("payments report flag is enabled for type :{} and service :{}. creating csv", paymentMethodType, serviceType);
-            reportService.generateCsvAndSendEmail(startDate, endDate, paymentMethodType, serviceType, reportConfig);
+            reportService.generateCsvAndSendEmail(
+                startDate,
+                endDate,
+                paymentMethodType,
+                serviceType,
+                reportConfig);
         } else {
             LOG.info("payments report flag is disabled for type :{} and service :{}. So, system will not send CSV email", paymentMethodType, serviceType);
         }
     }
+
+    public void generateDuplicatePaymentCsvAndSendEmail(Date startDate, Date endDate) {
+        LOG.info("Inside generateDuplicatePaymentCsvAndSendEmail with paymentMethodType: with startDate: {} and endDate: {}",
+            startDate, endDate);
+        PaymentReportConfig reportConfig = configMap.get(PaymentReportType.DUPLICATE_PAYMENT);
+        if (reportConfig.isEnabled()) {
+            LOG.info("duplicate payments report flag is enabled. creating csv");
+            reportService.generateDuplicatePaymentsCsvAndSendEmail(
+                startDate,
+                endDate,
+                reportConfig);
+        } else {
+            LOG.info("duplicate payments report flag is disabled. So, system will not send CSV email");
+        }
+    }
+
 }

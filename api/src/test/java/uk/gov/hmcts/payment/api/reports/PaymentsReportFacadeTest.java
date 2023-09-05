@@ -20,7 +20,6 @@ import uk.gov.hmcts.payment.api.reports.config.PbaFinremPaymentReportConfig;
 import uk.gov.hmcts.payment.api.reports.config.PbaFplPaymentReportConfig;
 import uk.gov.hmcts.payment.api.reports.config.PbaPrlPaymentReportConfig;
 import uk.gov.hmcts.payment.api.reports.config.PbaProbatePaymentReportConfig;
-import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 
 import java.util.Date;
 import java.util.Map;
