@@ -4,7 +4,7 @@ import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 
 import java.util.HashMap;
 
-public enum PaymentReportService {
+public enum PaymentReportType {
 
     CARD,
     DIGITAL_BAR,
@@ -17,7 +17,7 @@ public enum PaymentReportService {
     PBA_PRL,
     PBA_IAC;
 
-    public static PaymentReportService from(PaymentMethodType paymentMethodType, String serviceType) {
+    public static PaymentReportType from(PaymentMethodType paymentMethodType, String serviceType) {
         String value = "";
 
         String serviceTypeEnum = getServiceTypeEnum(serviceType);
@@ -31,7 +31,7 @@ public enum PaymentReportService {
         }
 
         try {
-            return PaymentReportService.valueOf(value);
+            return PaymentReportType.valueOf(value);
         } catch (IllegalArgumentException ex) {
             throw new UnsupportedOperationException(String.format("No config defined as the report type is not supported for " +
                 "paymentMethod %s and service %s ", paymentMethodType, serviceTypeEnum));
