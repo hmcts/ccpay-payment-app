@@ -68,6 +68,11 @@ services:
       - PBA_PRL_PAYMENTS_EMAIL_TO=pepito@grillo.com
       - PBA_PRL_PAYMENTS_EMAIL_MESSAGE=hi
       - PBA_PRL_PAYMENTS_EMAIL_SUBJECT=Docker Env Card Payments Reconciliation Report
+      - DUPLICATE_PAYMENTS_REPORT_SCHEDULER_ENABLED=true
+      - DUPLICATE_PAYMENTS_EMAIL_FROM=no-reply@reform.hmcts.net
+      - DUPLICATE_PAYMENTS_EMAIL_TO=pepito@grillo.com
+      - DUPLICATE_PAYMENTS_EMAIL_MESSAGE=hi
+      - DUPLICATE_PAYMENTS_EMAIL_SUBJECT=Docker Env Duplicate Payments Report
       - REFORM_ENVIRONMENT=aat
       - REFORM_SERVICE_NAME=payment-api
       - REFORM_TEAM=cc
