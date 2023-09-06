@@ -46,7 +46,7 @@ public class PaymentsReportFacade {
     }
 
     public void generateDuplicatePaymentCsvAndSendEmail(Date startDate, Date endDate) {
-        LOG.info("Inside generateDuplicatePaymentCsvAndSendEmail with paymentMethodType: with startDate: {} and endDate: {}",
+        LOG.info("Inside generateDuplicatePaymentCsvAndSendEmail with startDate: {} and endDate: {}",
             startDate, endDate);
         PaymentReportConfig reportConfig = configMap.get(PaymentReportType.DUPLICATE_PAYMENT);
         if (reportConfig.isEnabled()) {

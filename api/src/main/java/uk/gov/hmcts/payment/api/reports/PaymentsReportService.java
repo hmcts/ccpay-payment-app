@@ -16,8 +16,11 @@ import uk.gov.hmcts.payment.api.reports.config.PaymentReportConfig;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 
+import javax.persistence.Tuple;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -79,7 +82,12 @@ public class PaymentsReportService {
         LOG.info("Start of duplicate payments csv report");
 
         List<DuplicatePaymentDto> duplicatePaymentsCsvData = findDuplicatePaymentsBy(startDate, endDate);
-        generateDuplicatePaymentReportCsvAndSendEmail(duplicatePaymentsCsvData, reportConfig);
+
+        if (duplicatePaymentsCsvData.isEmpty()) {
+            LOG.info("No duplicate payments were found, skipping email");
+        } else {
+            generateDuplicatePaymentReportCsvAndSendEmail(duplicatePaymentsCsvData, reportConfig);
+        }
 
         LOG.info("End of duplicate payments csv report");
     }
@@ -104,7 +112,24 @@ public class PaymentsReportService {
 
     private List<DuplicatePaymentDto> findDuplicatePaymentsBy(Date startDate, Date endDate) {
         LOG.info("Inside findDuplicatePaymentsBy");
-        return paymentRepository.findDuplicatePaymentsByDate(startDate, endDate);
+
+        // Use of Tuple requires the data in the nativeQuery is returned the same order as presented in the DTO.
+        List<Tuple> duplicatePaymentsTuples = paymentRepository.findDuplicatePaymentsByDate(startDate, endDate);
+
+        List<DuplicatePaymentDto> duplicatePaymentsDto = duplicatePaymentsTuples.stream()
+            .map(tup -> new DuplicatePaymentDto(
+                tup.get(0, Date.class),
+                tup.get(1, String.class),
+                tup.get(2, String.class),
+                tup.get(3, BigDecimal.class),
+                tup.get(4, String.class),
+                tup.get(5, String.class),
+                tup.get(6, Integer.class),
+                tup.get(7, BigInteger.class)
+            ))
+            .collect(Collectors.toList());
+
+        return duplicatePaymentsDto;
     }
 
     private void generateCsvAndSendEmail(List<PaymentDto> payments, PaymentReportConfig reportConfig) {

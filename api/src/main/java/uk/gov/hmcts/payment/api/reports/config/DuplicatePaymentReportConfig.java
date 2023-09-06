@@ -3,6 +3,7 @@ package uk.gov.hmcts.payment.api.reports.config;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
@@ -30,20 +31,16 @@ public class DuplicatePaymentReportConfig implements PaymentReportConfig<Duplica
     private String message;
     @Value("${duplicate.payments.report.scheduler.enabled:false}")
     private boolean enabled;
-
     @Override
     public PaymentReportType getType() { return PaymentReportType.DUPLICATE_PAYMENT; }
-
     @Override
     public String getCsvHeader() {
         return DUPLICATE_PAYMENTS_HEADER;
     }
-
     @Override
     public String getCsvRecord(DuplicatePaymentDto duplicatePaymentDto) {
         return duplicatePaymentDto.toDuplicatePaymentCsv();
     }
-
     @Override
     public String getCsvFileNamePrefix() {
         return DUPLICATE_PAYMENTS_CSV_FILE_PREFIX;

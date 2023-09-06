@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import uk.gov.hmcts.payment.api.dto.DuplicatePaymentDto;
 import uk.gov.hmcts.payment.api.dto.Reference;
 
+import javax.persistence.Tuple;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
@@ -47,14 +48,14 @@ public interface Payment2Repository extends CrudRepository<Payment, Integer>, Jp
     int updatePaymentUpdatedDateTime(@Param("rollbackdate") LocalDateTime rollbackDate,
                                    @Param("ccdcasenumber") String ccdCaseNumber);
 
-    @Query(value = "SELECT max(date_updated),ccd_case_number,service_type,amount,payment_channel,payment_method,payment_link_id,COUNT(*) AS 'Count' "
+    @Query(value = "SELECT max(date_updated),ccd_case_number,service_type,amount,payment_channel,payment_method,payment_link_id,COUNT(*) as count "
         + "FROM Payment "
         + "GROUP BY ccd_case_number,service_type,amount,payment_channel,payment_method,payment_link_id,payment_status "
         + "HAVING COUNT(*) > 1 AND payment_status = 'success' AND "
         + "max(date_updated) >= :startDate AND max(date_updated) < :endDate "
         + "ORDER BY service_type, payment_method, COUNT(*) DESC",
         nativeQuery = true)
-    List<DuplicatePaymentDto> findDuplicatePaymentsByDate(@Param("startDate") Date startDate,
-                                                        @Param("endDate") Date endDate);
+    List<Tuple> findDuplicatePaymentsByDate(@Param("startDate") Date startDate,
+                                            @Param("endDate") Date endDate);
 
 }
