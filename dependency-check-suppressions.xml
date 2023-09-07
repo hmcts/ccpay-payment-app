@@ -241,6 +241,11 @@
         </notes>
         <cve>CVE-2023-34034</cve>
     </suppress>
-
+    <suppress>
+        <notes>
+            URL Redirection to Untrusted Site ('Open Redirect') vulnerability in FORM authentication feature Apache Tomcat.
+        </notes>
+        <cve>CVE-2023-41080</cve>
+    </suppress>
     <!-- Supression Group ends here -->
 </suppressions>
