@@ -247,5 +247,23 @@
         </notes>
         <cve>CVE-2023-41080</cve>
     </suppress>
+    <suppress>
+        <notes>
+            Jetty is a Java based web server and servlet engine. Versions 9.4.21 through 9.4.51, 10.0.15, and 11.0.15 are vulnerable to weak authentication.
+        </notes>
+        <cve>CVE-2023-41900</cve>
+    </suppress>
+    <suppress>
+        <notes>
+            Eclipse Jetty Canonical Repository is the canonical repository for the Jetty project. Users of the CgiServlet with a very specific command structure may have the wrong command executed.
+        </notes>
+        <cve>CVE-2023-36479</cve>
+    </suppress>
+    <suppress>
+        <notes>
+            Jetty is a Java based web server and servlet engine. Prior to versions 9.4.52, 10.0.16, 11.0.16, and 12.0.1
+        </notes>
+        <cve>CVE-2023-40167</cve>
+    </suppress>
     <!-- Supression Group ends here -->
 </suppressions>
