@@ -263,5 +263,27 @@
         </notes>
         <cve>CVE-2023-40167</cve>
     </suppress>
+
+    <suppress>
+        <notes>
+            Jetty is a Java based web server and servlet engine. Prior to versions 9.4.52, 10.0.16, 11.0.16, and 12.0.1, Jetty accepts the `+` character proceeding the content-length value in a HTTP/1 header field.
+        </notes>
+        <cve>CVE-2023-40167</cve>
+    </suppress>
+
+    <suppress>
+        <notes>
+            WireMock is a tool for mocking HTTP services.
+        </notes>
+        <cve>CVE-2023-41329</cve>
+    </suppress>
+
+    <suppress>
+        <notes>
+            WireMock is a tool for mocking HTTP services.
+        </notes>
+        <cve>CVE-2023-41327</cve>
+    </suppress>
+
     <!-- Supression Group ends here -->
 </suppressions>
