@@ -1,7 +1,23 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "schedule": "after 7am and before 11am every weekday",
   "extends": [
     "local>hmcts/.github:renovate-config",
     "local>hmcts/.github//renovate/automerge-all"
-  ]
+  ],
+  "labels": ["dependencies"],
+  "helmv3": {
+    "bumpVersion": "patch"
+  },
+  "regexManagers": [
+    {
+      "fileMatch": ["^Dockerfile$"],
+      "matchStrings": [
+        "datasource=(?<datasource>.*?) depName=(?<depName>.*?)( versioning=(?<versioning>.*?))?\\sARG .*?_VERSION=(?<currentValue>.*)\\s"
+      ]
+    }
+  ],
+  "platformAutomerge": true,
+  "automerge": true,
+  "automergeType": "pr"
 }

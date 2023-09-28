@@ -263,5 +263,12 @@
         </notes>
         <cve>CVE-2023-40167</cve>
     </suppress>
+
+    <suppress>
+        <notes>
+            A batch loader function in Spring for GraphQL versions 1.1.0 - 1.1.5 and 1.2.0 - 1.2.2 may be exposed
+        </notes>
+        <cve>CVE-2023-34047</cve>
+    </suppress>
     <!-- Supression Group ends here -->
 </suppressions>
