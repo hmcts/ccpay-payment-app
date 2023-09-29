@@ -49,6 +49,24 @@ public class PaymentValidator {
         LOG.info("Validation is successful");
     }
 
+    public void validateToFromDates(Optional<String> startDateString, Optional<String> endDateString) {
+        LOG.info("Inside validate");
+        ValidationErrorDTO dto = new ValidationErrorDTO();
+
+        Optional<LocalDateTime> startDate = parseAndValidateDate(startDateString, "start_date", dto);
+        Optional<LocalDateTime> endDate = parseAndValidateDate(endDateString, "end_date", dto);
+
+        if (startDate.isPresent() && endDate.isPresent() && startDate.get().isAfter(endDate.get())) {
+            dto.addFieldError("dates", "Start date cannot be greater than end date");
+        }
+
+        if (dto.hasErrors()) {
+            LOG.info("Validation error exists: {}", dto);
+            throw new ValidationErrorException("Error occurred in the payment params", dto);
+        }
+        LOG.info("Validation is successful");
+    }
+
     private Optional<LocalDateTime> parseAndValidateDate(Optional<String> dateTimeString, String fieldName, ValidationErrorDTO dto) {
         return dateTimeString.flatMap(s -> validateDate(s, dto, fieldName));
     }
