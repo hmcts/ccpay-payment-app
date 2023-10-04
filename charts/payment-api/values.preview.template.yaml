@@ -53,6 +53,8 @@ java:
           alias: pci-pal.antenna.probate.flow.id
         - name: pci-pal-antenna-divorce-flow-id
           alias: pci-pal.antenna.divorce.flow.id
+        - name: pci-pal-antenna-prl-flow-id
+          alias: pci-pal.antenna.prl.flow.id
         - name: pci-pal-antenna-strategic-flow-id
           alias: pci-pal.antenna.strategic.flow.id
         - name: spring-mail-password

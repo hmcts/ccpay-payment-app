@@ -47,7 +47,7 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
     private static final String SERVICE_TYPE_DIVORCE = "Divorce";
     private static final String SERVICE_TYPE_FINREM = "Financial Remedy";
     private static final String SERVICE_TYPE_IAC = "Immigration and Asylum Appeals";
-    private static final String SERVICE_TYPE_FPL = "Family Private Law";
+    private static final String SERVICE_TYPE_PRL = "Family Private Law";
 
     private final String callbackUrl;
     private final String url;
@@ -81,6 +81,8 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
     private String probateFlowId;
     @Value("${pci-pal.antenna.divorce.flow.id}")
     private String divorceFlowId;
+    @Value("${pci-pal.antenna.prl.flow.id}")
+    private String prlFlowId;
 
     @Autowired
     public PciPalPaymentService(@Value("${pci-pal.api.url}") String url,
@@ -132,9 +134,7 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
         flowIdHashMap.put(SERVICE_TYPE_PROBATE, probateFlowId);
         flowIdHashMap.put(SERVICE_TYPE_CMC, strategicFlowId);
         flowIdHashMap.put(SERVICE_TYPE_FINREM, strategicFlowId);
-        flowIdHashMap.put(SERVICE_TYPE_IAC, strategicFlowId);
-        flowIdHashMap.put(SERVICE_TYPE_FPL, strategicFlowId);
-
+        flowIdHashMap.put(SERVICE_TYPE_PRL, prlFlowId);
 
         if (flowIdHashMap.containsKey(serviceType)) {
             flowId = flowIdHashMap.get(serviceType);
