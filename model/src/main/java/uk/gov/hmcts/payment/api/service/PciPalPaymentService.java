@@ -97,7 +97,7 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
         return withIOExceptionHandling(() -> {
 
             String flowId = getFlowId(serviceType);
-            LOG.info("flowId: {}   launchURL: {}   viewIdURL: {}   callbackUrl: {}   returnURL: {} ", flowId, launchURL, viewIdURL, callbackUrl, returnURL);
+            LOG.info("flowId: {}   serviceType: {}    launchURL: {}   viewIdURL: {}   callbackUrl: {}   returnURL: {} ", flowId, serviceType, launchURL, viewIdURL, callbackUrl, returnURL);
             HttpPost httpPost = new HttpPost(launchURL);
             httpPost.addHeader(CONTENT_TYPE, APPLICATION_JSON.toString());
             httpPost.addHeader(authorizationHeader(telephonyProviderAuthorisationResponse.getAccessToken()));
