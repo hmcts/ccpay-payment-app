@@ -4,6 +4,8 @@ package uk.gov.hmcts.payment.functional;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.apache.commons.lang3.RandomUtils;
 import org.assertj.core.api.Java6Assertions;
+import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -11,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
@@ -20,17 +21,20 @@ import uk.gov.hmcts.payment.functional.config.LaunchDarklyFeature;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
 import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
 import uk.gov.hmcts.payment.functional.idam.IdamService;
+import uk.gov.hmcts.payment.functional.idam.models.User;
 import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
 import uk.gov.hmcts.payment.functional.service.PaymentTestService;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
-import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
 
 @RunWith(SpringIntegrationSerenityRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
@@ -51,11 +55,7 @@ public class PaymentTelephonyLiberataPerformanceTest {
     @Autowired
     private PaymentTestService paymentTestService;
 
-    @Autowired
-    private LaunchDarklyFeature featureToggler;
-
     private static String USER_TOKEN;
-    private static String USER_TOKEN_PAYMENT;
     private static String SERVICE_TOKEN;
     private static boolean TOKENS_INITIALIZED = false;
     private static final String PAYMENT_REFERENCE_REGEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
@@ -64,12 +64,15 @@ public class PaymentTelephonyLiberataPerformanceTest {
 
     private static final int CCD_EIGHT_DIGIT_UPPER = 99999999;
     private static final int CCD_EIGHT_DIGIT_LOWER = 10000000;
+    private static List<String> userEmails = new ArrayList<>();
+    private String paymentReference;
 
     @Before
     public void setUp() throws Exception {
         if (!TOKENS_INITIALIZED) {
-            USER_TOKEN = idamService.createUserWith(CMC_CITIZEN_GROUP, "payments").getAuthorisationToken();
-            USER_TOKEN_PAYMENT = idamService.createUserWith(CMC_CITIZEN_GROUP, "payments").getAuthorisationToken();
+            User user = idamService.createUserWith("payments");
+            USER_TOKEN = user.getAuthorisationToken();
+            userEmails.add(user.getEmail());
             SERVICE_TOKEN = s2sTokenService.getS2sToken(testProps.s2sServiceName, testProps.s2sServiceSecret);
             TOKENS_INITIALIZED = true;
         }
@@ -109,7 +112,7 @@ public class PaymentTelephonyLiberataPerformanceTest {
         PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(feeDto)).build();
 
-        AtomicReference<String> paymentReference = new AtomicReference<>();
+        AtomicReference<String> paymentRef = new AtomicReference<>();
 
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
@@ -124,14 +127,15 @@ public class PaymentTelephonyLiberataPerformanceTest {
                     .returnUrl("https://www.moneyclaims.service.hmcts.net")
                     .when().createTelephonyPayment(telephonyPaymentRequest, paymentGroupReference)
                     .then().gotCreated(TelephonyCardPaymentsResponse.class, telephonyCardPaymentsResponse -> {
+                        paymentReference = telephonyCardPaymentsResponse.getPaymentReference();
                         assertThat(telephonyCardPaymentsResponse).isNotNull();
                         assertThat(telephonyCardPaymentsResponse.getPaymentReference().matches(PAYMENT_REFERENCE_REGEX)).isTrue();
                         assertThat(telephonyCardPaymentsResponse.getStatus()).isEqualTo("Initiated");
-                        paymentReference.set(telephonyCardPaymentsResponse.getPaymentReference());
+                        paymentRef.set(telephonyCardPaymentsResponse.getPaymentReference());
                     });
                 // pci-pal callback
                 TelephonyCallbackDto callbackDto = TelephonyCallbackDto.telephonyCallbackWith()
-                    .orderReference(paymentReference.get())
+                    .orderReference(paymentRef.get())
                     .orderAmount("550")
                     .transactionResult("SUCCESS")
                     .build();
@@ -178,5 +182,21 @@ public class PaymentTelephonyLiberataPerformanceTest {
                 Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getFees().get(0).getJurisdiction2()).isEqualTo("family court");
 
             });
+    }
+
+    @After
+    public void deletePayment() {
+        if (paymentReference != null) {
+            // delete payment record
+            paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentReference).then().statusCode(NO_CONTENT.value());
+        }
+    }
+
+    @AfterClass
+    public static void tearDown() {
+        if (!userEmails.isEmpty()) {
+            // delete idam test user
+            userEmails.forEach(IdamService::deleteUser);
+        }
     }
 }

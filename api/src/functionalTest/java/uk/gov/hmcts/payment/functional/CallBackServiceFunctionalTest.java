@@ -1,11 +1,9 @@
 package uk.gov.hmcts.payment.functional;
 
-import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import net.serenitybdd.rest.SerenityRest;
 import org.awaitility.Duration;
+import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.test.context.ContextConfiguration;
@@ -14,12 +12,15 @@ import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
 import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
 import uk.gov.hmcts.payment.functional.fixture.PaymentFixture;
 import uk.gov.hmcts.payment.functional.idam.IdamService;
+import uk.gov.hmcts.payment.functional.idam.models.User;
 import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertEquals;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
-import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
 
 //@RunWith(SpringIntegrationSerenityRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
@@ -46,10 +47,14 @@ public class CallBackServiceFunctionalTest {
     private static String SERVICE_TOKEN;
     private static boolean TOKENS_INITIALIZED = false;
 
+    private static List<String> userEmails = new ArrayList<>();
+
     @Before
     public void setUp() {
         if (!TOKENS_INITIALIZED) {
-            USER_TOKEN = idamService.createUserWith(CMC_CITIZEN_GROUP, "citizen").getAuthorisationToken();
+            User user = idamService.createUserWith("citizen");
+            USER_TOKEN = user.getAuthorisationToken();
+            userEmails.add(user.getEmail());
             SERVICE_TOKEN = s2sTokenService.getS2sToken(testProps.s2sServiceName, testProps.s2sServiceSecret);
             TOKENS_INITIALIZED = true;
         }
@@ -110,5 +115,14 @@ public class CallBackServiceFunctionalTest {
             .pollInterval(Duration.TWO_HUNDRED_MILLISECONDS)
             .atMost(Duration.TWO_SECONDS)
             .until(() -> SerenityRest.given().get(testProps.mockCallBackUrl + "/" + reference[0]).getStatusCode() == 200);
+    }
+
+    @AfterClass
+    public static void tearDown()
+    {
+        if (!userEmails.isEmpty()) {
+            // delete idam test user
+            userEmails.forEach(IdamService::deleteUser);
+        }
     }
 }
