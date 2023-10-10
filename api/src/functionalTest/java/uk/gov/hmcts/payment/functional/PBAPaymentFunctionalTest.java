@@ -73,7 +73,7 @@ public class PBAPaymentFunctionalTest {
             USER_TOKEN = user1.getAuthorisationToken();
             userEmails.add(user1.getEmail());
             User user2 = idamService.createUserWith("payments");
-            USER_TOKEN = user2.getAuthorisationToken();
+            USER_TOKEN_PAYMENT = user2.getAuthorisationToken();
             userEmails.add(user2.getEmail());
             SERVICE_TOKEN = s2sTokenService.getS2sToken(testProps.s2sServiceName, testProps.s2sServiceSecret);
             TOKENS_INITIALIZED = true;
