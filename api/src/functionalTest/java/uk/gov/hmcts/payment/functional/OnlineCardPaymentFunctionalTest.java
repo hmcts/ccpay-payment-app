@@ -2,6 +2,8 @@ package uk.gov.hmcts.payment.functional;
 
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.apache.commons.lang3.RandomUtils;
+import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -22,6 +24,7 @@ import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
 import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
 import uk.gov.hmcts.payment.functional.fixture.PaymentFixture;
 import uk.gov.hmcts.payment.functional.idam.IdamService;
+import uk.gov.hmcts.payment.functional.idam.models.User;
 import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
 import uk.gov.hmcts.payment.functional.service.PaymentTestService;
 
@@ -31,7 +34,7 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 @RunWith(SpringIntegrationSerenityRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
@@ -79,12 +82,18 @@ public class OnlineCardPaymentFunctionalTest {
 
     private static final int CCD_EIGHT_DIGIT_UPPER = 99999999;
     private static final int CCD_EIGHT_DIGIT_LOWER = 10000000;
+    private static List<String> userEmails = new ArrayList<>();
+    private String paymentReference;
 
     @Before
     public void setUp() throws Exception {
         if (!TOKENS_INITIALIZED) {
-            USER_TOKEN = idamService.createUserWith(CMC_CITIZEN_GROUP, "citizen").getAuthorisationToken();
-            USER_TOKEN_PAYMENT = idamService.createUserWith(CMC_CITIZEN_GROUP, "payments").getAuthorisationToken();
+            User user1 = idamService.createUserWith("citizen");
+            USER_TOKEN = user1.getAuthorisationToken();
+            userEmails.add(user1.getEmail());
+            User user2 = idamService.createUserWith("payments");
+            USER_TOKEN_PAYMENT = user2.getAuthorisationToken();
+            userEmails.add(user2.getEmail());
             SERVICE_TOKEN = s2sTokenService.getS2sToken(testProps.s2sServiceName, testProps.s2sServiceSecret);
             TOKENS_INITIALIZED = true;
         }
@@ -97,9 +106,10 @@ public class OnlineCardPaymentFunctionalTest {
             .returnUrl("https://www.moneyclaims.service.gov.uk")
             .when().createCardPayment(getCardPaymentRequest())
             .then().created(paymentDto -> {
-            assertNotNull(paymentDto.getReference());
-            assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
-        });
+                paymentReference = paymentDto.getReference();
+                assertNotNull(paymentDto.getReference());
+                assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
+            });
 
     }
 
@@ -110,9 +120,10 @@ public class OnlineCardPaymentFunctionalTest {
             .returnUrl("https://www.moneyclaims.service.gov.uk")
             .when().createCardPayment(PaymentFixture.cardPaymentRequestIAC("215.55", "IAC"))
             .then().created(paymentDto -> {
-            assertNotNull(paymentDto.getReference());
-            assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
-        });
+                paymentReference = paymentDto.getReference();
+                assertNotNull(paymentDto.getReference());
+                assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
+            });
 
     }
 
@@ -124,9 +135,9 @@ public class OnlineCardPaymentFunctionalTest {
             .returnUrl("https://www.moneyclaims.service.gov.uk")
             .when().createCardPayment(PaymentFixture.cardPaymentRequestAdoption("215.55", "ADOPTION"))
             .then().created(paymentDto -> {
-            assertNotNull(paymentDto.getReference());
-            assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
-        });
+                assertNotNull(paymentDto.getReference());
+                assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
+            });
 
     }
 
@@ -137,9 +148,10 @@ public class OnlineCardPaymentFunctionalTest {
             .returnUrl("https://www.moneyclaims.service.gov.uk")
             .when().createCardPayment(PaymentFixture.cardPaymentRequestPRL("215.55", "PRL"))
             .then().created(paymentDto -> {
-            assertNotNull(paymentDto.getReference());
-            assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
-        });
+                paymentReference = paymentDto.getReference();
+                assertNotNull(paymentDto.getReference());
+                assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
+            });
 
     }
 
@@ -158,9 +170,10 @@ public class OnlineCardPaymentFunctionalTest {
             .returnUrl("https://www.moneyclaims.service.gov.uk")
             .when().createCardPayment(cardPaymentRequest)
             .then().created(paymentDto -> {
-            assertNotNull(paymentDto.getReference());
-            assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
-        });
+                paymentReference = paymentDto.getReference();
+                assertNotNull(paymentDto.getReference());
+                assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
+            });
     }
 
 
@@ -173,11 +186,11 @@ public class OnlineCardPaymentFunctionalTest {
             .returnUrl("https://www.moneyclaims.service.gov.uk")
             .when().createCardPayment(getCardPaymentRequest())
             .then().created(savedPayment -> {
-            reference[0] = savedPayment.getReference();
-
-            assertNotNull(savedPayment.getReference());
-            assertEquals("payment status is properly set", "Initiated", savedPayment.getStatus());
-        });
+                reference[0] = savedPayment.getReference();
+                paymentReference = savedPayment.getReference();
+                assertNotNull(savedPayment.getReference());
+                assertEquals("payment status is properly set", "Initiated", savedPayment.getStatus());
+            });
 
 
         // retrieve card payment
@@ -208,11 +221,11 @@ public class OnlineCardPaymentFunctionalTest {
             .returnUrl("https://www.moneyclaims.service.gov.uk")
             .when().createCardPayment(PaymentFixture.cardPaymentRequestIAC("215.55", "IAC"))
             .then().created(savedPayment -> {
-            reference[0] = savedPayment.getReference();
-
-            assertNotNull(savedPayment.getReference());
-            assertEquals("payment status is properly set", "Initiated", savedPayment.getStatus());
-        });
+                reference[0] = savedPayment.getReference();
+                paymentReference = savedPayment.getReference();
+                assertNotNull(savedPayment.getReference());
+                assertEquals("payment status is properly set", "Initiated", savedPayment.getStatus());
+            });
 
 
         // retrieve card payment
@@ -243,11 +256,11 @@ public class OnlineCardPaymentFunctionalTest {
             .returnUrl("https://www.moneyclaims.service.gov.uk")
             .when().createCardPayment(PaymentFixture.cardPaymentRequestAdoption("215.55", "ADOPTION"))
             .then().created(savedPayment -> {
-            reference[0] = savedPayment.getReference();
-
-            assertNotNull(savedPayment.getReference());
-            assertEquals("payment status is properly set", "Initiated", savedPayment.getStatus());
-        });
+                reference[0] = savedPayment.getReference();
+                paymentReference = savedPayment.getReference();
+                assertNotNull(savedPayment.getReference());
+                assertEquals("payment status is properly set", "Initiated", savedPayment.getStatus());
+            });
 
 
         // retrieve card payment
@@ -278,11 +291,11 @@ public class OnlineCardPaymentFunctionalTest {
             .returnUrl("https://www.moneyclaims.service.gov.uk")
             .when().createCardPayment(PaymentFixture.cardPaymentRequestPRL("215.55", "PRL"))
             .then().created(savedPayment -> {
-            reference[0] = savedPayment.getReference();
-
-            assertNotNull(savedPayment.getReference());
-            assertEquals("payment status is properly set", "Initiated", savedPayment.getStatus());
-        });
+                reference[0] = savedPayment.getReference();
+                paymentReference = savedPayment.getReference();
+                assertNotNull(savedPayment.getReference());
+                assertEquals("payment status is properly set", "Initiated", savedPayment.getStatus());
+            });
 
 
         // retrieve card payment
@@ -314,11 +327,11 @@ public class OnlineCardPaymentFunctionalTest {
             .returnUrl("https://www.moneyclaims.service.gov.uk")
             .when().createCardPayment(getCardPaymentRequest())
             .then().created(savedPayment -> {
-            reference[0] = savedPayment.getReference();
-
-            assertNotNull(savedPayment.getReference());
-            assertEquals("payment status is properly set", "Initiated", savedPayment.getStatus());
-        });
+                reference[0] = savedPayment.getReference();
+                paymentReference = savedPayment.getReference();
+                assertNotNull(savedPayment.getReference());
+                assertEquals("payment status is properly set", "Initiated", savedPayment.getStatus());
+            });
 
         // retrieve govpay reference for the payment
         PaymentDto paymentDto = dsl.given().userToken(USER_TOKEN)
@@ -351,7 +364,8 @@ public class OnlineCardPaymentFunctionalTest {
     public void retrieveCMCCardPaymentTestShouldReturnAutoApportionedFees() {
         final String[] reference = new String[1];
 
-        String ccdCaseNumber = "11115656" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);;
+        String ccdCaseNumber = "11115656" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
+        ;
         // create card payment
         List<FeeDto> fees = new ArrayList<>();
         fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
@@ -377,11 +391,11 @@ public class OnlineCardPaymentFunctionalTest {
             .returnUrl("https://www.moneyclaims.service.gov.uk")
             .when().createCardPayment(cardPaymentRequest)
             .then().created(savedPayment -> {
-            reference[0] = savedPayment.getReference();
-
-            assertNotNull(savedPayment.getReference());
-            assertEquals("payment status is properly set", "Initiated", savedPayment.getStatus());
-        });
+                reference[0] = savedPayment.getReference();
+                paymentReference = savedPayment.getReference();
+                assertNotNull(savedPayment.getReference());
+                assertEquals("payment status is properly set", "Initiated", savedPayment.getStatus());
+            });
 
 
         // retrieve card payment
@@ -402,30 +416,30 @@ public class OnlineCardPaymentFunctionalTest {
             .s2sToken(SERVICE_TOKEN)
             .when().getPaymentGroups(paymentDto.getCcdCaseNumber())
             .then().getPaymentGroups((paymentGroupsResponse -> {
-            paymentGroupsResponse.getPaymentGroups().stream()
-                .filter(paymentGroupDto -> paymentGroupDto.getPayments().get(0).getReference().equalsIgnoreCase(paymentDto.getReference()))
-                .forEach(paymentGroupDto -> {
+                paymentGroupsResponse.getPaymentGroups().stream()
+                    .filter(paymentGroupDto -> paymentGroupDto.getPayments().get(0).getReference().equalsIgnoreCase(paymentDto.getReference()))
+                    .forEach(paymentGroupDto -> {
 
-                    boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
-                    if(apportionFeature) {
-                        paymentGroupDto.getFees().stream()
-                            .filter(fee -> fee.getCode().equalsIgnoreCase("FEE0271"))
-                            .forEach(fee -> {
-                                assertEquals(BigDecimal.valueOf(20).intValue(), fee.getAmountDue().intValue());
-                            });
-                        paymentGroupDto.getFees().stream()
-                            .filter(fee -> fee.getCode().equalsIgnoreCase("FEE0272"))
-                            .forEach(fee -> {
-                                assertEquals(BigDecimal.valueOf(40).intValue(), fee.getAmountDue().intValue());
-                            });
-                        paymentGroupDto.getFees().stream()
-                            .filter(fee -> fee.getCode().equalsIgnoreCase("FEE0273"))
-                            .forEach(fee -> {
-                                assertEquals(BigDecimal.valueOf(60).intValue(), fee.getAmountDue().intValue());
-                            });
-                    }
-                });
-        }));
+                        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature", false);
+                        if (apportionFeature) {
+                            paymentGroupDto.getFees().stream()
+                                .filter(fee -> fee.getCode().equalsIgnoreCase("FEE0271"))
+                                .forEach(fee -> {
+                                    assertEquals(BigDecimal.valueOf(20).intValue(), fee.getAmountDue().intValue());
+                                });
+                            paymentGroupDto.getFees().stream()
+                                .filter(fee -> fee.getCode().equalsIgnoreCase("FEE0272"))
+                                .forEach(fee -> {
+                                    assertEquals(BigDecimal.valueOf(40).intValue(), fee.getAmountDue().intValue());
+                                });
+                            paymentGroupDto.getFees().stream()
+                                .filter(fee -> fee.getCode().equalsIgnoreCase("FEE0273"))
+                                .forEach(fee -> {
+                                    assertEquals(BigDecimal.valueOf(60).intValue(), fee.getAmountDue().intValue());
+                                });
+                        }
+                    });
+            }));
     }
 
     // TO BE IMPLEMENTED IN THE CARD PAYMENT SCOPE
@@ -461,4 +475,19 @@ public class OnlineCardPaymentFunctionalTest {
         return PaymentFixture.aCardPaymentRequest("20.99");
     }
 
+    @After
+    public void deletePayment() {
+        if (paymentReference != null) {
+            // delete payment record
+            paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentReference).then().statusCode(NO_CONTENT.value());
+        }
+    }
+
+    @AfterClass
+    public static void tearDown() {
+        if (!userEmails.isEmpty()) {
+            // delete idam test user
+            userEmails.forEach(IdamService::deleteUser);
+        }
+    }
 }

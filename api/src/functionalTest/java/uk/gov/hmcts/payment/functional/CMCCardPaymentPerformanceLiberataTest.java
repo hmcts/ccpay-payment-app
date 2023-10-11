@@ -3,6 +3,8 @@ package uk.gov.hmcts.payment.functional;
 import io.restassured.response.Response;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDateTime;
+import org.junit.After;
+import org.junit.AfterClass;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,17 +17,18 @@ import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
 import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
 import uk.gov.hmcts.payment.functional.fixture.PaymentFixture;
 import uk.gov.hmcts.payment.functional.idam.IdamService;
+import uk.gov.hmcts.payment.functional.idam.models.User;
 import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
 import uk.gov.hmcts.payment.functional.service.PaymentTestService;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.OK;
-import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
+import static org.springframework.http.HttpStatus.*;
 
 /* These are data generation tooling tests when PBA went live, no need to run in the pipeline  */
 @ContextConfiguration(classes = TestContextConfiguration.class)
@@ -56,19 +59,20 @@ public class CMCCardPaymentPerformanceLiberataTest {
     private String govpayCmcKey;
 
     private static String USER_TOKEN;
-    private static String USER_TOKEN_PAYMENT;
     private static String SERVICE_TOKEN;
     private static boolean TOKENS_INITIALIZED = false;
 
     private static final Logger LOG = LoggerFactory.getLogger(CMCCardPaymentPerformanceLiberataTest.class);
 
     private static DateTimeZone zoneUTC = DateTimeZone.UTC;
+    private static List<String> userEmails = new ArrayList<>();
 
     // @Before
     public void setUp() throws Exception {
         if (!TOKENS_INITIALIZED) {
-            USER_TOKEN = idamService.createUserWith(CMC_CITIZEN_GROUP, "citizen").getAuthorisationToken();
-            USER_TOKEN_PAYMENT = idamService.createUserWith(CMC_CITIZEN_GROUP, "payments").getAuthorisationToken();
+            User user = idamService.createUserWith("citizen");
+            USER_TOKEN = user.getAuthorisationToken();
+            userEmails.add(user.getEmail());
             SERVICE_TOKEN = s2sTokenService.getS2sToken(testProps.s2sServiceName, testProps.s2sServiceSecret);
             TOKENS_INITIALIZED = true;
         }
@@ -522,6 +526,15 @@ public class CMCCardPaymentPerformanceLiberataTest {
         Response liberataResponseTimeApproach1 = paymentTestService.getLiberatePullPaymentsTimeByStartAndEndDateApproach1(SERVICE_TOKEN, startDate,endDate);
         assertThat(liberataResponseTimeApproach1.statusCode()).isEqualTo(200);
         LOG.info("Response time in milliseconds approach 1 api for 30 card payment is : {}",liberataResponseTimeApproach1.getTime());
+    }
+
+    @AfterClass
+    public static void tearDown()
+    {
+        if (!userEmails.isEmpty()) {
+            // delete idam test user
+            userEmails.forEach(IdamService::deleteUser);
+        }
     }
 
 

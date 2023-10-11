@@ -17,7 +17,6 @@ import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CASE_WORKER_GROUP;
 import static uk.gov.hmcts.payment.functional.service.RefDataTestService.approveOrganisation;
 import static uk.gov.hmcts.payment.functional.service.RefDataTestService.postOrganisation;
 import static uk.gov.hmcts.payment.functional.service.RefDataTestService.readFileContents;
@@ -77,7 +76,7 @@ public class PBAAccountsFunctionalTest {
 
     private final void performPbaAccountsVerification(final String role) throws Exception {
 
-        final ValidUser user = idamService.createUserWithRefDataEmailFormat(CMC_CASE_WORKER_GROUP,
+        final ValidUser user = idamService.createUserWithRefDataEmailFormat(
             role);
         final String userPUIFinanceManagerToken = user.getAuthorisationToken();
 
@@ -100,7 +99,7 @@ public class PBAAccountsFunctionalTest {
         final String organisationIdentifier = response.jsonPath().getString("organisationIdentifier");
 
         final String prdAdminToken =
-            idamService.createUserWithCreateScope(CMC_CASE_WORKER_GROUP, "prd-admin").getAuthorisationToken();
+            idamService.createUserWithCreateScope("prd-admin").getAuthorisationToken();
         Response updatedResponse =
             approveOrganisation(prdAdminToken, SERVICE_TOKEN_PAYMENT_APP, testProps.getRefDataApiUrl(), fileContents,
                 organisationIdentifier);
@@ -126,8 +125,8 @@ public class PBAAccountsFunctionalTest {
     }
 
     private final void performOrganisationCreationWithNoAccounts(final String role,final String fileName) throws Exception {
-        final ValidUser user = idamService.createUserWithSearchScopeForRefData(CMC_CASE_WORKER_GROUP,
-            role);
+        final ValidUser user = idamService.createUserWithSearchScopeForRefData(
+                role);
         final String userPUIFinanceManagerToken = user.getAuthorisationToken();
         final String fileContentsTemplate = readFileContents(INPUT_FILE_PATH + "/" + fileName);
         final String fileContents = String.format(fileContentsTemplate,
@@ -138,7 +137,7 @@ public class PBAAccountsFunctionalTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
         final String organisationIdentifier = response.jsonPath().getString("organisationIdentifier");
         final String prdAdminToken =
-            idamService.createUserWithCreateScope(CMC_CASE_WORKER_GROUP, "prd-admin").getAuthorisationToken();
+            idamService.createUserWithCreateScope("prd-admin").getAuthorisationToken();
         Response updatedResponse =
             approveOrganisation(prdAdminToken, SERVICE_TOKEN_PAYMENT_APP, testProps.getRefDataApiUrl(), fileContents,
                 organisationIdentifier);

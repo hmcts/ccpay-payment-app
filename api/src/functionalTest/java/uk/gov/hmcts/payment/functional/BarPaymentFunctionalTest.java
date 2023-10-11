@@ -5,8 +5,9 @@ import org.assertj.core.api.Java6Assertions;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDateTime;
+import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -22,16 +23,20 @@ import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
 import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
 import uk.gov.hmcts.payment.functional.idam.IdamService;
+import uk.gov.hmcts.payment.functional.idam.models.User;
 import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
+import uk.gov.hmcts.payment.functional.service.PaymentTestService;
 
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertNotNull;
-import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 @RunWith(SpringIntegrationSerenityRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
@@ -51,14 +56,20 @@ public class BarPaymentFunctionalTest {
     private IdamService idamService;
     @Autowired
     private S2sTokenService s2sTokenService;
+    @Autowired
+    private PaymentTestService paymentTestService;
+    private static List<String> userEmails = new ArrayList<>();
+    private String paymentReference;
 
     @Before
     public void setUp() throws Exception {
         if (!TOKENS_INITIALIZED) {
-            USER_TOKEN = idamService.createUserWith(CMC_CITIZEN_GROUP, "citizen").getAuthorisationToken();
+            User user = idamService.createUserWith("citizen");
+            USER_TOKEN = user.getAuthorisationToken();
+            userEmails.add(user.getEmail());
             SERVICE_TOKEN = s2sTokenService.getS2sToken(testProps.s2sServiceName, testProps.s2sServiceSecret);
             TOKENS_INITIALIZED = true;
-             }
+        }
     }
 
     @Test
@@ -72,6 +83,7 @@ public class BarPaymentFunctionalTest {
             .then().created(paymentDto -> {
                 assertNotNull(paymentDto.getReference());
 
+                paymentReference = paymentDto.getReference();
                 // search payment and assert the result
 
                 try {
@@ -152,6 +164,7 @@ public class BarPaymentFunctionalTest {
             .then().created(paymentDto -> {
                 LOG.info(paymentDto.getReference());
                 assertNotNull(paymentDto.getReference());
+                paymentReference = paymentDto.getReference();
 
                 try {
                     Thread.sleep(5000);
@@ -174,7 +187,7 @@ public class BarPaymentFunctionalTest {
                 //Comparing the response size of old and new approach
                 Java6Assertions.assertThat(liberataResponseOld.getPayments().size()).
                     isEqualTo(liberataResponseApproach1.getPayments().size());
-                LOG.info(""+liberataResponseApproach1.getPayments().size());
+                LOG.info("" + liberataResponseApproach1.getPayments().size());
                 //Comparing the response of old and new approach
                 Boolean compareResult = new HashSet<>(liberataResponseOld.getPayments()).equals(new HashSet<>(liberataResponseApproach1.getPayments()));
                 Java6Assertions.assertThat(compareResult).isEqualTo(true);
@@ -255,7 +268,8 @@ public class BarPaymentFunctionalTest {
             .s2sToken(SERVICE_TOKEN)
             .when().createTelephonyPayment(getPaymentRecordRequestForCheque())
             .then().created(paymentDto -> {
-            assertNotNull(paymentDto.getReference());
+                assertNotNull(paymentDto.getReference());
+                paymentReference = paymentDto.getReference();
 
                 try {
                     Thread.sleep(10000);
@@ -301,7 +315,7 @@ public class BarPaymentFunctionalTest {
                         assertThat(feeDto.getJurisdiction2()).isEqualTo("family court");
                         assertThat(feeDto.getVolume()).isEqualTo(1);
                     }));
-        });
+            });
 
     }
 
@@ -339,7 +353,8 @@ public class BarPaymentFunctionalTest {
             .s2sToken(SERVICE_TOKEN)
             .when().createTelephonyPayment(getPaymentRecordRequestForCard())
             .then().created(paymentDto -> {
-            assertNotNull(paymentDto.getReference());
+                assertNotNull(paymentDto.getReference());
+                paymentReference = paymentDto.getReference();
 
                 try {
                     Thread.sleep(5000);
@@ -384,7 +399,7 @@ public class BarPaymentFunctionalTest {
                         assertThat(feeDto.getJurisdiction2()).isEqualTo("family court");
                         assertThat(feeDto.getVolume()).isEqualTo(1);
                     }));
-        });
+            });
 
     }
 
@@ -410,5 +425,21 @@ public class BarPaymentFunctionalTest {
                 )
             )
             .build();
+    }
+
+    @After
+    public void deletePayment() {
+        if (paymentReference != null) {
+            // delete payment record
+            paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentReference).then().statusCode(NO_CONTENT.value());
+        }
+    }
+
+    @AfterClass
+    public static void tearDown() {
+        if (!userEmails.isEmpty()) {
+            // delete idam test user
+            userEmails.forEach(IdamService::deleteUser);
+        }
     }
 }

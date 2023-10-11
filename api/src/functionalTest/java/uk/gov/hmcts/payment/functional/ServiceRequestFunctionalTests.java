@@ -7,9 +7,7 @@ import io.restassured.response.Response;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.apache.commons.lang3.RandomUtils;
 import org.joda.time.DateTime;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -25,10 +23,12 @@ import uk.gov.hmcts.payment.api.model.PaymentChannel;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
+import uk.gov.hmcts.payment.functional.config.ValidUser;
 import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
 import uk.gov.hmcts.payment.functional.fixture.PaymentFixture;
 import uk.gov.hmcts.payment.functional.fixture.ServiceRequestFixture;
 import uk.gov.hmcts.payment.functional.idam.IdamService;
+import uk.gov.hmcts.payment.functional.idam.models.User;
 import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
 import uk.gov.hmcts.payment.functional.service.CaseTestService;
 import uk.gov.hmcts.payment.functional.service.PaymentTestService;
@@ -39,10 +39,7 @@ import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 
@@ -51,8 +48,6 @@ import static org.assertj.core.api.Assertions.fail;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
-import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CASE_WORKER_GROUP;
-import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
 
 @RunWith(SpringIntegrationSerenityRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
@@ -80,6 +75,9 @@ public class ServiceRequestFunctionalTests {
     @Autowired
     private PaymentsTestDsl dsl;
 
+    private static List<String> userEmails = new ArrayList<>();
+    private String paymentReference;
+    private String paymentFailureReference;
     private static String USER_TOKEN_PAYMENT;
     private static String SERVICE_TOKEN;
     private static String USER_TOKEN_CMC_CITIZEN;
@@ -105,25 +103,34 @@ public class ServiceRequestFunctionalTests {
     @Before
     public void setUp() throws Exception {
         if (!TOKENS_INITIALIZED) {
-
-            USER_TOKEN_PAYMENT = idamService.createUserWith(CMC_CITIZEN_GROUP, "payments").getAuthorisationToken();
-            USER_TOKEN_CMC_CITIZEN = idamService.createUserWith(CMC_CITIZEN_GROUP, "citizen").getAuthorisationToken();
-
-            USER_TOKEN_PUI_USER_MANAGER = idamService.createUserWithRefDataEmailFormat(CMC_CASE_WORKER_GROUP,
-                "pui-user-manager").getAuthorisationToken();
-            USER_TOKEN_PUI_ORGANISATION_MANAGER = idamService.createUserWithRefDataEmailFormat(CMC_CASE_WORKER_GROUP,
-                "pui-organisation-manager").getAuthorisationToken();
-            USER_TOKEN_PUI_FINANCE_MANAGER = idamService.createUserWithRefDataEmailFormat(CMC_CASE_WORKER_GROUP,
-                "pui-finance-manager").getAuthorisationToken();
-            USER_TOKEN_PUI_CASE_MANAGER = idamService.createUserWithRefDataEmailFormat(CMC_CASE_WORKER_GROUP,
-                "pui-case-manager").getAuthorisationToken();
-            USER_TOKEN_CMC_SOLICITOR =
-                idamService.createUserWith(CMC_CASE_WORKER_GROUP, "caseworker-cmc-solicitor").getAuthorisationToken();
+            User user1 = idamService.createUserWith("payments");
+            USER_TOKEN_PAYMENT = user1.getAuthorisationToken();
+            userEmails.add(user1.getEmail());
+            User user2 = idamService.createUserWith("citizen");
+            USER_TOKEN_CMC_CITIZEN = user2.getAuthorisationToken();
+            userEmails.add(user2.getEmail());
+            ValidUser user3 = idamService.createUserWithRefDataEmailFormat("pui-user-manager");
+            USER_TOKEN_PUI_USER_MANAGER = user3.getAuthorisationToken();
+            userEmails.add(user3.getEmail());
+            ValidUser user4 = idamService.createUserWithRefDataEmailFormat("pui-organisation-manager");
+            USER_TOKEN_PUI_ORGANISATION_MANAGER = user4.getAuthorisationToken();
+            userEmails.add(user4.getEmail());
+            ValidUser user5 = idamService.createUserWithRefDataEmailFormat("pui-finance-manager");
+            USER_TOKEN_PUI_FINANCE_MANAGER = user5.getAuthorisationToken();
+            userEmails.add(user5.getEmail());
+            ValidUser user6 = idamService.createUserWithRefDataEmailFormat("pui-case-manager");
+            USER_TOKEN_PUI_CASE_MANAGER = user6.getAuthorisationToken();
+            userEmails.add(user6.getEmail());
+            User user7 = idamService.createUserWith("caseworker-cmc-solicitor");
+            USER_TOKEN_CMC_SOLICITOR = user7.getAuthorisationToken();
+            userEmails.add(user7.getEmail());
+            User user8 = idamService.createUserWith("citizen");
+            USER_TOKEN_CARD_PAYMENT = user8.getAuthorisationToken();
+            userEmails.add(user8.getEmail());
 
             SERVICE_TOKEN = s2sTokenService.getS2sToken(testProps.s2sServiceName, testProps.s2sServiceSecret);
-            TOKENS_INITIALIZED = true;
 
-            USER_TOKEN_CARD_PAYMENT = idamService.createUserWith(CMC_CITIZEN_GROUP, "citizen").getAuthorisationToken();
+            TOKENS_INITIALIZED = true;
         }
     }
 
@@ -432,6 +439,7 @@ public class ServiceRequestFunctionalTests {
             = serviceRequestTestService.createPBAPaymentForAServiceRequest(USER_TOKEN_PAYMENT,
             SERVICE_TOKEN,
             serviceRequestReference, serviceRequestPaymentDto);
+
         assertThat(pbaPaymentServiceRequestResponse.getStatusCode()).isEqualTo(CREATED.value());
         ServiceRequestPaymentBo serviceRequestPaymentBo =
             pbaPaymentServiceRequestResponse.getBody().as(ServiceRequestPaymentBo.class);
@@ -472,9 +480,10 @@ public class ServiceRequestFunctionalTests {
             SERVICE_TOKEN,
             serviceRequestReference, serviceRequestPaymentDto);
         assertThat(pbaPaymentServiceRequestResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
+
         ServiceRequestPaymentBo serviceRequestPaymentBo =
             pbaPaymentServiceRequestResponse.getBody().as(ServiceRequestPaymentBo.class);
-        final String paymentReference = serviceRequestPaymentBo.getPaymentReference();
+        paymentReference = serviceRequestPaymentBo.getPaymentReference();
         assertThat(paymentReference).matches(PAYMENTS_REGEX_PATTERN);
 
         serviceRequestPaymentDto.setIdempotencyKey(ServiceRequestFixture.generateUniqueCCDCaseReferenceNumber());
@@ -520,7 +529,7 @@ public class ServiceRequestFunctionalTests {
 
         ServiceRequestPaymentBo serviceRequestPaymentBo =
             pbaPaymentServiceRequestResponse.getBody().as(ServiceRequestPaymentBo.class);
-        final String paymentReference = serviceRequestPaymentBo.getPaymentReference();
+        paymentReference = serviceRequestPaymentBo.getPaymentReference();
         assertThat(paymentReference).matches(PAYMENTS_REGEX_PATTERN);
 
         final Response createServiceRequestResponseAgain
@@ -569,7 +578,7 @@ public class ServiceRequestFunctionalTests {
         assertThat(pbaPaymentServiceRequestResponse.getStatusCode()).isEqualTo(HttpStatus.PRECONDITION_FAILED.value());
         ServiceRequestPaymentBo serviceRequestPaymentBo =
             pbaPaymentServiceRequestResponse.getBody().as(ServiceRequestPaymentBo.class);
-        final String paymentReference = serviceRequestPaymentBo.getPaymentReference();
+        paymentReference = serviceRequestPaymentBo.getPaymentReference();
         assertThat(paymentReference).matches(PAYMENTS_REGEX_PATTERN);
 
         final Response createServiceRequestResponseAgain
@@ -616,7 +625,7 @@ public class ServiceRequestFunctionalTests {
         assertThat(pbaPaymentServiceRequestResponse.getStatusCode()).isEqualTo(HttpStatus.PAYMENT_REQUIRED.value());
         ServiceRequestPaymentBo serviceRequestPaymentBo =
             pbaPaymentServiceRequestResponse.getBody().as(ServiceRequestPaymentBo.class);
-        final String paymentReference = serviceRequestPaymentBo.getPaymentReference();
+        paymentReference = serviceRequestPaymentBo.getPaymentReference();
         assertThat(paymentReference).matches(PAYMENTS_REGEX_PATTERN);
 
         final Response createServiceRequestResponseAgain
@@ -658,6 +667,7 @@ public class ServiceRequestFunctionalTests {
         assertThat(createOnlineCardPaymentResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
         OnlineCardPaymentResponse onlineCardPaymentResponse =
             createOnlineCardPaymentResponse.getBody().as(OnlineCardPaymentResponse.class);
+        paymentReference = onlineCardPaymentResponse.getPaymentReference();
         assertThat(onlineCardPaymentResponse.getPaymentReference()).matches(PAYMENTS_REGEX_PATTERN);
         assertThat(onlineCardPaymentResponse.getNextUrl()).isNotNull();
         assertThat(onlineCardPaymentResponse.getNextUrl()).isNotBlank();
@@ -772,8 +782,6 @@ public class ServiceRequestFunctionalTests {
         PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(feeDto)).build();
 
-        AtomicReference<String> paymentReference = new AtomicReference<>();
-
         dsl.given().userToken(USER_TOKEN_CARD_PAYMENT)
             .s2sToken(SERVICE_TOKEN)
             .when().addNewFeeAndPaymentGroup(groupDto)
@@ -789,11 +797,11 @@ public class ServiceRequestFunctionalTests {
                     .then().gotCreated(TelephonyCardPaymentsResponse.class, telephonyCardPaymentsResponse -> {
                         assertThat(telephonyCardPaymentsResponse).isNotNull();
                         assertThat(telephonyCardPaymentsResponse.getStatus()).isEqualTo("Initiated");
-                        paymentReference.set(telephonyCardPaymentsResponse.getPaymentReference());
+                        paymentReference = telephonyCardPaymentsResponse.getPaymentReference();
                     });
                 // pci-pal callback
                 TelephonyCallbackDto callbackDto = TelephonyCallbackDto.telephonyCallbackWith()
-                    .orderReference(paymentReference.get())
+                    .orderReference(paymentReference)
                     .orderAmount("550")
                     .transactionResult("SUCCESS")
                     .build();
@@ -814,8 +822,9 @@ public class ServiceRequestFunctionalTests {
             .isEqualTo(PAID);
 
         PaymentStatusChargebackDto paymentStatusChargebackDto
-            = PaymentFixture.chargebackRequestService(paymentReference.get(),ccdCaseNumber);
+            = PaymentFixture.chargebackRequestService(paymentReference,ccdCaseNumber);
 
+        paymentFailureReference = paymentStatusChargebackDto.getFailureReference();
         Response chargebackResponse = paymentTestService.postChargeback(
             USER_TOKEN_PAYMENT,
             paymentStatusChargebackDto);
@@ -836,12 +845,6 @@ public class ServiceRequestFunctionalTests {
 
         assertThat(paymentGroupResponse1.getPaymentGroups().get(0).getServiceRequestStatus())
             .isEqualTo(DISPUTED);
-
-        // delete payment record
-        paymentTestService.deletePayment(USER_TOKEN_CMC_SOLICITOR, SERVICE_TOKEN, paymentReference.get()).then().statusCode(NO_CONTENT.value());
-
-        //delete Payment Failure record
-        paymentTestService.deleteFailedPayment(USER_TOKEN_CMC_SOLICITOR, SERVICE_TOKEN, paymentStatusChargebackDto.getFailureReference()).then().statusCode(NO_CONTENT.value());
     }
 
     @Test
@@ -866,8 +869,6 @@ public class ServiceRequestFunctionalTests {
         PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(feeDto)).build();
 
-        AtomicReference<String> paymentReference = new AtomicReference<>();
-
         dsl.given().userToken(USER_TOKEN_CARD_PAYMENT)
             .s2sToken(SERVICE_TOKEN)
             .when().addNewFeeAndPaymentGroup(groupDto)
@@ -883,11 +884,11 @@ public class ServiceRequestFunctionalTests {
                     .then().gotCreated(TelephonyCardPaymentsResponse.class, telephonyCardPaymentsResponse -> {
                         assertThat(telephonyCardPaymentsResponse).isNotNull();
                         assertThat(telephonyCardPaymentsResponse.getStatus()).isEqualTo("Initiated");
-                        paymentReference.set(telephonyCardPaymentsResponse.getPaymentReference());
+                        paymentReference = telephonyCardPaymentsResponse.getPaymentReference();
                     });
                 // pci-pal callback
                 TelephonyCallbackDto callbackDto = TelephonyCallbackDto.telephonyCallbackWith()
-                    .orderReference(paymentReference.get())
+                    .orderReference(paymentReference)
                     .orderAmount("550")
                     .transactionResult("SUCCESS")
                     .build();
@@ -906,8 +907,8 @@ public class ServiceRequestFunctionalTests {
             .isEqualTo(PAID);
 
         PaymentStatusChargebackDto paymentStatusChargebackDto
-            = PaymentFixture.chargebackRequestService(paymentReference.get(),ccdCaseNumber);
-
+            = PaymentFixture.chargebackRequestService(paymentReference,ccdCaseNumber);
+        paymentFailureReference = paymentStatusChargebackDto.getFailureReference();
         Response chargebackResponse = paymentTestService.postChargeback(
             USER_TOKEN_PAYMENT,
             paymentStatusChargebackDto);
@@ -951,13 +952,7 @@ public class ServiceRequestFunctionalTests {
 
         assertThat(paymentGroupResponse2.getPaymentGroups().get(0).getServiceRequestStatus())
             .isEqualTo(PAID);
-
-        // delete payment record
-        paymentTestService.deletePayment(USER_TOKEN_CMC_SOLICITOR, SERVICE_TOKEN, paymentReference.get()).then().statusCode(NO_CONTENT.value());
-
-        //delete Payment Failure record
-        paymentTestService.deleteFailedPayment(USER_TOKEN_CMC_SOLICITOR, SERVICE_TOKEN, paymentStatusChargebackDto.getFailureReference()).then().statusCode(NO_CONTENT.value());
-    }
+   }
 
     @Test
     public void return_partially_paid_when_failure_event_and_HMCTS_lost_dispute_ping_two() {
@@ -981,8 +976,6 @@ public class ServiceRequestFunctionalTests {
         PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(feeDto)).build();
 
-        AtomicReference<String> paymentReference = new AtomicReference<>();
-
         dsl.given().userToken(USER_TOKEN_CARD_PAYMENT)
             .s2sToken(SERVICE_TOKEN)
             .when().addNewFeeAndPaymentGroup(groupDto)
@@ -998,11 +991,11 @@ public class ServiceRequestFunctionalTests {
                     .then().gotCreated(TelephonyCardPaymentsResponse.class, telephonyCardPaymentsResponse -> {
                         assertThat(telephonyCardPaymentsResponse).isNotNull();
                         assertThat(telephonyCardPaymentsResponse.getStatus()).isEqualTo("Initiated");
-                        paymentReference.set(telephonyCardPaymentsResponse.getPaymentReference());
+                        paymentReference = telephonyCardPaymentsResponse.getPaymentReference();
                     });
                 // pci-pal callback
                 TelephonyCallbackDto callbackDto = TelephonyCallbackDto.telephonyCallbackWith()
-                    .orderReference(paymentReference.get())
+                    .orderReference(paymentReference)
                     .orderAmount("550")
                     .transactionResult("SUCCESS")
                     .build();
@@ -1021,8 +1014,8 @@ public class ServiceRequestFunctionalTests {
             .isEqualTo(PAID);
 
         PaymentStatusChargebackDto paymentStatusChargebackDto
-            = PaymentFixture.chargebackRequestService(paymentReference.get(),ccdCaseNumber);
-
+            = PaymentFixture.chargebackRequestService(paymentReference,ccdCaseNumber);
+        paymentFailureReference = paymentStatusChargebackDto.getFailureReference();
         Response chargebackResponse = paymentTestService.postChargeback(
             USER_TOKEN_PAYMENT,
             paymentStatusChargebackDto);
@@ -1066,12 +1059,6 @@ public class ServiceRequestFunctionalTests {
 
         assertThat(paymentGroupResponse2.getPaymentGroups().get(0).getServiceRequestStatus())
             .isEqualTo(PARTIALLY_PAID);
-
-        // delete payment record
-        paymentTestService.deletePayment(USER_TOKEN_CMC_SOLICITOR, SERVICE_TOKEN, paymentReference.get()).then().statusCode(NO_CONTENT.value());
-
-        //delete Payment Failure record
-        paymentTestService.deleteFailedPayment(USER_TOKEN_CMC_SOLICITOR, SERVICE_TOKEN, paymentStatusChargebackDto.getFailureReference()).then().statusCode(NO_CONTENT.value());
     }
 
     @Test
@@ -1227,8 +1214,6 @@ public class ServiceRequestFunctionalTests {
                 .ccdCaseNumber(ccdCaseNumber)
                 .build())).build();
 
-        AtomicReference<String> paymentReference = new AtomicReference<>();
-
         dsl.given().userToken(USER_TOKEN_PAYMENT)
             .s2sToken(SERVICE_TOKEN)
             .when().addNewFeeAndPaymentGroup(paymentGroupDto)
@@ -1245,7 +1230,7 @@ public class ServiceRequestFunctionalTests {
                         assertThat(paymentDto.getStatus()).isEqualToIgnoringCase("success");
                         assertThat(paymentDto.getPaymentGroupReference()).isEqualTo(paymentGroupFeeDto.getPaymentGroupReference());
 
-                        paymentReference.set(paymentDto.getReference());
+                        paymentReference = paymentDto.getReference();
 
                     });
 
@@ -1269,8 +1254,8 @@ public class ServiceRequestFunctionalTests {
 
         // Ping 1 for Bounced Cheque event
         PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto
-            = PaymentFixture.bouncedChequeRequestService(paymentReference.get(),ccdCaseNumber);
-
+            = PaymentFixture.bouncedChequeRequestService(paymentReference,ccdCaseNumber);
+        paymentFailureReference = paymentStatusBouncedChequeDto.getFailureReference();
         Response bounceChequeResponse = paymentTestService.postBounceCheque(
             SERVICE_TOKEN,
             paymentStatusBouncedChequeDto);
@@ -1285,12 +1270,6 @@ public class ServiceRequestFunctionalTests {
 
         assertThat(paymentGroupResponse1.getPaymentGroups().get(0).getServiceRequestStatus())
             .isEqualTo(DISPUTED);
-
-        // delete payment record
-        paymentTestService.deletePayment(USER_TOKEN_CMC_SOLICITOR, SERVICE_TOKEN, paymentReference.get()).then().statusCode(NO_CONTENT.value());
-
-        //delete Payment Failure record
-        paymentTestService.deleteFailedPayment(USER_TOKEN_CMC_SOLICITOR, SERVICE_TOKEN, paymentStatusBouncedChequeDto.getFailureReference()).then().statusCode(NO_CONTENT.value());
     }
 
     @Test
@@ -1325,8 +1304,6 @@ public class ServiceRequestFunctionalTests {
                 .ccdCaseNumber(ccdCaseNumber)
                 .build())).build();
 
-        AtomicReference<String> paymentReference = new AtomicReference<>();
-
         dsl.given().userToken(USER_TOKEN_PAYMENT)
             .s2sToken(SERVICE_TOKEN)
             .when().addNewFeeAndPaymentGroup(paymentGroupDto)
@@ -1343,8 +1320,7 @@ public class ServiceRequestFunctionalTests {
                         assertThat(paymentDto.getStatus()).isEqualToIgnoringCase("success");
                         assertThat(paymentDto.getPaymentGroupReference()).isEqualTo(paymentGroupFeeDto.getPaymentGroupReference());
 
-                        paymentReference.set(paymentDto.getReference());
-
+                        paymentReference = paymentDto.getReference();
                     });
 
             });
@@ -1361,8 +1337,8 @@ public class ServiceRequestFunctionalTests {
 
         // Ping 1 for Bounced Cheque event
         PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto
-            = PaymentFixture.bouncedChequeRequestService(paymentReference.get(),ccdCaseNumber);
-
+            = PaymentFixture.bouncedChequeRequestService(paymentReference,ccdCaseNumber);
+        paymentFailureReference = paymentStatusBouncedChequeDto.getFailureReference();
         Response bounceChequeResponse = paymentTestService.postBounceCheque(
             SERVICE_TOKEN,
             paymentStatusBouncedChequeDto);
@@ -1408,12 +1384,6 @@ public class ServiceRequestFunctionalTests {
 
         assertThat(paymentGroupResponse2.getPaymentGroups().get(0).getServiceRequestStatus())
             .isEqualTo(PAID);
-
-        // delete payment record
-        paymentTestService.deletePayment(USER_TOKEN_CMC_SOLICITOR, SERVICE_TOKEN, paymentReference.get()).then().statusCode(NO_CONTENT.value());
-
-        //delete Payment Failure record
-        paymentTestService.deleteFailedPayment(USER_TOKEN_CMC_SOLICITOR, SERVICE_TOKEN, paymentStatusBouncedChequeDto.getFailureReference()).then().statusCode(NO_CONTENT.value());
     }
 
     @Test
@@ -1441,8 +1411,6 @@ public class ServiceRequestFunctionalTests {
         PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(feeDto)).build();
 
-        AtomicReference<String> paymentReference = new AtomicReference<>();
-
         dsl.given().userToken(USER_TOKEN_CARD_PAYMENT)
             .s2sToken(SERVICE_TOKEN)
             .when().addNewFeeAndPaymentGroup(groupDto)
@@ -1458,11 +1426,11 @@ public class ServiceRequestFunctionalTests {
                     .then().gotCreated(TelephonyCardPaymentsResponse.class, telephonyCardPaymentsResponse -> {
                         assertThat(telephonyCardPaymentsResponse).isNotNull();
                         assertThat(telephonyCardPaymentsResponse.getStatus()).isEqualTo("Initiated");
-                        paymentReference.set(telephonyCardPaymentsResponse.getPaymentReference());
+                        paymentReference = telephonyCardPaymentsResponse.getPaymentReference();
                     });
                 // pci-pal callback
                 TelephonyCallbackDto callbackDto = TelephonyCallbackDto.telephonyCallbackWith()
-                    .orderReference(paymentReference.get())
+                    .orderReference(paymentReference)
                     .orderAmount("550")
                     .transactionResult("SUCCESS")
                     .build();
@@ -1501,8 +1469,8 @@ public class ServiceRequestFunctionalTests {
 
         // Ping 1 for Chargeback event
         PaymentStatusChargebackDto paymentStatusChargebackDto
-            = PaymentFixture.chargebackRequestService(paymentReference.get(),ccdCaseNumber);
-
+            = PaymentFixture.chargebackRequestService(paymentReference,ccdCaseNumber);
+        paymentFailureReference = paymentStatusChargebackDto.getFailureReference();
         Response chargebackResponse = paymentTestService.postChargeback(
             USER_TOKEN_CMC_SOLICITOR,
             paymentStatusChargebackDto);
@@ -1524,13 +1492,6 @@ public class ServiceRequestFunctionalTests {
 
         assertThat(paymentGroupResponse2.getPaymentGroups().get(0).getServiceRequestStatus())
             .isEqualTo(DISPUTED);
-
-        // delete payment record
-        paymentTestService.deletePayment(USER_TOKEN_PAYMENT, SERVICE_TOKEN, paymentReference.get()).then().statusCode(NO_CONTENT.value());
-
-        //delete Payment Failure record
-        paymentTestService.deleteFailedPayment(USER_TOKEN_PAYMENT, SERVICE_TOKEN, paymentStatusChargebackDto.getFailureReference()).then().statusCode(NO_CONTENT.value());
-
   }
 
     @Test
@@ -1558,8 +1519,6 @@ public class ServiceRequestFunctionalTests {
         PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(feeDto)).build();
 
-        AtomicReference<String> paymentReference = new AtomicReference<>();
-
         dsl.given().userToken(USER_TOKEN_CARD_PAYMENT)
             .s2sToken(SERVICE_TOKEN)
             .when().addNewFeeAndPaymentGroup(groupDto)
@@ -1575,11 +1534,11 @@ public class ServiceRequestFunctionalTests {
                     .then().gotCreated(TelephonyCardPaymentsResponse.class, telephonyCardPaymentsResponse -> {
                         assertThat(telephonyCardPaymentsResponse).isNotNull();
                         assertThat(telephonyCardPaymentsResponse.getStatus()).isEqualTo("Initiated");
-                        paymentReference.set(telephonyCardPaymentsResponse.getPaymentReference());
+                        paymentReference = telephonyCardPaymentsResponse.getPaymentReference();
                     });
                 // pci-pal callback
                 TelephonyCallbackDto callbackDto = TelephonyCallbackDto.telephonyCallbackWith()
-                    .orderReference(paymentReference.get())
+                    .orderReference(paymentReference)
                     .orderAmount("550")
                     .transactionResult("SUCCESS")
                     .build();
@@ -1618,8 +1577,8 @@ public class ServiceRequestFunctionalTests {
 
         // Ping 1 for Chargeback event
         PaymentStatusChargebackDto paymentStatusChargebackDto
-            = PaymentFixture.chargebackRequestService(paymentReference.get(),ccdCaseNumber);
-
+            = PaymentFixture.chargebackRequestService(paymentReference,ccdCaseNumber);
+        paymentFailureReference = paymentStatusChargebackDto.getFailureReference();
         Response chargebackResponse = paymentTestService.postChargeback(
             USER_TOKEN_CMC_SOLICITOR,
             paymentStatusChargebackDto);
@@ -1664,13 +1623,6 @@ public class ServiceRequestFunctionalTests {
 
         assertThat(paymentGroupResponse3.getPaymentGroups().get(0).getServiceRequestStatus())
             .isEqualTo(PAID);
-
-        // delete payment record
-        paymentTestService.deletePayment(USER_TOKEN_PAYMENT, SERVICE_TOKEN, paymentReference.get()).then().statusCode(NO_CONTENT.value());
-
-        //delete Payment Failure record
-        paymentTestService.deleteFailedPayment(USER_TOKEN_PAYMENT, SERVICE_TOKEN, paymentStatusChargebackDto.getFailureReference()).then().statusCode(NO_CONTENT.value());
-
     }
 
     @Test
@@ -1698,8 +1650,6 @@ public class ServiceRequestFunctionalTests {
         PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(feeDto)).build();
 
-        AtomicReference<String> paymentReference = new AtomicReference<>();
-
         dsl.given().userToken(USER_TOKEN_CARD_PAYMENT)
             .s2sToken(SERVICE_TOKEN)
             .when().addNewFeeAndPaymentGroup(groupDto)
@@ -1715,11 +1665,11 @@ public class ServiceRequestFunctionalTests {
                     .then().gotCreated(TelephonyCardPaymentsResponse.class, telephonyCardPaymentsResponse -> {
                         assertThat(telephonyCardPaymentsResponse).isNotNull();
                         assertThat(telephonyCardPaymentsResponse.getStatus()).isEqualTo("Initiated");
-                        paymentReference.set(telephonyCardPaymentsResponse.getPaymentReference());
+                        paymentReference = telephonyCardPaymentsResponse.getPaymentReference();
                     });
                 // pci-pal callback
                 TelephonyCallbackDto callbackDto = TelephonyCallbackDto.telephonyCallbackWith()
-                    .orderReference(paymentReference.get())
+                    .orderReference(paymentReference)
                     .orderAmount("550")
                     .transactionResult("SUCCESS")
                     .build();
@@ -1758,8 +1708,8 @@ public class ServiceRequestFunctionalTests {
 
         // Ping 1 for Chargeback event
         PaymentStatusChargebackDto paymentStatusChargebackDto
-            = PaymentFixture.chargebackRequestService(paymentReference.get(),ccdCaseNumber);
-
+            = PaymentFixture.chargebackRequestService(paymentReference,ccdCaseNumber);
+        paymentFailureReference = paymentStatusChargebackDto.getFailureReference();
         Response chargebackResponse = paymentTestService.postChargeback(
             USER_TOKEN_CMC_SOLICITOR,
             paymentStatusChargebackDto);
@@ -1804,13 +1754,6 @@ public class ServiceRequestFunctionalTests {
 
         assertThat(paymentGroupResponse3.getPaymentGroups().get(0).getServiceRequestStatus())
             .isEqualTo(PARTIALLY_PAID);
-
-        // delete payment record
-        paymentTestService.deletePayment(USER_TOKEN_PAYMENT, SERVICE_TOKEN, paymentReference.get()).then().statusCode(NO_CONTENT.value());
-
-        //delete Payment Failure record
-        paymentTestService.deleteFailedPayment(USER_TOKEN_PAYMENT, SERVICE_TOKEN, paymentStatusChargebackDto.getFailureReference()).then().statusCode(NO_CONTENT.value());
-
     }
 
     @Test
@@ -1919,5 +1862,25 @@ public class ServiceRequestFunctionalTests {
         ConnectionStringBuilder connectionStringBuilder = new ConnectionStringBuilder(serviceConnectionString, topicName);
         TopicClient client = new TopicClient(connectionStringBuilder);
         IMessage message = client.peek();
+    }
+
+    @After
+    public void deletePayment() {
+        if (paymentFailureReference != null) {
+            //delete Payment Failure record
+            paymentTestService.deleteFailedPayment(USER_TOKEN_PAYMENT, SERVICE_TOKEN, paymentFailureReference).then().statusCode(NO_CONTENT.value());
+        }
+        if (paymentReference != null) {
+            // delete payment record
+            paymentTestService.deletePayment(USER_TOKEN_PAYMENT, SERVICE_TOKEN, paymentReference).then().statusCode(NO_CONTENT.value());
+        }
+    }
+
+    @AfterClass
+    public static void tearDown() {
+        if (!userEmails.isEmpty()) {
+            // delete idam test user
+            userEmails.forEach(IdamService::deleteUser);
+        }
     }
 }
