@@ -3,6 +3,8 @@ package uk.gov.hmcts.payment.functional;
 import io.restassured.response.Response;
 import net.serenitybdd.junit.runners.SerenityParameterizedRunner;
 import net.thucydides.junit.annotations.TestData;
+import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -14,17 +16,17 @@ import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
 import uk.gov.hmcts.payment.functional.fixture.PaymentFixture;
 import uk.gov.hmcts.payment.functional.idam.IdamService;
+import uk.gov.hmcts.payment.functional.idam.models.User;
 import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
 import uk.gov.hmcts.payment.functional.service.PaymentTestService;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
-import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
-import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
+import static org.springframework.http.HttpStatus.*;
 
 @RunWith(SerenityParameterizedRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
@@ -47,6 +49,8 @@ public class PaymentAmountTest {
     private static String USER_TOKEN;
     private static String SERVICE_TOKEN;
     private static boolean TOKENS_INITIALIZED = false;
+    private static List<String> userEmails = new ArrayList<>();
+    private String paymentReference;
 
     @TestData
     public static Collection<Object[]> testData() {
@@ -74,7 +78,7 @@ public class PaymentAmountTest {
 
     public final String expectedStatus;
 
-    public PaymentAmountTest(String amount, String expectedStatus){
+    public PaymentAmountTest(String amount, String expectedStatus) {
         this.amount = amount;
         this.expectedStatus = expectedStatus;
     }
@@ -86,7 +90,9 @@ public class PaymentAmountTest {
         tcm.prepareTestInstance(this);
 
         if (!TOKENS_INITIALIZED) {
-            USER_TOKEN = idamService.createUserWith(CMC_CITIZEN_GROUP, "citizen").getAuthorisationToken();
+            User user = idamService.createUserWith("citizen");
+            USER_TOKEN = user.getAuthorisationToken();
+            userEmails.add(user.getEmail());
             SERVICE_TOKEN = s2sTokenService.getS2sToken(testProps.s2sServiceName, testProps.s2sServiceSecret);
             TOKENS_INITIALIZED = true;
         }
@@ -106,6 +112,7 @@ public class PaymentAmountTest {
                 .statusCode(CREATED.value())
                 .and()
                 .extract().body().jsonPath().getString("reference");
+            paymentReference = reference;
             assertThat(reference).matches(PAYMENT_REFERENCE_REFEX);
 
             // invoke get payment by reference and assert value
@@ -135,6 +142,7 @@ public class PaymentAmountTest {
                 .statusCode(CREATED.value())
                 .and()
                 .extract().body().jsonPath().getString("reference");
+            paymentReference = reference;
             assertThat(reference).matches(PAYMENT_REFERENCE_REFEX);
 
             // invoke get payment by reference and assert value
@@ -160,7 +168,24 @@ public class PaymentAmountTest {
                 .statusCode(CREATED.value())
                 .and()
                 .extract().body().jsonPath().getString("reference");
+            paymentReference = reference;
             assertThat(reference).matches(PAYMENT_REFERENCE_REFEX);
+        }
+    }
+
+    @After
+    public void deletePayment() {
+        if (paymentReference != null) {
+            // delete payment record
+            paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentReference).then().statusCode(NO_CONTENT.value());
+        }
+    }
+
+    @AfterClass
+    public static void tearDown() {
+        if (!userEmails.isEmpty()) {
+            // delete idam test user
+            userEmails.forEach(IdamService::deleteUser);
         }
     }
 }

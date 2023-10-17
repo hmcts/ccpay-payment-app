@@ -5,6 +5,8 @@ import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.apache.commons.lang3.RandomUtils;
 import org.joda.time.DateTime;
 
+import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,9 +29,11 @@ import uk.gov.hmcts.payment.api.model.PaymentChannel;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
+import uk.gov.hmcts.payment.functional.config.ValidUser;
 import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
 import uk.gov.hmcts.payment.functional.fixture.PaymentFixture;
 import uk.gov.hmcts.payment.functional.idam.IdamService;
+import uk.gov.hmcts.payment.functional.idam.models.User;
 import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
 import uk.gov.hmcts.payment.functional.service.CaseTestService;
 import uk.gov.hmcts.payment.functional.service.PaymentTestService;
@@ -39,13 +43,10 @@ import javax.inject.Inject;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Locale;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 import java.time.ZoneId;
-import java.util.Date;
 import java.util.regex.Pattern;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -53,8 +54,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.http.HttpStatus.*;
-import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CASE_WORKER_GROUP;
-import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
 
 @RunWith(SpringIntegrationSerenityRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
@@ -91,21 +90,30 @@ public class PaymentStatusFunctionalTest {
     @Autowired
     private PaymentsTestDsl dsl;
 
+    private static List<String> userEmails = new ArrayList<>();
+    private String paymentReference;
+    private String paymentFailureReference;
+
     @Before
     public void setUp() throws Exception {
 
         if (!TOKENS_INITIALIZED) {
-            USER_TOKEN = idamService.createUserWith(CMC_CASE_WORKER_GROUP, "caseworker-cmc-solicitor")
-                .getAuthorisationToken();
+            User user1 = idamService.createUserWith("caseworker-cmc-solicitor");
+            USER_TOKEN = user1.getAuthorisationToken();
+            userEmails.add(user1.getEmail());
             SERVICE_TOKEN = s2sTokenService.getS2sToken(testProps.s2sServiceName, testProps.s2sServiceSecret);
-            USER_TOKEN_PAYMENT = idamService.createUserWith(CMC_CITIZEN_GROUP, "payments").getAuthorisationToken();
-            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE =
-                idamService.createUserWithSearchScope(CMC_CASE_WORKER_GROUP, "payments-refund", "payments-refund-probate")
-                    .getAuthorisationToken();
+            User user2 = idamService.createUserWith("payments");
+            USER_TOKEN_PAYMENT = user2.getAuthorisationToken();
+            userEmails.add(user2.getEmail());
+            ValidUser user3 = idamService.createUserWithSearchScope("payments-refund", "payments-refund-probate");
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE = user3.getAuthorisationToken();
+            userEmails.add(user3.getEmail());
             SERVICE_TOKEN_PAYMENT = s2sTokenService.getS2sToken("ccpay_bubble", testProps.payBubbleS2SSecret);
             TOKENS_INITIALIZED = true;
 
-            USER_TOKEN_CARD_PAYMENT = idamService.createUserWith(CMC_CITIZEN_GROUP, "citizen").getAuthorisationToken();
+            User user4 = idamService.createUserWith("citizen");
+            USER_TOKEN_CARD_PAYMENT = user4.getAuthorisationToken();
+            userEmails.add(user4.getEmail());
         }
     }
 
@@ -119,7 +127,7 @@ public class PaymentStatusFunctionalTest {
         accountPaymentRequest.setAccountNumber(accountNumber);
         PaymentDto paymentDto = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
-
+        paymentReference = paymentDto.getReference();
         String ccdCaseNumber = accountPaymentRequest.getCcdCaseNumber();
         paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
             ccdCaseNumber, "5");
@@ -139,7 +147,7 @@ public class PaymentStatusFunctionalTest {
             paymentRefundRequest);
         PaymentStatusChargebackDto paymentStatusChargebackDto
             = PaymentFixture.chargebackRequest(paymentDto.getReference());
-
+        paymentFailureReference = paymentStatusChargebackDto.getFailureReference();
         Response chargebackResponse = paymentTestService.postChargeback(
             SERVICE_TOKEN_PAYMENT,
             paymentStatusChargebackDto);
@@ -152,13 +160,6 @@ public class PaymentStatusFunctionalTest {
 
         assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
         assertThat(chargebackResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
-
-        // delete payment record
-        paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
-
-        //delete Payment Failure record
-        paymentTestService.deleteFailedPayment(USER_TOKEN, SERVICE_TOKEN, paymentStatusChargebackDto.getFailureReference()).then().statusCode(NO_CONTENT.value());
-
     }
 
     @Test
@@ -418,23 +419,23 @@ public class PaymentStatusFunctionalTest {
             .s2sToken(SERVICE_TOKEN)
             .when().addNewFeeAndPaymentGroup(paymentGroupDto)
             .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
-            assertThat(paymentGroupFeeDto).isNotNull();
-            assertThat(paymentGroupFeeDto.getPaymentGroupReference()).isNotNull();
-            assertThat(paymentGroupFeeDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(paymentGroupDto);
+                assertThat(paymentGroupFeeDto).isNotNull();
+                assertThat(paymentGroupFeeDto.getPaymentGroupReference()).isNotNull();
+                assertThat(paymentGroupFeeDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(paymentGroupDto);
 
-            dsl.given().userToken(USER_TOKEN)
-                .s2sToken(SERVICE_TOKEN)
-                .when().createBulkScanPayment(bulkScanPaymentRequest, paymentGroupFeeDto.getPaymentGroupReference())
-                .then().gotCreated(PaymentDto.class, paymentDto -> {
-                assertThat(paymentDto.getReference()).isNotNull();
-                assertThat(paymentDto.getStatus()).isEqualToIgnoringCase("success");
-                assertThat(paymentDto.getPaymentGroupReference()).isEqualTo(paymentGroupFeeDto.getPaymentGroupReference());
+                dsl.given().userToken(USER_TOKEN)
+                    .s2sToken(SERVICE_TOKEN)
+                    .when().createBulkScanPayment(bulkScanPaymentRequest, paymentGroupFeeDto.getPaymentGroupReference())
+                    .then().gotCreated(PaymentDto.class, paymentDto -> {
+                        assertThat(paymentDto.getReference()).isNotNull();
+                        assertThat(paymentDto.getStatus()).isEqualToIgnoringCase("success");
+                        assertThat(paymentDto.getPaymentGroupReference()).isEqualTo(paymentGroupFeeDto.getPaymentGroupReference());
 
-                paymentReference.set(paymentDto.getReference());
+                        paymentReference.set(paymentDto.getReference());
+
+                    });
 
             });
-
-        });
 
         // Ping 1 for Bounced Cheque event
         PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto
@@ -481,10 +482,10 @@ public class PaymentStatusFunctionalTest {
             .returnUrl("https://www.moneyclaims.service.gov.uk")
             .when().createCardPayment(PaymentFixture.cardPaymentRequestAdoption("215.55", "ADOPTION"))
             .then().created(savedPayment -> {
-            paymentReference.set(savedPayment.getReference());
+                paymentReference.set(savedPayment.getReference());
 
-            assertNotNull(savedPayment.getReference());
-        });
+                assertNotNull(savedPayment.getReference());
+            });
 
         // Ping 1 for Chargeback event
         PaymentStatusChargebackDto paymentStatusChargebackDto
@@ -553,31 +554,31 @@ public class PaymentStatusFunctionalTest {
             .s2sToken(SERVICE_TOKEN)
             .when().addNewFeeAndPaymentGroup(groupDto)
             .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
-            assertThat(paymentGroupFeeDto).isNotNull();
+                assertThat(paymentGroupFeeDto).isNotNull();
 
-            String paymentGroupReference = paymentGroupFeeDto.getPaymentGroupReference();
+                String paymentGroupReference = paymentGroupFeeDto.getPaymentGroupReference();
 
-            dsl.given().userToken(USER_TOKEN)
-                .s2sToken(SERVICE_TOKEN)
-                .returnUrl("https://www.moneyclaims.service.gov.uk")
-                .when().createTelephonyPayment(telephonyPaymentRequest, paymentGroupReference)
-                .then().gotCreated(TelephonyCardPaymentsResponse.class, telephonyCardPaymentsResponse -> {
-                assertThat(telephonyCardPaymentsResponse).isNotNull();
-                assertThat(telephonyCardPaymentsResponse.getStatus()).isEqualTo("Initiated");
-                paymentReference.set(telephonyCardPaymentsResponse.getPaymentReference());
+                dsl.given().userToken(USER_TOKEN)
+                    .s2sToken(SERVICE_TOKEN)
+                    .returnUrl("https://www.moneyclaims.service.gov.uk")
+                    .when().createTelephonyPayment(telephonyPaymentRequest, paymentGroupReference)
+                    .then().gotCreated(TelephonyCardPaymentsResponse.class, telephonyCardPaymentsResponse -> {
+                        assertThat(telephonyCardPaymentsResponse).isNotNull();
+                        assertThat(telephonyCardPaymentsResponse.getStatus()).isEqualTo("Initiated");
+                        paymentReference.set(telephonyCardPaymentsResponse.getPaymentReference());
+                    });
+                // pci-pal callback
+                TelephonyCallbackDto callbackDto = TelephonyCallbackDto.telephonyCallbackWith()
+                    .orderReference(paymentReference.get())
+                    .orderAmount("550")
+                    .transactionResult("SUCCESS")
+                    .build();
+
+                dsl.given().s2sToken(SERVICE_TOKEN)
+                    .when().telephonyCallback(callbackDto)
+                    .then().noContent();
+
             });
-            // pci-pal callback
-            TelephonyCallbackDto callbackDto = TelephonyCallbackDto.telephonyCallbackWith()
-                .orderReference(paymentReference.get())
-                .orderAmount("550")
-                .transactionResult("SUCCESS")
-                .build();
-
-            dsl.given().s2sToken(SERVICE_TOKEN)
-                .when().telephonyCallback(callbackDto)
-                .then().noContent();
-
-        });
 
         // Ping 1 for Chargeback event
         PaymentStatusChargebackDto paymentStatusChargebackDto
@@ -708,23 +709,23 @@ public class PaymentStatusFunctionalTest {
             .s2sToken(SERVICE_TOKEN)
             .when().addNewFeeAndPaymentGroup(paymentGroupDto)
             .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
-            assertThat(paymentGroupFeeDto).isNotNull();
-            assertThat(paymentGroupFeeDto.getPaymentGroupReference()).isNotNull();
-            assertThat(paymentGroupFeeDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(paymentGroupDto);
+                assertThat(paymentGroupFeeDto).isNotNull();
+                assertThat(paymentGroupFeeDto.getPaymentGroupReference()).isNotNull();
+                assertThat(paymentGroupFeeDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(paymentGroupDto);
 
-            dsl.given().userToken(USER_TOKEN)
-                .s2sToken(SERVICE_TOKEN)
-                .when().createBulkScanPayment(bulkScanPaymentRequest, paymentGroupFeeDto.getPaymentGroupReference())
-                .then().gotCreated(PaymentDto.class, paymentDto -> {
-                assertThat(paymentDto.getReference()).isNotNull();
-                assertThat(paymentDto.getStatus()).isEqualToIgnoringCase("success");
-                assertThat(paymentDto.getPaymentGroupReference()).isEqualTo(paymentGroupFeeDto.getPaymentGroupReference());
+                dsl.given().userToken(USER_TOKEN)
+                    .s2sToken(SERVICE_TOKEN)
+                    .when().createBulkScanPayment(bulkScanPaymentRequest, paymentGroupFeeDto.getPaymentGroupReference())
+                    .then().gotCreated(PaymentDto.class, paymentDto -> {
+                        assertThat(paymentDto.getReference()).isNotNull();
+                        assertThat(paymentDto.getStatus()).isEqualToIgnoringCase("success");
+                        assertThat(paymentDto.getPaymentGroupReference()).isEqualTo(paymentGroupFeeDto.getPaymentGroupReference());
 
-                paymentReference.set(paymentDto.getReference());
+                        paymentReference.set(paymentDto.getReference());
+
+                    });
 
             });
-
-        });
         PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto
             = PaymentFixture.bouncedChequeRequest(paymentReference.get());
         Response bounceChequeResponse = paymentTestService.postBounceCheque(
@@ -747,10 +748,10 @@ public class PaymentStatusFunctionalTest {
             .returnUrl("https://www.moneyclaims.service.gov.uk")
             .when().createCardPayment(PaymentFixture.cardPaymentRequestAdoption("215.55", "ADOPTION"))
             .then().created(savedPayment -> {
-            paymentReference.set(savedPayment.getReference());
+                paymentReference.set(savedPayment.getReference());
 
-            assertNotNull(savedPayment.getReference());
-        });
+                assertNotNull(savedPayment.getReference());
+            });
 
         PaymentStatusChargebackDto paymentStatusChargebackDto
             = PaymentFixture.chargebackRequest(paymentReference.get());
@@ -814,23 +815,23 @@ public class PaymentStatusFunctionalTest {
             .s2sToken(SERVICE_TOKEN)
             .when().addNewFeeAndPaymentGroup(paymentGroupDto)
             .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
-            assertThat(paymentGroupFeeDto).isNotNull();
-            assertThat(paymentGroupFeeDto.getPaymentGroupReference()).isNotNull();
-            assertThat(paymentGroupFeeDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(paymentGroupDto);
+                assertThat(paymentGroupFeeDto).isNotNull();
+                assertThat(paymentGroupFeeDto.getPaymentGroupReference()).isNotNull();
+                assertThat(paymentGroupFeeDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(paymentGroupDto);
 
-            dsl.given().userToken(USER_TOKEN)
-                .s2sToken(SERVICE_TOKEN)
-                .when().createBulkScanPayment(bulkScanPaymentRequest, paymentGroupFeeDto.getPaymentGroupReference())
-                .then().gotCreated(PaymentDto.class, paymentDto -> {
-                assertThat(paymentDto.getReference()).isNotNull();
-                assertThat(paymentDto.getStatus()).isEqualToIgnoringCase("success");
-                assertThat(paymentDto.getPaymentGroupReference()).isEqualTo(paymentGroupFeeDto.getPaymentGroupReference());
+                dsl.given().userToken(USER_TOKEN)
+                    .s2sToken(SERVICE_TOKEN)
+                    .when().createBulkScanPayment(bulkScanPaymentRequest, paymentGroupFeeDto.getPaymentGroupReference())
+                    .then().gotCreated(PaymentDto.class, paymentDto -> {
+                        assertThat(paymentDto.getReference()).isNotNull();
+                        assertThat(paymentDto.getStatus()).isEqualToIgnoringCase("success");
+                        assertThat(paymentDto.getPaymentGroupReference()).isEqualTo(paymentGroupFeeDto.getPaymentGroupReference());
 
-                paymentReference.set(paymentDto.getReference());
+                        paymentReference.set(paymentDto.getReference());
+
+                    });
 
             });
-
-        });
 
         PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto
             = PaymentFixture.bouncedChequeRequest(paymentReference.get());
@@ -883,31 +884,31 @@ public class PaymentStatusFunctionalTest {
             .s2sToken(SERVICE_TOKEN)
             .when().addNewFeeAndPaymentGroup(groupDto)
             .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
-            assertThat(paymentGroupFeeDto).isNotNull();
+                assertThat(paymentGroupFeeDto).isNotNull();
 
-            String paymentGroupReference = paymentGroupFeeDto.getPaymentGroupReference();
+                String paymentGroupReference = paymentGroupFeeDto.getPaymentGroupReference();
 
-            dsl.given().userToken(USER_TOKEN)
-                .s2sToken(SERVICE_TOKEN)
-                .returnUrl("https://www.moneyclaims.service.gov.uk")
-                .when().createTelephonyPayment(telephonyPaymentRequest, paymentGroupReference)
-                .then().gotCreated(TelephonyCardPaymentsResponse.class, telephonyCardPaymentsResponse -> {
-                assertThat(telephonyCardPaymentsResponse).isNotNull();
-                assertThat(telephonyCardPaymentsResponse.getStatus()).isEqualTo("Initiated");
-                paymentReference.set(telephonyCardPaymentsResponse.getPaymentReference());
+                dsl.given().userToken(USER_TOKEN)
+                    .s2sToken(SERVICE_TOKEN)
+                    .returnUrl("https://www.moneyclaims.service.gov.uk")
+                    .when().createTelephonyPayment(telephonyPaymentRequest, paymentGroupReference)
+                    .then().gotCreated(TelephonyCardPaymentsResponse.class, telephonyCardPaymentsResponse -> {
+                        assertThat(telephonyCardPaymentsResponse).isNotNull();
+                        assertThat(telephonyCardPaymentsResponse.getStatus()).isEqualTo("Initiated");
+                        paymentReference.set(telephonyCardPaymentsResponse.getPaymentReference());
+                    });
+                // pci-pal callback
+                TelephonyCallbackDto callbackDto = TelephonyCallbackDto.telephonyCallbackWith()
+                    .orderReference(paymentReference.get())
+                    .orderAmount("550")
+                    .transactionResult("SUCCESS")
+                    .build();
+
+                dsl.given().s2sToken(SERVICE_TOKEN)
+                    .when().telephonyCallback(callbackDto)
+                    .then().noContent();
+
             });
-            // pci-pal callback
-            TelephonyCallbackDto callbackDto = TelephonyCallbackDto.telephonyCallbackWith()
-                .orderReference(paymentReference.get())
-                .orderAmount("550")
-                .transactionResult("SUCCESS")
-                .build();
-
-            dsl.given().s2sToken(SERVICE_TOKEN)
-                .when().telephonyCallback(callbackDto)
-                .then().noContent();
-
-        });
         PaymentStatusChargebackDto paymentStatusChargebackDto
             = PaymentFixture.chargebackRequest(paymentReference.get());
 
@@ -970,23 +971,23 @@ public class PaymentStatusFunctionalTest {
             .s2sToken(SERVICE_TOKEN)
             .when().addNewFeeAndPaymentGroup(paymentGroupDto)
             .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
-            assertThat(paymentGroupFeeDto).isNotNull();
-            assertThat(paymentGroupFeeDto.getPaymentGroupReference()).isNotNull();
-            assertThat(paymentGroupFeeDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(paymentGroupDto);
+                assertThat(paymentGroupFeeDto).isNotNull();
+                assertThat(paymentGroupFeeDto.getPaymentGroupReference()).isNotNull();
+                assertThat(paymentGroupFeeDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(paymentGroupDto);
 
-            dsl.given().userToken(USER_TOKEN)
-                .s2sToken(SERVICE_TOKEN)
-                .when().createBulkScanPayment(bulkScanPaymentRequest, paymentGroupFeeDto.getPaymentGroupReference())
-                .then().gotCreated(PaymentDto.class, paymentDto -> {
-                assertThat(paymentDto.getReference()).isNotNull();
-                assertThat(paymentDto.getStatus()).isEqualToIgnoringCase("success");
-                assertThat(paymentDto.getPaymentGroupReference()).isEqualTo(paymentGroupFeeDto.getPaymentGroupReference());
+                dsl.given().userToken(USER_TOKEN)
+                    .s2sToken(SERVICE_TOKEN)
+                    .when().createBulkScanPayment(bulkScanPaymentRequest, paymentGroupFeeDto.getPaymentGroupReference())
+                    .then().gotCreated(PaymentDto.class, paymentDto -> {
+                        assertThat(paymentDto.getReference()).isNotNull();
+                        assertThat(paymentDto.getStatus()).isEqualToIgnoringCase("success");
+                        assertThat(paymentDto.getPaymentGroupReference()).isEqualTo(paymentGroupFeeDto.getPaymentGroupReference());
 
-                paymentReference.set(paymentDto.getReference());
+                        paymentReference.set(paymentDto.getReference());
+
+                    });
 
             });
-
-        });
         PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto
             = PaymentFixture.bouncedChequeRequest(paymentReference.get());
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentReference.get()).then().statusCode(NO_CONTENT.value());
@@ -1039,23 +1040,23 @@ public class PaymentStatusFunctionalTest {
             .s2sToken(SERVICE_TOKEN)
             .when().addNewFeeAndPaymentGroup(paymentGroupDto)
             .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
-            assertThat(paymentGroupFeeDto).isNotNull();
-            assertThat(paymentGroupFeeDto.getPaymentGroupReference()).isNotNull();
-            assertThat(paymentGroupFeeDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(paymentGroupDto);
+                assertThat(paymentGroupFeeDto).isNotNull();
+                assertThat(paymentGroupFeeDto.getPaymentGroupReference()).isNotNull();
+                assertThat(paymentGroupFeeDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(paymentGroupDto);
 
-            dsl.given().userToken(USER_TOKEN)
-                .s2sToken(SERVICE_TOKEN)
-                .when().createBulkScanPayment(bulkScanPaymentRequest, paymentGroupFeeDto.getPaymentGroupReference())
-                .then().gotCreated(PaymentDto.class, paymentDto -> {
-                assertThat(paymentDto.getReference()).isNotNull();
-                assertThat(paymentDto.getStatus()).isEqualToIgnoringCase("success");
-                assertThat(paymentDto.getPaymentGroupReference()).isEqualTo(paymentGroupFeeDto.getPaymentGroupReference());
+                dsl.given().userToken(USER_TOKEN)
+                    .s2sToken(SERVICE_TOKEN)
+                    .when().createBulkScanPayment(bulkScanPaymentRequest, paymentGroupFeeDto.getPaymentGroupReference())
+                    .then().gotCreated(PaymentDto.class, paymentDto -> {
+                        assertThat(paymentDto.getReference()).isNotNull();
+                        assertThat(paymentDto.getStatus()).isEqualToIgnoringCase("success");
+                        assertThat(paymentDto.getPaymentGroupReference()).isEqualTo(paymentGroupFeeDto.getPaymentGroupReference());
 
-                paymentReference.set(paymentDto.getReference());
+                        paymentReference.set(paymentDto.getReference());
+
+                    });
 
             });
-
-        });
         PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto
             = PaymentFixture.bouncedChequeRequest(paymentReference.get());
 
@@ -1085,10 +1086,10 @@ public class PaymentStatusFunctionalTest {
             .returnUrl("https://www.moneyclaims.service.gov.uk")
             .when().createCardPayment(PaymentFixture.cardPaymentRequestAdoption("215.55", "ADOPTION"))
             .then().created(savedPayment -> {
-            paymentReference.set(savedPayment.getReference());
+                paymentReference.set(savedPayment.getReference());
 
-            assertNotNull(savedPayment.getReference());
-        });
+                assertNotNull(savedPayment.getReference());
+            });
         PaymentStatusChargebackDto paymentStatusChargebackDto
             = PaymentFixture.chargebackRequest(paymentReference.get());
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentReference.get()).then().statusCode(NO_CONTENT.value());
@@ -1111,10 +1112,10 @@ public class PaymentStatusFunctionalTest {
             .returnUrl("https://www.moneyclaims.service.gov.uk")
             .when().createCardPayment(PaymentFixture.cardPaymentRequestAdoption("215.55", "ADOPTION"))
             .then().created(savedPayment -> {
-            paymentReference.set(savedPayment.getReference());
+                paymentReference.set(savedPayment.getReference());
 
-            assertNotNull(savedPayment.getReference());
-        });
+                assertNotNull(savedPayment.getReference());
+            });
         PaymentStatusChargebackDto paymentStatusChargebackDto
             = PaymentFixture.chargebackRequest(paymentReference.get());
 
@@ -1163,31 +1164,31 @@ public class PaymentStatusFunctionalTest {
             .s2sToken(SERVICE_TOKEN)
             .when().addNewFeeAndPaymentGroup(groupDto)
             .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
-            assertThat(paymentGroupFeeDto).isNotNull();
+                assertThat(paymentGroupFeeDto).isNotNull();
 
-            String paymentGroupReference = paymentGroupFeeDto.getPaymentGroupReference();
+                String paymentGroupReference = paymentGroupFeeDto.getPaymentGroupReference();
 
-            dsl.given().userToken(USER_TOKEN)
-                .s2sToken(SERVICE_TOKEN)
-                .returnUrl("https://www.moneyclaims.service.gov.uk")
-                .when().createTelephonyPayment(telephonyPaymentRequest, paymentGroupReference)
-                .then().gotCreated(TelephonyCardPaymentsResponse.class, telephonyCardPaymentsResponse -> {
-                assertThat(telephonyCardPaymentsResponse).isNotNull();
-                assertThat(telephonyCardPaymentsResponse.getStatus()).isEqualTo("Initiated");
-                paymentReference.set(telephonyCardPaymentsResponse.getPaymentReference());
+                dsl.given().userToken(USER_TOKEN)
+                    .s2sToken(SERVICE_TOKEN)
+                    .returnUrl("https://www.moneyclaims.service.gov.uk")
+                    .when().createTelephonyPayment(telephonyPaymentRequest, paymentGroupReference)
+                    .then().gotCreated(TelephonyCardPaymentsResponse.class, telephonyCardPaymentsResponse -> {
+                        assertThat(telephonyCardPaymentsResponse).isNotNull();
+                        assertThat(telephonyCardPaymentsResponse.getStatus()).isEqualTo("Initiated");
+                        paymentReference.set(telephonyCardPaymentsResponse.getPaymentReference());
+                    });
+                // pci-pal callback
+                TelephonyCallbackDto callbackDto = TelephonyCallbackDto.telephonyCallbackWith()
+                    .orderReference(paymentReference.get())
+                    .orderAmount("550")
+                    .transactionResult("SUCCESS")
+                    .build();
+
+                dsl.given().s2sToken(SERVICE_TOKEN)
+                    .when().telephonyCallback(callbackDto)
+                    .then().noContent();
+
             });
-            // pci-pal callback
-            TelephonyCallbackDto callbackDto = TelephonyCallbackDto.telephonyCallbackWith()
-                .orderReference(paymentReference.get())
-                .orderAmount("550")
-                .transactionResult("SUCCESS")
-                .build();
-
-            dsl.given().s2sToken(SERVICE_TOKEN)
-                .when().telephonyCallback(callbackDto)
-                .then().noContent();
-
-        });
         PaymentStatusChargebackDto paymentStatusChargebackDto
             = PaymentFixture.chargebackRequest(paymentReference.get());
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentReference.get()).then().statusCode(NO_CONTENT.value());
@@ -1230,31 +1231,31 @@ public class PaymentStatusFunctionalTest {
             .s2sToken(SERVICE_TOKEN)
             .when().addNewFeeAndPaymentGroup(groupDto)
             .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
-            assertThat(paymentGroupFeeDto).isNotNull();
+                assertThat(paymentGroupFeeDto).isNotNull();
 
-            String paymentGroupReference = paymentGroupFeeDto.getPaymentGroupReference();
+                String paymentGroupReference = paymentGroupFeeDto.getPaymentGroupReference();
 
-            dsl.given().userToken(USER_TOKEN)
-                .s2sToken(SERVICE_TOKEN)
-                .returnUrl("https://www.moneyclaims.service.gov.uk")
-                .when().createTelephonyPayment(telephonyPaymentRequest, paymentGroupReference)
-                .then().gotCreated(TelephonyCardPaymentsResponse.class, telephonyCardPaymentsResponse -> {
-                assertThat(telephonyCardPaymentsResponse).isNotNull();
-                assertThat(telephonyCardPaymentsResponse.getStatus()).isEqualTo("Initiated");
-                paymentReference.set(telephonyCardPaymentsResponse.getPaymentReference());
+                dsl.given().userToken(USER_TOKEN)
+                    .s2sToken(SERVICE_TOKEN)
+                    .returnUrl("https://www.moneyclaims.service.gov.uk")
+                    .when().createTelephonyPayment(telephonyPaymentRequest, paymentGroupReference)
+                    .then().gotCreated(TelephonyCardPaymentsResponse.class, telephonyCardPaymentsResponse -> {
+                        assertThat(telephonyCardPaymentsResponse).isNotNull();
+                        assertThat(telephonyCardPaymentsResponse.getStatus()).isEqualTo("Initiated");
+                        paymentReference.set(telephonyCardPaymentsResponse.getPaymentReference());
+                    });
+                // pci-pal callback
+                TelephonyCallbackDto callbackDto = TelephonyCallbackDto.telephonyCallbackWith()
+                    .orderReference(paymentReference.get())
+                    .orderAmount("550")
+                    .transactionResult("SUCCESS")
+                    .build();
+
+                dsl.given().s2sToken(SERVICE_TOKEN)
+                    .when().telephonyCallback(callbackDto)
+                    .then().noContent();
+
             });
-            // pci-pal callback
-            TelephonyCallbackDto callbackDto = TelephonyCallbackDto.telephonyCallbackWith()
-                .orderReference(paymentReference.get())
-                .orderAmount("550")
-                .transactionResult("SUCCESS")
-                .build();
-
-            dsl.given().s2sToken(SERVICE_TOKEN)
-                .when().telephonyCallback(callbackDto)
-                .then().noContent();
-
-        });
         PaymentStatusChargebackDto paymentStatusChargebackDto
             = PaymentFixture.chargebackRequest(paymentReference.get());
 
@@ -1589,23 +1590,23 @@ public class PaymentStatusFunctionalTest {
             .s2sToken(SERVICE_TOKEN)
             .when().addNewFeeAndPaymentGroup(paymentGroupDto)
             .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
-            assertThat(paymentGroupFeeDto).isNotNull();
-            assertThat(paymentGroupFeeDto.getPaymentGroupReference()).isNotNull();
-            assertThat(paymentGroupFeeDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(paymentGroupDto);
+                assertThat(paymentGroupFeeDto).isNotNull();
+                assertThat(paymentGroupFeeDto.getPaymentGroupReference()).isNotNull();
+                assertThat(paymentGroupFeeDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(paymentGroupDto);
 
-            dsl.given().userToken(USER_TOKEN)
-                .s2sToken(SERVICE_TOKEN)
-                .when().createBulkScanPayment(bulkScanPaymentRequest, paymentGroupFeeDto.getPaymentGroupReference())
-                .then().gotCreated(PaymentDto.class, paymentDto -> {
-                assertThat(paymentDto.getReference()).isNotNull();
-                assertThat(paymentDto.getStatus()).isEqualToIgnoringCase("success");
-                assertThat(paymentDto.getPaymentGroupReference()).isEqualTo(paymentGroupFeeDto.getPaymentGroupReference());
+                dsl.given().userToken(USER_TOKEN)
+                    .s2sToken(SERVICE_TOKEN)
+                    .when().createBulkScanPayment(bulkScanPaymentRequest, paymentGroupFeeDto.getPaymentGroupReference())
+                    .then().gotCreated(PaymentDto.class, paymentDto -> {
+                        assertThat(paymentDto.getReference()).isNotNull();
+                        assertThat(paymentDto.getStatus()).isEqualToIgnoringCase("success");
+                        assertThat(paymentDto.getPaymentGroupReference()).isEqualTo(paymentGroupFeeDto.getPaymentGroupReference());
 
-                paymentReference.set(paymentDto.getReference());
+                        paymentReference.set(paymentDto.getReference());
+
+                    });
 
             });
-
-        });
 
         dsl.given()
             .s2sToken(SERVICE_TOKEN)
@@ -1635,9 +1636,9 @@ public class PaymentStatusFunctionalTest {
         // Create a Bulk scan payment
         String dcn = "6600000000001" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
         String failureReference = "FR-123-456" + RandomUtils.nextInt();
-        dcn=  dcn.substring(0,21);
+        dcn = dcn.substring(0, 21);
         String ccdCaseNumber = "11114335" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
-      
+
         BulkScanPayment bulkScanPayment = BulkScanPayment.createPaymentRequestWith()
             .amount(new BigDecimal("555"))
             .bankGiroCreditSlipNumber(Integer.valueOf("5"))
@@ -1708,23 +1709,23 @@ public class PaymentStatusFunctionalTest {
             .s2sToken(SERVICE_TOKEN)
             .when().addNewFeeAndPaymentGroup(paymentGroupDto)
             .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
-            assertThat(paymentGroupFeeDto).isNotNull();
-            assertThat(paymentGroupFeeDto.getPaymentGroupReference()).isNotNull();
-            assertThat(paymentGroupFeeDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(paymentGroupDto);
+                assertThat(paymentGroupFeeDto).isNotNull();
+                assertThat(paymentGroupFeeDto.getPaymentGroupReference()).isNotNull();
+                assertThat(paymentGroupFeeDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(paymentGroupDto);
 
-            dsl.given().userToken(USER_TOKEN)
-                .s2sToken(SERVICE_TOKEN)
-                .when().createBulkScanPayment(bulkScanPaymentRequest, paymentGroupFeeDto.getPaymentGroupReference())
-                .then().gotCreated(PaymentDto.class, paymentDto -> {
-                assertThat(paymentDto.getReference()).isNotNull();
-                assertThat(paymentDto.getStatus()).isEqualToIgnoringCase("success");
-                assertThat(paymentDto.getPaymentGroupReference()).isEqualTo(paymentGroupFeeDto.getPaymentGroupReference());
+                dsl.given().userToken(USER_TOKEN)
+                    .s2sToken(SERVICE_TOKEN)
+                    .when().createBulkScanPayment(bulkScanPaymentRequest, paymentGroupFeeDto.getPaymentGroupReference())
+                    .then().gotCreated(PaymentDto.class, paymentDto -> {
+                        assertThat(paymentDto.getReference()).isNotNull();
+                        assertThat(paymentDto.getStatus()).isEqualToIgnoringCase("success");
+                        assertThat(paymentDto.getPaymentGroupReference()).isEqualTo(paymentGroupFeeDto.getPaymentGroupReference());
 
-                paymentReference.set(paymentDto.getReference());
+                        paymentReference.set(paymentDto.getReference());
+
+                    });
 
             });
-
-        });
 
         // Ping 2 for Unprocessed Payment event
         PaymentStatusUpdateSecond paymentStatusUpdateSecond = PaymentStatusUpdateSecond.paymentStatusUpdateSecondWith()
@@ -2084,23 +2085,23 @@ public class PaymentStatusFunctionalTest {
             .s2sToken(SERVICE_TOKEN)
             .when().addNewFeeAndPaymentGroup(paymentGroupDto)
             .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
-            assertThat(paymentGroupFeeDto).isNotNull();
-            assertThat(paymentGroupFeeDto.getPaymentGroupReference()).isNotNull();
-            assertThat(paymentGroupFeeDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(paymentGroupDto);
+                assertThat(paymentGroupFeeDto).isNotNull();
+                assertThat(paymentGroupFeeDto.getPaymentGroupReference()).isNotNull();
+                assertThat(paymentGroupFeeDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(paymentGroupDto);
 
-            dsl.given().userToken(USER_TOKEN)
-                .s2sToken(SERVICE_TOKEN)
-                .when().createBulkScanPayment(bulkScanPaymentRequest, paymentGroupFeeDto.getPaymentGroupReference())
-                .then().gotCreated(PaymentDto.class, paymentDto -> {
-                assertThat(paymentDto.getReference()).isNotNull();
-                assertThat(paymentDto.getStatus()).isEqualToIgnoringCase("success");
-                assertThat(paymentDto.getPaymentGroupReference()).isEqualTo(paymentGroupFeeDto.getPaymentGroupReference());
+                dsl.given().userToken(USER_TOKEN)
+                    .s2sToken(SERVICE_TOKEN)
+                    .when().createBulkScanPayment(bulkScanPaymentRequest, paymentGroupFeeDto.getPaymentGroupReference())
+                    .then().gotCreated(PaymentDto.class, paymentDto -> {
+                        assertThat(paymentDto.getReference()).isNotNull();
+                        assertThat(paymentDto.getStatus()).isEqualToIgnoringCase("success");
+                        assertThat(paymentDto.getPaymentGroupReference()).isEqualTo(paymentGroupFeeDto.getPaymentGroupReference());
 
-                paymentReference.set(paymentDto.getReference());
+                        paymentReference.set(paymentDto.getReference());
+
+                    });
 
             });
-
-        });
 
         // Ping 1 for Bounced Cheque event
         PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto
@@ -2160,23 +2161,23 @@ public class PaymentStatusFunctionalTest {
             .s2sToken(SERVICE_TOKEN)
             .when().addNewFeeAndPaymentGroup(paymentGroupDto)
             .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
-            assertThat(paymentGroupFeeDto).isNotNull();
-            assertThat(paymentGroupFeeDto.getPaymentGroupReference()).isNotNull();
-            assertThat(paymentGroupFeeDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(paymentGroupDto);
+                assertThat(paymentGroupFeeDto).isNotNull();
+                assertThat(paymentGroupFeeDto.getPaymentGroupReference()).isNotNull();
+                assertThat(paymentGroupFeeDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(paymentGroupDto);
 
-            dsl.given().userToken(USER_TOKEN)
-                .s2sToken(SERVICE_TOKEN)
-                .when().createBulkScanPayment(bulkScanPaymentRequest, paymentGroupFeeDto.getPaymentGroupReference())
-                .then().gotCreated(PaymentDto.class, paymentDto -> {
-                assertThat(paymentDto.getReference()).isNotNull();
-                assertThat(paymentDto.getStatus()).isEqualToIgnoringCase("success");
-                assertThat(paymentDto.getPaymentGroupReference()).isEqualTo(paymentGroupFeeDto.getPaymentGroupReference());
+                dsl.given().userToken(USER_TOKEN)
+                    .s2sToken(SERVICE_TOKEN)
+                    .when().createBulkScanPayment(bulkScanPaymentRequest, paymentGroupFeeDto.getPaymentGroupReference())
+                    .then().gotCreated(PaymentDto.class, paymentDto -> {
+                        assertThat(paymentDto.getReference()).isNotNull();
+                        assertThat(paymentDto.getStatus()).isEqualToIgnoringCase("success");
+                        assertThat(paymentDto.getPaymentGroupReference()).isEqualTo(paymentGroupFeeDto.getPaymentGroupReference());
 
-                paymentReference.set(paymentDto.getReference());
+                        paymentReference.set(paymentDto.getReference());
+
+                    });
 
             });
-
-        });
 
         // Ping 1 for Bounced Cheque event
         PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto
@@ -2205,10 +2206,10 @@ public class PaymentStatusFunctionalTest {
             .returnUrl("https://www.moneyclaims.service.gov.uk")
             .when().createCardPayment(PaymentFixture.cardPaymentRequestAdoption("215.55", "ADOPTION"))
             .then().created(savedPayment -> {
-            paymentReference.set(savedPayment.getReference());
+                paymentReference.set(savedPayment.getReference());
 
-            assertNotNull(savedPayment.getReference());
-        });
+                assertNotNull(savedPayment.getReference());
+            });
 
         // Ping 1 for Chargeback event
         PaymentStatusChargebackDto paymentStatusChargebackDto
@@ -2279,31 +2280,31 @@ public class PaymentStatusFunctionalTest {
             .s2sToken(SERVICE_TOKEN)
             .when().addNewFeeAndPaymentGroup(groupDto)
             .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
-            assertThat(paymentGroupFeeDto).isNotNull();
+                assertThat(paymentGroupFeeDto).isNotNull();
 
-            String paymentGroupReference = paymentGroupFeeDto.getPaymentGroupReference();
+                String paymentGroupReference = paymentGroupFeeDto.getPaymentGroupReference();
 
-            dsl.given().userToken(USER_TOKEN)
-                .s2sToken(SERVICE_TOKEN)
-                .returnUrl("https://www.moneyclaims.service.gov.uk")
-                .when().createTelephonyPayment(telephonyPaymentRequest, paymentGroupReference)
-                .then().gotCreated(TelephonyCardPaymentsResponse.class, telephonyCardPaymentsResponse -> {
-                assertThat(telephonyCardPaymentsResponse).isNotNull();
-                assertThat(telephonyCardPaymentsResponse.getStatus()).isEqualTo("Initiated");
-                paymentReference.set(telephonyCardPaymentsResponse.getPaymentReference());
+                dsl.given().userToken(USER_TOKEN)
+                    .s2sToken(SERVICE_TOKEN)
+                    .returnUrl("https://www.moneyclaims.service.gov.uk")
+                    .when().createTelephonyPayment(telephonyPaymentRequest, paymentGroupReference)
+                    .then().gotCreated(TelephonyCardPaymentsResponse.class, telephonyCardPaymentsResponse -> {
+                        assertThat(telephonyCardPaymentsResponse).isNotNull();
+                        assertThat(telephonyCardPaymentsResponse.getStatus()).isEqualTo("Initiated");
+                        paymentReference.set(telephonyCardPaymentsResponse.getPaymentReference());
+                    });
+                // pci-pal callback
+                TelephonyCallbackDto callbackDto = TelephonyCallbackDto.telephonyCallbackWith()
+                    .orderReference(paymentReference.get())
+                    .orderAmount("550")
+                    .transactionResult("SUCCESS")
+                    .build();
+
+                dsl.given().s2sToken(SERVICE_TOKEN)
+                    .when().telephonyCallback(callbackDto)
+                    .then().noContent();
+
             });
-            // pci-pal callback
-            TelephonyCallbackDto callbackDto = TelephonyCallbackDto.telephonyCallbackWith()
-                .orderReference(paymentReference.get())
-                .orderAmount("550")
-                .transactionResult("SUCCESS")
-                .build();
-
-            dsl.given().s2sToken(SERVICE_TOKEN)
-                .when().telephonyCallback(callbackDto)
-                .then().noContent();
-
-        });
         PaymentStatusChargebackDto paymentStatusChargebackDto
             = PaymentFixture.chargebackRequestForLessEventTime(paymentReference.get());
 
@@ -2443,10 +2444,10 @@ public class PaymentStatusFunctionalTest {
             .returnUrl("https://www.moneyclaims.service.gov.uk")
             .when().createCardPayment(PaymentFixture.cardPaymentRequestAdoption("215.55", "ADOPTION"))
             .then().created(savedPayment -> {
-            paymentReference.set(savedPayment.getReference());
+                paymentReference.set(savedPayment.getReference());
 
-            assertNotNull(savedPayment.getReference());
-        });
+                assertNotNull(savedPayment.getReference());
+            });
 
         // Ping 1 for Chargeback event
         PaymentStatusChargebackDto paymentStatusChargebackDto
@@ -2493,5 +2494,25 @@ public class PaymentStatusFunctionalTest {
             .build();
     }
 
+    @After
+    public void deletePayment() {
+        if (paymentReference != null) {
+            // delete payment record
+            paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentReference).then().statusCode(NO_CONTENT.value());
+        }
+        if (paymentFailureReference != null) {
+            //delete Payment Failure record
+            paymentTestService.deleteFailedPayment(USER_TOKEN, SERVICE_TOKEN, paymentFailureReference).then().statusCode(NO_CONTENT.value());
+        }
+    }
+
+    @AfterClass
+    public static void tearDown() {
+        if (!userEmails.isEmpty()) {
+            // delete idam test user
+            userEmails.forEach(IdamService::deleteUser);
+        }
+    }
 }
+
 

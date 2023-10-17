@@ -4,6 +4,8 @@ package uk.gov.hmcts.payment.functional;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.apache.commons.lang3.RandomUtils;
 import org.joda.time.DateTime;
+import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,11 +23,17 @@ import uk.gov.hmcts.payment.functional.config.LaunchDarklyFeature;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
 import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
 import uk.gov.hmcts.payment.functional.idam.IdamService;
+import uk.gov.hmcts.payment.functional.idam.models.User;
 import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
+import uk.gov.hmcts.payment.functional.service.PaymentTestService;
+
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
-import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 @RunWith(SpringIntegrationSerenityRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
@@ -44,22 +52,24 @@ public class BulkscanPaymentFunctionalTest {
     private S2sTokenService s2sTokenService;
 
     @Autowired
-    private LaunchDarklyFeature featureToggler;
+    private PaymentTestService paymentTestService;
 
     private static String USER_TOKEN;
-    private static String USER_TOKEN_PAYMENT;
     private static String SERVICE_TOKEN;
     private static boolean TOKENS_INITIALIZED = false;
     private static final String PAYMENT_REFERENCE_REGEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
     private static final String REMISSION_REFERENCE_REGEX = "^[RM-]{3}(\\w{4}-){3}(\\w{4})";
     private static final int CCD_EIGHT_DIGIT_UPPER = 99999999;
     private static final int CCD_EIGHT_DIGIT_LOWER = 10000000;
+    private static List<String> userEmails = new ArrayList<>();
+    private String paymentReference;
 
-   @Before
+    @Before
     public void setUp() throws Exception {
         if (!TOKENS_INITIALIZED) {
-            USER_TOKEN = idamService.createUserWith(CMC_CITIZEN_GROUP, "payments").getAuthorisationToken();
-            USER_TOKEN_PAYMENT = idamService.createUserWith(CMC_CITIZEN_GROUP, "payments").getAuthorisationToken();
+            User user = idamService.createUserWith("payments");
+            USER_TOKEN = user.getAuthorisationToken();
+            userEmails.add(user.getEmail());
             SERVICE_TOKEN = s2sTokenService.getS2sToken(testProps.s2sServiceName, testProps.s2sServiceSecret);
             TOKENS_INITIALIZED = true;
         }
@@ -109,12 +119,29 @@ public class BulkscanPaymentFunctionalTest {
                 .s2sToken(SERVICE_TOKEN)
                 .when().createBulkScanPayment(bulkScanPaymentRequest,paymentGroupFeeDto.getPaymentGroupReference())
                 .then().gotCreated(PaymentDto.class, paymentDto -> {
+                    paymentReference = paymentDto.getReference();
                     assertThat(paymentDto.getReference()).isNotNull();
                     assertThat(paymentDto.getStatus()).isEqualToIgnoringCase("success");
                     assertThat(paymentDto.getPaymentGroupReference()).isEqualTo(paymentGroupFeeDto.getPaymentGroupReference());
             });
 
         });
+    }
 
+    @After
+    public void deletePayment() {
+        if (paymentReference != null) {
+            // delete payment record
+            paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentReference).then().statusCode(NO_CONTENT.value());
+        }
+    }
+
+    @AfterClass
+    public static void tearDown()
+    {
+        if (!userEmails.isEmpty()) {
+            // delete idam test user
+            userEmails.forEach(IdamService::deleteUser);
+        }
     }
 }

@@ -18,8 +18,6 @@ import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Locale;
-import java.util.Random;
 
 public class PaymentFixture {
 
@@ -310,9 +308,7 @@ public class PaymentFixture {
     }
 
     public static CreditAccountPaymentRequest aPbaPaymentRequestForProbateWithFeeCode(
-        final String amountString, final String feeCode, final String service, final String pbaAccountNumber) {
-        String ccdCaseNumber = "11113333" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
-
+        final String amountString, final String feeCode, final String service, final String pbaAccountNumber, String ccdCaseNumber) {
         return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
             .amount(new BigDecimal(amountString))
             .description("New passport application")

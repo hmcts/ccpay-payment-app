@@ -25,9 +25,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
-import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CASE_WORKER_GROUP;
-import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
-
 
 /* These are data generation tooling tests when PBA went live, no need to run in the pipeline  */
 @ContextConfiguration(classes = TestContextConfiguration.class)
@@ -63,8 +60,8 @@ public class PBAPaymentPerformanceLiberataTest {
 //   @Before
     public void setUp() {
         if (!TOKENS_INITIALIZED) {
-            USER_TOKEN = idamService.createUserWith(CMC_CASE_WORKER_GROUP, "caseworker-cmc-solicitor").getAuthorisationToken();
-            USER_TOKEN_PAYMENT = idamService.createUserWith(CMC_CITIZEN_GROUP, "payments").getAuthorisationToken();
+            USER_TOKEN = idamService.createUserWith("caseworker-cmc-solicitor").getAuthorisationToken();
+            USER_TOKEN_PAYMENT = idamService.createUserWith("payments").getAuthorisationToken();
             SERVICE_TOKEN = s2sTokenService.getS2sToken(testProps.s2sServiceName, testProps.s2sServiceSecret);
             TOKENS_INITIALIZED = true;
         }

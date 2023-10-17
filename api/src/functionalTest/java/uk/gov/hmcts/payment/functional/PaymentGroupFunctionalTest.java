@@ -6,6 +6,8 @@ import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.assertj.core.api.Assertions;
 import org.joda.time.DateTime;
+import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,7 +30,9 @@ import uk.gov.hmcts.payment.functional.config.LaunchDarklyFeature;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
 import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
 import uk.gov.hmcts.payment.functional.idam.IdamService;
+import uk.gov.hmcts.payment.functional.idam.models.User;
 import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
+import uk.gov.hmcts.payment.functional.service.PaymentTestService;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -38,7 +42,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 @RunWith(SpringIntegrationSerenityRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
@@ -46,7 +50,6 @@ public class PaymentGroupFunctionalTest {
     private static final String PAYMENT_REFERENCE_REGEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
     private static final String REMISSION_REFERENCE_REGEX = "^[RM-]{3}(\\w{4}-){3}(\\w{4})";
     private static String USER_TOKEN;
-    private static String USER_TOKEN_PAYMENT;
     private static String SERVICE_TOKEN;
     private static boolean TOKENS_INITIALIZED = false;
     @Autowired
@@ -64,14 +67,20 @@ public class PaymentGroupFunctionalTest {
     @Autowired
     private LaunchDarklyFeature featureToggler;
 
+    @Autowired
+    private PaymentTestService paymentTestService;
+
+    private static List<String> userEmails = new ArrayList<>();
+    private String paymentReference;
     private static final int CCD_EIGHT_DIGIT_UPPER = 99999999;
     private static final int CCD_EIGHT_DIGIT_LOWER = 10000000;
 
     @Before
     public void setUp() throws Exception {
         if (!TOKENS_INITIALIZED) {
-            USER_TOKEN = idamService.createUserWith(CMC_CITIZEN_GROUP, "payments").getAuthorisationToken();
-            USER_TOKEN_PAYMENT = idamService.createUserWith(CMC_CITIZEN_GROUP, "payments").getAuthorisationToken();
+            User user = idamService.createUserWith("payments");
+            USER_TOKEN = user.getAuthorisationToken();
+            userEmails.add(user.getEmail());
             SERVICE_TOKEN = s2sTokenService.getS2sToken(testProps.s2sServiceName, testProps.s2sServiceSecret);
             TOKENS_INITIALIZED = true;
         }
@@ -85,9 +94,9 @@ public class PaymentGroupFunctionalTest {
             .s2sToken(SERVICE_TOKEN)
             .when().createUpfrontRemission(getRemissionRequest(ccdCaseNumber))
             .then().gotCreated(RemissionDto.class, remissionDto -> {
-            assertThat(remissionDto).isNotNull();
-            assertThat(remissionDto.getFee()).isEqualToComparingOnlyGivenFields(getFee(ccdCaseNumber));
-        });
+                assertThat(remissionDto).isNotNull();
+                assertThat(remissionDto.getFee()).isEqualToComparingOnlyGivenFields(getFee(ccdCaseNumber));
+            });
     }
 
     @Test
@@ -97,10 +106,10 @@ public class PaymentGroupFunctionalTest {
             .s2sToken(SERVICE_TOKEN)
             .when().addNewFeeAndPaymentGroup(getPaymentFeeGroupRequest())
             .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
-            assertThat(paymentGroupFeeDto).isNotNull();
-            assertThat(paymentGroupFeeDto.getPaymentGroupReference()).isNotNull();
-            assertThat(paymentGroupFeeDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(getPaymentFeeGroupRequest());
-        });
+                assertThat(paymentGroupFeeDto).isNotNull();
+                assertThat(paymentGroupFeeDto.getPaymentGroupReference()).isNotNull();
+                assertThat(paymentGroupFeeDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(getPaymentFeeGroupRequest());
+            });
     }
 
     @Test
@@ -130,66 +139,67 @@ public class PaymentGroupFunctionalTest {
             .s2sToken(SERVICE_TOKEN)
             .when().addNewFeeAndPaymentGroup(getPaymentFeeGroupRequest())
             .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
-            assertThat(paymentGroupFeeDto).isNotNull();
-            assertThat(paymentGroupFeeDto.getPaymentGroupReference()).isNotNull();
-            assertThat(paymentGroupFeeDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(getPaymentFeeGroupRequest());
+                assertThat(paymentGroupFeeDto).isNotNull();
+                assertThat(paymentGroupFeeDto.getPaymentGroupReference()).isNotNull();
+                assertThat(paymentGroupFeeDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(getPaymentFeeGroupRequest());
 
-            String paymentGroupReference = paymentGroupFeeDto.getPaymentGroupReference();
-            FeeDto feeDto = paymentGroupFeeDto.getFees().get(0);
-            Integer feeId = feeDto.getId();
+                String paymentGroupReference = paymentGroupFeeDto.getPaymentGroupReference();
+                FeeDto feeDto = paymentGroupFeeDto.getFees().get(0);
+                Integer feeId = feeDto.getId();
 
-            //Test add new Fee to payment group
-            dsl.given().userToken(USER_TOKEN)
-                .s2sToken(SERVICE_TOKEN)
-                .when().addNewFeetoExistingPaymentGroup(groupDto, paymentGroupReference)
-                .then().got(PaymentGroupDto.class, paymentGroupFeeDto2 -> {
-                assertThat(paymentGroupFeeDto2).isNotNull();
-                assertThat(paymentGroupFeeDto2.getPaymentGroupReference()).isEqualTo(paymentGroupReference);
+                //Test add new Fee to payment group
+                dsl.given().userToken(USER_TOKEN)
+                    .s2sToken(SERVICE_TOKEN)
+                    .when().addNewFeetoExistingPaymentGroup(groupDto, paymentGroupReference)
+                    .then().got(PaymentGroupDto.class, paymentGroupFeeDto2 -> {
+                        assertThat(paymentGroupFeeDto2).isNotNull();
+                        assertThat(paymentGroupFeeDto2.getPaymentGroupReference()).isEqualTo(paymentGroupReference);
+                    });
+
+                dsl.given().userToken(USER_TOKEN)
+                    .s2sToken(SERVICE_TOKEN)
+                    .returnUrl("https://www.moneyclaims.service.gov.uk")
+                    .when().createTelephonyPayment(telephonyCardPaymentsRequest, paymentGroupReference)
+                    .then().gotCreated(TelephonyCardPaymentsResponse.class, telephonyCardPaymentsResponse -> {
+                        paymentReference = telephonyCardPaymentsResponse.getPaymentReference();
+                        assertTrue(telephonyCardPaymentsResponse.getPaymentReference().matches(PAYMENT_REFERENCE_REGEX));
+                        assertEquals("payment status is properly set", "Initiated", telephonyCardPaymentsResponse.getStatus());
+                        String[] schemes = {"https"};
+                        UrlValidator urlValidator = new UrlValidator(schemes);
+                        assertNotNull(telephonyCardPaymentsResponse.getLinks().getNextUrl());
+                        assertTrue(urlValidator.isValid(telephonyCardPaymentsResponse.getLinks().getNextUrl().getHref()));
+                    });
+
+                // TEST create retrospective remission
+                dsl.given().userToken(USER_TOKEN)
+                    .s2sToken(SERVICE_TOKEN)
+                    .when().createRetrospectiveRemission(getRemissionRequest(ccdCaseNumber), paymentGroupReference, feeId)
+                    .then().gotCreated(RemissionDto.class, remissionDto -> {
+                        assertThat(remissionDto).isNotNull();
+                        assertThat(remissionDto.getPaymentGroupReference()).isEqualTo(paymentGroupReference);
+                        assertThat(remissionDto.getRemissionReference().matches(REMISSION_REFERENCE_REGEX)).isTrue();
+                    });
+
+                // TEST retrieve payments, remissions and fees by payment-group-reference
+                dsl.given().userToken(USER_TOKEN)
+                    .s2sToken(SERVICE_TOKEN)
+                    .when().getRemissions(paymentGroupReference)
+                    .then().got(PaymentGroupDto.class, paymentGroupDto -> {
+                        assertThat(paymentGroupDto).isNotNull();
+                        assertThat(paymentGroupDto.getPayments().get(0)).isEqualToComparingOnlyGivenFields(getCardPaymentRequest(ccdCaseNumber));
+                        assertThat(paymentGroupDto.getRemissions().get(0)).isEqualToComparingOnlyGivenFields(getRemissionRequest(ccdCaseNumber));
+                        assertThat(paymentGroupDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(getFee(ccdCaseNumber));
+                        assertThat(paymentGroupDto.getFees().size()).isEqualTo(2);
+                        assertThat(paymentGroupDto.getFees().get(1)).isEqualToComparingOnlyGivenFields(getPaymentFeeGroupRequest());
+
+                        if (paymentGroupDto.getFees().get(0).getCode().equalsIgnoreCase("FEE0123")) {
+                            BigDecimal netAmount = paymentGroupDto.getFees().get(0).getCalculatedAmount()
+                                .subtract(paymentGroupDto.getRemissions().get(0).getHwfAmount());
+                            assertThat(netAmount).isEqualTo(paymentGroupDto.getFees().get(0).getNetAmount());
+                        }
+                    });
+
             });
-
-            dsl.given().userToken(USER_TOKEN)
-                .s2sToken(SERVICE_TOKEN)
-                .returnUrl("https://www.moneyclaims.service.gov.uk")
-                .when().createTelephonyPayment(telephonyCardPaymentsRequest, paymentGroupReference)
-                .then().gotCreated(TelephonyCardPaymentsResponse.class, telephonyCardPaymentsResponse -> {
-                    assertTrue(telephonyCardPaymentsResponse.getPaymentReference().matches(PAYMENT_REFERENCE_REGEX));
-                    assertEquals("payment status is properly set", "Initiated", telephonyCardPaymentsResponse.getStatus());
-                    String[] schemes = {"https"};
-                    UrlValidator urlValidator = new UrlValidator(schemes);
-                    assertNotNull(telephonyCardPaymentsResponse.getLinks().getNextUrl());
-                    assertTrue(urlValidator.isValid(telephonyCardPaymentsResponse.getLinks().getNextUrl().getHref()));
-                });
-
-            // TEST create retrospective remission
-            dsl.given().userToken(USER_TOKEN)
-                .s2sToken(SERVICE_TOKEN)
-                .when().createRetrospectiveRemission(getRemissionRequest(ccdCaseNumber), paymentGroupReference, feeId)
-                .then().gotCreated(RemissionDto.class, remissionDto -> {
-                assertThat(remissionDto).isNotNull();
-                assertThat(remissionDto.getPaymentGroupReference()).isEqualTo(paymentGroupReference);
-                assertThat(remissionDto.getRemissionReference().matches(REMISSION_REFERENCE_REGEX)).isTrue();
-            });
-
-            // TEST retrieve payments, remissions and fees by payment-group-reference
-            dsl.given().userToken(USER_TOKEN)
-                .s2sToken(SERVICE_TOKEN)
-                .when().getRemissions(paymentGroupReference)
-                .then().got(PaymentGroupDto.class, paymentGroupDto -> {
-                assertThat(paymentGroupDto).isNotNull();
-                assertThat(paymentGroupDto.getPayments().get(0)).isEqualToComparingOnlyGivenFields(getCardPaymentRequest(ccdCaseNumber));
-                assertThat(paymentGroupDto.getRemissions().get(0)).isEqualToComparingOnlyGivenFields(getRemissionRequest(ccdCaseNumber));
-                assertThat(paymentGroupDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(getFee(ccdCaseNumber));
-                assertThat(paymentGroupDto.getFees().size()).isEqualTo(2);
-                assertThat(paymentGroupDto.getFees().get(1)).isEqualToComparingOnlyGivenFields(getPaymentFeeGroupRequest());
-
-                if (paymentGroupDto.getFees().get(0).getCode().equalsIgnoreCase("FEE0123")) {
-                    BigDecimal netAmount = paymentGroupDto.getFees().get(0).getCalculatedAmount()
-                        .subtract(paymentGroupDto.getRemissions().get(0).getHwfAmount());
-                    assertThat(netAmount).isEqualTo(paymentGroupDto.getFees().get(0).getNetAmount());
-                }
-            });
-
-        });
     }
 
 
@@ -226,21 +236,22 @@ public class PaymentGroupFunctionalTest {
             .s2sToken(SERVICE_TOKEN)
             .when().addNewFeeAndPaymentGroup(paymentGroupDto)
             .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
-            assertThat(paymentGroupFeeDto).isNotNull();
-            assertThat(paymentGroupFeeDto.getPaymentGroupReference()).isNotNull();
-            assertThat(paymentGroupFeeDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(paymentGroupDto);
+                assertThat(paymentGroupFeeDto).isNotNull();
+                assertThat(paymentGroupFeeDto.getPaymentGroupReference()).isNotNull();
+                assertThat(paymentGroupFeeDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(paymentGroupDto);
 
 
-            dsl.given().userToken(USER_TOKEN)
-                .s2sToken(SERVICE_TOKEN)
-                .when().createBulkScanPayment(bulkScanPaymentRequest, paymentGroupFeeDto.getPaymentGroupReference())
-                .then().gotCreated(PaymentDto.class, paymentDto -> {
-                assertThat(paymentDto.getReference()).isNotNull();
-                assertThat(paymentDto.getStatus()).isEqualToIgnoringCase("success");
-                assertThat(paymentDto.getPaymentGroupReference()).isEqualTo(paymentGroupFeeDto.getPaymentGroupReference());
+                dsl.given().userToken(USER_TOKEN)
+                    .s2sToken(SERVICE_TOKEN)
+                    .when().createBulkScanPayment(bulkScanPaymentRequest, paymentGroupFeeDto.getPaymentGroupReference())
+                    .then().gotCreated(PaymentDto.class, paymentDto -> {
+                        paymentReference = paymentDto.getReference();
+                        assertThat(paymentDto.getReference()).isNotNull();
+                        assertThat(paymentDto.getStatus()).isEqualToIgnoringCase("success");
+                        assertThat(paymentDto.getPaymentGroupReference()).isEqualTo(paymentGroupFeeDto.getPaymentGroupReference());
+                    });
+
             });
-
-        });
 
     }
 
@@ -275,58 +286,59 @@ public class PaymentGroupFunctionalTest {
             .fees(fees)
             .build();
 
-        AtomicReference<String> paymentReference = new AtomicReference<>();
+        AtomicReference<String> paymentRef = new AtomicReference<>();
 
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .when().addNewFeeAndPaymentGroup(paymentGrpDto)
             .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
-            assertThat(paymentGroupFeeDto).isNotNull();
-            assertThat(paymentGroupFeeDto.getPaymentGroupReference()).isNotNull();
-            assertThat(paymentGroupFeeDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(paymentGrpDto);
+                assertThat(paymentGroupFeeDto).isNotNull();
+                assertThat(paymentGroupFeeDto.getPaymentGroupReference()).isNotNull();
+                assertThat(paymentGroupFeeDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(paymentGrpDto);
 
 
-            dsl.given().userToken(USER_TOKEN)
-                .s2sToken(SERVICE_TOKEN)
-                .when().createBulkScanPayment(bulkScanPaymentRequest, paymentGroupFeeDto.getPaymentGroupReference())
-                .then().gotCreated(PaymentDto.class, paymentDto -> {
-                assertThat(paymentDto.getReference()).isNotNull();
-                assertThat(paymentDto.getStatus()).isEqualToIgnoringCase("success");
-                assertThat(paymentDto.getPaymentGroupReference()).isEqualTo(paymentGroupFeeDto.getPaymentGroupReference());
-                paymentReference.set(paymentDto.getReference());
+                dsl.given().userToken(USER_TOKEN)
+                    .s2sToken(SERVICE_TOKEN)
+                    .when().createBulkScanPayment(bulkScanPaymentRequest, paymentGroupFeeDto.getPaymentGroupReference())
+                    .then().gotCreated(PaymentDto.class, paymentDto -> {
+                        paymentReference = paymentDto.getReference();
+                        assertThat(paymentDto.getReference()).isNotNull();
+                        assertThat(paymentDto.getStatus()).isEqualToIgnoringCase("success");
+                        assertThat(paymentDto.getPaymentGroupReference()).isEqualTo(paymentGroupFeeDto.getPaymentGroupReference());
+                        paymentRef.set(paymentDto.getReference());
+                    });
             });
-        });
 
         // TEST retrieve payments, remissions and fees by payment-group-reference
-        dsl.given().userToken(USER_TOKEN_PAYMENT)
+        dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .when().getPaymentGroups(ccdCaseNumber)
             .then().getPaymentGroups((paymentGroupsResponse -> {
-            paymentGroupsResponse.getPaymentGroups().stream()
-                .filter(paymentGroupDto -> paymentGroupDto.getPayments().get(0).getReference()
-                    .equalsIgnoreCase(paymentReference.get()))
-                .forEach(paymentGroupDto -> {
+                paymentGroupsResponse.getPaymentGroups().stream()
+                    .filter(paymentGroupDto -> paymentGroupDto.getPayments().get(0).getReference()
+                        .equalsIgnoreCase(paymentRef.get()))
+                    .forEach(paymentGroupDto -> {
 
-                    boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature", false);
-                    if (apportionFeature) {
-                        paymentGroupDto.getFees().stream()
-                            .filter(fee -> fee.getCode().equalsIgnoreCase("FEE0271"))
-                            .forEach(fee -> {
-                                assertEquals(BigDecimal.valueOf(0).intValue(), fee.getAmountDue().intValue());
-                            });
-                        paymentGroupDto.getFees().stream()
-                            .filter(fee -> fee.getCode().equalsIgnoreCase("FEE0272"))
-                            .forEach(fee -> {
-                                assertEquals(BigDecimal.valueOf(0).intValue(), fee.getAmountDue().intValue());
-                            });
-                        paymentGroupDto.getFees().stream()
-                            .filter(fee -> fee.getCode().equalsIgnoreCase("FEE0273"))
-                            .forEach(fee -> {
-                                assertEquals(BigDecimal.valueOf(0).intValue(), fee.getAmountDue().intValue());
-                            });
-                    }
-                });
-        }));
+                        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature", false);
+                        if (apportionFeature) {
+                            paymentGroupDto.getFees().stream()
+                                .filter(fee -> fee.getCode().equalsIgnoreCase("FEE0271"))
+                                .forEach(fee -> {
+                                    assertEquals(BigDecimal.valueOf(0).intValue(), fee.getAmountDue().intValue());
+                                });
+                            paymentGroupDto.getFees().stream()
+                                .filter(fee -> fee.getCode().equalsIgnoreCase("FEE0272"))
+                                .forEach(fee -> {
+                                    assertEquals(BigDecimal.valueOf(0).intValue(), fee.getAmountDue().intValue());
+                                });
+                            paymentGroupDto.getFees().stream()
+                                .filter(fee -> fee.getCode().equalsIgnoreCase("FEE0273"))
+                                .forEach(fee -> {
+                                    assertEquals(BigDecimal.valueOf(0).intValue(), fee.getAmountDue().intValue());
+                                });
+                        }
+                    });
+            }));
     }
 
     @Test
@@ -353,20 +365,21 @@ public class PaymentGroupFunctionalTest {
             .s2sToken(SERVICE_TOKEN)
             .when().createBulkScanPaymentWithPaymentGroup(bulkScanPaymentRequest)
             .then().gotCreated(PaymentDto.class, paymentDto -> {
-            assertThat(paymentDto.getReference()).isNotNull();
-            assertThat(paymentDto.getStatus()).isEqualToIgnoringCase("success");
+                paymentReference = paymentDto.getReference();
+                assertThat(paymentDto.getReference()).isNotNull();
+                assertThat(paymentDto.getStatus()).isEqualToIgnoringCase("success");
 
-            dsl.given().userToken(USER_TOKEN)
-                .s2sToken(SERVICE_TOKEN)
-                .when().getRemissions(paymentDto.getPaymentGroupReference())
-                .then().got(PaymentGroupDto.class, paymentGroupDto -> {
-                assertThat(paymentGroupDto).isNotNull();
-                assertThat(paymentGroupDto.getPayments().get(0)).isEqualToComparingOnlyGivenFields(bulkScanPaymentRequest);
-                assertThat(paymentGroupDto.getFees().size()).isEqualTo(0);
+                dsl.given().userToken(USER_TOKEN)
+                    .s2sToken(SERVICE_TOKEN)
+                    .when().getRemissions(paymentDto.getPaymentGroupReference())
+                    .then().got(PaymentGroupDto.class, paymentGroupDto -> {
+                        assertThat(paymentGroupDto).isNotNull();
+                        assertThat(paymentGroupDto.getPayments().get(0)).isEqualToComparingOnlyGivenFields(bulkScanPaymentRequest);
+                        assertThat(paymentGroupDto.getFees().size()).isEqualTo(0);
+
+                    });
 
             });
-
-        });
 
     }
 
@@ -389,33 +402,33 @@ public class PaymentGroupFunctionalTest {
             .s2sToken(SERVICE_TOKEN)
             .when().addNewFeeAndPaymentGroup(getPaymentFeeGroupRequest())
             .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
-            assertThat(paymentGroupFeeDto).isNotNull();
-            assertThat(paymentGroupFeeDto.getPaymentGroupReference()).isNotNull();
-            assertThat(paymentGroupFeeDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(getPaymentFeeGroupRequest());
+                assertThat(paymentGroupFeeDto).isNotNull();
+                assertThat(paymentGroupFeeDto.getPaymentGroupReference()).isNotNull();
+                assertThat(paymentGroupFeeDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(getPaymentFeeGroupRequest());
 
-            String paymentGroupReference = paymentGroupFeeDto.getPaymentGroupReference();
-            FeeDto feeDto1 = paymentGroupFeeDto.getFees().get(0);
-            Integer feeId = feeDto1.getId();
+                String paymentGroupReference = paymentGroupFeeDto.getPaymentGroupReference();
+                FeeDto feeDto1 = paymentGroupFeeDto.getFees().get(0);
+                Integer feeId = feeDto1.getId();
 
-            // TEST create retrospective remission
-            dsl.given().userToken(USER_TOKEN)
-                .s2sToken(SERVICE_TOKEN)
-                .when().createRetrospectiveRemission(remissionRequest, paymentGroupReference, feeId)
-                .then().gotCreated(RemissionDto.class, remissionDto -> {
-                assertThat(remissionDto).isNotNull();
-                assertThat(remissionDto.getPaymentGroupReference()).isEqualTo(paymentGroupReference);
-                assertThat(remissionDto.getRemissionReference().matches(REMISSION_REFERENCE_REGEX)).isTrue();
+                // TEST create retrospective remission
+                dsl.given().userToken(USER_TOKEN)
+                    .s2sToken(SERVICE_TOKEN)
+                    .when().createRetrospectiveRemission(remissionRequest, paymentGroupReference, feeId)
+                    .then().gotCreated(RemissionDto.class, remissionDto -> {
+                        assertThat(remissionDto).isNotNull();
+                        assertThat(remissionDto.getPaymentGroupReference()).isEqualTo(paymentGroupReference);
+                        assertThat(remissionDto.getRemissionReference().matches(REMISSION_REFERENCE_REGEX)).isTrue();
+                    });
+
+                // TEST retrieve payments, remissions and fees by payment-group-reference
+                dsl.given().userToken(USER_TOKEN)
+                    .s2sToken(SERVICE_TOKEN)
+                    .when().getPaymentGroups(ccdCaseNumber)
+                    .then().getPaymentGroups((paymentGroupsResponse -> {
+                        Assertions.assertThat(paymentGroupsResponse.getPaymentGroups().size()).isEqualTo(1);
+                    }));
+
             });
-
-            // TEST retrieve payments, remissions and fees by payment-group-reference
-            dsl.given().userToken(USER_TOKEN)
-                .s2sToken(SERVICE_TOKEN)
-                .when().getPaymentGroups(ccdCaseNumber)
-                .then().getPaymentGroups((paymentGroupsResponse -> {
-                Assertions.assertThat(paymentGroupsResponse.getPaymentGroups().size()).isEqualTo(1);
-            }));
-
-        });
     }
 
     @Test
@@ -463,49 +476,50 @@ public class PaymentGroupFunctionalTest {
             .when().addNewFeeAndPaymentGroup(getPaymentFeeGroupRequest())
             .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
 
-            // TEST create telephony card payment
-            dsl.given().userToken(USER_TOKEN)
-                .s2sToken(SERVICE_TOKEN)
-                .returnUrl("https://www.moneyclaims.service.gov.uk")
-                .when().createTelephonyPayment(telephonyPaymentRequest, paymentGroupFeeDto.getPaymentGroupReference())
-                .then().gotCreated(TelephonyCardPaymentsResponse.class, telephonyCardPaymentsResponse -> {
-                assertThat(telephonyCardPaymentsResponse).isNotNull();
-                assertThat(paymentGroupFeeDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(feeDto);
-                assertThat(telephonyCardPaymentsResponse.getPaymentReference().matches(PAYMENT_REFERENCE_REGEX)).isTrue();
-
-                String paymentGroupReference = paymentGroupFeeDto.getPaymentGroupReference();
-                FeeDto feeDto1 = paymentGroupFeeDto.getFees().get(0);
-                Integer feeId = feeDto1.getId();
-
-                // TEST create retrospective remission
+                // TEST create telephony card payment
                 dsl.given().userToken(USER_TOKEN)
                     .s2sToken(SERVICE_TOKEN)
-                    .when().createRetrospectiveRemission(remissionRequest, paymentGroupReference, feeId)
-                    .then().gotCreated(RemissionDto.class, remissionDto -> {
-                    assertThat(remissionDto).isNotNull();
-                    assertThat(remissionDto.getPaymentGroupReference()).isEqualTo(paymentGroupReference);
-                    assertThat(remissionDto.getRemissionReference().matches(REMISSION_REFERENCE_REGEX)).isTrue();
-                });
+                    .returnUrl("https://www.moneyclaims.service.gov.uk")
+                    .when().createTelephonyPayment(telephonyPaymentRequest, paymentGroupFeeDto.getPaymentGroupReference())
+                    .then().gotCreated(TelephonyCardPaymentsResponse.class, telephonyCardPaymentsResponse -> {
+                        paymentReference = telephonyCardPaymentsResponse.getPaymentReference();
+                        assertThat(telephonyCardPaymentsResponse).isNotNull();
+                        assertThat(paymentGroupFeeDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(feeDto);
+                        assertThat(telephonyCardPaymentsResponse.getPaymentReference().matches(PAYMENT_REFERENCE_REGEX)).isTrue();
 
-                //Test add new Fee to payment group
-                dsl.given().userToken(USER_TOKEN)
-                    .s2sToken(SERVICE_TOKEN)
-                    .when().addNewFeetoExistingPaymentGroup(groupDto, paymentGroupReference)
-                    .then().got(PaymentGroupDto.class, paymentGroupFeeDto2 -> {
-                    assertThat(paymentGroupFeeDto2).isNotNull();
-                    assertThat(paymentGroupFeeDto2.getPaymentGroupReference()).isEqualTo(paymentGroupReference);
-                });
+                        String paymentGroupReference = paymentGroupFeeDto.getPaymentGroupReference();
+                        FeeDto feeDto1 = paymentGroupFeeDto.getFees().get(0);
+                        Integer feeId = feeDto1.getId();
 
-                // TEST retrieve payments, remissions and fees by payment-group-reference
-                dsl.given().userToken(USER_TOKEN)
-                    .s2sToken(SERVICE_TOKEN)
-                    .when().getPaymentGroups(ccdCaseNumber)
-                    .then().getPaymentGroups((paymentGroupsRes -> {
-                    Assertions.assertThat(paymentGroupsRes.getPaymentGroups().size()).isEqualTo(1);
-                }));
+                        // TEST create retrospective remission
+                        dsl.given().userToken(USER_TOKEN)
+                            .s2sToken(SERVICE_TOKEN)
+                            .when().createRetrospectiveRemission(remissionRequest, paymentGroupReference, feeId)
+                            .then().gotCreated(RemissionDto.class, remissionDto -> {
+                                assertThat(remissionDto).isNotNull();
+                                assertThat(remissionDto.getPaymentGroupReference()).isEqualTo(paymentGroupReference);
+                                assertThat(remissionDto.getRemissionReference().matches(REMISSION_REFERENCE_REGEX)).isTrue();
+                            });
 
+                        //Test add new Fee to payment group
+                        dsl.given().userToken(USER_TOKEN)
+                            .s2sToken(SERVICE_TOKEN)
+                            .when().addNewFeetoExistingPaymentGroup(groupDto, paymentGroupReference)
+                            .then().got(PaymentGroupDto.class, paymentGroupFeeDto2 -> {
+                                assertThat(paymentGroupFeeDto2).isNotNull();
+                                assertThat(paymentGroupFeeDto2.getPaymentGroupReference()).isEqualTo(paymentGroupReference);
+                            });
+
+                        // TEST retrieve payments, remissions and fees by payment-group-reference
+                        dsl.given().userToken(USER_TOKEN)
+                            .s2sToken(SERVICE_TOKEN)
+                            .when().getPaymentGroups(ccdCaseNumber)
+                            .then().getPaymentGroups((paymentGroupsRes -> {
+                                Assertions.assertThat(paymentGroupsRes.getPaymentGroups().size()).isEqualTo(1);
+                            }));
+
+                    });
             });
-        });
     }
 
     @Test
@@ -552,22 +566,23 @@ public class PaymentGroupFunctionalTest {
             .s2sToken(SERVICE_TOKEN)
             .when().addNewFeeAndPaymentGroup(groupDto)
             .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
-            assertThat(paymentGroupFeeDto).isNotNull();
+                assertThat(paymentGroupFeeDto).isNotNull();
 
-            String paymentGroupReference = paymentGroupFeeDto.getPaymentGroupReference();
+                String paymentGroupReference = paymentGroupFeeDto.getPaymentGroupReference();
 
-            dsl.given().userToken(USER_TOKEN)
-                .s2sToken(SERVICE_TOKEN)
-                .returnUrl("https://www.moneyclaims.service.gov.uk")
-                .when().createTelephonyPayment(telephonyPaymentRequest, paymentGroupReference)
-                .then().gotCreated(TelephonyCardPaymentsResponse.class, telephonyCardPaymentsResponse -> {
-                assertThat(telephonyCardPaymentsResponse).isNotNull();
-                assertThat(telephonyCardPaymentsResponse.getPaymentReference().matches(PAYMENT_REFERENCE_REGEX)).isTrue();
-                assertThat(telephonyCardPaymentsResponse.getStatus()).isEqualTo("Initiated");
+                dsl.given().userToken(USER_TOKEN)
+                    .s2sToken(SERVICE_TOKEN)
+                    .returnUrl("https://www.moneyclaims.service.gov.uk")
+                    .when().createTelephonyPayment(telephonyPaymentRequest, paymentGroupReference)
+                    .then().gotCreated(TelephonyCardPaymentsResponse.class, telephonyCardPaymentsResponse -> {
+                        paymentReference = telephonyCardPaymentsResponse.getPaymentReference();
+                        assertThat(telephonyCardPaymentsResponse).isNotNull();
+                        assertThat(telephonyCardPaymentsResponse.getPaymentReference().matches(PAYMENT_REFERENCE_REGEX)).isTrue();
+                        assertThat(telephonyCardPaymentsResponse.getStatus()).isEqualTo("Initiated");
+
+                    });
 
             });
-
-        });
 
     }
 
@@ -602,21 +617,22 @@ public class PaymentGroupFunctionalTest {
             .s2sToken(SERVICE_TOKEN)
             .when().addNewFeeAndPaymentGroup(groupDto)
             .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
-            assertThat(paymentGroupFeeDto).isNotNull();
+                assertThat(paymentGroupFeeDto).isNotNull();
 
-            String paymentGroupReference = paymentGroupFeeDto.getPaymentGroupReference();
+                String paymentGroupReference = paymentGroupFeeDto.getPaymentGroupReference();
 
-            dsl.given().userToken(USER_TOKEN)
-                .s2sToken(SERVICE_TOKEN)
-                .returnUrl("https://google.co.uk")
-                .when().createTelephonyPayment(telephonyCardPaymentsRequest, paymentGroupReference)
-                .then().gotCreated(TelephonyCardPaymentsResponse.class, telephonyCardPaymentsResponse -> {
-                assertThat(telephonyCardPaymentsResponse).isNotNull();
-                assertThat(telephonyCardPaymentsResponse.getPaymentReference().matches(PAYMENT_REFERENCE_REGEX)).isTrue();
-                assertThat(telephonyCardPaymentsResponse.getStatus()).isEqualTo("Initiated");
+                dsl.given().userToken(USER_TOKEN)
+                    .s2sToken(SERVICE_TOKEN)
+                    .returnUrl("https://google.co.uk")
+                    .when().createTelephonyPayment(telephonyCardPaymentsRequest, paymentGroupReference)
+                    .then().gotCreated(TelephonyCardPaymentsResponse.class, telephonyCardPaymentsResponse -> {
+                        paymentReference = telephonyCardPaymentsResponse.getPaymentReference();
+                        assertThat(telephonyCardPaymentsResponse).isNotNull();
+                        assertThat(telephonyCardPaymentsResponse.getPaymentReference().matches(PAYMENT_REFERENCE_REGEX)).isTrue();
+                        assertThat(telephonyCardPaymentsResponse.getStatus()).isEqualTo("Initiated");
 
+                    });
             });
-        });
 
     }
 
@@ -665,5 +681,19 @@ public class PaymentGroupFunctionalTest {
             .build();
     }
 
+    @After
+    public void deletePayment() {
+        if (paymentReference != null) {
+            // delete payment record
+            paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentReference).then().statusCode(NO_CONTENT.value());
+        }
+    }
 
+    @AfterClass
+    public static void tearDown() {
+        if (!userEmails.isEmpty()) {
+            // delete idam test user
+            userEmails.forEach(IdamService::deleteUser);
+        }
+    }
 }

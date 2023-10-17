@@ -1,6 +1,8 @@
 package uk.gov.hmcts.payment.functional;
 
 import io.restassured.response.Response;
+import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -18,25 +20,26 @@ import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
 import uk.gov.hmcts.payment.api.dto.RefundResponse;
 import uk.gov.hmcts.payment.api.dto.TelephonyCallbackDto;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
+import uk.gov.hmcts.payment.functional.config.ValidUser;
 import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
 import uk.gov.hmcts.payment.functional.fixture.PaymentFixture;
 import uk.gov.hmcts.payment.functional.idam.IdamService;
+import uk.gov.hmcts.payment.functional.idam.models.User;
 import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
 import uk.gov.hmcts.payment.functional.service.CaseTestService;
 import uk.gov.hmcts.payment.functional.service.PaymentTestService;
 
 import javax.inject.Inject;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Locale;
-import java.util.Random;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
-import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CASE_WORKER_GROUP;
-import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
 
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
@@ -45,8 +48,6 @@ import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP
 public class RefundsRequestorJourneyTelephonyPaymentFunctionalTest {
 
     private static String USER_TOKEN;
-    private static String USER_TOKEN_PAYMENT;
-    private static String USER_TOKEN_CMC_CITIZEN;
     private static String SERVICE_TOKEN;
     private static String SERVICE_TOKEN_PAYMENT;
     private static String USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE;
@@ -76,24 +77,22 @@ public class RefundsRequestorJourneyTelephonyPaymentFunctionalTest {
     @Autowired
     private PaymentsTestDsl dsl;
 
-    /*@Autowired
-    @Qualifier("paymentServiceImpl")
-    private PaymentService paymentService;*/
+    private static List<String> userEmails = new ArrayList<>();
+    private String paymentReference;
+    private String refundReference;
 
     @Before
     public void setUp() throws Exception {
 
         if (!TOKENS_INITIALIZED) {
-            USER_TOKEN = idamService.createUserWith(CMC_CASE_WORKER_GROUP, "caseworker-cmc-solicitor")
-                .getAuthorisationToken();
+            User user1 = idamService.createUserWith("caseworker-cmc-solicitor");
+            USER_TOKEN = user1.getAuthorisationToken();
+            userEmails.add(user1.getEmail());
             SERVICE_TOKEN = s2sTokenService.getS2sToken(testProps.s2sServiceName, testProps.s2sServiceSecret);
 
-            USER_TOKEN_CMC_CITIZEN = idamService.createUserWith(CMC_CITIZEN_GROUP, "citizen").getAuthorisationToken();
-            USER_TOKEN_PAYMENT = idamService.createUserWith(CMC_CITIZEN_GROUP, "payments").getAuthorisationToken();
-
-            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE =
-                idamService.createUserWithSearchScope(CMC_CASE_WORKER_GROUP, "payments-refund", "payments-refund-divorce")
-                    .getAuthorisationToken();
+            ValidUser user2 = idamService.createUserWithSearchScope("payments-refund", "payments-refund-divorce");
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE = user2.getAuthorisationToken();
+            userEmails.add(user2.getEmail());
             SERVICE_TOKEN_PAYMENT = s2sTokenService.getS2sToken("ccpay_bubble", testProps.payBubbleS2SSecret);
             TOKENS_INITIALIZED = true;
         }
@@ -125,8 +124,6 @@ public class RefundsRequestorJourneyTelephonyPaymentFunctionalTest {
         PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
                 .fees(Arrays.asList(feeDto)).build();
 
-        AtomicReference<String> paymentReference = new AtomicReference<>();
-
         dsl.given().userToken(USER_TOKEN)
                 .s2sToken(SERVICE_TOKEN)
                 .when().addNewFeeAndPaymentGroup(groupDto)
@@ -144,11 +141,11 @@ public class RefundsRequestorJourneyTelephonyPaymentFunctionalTest {
                 assertThat(telephonyCardPaymentsResponse.getPaymentReference().matches(PAYMENT_REFERENCE_REGEX))
                         .isTrue();
                 assertThat(telephonyCardPaymentsResponse.getStatus()).isEqualTo("Initiated");
-                paymentReference.set(telephonyCardPaymentsResponse.getPaymentReference());
+                paymentReference = telephonyCardPaymentsResponse.getPaymentReference();
             });
             // pci-pal callback
             TelephonyCallbackDto callbackDto = TelephonyCallbackDto.telephonyCallbackWith()
-                    .orderReference(paymentReference.get())
+                    .orderReference(paymentReference)
                     .orderAmount("550")
                     .transactionResult("SUCCESS")
                     .build();
@@ -163,26 +160,22 @@ public class RefundsRequestorJourneyTelephonyPaymentFunctionalTest {
 
         // Get pba payment by reference
         PaymentDto paymentsResponse =
-            paymentTestService.getPayments(USER_TOKEN, SERVICE_TOKEN, paymentReference.get()).then()
+            paymentTestService.getPayments(USER_TOKEN, SERVICE_TOKEN, paymentReference).then()
                 .statusCode(OK.value()).extract().as(PaymentDto.class);
         int paymentId = paymentsResponse.getFees().get(0).getId();
         // initiate the refund
         PaymentRefundRequest paymentRefundRequest
-                = PaymentFixture.aRefundRequest(paymentId, "RR001", paymentReference.get(), "550.00", "550");
+                = PaymentFixture.aRefundRequest(paymentId, "RR001", paymentReference, "550.00", "550");
         Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
                 SERVICE_TOKEN_PAYMENT,
                 paymentRefundRequest);
 
         assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
         RefundResponse refundResponseFromPost = refundResponse.getBody().as(RefundResponse.class);
+        refundReference = refundResponseFromPost.getRefundReference();
         assertThat(refundResponseFromPost.getRefundAmount()).isEqualTo(new BigDecimal("550.00"));
-        assertThat(REFUNDS_REGEX_PATTERN.matcher(refundResponseFromPost.getRefundReference()).matches())
+        assertThat(REFUNDS_REGEX_PATTERN.matcher(refundReference).matches())
                 .isEqualTo(true);
-
-        // Delete refund record
-        paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN,
-                refundResponseFromPost.getRefundReference());
-
     }
 
     @Test
@@ -210,8 +203,6 @@ public class RefundsRequestorJourneyTelephonyPaymentFunctionalTest {
         PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
                 .fees(Arrays.asList(feeDto)).build();
 
-        AtomicReference<String> paymentReference = new AtomicReference<>();
-
         dsl.given().userToken(USER_TOKEN)
                 .s2sToken(SERVICE_TOKEN)
                 .when().addNewFeeAndPaymentGroup(groupDto)
@@ -229,11 +220,11 @@ public class RefundsRequestorJourneyTelephonyPaymentFunctionalTest {
                 assertThat(telephonyCardPaymentsResponse.getPaymentReference().matches(PAYMENT_REFERENCE_REGEX))
                         .isTrue();
                 assertThat(telephonyCardPaymentsResponse.getStatus()).isEqualTo("Initiated");
-                paymentReference.set(telephonyCardPaymentsResponse.getPaymentReference());
+                paymentReference = telephonyCardPaymentsResponse.getPaymentReference();
             });
             // pci-pal callback
             TelephonyCallbackDto callbackDto = TelephonyCallbackDto.telephonyCallbackWith()
-                    .orderReference(paymentReference.get())
+                    .orderReference(paymentReference)
                     .orderAmount("550")
                     .transactionResult("SUCCESS")
                     .build();
@@ -248,19 +239,39 @@ public class RefundsRequestorJourneyTelephonyPaymentFunctionalTest {
 
         // Get pba payment by reference
         PaymentDto paymentsResponse =
-            paymentTestService.getPayments(USER_TOKEN, SERVICE_TOKEN, paymentReference.get()).then()
+            paymentTestService.getPayments(USER_TOKEN, SERVICE_TOKEN, paymentReference).then()
                 .statusCode(OK.value()).extract().as(PaymentDto.class);
         int paymentId = paymentsResponse.getFees().get(0).getId();
         // initiate the refund
         PaymentRefundRequest paymentRefundRequest
-            = PaymentFixture.aRefundRequest(paymentId, "RR001", paymentReference.get(), "550", "550");
+            = PaymentFixture.aRefundRequest(paymentId, "RR001", paymentReference, "550", "550");
         Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentRefundRequest);
 
         assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
         assertThat(refundResponse.getBody().asString()).isEqualTo("This payment is not yet eligible for refund");
+    }
 
+    @After
+    public void deletePayment() {
+        if (refundReference != null) {
+            //delete refund record
+            paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN, refundReference);
+        }
+
+        if (paymentReference != null) {
+            // delete payment record
+            paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentReference).then().statusCode(NO_CONTENT.value());
+        }
+    }
+
+    @AfterClass
+    public static void tearDown() {
+        if (!userEmails.isEmpty()) {
+            // delete idam test user
+            userEmails.forEach(IdamService::deleteUser);
+        }
     }
 
 }

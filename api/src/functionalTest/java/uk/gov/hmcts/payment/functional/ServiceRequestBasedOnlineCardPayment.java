@@ -2,6 +2,8 @@ package uk.gov.hmcts.payment.functional;
 
 import io.restassured.response.Response;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
+import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -19,18 +21,20 @@ import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
 import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
 import uk.gov.hmcts.payment.functional.fixture.ServiceRequestFixture;
 import uk.gov.hmcts.payment.functional.idam.IdamService;
+import uk.gov.hmcts.payment.functional.idam.models.User;
 import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
+import uk.gov.hmcts.payment.functional.service.PaymentTestService;
 import uk.gov.hmcts.payment.functional.service.ServiceRequestTestService;
 
 import javax.inject.Inject;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Pattern;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
-import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CASE_WORKER_GROUP;
-import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 @RunWith(SpringIntegrationSerenityRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
@@ -51,12 +55,13 @@ public class ServiceRequestBasedOnlineCardPayment {
 
     @Autowired
     private PaymentsTestDsl dsl;
-
+    @Autowired
+    private PaymentTestService paymentTestService;
+    private static List<String> userEmails = new ArrayList<>();
+    private String paymentReference;
 
     private static String USER_TOKEN_PAYMENT;
     private static String SERVICE_TOKEN;
-    private static String USER_TOKEN_CMC_CITIZEN;
-    private static String USER_TOKEN_CMC_SOLICITOR;
     private static boolean TOKENS_INITIALIZED = false;
     private static final Pattern SERVICE_REQUEST_REGEX_PATTERN =
         Pattern.compile("^(" + LocalDate.now().getYear() + ")-([0-9]{13})$");
@@ -69,11 +74,9 @@ public class ServiceRequestBasedOnlineCardPayment {
     @Before
     public void setUp() throws Exception {
         if (!TOKENS_INITIALIZED) {
-            USER_TOKEN_PAYMENT = idamService.createUserWith(CMC_CITIZEN_GROUP, "payments").getAuthorisationToken();
-            USER_TOKEN_CMC_CITIZEN = idamService.createUserWith(CMC_CITIZEN_GROUP, "citizen").getAuthorisationToken();
-            USER_TOKEN_CMC_SOLICITOR =
-                idamService.createUserWith(CMC_CASE_WORKER_GROUP, "caseworker-cmc-solicitor").getAuthorisationToken();
-
+            User user = idamService.createUserWith("payments");
+            USER_TOKEN_PAYMENT = user.getAuthorisationToken();
+            userEmails.add(user.getEmail());
             SERVICE_TOKEN = s2sTokenService.getS2sToken(testProps.s2sServiceName, testProps.s2sServiceSecret);
             TOKENS_INITIALIZED = true;
         }
@@ -155,6 +158,7 @@ public class ServiceRequestBasedOnlineCardPayment {
         OnlineCardPaymentResponse onlineCardPaymentResponse =
             createOnlineCardPaymentResponse.getBody().as(OnlineCardPaymentResponse.class);
         final String initialPaymentReference = onlineCardPaymentResponse.getPaymentReference();
+        paymentReference = initialPaymentReference;
         assertThat(initialPaymentReference).matches(PAYMENTS_REGEX_PATTERN);
         assertThat(onlineCardPaymentResponse.getStatus()).isEqualTo("Initiated");
 
@@ -218,7 +222,7 @@ public class ServiceRequestBasedOnlineCardPayment {
         assertThat(createOnlineCardPaymentResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
         OnlineCardPaymentResponse onlineCardPaymentResponse =
             createOnlineCardPaymentResponse.getBody().as(OnlineCardPaymentResponse.class);
-        final String paymentReference = onlineCardPaymentResponse.getPaymentReference();
+        paymentReference = onlineCardPaymentResponse.getPaymentReference();
         assertThat(paymentReference).matches(PAYMENTS_REGEX_PATTERN);
         assertThat(onlineCardPaymentResponse.getStatus()).isEqualTo("Initiated");
         assertThat(onlineCardPaymentResponse.getNextUrl()).startsWith("https://card.payments.service.gov.uk/secure/");
@@ -260,5 +264,21 @@ public class ServiceRequestBasedOnlineCardPayment {
         assertThat(getOnlineCardPaymentResponse.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN.value());
         //Error message not checked here as the Bosy could not be populated due to outstanding 417 Unit Tests to be fixed for this to be properly reported
         //assertThat(getOnlineCardPaymentResponse.getBody().asString()).isEqualTo("Invalid Service Token");
+    }
+
+    @After
+    public void deletePayment() {
+        if (paymentReference != null) {
+            // delete payment record
+            paymentTestService.deletePayment(USER_TOKEN_PAYMENT, SERVICE_TOKEN, paymentReference).then().statusCode(NO_CONTENT.value());
+        }
+    }
+
+    @AfterClass
+    public static void tearDown() {
+        if (!userEmails.isEmpty()) {
+            // delete idam test user
+            userEmails.forEach(IdamService::deleteUser);
+        }
     }
 }
