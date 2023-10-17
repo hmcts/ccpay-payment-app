@@ -160,6 +160,15 @@
     </suppress>
     <suppress until="2023-10-30">
         <notes>
+            Incomplete Cleanup vulnerability in Apache Tomcat.When recycling various internal objects in Apache Tomcat from 11.0.0-M1 through 11.0.0-M11,
+            from 10.1.0-M1 through 10.1.13, from 9.0.0-M1 through 9.0.80 and from 8.5.0 through 8.5.93, an error could cause Tomcat to skip some parts of
+            the recycling process leading to information leaking from the current request/response to the next.
+        </notes>
+        <cve>CVE-2023-42795</cve>
+        <cve>CVE-2023-45648</cve>
+    </suppress>
+    <suppress until="2023-10-30">
+        <notes>
             commons-fileupload need major version upgrade.
         </notes>
         <cve>CVE-2023-24998</cve>
