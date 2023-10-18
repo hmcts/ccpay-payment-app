@@ -63,6 +63,9 @@ module "payment-database-v11" {
 }
 
 module "payment-database-v15" {
+  providers = {
+    azurerm.postgres_network = azurerm.postgres_network
+  }
   source = "git@github.com:hmcts/terraform-module-postgresql-flexible?ref=master"
   product = var.product
   component = var.component
