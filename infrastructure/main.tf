@@ -87,7 +87,6 @@ module "payment-database-v15" {
       ]
   sku_name = var.flexible_sku_name
   common_tags = var.common_tags
-  subscription = var.subscription
   postgresql_version = var.postgresql_flexible_sql_version
 }
 
