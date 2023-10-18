@@ -86,6 +86,7 @@ module "payment-database-v15" {
         }
       ]
   pgsql_sku = var.flexible_sku_name
+  admin_user_object_id = var.jenkins_AAD_objectId
   common_tags = var.common_tags
   pgsql_version = var.postgresql_flexible_sql_version
 }
