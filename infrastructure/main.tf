@@ -85,9 +85,9 @@ module "payment-database-v15" {
           value = "plpgsql,pg_stat_statements,pg_buffercache,hypopg"
         }
       ]
-  sku_name = var.flexible_sku_name
+  pgsql_sku = var.flexible_sku_name
   common_tags = var.common_tags
-  postgresql_version = var.postgresql_flexible_sql_version
+  pgsql_version = var.postgresql_flexible_sql_version
 }
 
 # Populate Vault with DB info
