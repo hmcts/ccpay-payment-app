@@ -126,13 +126,13 @@ resource "azurerm_key_vault_secret" "POSTGRES_DATABASE" {
 
 resource "azurerm_key_vault_secret" "POSTGRES-USER-V15" {
   name      = join("-", [var.component, "POSTGRES-USER-V15"])
-  value     = module.payment-database-v15.user_name
+  value     = module.payment-database-v15.username
   key_vault_id = data.azurerm_key_vault.payment_key_vault.id
 }
 
 resource "azurerm_key_vault_secret" "POSTGRES-PASS-V15" {
   name      = join("-", [var.component, "POSTGRES-PASS-V15"])
-  value     = module.payment-database-v15.postgresql_password
+  value     = module.payment-database-v15.password
   key_vault_id = data.azurerm_key_vault.payment_key_vault.id
 }
 
