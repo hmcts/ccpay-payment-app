@@ -282,5 +282,11 @@
         </notes>
         <cve>CVE-2023-45648</cve>
     </suppress>
+    <suppress>
+        <notes>
+            The HTTP/2 protocol denial of service
+        </notes>
+        <cve>CVE-2023-44487</cve>
+    </suppress>
     <!-- Supression Group ends here -->
 </suppressions>
