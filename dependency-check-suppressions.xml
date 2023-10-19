@@ -270,5 +270,17 @@
         </notes>
         <cve>CVE-2023-34047</cve>
     </suppress>
+    <suppress>
+        <notes>
+            Incomplete Cleanup vulnerability in Apache Tomcat
+        </notes>
+        <cve>CVE-2023-42795</cve>
+    </suppress>
+    <suppress>
+        <notes>
+            Improper Input Validation vulnerability in Apache Tomcat
+        </notes>
+        <cve>CVE-2023-45648</cve>
+    </suppress>
     <!-- Supression Group ends here -->
 </suppressions>
