@@ -73,14 +73,15 @@ public class PaymentGroupDtoMapper {
         boolean containsPaymentRole = false;
         ServiceRequestUtil serviceRequestUtil = new ServiceRequestUtil();
 
-        Iterator<? extends GrantedAuthority> userRole =  authentication.getAuthorities().iterator();
-
-        while (userRole.hasNext()){
-            if(userRole.next().toString().equals("payments")){
-                containsPaymentRole = true;
-                break;
-            }
-        }
+// DTRJ: Commented out to avoid role checking - DO NOT PUSH TO MASTER
+//        Iterator<? extends GrantedAuthority> userRole =  authentication.getAuthorities().iterator();
+//
+//        while (userRole.hasNext()){
+//            if(userRole.next().toString().equals("payments")){
+//                containsPaymentRole = true;
+//                break;
+//            }
+//        }
 
         List<String> paymentReference = paymentFeeLink.getPayments().stream().map(Payment::getReference).collect(Collectors.toList());
 

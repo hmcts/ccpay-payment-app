@@ -65,11 +65,15 @@ public class RefundRemissionEnableServiceImpl implements RefundRemissionEnableSe
             LOG.info("refundEligibleDate--->  {}",refundEligibleDate);
             LOG.info("isRoles--->  {}",isRoles);
 
-            return payment.getPaymentStatus().getName().equalsIgnoreCase(STATUS) && refundEligibleDate
-                && validateRefundRoleWithServiceName(payment.getPaymentLink().getEnterpriseServiceName());
+// DTRJ: Commented out to avoid role checking - DO NOT PUSH TO MASTER
+//            return payment.getPaymentStatus().getName().equalsIgnoreCase(STATUS) && refundEligibleDate
+//                && validateRefundRoleWithServiceName(payment.getPaymentLink().getEnterpriseServiceName());
+            return payment.getPaymentStatus().getName().equalsIgnoreCase(STATUS) && refundEligibleDate;
         }
         else{
-            return payment.getPaymentStatus().getName().equalsIgnoreCase(STATUS) && validateRefundRoleWithServiceName(payment.getPaymentLink().getEnterpriseServiceName());
+            // DTRJ: Commented out to avoid role checking - DO NOT PUSH TO MASTER
+            // return payment.getPaymentStatus().getName().equalsIgnoreCase(STATUS) && validateRefundRoleWithServiceName(payment.getPaymentLink().getEnterpriseServiceName());
+            return payment.getPaymentStatus().getName().equalsIgnoreCase(STATUS);
         }
 
     }

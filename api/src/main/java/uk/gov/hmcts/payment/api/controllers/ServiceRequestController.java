@@ -53,6 +53,7 @@ import javax.validation.Valid;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -162,20 +163,29 @@ public class ServiceRequestController {
         val requestHashCode = serviceRequestPaymentDto.hashCodeWithServiceRequestReference(serviceRequestReference);
         val conflictResponse = new ResponseEntity("Payment already present for idempotency key with different payment details", HttpStatus.CONFLICT); // 409 if hashcode not matched
 
-        LOG.error("PBA payment business validations for serviceRequest");
+        LOG.info("PBA payment business validations for serviceRequest");
         PaymentFeeLink serviceRequest = serviceRequestDomainService.businessValidationForServiceRequests(serviceRequestDomainService.find(serviceRequestReference), serviceRequestPaymentDto);
-        LOG.error("PBA payment idempotency validation");
+        LOG.info("PBA payment idempotency validation");
         val isAnotherPaymentForThisServiceRequest = idempotencyService.findTheRecordByRequestHashcode(requestHashCode);
         if (!isAnotherPaymentForThisServiceRequest.isEmpty() &&  IsAnyCreatedPaymentForThisServiceRequest(isAnotherPaymentForThisServiceRequest)) {
             return conflictResponse;
         }
 
+        // DTRJ - This is redundant, if the same key is added, it will have the same hash so will be trapped by the code above.
         Function<String, Optional<IdempotencyKeys>> getIdempotencyKey = idempotencyKeyToCheck -> idempotencyService.findTheRecordByIdempotencyKey(idempotencyKeyToCheck);
+
+        // DTRJ - Temp delay of 5 seconds - allows a new request to be made to replicate a duplicate payment.
+        try {
+            TimeUnit.SECONDS.sleep(5);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
 
         ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
         String serviceRequestStatusDisplay = ow.writeValueAsString(serviceRequestPaymentDto);
         LOG.info("Passed service Request Status Display PBA payment : {} ", serviceRequestStatusDisplay);
 
+        // Performs another check comparing
         Function<IdempotencyKeys, ResponseEntity<?>> validateHashcodeForRequest = idempotencyKeys -> {
 
             ServiceRequestPaymentBo responseBO;
