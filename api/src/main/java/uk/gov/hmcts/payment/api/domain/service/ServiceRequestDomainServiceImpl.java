@@ -8,6 +8,7 @@ import com.microsoft.azure.servicebus.primitives.ConnectionStringBuilder;
 import com.microsoft.azure.servicebus.primitives.ServiceBusException;
 import com.netflix.hystrix.exception.HystrixRuntimeException;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
+import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -362,7 +363,8 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     }
 
     public ResponseEntity createIdempotencyRecord(ObjectMapper objectMapper, String idempotencyKey, String serviceRequestReference,
-                                                  String responseJson, ResponseEntity<?> responseEntity, ServiceRequestPaymentDto serviceRequestPaymentDto) throws JsonProcessingException {
+                                                  String responseJson, IdempotencyKeys.ResponseStatusType responseStatus, ResponseEntity<?> responseEntity,
+                                                  ServiceRequestPaymentDto serviceRequestPaymentDto) throws JsonProcessingException {
         String requestJson = objectMapper.writeValueAsString(serviceRequestPaymentDto);
         int requestHashCode = serviceRequestPaymentDto.hashCodeWithServiceRequestReference(serviceRequestReference);
 
@@ -372,13 +374,20 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
             .requestBody(requestJson)
             .requestHashcode(requestHashCode)   //save the hashcode
             .responseBody(responseJson)
-            .responseCode(responseEntity.getStatusCodeValue())
+            .responseCode(responseEntity != null?responseEntity.getStatusCodeValue():null)
+            .responseStatus(responseStatus)
             .build();
 
         try {
-            Optional<IdempotencyKeys> idempotencyKeysRecord = idempotencyKeysRepository.findById(IdempotencyKeysPK.idempotencyKeysPKWith().idempotencyKey(idempotencyKey).requestHashcode(requestHashCode).build());
-            if (idempotencyKeysRecord.isPresent()) {
-                return new ResponseEntity<>(objectMapper.readValue(idempotencyKeysRecord.get().getResponseBody(), ServiceRequestPaymentBo.class), HttpStatus.valueOf(idempotencyKeysRecord.get().getResponseCode()));
+            Optional<IdempotencyKeys> idempotencyKeysRecord = idempotencyKeysRepository.findById(
+                IdempotencyKeysPK.idempotencyKeysPKWith().idempotencyKey(idempotencyKey).requestHashcode(requestHashCode).build());
+            if (idempotencyKeysRecord.isPresent()){
+                if (idempotencyKeysRecord.get().getResponseStatus().equals(IdempotencyKeys.ResponseStatusType.completed)) {
+                    return new ResponseEntity<>(objectMapper.readValue(idempotencyKeysRecord.get().getResponseBody(), ServiceRequestPaymentBo.class), HttpStatus.valueOf(idempotencyKeysRecord.get().getResponseCode()));
+                } else if (idempotencyKeysRecord.get().getResponseStatus().equals(IdempotencyKeys.ResponseStatusType.pending)) {
+                    // If saving again after the initial creation, then retain the date created.
+                    idempotencyRecord.setDateCreated(idempotencyKeysRecord.get().getDateCreated());
+                }
             }
             idempotencyKeysRepository.save(idempotencyRecord);
 

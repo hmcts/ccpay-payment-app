@@ -13,5 +13,4 @@ public interface IdempotencyKeysRepository extends CrudRepository<IdempotencyKey
     Optional<IdempotencyKeys> findByIdempotencyKey(String id);
 
     List<IdempotencyKeys> findByRequestHashcode(Integer requestHashcode);
-
 }

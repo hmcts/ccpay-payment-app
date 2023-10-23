@@ -203,7 +203,7 @@ public class ServiceRequestControllerTest {
 
         when(serviceRequestDomainService.addPayments(any(),any(),any())).thenReturn(serviceRequestPaymentBo);
 
-        when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any())).
+        when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any(),any())).
             thenReturn(responseEntity, responseEntity, responseEntity2,responseEntity3);
 
         ServiceRequestResponseDto serviceRequestResponseDtoSample = ServiceRequestResponseDto.serviceRequestResponseDtoWith()
@@ -310,7 +310,7 @@ public class ServiceRequestControllerTest {
 
         when(serviceRequestDomainService.addPayments(any(),any(),any())).thenReturn(serviceRequestPaymentBo);
 
-        when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any())).
+        when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any(),any())).
             thenReturn(responseEntity, responseEntity, responseEntity2,responseEntity3);
 
         ServiceRequestResponseDto serviceRequestResponseDtoSample = ServiceRequestResponseDto.serviceRequestResponseDtoWith()
@@ -381,7 +381,7 @@ public class ServiceRequestControllerTest {
 
         when(serviceRequestDomainService.addPayments(any(),any(),any())).thenReturn(serviceRequestPaymentBo);
 
-        when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any())).
+        when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any(),any())).
             thenReturn(responseEntity, responseEntity, responseEntity2,responseEntity3);
 
         ServiceRequestResponseDto serviceRequestResponseDtoSample = ServiceRequestResponseDto.serviceRequestResponseDtoWith()
@@ -425,7 +425,7 @@ public class ServiceRequestControllerTest {
 
         when(serviceRequestDomainService.addPayments(any(),any(),any())).thenReturn(serviceRequestPaymentBoSample);
 
-        when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any())).thenReturn(responseEntity);
+        when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any(),any())).thenReturn(responseEntity);
 
         ServiceRequestResponseDto serviceRequestResponseDtoSample = ServiceRequestResponseDto.serviceRequestResponseDtoWith()
             .serviceRequestReference("2021-1632746723494").build();
@@ -516,7 +516,7 @@ public class ServiceRequestControllerTest {
 
         when(serviceRequestDomainService.addPayments(any(),any(),any())).thenReturn(serviceRequestPaymentBo,serviceRequestPaymentBo2);
 
-        when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any())).thenReturn(responseEntity,responseEntity2);
+        when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any(),any())).thenReturn(responseEntity,responseEntity2);
 
         //ServiceRequest reference creation
         String idempotencyKey = UUID.randomUUID().toString();
@@ -601,7 +601,7 @@ public class ServiceRequestControllerTest {
 
         when(serviceRequestDomainService.addPayments(any(),any(),any())).thenReturn(serviceRequestPaymentBo,serviceRequestPaymentBo2);
 
-        when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any())).thenReturn(responseEntity,responseEntity2);
+        when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any(),any())).thenReturn(responseEntity,responseEntity2);
 
         //ServiceRequest reference creation
 
@@ -670,7 +670,7 @@ public class ServiceRequestControllerTest {
 
         when(serviceRequestDomainService.addPayments(any(),any(),any())).thenReturn(serviceRequestPaymentBo,serviceRequestPaymentBo2);
 
-        when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any())).thenReturn(responseEntity,responseEntity2);
+        when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any(),any())).thenReturn(responseEntity,responseEntity2);
 
         //ServiceRequest reference creation
 
@@ -739,7 +739,7 @@ public class ServiceRequestControllerTest {
 
         when(serviceRequestDomainService.addPayments(any(),any(),any())).thenReturn(serviceRequestPaymentBo,serviceRequestPaymentBo2);
 
-        when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any())).thenReturn(responseEntity,responseEntity2);
+        when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any(),any())).thenReturn(responseEntity,responseEntity2);
 
 
 
@@ -791,7 +791,7 @@ public class ServiceRequestControllerTest {
         ResponseEntity<ServiceRequestPaymentBo> responseEntity2 =
             new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.GATEWAY_TIMEOUT);
 
-        when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any())).thenReturn(responseEntity,responseEntity2);
+        when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any(),any())).thenReturn(responseEntity,responseEntity2);
 
         when(serviceRequestDomainService.businessValidationForServiceRequests(any(),any())).
             thenThrow(new AccountNotFoundException("Account information could not be found"),
@@ -841,7 +841,7 @@ public class ServiceRequestControllerTest {
         ResponseEntity<ServiceRequestPaymentBo> responseEntity =
             new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.NOT_FOUND);
 
-        when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any())).thenReturn(responseEntity);
+        when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any(),any())).thenReturn(responseEntity);
 
         when(serviceRequestDomainService.businessValidationForServiceRequests(any(),any())).
             thenThrow(new ServiceRequestReferenceNotFoundException("ServiceRequest reference doesn't exist"));
@@ -923,7 +923,7 @@ public class ServiceRequestControllerTest {
 
         when(serviceRequestDomainService.addPayments(any(),any(),any())).thenReturn(serviceRequestPaymentBoSample);
 
-        when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any())).thenReturn(responseEntity);
+        when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any(),any())).thenReturn(responseEntity);
 
         //serviceRequest reference creation
         String serviceRequestReference = getServiceRequestReference();

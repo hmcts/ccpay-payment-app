@@ -1,60 +1,61 @@
 package uk.gov.hmcts.payment.api.controllers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
-import com.microsoft.azure.servicebus.IMessageReceiver;
-import com.microsoft.azure.servicebus.TopicClient;
-import com.microsoft.azure.servicebus.primitives.ServiceBusException;
-import io.swagger.v3.oas.annotations.*;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.val;
-import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.MultiValueMap;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
-import org.springframework.web.bind.annotation.*;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
-import uk.gov.hmcts.payment.api.domain.service.IdempotencyService;
-import uk.gov.hmcts.payment.api.domain.service.ServiceRequestDomainService;
-import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentRequest;
-import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentResponse;
-import uk.gov.hmcts.payment.api.dto.PaymentStatusDto;
-import uk.gov.hmcts.payment.api.dto.ServiceRequestResponseDto;
-import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
-import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
-import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
-import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
-import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
-import uk.gov.hmcts.payment.api.exception.LiberataServiceTimeoutException;
-import uk.gov.hmcts.payment.api.exceptions.PaymentServiceNotFoundException;
-import uk.gov.hmcts.payment.api.model.FeePayApportion;
-import uk.gov.hmcts.payment.api.model.IdempotencyKeys;
-import uk.gov.hmcts.payment.api.model.Payment;
-import uk.gov.hmcts.payment.api.model.PaymentFee;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
-import uk.gov.hmcts.payment.api.service.FeePayApportionService;
-import uk.gov.hmcts.payment.api.service.PaymentService;
-import uk.gov.hmcts.payment.api.service.FeesService;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotSuccessException;
+    import com.fasterxml.jackson.core.JsonProcessingException;
+    import com.fasterxml.jackson.databind.ObjectMapper;
+    import com.fasterxml.jackson.databind.ObjectWriter;
+    import com.microsoft.azure.servicebus.IMessageReceiver;
+    import com.microsoft.azure.servicebus.TopicClient;
+    import com.microsoft.azure.servicebus.primitives.ServiceBusException;
+    import io.swagger.v3.oas.annotations.*;
+    import io.swagger.v3.oas.annotations.responses.ApiResponse;
+    import io.swagger.v3.oas.annotations.responses.ApiResponses;
+    import io.swagger.v3.oas.annotations.tags.Tag;
+    import lombok.val;
+    import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
+    import org.slf4j.Logger;
+    import org.slf4j.LoggerFactory;
+    import org.springframework.beans.factory.annotation.Autowired;
+    import org.springframework.http.HttpStatus;
+    import org.springframework.http.ResponseEntity;
+    import org.springframework.transaction.annotation.Transactional;
+    import org.springframework.util.CollectionUtils;
+    import org.springframework.util.MultiValueMap;
+    import org.springframework.validation.BindingResult;
+    import org.springframework.validation.FieldError;
+    import org.springframework.web.bind.annotation.*;
+    import uk.gov.hmcts.payment.api.contract.PaymentDto;
+    import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
+    import uk.gov.hmcts.payment.api.domain.service.IdempotencyService;
+    import uk.gov.hmcts.payment.api.domain.service.ServiceRequestDomainService;
+    import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentRequest;
+    import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentResponse;
+    import uk.gov.hmcts.payment.api.dto.PaymentStatusDto;
+    import uk.gov.hmcts.payment.api.dto.ServiceRequestResponseDto;
+    import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
+    import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
+    import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
+    import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
+    import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
+    import uk.gov.hmcts.payment.api.exception.LiberataServiceTimeoutException;
+    import uk.gov.hmcts.payment.api.exceptions.PaymentServiceNotFoundException;
+    import uk.gov.hmcts.payment.api.model.FeePayApportion;
+    import uk.gov.hmcts.payment.api.model.IdempotencyKeys;
+    import uk.gov.hmcts.payment.api.model.Payment;
+    import uk.gov.hmcts.payment.api.model.PaymentFee;
+    import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+    import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
+    import uk.gov.hmcts.payment.api.service.FeePayApportionService;
+    import uk.gov.hmcts.payment.api.service.PaymentService;
+    import uk.gov.hmcts.payment.api.service.FeesService;
+    import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotSuccessException;
 
-import javax.validation.Valid;
-import java.io.IOException;
-import java.util.List;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+    import javax.validation.Valid;
+    import java.io.IOException;
+    import java.util.List;
+    import java.util.Optional;
+    import java.util.concurrent.TimeUnit;
+    import java.util.function.Function;
+    import java.util.stream.Collectors;
 
 @RestController
 @Tag(name = "ServiceRequestController", description = "Service Request REST API")
@@ -63,6 +64,9 @@ public class ServiceRequestController {
 
     private static final Logger LOG = LoggerFactory.getLogger(ServiceRequestController.class);
     private static final String FAILED = "failed";
+
+    private static final int PAYMENT_RESPONSE_STATUS_MAX_RETRIES = 6;
+    private static final int PAYMENT_RESPONSE_STATUS_SECONDS_DELAY = 3;
 
     private final ServiceRequestDomainService serviceRequestDomainService;
 
@@ -151,35 +155,26 @@ public class ServiceRequestController {
     @PostMapping(value = "/service-request/{service-request-reference}/pba-payments")
     @ResponseBody
     @ResponseStatus(HttpStatus.CREATED)
-    @Transactional
+    //@Transactional
     public ResponseEntity<ServiceRequestPaymentBo> createCreditAccountPaymentForServiceRequest(@Parameter(name = "idempotency_key", hidden = true)@RequestHeader(required = false) String idempotencyKey,
                                                                                                @PathVariable("service-request-reference") String serviceRequestReference,
                                                                                                @Valid @RequestBody ServiceRequestPaymentDto serviceRequestPaymentDto) throws CheckDigitException, JsonProcessingException {
 
         idempotencyKey = serviceRequestPaymentDto.getIdempotencyKey();
-        LOG.info("PBA payment started");
+        LOG.info("PBA-CID={}, PBA payment started", idempotencyKey);
         val objectMapper = new ObjectMapper();
         val requestHashCode = serviceRequestPaymentDto.hashCodeWithServiceRequestReference(serviceRequestReference);
         val conflictResponse = new ResponseEntity("Payment already present for idempotency key with different payment details", HttpStatus.CONFLICT); // 409 if hashcode not matched
 
-        LOG.error("PBA payment business validations for serviceRequest");
+        LOG.info("PBA-CID={}, PBA payment business validations for serviceRequest", idempotencyKey);
         PaymentFeeLink serviceRequest = serviceRequestDomainService.businessValidationForServiceRequests(serviceRequestDomainService.find(serviceRequestReference), serviceRequestPaymentDto);
-        LOG.error("PBA payment idempotency validation");
-        val isAnotherPaymentForThisServiceRequest = idempotencyService.findTheRecordByRequestHashcode(requestHashCode);
-        if (!isAnotherPaymentForThisServiceRequest.isEmpty() &&  IsAnyCreatedPaymentForThisServiceRequest(isAnotherPaymentForThisServiceRequest)) {
-            return conflictResponse;
-        }
 
-        Function<String, Optional<IdempotencyKeys>> getIdempotencyKey = idempotencyKeyToCheck -> idempotencyService.findTheRecordByIdempotencyKey(idempotencyKeyToCheck);
-
-        ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-        String serviceRequestStatusDisplay = ow.writeValueAsString(serviceRequestPaymentDto);
-        LOG.info("Passed service Request Status Display PBA payment : {} ", serviceRequestStatusDisplay);
-
+        // Function to validate idempotencyKey record from the hash.
         Function<IdempotencyKeys, ResponseEntity<?>> validateHashcodeForRequest = idempotencyKeys -> {
 
             ServiceRequestPaymentBo responseBO;
             try {
+                // Return a conflict however it would appear both idempotencyKeys onjects come from the same serviceRequestPaymentDto?
                 if (!idempotencyKeys.getRequestHashcode().equals(serviceRequestPaymentDto.hashCodeWithServiceRequestReference(serviceRequestReference))) {
                     return conflictResponse;
                 }
@@ -193,16 +188,66 @@ public class ServiceRequestController {
             return new ResponseEntity<>(responseBO, HttpStatus.valueOf(idempotencyKeys.getResponseCode())); // if hashcode matched
         };
 
+        // Display serviceRequestStatusDisplay
+        ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+        String serviceRequestStatusDisplay = ow.writeValueAsString(serviceRequestPaymentDto);
+        LOG.info("PBA-CID={}, Passed service Request Status Display PBA payment : {}", idempotencyKey, serviceRequestStatusDisplay);
+        LOG.info("PBA-CID={}, PBA payment idempotency validation", idempotencyKey);
 
-        //Idempotency Check
-        Optional<IdempotencyKeys> idempotencyKeysRow = getIdempotencyKey.apply(idempotencyKey);
-        if (idempotencyKeysRow.isPresent()) {
-            ResponseEntity responseEntity = validateHashcodeForRequest.apply(idempotencyKeysRow.get());
-            return responseEntity;
+        // Check all existing idempotency records if pending or completed, shouldn't be any of either.
+        List<IdempotencyKeys> existingPaymentsForThisServiceRequest = idempotencyService.findTheRecordByRequestHashcode(requestHashCode);
+        LOG.warn("PBA-CID={}, Found {} idempotency records for existing payments with same hash", idempotencyKey, existingPaymentsForThisServiceRequest.size(), requestHashCode);
+        if (!existingPaymentsForThisServiceRequest.isEmpty()) {
+
+            // For "completed" payments, return conflicted reponse ("409").
+            if (isAnyOtherCreatedPaymentForThisServiceRequest(existingPaymentsForThisServiceRequest, idempotencyKey)) {
+                LOG.warn("PBA-CID={}, Existing Payment for this SR {} has already been completed", idempotencyKey, serviceRequestReference);
+                return conflictResponse;
+            }
+
+            // Found an existing pending record - which would only happy if a duplicate payment was found.
+            // Wait for a short period and check status again.
+            LOG.info("PBA-CID={}, Found existing pending idempotency records, delaying return until one is completed", idempotencyKey);
+            for (int i=0; i < PAYMENT_RESPONSE_STATUS_MAX_RETRIES; i++) {
+                try {
+                    TimeUnit.SECONDS.sleep(PAYMENT_RESPONSE_STATUS_SECONDS_DELAY);
+                    LOG.info("PBA-CID={}, Loop i={}", idempotencyKey, i);
+
+                    // Update the list
+                    existingPaymentsForThisServiceRequest = idempotencyService.findTheRecordByRequestHashcode(requestHashCode);
+
+                    // Check if any have now completed.
+                    if (isAnyOtherCreatedPaymentForThisServiceRequest(existingPaymentsForThisServiceRequest, idempotencyKey)) {
+                        Optional<IdempotencyKeys> completedRecord = existingPaymentsForThisServiceRequest.stream().filter(a -> a.getResponseStatus().equals(IdempotencyKeys.ResponseStatusType.completed)).findAny();
+                        if (completedRecord.isPresent() && completedRecord.get().getResponseStatus().equals(IdempotencyKeys.ResponseStatusType.completed)) {
+                            LOG.info("PBA-CID={}, Found a completed payment with idempotency key {}. Returning response.", idempotencyKey, completedRecord.get().getIdempotencyKey());
+                            return (ResponseEntity)validateHashcodeForRequest.apply(completedRecord.get());
+                        }
+                    }
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+            // If after waiting and the payment still hasn't completed, return a conflict.
+            if (!isAnyOtherCreatedPaymentForThisServiceRequest(existingPaymentsForThisServiceRequest, idempotencyKey)) {
+                LOG.error("PBA-CID={}, Unable to find a completed payment and pending records still exist. Returning conflict", idempotencyKey);
+                return conflictResponse;
+            }
         }
 
+        // Create Idempotency Record - hash record does not exist, so create idempotency record.
+        serviceRequestDomainService.createIdempotencyRecord(objectMapper, idempotencyKey, serviceRequestReference,
+            null, IdempotencyKeys.ResponseStatusType.pending, null, serviceRequestPaymentDto);
 
-        //PBA Payment
+        // DTRJ - Temp delay of 5 seconds - allows a new request to be made to replicate a duplicate payment.
+        try {
+            TimeUnit.SECONDS.sleep(5);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+        // PBA Payment
         ServiceRequestPaymentBo serviceRequestPaymentBo = null;
         ResponseEntity responseEntity;
         String responseJson;
@@ -218,21 +263,26 @@ public class ServiceRequestController {
             }else{
                 httpStatus = HttpStatus.CREATED;
             }
-            LOG.info("PBA payment status : {}" ,httpStatus );
+            LOG.info("PBA-CID={}, PBA payment status: {}", idempotencyKey, httpStatus);
             responseEntity = new ResponseEntity<>(serviceRequestPaymentBo, httpStatus);
             responseJson = objectMapper.writeValueAsString(serviceRequestPaymentBo);
         } catch (LiberataServiceTimeoutException liberataServiceTimeoutException) {
-            LOG.error(" Exception from Liberata for PBA payment {} ",liberataServiceTimeoutException);
+            LOG.error("PBA-CID={}, Exception from Liberata for PBA payment {}", idempotencyKey, liberataServiceTimeoutException);
             responseEntity = new ResponseEntity<>(liberataServiceTimeoutException.getMessage(), HttpStatus.GATEWAY_TIMEOUT);
             responseJson = liberataServiceTimeoutException.getMessage();
         }
 
-        //Create Idempotency Record
-        return serviceRequestDomainService.createIdempotencyRecord(objectMapper, idempotencyKey, serviceRequestReference, responseJson, responseEntity, serviceRequestPaymentDto);
+        // Update Idempotency Record
+        LOG.info("PBA-CID={}, Payment updating idempotency to completed", idempotencyKey);
+        return serviceRequestDomainService.createIdempotencyRecord(objectMapper, idempotencyKey, serviceRequestReference,
+            responseJson, IdempotencyKeys.ResponseStatusType.completed, responseEntity, serviceRequestPaymentDto);
     }
 
-    private boolean IsAnyCreatedPaymentForThisServiceRequest(List<IdempotencyKeys> idempotencyKeys) {
-        return idempotencyKeys.stream().filter(a -> a.getResponseCode().equals(HttpStatus.CREATED.value())).findAny().isPresent();
+    // Loop through and check for completed
+    private boolean isAnyOtherCreatedPaymentForThisServiceRequest(List<IdempotencyKeys> idempotencyKeys, String idempotencyKey) {
+        return idempotencyKeys.stream()
+            .filter(a -> a.getResponseStatus().equals(IdempotencyKeys.ResponseStatusType.completed)
+                && !a.getIdempotencyKey().equals(idempotencyKey)).findAny().isPresent();
     }
 
     private TopicClient topicClient;
@@ -247,7 +297,6 @@ public class ServiceRequestController {
         IMessageReceiver subscriptionClient = serviceRequestDomainService.createDLQConnection();
         serviceRequestDomainService.deadLetterProcess(subscriptionClient);
     }
-
 
     @Operation(summary = "Create online card payment", description = "Create online card payment")
     @ApiResponses(value = {

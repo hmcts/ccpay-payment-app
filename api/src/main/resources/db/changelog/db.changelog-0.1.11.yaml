@@ -1,0 +1,19 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1600000000000-1
+      author: DaveJ
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: response_status
+                  type: varchar(50)
+                  defaultValue: "completed"
+                  constraints:
+                    nullable: false
+            tableName: idempotency_keys
+        - sql:
+          splitStatements: true
+          sql: >
+            alter table idempotency_keys
+            add constraint check_response_status CHECK (response_status IN ('pending', 'completed'))

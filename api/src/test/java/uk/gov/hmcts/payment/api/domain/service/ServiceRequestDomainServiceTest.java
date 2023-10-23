@@ -218,12 +218,13 @@ public class ServiceRequestDomainServiceTest {
             .requestHashcode(123)   //save the hashcode
             .responseBody("")
             .responseCode(201)
+            .responseStatus(IdempotencyKeys.ResponseStatusType.completed)
             .build();
 
         ResponseEntity<?> responseEntity = new ResponseEntity<T>(HttpStatus.CREATED);
 
         serviceRequestDomainService.createIdempotencyRecord(objectMapper,"", "RC-ref",
-            "{\"response_body\":\"response_body\"}", responseEntity,serviceRequestPaymentDto);
+            "{\"response_body\":\"response_body\"}", idempotencyRecord.getResponseStatus(), responseEntity,serviceRequestPaymentDto);
     }
 
      @Test
