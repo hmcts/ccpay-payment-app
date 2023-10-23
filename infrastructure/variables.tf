@@ -60,13 +60,26 @@ variable "postgresql_version" {
   default = "11"
 }
 
+variable "postgresql_flexible_sql_version" {
+  default = "15"
+}
+
+variable "postgresql_flexible_server_port" {
+  default = "5432"
+}
+
 variable sku_name {
   default = "GP_Gen5_2"
 }
 
+variable flexible_sku_name {
+  default = "GP_Standard_D2s_v3"
+}
 variable "sku_capacity" {
   default = "2"
 }
+
+variable "aks_subscription_id" {}
 
 variable "additional_databases" {
   default = []
