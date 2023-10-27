@@ -160,15 +160,6 @@
     </suppress>
     <suppress until="2023-10-30">
         <notes>
-            Incomplete Cleanup vulnerability in Apache Tomcat.When recycling various internal objects in Apache Tomcat from 11.0.0-M1 through 11.0.0-M11,
-            from 10.1.0-M1 through 10.1.13, from 9.0.0-M1 through 9.0.80 and from 8.5.0 through 8.5.93, an error could cause Tomcat to skip some parts of
-            the recycling process leading to information leaking from the current request/response to the next.
-        </notes>
-        <cve>CVE-2023-42795</cve>
-        <cve>CVE-2023-45648</cve>
-    </suppress>
-    <suppress until="2023-10-30">
-        <notes>
             commons-fileupload need major version upgrade.
         </notes>
         <cve>CVE-2023-24998</cve>
@@ -272,23 +263,30 @@
         </notes>
         <cve>CVE-2023-40167</cve>
     </suppress>
+
     <suppress>
         <notes>
-            WireMock is a tool for mocking HTTP services.
-        </notes>
-        <cve>CVE-2023-41329</cve>
-    </suppress>
-    <suppress>
-        <notes>
-            WireMock is a tool for mocking HTTP services.
-        </notes>
-        <cve>CVE-2023-41327</cve>
-    </suppress>
-    <suppress>
-        <notes>
-            A batch loader function in Spring for GraphQL versions 1.1.0 - 1.1.5 and 1.2.0 - 1.2.2 may be exposed to GraphQL context with values, including security context values, from a different session.
+            A batch loader function in Spring for GraphQL versions 1.1.0 - 1.1.5 and 1.2.0 - 1.2.2 may be exposed
         </notes>
         <cve>CVE-2023-34047</cve>
+    </suppress>
+    <suppress>
+        <notes>
+            Incomplete Cleanup vulnerability in Apache Tomcat.
+        </notes>
+        <cve>CVE-2023-42795</cve>
+    </suppress>
+    <suppress>
+        <notes>
+            Improper Input Validation vulnerability in Apache Tomcat.Tomcat
+        </notes>
+        <cve>CVE-2023-45648</cve>
+    </suppress>
+    <suppress>
+        <notes>
+            The HTTP/2 protocol allows a denial of service
+        </notes>
+        <cve>CVE-2023-44487</cve>
     </suppress>
 
     <!-- Supression Group ends here -->
