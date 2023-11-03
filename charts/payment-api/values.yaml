@@ -11,10 +11,10 @@ java:
   ingressHost: payment-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal
   aadIdentityName: ccpay
   environment:
-    POSTGRES_PORT: 5432
-    POSTGRES_HOST: payment-postgres-db-v11-{{ .Values.global.environment }}.postgres.database.azure.com
+  #  POSTGRES_PORT: 5432
+  #  POSTGRES_HOST: payment-postgres-db-v11-{{ .Values.global.environment }}.postgres.database.azure.com
     POSTGRES_NAME: payment
-    POSTGRES_USERNAME: payment@payment-postgres-db-v11-{{ .Values.global.environment }}
+  #  POSTGRES_USERNAME: payment@payment-postgres-db-v11-{{ .Values.global.environment }}
     POSTGRES_CONNECTION_OPTIONS: ?sslmode=require
     SPRING_LIQUIBASE_ENABLED: false
 
@@ -155,6 +155,12 @@ java:
           alias: liberata.oauth2.password
         - name: api-POSTGRES-PASS
           alias: POSTGRES_PASSWORD
+        - name: api-POSTGRES-PORT
+          alias: POSTGRES_PORT
+        - name: api-POSTGRES-HOST
+          alias: POSTGRES_HOST
+        - name: api-POSTGRES-USER
+          alias: POSTGRES_USERNAME
         - name: core-case-data-api-url
           alias: core_case_data.api.url
         - name: app-insights-connection-string
