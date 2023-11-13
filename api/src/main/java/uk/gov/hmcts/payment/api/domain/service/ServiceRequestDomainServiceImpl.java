@@ -3,12 +3,16 @@ package uk.gov.hmcts.payment.api.domain.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
-import com.microsoft.azure.servicebus.*;
+import com.microsoft.azure.servicebus.ClientFactory;
+import com.microsoft.azure.servicebus.IMessage;
+import com.microsoft.azure.servicebus.IMessageReceiver;
+import com.microsoft.azure.servicebus.Message;
+import com.microsoft.azure.servicebus.ReceiveMode;
 import com.microsoft.azure.servicebus.primitives.ConnectionStringBuilder;
 import com.microsoft.azure.servicebus.primitives.ServiceBusException;
 import com.netflix.hystrix.exception.HystrixRuntimeException;
+import lombok.val;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
-import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,11 +32,16 @@ import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestPaymentDtoDomainMapp
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestBo;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestOnlinePaymentBo;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
-import uk.gov.hmcts.payment.api.dto.*;
+import uk.gov.hmcts.payment.api.dto.AccountDto;
+import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentRequest;
+import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentResponse;
+import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
+import uk.gov.hmcts.payment.api.dto.PaymentStatusDto;
+import uk.gov.hmcts.payment.api.dto.ServiceRequestResponseDto;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
-import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestCpoDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.DeadLetterDto;
+import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestCpoDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
@@ -42,9 +51,21 @@ import uk.gov.hmcts.payment.api.exceptions.ServiceRequestReferenceNotFoundExcept
 import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.mapper.PBAStatusErrorMapper;
-import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.model.IdempotencyKeys;
+import uk.gov.hmcts.payment.api.model.IdempotencyKeysPK;
+import uk.gov.hmcts.payment.api.model.IdempotencyKeysRepository;
+import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.Payment2Repository;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
-import uk.gov.hmcts.payment.api.service.*;
+import uk.gov.hmcts.payment.api.model.PaymentStatus;
+import uk.gov.hmcts.payment.api.model.StatusHistory;
+import uk.gov.hmcts.payment.api.service.AccountService;
+import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
+import uk.gov.hmcts.payment.api.service.FeePayApportionService;
+import uk.gov.hmcts.payment.api.service.PaymentGroupService;
+import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.servicebus.TopicClientProxy;
 import uk.gov.hmcts.payment.api.servicebus.TopicClientService;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
@@ -54,7 +75,12 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNo
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -362,11 +388,52 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         }
     }
 
+
+    @Transactional
+    public ResponseEntity createPbaPaymentForServiceRequest(String serviceRequestReference,
+                                                            ServiceRequestPaymentDto serviceRequestPaymentDto) throws CheckDigitException, JsonProcessingException {
+        // PBA Payment
+        val objectMapper = new ObjectMapper();
+        ServiceRequestPaymentBo serviceRequestPaymentBo = null;
+        ResponseEntity responseEntity;
+        String responseJson;
+        String idempotencyKey = serviceRequestPaymentDto.getIdempotencyKey();
+
+        // Load service request
+        PaymentFeeLink serviceRequest = businessValidationForServiceRequests(find(serviceRequestReference), serviceRequestPaymentDto);
+
+        try {
+            serviceRequestPaymentBo = addPayments(serviceRequest, serviceRequestReference, serviceRequestPaymentDto);
+            HttpStatus httpStatus;
+            if(serviceRequestPaymentBo.getError() != null && serviceRequestPaymentBo.getError().getErrorCode().equals("CA-E0004")) {
+                httpStatus = HttpStatus.GONE; //410 for deleted pba accounts
+            }else if(serviceRequestPaymentBo.getError() != null && serviceRequestPaymentBo.getError().getErrorCode().equals("CA-E0003")){
+                httpStatus = HttpStatus.PRECONDITION_FAILED; //412 for pba account on hold
+            }else if(serviceRequestPaymentBo.getError() != null && serviceRequestPaymentBo.getError().getErrorCode().equals("CA-E0001")){
+                httpStatus = HttpStatus.PAYMENT_REQUIRED; //402 for pba insufficient funds
+            }else{
+                httpStatus = HttpStatus.CREATED;
+            }
+            LOG.info("PBA-CID={}, PBA payment status: {}", idempotencyKey, httpStatus);
+            responseEntity = new ResponseEntity<>(serviceRequestPaymentBo, httpStatus);
+            responseJson = objectMapper.writeValueAsString(serviceRequestPaymentBo);
+        } catch (LiberataServiceTimeoutException liberataServiceTimeoutException) {
+            LOG.error("PBA-CID={}, Exception from Liberata for PBA payment {}", idempotencyKey, liberataServiceTimeoutException);
+            responseEntity = new ResponseEntity<>(liberataServiceTimeoutException.getMessage(), HttpStatus.GATEWAY_TIMEOUT);
+            responseJson = liberataServiceTimeoutException.getMessage();
+        }
+
+        // Update Idempotency Record
+        LOG.info("PBA-CID={}, Payment updating idempotency record to completed", idempotencyKey);
+        return createIdempotencyRecord(objectMapper, idempotencyKey, serviceRequestReference,
+            responseJson, IdempotencyKeys.ResponseStatusType.completed, responseEntity, serviceRequestPaymentDto);
+    }
+
     public ResponseEntity createIdempotencyRecord(ObjectMapper objectMapper, String idempotencyKey, String serviceRequestReference,
                                                   String responseJson, IdempotencyKeys.ResponseStatusType responseStatus, ResponseEntity<?> responseEntity,
                                                   ServiceRequestPaymentDto serviceRequestPaymentDto) throws JsonProcessingException {
         String requestJson = objectMapper.writeValueAsString(serviceRequestPaymentDto);
-        int requestHashCode = serviceRequestPaymentDto.hashCodeWithServiceRequestReference(serviceRequestReference);
+        Integer requestHashCode = serviceRequestPaymentDto.hashCodeWithServiceRequestReference(serviceRequestReference);
 
         IdempotencyKeys idempotencyRecord = IdempotencyKeys
             .idempotencyKeysWith()
@@ -389,10 +456,10 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
                     idempotencyRecord.setDateCreated(idempotencyKeysRecord.get().getDateCreated());
                 }
             }
-            idempotencyKeysRepository.save(idempotencyRecord);
+            idempotencyKeysRepository.saveAndFlush(idempotencyRecord);
 
         } catch (DataIntegrityViolationException exception) {
-            responseEntity = new ResponseEntity<>("Too many requests.PBA Payment currently is in progress for this serviceRequest", HttpStatus.TOO_EARLY);
+            responseEntity = new ResponseEntity<>("Too many requests. PBA Payment currently is in progress for this serviceRequest", HttpStatus.TOO_EARLY);
         }
 
         return responseEntity;
@@ -404,7 +471,6 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     }
 
     @Override
-
     public IMessageReceiver createDLQConnection() throws ServiceBusException, InterruptedException {
 
         String subName = "serviceRequestCpoUpdateSubscription";
@@ -414,7 +480,6 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     }
 
     @Override
-
     public void deadLetterProcess(IMessageReceiver subscriptionClient) throws ServiceBusException, InterruptedException, IOException {
 
         int receivedMessages =0;

@@ -7,7 +7,6 @@ import com.microsoft.azure.servicebus.primitives.ServiceBusException;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
 import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
@@ -34,6 +33,9 @@ public interface ServiceRequestDomainService {
 
     ResponseEntity createIdempotencyRecord(ObjectMapper objectMapper, String idempotencyKey, String serviceRequestReference,
                                            String responseJson, IdempotencyKeys.ResponseStatusType responseStatus, ResponseEntity<?> responseEntity, ServiceRequestPaymentDto serviceRequestPaymentDto) throws JsonProcessingException;
+
+    ResponseEntity createPbaPaymentForServiceRequest(String serviceRequestReference,
+                                                     ServiceRequestPaymentDto serviceRequestPaymentDto) throws CheckDigitException, JsonProcessingException;
 
     Boolean isDuplicate(String serviceRequestReference);
 
