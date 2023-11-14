@@ -411,7 +411,7 @@ public class ServiceRequestFunctionalTests {
     }
 
     @Test
-    public void negative_create_service_request_and_a_pba_payment_and_a_duplicate_payment_for_same_idempotent_key()
+    public void positive_create_service_request_and_a_pba_payment_and_a_duplicate_payment_for_same_idempotent_key()
         throws Exception {
         String ccdCaseNumber = "11111234" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
         final ServiceRequestDto serviceRequestDto
@@ -424,7 +424,6 @@ public class ServiceRequestFunctionalTests {
         final ServiceRequestResponseDto responseDTO = createServiceRequestResponse.getBody().as(ServiceRequestResponseDto.class);
         final String serviceRequestReference = responseDTO.getServiceRequestReference();
         assertThat(serviceRequestReference).matches(SERVICE_REQUEST_REGEX_PATTERN);
-
 
         final ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
             .paymentDtoWith().accountNumber("PBAFUNC12345")
@@ -449,7 +448,8 @@ public class ServiceRequestFunctionalTests {
         final Response pbaPaymentServiceRequestResponseAgain
             = serviceRequestTestService.createPBAPaymentForAServiceRequest(USER_TOKEN_PAYMENT,
             SERVICE_TOKEN, serviceRequestReference, serviceRequestPaymentDto);
-        assertThat(pbaPaymentServiceRequestResponseAgain.getStatusCode()).isEqualTo(HttpStatus.PRECONDITION_FAILED.value());
+        assertThat(pbaPaymentServiceRequestResponseAgain.getStatusCode()).isEqualTo(CREATED.value());
+        assertThat(pbaPaymentServiceRequestResponseAgain.getBody()).isEqualTo(pbaPaymentServiceRequestResponse.getBody());
     }
 
     @Test
@@ -491,9 +491,9 @@ public class ServiceRequestFunctionalTests {
             = serviceRequestTestService.createPBAPaymentForAServiceRequest(USER_TOKEN_PAYMENT,
             SERVICE_TOKEN,
             serviceRequestReference, serviceRequestPaymentDto);
-        assertThat(pbaPaymentServiceRequestResponseAgain.getStatusCode()).isEqualTo(HttpStatus.PRECONDITION_FAILED.value());
+        assertThat(pbaPaymentServiceRequestResponseAgain.getStatusCode()).isEqualTo(CONFLICT.value());
         assertThat(pbaPaymentServiceRequestResponseAgain.getBody().asString())
-            .isEqualTo("The serviceRequest has already been paid");
+            .isEqualTo("Payment already present with conflicting payment details");
     }
 
     @Test
