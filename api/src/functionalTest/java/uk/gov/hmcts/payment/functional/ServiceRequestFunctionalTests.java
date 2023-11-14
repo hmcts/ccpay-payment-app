@@ -449,7 +449,7 @@ public class ServiceRequestFunctionalTests {
             = serviceRequestTestService.createPBAPaymentForAServiceRequest(USER_TOKEN_PAYMENT,
             SERVICE_TOKEN, serviceRequestReference, serviceRequestPaymentDto);
         assertThat(pbaPaymentServiceRequestResponseAgain.getStatusCode()).isEqualTo(CREATED.value());
-        assertThat(pbaPaymentServiceRequestResponseAgain.getBody()).isEqualTo(pbaPaymentServiceRequestResponse.getBody());
+        assertThat(pbaPaymentServiceRequestResponseAgain.getBody().asString()).isEqualTo(pbaPaymentServiceRequestResponse.getBody().asString());
     }
 
     @Test
