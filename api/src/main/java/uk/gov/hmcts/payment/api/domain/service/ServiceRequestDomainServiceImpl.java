@@ -11,7 +11,6 @@ import com.microsoft.azure.servicebus.ReceiveMode;
 import com.microsoft.azure.servicebus.primitives.ConnectionStringBuilder;
 import com.microsoft.azure.servicebus.primitives.ServiceBusException;
 import com.netflix.hystrix.exception.HystrixRuntimeException;
-import lombok.val;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -386,47 +385,6 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         if (!existedPayment.isEmpty()) {
             delegatingPaymentService.cancel(existedPayment.get(), paymentFeeLink.getCcdCaseNumber(),paymentFeeLink.getEnterpriseServiceName());
         }
-    }
-
-
-    @Transactional
-    public ResponseEntity createPbaPaymentForServiceRequest(String serviceRequestReference,
-                                                            ServiceRequestPaymentDto serviceRequestPaymentDto) throws CheckDigitException, JsonProcessingException {
-        // PBA Payment
-        val objectMapper = new ObjectMapper();
-        ServiceRequestPaymentBo serviceRequestPaymentBo = null;
-        ResponseEntity responseEntity;
-        String responseJson;
-        String idempotencyKey = serviceRequestPaymentDto.getIdempotencyKey();
-
-        // Load service request
-        PaymentFeeLink serviceRequest = businessValidationForServiceRequests(find(serviceRequestReference), serviceRequestPaymentDto);
-
-        try {
-            serviceRequestPaymentBo = addPayments(serviceRequest, serviceRequestReference, serviceRequestPaymentDto);
-            HttpStatus httpStatus;
-            if(serviceRequestPaymentBo.getError() != null && serviceRequestPaymentBo.getError().getErrorCode().equals("CA-E0004")) {
-                httpStatus = HttpStatus.GONE; //410 for deleted pba accounts
-            }else if(serviceRequestPaymentBo.getError() != null && serviceRequestPaymentBo.getError().getErrorCode().equals("CA-E0003")){
-                httpStatus = HttpStatus.PRECONDITION_FAILED; //412 for pba account on hold
-            }else if(serviceRequestPaymentBo.getError() != null && serviceRequestPaymentBo.getError().getErrorCode().equals("CA-E0001")){
-                httpStatus = HttpStatus.PAYMENT_REQUIRED; //402 for pba insufficient funds
-            }else{
-                httpStatus = HttpStatus.CREATED;
-            }
-            LOG.info("PBA-CID={}, PBA payment status: {}", idempotencyKey, httpStatus);
-            responseEntity = new ResponseEntity<>(serviceRequestPaymentBo, httpStatus);
-            responseJson = objectMapper.writeValueAsString(serviceRequestPaymentBo);
-        } catch (LiberataServiceTimeoutException liberataServiceTimeoutException) {
-            LOG.error("PBA-CID={}, Exception from Liberata for PBA payment {}", idempotencyKey, liberataServiceTimeoutException);
-            responseEntity = new ResponseEntity<>(liberataServiceTimeoutException.getMessage(), HttpStatus.GATEWAY_TIMEOUT);
-            responseJson = liberataServiceTimeoutException.getMessage();
-        }
-
-        // Update Idempotency Record
-        LOG.info("PBA-CID={}, Payment updating idempotency record to completed", idempotencyKey);
-        return createIdempotencyRecord(objectMapper, idempotencyKey, serviceRequestReference,
-            responseJson, IdempotencyKeys.ResponseStatusType.completed, responseEntity, serviceRequestPaymentDto);
     }
 
     public ResponseEntity createIdempotencyRecord(ObjectMapper objectMapper, String idempotencyKey, String serviceRequestReference,

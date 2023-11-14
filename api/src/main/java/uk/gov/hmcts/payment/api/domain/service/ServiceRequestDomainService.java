@@ -34,9 +34,6 @@ public interface ServiceRequestDomainService {
     ResponseEntity createIdempotencyRecord(ObjectMapper objectMapper, String idempotencyKey, String serviceRequestReference,
                                            String responseJson, IdempotencyKeys.ResponseStatusType responseStatus, ResponseEntity<?> responseEntity, ServiceRequestPaymentDto serviceRequestPaymentDto) throws JsonProcessingException;
 
-    ResponseEntity createPbaPaymentForServiceRequest(String serviceRequestReference,
-                                                     ServiceRequestPaymentDto serviceRequestPaymentDto) throws CheckDigitException, JsonProcessingException;
-
     Boolean isDuplicate(String serviceRequestReference);
 
     void sendMessageTopicCPO(ServiceRequestDto serviceRequestDto, String serviceRequestReference);

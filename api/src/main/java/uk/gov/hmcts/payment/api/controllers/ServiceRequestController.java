@@ -36,6 +36,7 @@ package uk.gov.hmcts.payment.api.controllers;
     import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
     import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
     import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
+    import uk.gov.hmcts.payment.api.exception.LiberataServiceTimeoutException;
     import uk.gov.hmcts.payment.api.exceptions.PaymentServiceNotFoundException;
     import uk.gov.hmcts.payment.api.model.FeePayApportion;
     import uk.gov.hmcts.payment.api.model.IdempotencyKeys;
@@ -181,7 +182,48 @@ public class ServiceRequestController {
             null, IdempotencyKeys.ResponseStatusType.pending, null, serviceRequestPaymentDto);
 
         // Create PBA Payment and update idempotency record within a transaction.
-        return serviceRequestDomainService.createPbaPaymentForServiceRequest(serviceRequestReference, serviceRequestPaymentDto);
+        return createPbaPaymentForServiceRequest(serviceRequestReference, serviceRequestPaymentDto);
+    }
+
+    @Transactional
+    private ResponseEntity createPbaPaymentForServiceRequest(String serviceRequestReference,
+                                                            ServiceRequestPaymentDto serviceRequestPaymentDto) throws CheckDigitException, JsonProcessingException {
+        // PBA Payment
+        val objectMapper = new ObjectMapper();
+        ServiceRequestPaymentBo serviceRequestPaymentBo = null;
+        ResponseEntity responseEntity;
+        String responseJson;
+        String idempotencyKey = serviceRequestPaymentDto.getIdempotencyKey();
+
+        // Load service request
+        PaymentFeeLink serviceRequest = serviceRequestDomainService.businessValidationForServiceRequests(
+            serviceRequestDomainService.find(serviceRequestReference), serviceRequestPaymentDto);
+
+        try {
+            serviceRequestPaymentBo = serviceRequestDomainService.addPayments(serviceRequest, serviceRequestReference, serviceRequestPaymentDto);
+            HttpStatus httpStatus;
+            if(serviceRequestPaymentBo.getError() != null && serviceRequestPaymentBo.getError().getErrorCode().equals("CA-E0004")) {
+                httpStatus = HttpStatus.GONE; //410 for deleted pba accounts
+            }else if(serviceRequestPaymentBo.getError() != null && serviceRequestPaymentBo.getError().getErrorCode().equals("CA-E0003")){
+                httpStatus = HttpStatus.PRECONDITION_FAILED; //412 for pba account on hold
+            }else if(serviceRequestPaymentBo.getError() != null && serviceRequestPaymentBo.getError().getErrorCode().equals("CA-E0001")){
+                httpStatus = HttpStatus.PAYMENT_REQUIRED; //402 for pba insufficient funds
+            }else{
+                httpStatus = HttpStatus.CREATED;
+            }
+            LOG.info("PBA-CID={}, PBA payment status: {}", idempotencyKey, httpStatus);
+            responseEntity = new ResponseEntity<>(serviceRequestPaymentBo, httpStatus);
+            responseJson = objectMapper.writeValueAsString(serviceRequestPaymentBo);
+        } catch (LiberataServiceTimeoutException liberataServiceTimeoutException) {
+            LOG.error("PBA-CID={}, Exception from Liberata for PBA payment {}", idempotencyKey, liberataServiceTimeoutException);
+            responseEntity = new ResponseEntity<>(liberataServiceTimeoutException.getMessage(), HttpStatus.GATEWAY_TIMEOUT);
+            responseJson = liberataServiceTimeoutException.getMessage();
+        }
+
+        // Update Idempotency Record
+        LOG.info("PBA-CID={}, Payment updating idempotency record to completed", idempotencyKey);
+        return serviceRequestDomainService.createIdempotencyRecord(objectMapper, idempotencyKey, serviceRequestReference,
+            responseJson, IdempotencyKeys.ResponseStatusType.completed, responseEntity, serviceRequestPaymentDto);
     }
 
     private ResponseEntity processDuplicateServiceRequestPayment(List<IdempotencyKeys> duplicatePaymentIdempotencyRows, Optional<IdempotencyKeys> currentIdempotencyKeyRow,
@@ -225,7 +267,7 @@ public class ServiceRequestController {
             return responseEntity;
         }
 
-        // Idempotency Check 3 - Find any idempotency records using the current hash, if found and completed, return response.
+        // Idempotency Check 3 - Find any failed idempotency records using the current hash, if found and completed, return response.
         Optional<IdempotencyKeys> failedIdempotencyRecord = identifyFailedIdempotencyRecord(duplicatePaymentIdempotencyRows, requestHashCode);
         if (failedIdempotencyRecord.isPresent()) {
             ResponseEntity responseEntity = validateHashcodeForRequest.apply(failedIdempotencyRecord.get());
