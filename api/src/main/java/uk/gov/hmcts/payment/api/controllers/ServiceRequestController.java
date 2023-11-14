@@ -230,7 +230,7 @@ public class ServiceRequestController {
                                                                  ObjectMapper objectMapper, ServiceRequestPaymentDto serviceRequestPaymentDto, String serviceRequestReference,
                                                                  String idempotencyKey, Integer requestHashCode) {
 
-        ResponseEntity conflictResponse = new ResponseEntity("Payment already present for idempotency or SR with conflicting payment details", HttpStatus.CONFLICT); // HTTP 409
+        ResponseEntity conflictResponse = new ResponseEntity("Payment already present with conflicting payment details", HttpStatus.CONFLICT); // HTTP 409
 
         // Function to validate idempotencyKey record from the hash.
         Function<IdempotencyKeys, ResponseEntity<?>> validateHashcodeForRequest = idempotencyKeys -> {
@@ -250,51 +250,16 @@ public class ServiceRequestController {
             return new ResponseEntity<>(responseBO, HttpStatus.valueOf(idempotencyKeys.getResponseCode())); // if hashcode matched
         };
 
-        // Idempotency Check 1 - Check idempotency record with current key, if found and completed, return response.
+        // Idempotency Check - Check idempotency record with current key, if found and completed, return response.
         if (currentIdempotencyKeyRow.isPresent() && currentIdempotencyKeyRow.get().getResponseStatus().equals(IdempotencyKeys.ResponseStatusType.completed)) {
             ResponseEntity responseEntity = validateHashcodeForRequest.apply(currentIdempotencyKeyRow.get());
             LOG.info("PBA-CID={}, Payment already processed for this key, SR {}, returing existing response {}", idempotencyKey, serviceRequestReference, responseEntity.getStatusCode());
             return responseEntity;
         }
 
-        // Idempotency Check 2 - Find any idempotency records using the current hash, if found and completed, return response.
-        LOG.warn("PBA-CID={}, Found {} duplicate idempotency records for existing payments with same hash", idempotencyKey, duplicatePaymentIdempotencyRows.size(), requestHashCode);
-        Optional<IdempotencyKeys> validIdempotencyRecord = identifyValidIdempotencyRecord(duplicatePaymentIdempotencyRows, requestHashCode);
-        if (validIdempotencyRecord.isPresent()) {
-            ResponseEntity responseEntity = validateHashcodeForRequest.apply(validIdempotencyRecord.get());
-            LOG.info("PBA-CID={}, Payment successful response already processed for key {}, SR {}, returing existing response {}",
-                idempotencyKey, validIdempotencyRecord.get().getIdempotencyKey(), serviceRequestReference, responseEntity.getStatusCode());
-            return responseEntity;
-        }
-
-        // Idempotency Check 3 - Find any failed idempotency records using the current hash, if found and completed, return response.
-        Optional<IdempotencyKeys> failedIdempotencyRecord = identifyFailedIdempotencyRecord(duplicatePaymentIdempotencyRows, requestHashCode);
-        if (failedIdempotencyRecord.isPresent()) {
-            ResponseEntity responseEntity = validateHashcodeForRequest.apply(failedIdempotencyRecord.get());
-            LOG.warn("PBA-CID={}, Payment failed response already processed for key {}, SR {}, returing existing response {}",
-                idempotencyKey, failedIdempotencyRecord.get().getIdempotencyKey(), serviceRequestReference, responseEntity.getStatusCode());
-            return responseEntity;
-        }
-
         // All actionable completed states have been processed, if we've got this far, then there are pending payings still being processed, return conflict.
-        LOG.error("PBA-CID={}, Unable to find a completed payment and pending records still exist. Returning conflict", idempotencyKey);
+        LOG.error("PBA-CID={}, Unable to find a valid completed payment and pending records still exist. Returning conflict", idempotencyKey);
         return conflictResponse;
-    }
-
-    // Loop through and check for completed and successfully created payments
-    private Optional<IdempotencyKeys> identifyValidIdempotencyRecord(List<IdempotencyKeys> idempotencyKeys, Integer requestHashcode) {
-        return idempotencyKeys.stream()
-            .filter(a -> a.getResponseStatus().equals(IdempotencyKeys.ResponseStatusType.completed)
-                && a.getRequestHashcode().compareTo(requestHashcode) == 0
-                && a.getResponseCode().equals(HttpStatus.CREATED.value())).findFirst();
-    }
-
-    // Loop through and check for completed and failed payments
-    private Optional<IdempotencyKeys> identifyFailedIdempotencyRecord(List<IdempotencyKeys> idempotencyKeys, Integer requestHashcode) {
-        return idempotencyKeys.stream()
-            .filter(a -> a.getResponseStatus().equals(IdempotencyKeys.ResponseStatusType.completed)
-                && a.getRequestHashcode().compareTo(requestHashcode) == 0
-                && !a.getResponseCode().equals(HttpStatus.CREATED.value())).findFirst();
     }
 
     private TopicClient topicClient;
