@@ -55,7 +55,7 @@ module "sdp_db_user" {
     cft_task_db = ["payment"]
   }
 
-  common_tags = local.common_tags
+  common_tags = var.common_tags
 
   depends_on = [
     module.payment-database-v15
