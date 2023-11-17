@@ -1,7 +1,7 @@
 provider "azurerm" {
   features {}
   skip_provider_registration = true
-  alias                      = "sdp_vault"
+  alias                      = "mi-vault"
   subscription_id            = local.sdp_environment_ids[local.payment_environment].subscription
 }
 
