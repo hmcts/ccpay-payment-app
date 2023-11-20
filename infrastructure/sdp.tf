@@ -34,7 +34,7 @@ locals {
 module "sdp_db_user" {
 
   providers = {
-    azurerm.sdp_vault = azurerm.mi-vault
+    azurerm.sdp_vault = azurerm.mi_vault
   }
 
   source = "git@github.com:hmcts/terraform-module-sdp-db-user?ref=master"
