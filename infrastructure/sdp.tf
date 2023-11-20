@@ -1,7 +1,7 @@
 provider "azurerm" {
   features {}
   skip_provider_registration = true
-  alias                      = "mi-vault"
+  alias                      = "mi_vault"
   subscription_id            = local.sdp_environment_ids[local.payment_environment].subscription
 }
 
@@ -34,7 +34,7 @@ locals {
 module "sdp_db_user" {
 
   providers = {
-    azurerm.mi_vault = azurerm.mi_vault
+    azurerm.sdp_vault = azurerm.mi-vault
   }
 
   source = "git@github.com:hmcts/terraform-module-sdp-db-user?ref=master"
