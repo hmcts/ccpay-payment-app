@@ -16,7 +16,7 @@ locals {
 
   sdp_environment_ids = {
     dev = {
-      subscription = "1c4f0704-a29e-403d-b719-b90c34ef14c9"
+      subscription = "867a878b-cb68-4de5-9741-361ac9e178b6"
     }
     //test = {
    //   subscription = "7a4e3bd5-ae3a-4d0c-b441-2188fee3ff1c"
@@ -52,7 +52,7 @@ module "sdp_db_user" {
   ]
 
   database_schemas = {
-    cft_task_db = ["payment"]
+    var.database_name = ["payment"]
   }
 
   common_tags = var.common_tags
