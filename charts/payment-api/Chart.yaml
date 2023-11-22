@@ -3,23 +3,23 @@ appVersion: "1.0"
 description: Helm chart for the HMCTS payment api
 name: payment-api
 home: https://github.com/hmcts/ccpay-payment-app
-version: 2.3.9
+version: 2.3.17
 maintainers:
   - name: HMCTS Fees & Payments Dev Team
     email: ccpay@hmcts.net
 dependencies:
   - name: java
-    version: 5.0.0
+    version: 5.0.1
     repository: 'https://hmctspublic.azurecr.io/helm/v1/repo/'
   - name: ccpay-refunds-api
-    version: 1.0.2
+    version: 1.0.10
     repository: 'https://hmctspublic.azurecr.io/helm/v1/repo/'
     condition: ccpay-refunds-api.enabled
   - name: ccpay-bulkscanning-api
-    version: 1.0.23
+    version: 1.0.24
     repository: 'https://hmctspublic.azurecr.io/helm/v1/repo/'
     condition: ccpay-bulkscanning-api.enabled
   - name: ccpay-notifications-service
-    version: 1.0.6
+    version: 1.0.8
     repository: 'https://hmctspublic.azurecr.io/helm/v1/repo/'
     condition: ccpay-notifications-service.enabled
