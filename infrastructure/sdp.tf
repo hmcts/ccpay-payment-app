@@ -8,7 +8,7 @@ provider "azurerm" {
 locals {
   sdp_cft_environments_map = {
     aat      = "dev"
-    //perftest = "test"
+    perftest = "test"
     demo     = "dev"
   }
 
@@ -18,15 +18,15 @@ locals {
     dev = {
       subscription = "867a878b-cb68-4de5-9741-361ac9e178b6"
     }
-    //test = {
-   //   subscription = "7a4e3bd5-ae3a-4d0c-b441-2188fee3ff1c"
-   // }
-  //  ithc = {
-  //    subscription = "7a4e3bd5-ae3a-4d0c-b441-2188fee3ff1c"
-  //  }
-  //  prod = {
-  //    subscription = "8999dec3-0104-4a27-94ee-6588559729d1"
-  //  }
+    test = {
+          subscription = "3eec5bde-7feb-4566-bfb6-805df6e10b90"
+    }
+    ithc = {
+          subscription = "ba71a911-e0d6-4776-a1a6-079af1df7139"
+    }
+    prod = {
+          subscription = "5ca62022-6aa2-4cee-aaa7-e7536c8d566c"
+    }
   }
 }
 
