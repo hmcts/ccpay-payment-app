@@ -74,6 +74,10 @@ module "payment-database-v15" {
   location = var.location
   env = var.env
   pgsql_admin_username = var.postgresql_user
+
+  # Setup Access Reader db user
+  force_user_permissions_trigger = "1"
+
   pgsql_databases = [
       {
         name : var.database_name
