@@ -52,7 +52,7 @@ module "sdp_db_user" {
   ]
 
   database_schemas = {
-    payment = ["payment"]
+    payment = ["public"]
   }
 
   common_tags = var.common_tags
