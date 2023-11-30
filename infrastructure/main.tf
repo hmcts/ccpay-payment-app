@@ -99,31 +99,36 @@ module "payment-database-v15" {
 
 resource "azurerm_key_vault_secret" "POSTGRES-USER" {
   name      = join("-", [var.component, "POSTGRES-USER"])
-  value     = module.payment-database-v11.user_name
+#   value     = module.payment-database-v11.user_name
+  value     = module.payment-database-v15.username
   key_vault_id = data.azurerm_key_vault.payment_key_vault.id
 }
 
 resource "azurerm_key_vault_secret" "POSTGRES-PASS" {
   name      = join("-", [var.component, "POSTGRES-PASS"])
-  value     = module.payment-database-v11.postgresql_password
+#   value     = module.payment-database-v11.postgresql_password
+  value     = module.payment-database-v15.password
   key_vault_id = data.azurerm_key_vault.payment_key_vault.id
 }
 
 resource "azurerm_key_vault_secret" "POSTGRES_HOST" {
   name      = join("-", [var.component, "POSTGRES-HOST"])
-  value     = module.payment-database-v11.host_name
+#   value     = module.payment-database-v11.host_name
+  value     = module.payment-database-v15.fqdn
   key_vault_id = data.azurerm_key_vault.payment_key_vault.id
 }
 
 resource "azurerm_key_vault_secret" "POSTGRES_PORT" {
   name      = join("-", [var.component, "POSTGRES-PORT"])
-  value     = module.payment-database-v11.postgresql_listen_port
+#   value     = module.payment-database-v11.postgresql_listen_port
+  value     = var.postgresql_flexible_server_port
   key_vault_id = data.azurerm_key_vault.payment_key_vault.id
 }
 
 resource "azurerm_key_vault_secret" "POSTGRES_DATABASE" {
   name      = join("-", [var.component, "POSTGRES-DATABASE"])
-  value     = module.payment-database-v11.postgresql_database
+#   value     = module.payment-database-v11.postgresql_database
+  value     = var.database_name
   key_vault_id = data.azurerm_key_vault.payment_key_vault.id
 }
 
