@@ -159,7 +159,7 @@ java:
           alias: POSTGRES_PASSWORD
         - name: api-POSTGRES-PORT
           alias: POSTGRES_PORT
-        - name: api-POSTGRES-HOST
+        - name: api-POSTGRES-HOST-V15
           alias: POSTGRES_HOST
         - name: api-POSTGRES-USER
           alias: POSTGRES_USERNAME
