@@ -157,6 +157,9 @@
             tomcat-embed-core version 9.0.73'in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
         </notes>
         <cve>CVE-2023-28708</cve>
+        <cve>CVE-2023-34055</cve>
+        <cve>CVE-2023-33202</cve>
+        <cve>CVE-2023-46589</cve>
     </suppress>
     <suppress until="2024-01-31">
         <notes>
