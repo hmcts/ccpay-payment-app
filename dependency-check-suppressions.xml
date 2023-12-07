@@ -157,6 +157,9 @@
             tomcat-embed-core version 9.0.73'in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
         </notes>
         <cve>CVE-2023-28708</cve>
+        <cve>CVE-2023-34055</cve>
+        <cve>CVE-2023-33202</cve>
+        <cve>CVE-2023-46589</cve>
     </suppress>
     <suppress until="2024-01-31">
         <notes>
@@ -342,5 +345,12 @@
         </notes>
         <cve>CVE-2022-31197</cve>
     </suppress>
+    <suppress>
+        <notes>
+            A serialization vulnerability in logback receiver component part of logback version 1.4.11 allows an attacker to mount a Denial-Of-Service attack by sending poisoned data.
+        </notes>
+        <cve>CVE-2023-6378</cve>
+    </suppress>
+
     <!-- Supression Group ends here -->
 </suppressions>
