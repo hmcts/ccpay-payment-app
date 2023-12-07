@@ -345,5 +345,12 @@
         </notes>
         <cve>CVE-2022-31197</cve>
     </suppress>
+    <suppress>
+        <notes>
+            A serialization vulnerability in logback receiver component part of logback version 1.4.11 allows an attacker to mount a Denial-Of-Service attack by sending poisoned data.
+        </notes>
+        <cve>CVE-2023-6378</cve>
+    </suppress>
+
     <!-- Supression Group ends here -->
 </suppressions>
