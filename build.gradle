@@ -1,10 +1,10 @@
 plugins {
     id 'application'
-    id "org.sonarqube" version "4.4.0.3356"
+    id "org.sonarqube" version "4.4.1.3373"
     id 'org.springframework.boot' version '2.7.15'
     id 'io.spring.dependency-management' version '1.0.9.RELEASE'
     id 'org.owasp.dependencycheck' version '8.0.2'
-    id "uk.gov.hmcts.java" version '0.12.45'
+    id "uk.gov.hmcts.java" version '0.12.48'
     id "com.gorylenko.gradle-git-properties" version "2.4.1"
     id 'jacoco'
 }
@@ -127,7 +127,7 @@ subprojects {
         implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version:'2.15.3'
         implementation group: 'joda-time', name: 'joda-time', version: '2.12.5'
         implementation group: 'org.jboss.aerogear', name: 'aerogear-otp-java', version:'1.0.0'
-        implementation group:'org.apache.poi', name: 'poi-ooxml', version: '5.2.3'
+        implementation group:'org.apache.poi', name: 'poi-ooxml', version: '5.2.4'
         implementation group: 'com.github.hmcts', name: 'properties-volume-spring-boot-starter', version: '0.1.1'
         testImplementation group: 'junit', name: 'junit', version: '4.13.2'
         testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.8.0'
