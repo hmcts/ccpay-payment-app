@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 
@@ -163,6 +164,26 @@ public class PaymentGroupDtoMapperTest {
         return Optional.of(feeVersionDto);
     }
 
+    @Test
+    public void testCalculateOverallBalanceForNoRemission (){
+
+        List<PaymentDto> payments =new ArrayList<>();
+        PaymentDto paymentDto = getPaymentDto(273);
+        payments.add(paymentDto);
+
+        List<FeeDto> fees = new ArrayList<>();
+        FeeDto fee = getFeeDto(273);
+        fees.add(fee);
+
+        PaymentGroupDto paymentGroupDto = new PaymentGroupDto();
+        paymentGroupDto.setServiceRequestStatus("test");
+        paymentGroupDto.setPayments(payments);
+        paymentGroupDto.setFees(fees);
+
+        paymentGroupDtoMapper.calculateOverallBalance(paymentGroupDto);
+        assertNull(paymentGroupDto.getRemissions());
+
+    }
 
     @Test
     public void testCalculateOverallBalanceForOne (){
