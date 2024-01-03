@@ -18,6 +18,10 @@ import java.util.Date;
 @IdClass(IdempotencyKeysPK.class)
 public class IdempotencyKeys {
 
+    public enum ResponseStatusType {
+        pending, completed
+    }
+
     @Generated(GenerationTime.INSERT)
     @Column(name = "id", columnDefinition = "serial", updatable = false)
     private Integer id;
@@ -46,4 +50,9 @@ public class IdempotencyKeys {
     @UpdateTimestamp
     @Column(name = "date_updated")
     private Date dateUpdated;
+
+    @Column(name = "response_status", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private ResponseStatusType responseStatus;
+
 }

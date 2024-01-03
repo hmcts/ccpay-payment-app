@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.api.domain.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.poi.ss.formula.functions.T;
+import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,8 +31,8 @@ import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
 import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.mapper.PBAStatusErrorMapper;
-import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
+import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.*;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentGroupNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoAmountDue;
@@ -50,7 +51,10 @@ import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.internal.verification.VerificationModeFactory.times;
+
 
 @RunWith(SpringRunner.class)
 public class ServiceRequestDomainServiceTest {
@@ -211,48 +215,103 @@ public class ServiceRequestDomainServiceTest {
 
         String requestJson = objectMapper.writeValueAsString(serviceRequestPaymentDto);
 
+        ResponseEntity<?> responseEntity = new ResponseEntity<T>(HttpStatus.CREATED);
+
         IdempotencyKeys idempotencyRecord = IdempotencyKeys
             .idempotencyKeysWith()
             .idempotencyKey("idempotencyKey")
             .requestBody(requestJson)
             .requestHashcode(123)   //save the hashcode
             .responseBody("")
+            .responseStatus(IdempotencyKeys.ResponseStatusType.pending)
+            .build();
+
+        ResponseEntity idempotencyPendingRecordResponseEntity = serviceRequestDomainService.createIdempotencyRecord(objectMapper,"idempotencyKey", "RC-ref",
+            "{\"response_body\":\"response_body\"}", idempotencyRecord.getResponseStatus(), responseEntity,serviceRequestPaymentDto);
+
+        assertNotNull(idempotencyPendingRecordResponseEntity);
+        AssertionsForClassTypes.assertThat(idempotencyPendingRecordResponseEntity.getStatusCode().equals(null));
+
+        idempotencyRecord = IdempotencyKeys
+            .idempotencyKeysWith()
+            .idempotencyKey("idempotencyKey")
+            .requestBody(requestJson)
+            .requestHashcode(123)   //save the hashcode
+            .responseBody("")
             .responseCode(201)
+            .responseStatus(IdempotencyKeys.ResponseStatusType.completed)
+            .build();
+
+        ResponseEntity idempotencyCompletedRecordResponseEntity = serviceRequestDomainService.createIdempotencyRecord(objectMapper,"idempotencyKey", "RC-ref",
+            "{\"response_body\":\"response_body\"}", idempotencyRecord.getResponseStatus(), responseEntity,serviceRequestPaymentDto);
+
+        assertNotNull(idempotencyCompletedRecordResponseEntity);
+        assertThat(idempotencyCompletedRecordResponseEntity.getStatusCode().equals(HttpStatus.CREATED));
+
+        verify(idempotencyKeysRepository, times(2)).findById(any());
+        verify(idempotencyKeysRepository, times(2)).saveAndFlush(any());
+    }
+
+    @Test
+    public void createIdempotencyPendingRecordTest() throws Exception {
+
+        ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto.paymentDtoWith()
+            .accountNumber("1234")
+            .amount(new BigDecimal(99.99).setScale(2, RoundingMode.HALF_EVEN))
+            .customerReference("cust_ref")
+            .build();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        String requestJson = objectMapper.writeValueAsString(serviceRequestPaymentDto);
+
+        IdempotencyKeys idempotencyRecord = IdempotencyKeys
+            .idempotencyKeysWith()
+            .idempotencyKey("idempotencyKey")
+            .requestBody(requestJson)
+            .requestHashcode(123)   //save the hashcode
+            .responseBody("")
+            .responseStatus(IdempotencyKeys.ResponseStatusType.pending)
             .build();
 
         ResponseEntity<?> responseEntity = new ResponseEntity<T>(HttpStatus.CREATED);
 
-        serviceRequestDomainService.createIdempotencyRecord(objectMapper,"", "RC-ref",
-            "{\"response_body\":\"response_body\"}", responseEntity,serviceRequestPaymentDto);
+        ResponseEntity idempotencyRecordResponseEntity = serviceRequestDomainService.createIdempotencyRecord(objectMapper, "", "RC-ref",
+            "{\"response_body\":\"response_body\"}", idempotencyRecord.getResponseStatus(), responseEntity, serviceRequestPaymentDto);
+
+        assertNotNull(idempotencyRecordResponseEntity);
+        assertThat(idempotencyRecordResponseEntity.getStatusCode().equals(null));
+        verify(idempotencyKeysRepository, times(1)).findById(any());
+        verify(idempotencyKeysRepository, times(1)).saveAndFlush(any());
     }
 
-     @Test
-     public void addPaymentsTest() throws Exception {
+    @Test
+    public void addPaymentsTest() throws Exception {
 
         ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto.paymentDtoWith()
             .accountNumber("1234")
             .amount(new BigDecimal(99.99).setScale(2, RoundingMode.HALF_EVEN))
                 .build();
 
-         ServiceRequestPaymentBo serviceRequestPaymentBo = ServiceRequestPaymentBo.serviceRequestPaymentBoWith()
+        ServiceRequestPaymentBo serviceRequestPaymentBo = ServiceRequestPaymentBo.serviceRequestPaymentBoWith()
                  .paymentReference("RC-ref")
                      .build();
 
-         Payment payment = Payment.paymentWith()
+        Payment payment = Payment.paymentWith()
                  .paymentLink(getPaymentFeeLink())
                  .currency("GBP")
                 .paymentMethod(PaymentMethod.paymentMethodWith().name("Online").build())
                  .paymentStatus(PaymentStatus.SUCCESS)
                      .build();
 
-         Payment paymentFailed = Payment.paymentWith()
+        Payment paymentFailed = Payment.paymentWith()
              .paymentLink(getPaymentFeeLink())
              .currency("GBP")
              .paymentMethod(PaymentMethod.paymentMethodWith().name("Online").build())
              .paymentStatus(PaymentStatus.FAILED)
              .build();
 
-         PaymentReference paymentReference = PaymentReference.paymentReference()
+        PaymentReference paymentReference = PaymentReference.paymentReference()
              .caseReference("1234")
              .paymentAmount(BigDecimal.valueOf(24244.60))
              .accountNumber("12344")
@@ -268,29 +327,29 @@ public class ServiceRequestDomainServiceTest {
             .payment(paymentReference)
             .build();
 
-         when(serviceRequestPaymentDtoDomainMapper.toDomain(any())).thenReturn(serviceRequestPaymentBo);
+        when(serviceRequestPaymentDtoDomainMapper.toDomain(any())).thenReturn(serviceRequestPaymentBo);
 
-         when(serviceRequestPaymentDomainDataEntityMapper.toEntity(any(),any())).thenReturn(payment,paymentFailed);
+        when(serviceRequestPaymentDomainDataEntityMapper.toEntity(any(),any())).thenReturn(payment,paymentFailed);
 
-         when(paymentFeeLinkRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(getPaymentFeeLink()));
+        when(paymentFeeLinkRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(getPaymentFeeLink()));
 
-         when(paymentDtoMapper.toPaymentStatusDto(any(),any(),any(), any())).thenReturn(paymentStatusDto);
+        when(paymentDtoMapper.toPaymentStatusDto(any(),any(),any(), any())).thenReturn(paymentStatusDto);
 
-         AccountDto accountDto = AccountDto.accountDtoWith()
-                 .accountNumber("1234")
-                     .build();
+        AccountDto accountDto = AccountDto.accountDtoWith()
+             .accountNumber("1234")
+                 .build();
 
-         when(accountService.retrieve(any())).thenReturn(accountDto);
+        when(accountService.retrieve(any())).thenReturn(accountDto);
 
-         PaymentGroupDto paymentGroupDto = new PaymentGroupDto();
-         paymentGroupDto.setServiceRequestStatus("Paid");
-         when(paymentGroupDtoMapper.toPaymentGroupDto(any())).thenReturn(paymentGroupDto);
+        PaymentGroupDto paymentGroupDto = new PaymentGroupDto();
+        paymentGroupDto.setServiceRequestStatus("Paid");
+        when(paymentGroupDtoMapper.toPaymentGroupDto(any())).thenReturn(paymentGroupDto);
 
-         ServiceRequestPaymentBo bo =
-                 serviceRequestDomainService.addPayments(getPaymentFeeLink(), "123", serviceRequestPaymentDto);
+        ServiceRequestPaymentBo bo =
+             serviceRequestDomainService.addPayments(getPaymentFeeLink(), "123", serviceRequestPaymentDto);
 
-         assertNull(bo);
-     }
+        assertNull(bo);
+    }
 
     @Test
     public void createOnlineCardPaymentTest() throws Exception {
