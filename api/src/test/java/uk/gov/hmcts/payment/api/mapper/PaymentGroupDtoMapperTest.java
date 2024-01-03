@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.api.mapper;
 
+import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -10,6 +11,9 @@ import org.mockito.junit.MockitoJUnitRunner;
 import uk.gov.hmcts.fees2.register.api.contract.FeeVersionDto;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
+import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
+import uk.gov.hmcts.payment.api.dto.RemissionDto;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
 import uk.gov.hmcts.payment.api.model.FeePayApportion;
 import uk.gov.hmcts.payment.api.model.Payment;
@@ -159,4 +163,90 @@ public class PaymentGroupDtoMapperTest {
         return Optional.of(feeVersionDto);
     }
 
+
+    @Test
+    public void testCalculateOverallBalanceForOne (){
+
+
+        List<RemissionDto> remissions= new ArrayList<>();
+        RemissionDto remission = getRemissionDto(100);
+        remissions.add(remission);
+
+        List<PaymentDto> payments =new ArrayList<>();
+        PaymentDto paymentDto = getPaymentDto(273);
+        payments.add(paymentDto);
+
+        List<FeeDto> fees = new ArrayList<>();
+        FeeDto fee = getFeeDto(273);
+        fees.add(fee);
+
+        PaymentGroupDto paymentGroupDto = new PaymentGroupDto();
+        paymentGroupDto.setServiceRequestStatus("test");
+        paymentGroupDto.setPayments(payments);
+        paymentGroupDto.setFees(fees);
+        paymentGroupDto.setRemissions(remissions);
+
+        paymentGroupDtoMapper.calculateOverallBalance(paymentGroupDto);
+        assertEquals("100",paymentGroupDto.getRemissions().get(0).getOverallBalance().toString());
+
+    }
+
+    @Test
+    public void testCalculateOverallBalanceForTwo (){
+
+
+        List<RemissionDto> remissions= new ArrayList<>();
+
+        RemissionDto remission = getRemissionDto(100);
+        remissions.add(remission);
+
+        RemissionDto remission2 = getRemissionDto(100);
+        remissions.add(remission2);
+
+        List<PaymentDto> payments =new ArrayList<>();
+        PaymentDto paymentDto = getPaymentDto(273);
+        payments.add(paymentDto);
+
+        PaymentDto paymentDto2 = getPaymentDto(150);
+        payments.add(paymentDto2);
+
+        List<FeeDto> fees = new ArrayList<>();
+        FeeDto fee = getFeeDto(273);
+        fees.add(fee);
+
+        FeeDto fee2 = getFeeDto(273);
+        fees.add(fee2);
+
+        PaymentGroupDto paymentGroupDto = new PaymentGroupDto();
+        paymentGroupDto.setServiceRequestStatus("test");
+        paymentGroupDto.setPayments(payments);
+        paymentGroupDto.setFees(fees);
+        paymentGroupDto.setRemissions(remissions);
+
+        paymentGroupDtoMapper.calculateOverallBalance(paymentGroupDto);
+        assertEquals("100",paymentGroupDto.getRemissions().get(0).getOverallBalance().toString());
+        assertEquals("-23",paymentGroupDto.getRemissions().get(1).getOverallBalance().toString());
+
+    }
+
+    @NotNull
+    private static PaymentDto getPaymentDto(int value) {
+        PaymentDto paymentDto = new PaymentDto();
+        paymentDto.setAmount(new BigDecimal(value));
+        return paymentDto;
+    }
+
+    @NotNull
+    private static FeeDto getFeeDto(int value) {
+        FeeDto fee = new FeeDto();
+        fee.setCalculatedAmount(new BigDecimal(value));
+        return fee;
+    }
+
+    @NotNull
+    private static RemissionDto getRemissionDto(int value) {
+        RemissionDto remission = new RemissionDto();
+        remission.setHwfAmount(new BigDecimal( value));
+        return remission;
+    }
 }
