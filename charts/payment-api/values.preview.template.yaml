@@ -174,15 +174,22 @@ ccpay-bulkscanning-api:
       "ccpay":
         resourceGroup: ccpay
         secrets:
-          - AppInsightsInstrumentationKey
-          - paybubble-s2s-secret
-          - paybubble-idam-client-secret
-          - app-insights-connection-string
+          - name: AppInsightsInstrumentationKey
+            alias: azure.application-insights.instrumentation-key
+          - name: app-insights-connection-string
+            alias: app-insights-connection-string
           - name: paybubble-s2s-secret
             alias: OIDC_S2S_SECRET
           - name: paybubble-idam-client-secret
             alias: OIDC_CLIENT_SECRET
-
+          - name: pci-pal-antenna-probate-flow-id
+            alias: pci-pal.antenna.probate.flow.id
+          - name: pci-pal-antenna-divorce-flow-id
+            alias: pci-pal.antenna.divorce.flow.id
+          - name: pci-pal-antenna-prl-flow-id
+            alias: pci-pal.antenna.prl.flow.id
+          - name: pci-pal-antenna-strategic-flow-id
+            alias: pci-pal.antenna.strategic.flow.id
 
 ccpay-notifications-service:
   enabled: true
