@@ -41,6 +41,9 @@ public class PaymentApiApplication {
     @Value("${pci-pal.antenna.prl.flow.id}")
     private static String prlFlowId;
 
+    @Value("${pci-pal.antenna.probate.flow.id}")
+    private static String probateFlowId;
+
     public static void main(String[] args) {
         try {
             //Setting Liquibase DB Lock property before Spring starts up.
@@ -49,6 +52,7 @@ public class PaymentApiApplication {
                 .setUseDbLock(true);
 
             LOG.info("DEBUG pci-pal.antenna.prl.flow.id: {}", prlFlowId);
+            LOG.info("DEBUG pci-pal.antenna.probate.flow.id: {}", probateFlowId);
 
             SpringApplication.run(PaymentApiApplication.class, args);
         } catch (RuntimeException ex) {
