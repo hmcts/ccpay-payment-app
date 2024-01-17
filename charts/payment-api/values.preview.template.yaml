@@ -27,6 +27,10 @@ java:
     "ccpay":
       resourceGroup: ccpay
       secrets:
+        - name: AppInsightsInstrumentationKey
+          alias: azure.application-insights.instrumentation-key
+        - name: app-insights-connection-string
+          alias: app-insights-connection-string
         - name: gov-pay-keys-cmc
           alias: gov.pay.auth.key.cmc
         - name: launch-darkly-sdk-key
@@ -182,14 +186,6 @@ ccpay-bulkscanning-api:
             alias: OIDC_S2S_SECRET
           - name: paybubble-idam-client-secret
             alias: OIDC_CLIENT_SECRET
-          - name: pci-pal-antenna-probate-flow-id
-            alias: pci-pal.antenna.probate.flow.id
-          - name: pci-pal-antenna-divorce-flow-id
-            alias: pci-pal.antenna.divorce.flow.id
-          - name: pci-pal-antenna-prl-flow-id
-            alias: pci-pal.antenna.prl.flow.id
-          - name: pci-pal-antenna-strategic-flow-id
-            alias: pci-pal.antenna.strategic.flow.id
 
 ccpay-notifications-service:
   enabled: true
