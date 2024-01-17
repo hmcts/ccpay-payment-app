@@ -4,8 +4,10 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import liquibase.configuration.GlobalConfiguration;
 import liquibase.configuration.LiquibaseConfiguration;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
@@ -36,12 +38,18 @@ import java.util.concurrent.TimeUnit;
 public class PaymentApiApplication {
     private static final Logger LOG = LoggerFactory.getLogger(PaymentApiApplication.class);
 
+    @Value("${pci-pal.antenna.prl.flow.id}")
+    private static String prlFlowId;
+
     public static void main(String[] args) {
         try {
             //Setting Liquibase DB Lock property before Spring starts up.
             LiquibaseConfiguration.getInstance()
                 .getConfiguration(GlobalConfiguration.class)
                 .setUseDbLock(true);
+
+            LOG.info("DEBUG pci-pal.antenna.prl.flow.id: {}", prlFlowId);
+
             SpringApplication.run(PaymentApiApplication.class, args);
         } catch (RuntimeException ex) {
             LOG.error(Markers.fatal, "Application crashed with error message: ", ex);
