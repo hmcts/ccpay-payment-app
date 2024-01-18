@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.api.domain.service;
 
+import com.google.common.collect.ImmutableMap;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.poi.ss.formula.functions.T;
 import org.assertj.core.api.AssertionsForClassTypes;
@@ -30,6 +31,8 @@ import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestFeeDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
 import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
+import uk.gov.hmcts.payment.api.external.client.dto.Link;
+import uk.gov.hmcts.payment.api.external.client.dto.State;
 import uk.gov.hmcts.payment.api.mapper.PBAStatusErrorMapper;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.model.*;
@@ -48,12 +51,16 @@ import java.util.Optional;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
+import static uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment.govPaymentWith;
 
 
 @RunWith(SpringRunner.class)
@@ -457,4 +464,69 @@ public class ServiceRequestDomainServiceTest {
         return CasePaymentRequest.casePaymentRequestWith().responsibleParty("party").action("action").build();
     }
 
+    @Test
+    public void testGovPayCancelExist_givenCancelLinkIsNotNull_whenInvoked_thenShouldReturnTrue() {
+        // Given
+        GovPayPayment govPayPayment = new GovPayPayment();
+        when(delegateGovPay.retrieve(anyString(), anyString())).thenReturn(VALID_GOV_PAYMENT_RESPONSE);
+
+        // When
+        boolean result = serviceRequestDomainService.govPayCancelExist(String.valueOf(1), "someService");
+
+        // Then
+        assertTrue(result);
+
+        //verify
+        assertEquals(VALID_GOV_PAYMENT_RESPONSE, delegateGovPay.retrieve(anyString(), anyString()));
+    }
+
+
+    @Test
+    public void testGovPayCancelExist_givenCancelLinkIsNull_whenInvoked_thenShouldReturnTrue() {
+        // Given
+        GovPayPayment govPayPayment = new GovPayPayment();
+        when(delegateGovPay.retrieve(anyString(), anyString())).thenReturn(GOV_PAYMENT_RESPONSE_MISSING_CANCEL);
+
+        // When
+        boolean result = serviceRequestDomainService.govPayCancelExist(String.valueOf(1), "someService");
+
+        // Then
+        assertFalse(result);
+
+        //verify
+        assertEquals(GOV_PAYMENT_RESPONSE_MISSING_CANCEL, delegateGovPay.retrieve(anyString(), anyString()));
+    }
+
+
+    private static final GovPayPayment VALID_GOV_PAYMENT_RESPONSE = govPaymentWith()
+        .paymentId("paymentId")
+        .amount(100)
+        .description("description")
+        .reference("reference")
+        .state(new State("status", false, "message", "code"))
+        .links(new GovPayPayment.Links(
+            new Link("type", ImmutableMap.of(), "self", "GET"),
+            new Link("type", ImmutableMap.of(), "nextUrl", "GET"),
+            new Link("type", ImmutableMap.of(), "nextUrlPost", "GET"),
+            new Link("type", ImmutableMap.of(), "eventsUrl", "GET"),
+            new Link("type", ImmutableMap.of(), "refundsUrl", "GET"),
+            new Link("type", ImmutableMap.of(), "cancelUrl", "GET")
+        ))
+        .build();
+
+    private static final GovPayPayment GOV_PAYMENT_RESPONSE_MISSING_CANCEL = govPaymentWith()
+        .paymentId("paymentId")
+        .amount(100)
+        .description("description")
+        .reference("reference")
+        .state(new State("status", false, "message", "code"))
+        .links(new GovPayPayment.Links(
+            new Link("type", ImmutableMap.of(), "self", "GET"),
+            new Link("type", ImmutableMap.of(), "nextUrl", "GET"),
+            new Link("type", ImmutableMap.of(), "nextUrlPost", "GET"),
+            new Link("type", ImmutableMap.of(), "eventsUrl", "GET"),
+            new Link("type", ImmutableMap.of(), "refundsUrl", "GET"),
+            new Link("type", ImmutableMap.of(), "", "GET")
+        ))
+        .build();
 }

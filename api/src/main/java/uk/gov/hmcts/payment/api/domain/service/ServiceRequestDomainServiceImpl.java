@@ -382,7 +382,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
             .sorted(Comparator.comparing(Payment::getDateCreated).reversed())
             .findFirst();
 
-        if (!existedPayment.isEmpty()) {
+        if (!existedPayment.isEmpty()&& govPayCancelExist(existedPayment.get().getExternalReference(),paymentFeeLink.getEnterpriseServiceName())) {
             delegatingPaymentService.cancel(existedPayment.get(), paymentFeeLink.getCcdCaseNumber(),paymentFeeLink.getEnterpriseServiceName());
         }
     }
@@ -536,5 +536,18 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         } catch (Exception e) {
             Thread.currentThread().interrupt();
         }
+    }
+
+
+    public boolean govPayCancelExist(String externalRef, String service){
+        boolean allowCancel = false;
+        GovPayPayment govPayPayment;
+        govPayPayment = delegateGovPay.retrieve(externalRef, service);
+        if(govPayPayment!=null && govPayPayment.getLinks()!=null &&
+            govPayPayment.getLinks().getCancel()!=null &&
+            (govPayPayment.getLinks().getCancel().getHref()!=null && !govPayPayment.getLinks().getCancel().getHref().isEmpty())) {
+            allowCancel = true;
+        }
+        return allowCancel;
     }
 }

@@ -43,4 +43,6 @@ public interface ServiceRequestDomainService {
     void deadLetterProcess(IMessageReceiver subscriptionClient) throws ServiceBusException, InterruptedException, IOException;
 
     IMessageReceiver createDLQConnection() throws ServiceBusException, InterruptedException;
+
+    boolean govPayCancelExist(String externalRef, String service);
 }
