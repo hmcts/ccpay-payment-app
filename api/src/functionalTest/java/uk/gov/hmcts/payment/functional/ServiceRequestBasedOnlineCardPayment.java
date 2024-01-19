@@ -185,7 +185,7 @@ public class ServiceRequestBasedOnlineCardPayment {
             serviceRequestTestService.createAnOnlineCardPaymentForAServiceRequest(USER_TOKEN_PAYMENT,
                 SERVICE_TOKEN, serviceRequestReference, onlineCardPaymentRequestAgain);
         OnlineCardPaymentResponse onlineCardPaymentResponseAgain =
-            createOnlineCardPaymentResponseAgain.getBody().as(OnlineCardPaymentResponse.class, ObjectMapperType.valueOf("application/json"));
+            createOnlineCardPaymentResponseAgain.getBody().as(OnlineCardPaymentResponse.class);
         final String laterPaymentReference = onlineCardPaymentResponseAgain.getPaymentReference();
         assertThat(laterPaymentReference).matches(PAYMENTS_REGEX_PATTERN);
         assertThat(initialPaymentReference).isNotEqualTo(laterPaymentReference);
