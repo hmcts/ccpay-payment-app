@@ -327,10 +327,10 @@ public class PaymentGroupDtoMapper {
         return disputeDTOs;
     }
 
-    public void calculateOverallBalance(PaymentGroupDto paymentGroupDto){
+    public PaymentGroupDto calculateOverallBalance(PaymentGroupDto paymentGroupDto){
 
         if (paymentGroupDto.getRemissions() == null){
-            return;
+            return paymentGroupDto;
         }
         final var remissions= paymentGroupDto.getRemissions().iterator();
         final var payments= paymentGroupDto.getPayments().iterator();
@@ -343,5 +343,6 @@ public class PaymentGroupDtoMapper {
                     fees.next().getCalculatedAmount().subtract(remission.getHwfAmount())
                 ));
         }
+        return paymentGroupDto;
     }
 }
