@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.functional;
 
+import io.restassured.mapper.ObjectMapperType;
 import io.restassured.response.Response;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.junit.After;
@@ -184,7 +185,7 @@ public class ServiceRequestBasedOnlineCardPayment {
             serviceRequestTestService.createAnOnlineCardPaymentForAServiceRequest(USER_TOKEN_PAYMENT,
                 SERVICE_TOKEN, serviceRequestReference, onlineCardPaymentRequestAgain);
         OnlineCardPaymentResponse onlineCardPaymentResponseAgain =
-            createOnlineCardPaymentResponseAgain.getBody().as(OnlineCardPaymentResponse.class);
+            createOnlineCardPaymentResponseAgain.getBody().as(OnlineCardPaymentResponse.class, ObjectMapperType.valueOf("application/json"));
         final String laterPaymentReference = onlineCardPaymentResponseAgain.getPaymentReference();
         assertThat(laterPaymentReference).matches(PAYMENTS_REGEX_PATTERN);
         assertThat(initialPaymentReference).isNotEqualTo(laterPaymentReference);
