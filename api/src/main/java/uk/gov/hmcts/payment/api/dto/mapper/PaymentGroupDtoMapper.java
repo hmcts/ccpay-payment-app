@@ -329,7 +329,7 @@ public class PaymentGroupDtoMapper {
 
     public PaymentGroupDto calculateOverallBalance(PaymentGroupDto paymentGroupDto){
 
-        if (paymentGroupDto.getRemissions() == null){
+        if (paymentGroupDto.getRemissions() == null || paymentGroupDto.getPayments() == null || paymentGroupDto.getFees() == null) {
             return paymentGroupDto;
         }
         final var remissions= paymentGroupDto.getRemissions().iterator();
