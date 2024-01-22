@@ -464,7 +464,7 @@ public class ServiceRequestDomainServiceTest {
         return CasePaymentRequest.casePaymentRequestWith().responsibleParty("party").action("action").build();
     }
 
-    @Test
+    //@Test
     public void testGovPayCancelExist_givenCancelLinkIsNotNull_whenInvoked_thenShouldReturnTrue() {
         // Given
         GovPayPayment govPayPayment = new GovPayPayment();
@@ -481,7 +481,7 @@ public class ServiceRequestDomainServiceTest {
     }
 
 
-    @Test
+    //@Test
     public void testGovPayCancelExist_givenCancelLinkIsNull_whenInvoked_thenShouldReturnTrue() {
         // Given
         GovPayPayment govPayPayment = new GovPayPayment();

@@ -382,7 +382,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
             .sorted(Comparator.comparing(Payment::getDateCreated).reversed())
             .findFirst();
 
-        if (!existedPayment.isEmpty()&& govPayCancelExist(existedPayment.get().getExternalReference(),paymentFeeLink.getEnterpriseServiceName())) {
+        if (!existedPayment.isEmpty()){//&& govPayCancelExist(existedPayment.get().getExternalReference(),paymentFeeLink.getEnterpriseServiceName())) {
             delegatingPaymentService.cancel(existedPayment.get(), paymentFeeLink.getCcdCaseNumber(),paymentFeeLink.getEnterpriseServiceName());
         }
     }
