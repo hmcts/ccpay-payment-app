@@ -171,6 +171,10 @@ public class ServiceRequestController {
 
         // Idempotency Check - Find any idempotency records, if found then potentially we have a duplicate payment.
         List<IdempotencyKeys> duplicatePaymentIdempotencyRows = idempotencyService.findTheRecordByRequestHashcode(requestHashCode);
+
+        // Remove idempontency records from list which have an error response from Liberata but are allowed to be retried.
+        duplicatePaymentIdempotencyRows = idempotencyService.filterRecordsWithAcceptableLiberataHttpResponse(duplicatePaymentIdempotencyRows);
+
         Optional<IdempotencyKeys> currentIdempotencyKeyRow = idempotencyService.findTheRecordByIdempotencyKey(idempotencyKey).stream().findFirst();
         if (!duplicatePaymentIdempotencyRows.isEmpty() || currentIdempotencyKeyRow.isPresent()) {
             return processDuplicateServiceRequestPayment(duplicatePaymentIdempotencyRows, currentIdempotencyKeyRow, objectMapper,

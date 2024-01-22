@@ -9,4 +9,6 @@ public interface IdempotencyService {
     Optional<IdempotencyKeys> findTheRecordByIdempotencyKey(String idempotencyKeyToCheck);
 
     List<IdempotencyKeys> findTheRecordByRequestHashcode(Integer requestHashcode);
+
+    List<IdempotencyKeys> filterRecordsWithAcceptableLiberataHttpResponse(List<IdempotencyKeys> idempotencyKeysList);
 }
