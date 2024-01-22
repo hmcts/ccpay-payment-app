@@ -324,7 +324,7 @@ public class ServiceRequestControllerTest {
     }
 
     @Test
-    public void createPBAPaymentWithServiceRequestFailDueToConflictHascode() throws Exception {
+    public void createPBAPaymentWithServiceRequestFailDueToConflictHashcode() throws Exception {
 
         //Creation of serviceRequest-reference
         String serviceRequestReferenceResult = getServiceRequestReference();
@@ -338,7 +338,6 @@ public class ServiceRequestControllerTest {
             .organisationName("sommin")
             .customerReference("testCustReference").
             build();
-
 
         AccountDto liberataAccountResponse = AccountDto.accountDtoWith()
             .accountNumber("PBAFUNC12345")
