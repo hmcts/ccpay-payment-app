@@ -381,7 +381,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
                 && payment.getDateCreated().compareTo(ninetyMinAgo) >= 0)
             .sorted(Comparator.comparing(Payment::getDateCreated).reversed())
             .findFirst();
-
+        LOG.info("EXTERNAL REF:- "+existedPayment.get().getExternalReference()+" SERVICE NAME:- "+paymentFeeLink.getEnterpriseServiceName());
         if (!existedPayment.isEmpty() && govPayCancelExist(existedPayment.get().getExternalReference(),paymentFeeLink.getEnterpriseServiceName())) {
             delegatingPaymentService.cancel(existedPayment.get(), paymentFeeLink.getCcdCaseNumber(),paymentFeeLink.getEnterpriseServiceName());
         }
@@ -543,6 +543,9 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         boolean allowCancel = false;
         GovPayPayment govPayPayment;
         govPayPayment = delegateGovPay.retrieve(externalRef, service);
+        LOG.info("GOVPAYPAYMENT GET LINKS EXISTS:- "+govPayPayment.getLinks()+
+            " GOVPAYPAYMENT GET CANCEL EXISTS:- "+govPayPayment.getLinks().getCancel()+
+            " GOVPAYPAYMENT GET CANCEL HREF EXISTS:- "+govPayPayment.getLinks().getCancel().getHref());
         if(govPayPayment!=null && govPayPayment.getLinks()!=null &&
             govPayPayment.getLinks().getCancel()!=null &&
             (govPayPayment.getLinks().getCancel().getHref()!=null && !govPayPayment.getLinks().getCancel().getHref().isEmpty())) {
