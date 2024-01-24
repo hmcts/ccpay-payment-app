@@ -232,6 +232,7 @@ class CardPaymentProviderTest {
             .statusHistories(Arrays.asList(statusHistory))
             .dateUpdated(now)
             .dateCreated(now)
+            .nextUrl("http://nexturl.test")
             .build();
 
         PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE000" + number).volume(1).build();
