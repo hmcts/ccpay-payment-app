@@ -381,7 +381,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
                 && payment.getDateCreated().compareTo(ninetyMinAgo) >= 0)
             .sorted(Comparator.comparing(Payment::getDateCreated).reversed())
             .findFirst();
-        if(existedPayment.get().getExternalReference()!=null){
+        if(!existedPayment.isEmpty()){
             LOG.info("EXTERNAL REF:- "+existedPayment.get().getExternalReference());
         }
         if(paymentFeeLink.getEnterpriseServiceName()!=null){
