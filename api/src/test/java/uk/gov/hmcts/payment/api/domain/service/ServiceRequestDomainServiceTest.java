@@ -482,7 +482,7 @@ public class ServiceRequestDomainServiceTest {
 
 
     @Test
-    public void testGovPayCancelExist_givenCancelLinkIsNull_whenInvoked_thenShouldReturnTrue() {
+    public void testGovPayCancelExist_givenCancelLinkIsNull_whenInvoked_thenShouldReturnFalse() {
         // Given
         GovPayPayment govPayPayment = new GovPayPayment();
         when(delegateGovPay.retrieve(anyString(), anyString())).thenReturn(GOV_PAYMENT_RESPONSE_MISSING_CANCEL);
@@ -495,6 +495,38 @@ public class ServiceRequestDomainServiceTest {
 
         //verify
         assertEquals(GOV_PAYMENT_RESPONSE_MISSING_CANCEL, delegateGovPay.retrieve(anyString(), anyString()));
+    }
+
+    @Test
+    public void testGovPayCancelExist_givenEmptyLinks_whenInvoked_thenShouldReturnFalse() {
+        // Given
+        GovPayPayment govPayPayment = new GovPayPayment();
+        when(delegateGovPay.retrieve(anyString(), anyString())).thenReturn(GOV_PAYMENT_RESPONSE_EMPTY_LINKS);
+
+        // When
+        boolean result = serviceRequestDomainService.govPayCancelExist(String.valueOf(1), "someService");
+
+        // Then
+        assertFalse(result);
+
+        //verify
+        assertEquals(GOV_PAYMENT_RESPONSE_EMPTY_LINKS, delegateGovPay.retrieve(anyString(), anyString()));
+    }
+
+    @Test
+    public void testGovPayCancelExist_givenNullLinks_whenInvoked_thenShouldReturnFalse() {
+        // Given
+        GovPayPayment govPayPayment = new GovPayPayment();
+        when(delegateGovPay.retrieve(anyString(), anyString())).thenReturn(GOV_PAYMENT_RESPONSE_NULL_LINKS);
+
+        // When
+        boolean result = serviceRequestDomainService.govPayCancelExist(String.valueOf(1), "someService");
+
+        // Then
+        assertFalse(result);
+
+        //verify
+        assertEquals(GOV_PAYMENT_RESPONSE_NULL_LINKS, delegateGovPay.retrieve(anyString(), anyString()));
     }
 
 
@@ -528,5 +560,22 @@ public class ServiceRequestDomainServiceTest {
             new Link("type", ImmutableMap.of(), "refundsUrl", "GET"),
             new Link("type", ImmutableMap.of(), "", "GET")
         ))
+        .build();
+
+    private static final GovPayPayment GOV_PAYMENT_RESPONSE_EMPTY_LINKS = govPaymentWith()
+        .paymentId("paymentId")
+        .amount(100)
+        .description("description")
+        .reference("reference")
+        .state(new State("status", false, "message", "code"))
+        .links(new GovPayPayment.Links())
+        .build();
+
+    private static final GovPayPayment GOV_PAYMENT_RESPONSE_NULL_LINKS = govPaymentWith()
+        .paymentId("paymentId")
+        .amount(100)
+        .description("description")
+        .reference("reference")
+        .state(new State("status", false, "message", "code"))
         .build();
 }

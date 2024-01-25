@@ -546,8 +546,8 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
 
     public boolean govPayCancelExist(String externalRef, String service){
         boolean allowCancel = false;
-        GovPayPayment govPayPayment;
-        govPayPayment = delegateGovPay.retrieve(externalRef, service);
+        GovPayPayment govPayPayment = delegateGovPay.retrieve(externalRef, service);
+        LOG.info("GOVPAYPAYMENT HAS BEEN POPULATED:- "+govPayPayment.toString());
         if(govPayPayment.getLinks()!=null){
             LOG.info("GOVPAYPAYMENT GET LINKS EXISTS:- "+govPayPayment.getLinks());
             if(govPayPayment.getLinks().getCancel()!=null){
