@@ -422,6 +422,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
             idempotencyKeysRepository.saveAndFlush(idempotencyRecord);
 
         } catch (DataIntegrityViolationException exception) {
+            LOG.error("An error occurred writing the idempotency record. ", exception);
             responseEntity = new ResponseEntity<>("Too many requests. PBA Payment currently is in progress for this serviceRequest", HttpStatus.TOO_EARLY);
         }
 
