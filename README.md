@@ -50,7 +50,7 @@ Linux users may need to add their current user to the docker group:
 $ sudo usermod -aG docker $USER
 ```
 
-To run all unit tests please execute the following command:
+To run all unit  tests please execute the following command:
 
 ```bash
 $ ./gradlew test
@@ -81,6 +81,6 @@ Liquibase is used to update the database changes. Perform following steps to cre
 
 #### Environment variables
 
-The following environment variables are required:
+The following environment   variables are required:
 
 - `APPINSIGHTS_INSTRUMENTATIONKEY`, app insights key to send telemetry events.
