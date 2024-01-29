@@ -50,7 +50,7 @@ Linux users may need to add their current user to the docker group:
 $ sudo usermod -aG docker $USER
 ```
 
-To run all unit tests please execute the following command:
+To run all unit  tests please execute the following command:
 
 ```bash
 $ ./gradlew test
