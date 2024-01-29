@@ -387,7 +387,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         if(paymentFeeLink.getEnterpriseServiceName()!=null){
             LOG.info(" SERVICE NAME:- "+paymentFeeLink.getEnterpriseServiceName());
         }
-        if (!existedPayment.isEmpty() && govPayCancelExist(existedPayment.get().getExternalReference(),paymentFeeLink.getEnterpriseServiceName())) {
+        if (!existedPayment.isEmpty()){// && govPayCancelExist(existedPayment.get(),paymentFeeLink.getEnterpriseServiceName())) {
             delegatingPaymentService.cancel(existedPayment.get(), paymentFeeLink.getCcdCaseNumber(),paymentFeeLink.getEnterpriseServiceName());
         }
     }

@@ -81,13 +81,16 @@ public class GovPayClient {
     }
 
     public void cancelPayment(String authorizationKey, String cancelUrl) {
-        LOG.info("CANCELLING PAYMENT");
-        withIOExceptionHandling(() -> {
-            HttpPost request = postRequestFor(authorizationKey, cancelUrl, null);
-            HttpResponse response = httpClient.execute(request);
-            checkNotAnError(response);
-            return null;
-        });
+        LOG.info("ABOUT TO CANCEL MUST CHECK CANCEL URL FIRST = "+cancelUrl.toString());
+        if(cancelUrl!=null && !cancelUrl.isEmpty()) {
+            LOG.info("CANCELLING PAYMENT");
+            withIOExceptionHandling(() -> {
+                HttpPost request = postRequestFor(authorizationKey, cancelUrl, null);
+                HttpResponse response = httpClient.execute(request);
+                checkNotAnError(response);
+                return null;
+            });
+        }
     }
 
     public void refundPayment(String authorizationKey, String refundsUrl, RefundPaymentRequest refundPaymentRequest) {
