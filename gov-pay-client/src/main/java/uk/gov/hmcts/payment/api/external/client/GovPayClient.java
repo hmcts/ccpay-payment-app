@@ -81,7 +81,7 @@ public class GovPayClient {
     }
 
     public void cancelPayment(String authorizationKey, String cancelUrl) {
-        LOG.info("CANCELLING PAYMENT");
+        LOG.info("CANCELLING PAYMENT in GovPayClient");
         withIOExceptionHandling(() -> {
             HttpPost request = postRequestFor(authorizationKey, cancelUrl, null);
             HttpResponse response = httpClient.execute(request);
