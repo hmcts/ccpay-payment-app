@@ -18,7 +18,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.payment.api.controllers.ServiceRequestController;
 import uk.gov.hmcts.payment.api.domain.service.ServiceRequestDomainService;
 import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentRequest;
@@ -35,7 +34,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(SpringExtension.class)
 @Provider("payment_accounts")
 @PactBroker(scheme = "${PACT_BROKER_SCHEME:http}", host = "${PACT_BROKER_URL:localhost}", port = "${PACT_BROKER_PORT:80}", consumerVersionSelectors = {
-    @VersionSelector(tag = "master")})
+    @VersionSelector(tag = "Dev")})
 @Import(ServiceRequestProviderTestConfiguration.class)
 @IgnoreNoPactsToVerify
 class ServiceRequestProviderTest {
