@@ -79,7 +79,7 @@ Liquibase is used to update the database changes. Perform following steps to cre
 5. Add this file to pom.xml in diffChangeLogFile section under configuration
 6. Add this file to db.changelog-master.xml's diff files list
 
-#### Environment variables
+#### Environment   variables
 
 The following environment variables are required:
 
