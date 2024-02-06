@@ -215,17 +215,21 @@ public class ServiceRequestController {
             }else{
                 httpStatus = HttpStatus.CREATED;
             }
-            LOG.info("PBA-CID={}, PBA payment status: {}", idempotencyKey, httpStatus);
+            LOG.info("PBA-CID={}, ccdCaseNumber={}, PBA payment status: {}", idempotencyKey,serviceRequest.getCcdCaseNumber(), httpStatus);
             responseEntity = new ResponseEntity<>(serviceRequestPaymentBo, httpStatus);
             responseJson = objectMapper.writeValueAsString(serviceRequestPaymentBo);
         } catch (LiberataServiceTimeoutException liberataServiceTimeoutException) {
-            LOG.error("PBA-CID={}, Exception from Liberata for PBA payment {}", idempotencyKey, liberataServiceTimeoutException);
+            LOG.error("PBA-CID={}, ccdCaseNumber={}, Exception from Liberata for PBA payment {}", idempotencyKey, serviceRequest.getCcdCaseNumber(), liberataServiceTimeoutException);
             responseEntity = new ResponseEntity<>(liberataServiceTimeoutException.getMessage(), HttpStatus.GATEWAY_TIMEOUT);
             responseJson = liberataServiceTimeoutException.getMessage();
+        } catch (Exception ex) {
+            LOG.error("PBA-CID={}, ccdCaseNumber={}, Exception from Liberata for PBA payment {}", idempotencyKey, serviceRequest.getCcdCaseNumber(), ex);
+            responseEntity = new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            responseJson = ex.getMessage();
         }
 
         // Update Idempotency Record
-        LOG.info("PBA-CID={}, Payment updating idempotency record to completed", idempotencyKey);
+        LOG.info("PBA-CID={}, ccdCaseNumber={}, Payment updating idempotency record to completed", serviceRequest.getCcdCaseNumber(), idempotencyKey);
         return serviceRequestDomainService.createIdempotencyRecord(objectMapper, idempotencyKey, serviceRequestReference,
             responseJson, IdempotencyKeys.ResponseStatusType.completed, responseEntity, serviceRequestPaymentDto);
     }
