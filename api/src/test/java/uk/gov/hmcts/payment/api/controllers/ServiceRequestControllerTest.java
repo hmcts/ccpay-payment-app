@@ -1326,6 +1326,63 @@ public class ServiceRequestControllerTest {
 
     }
 
+    @Test
+    public void createPBAPaymentWithServiceRequestInternalServerErrorTest() throws Exception {
+        when(accountService.retrieve("PBA12346")).thenThrow(
+            new HttpClientErrorException(HttpStatus.SERVICE_UNAVAILABLE));
+
+        String serviceRequestReference = getServiceRequestReference();
+
+        //ServiceRequest Payment DTO
+        ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
+            .paymentDtoWith().accountNumber("PBA12346")
+            .amount(BigDecimal.valueOf(300))
+            .currency("GBP")
+            .idempotencyKey(UUID.randomUUID().toString())
+            .organisationName("sommin")
+            .customerReference("testCustReference").
+            build();
+
+        //ServiceRequest reference creation
+        ServiceRequestPaymentBo serviceRequestPaymentBoSample = ServiceRequestPaymentBo.serviceRequestPaymentBoWith().
+            paymentReference("reference").
+            status("failed").
+            build();
+
+        ResponseEntity<ServiceRequestPaymentBo> responseEntity =
+            new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.INTERNAL_SERVER_ERROR);
+
+        when(serviceRequestDomainService.addPayments(any(),any(),any())).thenReturn(serviceRequestPaymentBoSample);
+
+        ServiceRequestResponseDto serviceRequestResponseDtoSample = ServiceRequestResponseDto.serviceRequestResponseDtoWith()
+            .serviceRequestReference("2021-1632746723494").build();
+
+        when(serviceRequestDomainService.create(any(),any())).thenReturn(serviceRequestResponseDtoSample);
+
+        when(serviceRequestDomainService.businessValidationForServiceRequests(any(),any())).
+            thenThrow(new AccountServiceUnavailableException("Unable to retrieve account information due to timeout"));
+
+        MvcResult result = restActions
+            .post("/service-request/" + serviceRequestReference + "/pba-payments", serviceRequestPaymentDto)
+            .andExpect(status().isInternalServerError())
+            .andReturn();
+
+        assertTrue(result.getResponse().
+            getContentAsString().
+            contains("Unable to retrieve account information due to timeout"));
+
+        //Duplicate request for timeout
+        MvcResult result1 = restActions
+            .post("/service-request/" + serviceRequestReference + "/pba-payments", serviceRequestPaymentDto)
+            .andExpect(status().isInternalServerError())
+            .andReturn();
+
+        assertTrue(result1.getResponse().
+            getContentAsString().
+            contains("Unable to retrieve account information due to timeout"));
+    }
+
+
     private ServiceRequestFeeDto getFee() {
         return ServiceRequestFeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("92.19"))
