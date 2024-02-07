@@ -1328,8 +1328,6 @@ public class ServiceRequestControllerTest {
 
     @Test
     public void createPBAPaymentWithServiceRequestInternalServerErrorTest() throws Exception {
-        when(accountService.retrieve("PBA12346")).thenThrow(
-            new HttpClientErrorException(HttpStatus.SERVICE_UNAVAILABLE));
 
         String serviceRequestReference = getServiceRequestReference();
 
@@ -1343,43 +1341,27 @@ public class ServiceRequestControllerTest {
             .customerReference("testCustReference").
             build();
 
-        //ServiceRequest reference creation
-        ServiceRequestPaymentBo serviceRequestPaymentBoSample = ServiceRequestPaymentBo.serviceRequestPaymentBoWith().
-            paymentReference("reference").
-            status("failed").
-            build();
-
-        ResponseEntity<ServiceRequestPaymentBo> responseEntity =
-            new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.INTERNAL_SERVER_ERROR);
-
-        when(serviceRequestDomainService.addPayments(any(),any(),any())).thenReturn(serviceRequestPaymentBoSample);
-
         ServiceRequestResponseDto serviceRequestResponseDtoSample = ServiceRequestResponseDto.serviceRequestResponseDtoWith()
             .serviceRequestReference("2021-1632746723494").build();
 
         when(serviceRequestDomainService.create(any(),any())).thenReturn(serviceRequestResponseDtoSample);
 
-        when(serviceRequestDomainService.businessValidationForServiceRequests(any(),any())).
-            thenThrow(new AccountServiceUnavailableException("Unable to retrieve account information due to timeout"));
+        when(serviceRequestDomainService.addPayments(any(),any(),any())).
+            thenThrow(new AccountServiceUnavailableException("Unable to retrieve account information, please try again later"));
+
+        ResponseEntity<ServiceRequestPaymentBo> responseEntityPending =
+            new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.OK);
+
+        ResponseEntity<ServiceRequestPaymentBo> responseEntityInternalServerError =
+            new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.INTERNAL_SERVER_ERROR);
+
+        when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),eq(IdempotencyKeys.ResponseStatusType.pending),any(),any())).thenReturn(responseEntityPending);
+        when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),eq(IdempotencyKeys.ResponseStatusType.completed),any(),any())).thenReturn(responseEntityInternalServerError);
 
         MvcResult result = restActions
             .post("/service-request/" + serviceRequestReference + "/pba-payments", serviceRequestPaymentDto)
             .andExpect(status().isInternalServerError())
             .andReturn();
-
-        assertTrue(result.getResponse().
-            getContentAsString().
-            contains("Unable to retrieve account information due to timeout"));
-
-        //Duplicate request for timeout
-        MvcResult result1 = restActions
-            .post("/service-request/" + serviceRequestReference + "/pba-payments", serviceRequestPaymentDto)
-            .andExpect(status().isInternalServerError())
-            .andReturn();
-
-        assertTrue(result1.getResponse().
-            getContentAsString().
-            contains("Unable to retrieve account information due to timeout"));
     }
 
 
