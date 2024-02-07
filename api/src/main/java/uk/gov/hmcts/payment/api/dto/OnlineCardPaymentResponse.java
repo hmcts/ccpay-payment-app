@@ -26,6 +26,5 @@ public class OnlineCardPaymentResponse {
     private String externalReference;
     private String status;
     private String nextUrl;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone = "GMT")
     private Date dateCreated;
 }
