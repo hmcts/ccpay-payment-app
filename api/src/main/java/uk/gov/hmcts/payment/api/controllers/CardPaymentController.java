@@ -10,7 +10,10 @@ import org.ff4j.FF4j;
 import org.owasp.encoder.Encode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,6 +40,7 @@ import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayException;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayPaymentNotFoundException;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.service.*;
 import uk.gov.hmcts.payment.api.service.CardDetailsService;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.service.FeePayApportionService;
@@ -66,7 +70,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 @RestController
 @Tag(name = "CardPaymentController", description = "Card payment REST API")
-public class CardPaymentController {
+public class CardPaymentController implements ApplicationContextAware {
     private static final Logger LOG = LoggerFactory.getLogger(CardPaymentController.class);
 
     private final DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService;
@@ -79,6 +83,8 @@ public class CardPaymentController {
 
     @Autowired
     private PaymentService<PaymentFeeLink, String> paymentService;
+
+    private ApplicationContext applicationContext;
 
     @Autowired
     public CardPaymentController(DelegatingPaymentService<PaymentFeeLink, String> cardDelegatingPaymentService,
@@ -142,6 +148,9 @@ public class CardPaymentController {
             /*
             Following piece of code to be removed once all Services are on-boarded to Enterprise ORG ID
             */
+            if (paymentService == null){
+                paymentService = applicationContext.getBean(PaymentServiceImpl.class);
+            }
             request.setService(paymentService.getServiceNameByCode(request.getService()));
         }
 
@@ -268,5 +277,10 @@ public class CardPaymentController {
     @ExceptionHandler(GatewayTimeoutException.class)
     public String return504(GatewayTimeoutException ex) {
         return ex.getMessage();
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
     }
 }
