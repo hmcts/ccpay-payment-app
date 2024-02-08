@@ -81,7 +81,6 @@ public class GovPayClient {
     }
 
     public void cancelPayment(String authorizationKey, String cancelUrl) {
-        if(cancelUrl!=null && !cancelUrl.isEmpty()) {
             LOG.info("CANCELLING PAYMENT");
             withIOExceptionHandling(() -> {
                 HttpPost request = postRequestFor(authorizationKey, cancelUrl, null);
@@ -89,7 +88,6 @@ public class GovPayClient {
                 checkNotAnError(response);
                 return null;
             });
-        }
     }
 
     public void refundPayment(String authorizationKey, String refundsUrl, RefundPaymentRequest refundPaymentRequest) {
