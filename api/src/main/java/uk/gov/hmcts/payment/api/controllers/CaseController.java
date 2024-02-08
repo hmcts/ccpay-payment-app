@@ -103,12 +103,12 @@ public class CaseController {
             .search(ccdCaseNumber)
             .stream()
             .map(paymentGroupDtoMapper::toPaymentGroupDto)
+            .map(paymentGroupDtoMapper::calculateOverallBalance)
             .collect(Collectors.toList());
 
         if (paymentGroups == null || paymentGroups.isEmpty()) {
             throw new PaymentGroupNotFoundException("No Service found for given CaseType or HMCTS Org Id");
         }
-
         PaymentGroupResponse paymentGroupResponse = new PaymentGroupResponse(paymentGroups);
 
         paymentGroupResponse = paymentRefundsService.checkRefundAgainstRemissionV2(headers, paymentGroupResponse, ccdCaseNumber);

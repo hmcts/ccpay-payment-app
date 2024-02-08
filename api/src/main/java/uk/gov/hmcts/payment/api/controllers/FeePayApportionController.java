@@ -112,6 +112,7 @@ public class FeePayApportionController {
         PaymentGroupDto paymentGroupDto  = paymentGroupDtoMapper.toPaymentGroupDto(paymentFeeLink);
         LOG.info("Before checking Refund");
         paymentGroupDto = paymentRefundsService.checkRefundAgainstRemissionFeeApportionV2(headers, paymentGroupDto, paymentReference);
+        paymentGroupDtoMapper.calculateOverallBalance(paymentGroupDto);
         return new ResponseEntity<>(paymentGroupDto, HttpStatus.OK);
     }
 

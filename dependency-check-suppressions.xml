@@ -27,7 +27,7 @@
         <cve>CVE-2021-22044</cve>
         <cve>CVE-2022-22969</cve>
     </suppress>
-    <suppress until="2024-01-31">
+    <suppress until="2024-03-31">
         <notes>
             adal4j version 1.3.0 in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
         </notes>
@@ -88,7 +88,7 @@
         </notes>
         <cve>CVE-2022-45688</cve>
     </suppress>
-    <suppress until="2024-01-31">
+    <suppress until="2024-03-31">
         <notes>
             Postgres version 42.4.18 in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
         </notes>
@@ -152,7 +152,7 @@
         <cve>CVE-2022-22978</cve>
         <cve>CVE-2022-22976</cve>
     </suppress>
-    <suppress until="2024-01-31">
+    <suppress until="2024-03-31">
         <notes>
             tomcat-embed-core version 9.0.73'in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
         </notes>
@@ -350,6 +350,37 @@
             A serialization vulnerability in logback receiver component part of logback version 1.4.11 allows an attacker to mount a Denial-Of-Service attack by sending poisoned data.
         </notes>
         <cve>CVE-2023-6378</cve>
+    </suppress>
+
+    <suppress>
+        <notes>
+            An information disclosure vulnerability manifests when a user or an application uploads unprotected private key data as part of an authentication certificate
+        </notes>
+        <cve>CVE-2021-42306</cve>
+    </suppress>
+    <suppress>
+        <notes>
+            Bouncy Castle for Java before 1.73 contains a potential Denial of Service (DoS) issue within the Bouncy Castle org.bouncycastle.openssl.PEMParser class
+        </notes>
+        <cve>CVE-2023-33202</cve>
+    </suppress>
+    <suppress>
+        <notes>
+            pgjdbc is an open source postgresql JDBC Driver. In affected versions a prepared statement using either `PreparedStatement.setText(int, InputStream)` or `PreparedStatemet.setBytea(int, InputStream)` will create a temporary file if the InputStream is larger than 2k
+        </notes>
+        <cve>CVE-2022-41946</cve>
+    </suppress>
+    <suppress>
+        <notes>
+            In Spring Boot versions 2.7.0 - 2.7.17, 3.0.0-3.0.12 and 3.1.0-3.1.5, it is possible for a user to provide specially crafted HTTP requests that may cause a denial-of-service (DoS) condition
+        </notes>
+        <cve>CVE-2023-34055</cve>
+    </suppress>
+    <suppress>
+        <notes>
+            Improper Input Validation vulnerability in Apache Tomcat.Tomcat from 11.0.0-M1 through 11.0.0-M10, from 10.1.0-M1 through 10.1.15, from 9.0.0-M1 through 9.0.82 and from 8.5.0 through 8.5.95 did not correctly parse HTTP trailer headers
+        </notes>
+        <cve>CVE-2023-46589</cve>
     </suppress>
 
     <!-- Supression Group ends here -->

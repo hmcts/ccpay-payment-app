@@ -327,4 +327,22 @@ public class PaymentGroupDtoMapper {
         return disputeDTOs;
     }
 
+    public PaymentGroupDto calculateOverallBalance(PaymentGroupDto paymentGroupDto){
+
+        if (paymentGroupDto.getRemissions() == null || paymentGroupDto.getPayments() == null || paymentGroupDto.getFees() == null) {
+            return paymentGroupDto;
+        }
+        final var remissions= paymentGroupDto.getRemissions().iterator();
+        final var payments= paymentGroupDto.getPayments().iterator();
+        final var fees= paymentGroupDto.getFees().iterator();
+
+        while (remissions.hasNext() && payments.hasNext() && fees.hasNext()) {
+            final var remission = remissions.next();
+            remission.setOverallBalance(
+                payments.next().getAmount().subtract(
+                    fees.next().getCalculatedAmount().subtract(remission.getHwfAmount())
+                ));
+        }
+        return paymentGroupDto;
+    }
 }
