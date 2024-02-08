@@ -94,7 +94,11 @@ public class IdempotencyServiceImplTest {
         IdempotencyKeys completedPaymentRequiredIdempotencyKeys = IdempotencyKeys.idempotencyKeysWith().responseCode(HttpStatus.PAYMENT_REQUIRED.value()).
             requestHashcode(-1644540583).idempotencyKey("idempKey03").requestBody("").responseStatus(IdempotencyKeys.ResponseStatusType.completed).build();
 
-        List<IdempotencyKeys> idempotencyKeysList = List.of(completedGatewayTimeoutIdempotencyKeys, completedPreconditionFailedIdempotencyKeys, completedPaymentRequiredIdempotencyKeys);
+        IdempotencyKeys completedInternalServerErrorIdempotencyKeys = IdempotencyKeys.idempotencyKeysWith().responseCode(HttpStatus.INTERNAL_SERVER_ERROR.value()).
+            requestHashcode(-1644540583).idempotencyKey("idempKey04").requestBody("").responseStatus(IdempotencyKeys.ResponseStatusType.completed).build();
+
+        List<IdempotencyKeys> idempotencyKeysList = List.of(completedGatewayTimeoutIdempotencyKeys, completedPreconditionFailedIdempotencyKeys,
+            completedPaymentRequiredIdempotencyKeys, completedInternalServerErrorIdempotencyKeys);
 
         List<IdempotencyKeys> response = idempotencyServiceImpl.filterRecordsWithAcceptableLiberataHttpResponse(idempotencyKeysList);
         assertNotNull(response);
@@ -116,7 +120,11 @@ public class IdempotencyServiceImplTest {
         IdempotencyKeys idempotencyKeys4 = IdempotencyKeys.idempotencyKeysWith().responseCode(HttpStatus.CONFLICT.value()).
             requestHashcode(-1644540583).idempotencyKey("idempKey04").requestBody("").responseStatus(IdempotencyKeys.ResponseStatusType.completed).build();
 
-        List<IdempotencyKeys> idempotencyKeysList = List.of(idempotencyKeys1, idempotencyKeys2, idempotencyKeys3, idempotencyKeys4);
+        IdempotencyKeys idempotencyKeys5 = IdempotencyKeys.idempotencyKeysWith().responseCode(HttpStatus.INTERNAL_SERVER_ERROR.value()).
+            requestHashcode(-1644540583).idempotencyKey("idempKey05").requestBody("").responseStatus(IdempotencyKeys.ResponseStatusType.completed).build();
+
+
+        List<IdempotencyKeys> idempotencyKeysList = List.of(idempotencyKeys1, idempotencyKeys2, idempotencyKeys3, idempotencyKeys4, idempotencyKeys5);
 
         List<IdempotencyKeys> response = idempotencyServiceImpl.filterRecordsWithAcceptableLiberataHttpResponse(idempotencyKeysList);
         assertNotNull(response);
