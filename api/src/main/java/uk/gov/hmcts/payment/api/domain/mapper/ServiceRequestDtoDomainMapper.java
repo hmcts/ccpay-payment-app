@@ -82,11 +82,12 @@ public class ServiceRequestDtoDomainMapper {
     }
 
     public CreatePaymentRequest createGovPayRequest(ServiceRequestOnlinePaymentBo requestOnlinePaymentBo) {
-        LOG.info("requestOnlinePaymentBo.getLanguage() {}",requestOnlinePaymentBo.getLanguage());
+        String reqPaymentLanguage = (requestOnlinePaymentBo.getLanguage() != null
+            && requestOnlinePaymentBo.getLanguage().equalsIgnoreCase("cy")) ? "cy" : "en";
+        LOG.info("requestOnlinePaymentBo.getLanguage() {} -> {}", requestOnlinePaymentBo.getLanguage(), reqPaymentLanguage);
         return new CreatePaymentRequest(requestOnlinePaymentBo.getAmount().movePointRight(2).intValue(),
             requestOnlinePaymentBo.getPaymentReference(), requestOnlinePaymentBo.getDescription(),
-            requestOnlinePaymentBo.getReturnUrl(),
-         null
+            requestOnlinePaymentBo.getReturnUrl(), reqPaymentLanguage
         );
     }
 }

@@ -14,6 +14,7 @@ import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestFeeDto;
+import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
@@ -88,13 +89,75 @@ public class ServiceRequestDtoDomainMapperTest {
             .amount(new BigDecimal(99.99))
             .description("desc")
             .returnUrl("http://returnUrl")
-            .language("Eng")
+            .language("en")
             .paymentReference("RC-ref")
             .build();
 
-        serviceRequestDtoDomainMapper.createGovPayRequest(serviceRequestOnlinePaymentBo);
+        CreatePaymentRequest govPayRequest = serviceRequestDtoDomainMapper.createGovPayRequest(serviceRequestOnlinePaymentBo);
 
-        assertThat(serviceRequestDtoDomainMapper.createGovPayRequest(serviceRequestOnlinePaymentBo).getClass().getName().equals("CreatePaymentRequest"));
+        assertThat(govPayRequest.getDescription().equals("desc"));
+        assertThat(govPayRequest.getReference().equals("RC-ref"));
+        assertThat(govPayRequest.getReturnUrl().equals("http://returnUrl"));
+        assertThat(govPayRequest.getAmount().equals(99));
+        assertThat(govPayRequest.getLanguage().equals("en"));
+
+    }
+
+    @Test
+    public void createGovPayRequestWelshanguageTest() {
+
+        ServiceRequestOnlinePaymentBo serviceRequestOnlinePaymentBo = ServiceRequestOnlinePaymentBo.serviceRequestOnlinePaymentBo()
+            .amount(new BigDecimal(99.99))
+            .description("desc")
+            .returnUrl("http://returnUrl")
+            .language("cy")
+            .paymentReference("RC-ref")
+            .build();
+
+        CreatePaymentRequest govPayRequest = serviceRequestDtoDomainMapper.createGovPayRequest(serviceRequestOnlinePaymentBo);
+
+        assertThat(govPayRequest.getDescription().equals("desc"));
+        assertThat(govPayRequest.getReference().equals("RC-ref"));
+        assertThat(govPayRequest.getReturnUrl().equals("http://returnUrl"));
+        assertThat(govPayRequest.getAmount().equals(99));
+        assertThat(govPayRequest.getLanguage().equals("cy"));
+
+    }
+
+    @Test
+    public void createGovPayRequestWithEnglishDefaultLanguageTest() {
+
+        ServiceRequestOnlinePaymentBo serviceRequestOnlinePaymentBo = ServiceRequestOnlinePaymentBo.serviceRequestOnlinePaymentBo()
+            .amount(new BigDecimal(99.99))
+            .description("desc")
+            .returnUrl("http://returnUrl")
+            .paymentReference("RC-ref")
+            .build();
+
+        // Language null
+        serviceRequestOnlinePaymentBo.setLanguage(null);
+        CreatePaymentRequest govPayRequest = serviceRequestDtoDomainMapper.createGovPayRequest(serviceRequestOnlinePaymentBo);
+        assertThat(govPayRequest.getLanguage().equals("en"));
+
+        // Language '' (empty)
+        serviceRequestOnlinePaymentBo.setLanguage("");
+        govPayRequest = serviceRequestDtoDomainMapper.createGovPayRequest(serviceRequestOnlinePaymentBo);
+        assertThat(govPayRequest.getLanguage().equals("en"));
+
+        // Language 'string'
+        serviceRequestOnlinePaymentBo.setLanguage("string");
+        govPayRequest = serviceRequestDtoDomainMapper.createGovPayRequest(serviceRequestOnlinePaymentBo);
+        assertThat(govPayRequest.getLanguage().equals("en"));
+
+        // Language 'EN'
+        serviceRequestOnlinePaymentBo.setLanguage("EN");
+        govPayRequest = serviceRequestDtoDomainMapper.createGovPayRequest(serviceRequestOnlinePaymentBo);
+        assertThat(govPayRequest.getLanguage().equals("en"));
+
+        // Language 'English'
+        serviceRequestOnlinePaymentBo.setLanguage("English!");
+        govPayRequest = serviceRequestDtoDomainMapper.createGovPayRequest(serviceRequestOnlinePaymentBo);
+        assertThat(govPayRequest.getLanguage().equals("en"));
 
     }
 
