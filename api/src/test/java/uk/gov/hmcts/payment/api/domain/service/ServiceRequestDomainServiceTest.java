@@ -1,10 +1,12 @@
 package uk.gov.hmcts.payment.api.domain.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
 import org.apache.poi.ss.formula.functions.T;
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -30,6 +32,8 @@ import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestFeeDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
 import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
+import uk.gov.hmcts.payment.api.external.client.dto.Link;
+import uk.gov.hmcts.payment.api.external.client.dto.State;
 import uk.gov.hmcts.payment.api.mapper.PBAStatusErrorMapper;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.model.*;
@@ -48,6 +52,8 @@ import java.util.Optional;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
@@ -401,7 +407,7 @@ public class ServiceRequestDomainServiceTest {
             .casePaymentRequest(getCasePaymentRequest())
             .build();
 
-        serviceRequestDomainService.sendMessageTopicCPO(serviceRequestDto,"ref");
+        Assertions.assertDoesNotThrow(() -> serviceRequestDomainService.sendMessageTopicCPO(serviceRequestDto,"ref"));
 
     }
 
@@ -417,7 +423,8 @@ public class ServiceRequestDomainServiceTest {
     @Test
     public void isDuplicateTest() {
         when(paymentGroupService.findByPaymentGroupReference(any())).thenReturn(getPaymentFeeLink());
-        serviceRequestDomainService.isDuplicate("1607065108455502");
+        boolean isDuplicate =serviceRequestDomainService.isDuplicate("1607065108455502");
+        assertTrue(isDuplicate);
     }
 
     @Test
@@ -430,6 +437,83 @@ public class ServiceRequestDomainServiceTest {
             assertThat(e.getMessage()).isEqualTo("Order detail not found for given ccdcasenumber 1607065108455502");
         }
     }
+
+    @Test
+    public void testCanCancelPayment_AllConditionsMet() {
+        // Arrange
+        GovPayPayment payment = getGovPayPayment();
+
+        // Act
+        boolean result = serviceRequestDomainService.canCancelPayment(payment);
+
+        // Assert
+        assertTrue(result);
+    }
+
+    @Test
+    public void testCanCancelPayment_PaymentIsNull() {
+        // Arrange
+
+        // Act
+        boolean result = serviceRequestDomainService.canCancelPayment(null);
+
+        // Assert
+        assertFalse(result);
+    }
+
+    @Test
+    public void testCanCancelPayment_LinksIsNull() {
+        // Arrange
+        GovPayPayment payment = getGovPayPayment();
+        payment.setLinks(null);
+
+        // Act
+        boolean result = serviceRequestDomainService.canCancelPayment(payment);
+
+        // Assert
+        assertFalse(result);
+    }
+
+    @Test
+    public void testCanCancelPayment_LinkIsNull() {
+        // Arrange
+        GovPayPayment payment = getGovPayPayment();
+        payment.getLinks().setCancel(null);
+
+        // Act
+        boolean result = serviceRequestDomainService.canCancelPayment(payment);
+
+        // Assert
+        assertFalse(result);
+    }
+
+    @Test
+    public void testCanCancelPayment_HrefIsNull() {
+        // Arrange
+        GovPayPayment payment = getGovPayPayment();
+        payment.getLinks().getCancel().setHref(null);
+
+        // Act
+        boolean result = serviceRequestDomainService.canCancelPayment(payment);
+
+        // Assert
+        assertFalse(result);
+    }
+
+
+    @Test
+    public void testCanCancelPayment_HrefIsEmpty() {
+        // Arrange
+        GovPayPayment payment = getGovPayPayment();
+        payment.getLinks().getCancel().setHref("");
+
+        // Act
+        boolean result = serviceRequestDomainService.canCancelPayment(payment);
+
+        // Assert
+        assertFalse(result);
+    }
+
 
     private ServiceRequestFeeDto getOrderFee() {
         return ServiceRequestFeeDto.feeDtoWith()
@@ -455,6 +539,19 @@ public class ServiceRequestDomainServiceTest {
 
     private CasePaymentRequest getCasePaymentRequest(){
         return CasePaymentRequest.casePaymentRequestWith().responsibleParty("party").action("action").build();
+    }
+
+    private GovPayPayment getGovPayPayment() {
+        return GovPayPayment.govPaymentWith()
+            .amount(300)
+            .state(new State("created", false, null, null))
+            .description("description")
+            .reference("reference")
+            .paymentId("paymentId")
+            .paymentProvider("sandbox")
+            .returnUrl("https://www.google.com")
+            .links(GovPayPayment.Links.linksWith().cancel(new Link("any", ImmutableMap.of(), "cancelHref", "any")).build())
+            .build();
     }
 
 }

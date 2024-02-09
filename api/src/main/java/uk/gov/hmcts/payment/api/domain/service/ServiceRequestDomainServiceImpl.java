@@ -58,7 +58,6 @@ import uk.gov.hmcts.payment.api.model.Payment2Repository;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
-import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.model.StatusHistory;
 import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
@@ -542,7 +541,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         }
     }
 
-    private boolean canCancelPayment(GovPayPayment payment){
+    public boolean canCancelPayment(GovPayPayment payment){
         boolean allowCancel =false;
         if(null != payment && null != payment.getLinks() && null != payment.getLinks().getCancel() &&
             null != payment.getLinks().getCancel().getHref() && !payment.getLinks().getCancel().getHref().isEmpty()){
