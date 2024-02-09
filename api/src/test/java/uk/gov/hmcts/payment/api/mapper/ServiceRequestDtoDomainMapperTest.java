@@ -104,7 +104,7 @@ public class ServiceRequestDtoDomainMapperTest {
     }
 
     @Test
-    public void createGovPayRequestWelshanguageTest() {
+    public void createGovPayRequestWelshLanguageTest() {
 
         ServiceRequestOnlinePaymentBo serviceRequestOnlinePaymentBo = ServiceRequestOnlinePaymentBo.serviceRequestOnlinePaymentBo()
             .amount(new BigDecimal(99.99))
