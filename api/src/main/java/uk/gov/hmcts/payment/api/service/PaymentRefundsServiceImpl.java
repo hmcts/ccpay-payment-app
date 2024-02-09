@@ -214,7 +214,6 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         return remission.getHwfAmount();
     }
 
-
     @Override
     public ResponseEntity updateTheRemissionAmount(String paymentReference, ResubmitRefundRemissionRequest request) {
         //Payment not found exception
