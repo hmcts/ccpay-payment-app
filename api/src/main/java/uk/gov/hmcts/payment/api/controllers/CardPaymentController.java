@@ -148,10 +148,7 @@ public class CardPaymentController implements ApplicationContextAware {
             /*
             Following piece of code to be removed once all Services are on-boarded to Enterprise ORG ID
             */
-            if (paymentService == null){
-                paymentService = applicationContext.getBean(PaymentServiceImpl.class);
-            }
-            request.setService(paymentService.getServiceNameByCode(request.getService()));
+            request.setService((applicationContext.getBean(PaymentServiceImpl.class)).getServiceNameByCode(request.getService()));
         }
 
         LOG.info("Service Name : {} ", request.getService());
