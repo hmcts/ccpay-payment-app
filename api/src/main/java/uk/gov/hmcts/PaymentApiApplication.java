@@ -48,8 +48,6 @@ public class PaymentApiApplication {
                 .getConfiguration(GlobalConfiguration.class)
                 .setUseDbLock(true);
 
-            LOG.info("DEBUG pci-pal.antenna.prl.flow.id: {}", prlFlowId);
-
             SpringApplication.run(PaymentApiApplication.class, args);
         } catch (RuntimeException ex) {
             LOG.error(Markers.fatal, "Application crashed with error message: ", ex);
