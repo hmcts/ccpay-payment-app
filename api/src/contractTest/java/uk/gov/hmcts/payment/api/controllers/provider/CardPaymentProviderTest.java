@@ -15,6 +15,7 @@ import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -71,6 +72,9 @@ import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 @Import(CardPaymentProviderTestConfiguration.class)
 @IgnoreNoPactsToVerify
 class CardPaymentProviderTest {
+
+    @Autowired
+    ApplicationContext applicationContext;
 
     @Autowired
     PaymentDtoMapper paymentDtoMapper;
@@ -147,9 +151,12 @@ class CardPaymentProviderTest {
     void before(PactVerificationContext context) {
         System.getProperties().setProperty("pact.verifier.publishResults", "true");
         MockMvcTestTarget testTarget = new MockMvcTestTarget();
-        testTarget.setControllers(
+        CardPaymentController cardPaymentController =
             new CardPaymentController(cardDelegatingPaymentService, paymentDtoMapper, cardDetailsService, pciPalPaymentService, ff4j,
-                feePayApportionService, featureToggler, referenceDataService),
+                feePayApportionService, featureToggler, referenceDataService);
+        cardPaymentController.setApplicationContext(applicationContext);
+        testTarget.setControllers(
+            cardPaymentController,
             new PaymentController(paymentService, paymentStatusRepositoryMock, callbackServiceMock,
                 paymentDtoMapper, paymentValidator, ff4j,
                 dateUtil, paymentFeeRepositoryMock, featureToggler));
@@ -183,7 +190,7 @@ class CardPaymentProviderTest {
         when(govPayClientMock.createPayment(anyString(), any(CreatePaymentRequest.class))).thenReturn(buildGovPaymentDto());
 
         PaymentFeeLink paymentLink = populateCardPaymentToDb("1", "e2kkddts5215h9qqoeuth5c0v", "ccd_gw").getPaymentLink();
-        when(paymentFeeLinkRepositoryMock.save(any(PaymentFeeLink.class))).thenReturn(paymentLink);
+        when(paymentFeeLinkRepositoryMock.save(null)).thenReturn(paymentLink);
 
     }
 
