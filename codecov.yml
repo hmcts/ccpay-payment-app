@@ -1,2 +1,0 @@
-ignore:
-  - "api/src/main/java/uk/gov/hmcts/payment/api/controllers/CardPaymentController.java"
