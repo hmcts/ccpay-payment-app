@@ -169,7 +169,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                 Payment payment = paymentRepository
                     .findById(paymentId).orElseThrow(() -> new PaymentNotFoundException("Payment not found for given apportionment"));
 
-                BigDecimal remissionAmount = getRefundAmount(payment,remission.get());
+                BigDecimal remissionAmount = remission.get().getHwfAmount();
                 validateThePaymentBeforeInitiatingRefund(payment, headers);
 
                 RefundRequestDto refundRequest = RefundRequestDto.refundRequestDtoWith()
@@ -197,24 +197,6 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
         throw new RemissionNotFoundException("Remission not found for given remission reference");
     }
-
-    private BigDecimal getRefundAmount(Payment payment,Remission remission){
-
-        if (remission.getFee() == null || remission.getFee().getRemissions() == null ||  remission.getFee().getRemissions().isEmpty()) {
-            return remission.getHwfAmount();
-        }
-        BigDecimal remissionAmount = payment.getAmount().subtract(
-            remission.getFee().getCalculatedAmount().subtract(
-                remission.getFee().getRemissions().get(0).getHwfAmount()
-                    )
-                );
-
-        if (remissionAmount.compareTo(BigDecimal.ZERO) > 0){
-            return remissionAmount;
-        }
-        return remission.getHwfAmount();
-    }
-
 
     @Override
     public ResponseEntity updateTheRemissionAmount(String paymentReference, ResubmitRefundRemissionRequest request) {
