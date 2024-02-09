@@ -208,7 +208,6 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                 remission.getFee().getRemissions().get(0).getHwfAmount()
                     )
                 );
-
         if (remissionAmount.compareTo(BigDecimal.ZERO) > 0){
             return remissionAmount;
         }
