@@ -171,6 +171,10 @@ public class ServiceRequestController {
 
         // Idempotency Check - Find any idempotency records, if found then potentially we have a duplicate payment.
         List<IdempotencyKeys> duplicatePaymentIdempotencyRows = idempotencyService.findTheRecordByRequestHashcode(requestHashCode);
+
+        // Remove idempontency records from list which have an error response from Liberata but are allowed to be retried.
+        duplicatePaymentIdempotencyRows = idempotencyService.filterRecordsWithAcceptableLiberataHttpResponse(duplicatePaymentIdempotencyRows);
+
         Optional<IdempotencyKeys> currentIdempotencyKeyRow = idempotencyService.findTheRecordByIdempotencyKey(idempotencyKey).stream().findFirst();
         if (!duplicatePaymentIdempotencyRows.isEmpty() || currentIdempotencyKeyRow.isPresent()) {
             return processDuplicateServiceRequestPayment(duplicatePaymentIdempotencyRows, currentIdempotencyKeyRow, objectMapper,
@@ -211,13 +215,17 @@ public class ServiceRequestController {
             }else{
                 httpStatus = HttpStatus.CREATED;
             }
-            LOG.info("PBA-CID={}, PBA payment status: {}", idempotencyKey, httpStatus);
+            LOG.info("PBA-CID={}, serviceRequestReference={}, PBA payment status: {}", idempotencyKey,serviceRequestReference, httpStatus);
             responseEntity = new ResponseEntity<>(serviceRequestPaymentBo, httpStatus);
             responseJson = objectMapper.writeValueAsString(serviceRequestPaymentBo);
         } catch (LiberataServiceTimeoutException liberataServiceTimeoutException) {
-            LOG.error("PBA-CID={}, Exception from Liberata for PBA payment {}", idempotencyKey, liberataServiceTimeoutException);
+            LOG.error("PBA-CID={}, serviceRequestReference={}, Exception from Liberata for PBA payment {}", idempotencyKey, serviceRequestReference, liberataServiceTimeoutException);
             responseEntity = new ResponseEntity<>(liberataServiceTimeoutException.getMessage(), HttpStatus.GATEWAY_TIMEOUT);
             responseJson = liberataServiceTimeoutException.getMessage();
+        } catch (Exception ex) {
+            LOG.error("PBA-CID={}, serviceRequestReference={}, Exception from Liberata for PBA payment {}", idempotencyKey, serviceRequestReference, ex);
+            responseEntity = new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            responseJson = ex.getMessage();
         }
 
         // Update Idempotency Record
