@@ -46,18 +46,19 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
     private static final String SERVICE_TYPE_CMC = "Specified Money Claims";
     private static final String SERVICE_TYPE_DIVORCE = "Divorce";
     private static final String SERVICE_TYPE_FINREM = "Financial Remedy";
+    private static final String SERVICE_TYPE_IAC = "Immigration and Asylum Appeals";
+    private static final String SERVICE_TYPE_PRL = "Family Private Law";
+
     private final String callbackUrl;
     private final String url;
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
-    @Value("${pci-pal.account.id.cmc}")
-    private String ppAccountIDCmc;
+    @Value("${pci-pal.account.id.strategic}")
+    private String ppAccountIDStrategic;
     @Value("${pci-pal.account.id.probate}")
     private String ppAccountIDProbate;
     @Value("${pci-pal.account.id.divorce}")
     private String ppAccountIDDivorce;
-    @Value("${pci-pal.account.id.finrem}")
-    private String ppAccountIDFinrem;
     @Value("${pci-pal.antenna.grant.type}")
     private String grantType;
     @Value("${pci-pal.antenna.tenant.name}")
@@ -74,14 +75,14 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
     private String launchURL;
     @Value("${pci-pal.antenna.view.id.url}")
     private String viewIdURL;
-    @Value("${pci-pal.antenna.cmc.flow.id}")
-    private String cmcFlowId;
+    @Value("${pci-pal.antenna.strategic.flow.id}")
+    private String strategicFlowId;
     @Value("${pci-pal.antenna.probate.flow.id}")
     private String probateFlowId;
     @Value("${pci-pal.antenna.divorce.flow.id}")
     private String divorceFlowId;
-    @Value("${pci-pal.antenna.financial.remedy.flow.id}")
-    private String financialRemedyFlowId;
+    @Value("${pci-pal.antenna.prl.flow.id}")
+    private String prlFlowId;
 
     @Autowired
     public PciPalPaymentService(@Value("${pci-pal.api.url}") String url,
@@ -96,7 +97,7 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
         return withIOExceptionHandling(() -> {
 
             String flowId = getFlowId(serviceType);
-            LOG.info("flowId: {}   launchURL: {}   viewIdURL: {}   callbackUrl: {}   returnURL: {} ", flowId, launchURL, viewIdURL, callbackUrl, returnURL);
+            LOG.info("flowId: {}   serviceType: {}    launchURL: {}   viewIdURL: {}   callbackUrl: {}   returnURL: {} ", flowId, serviceType, launchURL, viewIdURL, callbackUrl, returnURL);
             HttpPost httpPost = new HttpPost(launchURL);
             httpPost.addHeader(CONTENT_TYPE, APPLICATION_JSON.toString());
             httpPost.addHeader(authorizationHeader(telephonyProviderAuthorisationResponse.getAccessToken()));
@@ -130,10 +131,13 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
 
         Map<String, String> flowIdHashMap = new HashMap<>();
         flowIdHashMap.put(SERVICE_TYPE_DIVORCE, divorceFlowId);
-        flowIdHashMap.put(SERVICE_TYPE_CMC, cmcFlowId);
         flowIdHashMap.put(SERVICE_TYPE_PROBATE, probateFlowId);
-        flowIdHashMap.put(SERVICE_TYPE_FINREM, financialRemedyFlowId);
+        flowIdHashMap.put(SERVICE_TYPE_CMC, strategicFlowId);
+        flowIdHashMap.put(SERVICE_TYPE_FINREM, strategicFlowId);
+        flowIdHashMap.put(SERVICE_TYPE_PRL, prlFlowId);
+
         if (flowIdHashMap.containsKey(serviceType)) {
+            LOG.info("Found flow id {} for service type {}", flowIdHashMap.get(serviceType), serviceType);
             flowId = flowIdHashMap.get(serviceType);
         } else {
             throw new PaymentException("This service type is not supported for Telephony Payments!!!: " + serviceType);
