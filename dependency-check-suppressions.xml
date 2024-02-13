@@ -383,5 +383,11 @@
         <cve>CVE-2023-46589</cve>
     </suppress>
 
+    <suppress>
+        <notes>
+            The spring-security.xsd file inside the spring-security-config jar is world writable which means that if it were extracted it could be written by anyone with access to the file system.
+        </notes>
+        <cve>CVE-2023-34042</cve>
+    </suppress>
     <!-- Supression Group ends here -->
 </suppressions>
