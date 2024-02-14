@@ -201,8 +201,13 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
     private BigDecimal getRefundAmount(Payment payment,Remission remission){
 
+        if ( payment.getPaymentLink().getFees().size() > 1 ){
+            LOG.info("The payment has more than one fee, The refund value to used is getHwfAmount {}",remission.getHwfAmount());
+            return remission.getHwfAmount();
+        }
+
         if (remission.getFee() == null || remission.getFee().getRemissions() == null ||  remission.getFee().getRemissions().isEmpty()) {
-            LOG.info("No Remission found for the fee, The refund value to used is {}",remission.getHwfAmount());
+            LOG.info("No Remission found for the fee, The refund value to used is getHwfAmount {}",remission.getHwfAmount());
             return remission.getHwfAmount();
         }
         BigDecimal remissionAmount = payment.getAmount().subtract(
@@ -214,7 +219,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             LOG.info("Calculated refund to be sent to refund service {}",remissionAmount);
             return remissionAmount;
         }
-        LOG.info("Refund to be sent to refund service {}",remission.getHwfAmount());
+        LOG.info("Refund to be sent to refund service is getHwfAmount {}",remission.getHwfAmount());
         return remission.getHwfAmount();
     }
 
