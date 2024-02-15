@@ -51,6 +51,7 @@ import java.math.RoundingMode;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
@@ -577,6 +578,7 @@ public class ServiceRequestDomainServiceTest {
     @Test
     public void createOnlineCardPaymentTest() throws Exception {
 
+
         OnlineCardPaymentRequest onlineCardPaymentRequest = OnlineCardPaymentRequest.onlineCardPaymentRequestWith()
             .language("Eng")
             .amount(new BigDecimal(99.99).setScale(2, RoundingMode.HALF_EVEN))
@@ -611,6 +613,50 @@ public class ServiceRequestDomainServiceTest {
         OnlineCardPaymentResponse onlineCardPaymentResponse = serviceRequestDomainService.create(onlineCardPaymentRequest,"","","");
 
         assertNotNull(onlineCardPaymentResponse);
+    }
+
+
+    @Test
+    public void createOnlineCardPaymentWithPaymentFeeLinksPaymentTest() throws Exception {
+
+        OnlineCardPaymentRequest onlineCardPaymentRequest = OnlineCardPaymentRequest.onlineCardPaymentRequestWith()
+            .language("Eng")
+            .amount(new BigDecimal(99.99).setScale(2, RoundingMode.HALF_EVEN))
+            .build();
+
+        when(paymentFeeLinkRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(getPaymentFeeLinkWithPayments()));
+
+        ServiceRequestOnlinePaymentBo serviceRequestOnlinePaymentBo = ServiceRequestOnlinePaymentBo.serviceRequestOnlinePaymentBo()
+            .paymentReference("RC-ref")
+            .build();
+
+        when(serviceRequestDtoDomainMapper.toDomain(any(),any(),any())).thenReturn(serviceRequestOnlinePaymentBo);
+
+        GovPayPayment govPayPayment = GovPayPayment.govPaymentWith()
+            .paymentId("id")
+            .build();
+
+        when(delegateGovPay.create(any(CreatePaymentRequest.class),anyString())).thenReturn(govPayPayment);
+
+        Payment payment = Payment.paymentWith()
+            .paymentLink(getPaymentFeeLink())
+            .currency("GBP")
+            .paymentStatus(PaymentStatus.CREATED)
+            .build();
+
+        when(serviceRequestDomainDataEntityMapper.toPaymentEntity(any(),any(), any())).thenReturn(payment);
+
+        when(paymentRepository.save(any())).thenReturn(payment);
+
+        when(delegateGovPay.retrieve(anyString())).thenReturn(getGovPayPayment());
+
+        when(featureToggler.getBooleanValue(any(),any())).thenReturn(true);
+
+
+        OnlineCardPaymentResponse onlineCardPaymentResponse = serviceRequestDomainService.create(onlineCardPaymentRequest,"","","");
+
+        assertNotNull(onlineCardPaymentResponse);
+
     }
 
 
@@ -747,6 +793,30 @@ public class ServiceRequestDomainServiceTest {
             .orgId("org-id")
             .enterpriseServiceName("enterprise-service-name")
             .paymentReference("payment-ref")
+            .ccdCaseNumber("1607065108455502")
+            .fees(Arrays.asList(PaymentFee.feeWith().
+                amountDue(new BigDecimal(10)).
+                calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE0001").volume(1).build()))
+            .build();
+    }
+
+    private PaymentFeeLink getPaymentFeeLinkWithPayments() {
+        List<Payment> payments = new LinkedList<>();
+        Payment payment = new Payment();
+        PaymentProvider paymentProvider = new PaymentProvider();
+        paymentProvider.setName("Not gov pay");
+        payment.setPaymentStatus(PaymentStatus.CREATED);
+        payment.setPaymentProvider(paymentProvider);
+        Date ninetyTwoAgo = new Date(System.currentTimeMillis() - 89 * 60 * 1000);
+        payment.setDateCreated(ninetyTwoAgo);
+        payments.add(payment);
+
+        return PaymentFeeLink.paymentFeeLinkWith()
+            .id(1)
+            .orgId("org-id")
+            .enterpriseServiceName("enterprise-service-name")
+            .paymentReference("payment-ref")
+            .payments(payments)
             .ccdCaseNumber("1607065108455502")
             .fees(Arrays.asList(PaymentFee.feeWith().
                 amountDue(new BigDecimal(10)).
