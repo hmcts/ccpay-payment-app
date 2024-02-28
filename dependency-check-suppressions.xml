@@ -385,9 +385,11 @@
 
     <suppress>
         <notes>
-            The spring-security.xsd file inside the spring-security-config jar is world writable which means that if it were extracted it could be written by anyone with access to the file system.
+            Loop with Unreachable Exit Condition ('Infinite Loop') vulnerability in Apache Commons Compress.This issue affects Apache Commons Compress: from 1.3 through 1.25.0. Users are recommended to upgrade to version 1.26.0 which fixes the issue.
         </notes>
-        <cve>CVE-2023-34042</cve>
+        <cve>CVE-2024-25710</cve>
     </suppress>
+
+
     <!-- Supression Group ends here -->
 </suppressions>
