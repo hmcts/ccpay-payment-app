@@ -169,7 +169,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                 Payment payment = paymentRepository
                     .findById(paymentId).orElseThrow(() -> new PaymentNotFoundException("Payment not found for given apportionment"));
 
-                BigDecimal remissionAmount = remission.get().getHwfAmount();
+                BigDecimal remissionAmount =  getRefundAmount(payment,remission.get());
                 validateThePaymentBeforeInitiatingRefund(payment, headers);
 
                 RefundRequestDto refundRequest = RefundRequestDto.refundRequestDtoWith()
@@ -198,7 +198,32 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         throw new RemissionNotFoundException("Remission not found for given remission reference");
     }
 
-    @Override
+
+    private BigDecimal getRefundAmount(Payment payment,Remission remission){
+
+        if ( payment.getPaymentLink().getFees().size() > 1 ){
+            LOG.info("The payment has more than one fee, The refund value to used is getHwfAmount {}",remission.getHwfAmount());
+            return remission.getHwfAmount();
+        }
+
+        if (remission.getFee() == null || remission.getFee().getRemissions() == null ||  remission.getFee().getRemissions().isEmpty()) {
+            LOG.info("No Remission found for the fee, The refund value to used is getHwfAmount {}",remission.getHwfAmount());
+            return remission.getHwfAmount();
+        }
+        BigDecimal remissionAmount = payment.getAmount().subtract(
+            remission.getFee().getCalculatedAmount().subtract(
+                remission.getFee().getRemissions().get(0).getHwfAmount()
+                    )
+                );
+        if (remissionAmount.compareTo(BigDecimal.ZERO) > 0){
+            LOG.info("Calculated refund to be sent to refund service {}",remissionAmount);
+            return remissionAmount;
+        }
+        LOG.info("Refund to be sent to refund service is getHwfAmount {}",remission.getHwfAmount());
+        return remission.getHwfAmount();
+    }
+
+  @Override
     public ResponseEntity updateTheRemissionAmount(String paymentReference, ResubmitRefundRemissionRequest request) {
         //Payment not found exception
         Payment payment = paymentRepository.findByReference(paymentReference).orElseThrow(PaymentNotFoundException::new);

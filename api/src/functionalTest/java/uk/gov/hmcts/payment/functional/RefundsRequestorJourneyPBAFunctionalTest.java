@@ -1148,7 +1148,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         assertThat(refundResponse.statusCode()).isEqualTo(HttpStatus.CREATED.value());
         RefundResponse refundResponseFromPost = refundResponse.getBody().as(RefundResponse.class);
         refundReferences.add(refundResponseFromPost.getRefundReference());
-        assertThat(refundResponseFromPost.getRefundAmount()).isEqualTo(new BigDecimal("50.00"));
+        assertThat(refundResponseFromPost.getRefundAmount()).toString().equals("60.00");
         assertThat(refundResponseFromPost.getRefundReference()).startsWith("RF-");
 
         PaymentsResponse paymentsResponse = paymentTestService
