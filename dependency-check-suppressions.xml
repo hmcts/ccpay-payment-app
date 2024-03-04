@@ -390,15 +390,6 @@
         <cve>CVE-2024-25710</cve>
     </suppress>
 
-    <suppress>
-        <notes>
-            CVE-2023-34042: Incorrect Permission Assignment for spring-security.xsd
-        </notes>
-        <cve>CVE-2023-34042</cve>
-    </suppress>
-
-
-
 
     <!-- Supression Group ends here -->
 </suppressions>
