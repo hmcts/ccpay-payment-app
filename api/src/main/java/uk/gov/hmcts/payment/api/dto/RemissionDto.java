@@ -54,4 +54,6 @@ public class RemissionDto {
 
     private BigDecimal overallBalance;
 
+    private boolean isACollectionOfFess;
+
 }

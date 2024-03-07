@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.payment.api.controllers.PaymentReference;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestBo;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestFeeBo;
@@ -19,6 +20,7 @@ import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
 
+import java.net.URL;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -82,11 +84,19 @@ public class ServiceRequestDtoDomainMapper {
     }
 
     public CreatePaymentRequest createGovPayRequest(ServiceRequestOnlinePaymentBo requestOnlinePaymentBo) {
-        LOG.info("requestOnlinePaymentBo.getLanguage() {}",requestOnlinePaymentBo.getLanguage());
+        String reqPaymentLanguage = (requestOnlinePaymentBo.getLanguage() != null
+            && requestOnlinePaymentBo.getLanguage().equalsIgnoreCase("cy")) ? "cy" : "en";
+        String reqPaymentReturnUrl = UriComponentsBuilder
+            .fromHttpUrl(requestOnlinePaymentBo.getReturnUrl())
+            .queryParam("language", reqPaymentLanguage)
+            .build()
+            .toUriString();
+
+        LOG.info("requestOnlinePaymentBo.getLanguage() {} -> {}", requestOnlinePaymentBo.getLanguage(), reqPaymentLanguage);
+        LOG.info("requestOnlinePaymentBo.getReturnUrl() {} -> {}", requestOnlinePaymentBo.getReturnUrl(), reqPaymentReturnUrl);
         return new CreatePaymentRequest(requestOnlinePaymentBo.getAmount().movePointRight(2).intValue(),
             requestOnlinePaymentBo.getPaymentReference(), requestOnlinePaymentBo.getDescription(),
-            requestOnlinePaymentBo.getReturnUrl(),
-         null
+            reqPaymentReturnUrl, reqPaymentLanguage
         );
     }
 }

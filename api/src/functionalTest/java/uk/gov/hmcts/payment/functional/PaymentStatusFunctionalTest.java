@@ -1911,6 +1911,7 @@ public class PaymentStatusFunctionalTest {
     public void positive_paymentStatusReport_multiple_refund() {
 
         String accountNumber = testProps.existingAccountNumber;
+        //Payment of 640  for 2 fees 550 and 90 (640)
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
             .aPbaPaymentRequestForProbateSinglePaymentFor2Fees("640.00",
                 "PROBATE", "PBAFUNC12345",
@@ -1926,6 +1927,7 @@ public class PaymentStatusFunctionalTest {
         final String paymentGroupReference = paymentGroupResponse.getPaymentGroups().get(0).getPaymentGroupReference();
         final Integer feeId = paymentGroupResponse.getPaymentGroups().get(0).getFees().get(0).getId();
         final Integer feeId1 = paymentGroupResponse.getPaymentGroups().get(0).getFees().get(1).getId();
+
         //TEST create retrospective remission
         Response response = dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
@@ -1936,6 +1938,7 @@ public class PaymentStatusFunctionalTest {
             .s2sToken(SERVICE_TOKEN)
             .when().createRetrospectiveRemissionForRefund(getRetroRemissionRequest("5.00"), paymentGroupReference, feeId1)
             .then().getResponse();
+        // remissions of 5 pound for each fee.
 
         String remissionReference = response.getBody().jsonPath().getString("remission_reference");
         String remissionReference1 = response1.getBody().jsonPath().getString("remission_reference");
