@@ -140,14 +140,14 @@ public class PaymentDtoMapperTest {
 
     @Test
     public void testToRetrieveCardPaymentResponseDto(){
-        PaymentDto paymentDto = paymentDtoMapper.toRetrieveCardPaymentResponseDto(paymentFeeLink);
+        PaymentDto paymentDto = paymentDtoMapper.toRetrieveCardPaymentResponseDto(paymentFeeLink, payment1.getReference());
         assertEquals("group-reference",paymentDto.getPaymentGroupReference());
         assertEquals("service-type",paymentDto.getServiceName());
     }
 
     @Test
     public void testToRetrievePaymentStatusesDto(){
-        PaymentDto paymentDto = paymentDtoMapper.toRetrievePaymentStatusesDto(paymentFeeLink);
+        PaymentDto paymentDto = paymentDtoMapper.toRetrievePaymentStatusesDto(paymentFeeLink, payment1.getReference());
         assertEquals("group-reference",paymentDto.getPaymentGroupReference());
         assertEquals("100.00",paymentDto.getAmount().toString());
     }
