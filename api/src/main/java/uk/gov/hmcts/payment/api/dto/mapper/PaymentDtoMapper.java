@@ -133,7 +133,23 @@ public class PaymentDtoMapper {
     }
 
     public PaymentDto toRetrieveCardPaymentResponseDto(PaymentFeeLink paymentFeeLink, String paymentReference) {
-        Payment payment = paymentFeeLink.getPayments().get(0);
+        LOG.info("paymentFeeLink.getPayments() {}",paymentFeeLink.getPayments());
+        LOG.info("Getting Payment with reference: {}", paymentReference);
+        Optional<Payment> optionalPayment = paymentFeeLink.getPayments().stream()
+            .filter(payment -> (paymentReference != null)
+                && paymentReference.equalsIgnoreCase(payment.getReference()))
+            .findFirst();
+        Payment payment;
+        if(optionalPayment.isEmpty()){
+            LOG.info("Payment not found for reference: {}", paymentReference);
+            throw new PaymentNotFoundException("The reference is not found");
+        } else {
+            payment = optionalPayment.get();
+            LOG.info("Payment found for reference: {}", paymentReference);
+        }
+        LOG.info("reference: {} for the payment returned", payment.getReference());
+        LOG.info("payment status from gov uk - {}",payment.getPaymentStatus().getName());
+        LOG.info("payment status from gov uk enum mapping - {}",PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus());
         List<PaymentFee> fees = paymentFeeLink.getFees();
         return PaymentDto.payment2DtoWith()
             .reference(payment.getReference())
