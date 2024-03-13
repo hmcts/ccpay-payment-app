@@ -50,6 +50,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -63,6 +64,7 @@ import static org.junit.Assert.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
@@ -623,6 +625,7 @@ public class ServiceRequestDomainServiceTest {
             .language("Eng")
             .amount(new BigDecimal(99.99).setScale(2, RoundingMode.HALF_EVEN))
             .build();
+        PaymentFeeLink paymentFeeLinkMock = mock(PaymentFeeLink.class);
 
         when(paymentFeeLinkRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(getPaymentFeeLinkWithPayments()));
 
@@ -652,12 +655,14 @@ public class ServiceRequestDomainServiceTest {
 
         when(featureToggler.getBooleanValue(any(),any())).thenReturn(true);
 
+        when(paymentFeeLinkMock.getPayments()).thenReturn(getPaymentFeeLinkWithPayments().getPayments());
 
         OnlineCardPaymentResponse onlineCardPaymentResponse = serviceRequestDomainService.create(onlineCardPaymentRequest,"","","");
 
         assertNotNull(onlineCardPaymentResponse);
 
     }
+
 
 
     @Test()
@@ -804,7 +809,7 @@ public class ServiceRequestDomainServiceTest {
         List<Payment> payments = new LinkedList<>();
         Payment payment = new Payment();
         PaymentProvider paymentProvider = new PaymentProvider();
-        paymentProvider.setName("Not gov pay");
+        paymentProvider.setName("gov pay");
         payment.setPaymentStatus(PaymentStatus.CREATED);
         payment.setPaymentProvider(paymentProvider);
         Date ninetyTwoAgo = new Date(System.currentTimeMillis() - 89 * 60 * 1000);
