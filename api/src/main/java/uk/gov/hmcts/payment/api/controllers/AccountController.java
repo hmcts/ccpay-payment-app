@@ -4,11 +4,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import net.minidev.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,8 +16,10 @@ import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.exception.LiberataServiceInaccessibleException;
-import uk.gov.hmcts.payment.api.exception.PbaAccountStatusException;
 import uk.gov.hmcts.payment.api.service.AccountService;
+
+import static org.springframework.http.HttpStatus.PRECONDITION_FAILED;
+import static org.springframework.http.HttpStatus.GONE;
 
 @RestController
 @Tag(name = "AccountController", description = "Account REST API")
@@ -27,13 +27,9 @@ public class AccountController {
 
     private static final String STATUS_DELETED = "Deleted";
     private static final String STATUS_ON_HOLD = "On-Hold";
-    private static final String JSON_STATUS = "status";
-    private static final String JSON_ERROR_MESSAGE = "error_message";
 
     private static final String JSON_ERROR_MESSAGE_GONE = "The account has been deleted and is no longer available.";
     private static final String JSON_ERROR_MESSAGE_ON_HOLD = "The account is on hold and temporarily unavailable.";
-
-    private static final Logger LOG = LoggerFactory.getLogger(AccountController.class);
 
     private final AccountService<AccountDto, String> accountService;
 
@@ -60,29 +56,36 @@ public class AccountController {
         try {
             return accountService.retrieve(accountNumber);
         } catch (HttpClientErrorException ex) {
-            LOG.error("Error while  calling account", ex);
-            if (ex.getStatusCode() == HttpStatus.GONE || ex.getStatusCode() == HttpStatus.PRECONDITION_FAILED) {
+            throw ex;
+        } catch (Exception exception) {
+            throw new LiberataServiceInaccessibleException("Failed to connect with Liberata. " + exception.getMessage());
+        }
+    }
 
-                JSONObject jsonResponse = new JSONObject();
 
-                switch (ex.getStatusCode()) {
-                    case GONE:
-                        jsonResponse.appendField(JSON_STATUS, STATUS_DELETED);
-                        jsonResponse.appendField(JSON_ERROR_MESSAGE, JSON_ERROR_MESSAGE_GONE);
-                        throw new PbaAccountStatusException(jsonResponse.toJSONString());
-                    case PRECONDITION_FAILED:
-                        jsonResponse.appendField(JSON_STATUS, STATUS_ON_HOLD);
-                        jsonResponse.appendField(JSON_ERROR_MESSAGE, JSON_ERROR_MESSAGE_ON_HOLD);
-                        throw new PbaAccountStatusException(jsonResponse.toJSONString());
-                    default:
-                        throw ex;
-                }
-            } else {
-                throw new AccountNotFoundException("Account not found");
+    @ExceptionHandler(HttpClientErrorException.class)
+    public ResponseEntity<AccountStatusError> returnAccountStatusError(HttpClientErrorException ex) {
+        if (ex.getStatusCode() == GONE || ex.getStatusCode() == PRECONDITION_FAILED) {
+            AccountStatusError accountStatusError = null;
+
+            switch (ex.getStatusCode()) {
+                case GONE:
+                     accountStatusError = AccountStatusError.accountStatusErrorWith()
+                        .status(STATUS_DELETED)
+                        .errorMessage(JSON_ERROR_MESSAGE_GONE)
+                        .build();
+                    return new ResponseEntity<>(accountStatusError, GONE);
+                case PRECONDITION_FAILED:
+                     accountStatusError = AccountStatusError.accountStatusErrorWith()
+                        .status(STATUS_ON_HOLD)
+                        .errorMessage(JSON_ERROR_MESSAGE_ON_HOLD)
+                        .build();
+                    return new ResponseEntity<>(accountStatusError, PRECONDITION_FAILED);
+                default:
+                    throw ex;
             }
-
-        } catch (Exception ex) {
-            throw new LiberataServiceInaccessibleException("Failed to connect with Liberata. " + ex.getMessage());
+        } else {
+            throw new AccountNotFoundException("Account not found");
         }
     }
 
@@ -97,4 +100,5 @@ public class AccountController {
     public String return503(LiberataServiceInaccessibleException ex) {
         return ex.getMessage();
     }
+
 }

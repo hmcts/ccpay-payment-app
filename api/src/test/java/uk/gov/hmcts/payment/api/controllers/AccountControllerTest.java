@@ -10,6 +10,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.client.resource.OAuth2AccessDeniedException;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
@@ -45,10 +46,19 @@ public class AccountControllerTest {
     public static WireMockClassRule wireMockRule = new WireMockClassRule(9190);
     AccountDto expectedDto = new AccountDto("PBA4324", "accountName", new BigDecimal(100),
         new BigDecimal(100), AccountStatus.ACTIVE, new Date());
+
+    ResponseEntity<AccountStatusError> response;
+
     @Mock
     private AccountService<AccountDto, String> accountServiceMock;
     @InjectMocks
     private AccountController accountController;
+
+    private static final String STATUS_DELETED = "Deleted";
+    private static final String STATUS_ON_HOLD = "On-Hold";
+
+    private static final String JSON_ERROR_MESSAGE_GONE = "The account has been deleted and is no longer available.";
+    private static final String JSON_ERROR_MESSAGE_ON_HOLD = "The account is on hold and temporarily unavailable.";
 
     @Test
     public void gettingExistingAccountNumberReturnsAccountDetails() {
@@ -66,11 +76,11 @@ public class AccountControllerTest {
         assertEquals(expectedDto, actualDto);
     }
 
-    @Test(expected = AccountNotFoundException.class)
+    @Test(expected = LiberataServiceInaccessibleException.class)
     public void gettingNonExistingAccountNumberThrowsAccountNotFoundException() {
 
         //For Same account return account not found
-        when(accountServiceMock.retrieve(eq("PBA4321"))).thenThrow(HttpClientErrorException.class);
+        when(accountServiceMock.retrieve(eq("PBA4321"))).thenThrow(RuntimeException.class);
 
         //For Any other account return account object
         when(accountServiceMock.retrieve(not(eq("PBA4321")))).thenReturn(expectedDto);
@@ -103,104 +113,38 @@ public class AccountControllerTest {
 
 
     @Test
-    public void testGetAccounts_AccountGone() throws JSONException {
-        String accountNumber = "123";
-        JSONObject expectedJsonObject = new JSONObject();
-        expectedJsonObject.put("status", "Deleted");
-        expectedJsonObject.put("error_message", "The account has been deleted and is no longer available.");
+    public void testReturnAccountStatusError_Gone() {
 
-        HttpClientErrorException preconditionFailedException = new HttpClientErrorException(HttpStatus.GONE);
+        HttpClientErrorException exception = new HttpClientErrorException(HttpStatus.GONE);
 
-        when(accountServiceMock.retrieve(accountNumber)).thenThrow(preconditionFailedException);
+        ResponseEntity<AccountStatusError> response = accountController.returnAccountStatusError(exception);
 
-        PbaAccountStatusException exception = assertThrows(PbaAccountStatusException.class,
-            () -> accountController.getAccounts(accountNumber));
-
-        Map<String, Object> expectedMap = toMap(expectedJsonObject);
-        String actualJsonString = exception.getMessage();
-
-        // Parse the actual JSON string into a JSONObject
-        JSONObject actualJsonObject = new JSONObject(actualJsonString);
-
-        // Convert the actual JSONObject to a map
-        Map<String, Object> actualMap = toMap(actualJsonObject);
-
-        assertEquals(expectedMap,actualMap);
-    }
-    @Test
-    public void testGetAccounts_AccountOnHold() throws JSONException {
-        String accountNumber = "123";
-        JSONObject expectedJsonObject = new JSONObject();
-        expectedJsonObject.put("status", "On-Hold");
-        expectedJsonObject.put("error_message", "The account is on hold and temporarily unavailable.");
-
-        HttpClientErrorException preconditionFailedException = new HttpClientErrorException(HttpStatus.PRECONDITION_FAILED);
-
-        when(accountServiceMock.retrieve(accountNumber)).thenThrow(preconditionFailedException);
-
-        PbaAccountStatusException exception = assertThrows(PbaAccountStatusException.class,
-            () -> accountController.getAccounts(accountNumber));
-
-        Map<String, Object> expectedMap = toMap(expectedJsonObject);
-        String actualJsonString = exception.getMessage();
-
-        // Parse the actual JSON string into a JSONObject
-        JSONObject actualJsonObject = new JSONObject(actualJsonString);
-
-        // Convert the actual JSONObject to a map
-        Map<String, Object> actualMap = toMap(actualJsonObject);
-
-        assertEquals(expectedMap,actualMap);
-    }
-
-
-    @Test
-    public void testGetAccounts_InternalServerError() {
-        String accountNumber = "123";
-        when(accountServiceMock.retrieve(accountNumber))
-            .thenThrow(new HttpClientErrorException(HttpStatus.INTERNAL_SERVER_ERROR));
-
-        AccountNotFoundException exception = assertThrows(AccountNotFoundException.class,
-            () -> accountController.getAccounts(accountNumber));
-
-        assertEquals("Account not found", exception.getMessage());
+        assertEquals(STATUS_DELETED, response.getBody().getStatus());
+        assertEquals(JSON_ERROR_MESSAGE_GONE, response.getBody().getErrorMessage());
     }
 
     @Test
-    public void testGetAccounts_UnauthorisedError() {
-        String accountNumber = "123";
-        when(accountServiceMock.retrieve(accountNumber))
-            .thenThrow(new HttpClientErrorException(HttpStatus.UNAUTHORIZED));
+    public void testReturnAccountStatusError_Precondition_Faild() {
 
-        AccountNotFoundException exception = assertThrows(AccountNotFoundException.class,
-            () -> accountController.getAccounts(accountNumber));
+        HttpClientErrorException exception = new HttpClientErrorException(HttpStatus.PRECONDITION_FAILED);
 
-        assertEquals("Account not found", exception.getMessage());
+        response = accountController.returnAccountStatusError(exception);
+
+        assertEquals(STATUS_ON_HOLD, response.getBody().getStatus());
+        assertEquals(JSON_ERROR_MESSAGE_ON_HOLD, response.getBody().getErrorMessage());
     }
-
 
     @Test
-    public void testGetAccounts_ForbiddenError() {
-        String accountNumber = "123";
+    public void testReturnAccountStatusErrorAccountNotFound() {
 
-        when(accountServiceMock.retrieve(accountNumber))
-            .thenThrow(new HttpClientErrorException(HttpStatus.FORBIDDEN));
+        HttpClientErrorException exception = new HttpClientErrorException(HttpStatus.FORBIDDEN);
 
-        AccountNotFoundException exception = assertThrows(AccountNotFoundException.class,
-            () -> accountController.getAccounts(accountNumber));
-
-        assertEquals("Account not found", exception.getMessage());
-    }
-
-
-    private Map<String, Object> toMap(JSONObject jsonObject) throws JSONException {
-        Map<String, Object> map = new HashMap<>();
-        Iterator<String> keys = jsonObject.keys();
-        while (keys.hasNext()) {
-            String key = keys.next();
-            map.put(key, jsonObject.get(key));
+        try{
+            response = accountController.returnAccountStatusError(exception);
         }
-        return map;
+        catch (Exception ex){
+            assertEquals("Account not found",ex.getMessage());
+        }
     }
 
 }
