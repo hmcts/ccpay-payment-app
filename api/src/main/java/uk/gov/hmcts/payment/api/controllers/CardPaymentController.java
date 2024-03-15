@@ -194,7 +194,7 @@ public class CardPaymentController implements ApplicationContextAware {
     })
     @GetMapping(value = "/card-payments/{reference}")
     public PaymentDto retrieve(@PathVariable("reference") String paymentReference) {
-        return paymentDtoMapper.toRetrieveCardPaymentResponseDto(delegatingPaymentService.retrieve(paymentReference));
+        return paymentDtoMapper.toRetrieveCardPaymentResponseDto(delegatingPaymentService.retrieve(paymentReference), paymentReference);
     }
 
     @Operation(summary = "Get card payment details with card details by payment reference", description = "Get payment details with card details for supplied payment reference")
