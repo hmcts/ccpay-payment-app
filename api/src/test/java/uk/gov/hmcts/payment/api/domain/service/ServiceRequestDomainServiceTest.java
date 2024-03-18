@@ -1,10 +1,14 @@
 package uk.gov.hmcts.payment.api.domain.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
+import com.netflix.hystrix.HystrixCommand;
+import com.netflix.hystrix.exception.HystrixRuntimeException;
 import org.apache.poi.ss.formula.functions.T;
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -14,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestDomainDataEntityMapper;
 import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestDtoDomainMapper;
@@ -30,10 +35,13 @@ import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestFeeDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
 import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
+import uk.gov.hmcts.payment.api.external.client.dto.Link;
+import uk.gov.hmcts.payment.api.external.client.dto.State;
 import uk.gov.hmcts.payment.api.mapper.PBAStatusErrorMapper;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.*;
+import uk.gov.hmcts.payment.api.servicebus.TopicClientService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentGroupNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoAmountDue;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoMatchingAmount;
@@ -42,15 +50,21 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
@@ -115,6 +129,9 @@ public class ServiceRequestDomainServiceTest {
 
     @Mock
     PaymentDtoMapper paymentDtoMapper;
+
+    @Mock
+    private TopicClientService topicClientService;
 
     @Before
     public void setup() {
@@ -352,7 +369,217 @@ public class ServiceRequestDomainServiceTest {
     }
 
     @Test
+    public void addPaymentsHystrixRuntimeExceptionThrownTest() throws Exception {
+
+        ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto.paymentDtoWith()
+            .accountNumber("1234")
+            .amount(new BigDecimal(99.99).setScale(2, RoundingMode.HALF_EVEN))
+            .build();
+
+        ServiceRequestPaymentBo serviceRequestPaymentBo = ServiceRequestPaymentBo.serviceRequestPaymentBoWith()
+            .paymentReference("RC-ref")
+            .build();
+
+        Payment payment = Payment.paymentWith()
+            .paymentLink(getPaymentFeeLink())
+            .currency("GBP")
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("Online").build())
+            .paymentStatus(PaymentStatus.SUCCESS)
+            .build();
+
+        Payment paymentFailed = Payment.paymentWith()
+            .paymentLink(getPaymentFeeLink())
+            .currency("GBP")
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("Online").build())
+            .paymentStatus(PaymentStatus.FAILED)
+            .build();
+
+        PaymentReference paymentReference = PaymentReference.paymentReference()
+            .caseReference("1234")
+            .paymentAmount(BigDecimal.valueOf(24244.60))
+            .accountNumber("12344")
+            .paymentReference("ABC")
+            .paymentMethod("ONLINE")
+            .build();
+
+        PaymentStatusDto paymentStatusDto = PaymentStatusDto.paymentStatusDto()
+            .serviceRequestReference("ABC123")
+            .ccdCaseNumber("12345")
+            .serviceRequestAmount(BigDecimal.valueOf(12300.00))
+            .serviceRequestStatus("PAID")
+            .payment(paymentReference)
+            .build();
+
+        when(serviceRequestPaymentDtoDomainMapper.toDomain(any())).thenReturn(serviceRequestPaymentBo);
+
+        when(serviceRequestPaymentDomainDataEntityMapper.toEntity(any(),any())).thenReturn(payment,paymentFailed);
+
+        when(paymentFeeLinkRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(getPaymentFeeLink()));
+
+        when(paymentDtoMapper.toPaymentStatusDto(any(),any(),any(), any())).thenReturn(paymentStatusDto);
+
+        when(accountService.retrieve(serviceRequestPaymentDto.getAccountNumber())).thenThrow(
+            new HystrixRuntimeException(HystrixRuntimeException.FailureType.TIMEOUT, HystrixCommand.class, "ErrorThrown", null, null));
+
+        AccountDto accountDto = AccountDto.accountDtoWith()
+            .accountNumber("1234")
+            .build();
+
+        PaymentGroupDto paymentGroupDto = new PaymentGroupDto();
+        paymentGroupDto.setServiceRequestStatus("Paid");
+        when(paymentGroupDtoMapper.toPaymentGroupDto(any())).thenReturn(paymentGroupDto);
+        try{
+            ServiceRequestPaymentBo bo =
+                serviceRequestDomainService.addPayments(getPaymentFeeLink(), "123", serviceRequestPaymentDto);
+        }catch(Exception ex){
+            Assertions.assertEquals(ex.getMessage(),"Unable to retrieve account information due to timeout");
+        }
+
+    }
+
+    @Test
+    public void addPaymentsExceptionThrownTest() throws Exception {
+
+        ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto.paymentDtoWith()
+            .accountNumber("1234")
+            .amount(new BigDecimal(99.99).setScale(2, RoundingMode.HALF_EVEN))
+            .build();
+
+        ServiceRequestPaymentBo serviceRequestPaymentBo = ServiceRequestPaymentBo.serviceRequestPaymentBoWith()
+            .paymentReference("RC-ref")
+            .build();
+
+        Payment payment = Payment.paymentWith()
+            .paymentLink(getPaymentFeeLink())
+            .currency("GBP")
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("Online").build())
+            .paymentStatus(PaymentStatus.SUCCESS)
+            .build();
+
+        Payment paymentFailed = Payment.paymentWith()
+            .paymentLink(getPaymentFeeLink())
+            .currency("GBP")
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("Online").build())
+            .paymentStatus(PaymentStatus.FAILED)
+            .build();
+
+        PaymentReference paymentReference = PaymentReference.paymentReference()
+            .caseReference("1234")
+            .paymentAmount(BigDecimal.valueOf(24244.60))
+            .accountNumber("12344")
+            .paymentReference("ABC")
+            .paymentMethod("ONLINE")
+            .build();
+
+        PaymentStatusDto paymentStatusDto = PaymentStatusDto.paymentStatusDto()
+            .serviceRequestReference("ABC123")
+            .ccdCaseNumber("12345")
+            .serviceRequestAmount(BigDecimal.valueOf(12300.00))
+            .serviceRequestStatus("PAID")
+            .payment(paymentReference)
+            .build();
+
+        when(serviceRequestPaymentDtoDomainMapper.toDomain(any())).thenReturn(serviceRequestPaymentBo);
+
+        when(serviceRequestPaymentDomainDataEntityMapper.toEntity(any(),any())).thenReturn(payment,paymentFailed);
+
+        when(paymentFeeLinkRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(getPaymentFeeLink()));
+
+        when(paymentDtoMapper.toPaymentStatusDto(any(),any(),any(), any())).thenReturn(paymentStatusDto);
+
+        when(accountService.retrieve(serviceRequestPaymentDto.getAccountNumber())).thenThrow(
+            new RuntimeException("unknown Exception"));
+
+        AccountDto accountDto = AccountDto.accountDtoWith()
+            .accountNumber("1234")
+            .build();
+
+        PaymentGroupDto paymentGroupDto = new PaymentGroupDto();
+        paymentGroupDto.setServiceRequestStatus("Paid");
+        when(paymentGroupDtoMapper.toPaymentGroupDto(any())).thenReturn(paymentGroupDto);
+        try{
+            ServiceRequestPaymentBo bo =
+                serviceRequestDomainService.addPayments(getPaymentFeeLink(), "123", serviceRequestPaymentDto);
+        }catch(Exception ex){
+            Assertions.assertEquals(ex.getMessage(),"Unable to retrieve account information, please try again later");
+        }
+
+    }
+
+
+    @Test
+    public void addPaymentsHttpClientExceptionThrownTest() throws Exception {
+
+        ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto.paymentDtoWith()
+            .accountNumber("1234")
+            .amount(new BigDecimal(99.99).setScale(2, RoundingMode.HALF_EVEN))
+            .build();
+
+        ServiceRequestPaymentBo serviceRequestPaymentBo = ServiceRequestPaymentBo.serviceRequestPaymentBoWith()
+            .paymentReference("RC-ref")
+            .build();
+
+        Payment payment = Payment.paymentWith()
+            .paymentLink(getPaymentFeeLink())
+            .currency("GBP")
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("Online").build())
+            .paymentStatus(PaymentStatus.SUCCESS)
+            .build();
+
+        Payment paymentFailed = Payment.paymentWith()
+            .paymentLink(getPaymentFeeLink())
+            .currency("GBP")
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("Online").build())
+            .paymentStatus(PaymentStatus.FAILED)
+            .build();
+
+        PaymentReference paymentReference = PaymentReference.paymentReference()
+            .caseReference("1234")
+            .paymentAmount(BigDecimal.valueOf(24244.60))
+            .accountNumber("12344")
+            .paymentReference("ABC")
+            .paymentMethod("ONLINE")
+            .build();
+
+        PaymentStatusDto paymentStatusDto = PaymentStatusDto.paymentStatusDto()
+            .serviceRequestReference("ABC123")
+            .ccdCaseNumber("12345")
+            .serviceRequestAmount(BigDecimal.valueOf(12300.00))
+            .serviceRequestStatus("PAID")
+            .payment(paymentReference)
+            .build();
+
+        when(serviceRequestPaymentDtoDomainMapper.toDomain(any())).thenReturn(serviceRequestPaymentBo);
+
+        when(serviceRequestPaymentDomainDataEntityMapper.toEntity(any(),any())).thenReturn(payment,paymentFailed);
+
+        when(paymentFeeLinkRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(getPaymentFeeLink()));
+
+        when(paymentDtoMapper.toPaymentStatusDto(any(),any(),any(), any())).thenReturn(paymentStatusDto);
+
+        when(accountService.retrieve(serviceRequestPaymentDto.getAccountNumber())).thenThrow(
+            HttpClientErrorException.create(HttpStatus.NOT_FOUND, "not found", null, null, null));
+
+        AccountDto accountDto = AccountDto.accountDtoWith()
+            .accountNumber("1234")
+            .build();
+
+        PaymentGroupDto paymentGroupDto = new PaymentGroupDto();
+        paymentGroupDto.setServiceRequestStatus("Paid");
+        when(paymentGroupDtoMapper.toPaymentGroupDto(any())).thenReturn(paymentGroupDto);
+        try{
+            ServiceRequestPaymentBo bo =
+                serviceRequestDomainService.addPayments(getPaymentFeeLink(), "123", serviceRequestPaymentDto);
+        }catch(Exception ex){
+            Assertions.assertEquals(ex.getMessage(),"Account information could not be found");
+        }
+
+    }
+
+
+    @Test
     public void createOnlineCardPaymentTest() throws Exception {
+
 
         OnlineCardPaymentRequest onlineCardPaymentRequest = OnlineCardPaymentRequest.onlineCardPaymentRequestWith()
             .language("Eng")
@@ -391,6 +618,53 @@ public class ServiceRequestDomainServiceTest {
     }
 
 
+    @Test
+    public void createOnlineCardPaymentWithPaymentFeeLinksPaymentTest() throws Exception {
+
+        OnlineCardPaymentRequest onlineCardPaymentRequest = OnlineCardPaymentRequest.onlineCardPaymentRequestWith()
+            .language("Eng")
+            .amount(new BigDecimal(99.99).setScale(2, RoundingMode.HALF_EVEN))
+            .build();
+        PaymentFeeLink paymentFeeLinkMock = mock(PaymentFeeLink.class);
+
+        when(paymentFeeLinkRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(getPaymentFeeLinkWithPayments()));
+
+        ServiceRequestOnlinePaymentBo serviceRequestOnlinePaymentBo = ServiceRequestOnlinePaymentBo.serviceRequestOnlinePaymentBo()
+            .paymentReference("RC-ref")
+            .build();
+
+        when(serviceRequestDtoDomainMapper.toDomain(any(),any(),any())).thenReturn(serviceRequestOnlinePaymentBo);
+
+        GovPayPayment govPayPayment = GovPayPayment.govPaymentWith()
+            .paymentId("id")
+            .build();
+
+        when(delegateGovPay.create(any(CreatePaymentRequest.class),anyString())).thenReturn(govPayPayment);
+
+        Payment payment = Payment.paymentWith()
+            .paymentLink(getPaymentFeeLink())
+            .currency("GBP")
+            .paymentStatus(PaymentStatus.CREATED)
+            .build();
+
+        when(serviceRequestDomainDataEntityMapper.toPaymentEntity(any(),any(), any())).thenReturn(payment);
+
+        when(paymentRepository.save(any())).thenReturn(payment);
+
+        when(delegateGovPay.retrieve(anyString())).thenReturn(getGovPayPayment());
+
+        when(featureToggler.getBooleanValue(any(),any())).thenReturn(true);
+
+        when(paymentFeeLinkMock.getPayments()).thenReturn(getPaymentFeeLinkWithPayments().getPayments());
+
+        OnlineCardPaymentResponse onlineCardPaymentResponse = serviceRequestDomainService.create(onlineCardPaymentRequest,"","","");
+
+        assertNotNull(onlineCardPaymentResponse);
+
+    }
+
+
+
     @Test()
     public void sendMessageTopicCPORequest() throws Exception {
 
@@ -401,7 +675,7 @@ public class ServiceRequestDomainServiceTest {
             .casePaymentRequest(getCasePaymentRequest())
             .build();
 
-        serviceRequestDomainService.sendMessageTopicCPO(serviceRequestDto,"ref");
+        Assertions.assertDoesNotThrow(() -> serviceRequestDomainService.sendMessageTopicCPO(serviceRequestDto,"ref"));
 
     }
 
@@ -417,7 +691,8 @@ public class ServiceRequestDomainServiceTest {
     @Test
     public void isDuplicateTest() {
         when(paymentGroupService.findByPaymentGroupReference(any())).thenReturn(getPaymentFeeLink());
-        serviceRequestDomainService.isDuplicate("1607065108455502");
+        boolean isDuplicate =serviceRequestDomainService.isDuplicate("1607065108455502");
+        assertTrue(isDuplicate);
     }
 
     @Test
@@ -430,6 +705,83 @@ public class ServiceRequestDomainServiceTest {
             assertThat(e.getMessage()).isEqualTo("Order detail not found for given ccdcasenumber 1607065108455502");
         }
     }
+
+    @Test
+    public void testCanCancelPayment_AllConditionsMet() {
+        // Arrange
+        GovPayPayment payment = getGovPayPayment();
+
+        // Act
+        boolean result = serviceRequestDomainService.canCancelPayment(payment);
+
+        // Assert
+        assertTrue(result);
+    }
+
+    @Test
+    public void testCanCancelPayment_PaymentIsNull() {
+        // Arrange
+
+        // Act
+        boolean result = serviceRequestDomainService.canCancelPayment(null);
+
+        // Assert
+        assertFalse(result);
+    }
+
+    @Test
+    public void testCanCancelPayment_LinksIsNull() {
+        // Arrange
+        GovPayPayment payment = getGovPayPayment();
+        payment.setLinks(null);
+
+        // Act
+        boolean result = serviceRequestDomainService.canCancelPayment(payment);
+
+        // Assert
+        assertFalse(result);
+    }
+
+    @Test
+    public void testCanCancelPayment_LinkIsNull() {
+        // Arrange
+        GovPayPayment payment = getGovPayPayment();
+        payment.getLinks().setCancel(null);
+
+        // Act
+        boolean result = serviceRequestDomainService.canCancelPayment(payment);
+
+        // Assert
+        assertFalse(result);
+    }
+
+    @Test
+    public void testCanCancelPayment_HrefIsNull() {
+        // Arrange
+        GovPayPayment payment = getGovPayPayment();
+        payment.getLinks().getCancel().setHref(null);
+
+        // Act
+        boolean result = serviceRequestDomainService.canCancelPayment(payment);
+
+        // Assert
+        assertFalse(result);
+    }
+
+
+    @Test
+    public void testCanCancelPayment_HrefIsEmpty() {
+        // Arrange
+        GovPayPayment payment = getGovPayPayment();
+        payment.getLinks().getCancel().setHref("");
+
+        // Act
+        boolean result = serviceRequestDomainService.canCancelPayment(payment);
+
+        // Assert
+        assertFalse(result);
+    }
+
 
     private ServiceRequestFeeDto getOrderFee() {
         return ServiceRequestFeeDto.feeDtoWith()
@@ -453,8 +805,45 @@ public class ServiceRequestDomainServiceTest {
             .build();
     }
 
+    private PaymentFeeLink getPaymentFeeLinkWithPayments() {
+        List<Payment> payments = new LinkedList<>();
+        Payment payment = new Payment();
+        PaymentProvider paymentProvider = new PaymentProvider();
+        paymentProvider.setName("gov pay");
+        payment.setPaymentStatus(PaymentStatus.CREATED);
+        payment.setPaymentProvider(paymentProvider);
+        Date ninetyTwoAgo = new Date(System.currentTimeMillis() - 89 * 60 * 1000);
+        payment.setDateCreated(ninetyTwoAgo);
+        payments.add(payment);
+
+        return PaymentFeeLink.paymentFeeLinkWith()
+            .id(1)
+            .orgId("org-id")
+            .enterpriseServiceName("enterprise-service-name")
+            .paymentReference("payment-ref")
+            .payments(payments)
+            .ccdCaseNumber("1607065108455502")
+            .fees(Arrays.asList(PaymentFee.feeWith().
+                amountDue(new BigDecimal(10)).
+                calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE0001").volume(1).build()))
+            .build();
+    }
+
     private CasePaymentRequest getCasePaymentRequest(){
         return CasePaymentRequest.casePaymentRequestWith().responsibleParty("party").action("action").build();
+    }
+
+    private GovPayPayment getGovPayPayment() {
+        return GovPayPayment.govPaymentWith()
+            .amount(300)
+            .state(new State("created", false, null, null))
+            .description("description")
+            .reference("reference")
+            .paymentId("paymentId")
+            .paymentProvider("sandbox")
+            .returnUrl("https://www.google.com")
+            .links(GovPayPayment.Links.linksWith().cancel(new Link("any", ImmutableMap.of(), "cancelHref", "any")).build())
+            .build();
     }
 
 }
