@@ -1,8 +1,6 @@
 package uk.gov.hmcts.payment.api.controllers;
 
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -19,20 +17,17 @@ import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.exception.LiberataServiceInaccessibleException;
-import uk.gov.hmcts.payment.api.exception.PbaAccountStatusException;
 import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.util.AccountStatus;
 
 import java.math.BigDecimal;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 
-import static org.apache.commons.collections.MapUtils.toMap;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.AdditionalMatchers.not;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
@@ -100,6 +95,13 @@ public class AccountControllerTest {
         assertEquals(errorMessage, accountController.return404(ex));
     }
 
+    @Test
+    public void gettingNonExistingAccountNumberReturns503() throws Exception {
+        String errorMessage = "errorMessage";
+        LiberataServiceInaccessibleException ex = new LiberataServiceInaccessibleException(errorMessage);
+        assertEquals(errorMessage, accountController.return503(ex));
+    }
+
     @Test(expected = LiberataServiceInaccessibleException.class)
     public void getLiberataServiceInaccessibleException() {
 
@@ -145,6 +147,22 @@ public class AccountControllerTest {
         catch (Exception ex){
             assertEquals("Account not found",ex.getMessage());
         }
+    }
+
+
+    @Test
+    public void whenRetrieveThrowsOtherException_thenWrappedInLiberataServiceInaccessibleException() {
+        when(accountServiceMock.retrieve(anyString())).thenThrow(new RuntimeException("Unexpected error"));
+
+        Exception exception = assertThrows(LiberataServiceInaccessibleException.class, () -> accountController.getAccounts("123"));
+        assertTrue(exception.getMessage().contains("Failed to connect with Liberata"));
+    }
+
+    @Test
+    public void whenRetrieveThrowsHttpClientErrorException_thenExceptionIsRethrown() {
+        when(accountServiceMock.retrieve(anyString())).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
+
+        assertThrows(HttpClientErrorException.class, () -> accountController.getAccounts("123"));
     }
 
 }

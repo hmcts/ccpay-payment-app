@@ -100,5 +100,4 @@ public class AccountController {
     public String return503(LiberataServiceInaccessibleException ex) {
         return ex.getMessage();
     }
-
 }
