@@ -17,6 +17,7 @@ import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.exception.LiberataServiceInaccessibleException;
 import uk.gov.hmcts.payment.api.service.AccountService;
+import uk.gov.hmcts.payment.api.util.AccountStatus;
 
 import static org.springframework.http.HttpStatus.PRECONDITION_FAILED;
 import static org.springframework.http.HttpStatus.GONE;
@@ -54,7 +55,16 @@ public class AccountController {
     @GetMapping(value = "/accounts/{accountNumber}")
     public AccountDto getAccounts(@PathVariable("accountNumber") String accountNumber) {
         try {
-            return accountService.retrieve(accountNumber);
+            AccountDto accountDto =  accountService.retrieve(accountNumber);
+            if(accountDto!=null && accountDto.getStatus()== AccountStatus.DELETED){
+                throw new HttpClientErrorException(GONE);
+            } else if (accountDto!=null && accountDto.getStatus()== AccountStatus.ON_HOLD) {
+                throw new HttpClientErrorException(PRECONDITION_FAILED);
+            }
+            else{
+                return accountDto;
+            }
+
         } catch (HttpClientErrorException ex) {
             throw ex;
         } catch (Exception exception) {
@@ -66,7 +76,6 @@ public class AccountController {
     @ExceptionHandler(HttpClientErrorException.class)
     public ResponseEntity<Object> returnAccountStatusError(HttpClientErrorException ex) {
 
-            AccountStatusError accountStatusError = null;
             Object responseBody;
 
             switch (ex.getStatusCode()) {
