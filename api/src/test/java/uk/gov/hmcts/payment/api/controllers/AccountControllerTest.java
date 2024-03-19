@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.api.controllers;
 
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
+import org.checkerframework.checker.units.qual.A;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -169,5 +170,26 @@ public class AccountControllerTest {
 
         assertThrows(HttpClientErrorException.class, () -> accountController.getAccounts("123"));
     }
+
+    @Test
+    public void whenRetrieveDeleted_Account_thenExceptionIsRethrown() {
+
+        AccountDto dto = new AccountDto();
+        dto.setStatus(AccountStatus.DELETED);
+        when(accountServiceMock.retrieve(anyString())).thenReturn(dto);
+
+        assertThrows(HttpClientErrorException.class, () -> accountController.getAccounts("123"));
+    }
+
+    @Test
+    public void whenRetrieveOn_Hold_Account_thenExceptionIsRethrown() {
+
+        AccountDto dto = new AccountDto();
+        dto.setStatus(AccountStatus.ON_HOLD);
+        when(accountServiceMock.retrieve(anyString())).thenReturn(dto);
+
+        assertThrows(HttpClientErrorException.class, () -> accountController.getAccounts("123"));
+    }
+
 
 }
