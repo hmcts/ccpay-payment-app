@@ -30,6 +30,7 @@ import static org.mockito.AdditionalMatchers.not;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.springframework.http.HttpStatus.GONE;
 
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "componenttest"})
@@ -117,12 +118,15 @@ public class AccountControllerTest {
     @Test
     public void testReturnAccountStatusError_Gone() {
 
-        HttpClientErrorException exception = new HttpClientErrorException(HttpStatus.GONE);
+        HttpClientErrorException exception = new HttpClientErrorException(GONE);
 
-        ResponseEntity<AccountStatusError> response = accountController.returnAccountStatusError(exception);
+        ResponseEntity<Object> response = accountController.returnAccountStatusError(exception);
 
-        assertEquals(STATUS_DELETED, response.getBody().getStatus());
-        assertEquals(JSON_ERROR_MESSAGE_GONE, response.getBody().getErrorMessage());
+        assertEquals(GONE, response.getStatusCode());
+        assertTrue(response.getBody() instanceof AccountStatusError);
+        AccountStatusError error = (AccountStatusError) response.getBody();
+        assertEquals(STATUS_DELETED, error.getStatus());
+        assertEquals(JSON_ERROR_MESSAGE_GONE, error.getErrorMessage());
     }
 
     @Test
@@ -130,23 +134,24 @@ public class AccountControllerTest {
 
         HttpClientErrorException exception = new HttpClientErrorException(HttpStatus.PRECONDITION_FAILED);
 
-        response = accountController.returnAccountStatusError(exception);
+        ResponseEntity<Object> response = accountController.returnAccountStatusError(exception);
 
-        assertEquals(STATUS_ON_HOLD, response.getBody().getStatus());
-        assertEquals(JSON_ERROR_MESSAGE_ON_HOLD, response.getBody().getErrorMessage());
+        assertEquals(HttpStatus.PRECONDITION_FAILED, response.getStatusCode());
+        assertTrue(response.getBody() instanceof AccountStatusError);
+        AccountStatusError error = (AccountStatusError) response.getBody();
+        assertEquals(STATUS_ON_HOLD, error.getStatus());
+        assertEquals(JSON_ERROR_MESSAGE_ON_HOLD, error.getErrorMessage());
     }
 
     @Test
     public void testReturnAccountStatusErrorAccountNotFound() {
 
-        HttpClientErrorException exception = new HttpClientErrorException(HttpStatus.FORBIDDEN);
+        HttpClientErrorException exception = new HttpClientErrorException(HttpStatus.NOT_FOUND);
 
-        try{
-            response = accountController.returnAccountStatusError(exception);
-        }
-        catch (Exception ex){
-            assertEquals("Account not found",ex.getMessage());
-        }
+        ResponseEntity<Object> response = accountController.returnAccountStatusError(exception);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals("Account not found", response.getBody());
     }
 
 
