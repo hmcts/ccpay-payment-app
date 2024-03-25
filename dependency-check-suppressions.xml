@@ -402,7 +402,7 @@
         <notes>
             Apache Commons Compress. Already on the latest but still complaining.
         </notes>
-        <cve>CVE-2024-26308d</cve>
+        <cve>CVE-2024-26308</cve>
     </suppress>
 
 
