@@ -398,6 +398,12 @@
         </notes>
         <cve>CVE-2024-25710</cve>
     </suppress>
+    <suppress>
+        <notes>
+            Apache Commons Compress. Already on the latest but still complaining.
+        </notes>
+        <cve>CVE-2024-26308d</cve>
+    </suppress>
 
 
     <!-- Supression Group ends here -->
