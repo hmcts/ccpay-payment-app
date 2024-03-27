@@ -74,7 +74,7 @@ def versions = [
         pact_version    : '4.1.7',
         reformS2sClient : '3.1.4',
         serenity        : '2.6.0',
-        serenityCucumber: '3.0.1',
+        serenityCucumber: '3.9.8',
 ]
 
 def javaLoggingVersion = '6.0.1'
