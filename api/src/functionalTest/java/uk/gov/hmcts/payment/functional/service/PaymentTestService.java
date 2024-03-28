@@ -45,6 +45,12 @@ public class PaymentTestService {
             .get("/payments/{reference}", paymentReference);
     }
 
+    public Response getPbaAccountDetails(String userToken, String serviceToken, String pbaAccountNumber) {
+        return givenWithAuthHeaders(userToken, serviceToken)
+            .when()
+            .get("/accounts/{accountNumber}", pbaAccountNumber);
+    }
+
     public Response postPbaPayment(String userToken, String serviceToken, CreditAccountPaymentRequest request) {
         return givenWithAuthHeaders(userToken, serviceToken)
             .contentType(ContentType.JSON)
