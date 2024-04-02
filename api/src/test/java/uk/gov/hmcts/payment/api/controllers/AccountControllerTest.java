@@ -172,6 +172,12 @@ public class AccountControllerTest {
     }
 
     @Test
+    public void whenStatusIsUnhandled_thenThrowOriginalException() {
+        HttpClientErrorException ex = new HttpClientErrorException(HttpStatus.BAD_REQUEST);
+        assertThrows(HttpClientErrorException.class, () -> accountController.returnAccountStatusError(ex));
+    }
+
+    @Test
     public void whenRetrieveDeleted_Account_thenExceptionIsRethrown() {
 
         AccountDto dto = new AccountDto();
