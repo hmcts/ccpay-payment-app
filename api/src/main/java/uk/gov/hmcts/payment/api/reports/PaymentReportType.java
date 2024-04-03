@@ -41,7 +41,7 @@ public enum PaymentReportType {
     private static String getServiceTypeEnum(String serviceType) {
         HashMap<String, String> serviceTypeHashMap = new HashMap<>();
 
-        serviceTypeHashMap.put("Specified Money Claims", "CMC");
+        serviceTypeHashMap.put("Specified Money Claims", "SMC");
         serviceTypeHashMap.put("Civil Money Claims", "CMC");
         serviceTypeHashMap.put("Financial Remedy", "FINREM");
         serviceTypeHashMap.put("Finrem", "FINREM");

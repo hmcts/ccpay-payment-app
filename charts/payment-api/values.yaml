@@ -90,6 +90,11 @@ java:
     SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: true
     SPRING_MAIL_USERNAME: apikey
 
+    SMC_BUBBLE_PAYMENTS_REPORT_SCHEDULER_ENABLED: "true"
+    SMC_BUBBLE_PAYMENTS_EMAIL_FROM: "no-reply@mail-payment-nonprod.platform.hmcts.net"
+    SMC_BUBBLE_PAYMENTS_EMAIL_MESSAGE: "Hi, <br/><br/>Please find attached Payment by Account reconciliation report. <br/><br/>Regards, <br/>Fees & Payments Team <br/><br/>"
+    SMC_BUBBLE_PAYMENTS_EMAIL_SUBJECT: "CNP:PBA Specified Money Claims Reconciliation Report"
+
     FEATURE_PAYMENTS_SEARCH: "true"
     FEATURE_SERVICE_CALLBACK: "true"
     PAYMENT_S2S_MICROSERVICE_NAME: payment_app
