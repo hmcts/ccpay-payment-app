@@ -10,7 +10,7 @@ plugins {
 }
 
 def springBootVersion = '2.7.15'
-def springCloudVersion = '2021.0.8'
+def springCloudVersion = '2021.0.9'
 
 
 def versions = [
