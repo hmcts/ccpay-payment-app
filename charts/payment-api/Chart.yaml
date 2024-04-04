@@ -9,7 +9,7 @@ maintainers:
     email: ccpay@hmcts.net
 dependencies:
   - name: java
-    version: 5.2.0
+    version: 5.0.2
     repository: 'https://hmctspublic.azurecr.io/helm/v1/repo/'
   - name: ccpay-refunds-api
     version: 1.0.10
