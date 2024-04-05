@@ -99,7 +99,7 @@ dependencies {
     implementation group: 'net.logstash.logback', name: 'logstash-logback-encoder', version: '7.4'
     implementation group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.14'
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.17.0'
-    implementation group: 'org.springdoc', name: 'springdoc-openapi-ui', version: '1.7.0'
+    implementation group: 'org.springdoc', name: 'springdoc-openapi-ui', version: '1.8.0'
     implementation group: 'org.springdoc', name: 'springdoc-openapi-webmvc-core', version: '1.7.0'
     implementation 'com.github.hmcts.liquibase:liquibase-core:3.8.2'
     implementation group: 'com.microsoft.azure', name: 'azure-servicebus-spring-boot-starter', version: '2.1.6'
