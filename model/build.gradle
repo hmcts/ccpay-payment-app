@@ -13,7 +13,7 @@ dependencies {
     api group: 'org.springframework.security.oauth', name: 'spring-security-oauth2', version: '2.5.2.RELEASE'
     implementation group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '3.1.4'
     implementation group: 'com.querydsl', name: 'querydsl-jpa', version:'4.4.0'
-    api group: 'commons-validator', name: 'commons-validator', version:'1.7'
+    api group: 'commons-validator', name: 'commons-validator', version:'1.8.0'
     implementation group: 'com.github.hmcts.java-logging', name: 'logging-appinsights', version: '6.1.4'
     implementation group: 'com.netflix.hystrix', name: 'hystrix-javanica', version: '1.5.18'
     api group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '5.10.9'
