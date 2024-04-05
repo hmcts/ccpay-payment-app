@@ -65,7 +65,7 @@ allprojects {
         dependencies {
             dependencySet(
                     group: 'com.fasterxml.jackson.core',
-                    version: '2.15.3'
+                    version: '2.17.0'
             ) {
                 entry 'jackson-core'
                 entry 'jackson-databind'
