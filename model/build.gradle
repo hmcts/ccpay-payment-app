@@ -21,7 +21,7 @@ dependencies {
     testImplementation(group: 'org.springframework.boot', name: 'spring-boot-starter-test') {
       exclude(module: 'commons-logging')
     }
-    testImplementation(group: 'com.mmnaseri.utils', name: 'spring-data-mock', version:'1.1.4') {
+    testImplementation(group: 'com.mmnaseri.utils', name: 'spring-data-mock', version:'2.2.0') {
       exclude(module: 'commons-logging')
     }
 }
