@@ -122,7 +122,7 @@ subprojects {
         }
     }
     dependencies {
-        implementation ('com.sun.xml.bind:jaxb-osgi:2.3.9')
+        implementation ('com.sun.xml.bind:jaxb-osgi:4.0.5')
         testImplementation 'io.github.openfeign:feign-jackson:12.5'
         implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version:'2.17.0'
         implementation group: 'joda-time', name: 'joda-time', version: '2.12.7'
