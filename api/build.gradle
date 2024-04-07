@@ -109,7 +109,7 @@ dependencies {
     implementation group: 'io.github.openfeign', name: 'feign-core', version: '12.5'
     implementation group: 'org.springframework.cloud', name: 'spring-cloud-openfeign-core'
     implementation group: 'org.ff4j', name: 'ff4j-spring-boot-web-api', version: '1.9'
-    implementation group: 'org.ff4j', name: 'ff4j-web', version: '1.9'
+    implementation group: 'org.ff4j', name: 'ff4j-web', version: '2.0.0'
     implementation group: 'commons-fileupload', name: 'commons-fileupload', version: '1.5'
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-thymeleaf'
     implementation(group: 'org.postgresql', name: 'postgresql', version: '42.7.3') {
