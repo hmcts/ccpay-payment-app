@@ -4,7 +4,7 @@ plugins {
 
 description = ''
 dependencies {
-    implementation group: 'org.hibernate', name: 'hibernate-validator', version:'6.2.5.Final'
+    implementation group: 'org.hibernate', name: 'hibernate-validator', version:'8.0.1.Final'
     implementation group: 'org.glassfish', name: 'javax.el', version: '3.0.1-b12'
     api group: 'com.opencsv', name: 'opencsv', version: '5.9'
     implementation project(':payment-model')
