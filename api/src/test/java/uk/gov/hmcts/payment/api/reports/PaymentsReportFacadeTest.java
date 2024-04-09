@@ -1,3 +1,4 @@
+
 package uk.gov.hmcts.payment.api.reports;
 
 import com.google.common.collect.ImmutableMap;
@@ -20,6 +21,7 @@ import uk.gov.hmcts.payment.api.reports.config.PbaFinremPaymentReportConfig;
 import uk.gov.hmcts.payment.api.reports.config.PbaFplPaymentReportConfig;
 import uk.gov.hmcts.payment.api.reports.config.PbaPrlPaymentReportConfig;
 import uk.gov.hmcts.payment.api.reports.config.PbaProbatePaymentReportConfig;
+import uk.gov.hmcts.payment.api.reports.config.PbaSmcPaymentReportConfig;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 
 import java.util.Date;
@@ -50,6 +52,8 @@ public class PaymentsReportFacadeTest {
     private PbaPrlPaymentReportConfig pbaPrlPaymentReportConfig = new PbaPrlPaymentReportConfig("from", null, "subject", "message", true);
     private PbaProbatePaymentReportConfig pbaProbatePaymentReportConfig = new PbaProbatePaymentReportConfig("from", null, "subject", "message", true);
     private PbaFinremPaymentReportConfig pbaFinremPaymentReportConfig = new PbaFinremPaymentReportConfig("from", null, "subject", "message", true);
+    private PbaSmcPaymentReportConfig pbaSmcPaymentReportConfig = new PbaSmcPaymentReportConfig("from", null, "subject", "message", true);
+
 
     Map<PaymentReportType, PaymentReportConfig> map = ImmutableMap.<PaymentReportType, PaymentReportConfig>builder()
         .put(PaymentReportType.CARD, cardPaymentReportConfig)
@@ -60,7 +64,8 @@ public class PaymentsReportFacadeTest {
         .put(PaymentReportType.PBA_PRL, pbaPrlPaymentReportConfig)
         .put(PaymentReportType.PBA_DIVORCE, pbaDivorcePaymentReportConfig)
         .put(PaymentReportType.PBA_PROBATE, pbaProbatePaymentReportConfig)
-        .put(PaymentReportType.PBA_FINREM, pbaFinremPaymentReportConfig).build();
+        .put(PaymentReportType.PBA_FINREM, pbaFinremPaymentReportConfig)
+        .put(PaymentReportType.PBA_SMC, pbaSmcPaymentReportConfig).build();
 
     @Before
     public void setUp() {
@@ -87,16 +92,16 @@ public class PaymentsReportFacadeTest {
 
     @Test
     public void shouldDelegateToServiceIfExistingConfigurationForService() {
-            // given
-            Date fromDate = new Date();
-            Date toDate = new Date();
+        // given
+        Date fromDate = new Date();
+        Date toDate = new Date();
 
-            // when
-            facade.generateCsvAndSendEmail(fromDate, toDate, null, "DIGITAL_BAR");
+        // when
+        facade.generateCsvAndSendEmail(fromDate, toDate, null, "DIGITAL_BAR");
 
-            // then
-            verify(reportService).generateCsvAndSendEmail(fromDate, toDate, null, "DIGITAL_BAR", barPaymentReportConfig);
-        }
+        // then
+        verify(reportService).generateCsvAndSendEmail(fromDate, toDate, null, "DIGITAL_BAR", barPaymentReportConfig);
+    }
 
     @Test
     public void PbaCivilDelegatePaymentReportType() {
@@ -111,19 +116,19 @@ public class PaymentsReportFacadeTest {
         verify(reportService).generateCsvAndSendEmail(fromDate, toDate, PBA, "Civil", pbaCivilPaymentReportConfig);
     }
 
-    @Test
-    public void PbaCmcDelegatePaymentReportType() {
-
-        // given
-        Date fromDate = new Date();
-        Date toDate = new Date();
-
-        // given & when
-
-        facade.generateCsvAndSendEmail(fromDate, toDate, PBA, "Specified Money Claims");
-
-        verify(reportService).generateCsvAndSendEmail(fromDate, toDate, PBA, "Specified Money Claims", pbaCmcPaymentReportConfig);
-    }
+//    @Test
+//    public void PbaCmcDelegatePaymentReportType() {
+//
+//        // given
+//        Date fromDate = new Date();
+//        Date toDate = new Date();
+//
+//        // given & when
+//
+//        facade.generateCsvAndSendEmail(fromDate, toDate, PBA, "Specified Money Claims");
+//
+//        verify(reportService).generateCsvAndSendEmail(fromDate, toDate, PBA, "Specified Money Claims", pbaCmcPaymentReportConfig);
+//    }
 
     @Test
     public void shouldThrowExceptionForInvalidPaymentReportType() {
@@ -211,6 +216,20 @@ public class PaymentsReportFacadeTest {
 
         // then
         verify(reportService).generateCsvAndSendEmail(fromDate, toDate, PBA, "Financial Remedy", pbaFinremPaymentReportConfig);
+
+    }
+
+    @Test
+    public void prlSpecifiedMoneyClaimsConfigurationService() {
+        // given
+        Date fromDate = new Date();
+        Date toDate = new Date();
+
+        // when
+        facade.generateCsvAndSendEmail(fromDate, toDate, PBA, "Specified Money Claims");
+
+        // then
+        verify(reportService).generateCsvAndSendEmail(fromDate, toDate, PBA, "Specified Money Claims", pbaSmcPaymentReportConfig);
 
     }
 
