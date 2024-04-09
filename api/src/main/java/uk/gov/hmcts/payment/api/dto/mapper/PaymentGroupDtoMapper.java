@@ -70,9 +70,17 @@ public class PaymentGroupDtoMapper {
 
     public PaymentGroupDto toPaymentGroupDto(PaymentFeeLink paymentFeeLink) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        boolean containsPaymentRole = false;
         ServiceRequestUtil serviceRequestUtil = new ServiceRequestUtil();
 
         Iterator<? extends GrantedAuthority> userRole =  authentication.getAuthorities().iterator();
+
+        while (userRole.hasNext()){
+            if(userRole.next().toString().equals("payments")){
+                containsPaymentRole = true;
+                break;
+            }
+        }
 
         List<String> paymentReference = paymentFeeLink.getPayments().stream().map(Payment::getReference).collect(Collectors.toList());
 
@@ -104,6 +112,14 @@ public class PaymentGroupDtoMapper {
 
         String serviceRequestStatus = serviceRequestUtil.getServiceRequestStatus(paymentGroupDto);
 
+        if(!containsPaymentRole){
+            paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
+                .paymentGroupReference(paymentFeeLink.getPaymentReference())
+                .dateCreated(paymentFeeLink.getDateCreated())
+                .dateUpdated(paymentFeeLink.getDateUpdated())
+                .fees(toFeeDtos(paymentFeeLink.getFees()))
+                .build();
+        }
         paymentGroupDto.setServiceRequestStatus(serviceRequestStatus);
 
         return paymentGroupDto;
