@@ -114,7 +114,7 @@ java:
     "ccpay":
       resourceGroup: ccpay
       secrets:
-        - name: sb-primary-connection-string
+        - name: sb-premium-primary-connection-string
           alias: azure.servicebus.connection-string
         - name: pci-pal-account-id-probate
           alias: pci-pal.account.id.probate
