@@ -92,16 +92,16 @@ public class PaymentsReportFacadeTest {
 
     @Test
     public void shouldDelegateToServiceIfExistingConfigurationForService() {
-        // given
-        Date fromDate = new Date();
-        Date toDate = new Date();
+            // given
+            Date fromDate = new Date();
+            Date toDate = new Date();
 
-        // when
-        facade.generateCsvAndSendEmail(fromDate, toDate, null, "DIGITAL_BAR");
+            // when
+            facade.generateCsvAndSendEmail(fromDate, toDate, null, "DIGITAL_BAR");
 
-        // then
-        verify(reportService).generateCsvAndSendEmail(fromDate, toDate, null, "DIGITAL_BAR", barPaymentReportConfig);
-    }
+            // then
+            verify(reportService).generateCsvAndSendEmail(fromDate, toDate, null, "DIGITAL_BAR", barPaymentReportConfig);
+        }
 
     @Test
     public void PbaCivilDelegatePaymentReportType() {
@@ -114,6 +114,20 @@ public class PaymentsReportFacadeTest {
 
         // then
         verify(reportService).generateCsvAndSendEmail(fromDate, toDate, PBA, "Civil", pbaCivilPaymentReportConfig);
+    }
+
+    @Test
+    public void PbaCmcDelegatePaymentReportType() {
+
+        // given
+        Date fromDate = new Date();
+        Date toDate = new Date();
+
+        // given & when
+
+        facade.generateCsvAndSendEmail(fromDate, toDate, PBA, "Civil Money Claims");
+
+        verify(reportService).generateCsvAndSendEmail(fromDate, toDate, PBA, "Civil Money Claims", pbaCmcPaymentReportConfig);
     }
 
 
@@ -208,7 +222,7 @@ public class PaymentsReportFacadeTest {
     }
 
     @Test
-    public void prlSpecifiedMoneyClaimsConfigurationService() {
+    public void PbaSmcDelegatePaymentReportType() {
         // given
         Date fromDate = new Date();
         Date toDate = new Date();
