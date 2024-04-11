@@ -15,7 +15,7 @@ dependencies {
     implementation group: 'org.springframework.data', name: 'spring-data-commons'
     implementation group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: versions.reformS2sClient
     implementation group: 'org.apache.httpcomponents', name: 'httpclient'
-    implementation "com.fasterxml.jackson.core:jackson-databind:2.15.3"
+    implementation "com.fasterxml.jackson.core:jackson-databind:2.17.0"
 
     testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', {
         exclude group: 'junit', module: 'junit'
