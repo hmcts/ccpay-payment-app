@@ -116,20 +116,6 @@ public class PaymentsReportFacadeTest {
         verify(reportService).generateCsvAndSendEmail(fromDate, toDate, PBA, "Civil", pbaCivilPaymentReportConfig);
     }
 
-//    @Test
-//    public void PbaCmcDelegatePaymentReportType() {
-//
-//        // given
-//        Date fromDate = new Date();
-//        Date toDate = new Date();
-//
-//        // given & when
-//
-//        facade.generateCsvAndSendEmail(fromDate, toDate, PBA, "Specified Money Claims");
-//
-//        verify(reportService).generateCsvAndSendEmail(fromDate, toDate, PBA, "Specified Money Claims", pbaCmcPaymentReportConfig);
-//    }
-
     @Test
     public void shouldThrowExceptionForInvalidPaymentReportType() {
         // given
