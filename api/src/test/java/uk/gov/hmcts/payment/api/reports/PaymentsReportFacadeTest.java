@@ -127,6 +127,7 @@ public class PaymentsReportFacadeTest {
         facade.generateCsvAndSendEmail(fromDate, toDate, null, null);
     }
 
+
     @Test
     public void shouldThrowExceptionForEmptyValuesForMethodTypeAndService() {
         exception.expect(UnsupportedOperationException.class);
