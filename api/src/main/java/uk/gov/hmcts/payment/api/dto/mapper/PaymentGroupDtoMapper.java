@@ -335,6 +335,7 @@ public class PaymentGroupDtoMapper {
         final var remissions= paymentGroupDto.getRemissions().iterator();
         final var payments= paymentGroupDto.getPayments().iterator();
         final var fees= paymentGroupDto.getFees().iterator();
+        final var isACollectionOfFess = isACollectionOfFess(paymentGroupDto.getFees());
 
         while (remissions.hasNext() && payments.hasNext() && fees.hasNext()) {
             final var remission = remissions.next();
@@ -342,7 +343,12 @@ public class PaymentGroupDtoMapper {
                 payments.next().getAmount().subtract(
                     fees.next().getCalculatedAmount().subtract(remission.getHwfAmount())
                 ));
+            remission.setACollectionOfFess(isACollectionOfFess);
         }
         return paymentGroupDto;
+    }
+
+    private boolean isACollectionOfFess(List<FeeDto> fees){
+        return fees.size() > 1;
     }
 }

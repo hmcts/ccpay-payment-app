@@ -1,0 +1,47 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1610000000000-1
+      author: DaveJ
+      changes:
+        - sql:
+          splitStatements:
+          sql: >
+            CREATE INDEX IF NOT EXISTS ix_payment_reference ON payment USING btree (reference);
+            CREATE INDEX IF NOT EXISTS ix_payment_date_created_trunc ON payment (date_trunc('seconds', date_created) DESC);
+            CREATE INDEX IF NOT EXISTS ix_payment_payment_link_id ON payment USING btree (payment_link_id);
+            CREATE INDEX IF NOT EXISTS ix_payment_service_type ON payment USING btree (service_type);
+            CREATE INDEX IF NOT EXISTS ix_payment_status ON payment USING btree (payment_status);
+            CREATE INDEX IF NOT EXISTS ix_payment_channel ON payment USING btree (payment_channel);
+            CREATE INDEX IF NOT EXISTS ix_payment_method ON payment USING btree (payment_method);
+            CREATE INDEX IF NOT EXISTS ix_payment_provider ON payment USING btree (payment_provider);
+  - changeSet:
+      id: 1610000000000-2
+      author: DaveJ
+      changes:
+        - sql:
+          splitStatements:
+          sql: >
+            CREATE INDEX IF NOT EXISTS ix_fee_pay_appor_fee_id ON fee_pay_apportion USING btree (fee_id);
+            CREATE INDEX IF NOT EXISTS ix_fee_pay_appor_pay_link_id ON fee_pay_apportion USING btree (payment_link_id);
+            CREATE INDEX IF NOT EXISTS ix_idempotency_keys_resp_code  ON idempotency_keys USING btree (response_code);
+            CREATE INDEX IF NOT EXISTS ix_fee_code ON fee USING btree (code);
+  - changeSet:
+      id: 1610000000000-3
+      author: DaveJ
+      changes:
+        - sql:
+          splitStatements:
+          sql: >
+            CREATE INDEX IF NOT EXISTS ix_status_history_code ON status_history USING btree (status);
+            CREATE INDEX IF NOT EXISTS ix_status_history_date_updated_trunc ON status_history (date_trunc('seconds', date_updated) DESC);
+            CREATE INDEX IF NOT EXISTS ix_status_history_date_created_trunc ON status_history (date_trunc('seconds', date_created) DESC);
+  - changeSet:
+      id: 1610000000000-4
+      author: DaveJ
+      changes:
+        - sql:
+          splitStatements:
+          sql: >
+            CREATE INDEX IF NOT EXISTS ix_payment_fee_link_ccd_case_num ON payment_fee_link USING btree (ccd_case_number);
+            CREATE INDEX IF NOT EXISTS ix_pay_audit_his_ccd_case_no ON payment_audit_history USING btree (ccd_case_no);
+            CREATE INDEX IF NOT EXISTS ix_pay_audit_his_audit_type ON payment_audit_history USING btree (audit_type);

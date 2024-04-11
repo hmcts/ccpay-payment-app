@@ -429,6 +429,225 @@ public class PaymentRefundsServiceTest {
 
     }
 
+
+    @Test
+    public void createSuccessfulRetroRemissionRefundMultipleFees() throws Exception {
+
+        BigDecimal amount = new BigDecimal("11.99");
+        PaymentFee fee1 = PaymentFee.feeWith().id(1).calculatedAmount(new BigDecimal("11.99")).code("X0001").version("1").build();
+        PaymentFee fee2 = PaymentFee.feeWith().id(1).calculatedAmount(new BigDecimal("11.99")).code("X0001").version("1").build();
+        PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith()
+            .id(1)
+            .paymentReference("2018-15202505035")
+            .fees(Arrays.asList(fee1,fee2))
+            .build();
+
+        Remission remission = Remission.remissionWith()
+            .paymentFeeLink(paymentFeeLink)
+            .remissionReference("qwerty")
+            .fee(fee1)
+            .hwfAmount(amount)
+            .hwfReference("poiuytrewq")
+            .build();
+        FeePayApportion feePayApportion = FeePayApportion.feePayApportionWith()
+            .apportionAmount(amount)
+            .paymentAmount(amount)
+            .ccdCaseNumber("1234123412341234")
+            .paymentLink(paymentFeeLink)
+            .paymentId(1)
+            .feeId(1)
+            .id(1)
+            .feeAmount(amount).build();
+        Optional<List<FeePayApportion>> feeAppList = Optional.of(Arrays.asList(feePayApportion));
+        Payment payment = Payment.paymentWith()
+            .id(1)
+            .amount(amount)
+            .caseReference("caseReference")
+            .description("retrieve payment mock test")
+            .serviceType("Civil Money Claims")
+            .siteId("siteID")
+            .currency("GBP")
+            .organisationName("organisationName")
+            .customerReference("customerReference")
+            .pbaNumber("pbaNumer")
+            .reference("RC-1520-2505-0381-8145")
+            .ccdCaseNumber("1234123412341234")
+            .paymentLink(paymentFeeLink)
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
+            .build();
+        Mockito.when(remissionRepository.findByRemissionReference(any())).thenReturn(Optional.ofNullable(remission));
+
+        Mockito.when(feePayApportionRepository.findByFeeId(any())).thenReturn(feeAppList);
+        assertTrue(!feeAppList.isEmpty());
+
+        Mockito.when(paymentRepository.findById(any())).thenReturn(Optional.ofNullable(payment));
+        when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
+        InternalRefundResponse mockRefundResponse = InternalRefundResponse.InternalRefundResponseWith().refundReference("RF-4321-4321-4321-4321").build();
+
+        ResponseEntity<InternalRefundResponse> responseEntity = new ResponseEntity<>(mockRefundResponse, HttpStatus.CREATED);
+
+        when(authTokenGenerator.generate()).thenReturn("test-token");
+
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+            eq(InternalRefundResponse.class))).thenReturn(responseEntity);
+
+        ResponseEntity<RefundResponse> refundResponse = paymentRefundsService.createAndValidateRetrospectiveRemissionRequest(
+            retrospectiveRemissionRequest, header);
+
+        assertEquals("RF-4321-4321-4321-4321", refundResponse.getBody().getRefundReference());
+
+
+    }
+
+    @Test
+    public void createSuccessfulRetroRemissionRefundCalculatedRefund() throws Exception {
+
+        BigDecimal amount = new BigDecimal("11.99");
+        PaymentFee fee1 = PaymentFee.feeWith().id(1).calculatedAmount(new BigDecimal("11.99")).code("X0001").version("1").build();
+        PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith()
+            .id(1)
+            .paymentReference("2018-15202505035")
+            .fees(Arrays.asList(fee1))
+            .build();
+
+        Remission remission = Remission.remissionWith()
+            .paymentFeeLink(paymentFeeLink)
+            .remissionReference("qwerty")
+            .fee(fee1)
+            .hwfAmount(amount)
+            .hwfReference("poiuytrewq")
+            .build();
+
+        fee1.setRemissions(Arrays.asList(remission));
+
+        FeePayApportion feePayApportion = FeePayApportion.feePayApportionWith()
+            .apportionAmount(amount)
+            .paymentAmount(amount)
+            .ccdCaseNumber("1234123412341234")
+            .paymentLink(paymentFeeLink)
+            .paymentId(1)
+            .feeId(1)
+            .id(1)
+            .feeAmount(amount).build();
+        Optional<List<FeePayApportion>> feeAppList = Optional.of(Arrays.asList(feePayApportion));
+        Payment payment = Payment.paymentWith()
+            .id(1)
+            .amount(amount)
+            .caseReference("caseReference")
+            .description("retrieve payment mock test")
+            .serviceType("Civil Money Claims")
+            .siteId("siteID")
+            .currency("GBP")
+            .organisationName("organisationName")
+            .customerReference("customerReference")
+            .pbaNumber("pbaNumer")
+            .reference("RC-1520-2505-0381-8145")
+            .ccdCaseNumber("1234123412341234")
+            .paymentLink(paymentFeeLink)
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
+            .build();
+        Mockito.when(remissionRepository.findByRemissionReference(any())).thenReturn(Optional.ofNullable(remission));
+
+        Mockito.when(feePayApportionRepository.findByFeeId(any())).thenReturn(feeAppList);
+        assertTrue(!feeAppList.isEmpty());
+
+        Mockito.when(paymentRepository.findById(any())).thenReturn(Optional.ofNullable(payment));
+        when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
+        InternalRefundResponse mockRefundResponse = InternalRefundResponse.InternalRefundResponseWith().refundReference("RF-4321-4321-4321-4321").build();
+
+        ResponseEntity<InternalRefundResponse> responseEntity = new ResponseEntity<>(mockRefundResponse, HttpStatus.CREATED);
+
+        when(authTokenGenerator.generate()).thenReturn("test-token");
+
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+            eq(InternalRefundResponse.class))).thenReturn(responseEntity);
+
+        ResponseEntity<RefundResponse> refundResponse = paymentRefundsService.createAndValidateRetrospectiveRemissionRequest(
+            retrospectiveRemissionRequest, header);
+
+        assertEquals("RF-4321-4321-4321-4321", refundResponse.getBody().getRefundReference());
+
+
+    }
+
+    @Test
+    public void createSuccessfulRetroRemissionRefundNotCalculatedRefund() throws Exception {
+
+        BigDecimal amount = new BigDecimal("100");
+        PaymentFee fee1 = PaymentFee.feeWith().id(1).calculatedAmount(new BigDecimal("200")).code("X0001").version("1").build();
+        PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith()
+            .id(1)
+            .paymentReference("2018-15202505035")
+            .fees(Arrays.asList(fee1))
+            .build();
+
+        Remission remission = Remission.remissionWith()
+            .paymentFeeLink(paymentFeeLink)
+            .remissionReference("qwerty")
+            .fee(fee1)
+            .hwfAmount(amount)
+            .hwfReference("poiuytrewq")
+            .build();
+
+        fee1.setRemissions(Arrays.asList(remission));
+
+        FeePayApportion feePayApportion = FeePayApportion.feePayApportionWith()
+            .apportionAmount(amount)
+            .paymentAmount(amount)
+            .ccdCaseNumber("1234123412341234")
+            .paymentLink(paymentFeeLink)
+            .paymentId(1)
+            .feeId(1)
+            .id(1)
+            .feeAmount(amount).build();
+        Optional<List<FeePayApportion>> feeAppList = Optional.of(Arrays.asList(feePayApportion));
+        Payment payment = Payment.paymentWith()
+            .id(1)
+            .amount(amount)
+            .caseReference("caseReference")
+            .description("retrieve payment mock test")
+            .serviceType("Civil Money Claims")
+            .siteId("siteID")
+            .currency("GBP")
+            .organisationName("organisationName")
+            .customerReference("customerReference")
+            .pbaNumber("pbaNumer")
+            .reference("RC-1520-2505-0381-8145")
+            .ccdCaseNumber("1234123412341234")
+            .paymentLink(paymentFeeLink)
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
+            .build();
+        Mockito.when(remissionRepository.findByRemissionReference(any())).thenReturn(Optional.ofNullable(remission));
+
+        Mockito.when(feePayApportionRepository.findByFeeId(any())).thenReturn(feeAppList);
+        assertTrue(!feeAppList.isEmpty());
+
+        Mockito.when(paymentRepository.findById(any())).thenReturn(Optional.ofNullable(payment));
+        when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
+        InternalRefundResponse mockRefundResponse = InternalRefundResponse.InternalRefundResponseWith().refundReference("RF-4321-4321-4321-4321").build();
+
+        ResponseEntity<InternalRefundResponse> responseEntity = new ResponseEntity<>(mockRefundResponse, HttpStatus.CREATED);
+
+        when(authTokenGenerator.generate()).thenReturn("test-token");
+
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+            eq(InternalRefundResponse.class))).thenReturn(responseEntity);
+
+        ResponseEntity<RefundResponse> refundResponse = paymentRefundsService.createAndValidateRetrospectiveRemissionRequest(
+            retrospectiveRemissionRequest, header);
+
+        assertEquals("RF-4321-4321-4321-4321", refundResponse.getBody().getRefundReference());
+
+
+    }
+
+
     @Test
     public void RemissionNotFoundException() throws Exception {
 
