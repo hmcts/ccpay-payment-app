@@ -116,6 +116,7 @@ public class PaymentsReportFacadeTest {
         verify(reportService).generateCsvAndSendEmail(fromDate, toDate, PBA, "Civil", pbaCivilPaymentReportConfig);
     }
 
+
     @Test
     public void shouldThrowExceptionForInvalidPaymentReportType() {
         // given
