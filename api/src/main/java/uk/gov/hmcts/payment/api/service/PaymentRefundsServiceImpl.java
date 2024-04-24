@@ -155,7 +155,6 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
         Optional<Remission> remission = remissionRepository.findByRemissionReference(retrospectiveRemissionRequest.getRemissionReference());
         PaymentFee paymentFee;
-        Integer paymentId;
 
         if (remission.isPresent()) {
             //remissionAmount
@@ -164,10 +163,8 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             Optional<List<FeePayApportion>> feePayApportion = feePayApportionRepository.findByFeeId(paymentFee.getId());
             if (feePayApportion.isPresent() && !feePayApportion.get().isEmpty()) {
                 Optional<FeePayApportion> result = feePayApportion.get().stream().findFirst();
-                paymentId = result.get().getPaymentId();
 
-                Payment payment = paymentRepository
-                    .findById(paymentId).orElseThrow(() -> new PaymentNotFoundException("Payment not found for given apportionment"));
+                final var payment = getPaymentSuccessful(feePayApportion);
 
                 BigDecimal remissionAmount =  getRefundAmount(payment,remission.get());
                 validateThePaymentBeforeInitiatingRefund(payment, headers);
@@ -198,6 +195,18 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         throw new RemissionNotFoundException("Remission not found for given remission reference");
     }
 
+    private Payment getPaymentSuccessful(Optional<List<FeePayApportion>> feePayApportion) {
+        List<Payment> payments = feePayApportion.get().stream().map(payApportion ->
+            //  We can create a findByIDAndPaymentStatusSUCCESS In the repo paymentRepository and avoid filter !
+            paymentRepository
+                .findById(payApportion.getPaymentId()).orElseThrow(() -> new PaymentNotFoundException("Payment not found for given apportionment")
+                )).filter(paymentSuccessCheck).collect(Collectors.toList());
+
+        if (payments.size()==0){
+            throw new PaymentNotSuccessException("Refund can't be requested for failed payment");
+        }
+        return payments.get(0);
+    }
 
     private BigDecimal getRefundAmount(Payment payment,Remission remission){
 
