@@ -97,7 +97,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
 
     private static final String topic = "ccpay-service-request-cpo-update-topic";
 
-    private String topicCardPBA = "serviceCallbackTopic";
+    private String topicCardPBA = "ccpay-service-callback-topic";
 
     @Autowired
     private ServiceRequestDtoDomainMapper serviceRequestDtoDomainMapper;
