@@ -20,15 +20,17 @@ public class SendMessageApplication {
 
         TopicClientProxy client = new TopicClientProxy("<Service-bus Connection String>", "serviceCallbackTopic");
 
+        String paymentReference = "00000005";
+
         Payment payment = CardPaymentComponentTest.getPaymentsData().get(2);
 
-        PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith().paymentReference("00000005")
+        PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith().paymentReference(paymentReference)
             .payments(Arrays.asList(payment))
             .fees(PaymentsDataUtil.getFeesData())
             .build();
 
         PaymentDto dto = new PaymentDtoMapper()
-            .toRetrievePaymentStatusesDto(paymentFeeLink);
+            .toRetrievePaymentStatusesDto(paymentFeeLink, paymentReference);
 
         Message msg = new Message(new ObjectMapper().writeValueAsString(dto));
 

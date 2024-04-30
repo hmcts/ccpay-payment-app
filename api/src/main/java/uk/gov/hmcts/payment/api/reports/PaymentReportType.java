@@ -51,6 +51,7 @@ public enum PaymentReportType {
         serviceTypeHashMap.put("Divorce", "DIVORCE");
         serviceTypeHashMap.put("Probate","PROBATE");
         serviceTypeHashMap.put("Civil","CIVIL");
+        serviceTypeHashMap.put("Damages","CIVIL");
         serviceTypeHashMap.put("Family Private Law","PRL");
         serviceTypeHashMap.put("Immigration and Asylum Appeals", "IAC");
 

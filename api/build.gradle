@@ -11,7 +11,7 @@ buildscript {
 }
 
 plugins {
-    id "info.solidsoft.pitest" version '1.9.11'
+    id "info.solidsoft.pitest" version '1.15.0'
     id 'au.com.dius.pact' version '4.1.7'
 }
 
@@ -71,17 +71,17 @@ sonarqube {
 }
 
 def versions = [
-        pitest          : '1.9.0',
+        pitest          : '1.15.8',
         gradlePitest    : '1.3.0',
         sonarPitest     : '0.5',
-        lombok          : '1.18.28',
+        lombok          : '1.18.32',
         pact_version    : '4.1.7',
         reformS2sClient : '3.1.4',
         serenity        : '2.6.0',
         serenityCucumber: '3.0.1',
 ]
 
-def javaLoggingVersion = '6.0.1'
+def javaLoggingVersion = '6.1.4'
 
 dependencies {
     implementation project(':payment-gov-pay-client')
@@ -99,24 +99,24 @@ dependencies {
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa'
     implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-netflix-hystrix', version: '2.2.10.RELEASE'
-    implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.9'
-    implementation group: 'net.logstash.logback', name: 'logstash-logback-encoder', version: '5.0'
+    implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.14.0'
+    implementation group: 'net.logstash.logback', name: 'logstash-logback-encoder', version: '7.4'
     implementation group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.14'
-    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.15.2'
-    implementation group: 'org.springdoc', name: 'springdoc-openapi-ui', version: '1.7.0'
-    implementation group: 'org.springdoc', name: 'springdoc-openapi-webmvc-core', version: '1.7.0'
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.17.0'
+    implementation group: 'org.springdoc', name: 'springdoc-openapi-ui', version: '1.8.0'
+    implementation group: 'org.springdoc', name: 'springdoc-openapi-webmvc-core', version: '1.8.0'
     implementation 'com.github.hmcts.liquibase:liquibase-core:3.8.2'
     implementation group: 'com.microsoft.azure', name: 'azure-servicebus-spring-boot-starter', version: '2.1.6'
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-cache'
-    implementation group: 'com.github.ben-manes.caffeine', name: 'caffeine', version: '2.9.3'
-    implementation "io.github.openfeign:feign-httpclient:12.3"
-    implementation group: 'io.github.openfeign', name: 'feign-core', version: '12.3'
+    implementation group: 'com.github.ben-manes.caffeine', name: 'caffeine', version: '3.1.8'
+    implementation "io.github.openfeign:feign-httpclient:13.2.1"
+    implementation group: 'io.github.openfeign', name: 'feign-core', version: '13.2.1'
     implementation group: 'org.springframework.cloud', name: 'spring-cloud-openfeign-core'
     implementation group: 'org.ff4j', name: 'ff4j-spring-boot-web-api', version: '1.9'
-    implementation group: 'org.ff4j', name: 'ff4j-web', version: '1.9'
+    implementation group: 'org.ff4j', name: 'ff4j-web', version: '2.0.0'
     implementation group: 'commons-fileupload', name: 'commons-fileupload', version: '1.5'
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-thymeleaf'
-    implementation(group: 'org.postgresql', name: 'postgresql', version: '42.2.25') {
+    implementation(group: 'org.postgresql', name: 'postgresql', version: '42.7.3') {
         exclude(module: 'commons-logging')
         exclude(module: 'slf4j-simple')
     }
@@ -143,7 +143,7 @@ dependencies {
     }
     testImplementation group: 'org.springframework.security', name: 'spring-security-test'
     testImplementation group: 'org.hamcrest', name: 'hamcrest-all', version: '1.3'
-    testImplementation group: 'org.hsqldb', name: 'hsqldb', version: '2.3.4'
+    testImplementation group: 'org.hsqldb', name: 'hsqldb', version: '2.7.2'
     testImplementation group: 'com.github.tomakehurst', name: 'wiremock'
     testImplementation group: 'org.projectlombok', name: 'lombok', version: versions.lombok
     testImplementation group: 'io.rest-assured', name: 'rest-assured'
@@ -173,9 +173,9 @@ dependencies {
     contractTestImplementation group: 'au.com.dius.pact.consumer', name: 'junit5', version: versions.pact_version
     contractTestImplementation group: 'au.com.dius.pact.consumer', name: 'java8', version: versions.pact_version
     contractTestImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test'
-    contractTestImplementation("org.junit.jupiter:junit-jupiter-api:5.3.2")
-    contractTestImplementation("org.junit.jupiter:junit-jupiter-engine:5.3.2")
-    contractTestImplementation('org.junit.jupiter:junit-jupiter-api:5.3.2')
+    contractTestImplementation("org.junit.jupiter:junit-jupiter-api:5.10.2")
+    contractTestImplementation("org.junit.jupiter:junit-jupiter-engine:5.10.2")
+    contractTestImplementation('org.junit.jupiter:junit-jupiter-api:5.10.2')
 
     functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-core', version: versions.serenity
     functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-cucumber', version: versions.serenityCucumber
@@ -233,7 +233,9 @@ task providerContractTest(type: Test) {
     testClassesDirs = sourceSets.contractTest.output.classesDirs
     classpath = sourceSets.contractTest.runtimeClasspath
     systemProperty 'pact.rootDir', "pacts"
-    systemProperty 'pact.verifier.publishResults', System.getProperty('pact.verifier.publishResults')
+    if (project.hasProperty('pact.verifier.publishResults')) {
+        systemProperty 'pact.verifier.publishResults', project.property('pact.verifier.publishResults')
+    }
     systemProperty 'pact.provider.version', project.pactVersion
 
 }

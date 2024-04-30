@@ -13,7 +13,6 @@ import uk.gov.hmcts.payment.functional.config.ValidUser;
 import uk.gov.hmcts.payment.functional.idam.IdamApi.CreateUserRequest;
 import uk.gov.hmcts.payment.functional.idam.IdamApi.Role;
 import uk.gov.hmcts.payment.functional.idam.IdamApi.TokenExchangeResponse;
-import uk.gov.hmcts.payment.functional.idam.IdamApi.UserGroup;
 import uk.gov.hmcts.payment.functional.idam.models.User;
 
 import java.util.Base64;
@@ -39,7 +38,7 @@ public class IdamService {
     public static final String SCOPES_SEARCH_USER = "openid profile authorities acr roles search-user";
     public static final String SCOPES_CREATE_USER = "openid profile roles openid roles profile create-user manage-user";
     public static final String SCOPES_CREATE_USER_AND_SEARCH_USER = "openid profile roles create-user manage-user search-user";
-    private final IdamApi idamApi;
+    private static IdamApi idamApi;
     private final TestConfigProperties testConfig;
 
     @Autowired
@@ -52,9 +51,9 @@ public class IdamService {
     }
 
 
-    public User createUserWith(String userGroup, String... roles) {
+    public User createUserWith(String... roles) {
         String email = nextUserEmail();
-        CreateUserRequest userRequest = userRequest(email, userGroup, roles);
+        CreateUserRequest userRequest = userRequest(email, roles);
         idamApi.createUser(userRequest);
 
         String accessToken = authenticateUser(email, testConfig.getTestUserPassword());
@@ -65,9 +64,9 @@ public class IdamService {
             .build();
     }
 
-    public ValidUser createUserWithSearchScope(String userGroup, String... roles) {
+    public ValidUser createUserWithSearchScope(String... roles) {
         String email = nextUserEmail();
-        CreateUserRequest userRequest = userRequest(email, userGroup, roles);
+        CreateUserRequest userRequest = userRequest(email, roles);
         LOG.info("idamApi : " + idamApi.toString());
         LOG.info("userRequest : " + userRequest);
         try {
@@ -81,9 +80,9 @@ public class IdamService {
         return new ValidUser(email, accessToken);
     }
 
-    public ValidUser createUserWithSearchScopeForRefData(String userGroup, String... roles) {
+    public ValidUser createUserWithSearchScopeForRefData(String... roles) {
         String email = nextUserEmailForRefData();
-        CreateUserRequest userRequest = userRequest(email, userGroup, roles);
+        CreateUserRequest userRequest = userRequest(email, roles);
         LOG.info("idamApi : " + idamApi.toString());
         LOG.info("userRequest : " + userRequest);
         try {
@@ -97,9 +96,9 @@ public class IdamService {
         return new ValidUser(email, accessToken);
     }
 
-    public ValidUser createUserWithCreateScope(String userGroup, String... roles) {
+    public ValidUser createUserWithCreateScope(String... roles) {
         String email = nextUserEmail();
-        CreateUserRequest userRequest = userRequest(email, userGroup, roles);
+        CreateUserRequest userRequest = userRequest(email, roles);
         LOG.info("idamApi : " + idamApi.toString());
         LOG.info("userRequest : " + userRequest);
         try {
@@ -113,9 +112,9 @@ public class IdamService {
         return new ValidUser(email, accessToken);
     }
 
-    public ValidUser createUserWithRefDataEmailFormat(String userGroup, String... roles) {
+    public ValidUser createUserWithRefDataEmailFormat(String... roles) {
         String email = nextUserEmailForRefData();
-        CreateUserRequest userRequest = userRequest(email, userGroup, roles);
+        CreateUserRequest userRequest = userRequest(email, roles);
         LOG.info("idamApi : " + idamApi.toString());
         LOG.info("userRequest : " + userRequest);
         try {
@@ -230,14 +229,13 @@ public class IdamService {
         return null;
     }
 
-    private CreateUserRequest userRequest(String email, String userGroup, String[] roles) {
+    private CreateUserRequest userRequest(String email, String[] roles) {
         return userRequestWith()
             .email(email)
             .password(testConfig.getTestUserPassword())
             .roles(Stream.of(roles)
                 .map(Role::new)
                 .collect(toList()))
-            .userGroup(new UserGroup(userGroup))
             .build();
     }
 
@@ -249,4 +247,10 @@ public class IdamService {
         LOG.info("The value of the Ref Data Email Id "+testConfig.getGeneratedUserEmailPatternForRefData());
         return String.format(testConfig.getGeneratedUserEmailPatternForRefData(), RandomStringUtils.random(6, true, true));
     }
+
+    public static void deleteUser(String emailAddress)
+    {
+        idamApi.deleteUser(emailAddress);
+    }
+
 }

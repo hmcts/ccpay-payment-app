@@ -13,6 +13,7 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.reports.FeesService;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -20,6 +21,7 @@ import java.util.Date;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -38,9 +40,9 @@ public class PaymentDtoMapperTest {
     @InjectMocks
     PaymentDtoMapper paymentDtoMapper = new PaymentDtoMapper();
 
-    PaymentFeeLink paymentFeeLink;
+    PaymentFeeLink paymentFeeLink, paymentFeeLinkMultiplePayments;
 
-    Payment payment1;
+    Payment payment1, multiplePayment1, multiplePayment2;
 
     List<PaymentFee> paymentFees;
 
@@ -49,6 +51,7 @@ public class PaymentDtoMapperTest {
     @Before
     public void initiate(){
         List<Payment> payments = new ArrayList<Payment>();
+        List<Payment> multiplePayments = new ArrayList<Payment>();
         List<PaymentAllocation> paymentAllocations1 = new ArrayList<PaymentAllocation>();
         allocation1 = PaymentAllocation.paymentAllocationWith()
             .receivingOffice("receiving-office")
@@ -94,13 +97,58 @@ public class PaymentDtoMapperTest {
             .currency("GBP")
             .statusHistories(statusHistories)
             .id(1).build();
+        multiplePayment1 = Payment.paymentWith()
+            .siteId("siteId")
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
+            .serviceType("service-type")
+            .caseReference("case-reference")
+            .reference("RC-1612-3710-5335-6484")
+            .ccdCaseNumber("ccd-case-number")
+            .status("success")
+            .bankedDate(new Date(2021,1,1))
+            .documentControlNumber("document-control-number")
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("pay-method").build())
+            .amount(new BigDecimal("100.00"))
+            .paymentStatus(PaymentStatus.SUCCESS)
+            .dateCreated(new Date(2020,10,1))
+            .paymentAllocation(paymentAllocations1)
+            .currency("GBP")
+            .statusHistories(statusHistories)
+            .id(2).build();
+        multiplePayment2 = Payment.paymentWith()
+            .siteId("siteId")
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
+            .serviceType("service-type")
+            .caseReference("case-reference")
+            .reference("RC-1612-3710-5335-6490")
+            .ccdCaseNumber("ccd-case-number")
+            .status("success")
+            .bankedDate(new Date(2021,1,1))
+            .documentControlNumber("document-control-number")
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("pay-method").build())
+            .amount(new BigDecimal("100.00"))
+            .paymentStatus(PaymentStatus.FAILED)
+            .dateCreated(new Date(2020,10,1))
+            .paymentAllocation(paymentAllocations1)
+            .currency("GBP")
+            .statusHistories(statusHistories)
+            .id(3).build();
         payments.add(payment1);
+        multiplePayments.add(multiplePayment1);
+        multiplePayments.add(multiplePayment2);
         paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith()
                             .paymentReference("group-reference")
                             .dateCreated(new Date(2021,1,1))
                             .fees(paymentFees)
                             .payments(payments).build();
+        paymentFeeLinkMultiplePayments = PaymentFeeLink.paymentFeeLinkWith()
+            .paymentReference("group-reference")
+            .dateCreated(new Date(2021,1,1))
+            .fees(paymentFees)
+            .payments(multiplePayments).build();
         payment1.setPaymentLink(paymentFeeLink);
+        multiplePayment1.setPaymentLink(paymentFeeLinkMultiplePayments);
+        multiplePayment2.setPaymentLink(paymentFeeLinkMultiplePayments);
     }
 
     @Test
@@ -140,16 +188,66 @@ public class PaymentDtoMapperTest {
 
     @Test
     public void testToRetrieveCardPaymentResponseDto(){
-        PaymentDto paymentDto = paymentDtoMapper.toRetrieveCardPaymentResponseDto(paymentFeeLink);
+        PaymentDto paymentDto = paymentDtoMapper.toRetrieveCardPaymentResponseDto(paymentFeeLink, payment1.getReference());
         assertEquals("group-reference",paymentDto.getPaymentGroupReference());
+        assertTrue(PaymentStatus.SUCCESS.getName().equalsIgnoreCase(paymentDto.getStatus()));
+        assertEquals("RC-1612-3710-5335-6484",paymentDto.getReference());
         assertEquals("service-type",paymentDto.getServiceName());
     }
 
     @Test
-    public void testToRetrievePaymentStatusesDto(){
-        PaymentDto paymentDto = paymentDtoMapper.toRetrievePaymentStatusesDto(paymentFeeLink);
+    public void testToRetrieveCardPaymentResponseDtoMultipleReferences1(){
+        PaymentDto paymentDto = paymentDtoMapper.toRetrieveCardPaymentResponseDto(paymentFeeLinkMultiplePayments, multiplePayment1.getReference());
         assertEquals("group-reference",paymentDto.getPaymentGroupReference());
+        assertTrue(PaymentStatus.SUCCESS.getName().equalsIgnoreCase(paymentDto.getStatus()));
+        assertEquals("RC-1612-3710-5335-6484",paymentDto.getReference());
+        assertEquals("service-type",paymentDto.getServiceName());
+    }
+
+    @Test
+    public void testToRetrieveCardPaymentResponseDtoMultipleReferences2(){
+        PaymentDto paymentDto = paymentDtoMapper.toRetrieveCardPaymentResponseDto(paymentFeeLinkMultiplePayments, multiplePayment2.getReference());
+        assertEquals("group-reference",paymentDto.getPaymentGroupReference());
+        assertTrue(PaymentStatus.FAILED.getName().equalsIgnoreCase(paymentDto.getStatus()));
+        assertEquals("RC-1612-3710-5335-6490",paymentDto.getReference());
+        assertEquals("service-type",paymentDto.getServiceName());
+    }
+
+    @Test(expected = PaymentNotFoundException.class)
+    public void testToRetrieveCardPaymentResponseDtoMissingReference(){
+        PaymentDto paymentDto = paymentDtoMapper.toRetrieveCardPaymentResponseDto(paymentFeeLink, "RC-0000-0000-0000-0000");
+    }
+
+    @Test
+    public void testToRetrievePaymentStatusesDto(){
+        PaymentDto paymentDto = paymentDtoMapper.toRetrievePaymentStatusesDto(paymentFeeLink, payment1.getReference());
+        assertEquals("group-reference",paymentDto.getPaymentGroupReference());
+        assertTrue(PaymentStatus.SUCCESS.getName().equalsIgnoreCase(paymentDto.getStatus()));
+        assertEquals("RC-1612-3710-5335-6484",paymentDto.getReference());
         assertEquals("100.00",paymentDto.getAmount().toString());
+    }
+
+    @Test
+    public void testToRetrievePaymentStatusesDtoMultipleReferences1(){
+        PaymentDto paymentDto = paymentDtoMapper.toRetrievePaymentStatusesDto(paymentFeeLinkMultiplePayments, multiplePayment1.getReference());
+        assertEquals("group-reference",paymentDto.getPaymentGroupReference());
+        assertTrue(PaymentStatus.SUCCESS.getName().equalsIgnoreCase(paymentDto.getStatus()));
+        assertEquals("RC-1612-3710-5335-6484",paymentDto.getReference());
+        assertEquals("100.00",paymentDto.getAmount().toString());
+    }
+
+    @Test
+    public void testToRetrievePaymentStatusesDtoMultipleReferences2(){
+        PaymentDto paymentDto = paymentDtoMapper.toRetrievePaymentStatusesDto(paymentFeeLinkMultiplePayments, multiplePayment2.getReference());
+        assertEquals("group-reference",paymentDto.getPaymentGroupReference());
+        assertTrue(PaymentStatus.FAILED.getName().equalsIgnoreCase(paymentDto.getStatus()));
+        assertEquals("RC-1612-3710-5335-6490",paymentDto.getReference());
+        assertEquals("100.00",paymentDto.getAmount().toString());
+    }
+
+    @Test(expected = PaymentNotFoundException.class)
+    public void testToRetrievePaymentStatusesDtoMissingReference(){
+        PaymentDto paymentDto = paymentDtoMapper.toRetrievePaymentStatusesDto(paymentFeeLink, "RC-0000-0000-0000-0000");
     }
 
     @Test

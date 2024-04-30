@@ -7,6 +7,8 @@ import org.apache.commons.validator.routines.UrlValidator;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDateTime;
+import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,15 +25,19 @@ import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
 import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
 import uk.gov.hmcts.payment.functional.idam.IdamService;
+import uk.gov.hmcts.payment.functional.idam.models.User;
 import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
+import uk.gov.hmcts.payment.functional.service.PaymentTestService;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.*;
-import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 @RunWith(SpringIntegrationSerenityRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
@@ -39,6 +45,7 @@ public class TelephonyPaymentsTest {
     private static final String DATE_TIME_FORMAT_T_HH_MM_SS = "yyyy-MM-dd'T'HH:mm:ss";
     private static final String PAYMENT_REFERENCE_REGEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
     private static String USER_TOKEN;
+    private static String USER_TOKEN_PAYMENT;
     private static String SERVICE_TOKEN;
     private static boolean TOKENS_INITIALIZED = false;
     @Autowired
@@ -51,7 +58,10 @@ public class TelephonyPaymentsTest {
     private IdamService idamService;
     @Autowired
     private S2sTokenService s2sTokenService;
-
+    @Autowired
+    private PaymentTestService paymentTestService;
+    private static List<String> userEmails = new ArrayList<>();
+    private String paymentReference;
     private static final Logger LOG = LoggerFactory.getLogger(TelephonyPaymentsTest.class);
 
     private static final int CCD_EIGHT_DIGIT_UPPER = 99999999;
@@ -60,7 +70,12 @@ public class TelephonyPaymentsTest {
     @Before
     public void setUp() throws Exception {
         if (!TOKENS_INITIALIZED) {
-            USER_TOKEN = idamService.createUserWith(CMC_CITIZEN_GROUP, "citizen").getAuthorisationToken();
+            User user1 = idamService.createUserWith("citizen");
+            USER_TOKEN = user1.getAuthorisationToken();
+            userEmails.add(user1.getEmail());
+            User user2 = idamService.createUserWith("payments");
+            USER_TOKEN_PAYMENT = user2.getAuthorisationToken();
+            userEmails.add(user2.getEmail());
             SERVICE_TOKEN = s2sTokenService.getS2sToken(testProps.s2sServiceName, testProps.s2sServiceSecret);
             TOKENS_INITIALIZED = true;
         }
@@ -76,8 +91,9 @@ public class TelephonyPaymentsTest {
             .returnUrl("https://www.moneyclaims.service.gov.uk")
             .when().createTelephonyPayment(paymentRecordRequest)
             .then().created(paymentDto -> {
-            assertEquals("payment status is properly set", "Success", paymentDto.getStatus());
-        });
+                paymentReference = paymentDto.getReference();
+                assertEquals("payment status is properly set", "Success", paymentDto.getStatus());
+            });
     }
 
     @Test
@@ -93,37 +109,37 @@ public class TelephonyPaymentsTest {
             .returnUrl("https://www.moneyclaims.service.gov.uk")
             .when().createTelephonyPayment(paymentRecordRequest)
             .then().created(paymentDto -> {
-            String referenceNumber = paymentDto.getReference();
-            assertEquals("payment status is properly set", "Success", paymentDto.getStatus());
-            //update the status
-            dsl.given().userToken(USER_TOKEN)
-                .s2sToken(SERVICE_TOKEN)
-                .returnUrl("https://www.moneyclaims.service.gov.uk")
-                .when().updatePaymentStatus(referenceNumber, status)
-                .then().noContent();
+                paymentReference = paymentDto.getReference();
+                assertEquals("payment status is properly set", "Success", paymentDto.getStatus());
+                //update the status
+                dsl.given().userToken(USER_TOKEN)
+                    .s2sToken(SERVICE_TOKEN)
+                    .returnUrl("https://www.moneyclaims.service.gov.uk")
+                    .when().updatePaymentStatus(paymentReference, status)
+                    .then().noContent();
 
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                LOG.error(e.getMessage());
-            }
-            String endDateTime = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    LOG.error(e.getMessage());
+                }
+                String endDateTime = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
 
-            dsl.given().userToken(USER_TOKEN)
-                .s2sToken(SERVICE_TOKEN)
-                .returnUrl("https://www.moneyclaims.service.gov.uk")
-                .when()
-                .enableSearch()
-                .searchPaymentsByServiceBetweenDates("Civil Money Claims", startDateTime, endDateTime)
-                .then().got(PaymentsResponse.class, paymentsResponse -> {
-                assertTrue("correct payment has been retrieved",
-                    paymentsResponse.getPayments().stream()
-                        .anyMatch(o -> o.getPaymentReference().equals(referenceNumber)));
-                PaymentDto paymentRetrieved = paymentsResponse.getPayments().stream().filter(o -> o.getPaymentReference().equals(referenceNumber)).findFirst().get();
-                assertEquals("correct payment reference retrieved", paymentRetrieved.getCaseReference(), paymentRecordRequest.getReference());
-                assertEquals("payment status is properly set", "success", paymentRetrieved.getStatus());
+                dsl.given().userToken(USER_TOKEN)
+                    .s2sToken(SERVICE_TOKEN)
+                    .returnUrl("https://www.moneyclaims.service.gov.uk")
+                    .when()
+                    .enableSearch()
+                    .searchPaymentsByServiceBetweenDates("Civil Money Claims", startDateTime, endDateTime)
+                    .then().got(PaymentsResponse.class, paymentsResponse -> {
+                        assertTrue("correct payment has been retrieved",
+                            paymentsResponse.getPayments().stream()
+                                .anyMatch(o -> o.getPaymentReference().equals(paymentReference)));
+                        PaymentDto paymentRetrieved = paymentsResponse.getPayments().stream().filter(o -> o.getPaymentReference().equals(paymentReference)).findFirst().get();
+                        assertEquals("correct payment reference retrieved", paymentRetrieved.getCaseReference(), paymentRecordRequest.getReference());
+                        assertEquals("payment status is properly set", "success", paymentRetrieved.getStatus());
+                    });
             });
-        });
     }
 
     @Test
@@ -139,38 +155,38 @@ public class TelephonyPaymentsTest {
             .returnUrl("https://www.moneyclaims.service.gov.uk")
             .when().createTelephonyPayment(paymentRecordRequest)
             .then().created(paymentDto -> {
-            String referenceNumber = paymentDto.getReference();
-            assertEquals("payment status is properly set", "Success", paymentDto.getStatus());
-            //update the status
-            dsl.given().userToken(USER_TOKEN)
-                .s2sToken(SERVICE_TOKEN)
-                .returnUrl("https://www.moneyclaims.service.gov.uk")
-                .when().updatePaymentStatus(referenceNumber, status)
-                .then().noContent();
+                paymentReference = paymentDto.getReference();
+                assertEquals("payment status is properly set", "Success", paymentDto.getStatus());
+                //update the status
+                dsl.given().userToken(USER_TOKEN)
+                    .s2sToken(SERVICE_TOKEN)
+                    .returnUrl("https://www.moneyclaims.service.gov.uk")
+                    .when().updatePaymentStatus(paymentReference, status)
+                    .then().noContent();
 
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                LOG.error(e.getMessage());
-            }
-            String endDateTime = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    LOG.error(e.getMessage());
+                }
+                String endDateTime = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
 
-            dsl.given().userToken(USER_TOKEN)
-                .s2sToken(SERVICE_TOKEN)
-                .returnUrl("https://www.moneyclaims.service.gov.uk")
-                .when()
-                .enableSearch()
-                .searchPaymentsByServiceBetweenDates("Civil Money Claims", startDateTime, endDateTime)
-                .then().got(PaymentsResponse.class, paymentsResponse -> {
-                assertTrue("correct payment has been retrieved",
-                    paymentsResponse.getPayments().stream()
-                        .anyMatch(o -> o.getPaymentReference().equals(referenceNumber)));
-                PaymentDto paymentRetrieved = paymentsResponse.getPayments().stream().filter(o -> o.getPaymentReference().equals(referenceNumber)).findFirst().get();
+                dsl.given().userToken(USER_TOKEN)
+                    .s2sToken(SERVICE_TOKEN)
+                    .returnUrl("https://www.moneyclaims.service.gov.uk")
+                    .when()
+                    .enableSearch()
+                    .searchPaymentsByServiceBetweenDates("Civil Money Claims", startDateTime, endDateTime)
+                    .then().got(PaymentsResponse.class, paymentsResponse -> {
+                        assertTrue("correct payment has been retrieved",
+                            paymentsResponse.getPayments().stream()
+                                .anyMatch(o -> o.getPaymentReference().equals(paymentReference)));
+                        PaymentDto paymentRetrieved = paymentsResponse.getPayments().stream().filter(o -> o.getPaymentReference().equals(paymentReference)).findFirst().get();
 
-                assertEquals("correct payment reference retrieved", paymentRetrieved.getCaseReference(), paymentRecordRequest.getReference());
-                assertEquals("payment status is properly set", "failed", paymentRetrieved.getStatus());
+                        assertEquals("correct payment reference retrieved", paymentRetrieved.getCaseReference(), paymentRecordRequest.getReference());
+                        assertEquals("payment status is properly set", "failed", paymentRetrieved.getStatus());
+                    });
             });
-        });
     }
 
     @Test
@@ -186,38 +202,38 @@ public class TelephonyPaymentsTest {
             .returnUrl("https://www.moneyclaims.service.gov.uk")
             .when().createTelephonyPayment(paymentRecordRequest)
             .then().created(paymentDto -> {
-            String referenceNumber = paymentDto.getReference();
-            assertEquals("payment status is properly set", "Success", paymentDto.getStatus());
-            //update the status
-            dsl.given().userToken(USER_TOKEN)
-                .s2sToken(SERVICE_TOKEN)
-                .returnUrl("https://www.moneyclaims.service.gov.uk")
-                .when().updatePaymentStatus(referenceNumber, status)
-                .then().noContent();
+                paymentReference = paymentDto.getReference();
+                assertEquals("payment status is properly set", "Success", paymentDto.getStatus());
+                //update the status
+                dsl.given().userToken(USER_TOKEN)
+                    .s2sToken(SERVICE_TOKEN)
+                    .returnUrl("https://www.moneyclaims.service.gov.uk")
+                    .when().updatePaymentStatus(paymentReference, status)
+                    .then().noContent();
 
-            try {
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                LOG.error(e.getMessage());
-            }
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    LOG.error(e.getMessage());
+                }
 
-            String endDateTime = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
+                String endDateTime = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
 
-            dsl.given().userToken(USER_TOKEN)
-                .s2sToken(SERVICE_TOKEN)
-                .returnUrl("https://www.moneyclaims.service.gov.uk")
-                .when()
-                .enableSearch()
-                .searchPaymentsByServiceBetweenDates("Civil Money Claims", startDateTime, endDateTime)
-                .then().got(PaymentsResponse.class, paymentsResponse -> {
-                assertTrue("correct payment has been retrieved",
-                    paymentsResponse.getPayments().stream()
-                        .anyMatch(o -> o.getPaymentReference().equals(referenceNumber)));
-                PaymentDto paymentRetrieved = paymentsResponse.getPayments().stream().filter(o -> o.getPaymentReference().equals(referenceNumber)).findFirst().get();
-                assertEquals("correct payment reference retrieved", paymentRetrieved.getCaseReference(), paymentRecordRequest.getReference());
-                assertEquals("payment status is properly set", "failed", paymentRetrieved.getStatus());
+                dsl.given().userToken(USER_TOKEN)
+                    .s2sToken(SERVICE_TOKEN)
+                    .returnUrl("https://www.moneyclaims.service.gov.uk")
+                    .when()
+                    .enableSearch()
+                    .searchPaymentsByServiceBetweenDates("Civil Money Claims", startDateTime, endDateTime)
+                    .then().got(PaymentsResponse.class, paymentsResponse -> {
+                        assertTrue("correct payment has been retrieved",
+                            paymentsResponse.getPayments().stream()
+                                .anyMatch(o -> o.getPaymentReference().equals(paymentReference)));
+                        PaymentDto paymentRetrieved = paymentsResponse.getPayments().stream().filter(o -> o.getPaymentReference().equals(paymentReference)).findFirst().get();
+                        assertEquals("correct payment reference retrieved", paymentRetrieved.getCaseReference(), paymentRecordRequest.getReference());
+                        assertEquals("payment status is properly set", "failed", paymentRetrieved.getStatus());
+                    });
             });
-        });
     }
 
     @Test
@@ -247,9 +263,10 @@ public class TelephonyPaymentsTest {
             .returnUrl("https://www.moneyclaims.service.gov.uk")
             .when().createCardPayment(paymentRequest)
             .then().created(paymentDto -> {
-            assertTrue(paymentDto.getReference().matches(PAYMENT_REFERENCE_REGEX));
-            assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
-        });
+                paymentReference = paymentDto.getReference();
+                assertTrue(paymentDto.getReference().matches(PAYMENT_REFERENCE_REGEX));
+                assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
+            });
     }
 
     @Test
@@ -268,24 +285,25 @@ public class TelephonyPaymentsTest {
             .s2sToken(SERVICE_TOKEN)
             .when().addNewFeeAndPaymentGroup(getPaymentFeeGroupRequest())
             .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
-            assertThat(paymentGroupFeeDto).isNotNull();
-            assertThat(paymentGroupFeeDto.getPaymentGroupReference()).isNotNull();
-            assertThat(paymentGroupFeeDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(getPaymentFeeGroupRequest());
+                assertThat(paymentGroupFeeDto).isNotNull();
+                assertThat(paymentGroupFeeDto.getPaymentGroupReference()).isNotNull();
+                assertThat(paymentGroupFeeDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(getPaymentFeeGroupRequest());
 
-            dsl.given().userToken(USER_TOKEN)
-                .s2sToken(SERVICE_TOKEN)
-                .returnUrl("https://www.moneyclaims.service.gov.uk")
-                .when().createTelephonyPayment(paymentRequest, paymentGroupFeeDto.getPaymentGroupReference())
-                .then().gotCreated(TelephonyCardPaymentsResponse.class, telephonyCardPaymentsResponse -> {
-                assertTrue(telephonyCardPaymentsResponse.getPaymentReference().matches(PAYMENT_REFERENCE_REGEX));
-                assertEquals("payment status is properly set", "Initiated", telephonyCardPaymentsResponse.getStatus());
-                String[] schemes = {"https"};
-                UrlValidator urlValidator = new UrlValidator(schemes);
-                assertNotNull(telephonyCardPaymentsResponse.getLinks().getNextUrl());
-                assertTrue(urlValidator.isValid(telephonyCardPaymentsResponse.getLinks().getNextUrl().getHref()));
+                dsl.given().userToken(USER_TOKEN)
+                    .s2sToken(SERVICE_TOKEN)
+                    .returnUrl("https://www.moneyclaims.service.gov.uk")
+                    .when().createTelephonyPayment(paymentRequest, paymentGroupFeeDto.getPaymentGroupReference())
+                    .then().gotCreated(TelephonyCardPaymentsResponse.class, telephonyCardPaymentsResponse -> {
+                        paymentReference = telephonyCardPaymentsResponse.getPaymentReference();
+                        assertTrue(telephonyCardPaymentsResponse.getPaymentReference().matches(PAYMENT_REFERENCE_REGEX));
+                        assertEquals("payment status is properly set", "Initiated", telephonyCardPaymentsResponse.getStatus());
+                        String[] schemes = {"https"};
+                        UrlValidator urlValidator = new UrlValidator(schemes);
+                        assertNotNull(telephonyCardPaymentsResponse.getLinks().getNextUrl());
+                        assertTrue(urlValidator.isValid(telephonyCardPaymentsResponse.getLinks().getNextUrl().getHref()));
+                    });
+
             });
-
-        });
     }
 
     private PaymentRecordRequest getTelephonyPayment(String reference) {
@@ -323,5 +341,21 @@ public class TelephonyPaymentsTest {
                 .reference("testRef")
                 .volume(2)
                 .build())).build();
+    }
+
+    @After
+    public void deletePayment() {
+        if (paymentReference != null) {
+            // delete payment record
+            paymentTestService.deletePayment(USER_TOKEN_PAYMENT, SERVICE_TOKEN, paymentReference).then().statusCode(NO_CONTENT.value());
+        }
+    }
+
+    @AfterClass
+    public static void tearDown() {
+        if (!userEmails.isEmpty()) {
+            // delete idam test user
+            userEmails.forEach(IdamService::deleteUser);
+        }
     }
 }

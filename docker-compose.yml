@@ -12,7 +12,7 @@ services:
     environment:
       - auth.provider.service.client.baseUrl=http://service-auth-provider-api:8489
       - auth.idam.client.baseUrl=http://idam-api:5000
-      - idam.s2s-auth.totp_secret=${PAYMENT_S2S_SECRET:}
+      - idam.s2s-auth.totp_secret=${PAYMENT_S2S_SECRET}
       - idam.s2s-auth.microservice=payment_app
       - idam.s2s-auth.url=http://service-auth-provider-api:8489
       - CARD_PAYMENTS_REPORT_SCHEDULER_ENABLED=true
@@ -27,9 +27,9 @@ services:
       - BAR_PAYMENTS_EMAIL_SUBJECT=Docker Env Bar Payments Reconciliation Report
       - FEATURE_PAYMENTS_SEARCH=true
       - FEES_REGISTER_URL=https://ccfr-fees-api:8080
-      - GOV_PAY_AUTH_KEY_CMC=${GOV_PAY_AUTH_KEY_CMC:}
-      - GOV_PAY_AUTH_KEY_DIVORCE_FRONTEND=${GOV_PAY_AUTH_KEY_DIVORCE_FRONTEND:}
-      - GOV_PAY_AUTH_KEY_PROBATE_FRONTEND=${GOV_PAY_AUTH_KEY_PROBATE_FRONTEND:}
+      - GOV_PAY_AUTH_KEY_CMC=${GOV_PAY_AUTH_KEY_CMC}
+      - GOV_PAY_AUTH_KEY_DIVORCE_FRONTEND=${GOV_PAY_AUTH_KEY_DIVORCE_FRONTEND}
+      - GOV_PAY_AUTH_KEY_PROBATE_FRONTEND=${GOV_PAY_AUTH_KEY_PROBATE_FRONTEND}
       - GOV_PAY_OPERATIONAL_SERVICES=ccd_gw
       - GOV_PAY_URL=https://publicapi.payments.service.gov.uk/v1/payments
       - payments.report.file.location=.
@@ -88,7 +88,7 @@ services:
       - PAYBUBBLE_HOME_URL=https://ccpay-bubble-frontend-aat.service.core-compute-aat.internal
       - PCI_PAL_CALLBACK_URL=https://core-api-mgmt-aat.azure-api.net/telephony-api/telephony/callback
       - ASB_CONNECTION_STRING=some-azure-service-bus-connection-string
-      - azure.application-insights.instrumentation-key=${APPINSIGHTS_INSTRUMENTATIONKEY:}
+      - azure.application-insights.instrumentation-key=${APPINSIGHTS_INSTRUMENTATIONKEY}
     ports:
       - 8083:8080
     depends_on:
@@ -97,7 +97,7 @@ services:
 
   payments-database:
     container_name: payments-database
-    image: postgres:11-alpine
+    image: postgres:16-alpine
     environment:
       - POSTGRES_USER=${POSTGRES_USERNAME}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
@@ -129,7 +129,7 @@ services:
 
   ccfr-fees-database:
     container_name: ccfr-fees-database
-    image: postgres:11-alpine
+    image: postgres:16-alpine
     environment:
       - POSTGRES_USER=fees_register
       - POSTGRES_PASSWORD=${FEE_REGISTER}

@@ -70,17 +70,9 @@ public class PaymentGroupDtoMapper {
 
     public PaymentGroupDto toPaymentGroupDto(PaymentFeeLink paymentFeeLink) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        boolean containsPaymentRole = false;
         ServiceRequestUtil serviceRequestUtil = new ServiceRequestUtil();
 
         Iterator<? extends GrantedAuthority> userRole =  authentication.getAuthorities().iterator();
-
-        while (userRole.hasNext()){
-            if(userRole.next().toString().equals("payments")){
-                containsPaymentRole = true;
-                break;
-            }
-        }
 
         List<String> paymentReference = paymentFeeLink.getPayments().stream().map(Payment::getReference).collect(Collectors.toList());
 
@@ -112,14 +104,6 @@ public class PaymentGroupDtoMapper {
 
         String serviceRequestStatus = serviceRequestUtil.getServiceRequestStatus(paymentGroupDto);
 
-        if(!containsPaymentRole){
-            paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
-                .paymentGroupReference(paymentFeeLink.getPaymentReference())
-                .dateCreated(paymentFeeLink.getDateCreated())
-                .dateUpdated(paymentFeeLink.getDateUpdated())
-                .fees(toFeeDtos(paymentFeeLink.getFees()))
-                .build();
-        }
         paymentGroupDto.setServiceRequestStatus(serviceRequestStatus);
 
         return paymentGroupDto;
@@ -327,4 +311,28 @@ public class PaymentGroupDtoMapper {
         return disputeDTOs;
     }
 
+    public PaymentGroupDto calculateOverallBalance(PaymentGroupDto paymentGroupDto){
+
+        if (paymentGroupDto.getRemissions() == null || paymentGroupDto.getPayments() == null || paymentGroupDto.getFees() == null) {
+            return paymentGroupDto;
+        }
+        final var remissions= paymentGroupDto.getRemissions().iterator();
+        final var payments= paymentGroupDto.getPayments().iterator();
+        final var fees= paymentGroupDto.getFees().iterator();
+        final var isACollectionOfFess = isACollectionOfFess(paymentGroupDto.getFees());
+
+        while (remissions.hasNext() && payments.hasNext() && fees.hasNext()) {
+            final var remission = remissions.next();
+            remission.setOverallBalance(
+                payments.next().getAmount().subtract(
+                    fees.next().getCalculatedAmount().subtract(remission.getHwfAmount())
+                ));
+            remission.setACollectionOfFess(isACollectionOfFess);
+        }
+        return paymentGroupDto;
+    }
+
+    private boolean isACollectionOfFess(List<FeeDto> fees){
+        return fees.size() > 1;
+    }
 }

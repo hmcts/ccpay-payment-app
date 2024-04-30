@@ -9,11 +9,13 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestDtoDomainMapper;
+import uk.gov.hmcts.payment.api.domain.model.ServiceRequestBo;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestOnlinePaymentBo;
 import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestFeeDto;
+import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
@@ -22,7 +24,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Collections;
 
-import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ServiceRequestDtoDomainMapperTest {
@@ -54,9 +57,11 @@ public class ServiceRequestDtoDomainMapperTest {
             .serviceDescription("DIVORCE")
             .build();
 
-        serviceRequestDtoDomainMapper.toDomain(serviceRequestDto,organisationalServiceDto);
+        ServiceRequestBo serviceRequestBo = serviceRequestDtoDomainMapper.toDomain(serviceRequestDto,organisationalServiceDto);
 
-        assertThat(serviceRequestDtoDomainMapper.toDomain(serviceRequestDto,organisationalServiceDto).getClass().getName().equals("ServiceRequestBo"));
+        assertTrue(serviceRequestBo.getOrgId().equals("AA001"));
+        assertTrue(serviceRequestBo.getEnterpriseServiceName().equals("DIVORCE"));
+        assertTrue(serviceRequestBo.getCcdCaseNumber().equals("8689869686968696"));
 
     }
 
@@ -75,26 +80,90 @@ public class ServiceRequestDtoDomainMapperTest {
 
         Mockito.when(serviceIdSupplier.get()).thenReturn("s2sServiceName");
 
-        serviceRequestDtoDomainMapper.toDomain(onlineCardPaymentRequest,"http://returnUrl/","");
+        ServiceRequestOnlinePaymentBo serviceRequestOnlinePaymentBo = serviceRequestDtoDomainMapper.toDomain(onlineCardPaymentRequest,"http://returnUrl/","");
 
-        assertThat(serviceRequestDtoDomainMapper.toDomain(onlineCardPaymentRequest,"http://returnUrl/","").getClass().getName().equals("ServiceRequestOnlinePaymentBo"));
-
+        assertTrue(serviceRequestOnlinePaymentBo.getUserId().equals("userID"));
+        assertTrue(serviceRequestOnlinePaymentBo.getS2sServiceName().equals("s2sServiceName"));
+        assertTrue(serviceRequestOnlinePaymentBo.getLanguage().equals("eng"));
+        assertEquals(serviceRequestOnlinePaymentBo.getAmount(), BigDecimal.valueOf(99.99));
     }
 
     @Test
     public void createGovPayRequestTest() {
 
         ServiceRequestOnlinePaymentBo serviceRequestOnlinePaymentBo = ServiceRequestOnlinePaymentBo.serviceRequestOnlinePaymentBo()
-            .amount(new BigDecimal(99.99))
+            .amount(new BigDecimal(250))
             .description("desc")
             .returnUrl("http://returnUrl")
-            .language("Eng")
+            .language("en")
             .paymentReference("RC-ref")
             .build();
 
-        serviceRequestDtoDomainMapper.createGovPayRequest(serviceRequestOnlinePaymentBo);
+        CreatePaymentRequest govPayRequest = serviceRequestDtoDomainMapper.createGovPayRequest(serviceRequestOnlinePaymentBo);
 
-        assertThat(serviceRequestDtoDomainMapper.createGovPayRequest(serviceRequestOnlinePaymentBo).getClass().getName().equals("CreatePaymentRequest"));
+        assertTrue(govPayRequest.getDescription().equals("desc"));
+        assertTrue(govPayRequest.getReference().equals("RC-ref"));
+        assertTrue(govPayRequest.getReturnUrl().equals("http://returnUrl?language=en"));
+        assertEquals(govPayRequest.getAmount(), Integer.valueOf(25000));
+        assertTrue(govPayRequest.getLanguage().equals("en"));
+
+    }
+
+    @Test
+    public void createGovPayRequestWelshLanguageTest() {
+
+        ServiceRequestOnlinePaymentBo serviceRequestOnlinePaymentBo = ServiceRequestOnlinePaymentBo.serviceRequestOnlinePaymentBo()
+            .amount(new BigDecimal(99.99))
+            .description("desc")
+            .returnUrl("http://returnUrl")
+            .language("cy")
+            .paymentReference("RC-ref")
+            .build();
+
+        CreatePaymentRequest govPayRequest = serviceRequestDtoDomainMapper.createGovPayRequest(serviceRequestOnlinePaymentBo);
+
+        assertTrue(govPayRequest.getDescription().equals("desc"));
+        assertTrue(govPayRequest.getReference().equals("RC-ref"));
+        assertTrue(govPayRequest.getReturnUrl().equals("http://returnUrl?language=cy"));
+        assertEquals(govPayRequest.getAmount(), Integer.valueOf(9998));
+        assertTrue(govPayRequest.getLanguage().equals("cy"));
+
+    }
+
+    @Test
+    public void createGovPayRequestWithEnglishDefaultLanguageTest() {
+
+        ServiceRequestOnlinePaymentBo serviceRequestOnlinePaymentBo = ServiceRequestOnlinePaymentBo.serviceRequestOnlinePaymentBo()
+            .amount(new BigDecimal(99.99))
+            .description("desc")
+            .returnUrl("http://returnUrl")
+            .paymentReference("RC-ref")
+            .build();
+
+        // Language null
+        serviceRequestOnlinePaymentBo.setLanguage(null);
+        CreatePaymentRequest govPayRequest = serviceRequestDtoDomainMapper.createGovPayRequest(serviceRequestOnlinePaymentBo);
+        assertTrue(govPayRequest.getLanguage().equals("en"));
+
+        // Language '' (empty)
+        serviceRequestOnlinePaymentBo.setLanguage("");
+        govPayRequest = serviceRequestDtoDomainMapper.createGovPayRequest(serviceRequestOnlinePaymentBo);
+        assertTrue(govPayRequest.getLanguage().equals("en"));
+
+        // Language 'string'
+        serviceRequestOnlinePaymentBo.setLanguage("string");
+        govPayRequest = serviceRequestDtoDomainMapper.createGovPayRequest(serviceRequestOnlinePaymentBo);
+        assertTrue(govPayRequest.getLanguage().equals("en"));
+
+        // Language 'EN'
+        serviceRequestOnlinePaymentBo.setLanguage("EN");
+        govPayRequest = serviceRequestDtoDomainMapper.createGovPayRequest(serviceRequestOnlinePaymentBo);
+        assertTrue(govPayRequest.getLanguage().equals("en"));
+
+        // Language 'English'
+        serviceRequestOnlinePaymentBo.setLanguage("English!");
+        govPayRequest = serviceRequestDtoDomainMapper.createGovPayRequest(serviceRequestOnlinePaymentBo);
+        assertTrue(govPayRequest.getLanguage().equals("en"));
 
     }
 

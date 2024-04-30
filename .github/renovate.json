@@ -1,7 +1,10 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "schedule": "after 7am and before 11am every weekday",
-  "extends": ["config:base"],
+  "extends": [
+    "local>hmcts/.github:renovate-config",
+    "local>hmcts/.github//renovate/automerge-all"
+  ],
   "labels": ["dependencies"],
   "helmv3": {
     "bumpVersion": "patch"

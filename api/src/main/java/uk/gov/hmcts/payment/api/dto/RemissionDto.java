@@ -52,4 +52,8 @@ public class RemissionDto {
 
     private boolean issueRefundAddRefundAddRemission;
 
+    private BigDecimal overallBalance;
+
+    private boolean isACollectionOfFess;
+
 }

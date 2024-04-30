@@ -2,15 +2,15 @@ package uk.gov.hmcts.payment.functional;
 
 import com.mifmif.common.regex.Generex;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
-import org.apache.commons.lang3.RandomUtils;
 import org.assertj.core.api.Assertions;
 import org.joda.time.DateTime;
+import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
@@ -22,7 +22,9 @@ import uk.gov.hmcts.payment.functional.config.LaunchDarklyFeature;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
 import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
 import uk.gov.hmcts.payment.functional.idam.IdamService;
+import uk.gov.hmcts.payment.functional.idam.models.User;
 import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
+import uk.gov.hmcts.payment.functional.service.PaymentTestService;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -33,7 +35,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 @RunWith(SpringIntegrationSerenityRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
@@ -50,18 +52,25 @@ public class PciPalCallbackTest {
     private S2sTokenService s2sTokenService;
     @Autowired
     private LaunchDarklyFeature featureToggler;
-
+    @Autowired
+    private PaymentTestService paymentTestService;
     private static String USER_TOKEN;
     private static String USER_TOKEN_PAYMENT;
     private static String SERVICE_TOKEN;
     private static boolean TOKENS_INITIALIZED = false;
     private static final String PAYMENT_REFERENCE_REGEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
+    private static List<String> userEmails = new ArrayList<>();
+    private String paymentReference;
 
     @Before
     public void setUp() throws Exception {
         if (!TOKENS_INITIALIZED) {
-            USER_TOKEN = idamService.createUserWith(CMC_CITIZEN_GROUP, "citizen").getAuthorisationToken();
-            USER_TOKEN_PAYMENT = idamService.createUserWith(CMC_CITIZEN_GROUP, "payments").getAuthorisationToken();
+            User user1 = idamService.createUserWith("citizen");
+            USER_TOKEN = user1.getAuthorisationToken();
+            userEmails.add(user1.getEmail());
+            User user2 = idamService.createUserWith("payments");
+            USER_TOKEN_PAYMENT = user2.getAuthorisationToken();
+            userEmails.add(user2.getEmail());
             SERVICE_TOKEN = s2sTokenService.getS2sToken(testProps.s2sServiceName, testProps.s2sServiceSecret);
             TOKENS_INITIALIZED = true;
         }
@@ -81,7 +90,7 @@ public class PciPalCallbackTest {
 
         assertNotNull(paymentDto.getReference());
 
-        String paymentReference = paymentDto.getReference();
+        paymentReference = paymentDto.getReference();
 
         //pci-pal callback
         TelephonyCallbackDto callbackDto = TelephonyCallbackDto.telephonyCallbackWith()
@@ -133,32 +142,33 @@ public class PciPalCallbackTest {
         PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
             .fees(fees).build();
 
-        AtomicReference<String> paymentReference = new AtomicReference<>();
+        AtomicReference<String> paymentRef = new AtomicReference<>();
 
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .when().addNewFeeAndPaymentGroup(groupDto)
             .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
-            Assertions.assertThat(paymentGroupFeeDto).isNotNull();
+                Assertions.assertThat(paymentGroupFeeDto).isNotNull();
 
-            String paymentGroupReference = paymentGroupFeeDto.getPaymentGroupReference();
+                String paymentGroupReference = paymentGroupFeeDto.getPaymentGroupReference();
 
-            dsl.given().userToken(USER_TOKEN)
-                .s2sToken(SERVICE_TOKEN)
-                .returnUrl("https://www.moneyclaims.service.gov.uk")
-                .when().createTelephonyPayment(telephonyPaymentRequest, paymentGroupReference)
-                .then().gotCreated(TelephonyCardPaymentsResponse.class, telephonyCardPaymentsResponse -> {
-                    Assertions.assertThat(telephonyCardPaymentsResponse).isNotNull();
-                    Assertions.assertThat(telephonyCardPaymentsResponse.getPaymentReference().matches(PAYMENT_REFERENCE_REGEX)).isTrue();
-                    Assertions.assertThat(telephonyCardPaymentsResponse.getStatus()).isEqualTo("Initiated");
-                    paymentReference.set(telephonyCardPaymentsResponse.getPaymentReference());
+                dsl.given().userToken(USER_TOKEN)
+                    .s2sToken(SERVICE_TOKEN)
+                    .returnUrl("https://www.moneyclaims.service.gov.uk")
+                    .when().createTelephonyPayment(telephonyPaymentRequest, paymentGroupReference)
+                    .then().gotCreated(TelephonyCardPaymentsResponse.class, telephonyCardPaymentsResponse -> {
+                        paymentReference = telephonyCardPaymentsResponse.getPaymentReference();
+                        Assertions.assertThat(telephonyCardPaymentsResponse).isNotNull();
+                        Assertions.assertThat(telephonyCardPaymentsResponse.getPaymentReference().matches(PAYMENT_REFERENCE_REGEX)).isTrue();
+                        Assertions.assertThat(telephonyCardPaymentsResponse.getStatus()).isEqualTo("Initiated");
+                        paymentRef.set(telephonyCardPaymentsResponse.getPaymentReference());
+                    });
+
             });
-
-        });
 
         //pci-pal callback
         TelephonyCallbackDto callbackDto = TelephonyCallbackDto.telephonyCallbackWith()
-            .orderReference(paymentReference.get())
+            .orderReference(paymentRef.get())
             .orderAmount("120")
             .transactionResult("SUCCESS")
             .build();
@@ -170,11 +180,11 @@ public class PciPalCallbackTest {
         // retrieve payment
         PaymentDto paymentDto = dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
-            .when().getCardPayment(paymentReference.get())
+            .when().getCardPayment(paymentRef.get())
             .then().get();
 
         assertNotNull(paymentDto);
-        assertEquals(paymentDto.getReference(), paymentReference.get());
+        assertEquals(paymentDto.getReference(), paymentRef.get());
         assertEquals(paymentDto.getExternalProvider(), "pci pal");
         assertEquals(paymentDto.getStatus(), "Success");
 
@@ -183,31 +193,31 @@ public class PciPalCallbackTest {
             .s2sToken(SERVICE_TOKEN)
             .when().getPaymentGroups(ccdCaseNumber)
             .then().getPaymentGroups((paymentGroupsResponse -> {
-            paymentGroupsResponse.getPaymentGroups().stream()
-                .filter(paymentGroupDto -> paymentGroupDto.getPayments().get(0).getReference()
-                    .equalsIgnoreCase(paymentReference.get()))
-                .forEach(paymentGroupDto -> {
+                paymentGroupsResponse.getPaymentGroups().stream()
+                    .filter(paymentGroupDto -> paymentGroupDto.getPayments().get(0).getReference()
+                        .equalsIgnoreCase(paymentRef.get()))
+                    .forEach(paymentGroupDto -> {
 
-                    boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
-                    if(apportionFeature) {
-                        paymentGroupDto.getFees().stream()
-                            .filter(fee -> fee.getCode().equalsIgnoreCase("FEE0271"))
-                            .forEach(fee -> {
-                                assertEquals(BigDecimal.valueOf(0).intValue(), fee.getAmountDue().intValue());
-                            });
-                        paymentGroupDto.getFees().stream()
-                            .filter(fee -> fee.getCode().equalsIgnoreCase("FEE0272"))
-                            .forEach(fee -> {
-                                assertEquals(BigDecimal.valueOf(0).intValue(), fee.getAmountDue().intValue());
-                            });
-                        paymentGroupDto.getFees().stream()
-                            .filter(fee -> fee.getCode().equalsIgnoreCase("FEE0273"))
-                            .forEach(fee -> {
-                                assertEquals(BigDecimal.valueOf(0).intValue(), fee.getAmountDue().intValue());
-                            });
-                    }
-                });
-        }));
+                        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature", false);
+                        if (apportionFeature) {
+                            paymentGroupDto.getFees().stream()
+                                .filter(fee -> fee.getCode().equalsIgnoreCase("FEE0271"))
+                                .forEach(fee -> {
+                                    assertEquals(BigDecimal.valueOf(0).intValue(), fee.getAmountDue().intValue());
+                                });
+                            paymentGroupDto.getFees().stream()
+                                .filter(fee -> fee.getCode().equalsIgnoreCase("FEE0272"))
+                                .forEach(fee -> {
+                                    assertEquals(BigDecimal.valueOf(0).intValue(), fee.getAmountDue().intValue());
+                                });
+                            paymentGroupDto.getFees().stream()
+                                .filter(fee -> fee.getCode().equalsIgnoreCase("FEE0273"))
+                                .forEach(fee -> {
+                                    assertEquals(BigDecimal.valueOf(0).intValue(), fee.getAmountDue().intValue());
+                                });
+                        }
+                    });
+            }));
     }
 
     @Test
@@ -237,33 +247,32 @@ public class PciPalCallbackTest {
         PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
             .fees(fees).build();
 
-        AtomicReference<String> paymentReference = new AtomicReference<>();
+        AtomicReference<String> paymentRef = new AtomicReference<>();
 
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .when().addNewFeeAndPaymentGroup(groupDto)
             .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
-            Assertions.assertThat(paymentGroupFeeDto).isNotNull();
+                Assertions.assertThat(paymentGroupFeeDto).isNotNull();
 
-            String paymentGroupReference = paymentGroupFeeDto.getPaymentGroupReference();
+                String paymentGroupReference = paymentGroupFeeDto.getPaymentGroupReference();
 
-            dsl.given().userToken(USER_TOKEN)
-                .s2sToken(SERVICE_TOKEN)
-                .returnUrl("https://www.moneyclaims.service.gov.uk")
-                .when().createTelephonyPayment(telephonyPaymentRequest, paymentGroupReference)
-                .then().gotCreated(TelephonyCardPaymentsResponse.class, telephonyCardPaymentsResponse -> {
-                Assertions.assertThat(telephonyCardPaymentsResponse).isNotNull();
-                Assertions.assertThat(telephonyCardPaymentsResponse.getPaymentReference().matches(PAYMENT_REFERENCE_REGEX)).isTrue();
-                Assertions.assertThat(telephonyCardPaymentsResponse.getStatus()).isEqualTo("Initiated");
-                paymentReference.set(telephonyCardPaymentsResponse.getPaymentReference());
-
+                dsl.given().userToken(USER_TOKEN)
+                    .s2sToken(SERVICE_TOKEN)
+                    .returnUrl("https://www.moneyclaims.service.gov.uk")
+                    .when().createTelephonyPayment(telephonyPaymentRequest, paymentGroupReference)
+                    .then().gotCreated(TelephonyCardPaymentsResponse.class, telephonyCardPaymentsResponse -> {
+                        paymentReference = telephonyCardPaymentsResponse.getPaymentReference();
+                        Assertions.assertThat(telephonyCardPaymentsResponse).isNotNull();
+                        Assertions.assertThat(telephonyCardPaymentsResponse.getPaymentReference().matches(PAYMENT_REFERENCE_REGEX)).isTrue();
+                        Assertions.assertThat(telephonyCardPaymentsResponse.getStatus()).isEqualTo("Initiated");
+                        paymentRef.set(telephonyCardPaymentsResponse.getPaymentReference());
+                    });
             });
-
-        });
 
         //pci-pal callback
         TelephonyCallbackDto callbackDto = TelephonyCallbackDto.telephonyCallbackWith()
-            .orderReference(paymentReference.get())
+            .orderReference(paymentRef.get())
             .orderAmount("120")
             .transactionResult("FAILED")
             .build();
@@ -277,32 +286,32 @@ public class PciPalCallbackTest {
             .s2sToken(SERVICE_TOKEN)
             .when().getPaymentGroups(ccdCaseNumber)
             .then().getPaymentGroups((paymentGroupsResponse -> {
-            //Assertions.assertThat(paymentGroupsResponse.getPaymentGroups().size()).isEqualTo(1);
-            paymentGroupsResponse.getPaymentGroups().stream()
-                .filter(paymentGroupDto -> paymentGroupDto.getPayments().get(0).getReference()
-                    .equalsIgnoreCase(paymentReference.get()))
-                .forEach(paymentGroupDto -> {
+                //Assertions.assertThat(paymentGroupsResponse.getPaymentGroups().size()).isEqualTo(1);
+                paymentGroupsResponse.getPaymentGroups().stream()
+                    .filter(paymentGroupDto -> paymentGroupDto.getPayments().get(0).getReference()
+                        .equalsIgnoreCase(paymentRef.get()))
+                    .forEach(paymentGroupDto -> {
 
-                    boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
-                    if(apportionFeature) {
-                        paymentGroupDto.getFees().stream()
-                            .filter(fee -> fee.getCode().equalsIgnoreCase("FEE0271"))
-                            .forEach(fee -> {
-                                assertEquals(BigDecimal.valueOf(20).intValue(), fee.getAmountDue().intValue());
-                            });
-                        paymentGroupDto.getFees().stream()
-                            .filter(fee -> fee.getCode().equalsIgnoreCase("FEE0272"))
-                            .forEach(fee -> {
-                                assertEquals(BigDecimal.valueOf(40).intValue(), fee.getAmountDue().intValue());
-                            });
-                        paymentGroupDto.getFees().stream()
-                            .filter(fee -> fee.getCode().equalsIgnoreCase("FEE0273"))
-                            .forEach(fee -> {
-                                assertEquals(BigDecimal.valueOf(60).intValue(), fee.getAmountDue().intValue());
-                            });
-                    }
-                });
-        }));
+                        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature", false);
+                        if (apportionFeature) {
+                            paymentGroupDto.getFees().stream()
+                                .filter(fee -> fee.getCode().equalsIgnoreCase("FEE0271"))
+                                .forEach(fee -> {
+                                    assertEquals(BigDecimal.valueOf(20).intValue(), fee.getAmountDue().intValue());
+                                });
+                            paymentGroupDto.getFees().stream()
+                                .filter(fee -> fee.getCode().equalsIgnoreCase("FEE0272"))
+                                .forEach(fee -> {
+                                    assertEquals(BigDecimal.valueOf(40).intValue(), fee.getAmountDue().intValue());
+                                });
+                            paymentGroupDto.getFees().stream()
+                                .filter(fee -> fee.getCode().equalsIgnoreCase("FEE0273"))
+                                .forEach(fee -> {
+                                    assertEquals(BigDecimal.valueOf(60).intValue(), fee.getAmountDue().intValue());
+                                });
+                        }
+                    });
+            }));
     }
 
     @Test
@@ -316,8 +325,9 @@ public class PciPalCallbackTest {
             .returnUrl("https://www.moneyclaims.service.gov.uk")
             .when().createTelephonyPayment(paymentRecordRequest)
             .then().created(paymentDto -> {
-            assertNotNull(paymentDto.getReference());
-        });
+                paymentReference = paymentDto.getReference();
+                assertNotNull(paymentDto.getReference());
+            });
 
         //pci-pal callback
         TelephonyCallbackDto callbackDto = TelephonyCallbackDto.telephonyCallbackWith()
@@ -355,5 +365,21 @@ public class PciPalCallbackTest {
             )
             .reportedDateOffline(DateTime.now().toString())
             .build();
+    }
+
+    @After
+    public void deletePayment() {
+        if (paymentReference != null) {
+            // delete payment record
+            paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentReference).then().statusCode(NO_CONTENT.value());
+        }
+    }
+
+    @AfterClass
+    public static void tearDown() {
+        if (!userEmails.isEmpty()) {
+            // delete idam test user
+            userEmails.forEach(IdamService::deleteUser);
+        }
     }
 }
