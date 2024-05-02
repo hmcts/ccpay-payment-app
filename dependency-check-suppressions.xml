@@ -47,18 +47,6 @@
     </suppress>
     <suppress until="2024-01-31">
         <notes>
-            commons-text version 1.7 in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
-        </notes>
-        <cve>CVE-2022-42889</cve>
-    </suppress>
-    <suppress until="2024-01-31">
-        <notes>
-            handlebars version 4.2.1 in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
-        </notes>
-        <cve>CVE-2022-42889</cve>
-    </suppress>
-    <suppress until="2024-01-31">
-        <notes>
             jackson-core version 2.12.7 in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
         </notes>
         <cve>CVE-2022-45688</cve>
@@ -286,12 +274,6 @@
             jackson-databind before 2.13.0 allows a Java StackOverflow exception and denial of service via a large depth of nested objects.
         </notes>
         <cve>CVE-2020-36518</cve>
-    </suppress>
-    <suppress>
-        <notes>
-            Apache Commons Text performs variable interpolation, allowing properties to be dynamically evaluated and expanded.
-        </notes>
-        <cve>CVE-2022-42889</cve>
     </suppress>
     <suppress>
         <notes>
