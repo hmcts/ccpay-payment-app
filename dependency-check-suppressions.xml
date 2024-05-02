@@ -97,12 +97,6 @@
     </suppress>
     <suppress until="2024-01-31">
         <notes>
-            snakeyaml version 1.32 in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
-        </notes>
-        <cve>CVE-2022-1471</cve>
-    </suppress>
-    <suppress until="2024-01-31">
-        <notes>
             spring-cloud-netflix-archaius version 2.0.4.RELEASE in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
         </notes>
         <cve>CVE-2020-5412</cve>
@@ -182,11 +176,6 @@
         <cve>CVE-2022-42003</cve>
         <cve>CVE-2022-42004</cve>
         <cve>CVE-2023-20863</cve>
-    </suppress>
-    <suppress>
-        <notes>SnakeYaml's Constructor() class does not restrict types which can be instantiated during deserialization.
-        </notes>
-        <cve>CVE-2022-1471</cve>
     </suppress>
     <suppress>
         <notes>In spring framework versions prior to 5.2.24 release+ ,5.3.27+ and 6.0.8+ , it is possible for a user to provide a specially crafted SpEL expression that may cause a denial-of-service (DoS) condition.
