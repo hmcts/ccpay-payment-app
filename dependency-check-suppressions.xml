@@ -316,13 +316,6 @@
 
     <suppress>
         <notes>
-            Improper Restriction of XML External Entity Reference in GitHub repository liquibase/liquibase prior to 4.8.0.
-        </notes>
-        <cve>CVE-2022-0839</cve>
-    </suppress>
-
-    <suppress>
-        <notes>
             PostgreSQL JDBC Driver (PgJDBC for short) allows Java programs to connect to a PostgreSQL database using standard, database independent Java code.
         </notes>
         <cve>CVE-2022-31197</cve>
