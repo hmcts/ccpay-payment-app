@@ -45,8 +45,7 @@ public class PaymentApiApplication {
         try {
             //Setting Liquibase DB Lock property before Spring starts up.
             LiquibaseConfiguration.getInstance()
-                .getConfiguration(GlobalConfiguration.class)
-                .setUseDbLock(true);
+                .getConfiguration(GlobalConfiguration.class);
 
             SpringApplication.run(PaymentApiApplication.class, args);
         } catch (RuntimeException ex) {
