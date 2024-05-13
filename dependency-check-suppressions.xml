@@ -30,12 +30,6 @@
     <cve>CVE-2022-42004</cve>
   </suppress>
   <suppress>
-    <notes>
-            jackson-databind 2.10.x through 2.12.x before 2.12.6 and 2.13.x before 2.13.1 allows attackers to cause a denial of service (2 GB transient heap usage per read) in uncommon situations involving JsonNode JDK serialization.
-        </notes>
-    <cve>CVE-2021-46877</cve>
-  </suppress>
-  <suppress>
     <cve>CVE-2023-35116</cve>
   </suppress>
   <suppress>
@@ -96,22 +90,9 @@
   </suppress>
   <suppress>
     <notes>
-            jackson-databind before 2.13.0 allows a Java StackOverflow exception and denial of service via a large depth of nested objects.
-        </notes>
-    <cve>CVE-2020-36518</cve>
-  </suppress>
-  <suppress>
-    <notes>
             Eclipse Jetty provides a web server and servlet container. In versions 11.0.0 through 11.0.15, 10.0.0 through 10.0.15, and 9.0.0 through 9.4.52, an integer overflow in `MetaDataBuilder.checkSize` allows for HTTP/2 HPACK header values to exceed their size limit.
         </notes>
     <cve>CVE-2023-36478</cve>
-  </suppress>
-  <suppress>
-    <notes>
-            In FasterXML jackson-databind before 2.14.0-rc1, resource exhaustion can occur because of a lack of a check in primitive value deserializers to avoid deep wrapper array nesting
-        </notes>
-    <cve>CVE-2022-42003</cve>
-    <cve>CVE-2022-42004</cve>
   </suppress>
   <suppress>
     <notes>
