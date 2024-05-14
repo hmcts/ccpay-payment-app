@@ -79,6 +79,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -527,12 +528,22 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
             LOG.info("Callback URL: {}", callBackUrl);
 
             if(payment!=null){
-                LOG.info("Connection String CardPBA: {}", connectionString);
+
                 msg = new Message(objectMapper.writeValueAsString(payment));
                 topicClientCPO = new TopicClientProxy(connectionString, topicCardPBA);
+
+                LOG.info("sending message started..");
+                LOG.info("Connection String CardPBA: {}", connectionString);
+                LOG.info("message content case id: {}",payment.getCcdCaseNumber() );
+                LOG.info("message content Service Request Reference: {}",payment.getServiceRequestReference() );
+
+                msg.setCorrelationId(UUID.randomUUID().toString());
                 msg.setContentType(MSGCONTENTTYPE);
                 msg.setLabel("Service Callback Message");
                 msg.setProperties(Collections.singletonMap("serviceCallbackUrl",callBackUrl));
+
+                LOG.info("Message sent: {}", msg);
+
                 topicClientCPO.send(msg);
                 topicClientCPO.close();
             }
