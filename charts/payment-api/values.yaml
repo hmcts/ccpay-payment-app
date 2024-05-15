@@ -87,6 +87,10 @@ java:
     DUPLICATE_PAYMENTS_EMAIL_FROM: "no-reply@mail-payment-nonprod.platform.hmcts.net"
     DUPLICATE_PAYMENTS_EMAIL_MESSAGE: "Hi, <br/><br/>Please find attached Potential Duplicate Payments report. <br/><br/>Regards, <br/>Fees & Payments Team <br/><br/>"
     DUPLICATE_PAYMENTS_EMAIL_SUBJECT: "CNP:Potential Duplicate Payments Report"
+    PBA_SMC_PAYMENTS_REPORT_SCHEDULER_ENABLED: "true"
+    PBA_SMC_PAYMENTS_EMAIL_FROM: "no-reply@mail-payment-nonprod.platform.hmcts.net"
+    PBA_SMC_PAYMENTS_EMAIL_MESSAGE: "Hi, <br/><br/>Please find attached Payment by Account reconciliation report. <br/><br/>Regards, <br/>Fees & Payments Team <br/><br/>"
+    PBA_SMC_PAYMENTS_EMAIL_SUBJECT: "CNP:PBA Specified Money Claims Reconciliation Report"
     SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: true
     SPRING_MAIL_PROPERTIES_MAIL_SMTP_SSL_TRUST: "smtp.sendgrid.net"
     SPRING_MAIL_PROPERTIES_MAIL_SMTP_SSL_PROTOCOLS: "TLSv1.2"
@@ -222,3 +226,5 @@ java:
           alias: spring.mail.password
         - name: ccpay-payment-status-connection-string
           alias: ccpay-payment-status-connection-string
+        - name: pba-smc-payments-email-to
+          alias: pba.smc.payments.email.to
