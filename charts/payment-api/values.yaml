@@ -228,3 +228,5 @@ java:
           alias: ccpay-payment-status-connection-string
         - name: pba-smc-payments-email-to
           alias: pba.smc.payments.email.to
+        - name: duplicate-payments-email-to
+          alias: duplicate.payments.email.to
