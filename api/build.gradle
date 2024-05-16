@@ -79,11 +79,6 @@ def versions = [
 
 def javaLoggingVersion = '6.1.4'
 
-ext['tomcat.version'] = '9.0.88' // CVE-2023-46589, CVE-2023-42794, CVE-2023-28709
-ext['netty.version'] = '4.1.100.Final' // CVE-2023-44487
-ext['jackson.version'] = '2.16.0' // CVE-2021-46877, CVE-2022-42003, CVE-2022-42004, CVE-2020-36518
-
-
 dependencies {
     implementation project(':payment-gov-pay-client')
     implementation project(':payment-api-contract')

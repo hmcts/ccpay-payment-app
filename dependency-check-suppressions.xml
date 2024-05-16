@@ -58,12 +58,6 @@
   </suppress>
   <suppress>
     <notes>
-            Eclipse Jetty provides a web server and servlet container. In versions 11.0.0 through 11.0.15, 10.0.0 through 10.0.15, and 9.0.0 through 9.4.52, an integer overflow in `MetaDataBuilder.checkSize` allows for HTTP/2 HPACK header values to exceed their size limit.
-        </notes>
-    <cve>CVE-2023-36478</cve>
-  </suppress>
-  <suppress>
-    <notes>
             When using the RemoteIpFilter with requests received from a reverse proxy via HTTP
         </notes>
     <cve>CVE-2023-28708</cve>
