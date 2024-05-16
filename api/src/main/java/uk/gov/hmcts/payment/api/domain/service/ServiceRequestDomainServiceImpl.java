@@ -532,18 +532,18 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
                 msg = new Message(objectMapper.writeValueAsString(payment));
                 topicClientCPO = new TopicClientProxy(connectionString, topicCardPBA);
 
-                LOG.info("sending message started..");
-                LOG.info("Connection String CardPBA: {}", connectionString);
-                LOG.info("message content case id: {}",payment.getCcdCaseNumber() );
-                LOG.info("message content Service Request Reference: {}",payment.getServiceRequestReference() );
-
                 msg.setCorrelationId(UUID.randomUUID().toString());
+
+                LOG.info("correlation id: {}, sending message started..", msg.getCorrelationId());
+                LOG.info("correlation id: {}, Connection String CardPBA: {}", msg.getCorrelationId(), connectionString);
+
                 msg.setContentType(MSGCONTENTTYPE);
                 msg.setLabel("Service Callback Message");
                 msg.setProperties(Collections.singletonMap("serviceCallbackUrl",callBackUrl));
 
-                LOG.info("correlation id: {}", msg.getCorrelationId());
-                LOG.info("Message sent: {}", msg);
+                LOG.info("correlation id: {}, Case id: {}, Service request reference: {}",
+                    msg.getCorrelationId(), payment.getCcdCaseNumber(), payment.getServiceRequestReference());
+                LOG.info("correlation id: {}, Message sent: {}", msg.getCorrelationId(), msg);
 
                 topicClientCPO.send(msg);
                 topicClientCPO.close();
