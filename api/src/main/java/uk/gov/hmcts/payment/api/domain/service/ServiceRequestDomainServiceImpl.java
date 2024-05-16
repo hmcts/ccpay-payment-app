@@ -542,6 +542,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
                 msg.setLabel("Service Callback Message");
                 msg.setProperties(Collections.singletonMap("serviceCallbackUrl",callBackUrl));
 
+                LOG.info("correlation id: {}", msg.getCorrelationId());
                 LOG.info("Message sent: {}", msg);
 
                 topicClientCPO.send(msg);
