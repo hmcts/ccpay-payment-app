@@ -10,12 +10,6 @@
   </suppress>
   <suppress>
     <notes>
-            Thymeleaf through 3.1.1.RELEASE, as used in spring-boot-admin (aka Spring Boot Admin) through 3.1.1 and other products
-        </notes>
-    <cve>CVE-2023-38286</cve>
-  </suppress>
-  <suppress>
-    <notes>
             URL Redirection to Untrusted Site ('Open Redirect') vulnerability in FORM authentication feature Apache Tomcat.
         </notes>
     <cve>CVE-2023-41080</cve>
