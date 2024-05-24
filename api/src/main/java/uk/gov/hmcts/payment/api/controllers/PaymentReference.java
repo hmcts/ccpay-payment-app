@@ -1,14 +1,25 @@
 package uk.gov.hmcts.payment.api.controllers;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
 
-import java.security.SecureRandom;
-import java.time.LocalDateTime;
+import javax.annotation.PostConstruct;
 
+@Component
 public class PaymentReference {
 
+    @Autowired
+    private PaymentFeeLinkRepository paymentFeeLinkRepositoryInstance;
+
+    private static PaymentFeeLinkRepository paymentFeeLinkRepository;
+
     private static PaymentReference obj = null;
+
+    @PostConstruct
+    private void init() {
+        paymentFeeLinkRepository = paymentFeeLinkRepositoryInstance;
+    }
 
     private PaymentReference() {
     }
@@ -22,13 +33,7 @@ public class PaymentReference {
     }
 
     public String getNext() {
-        SecureRandom random = new SecureRandom();
-
-        DateTime dateTime = new DateTime(DateTimeZone.UTC);
-        long dateTimeinMillis = dateTime.getMillis() / 100;
-
-        String nextVal = String.format("%010d", dateTimeinMillis);
-        return LocalDateTime.now().getYear() + "-" + nextVal + + (random.nextInt(89)+10);
+        return paymentFeeLinkRepository.getNextPaymentReference();
     }
 
 }
