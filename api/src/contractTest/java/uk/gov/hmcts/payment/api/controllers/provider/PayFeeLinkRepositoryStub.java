@@ -131,4 +131,9 @@ public class PayFeeLinkRepositoryStub implements PaymentFeeLinkRepository {
     public boolean exists(Specification<PaymentFeeLink> spec) {
         return false;
     }
+
+    @Override
+    public String getNextPaymentReference() {
+        return "2021-0000000001";
+    }
 }

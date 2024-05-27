@@ -25,4 +25,5 @@
     <include file="db/changelog/db.changelog-0.1.10.yaml"/>
     <include file="db/changelog/db.changelog-0.1.11.yaml"/>
     <include file="db/changelog/db.changelog-0.1.12.yaml"/>
+    <include file="db/changelog/db.changelog-0.1.13.yaml"/>
 </databaseChangeLog>
