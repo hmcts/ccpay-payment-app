@@ -87,6 +87,9 @@ public class CardPaymentController implements ApplicationContextAware {
     private ApplicationContext applicationContext;
 
     @Autowired
+    private PaymentReference paymentReference;
+
+    @Autowired
     public CardPaymentController(DelegatingPaymentService<PaymentFeeLink, String> cardDelegatingPaymentService,
                                  PaymentDtoMapper paymentDtoMapper,
                                  CardDetailsService<CardDetails, String> cardDetailsService,
@@ -118,7 +121,7 @@ public class CardPaymentController implements ApplicationContextAware {
         @RequestHeader(value = "service-callback-url", required = false) String serviceCallbackUrl,
         @RequestHeader(required = false) MultiValueMap<String, String> headers,
         @Valid @RequestBody CardPaymentRequest request) throws CheckDigitException {
-        String paymentGroupReference = PaymentReference.getInstance().getNext();
+        String paymentGroupReference = paymentReference.getNext();
 
         if (StringUtils.isEmpty(request.getChannel()) || StringUtils.isEmpty(request.getProvider())) {
             request.setChannel("online");
