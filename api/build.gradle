@@ -102,7 +102,14 @@ dependencies {
     implementation group: 'org.springdoc', name: 'springdoc-openapi-ui', version: '1.8.0'
     implementation group: 'org.springdoc', name: 'springdoc-openapi-webmvc-core', version: '1.8.0'
     implementation 'org.liquibase:liquibase-core'
-    implementation group: 'com.microsoft.azure', name: 'azure-servicebus-spring-boot-starter', version: '2.1.6'
+    implementation(group: 'com.microsoft.azure', name: 'azure-servicebus-spring-boot-starter', version: '2.2.5') {
+        exclude(module: 'adal4j')
+        exclude(module: 'azure-core-http-netty')
+        exclude(module: 'azure-identity')
+        exclude(module: 'nanohttpd')
+        exclude(module: 'reactor-netty-http-brave')
+        exclude(module: 'azure-core')
+    }
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-cache'
     implementation group: 'com.github.ben-manes.caffeine', name: 'caffeine', version: '3.1.8'
     implementation "io.github.openfeign:feign-httpclient:13.2.1"
