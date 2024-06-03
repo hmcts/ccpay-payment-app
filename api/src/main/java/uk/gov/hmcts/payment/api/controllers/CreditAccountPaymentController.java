@@ -10,6 +10,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -65,6 +66,9 @@ public class CreditAccountPaymentController {
     private final ReferenceDataService referenceDataService;
     private final AuthTokenGenerator authTokenGenerator;
 
+    @Autowired
+    PaymentReference paymentReference;
+
     public CreditAccountPaymentController(
         @Qualifier("loggingCreditAccountPaymentService") CreditAccountPaymentService<PaymentFeeLink, String> creditAccountPaymentService,
         CreditAccountDtoMapper creditAccountDtoMapper,
@@ -102,7 +106,7 @@ public class CreditAccountPaymentController {
     @ResponseBody
     @Transactional
     public ResponseEntity<PaymentDto> createCreditAccountPayment(@Valid @RequestBody CreditAccountPaymentRequest creditAccountPaymentRequest, @RequestHeader(required = false) MultiValueMap<String, String> headers) throws CheckDigitException {
-        String paymentGroupReference = PaymentReference.getInstance().getNext();
+        String paymentGroupReference = paymentReference.getNext();
 
         /*
         Following piece of code to be removed once all Services are on-boarded to PBA Config 2

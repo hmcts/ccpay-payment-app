@@ -8,6 +8,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
+import uk.gov.hmcts.payment.api.controllers.PaymentReference;
 import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestDtoDomainMapper;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestBo;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestOnlinePaymentBo;
@@ -42,6 +43,9 @@ public class ServiceRequestDtoDomainMapperTest {
     @Mock
     ServiceIdSupplier serviceIdSupplier;
 
+    @Mock
+    PaymentReference paymentReference;
+
     @Test
     public void toDomainTest(){
 
@@ -57,11 +61,14 @@ public class ServiceRequestDtoDomainMapperTest {
             .serviceDescription("DIVORCE")
             .build();
 
+        Mockito.when(paymentReference.getNext()).thenReturn("2024-1234567890");
+
         ServiceRequestBo serviceRequestBo = serviceRequestDtoDomainMapper.toDomain(serviceRequestDto,organisationalServiceDto);
 
         assertTrue(serviceRequestBo.getOrgId().equals("AA001"));
         assertTrue(serviceRequestBo.getEnterpriseServiceName().equals("DIVORCE"));
         assertTrue(serviceRequestBo.getCcdCaseNumber().equals("8689869686968696"));
+        assertTrue(serviceRequestBo.getReference().equals("2024-1234567890"));
 
     }
 

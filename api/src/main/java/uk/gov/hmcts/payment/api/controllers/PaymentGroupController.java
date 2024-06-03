@@ -119,6 +119,9 @@ public class PaymentGroupController {
     private PaymentService<PaymentFeeLink, String> paymentService;
 
     @Autowired
+    private PaymentReference paymentReference;
+
+    @Autowired
     public PaymentGroupController(PaymentGroupService paymentGroupService, PaymentGroupDtoMapper paymentGroupDtoMapper,
                                   DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService,
                                   PaymentDtoMapper paymentDtoMapper, PciPalPaymentService pciPalPaymentService,
@@ -164,7 +167,7 @@ public class PaymentGroupController {
     @PostMapping(value = "/payment-groups")
     public ResponseEntity<PaymentGroupDto> addNewFee(@Valid @RequestBody PaymentGroupDto paymentGroupDto) {
 
-        String paymentGroupReference = PaymentReference.getInstance().getNext();
+        String paymentGroupReference = paymentReference.getNext();
 
         paymentGroupDto.getFees().stream().forEach(f -> {
             if (f.getCcdCaseNumber() == null && f.getReference() == null) {
@@ -284,7 +287,7 @@ public class PaymentGroupController {
 
         List<SiteDTO> sites = referenceDataService.getSiteIDs();
 
-        String paymentGroupReference = PaymentReference.getInstance().getNext();
+        String paymentGroupReference = paymentReference.getNext();
 
         if (!sites.stream().anyMatch(site -> site.getSiteID().equalsIgnoreCase(bulkScanPaymentRequest.getSiteId()))) {
             throw new PaymentException("Invalid siteID: " + bulkScanPaymentRequest.getSiteId());
@@ -421,7 +424,7 @@ public class PaymentGroupController {
                 }
             }
 
-            String paymentGroupReference = PaymentReference.getInstance().getNext();
+            String paymentGroupReference = paymentReference.getNext();
 
             OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(Optional.ofNullable(bulkScanPaymentRequestStrategic.getCaseType()),Optional.empty(), headers);
 
