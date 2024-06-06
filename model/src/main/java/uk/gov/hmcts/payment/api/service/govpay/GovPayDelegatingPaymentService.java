@@ -126,7 +126,6 @@ public class GovPayDelegatingPaymentService implements DelegatingPaymentService<
     }
 
     private String keyForService() {
-        LOG.info("keyForService ----");
         return govPayKeyRepository.getKey(serviceIdSupplier.get());
     }
 
