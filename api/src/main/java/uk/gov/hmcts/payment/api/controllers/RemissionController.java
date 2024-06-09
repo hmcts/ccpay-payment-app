@@ -41,6 +41,9 @@ public class RemissionController {
     @Autowired
     private ReferenceDataService referenceDataService;
 
+    @Autowired
+    private PaymentReference paymentReference;
+
     @Operation(summary = "Create upfront remission record", description = "Create upfront remission record")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "201", description = "Remission created"),
@@ -111,7 +114,7 @@ public class RemissionController {
 
     private RemissionServiceRequest populateRemissionServiceRequest(RemissionRequest remissionRequest, OrganisationalServiceDto organisationalServiceDto) {
         return RemissionServiceRequest.remissionServiceRequestWith()
-            .paymentGroupReference(PaymentReference.getInstance().getNext())
+            .paymentGroupReference(paymentReference.getNext())
             .hwfAmount(remissionRequest.getHwfAmount())
             .hwfReference(remissionRequest.getHwfReference())
             .beneficiaryName(remissionRequest.getBeneficiaryName())
