@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1710000000000-1
+      author: DaveJ
+      changes:
+        - sql:
+          splitStatements:
+          sql: >
+            CREATE SEQUENCE IF NOT EXISTS payment_reference_seq START 1750000000000;
