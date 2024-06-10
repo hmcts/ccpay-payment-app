@@ -73,8 +73,8 @@ def versions = [
         lombok          : '1.18.32',
         pact_version    : '4.1.7',
         reformS2sClient : '4.1.2',
-        serenity        : '4.1.17',
-        serenityCucumber: '4.1.17',
+        serenity        : '2.6.0',
+        serenityCucumber: '3.0.1',
         commonsIo       : '2.16.1'
 ]
 
@@ -154,7 +154,7 @@ dependencies {
     testImplementation group: 'io.rest-assured', name: 'rest-assured'
     testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-thymeleaf'
     testImplementation group: 'org.testcontainers', name: 'postgresql', version: '1.19.8'
-    testImplementation 'org.awaitility:awaitility:4.2.1'
+    testImplementation 'org.awaitility:awaitility:3.1.6'
     testImplementation group: 'org.powermock', name: 'powermock-module-junit4', version: '2.0.9'
     testImplementation 'org.powermock:powermock-api-mockito2:2.0.9'
     // smoke
