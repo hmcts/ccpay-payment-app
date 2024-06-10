@@ -1,43 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
-  <suppress until="2024-03-31">
-    <notes>
-            adal4j version 1.3.0 in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
-        </notes>
-    <cve>CVE-2021-42306</cve>
-  </suppress>
-  <suppress until="2024-01-31">
-    <notes>
-            json-smart version 2.4.10 in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
-        </notes>
-    <cve>CVE-2023-35116</cve>
-  </suppress>
-  <suppress until="2024-03-31">
-    <notes>
-            tomcat-embed-core version 9.0.73'in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
-        </notes>
-    <cve>CVE-2023-28708</cve>
-    <cve>CVE-2023-34055</cve>
-    <cve>CVE-2023-33202</cve>
-    <cve>CVE-2023-46589</cve>
-  </suppress>
-  <suppress until="2024-01-31">
-    <notes>
-            Jackson-databind version 2.12.7.1 in combination with postgres has interface changes in DBUtils that cause unit tests to fail.
-        </notes>
-    <cve>CVE-2020-36518</cve>
-    <cve>CVE-2022-42003</cve>
-    <cve>CVE-2022-42004</cve>
-  </suppress>
-  <suppress>
-    <notes>
-            jackson-databind 2.10.x through 2.12.x before 2.12.6 and 2.13.x before 2.13.1 allows attackers to cause a denial of service (2 GB transient heap usage per read) in uncommon situations involving JsonNode JDK serialization.
-        </notes>
-    <cve>CVE-2021-46877</cve>
-  </suppress>
-  <suppress>
-    <cve>CVE-2023-35116</cve>
-  </suppress>
   <suppress>
     <notes>
             Use of Java's default temporary directory for file creation in `FileBackedOutputStream` in Google Guava
@@ -45,12 +7,6 @@
         </notes>
     <cve>CVE-2023-2976</cve>
     <cve>CVE-2020-8908</cve>
-  </suppress>
-  <suppress>
-    <notes>
-            Thymeleaf through 3.1.1.RELEASE, as used in spring-boot-admin (aka Spring Boot Admin) through 3.1.1 and other products
-        </notes>
-    <cve>CVE-2023-38286</cve>
   </suppress>
   <suppress>
     <notes>
@@ -96,25 +52,6 @@
   </suppress>
   <suppress>
     <notes>
-            jackson-databind before 2.13.0 allows a Java StackOverflow exception and denial of service via a large depth of nested objects.
-        </notes>
-    <cve>CVE-2020-36518</cve>
-  </suppress>
-  <suppress>
-    <notes>
-            Eclipse Jetty provides a web server and servlet container. In versions 11.0.0 through 11.0.15, 10.0.0 through 10.0.15, and 9.0.0 through 9.4.52, an integer overflow in `MetaDataBuilder.checkSize` allows for HTTP/2 HPACK header values to exceed their size limit.
-        </notes>
-    <cve>CVE-2023-36478</cve>
-  </suppress>
-  <suppress>
-    <notes>
-            In FasterXML jackson-databind before 2.14.0-rc1, resource exhaustion can occur because of a lack of a check in primitive value deserializers to avoid deep wrapper array nesting
-        </notes>
-    <cve>CVE-2022-42003</cve>
-    <cve>CVE-2022-42004</cve>
-  </suppress>
-  <suppress>
-    <notes>
             When using the RemoteIpFilter with requests received from a reverse proxy via HTTP
         </notes>
     <cve>CVE-2023-28708</cve>
@@ -136,11 +73,5 @@
             In Spring Boot versions 2.7.0 - 2.7.17, 3.0.0-3.0.12 and 3.1.0-3.1.5, it is possible for a user to provide specially crafted HTTP requests that may cause a denial-of-service (DoS) condition
         </notes>
     <cve>CVE-2023-34055</cve>
-  </suppress>
-  <suppress>
-    <notes>
-            Improper Input Validation vulnerability in Apache Tomcat.Tomcat from 11.0.0-M1 through 11.0.0-M10, from 10.1.0-M1 through 10.1.15, from 9.0.0-M1 through 9.0.82 and from 8.5.0 through 8.5.95 did not correctly parse HTTP trailer headers
-        </notes>
-    <cve>CVE-2023-46589</cve>
   </suppress>
 </suppressions>

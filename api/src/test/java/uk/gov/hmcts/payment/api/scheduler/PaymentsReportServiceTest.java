@@ -29,6 +29,7 @@ import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.reports.FeesService;
 import uk.gov.hmcts.payment.api.reports.PaymentsReportService;
 import uk.gov.hmcts.payment.api.reports.config.CardPaymentReportConfig;
+import uk.gov.hmcts.payment.api.reports.config.DuplicatePaymentReportConfig;
 import uk.gov.hmcts.payment.api.reports.config.PaymentReportConfig;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
@@ -72,9 +73,11 @@ public class PaymentsReportServiceTest {
     @Mock
     private  Payment2Repository paymentRepository = null;
 
+    @Mock
+    private Tuple duplicatePaymentsRecord;
+
     public PaymentsReportServiceTest() {
     }
-
 
     @Before
     public void setUp() {
@@ -130,7 +133,6 @@ public class PaymentsReportServiceTest {
     @Test
     public void shouldDelegateToEmailService() {
         // given
-
         paymentReportConfig = new CardPaymentReportConfig("fromEmail", new String[]{"toEmail"}, "emailSubject", "emailMessage", true);
 
         // when
@@ -149,13 +151,22 @@ public class PaymentsReportServiceTest {
     @Test
     public void shouldGenerateDuplicatePaymentReportCsvAndSendEmail() {
         // given
-        paymentReportConfig = new CardPaymentReportConfig("fromEmail", new String[]{"toEmail"}, "emailSubject", "emailMessage", true);
+        paymentReportConfig = new DuplicatePaymentReportConfig("fromEmail", new String[]{"toEmail"}, "emailSubject", "emailMessage", true);
+        when(duplicatePaymentsRecord.get(0, Date.class)).thenReturn(new Date());
+        when(duplicatePaymentsRecord.get(1, String.class)).thenReturn("Description");
+        when(duplicatePaymentsRecord.get(2, String.class)).thenReturn("Account");
+        when(duplicatePaymentsRecord.get(3, BigDecimal.class)).thenReturn(new BigDecimal("100.00"));
+        when(duplicatePaymentsRecord.get(4, String.class)).thenReturn("Currency");
+        when(duplicatePaymentsRecord.get(5, String.class)).thenReturn("Reference");
+        when(duplicatePaymentsRecord.get(6, Integer.class)).thenReturn(2);
+        when(duplicatePaymentsRecord.get(7, BigInteger.class)).thenReturn(BigInteger.valueOf(12345));
+        List<Tuple> findDuplicatePaymentsByDate = new ArrayList<>();
+        findDuplicatePaymentsByDate.add(duplicatePaymentsRecord);
+        when(paymentRepository.findDuplicatePaymentsByDate(any(), any())).thenReturn(findDuplicatePaymentsByDate);
 
         // when
+        paymentsReportService.generateDuplicatePaymentsCsvAndSendEmail(new Date(), new Date(), paymentReportConfig);
 
-        List<DuplicatePaymentDto> duplicatePaymentsList = new ArrayList<>();
-
-        paymentsReportService.generateDuplicatePaymentReportCsvAndSendEmail( duplicatePaymentsList,  paymentReportConfig);
         // then
         ArgumentCaptor<Email> argument = ArgumentCaptor.forClass(Email.class);
         verify(emailService).sendEmail(argument.capture());
@@ -168,79 +179,17 @@ public class PaymentsReportServiceTest {
     }
 
     @Test
-    public void shouldGenerateDuplicatePaymentsCsvAndSendEmailisEmpty() {
-        // Arrange
-        Date startDate = new Date();
-        Date endDate = new Date();
+    public void shouldntGenerateDuplicatePaymentReportAsNoDuplicatesWereFound() {
+        // given
+        paymentReportConfig = new DuplicatePaymentReportConfig("fromEmail", new String[]{"toEmail"}, "emailSubject", "emailMessage", true);
+        List<Tuple> findDuplicatePaymentsByDate = new ArrayList<>();
+        when(paymentRepository.findDuplicatePaymentsByDate(any(), any())).thenReturn(findDuplicatePaymentsByDate);
 
-         int[] counter = new int[1]; // Initialize counter
-            counter[0] = 0;
+        // when
+        paymentsReportService.generateDuplicatePaymentsCsvAndSendEmail(new Date(), new Date(), paymentReportConfig);
 
-
-        List<DuplicatePaymentDto> duplicatePaymentsList = new ArrayList<>(); // Empty list to simulate no duplicates
-        paymentReportConfig = new CardPaymentReportConfig("fromEmail", new String[]{"toEmail"}, "emailSubject", "emailMessage", true);
-
-
-        // Mock the method findDuplicatePaymentsBy to return an empty list
-        when(paymentsReportService.findDuplicatePaymentsBy(startDate, endDate)).thenReturn(duplicatePaymentsList);
-
-        // Mock the method generateDuplicatePaymentReportCsvAndSendEmail
-        doAnswer(new Answer<Void>() {
-            @Override
-            public Void answer(InvocationOnMock invocation) throws Throwable {
-                counter[0]++;
-                return null;
-            }
-        }).when(paymentsReportService2).generateDuplicatePaymentsCsvAndSendEmail(any(), any(), any());
-
-        // Act
-        paymentsReportService.generateDuplicatePaymentReportCsvAndSendEmail(duplicatePaymentsList, paymentReportConfig);
-
-        // Assert
-        assertThat(counter[0] == 0);
+        // then
+        verify(emailService, never()).sendEmail(any());
     }
-
-   @Test
-   public void shouldFindDuplicatePaymentsBy() {
-        // Given
-        Date startDate = new Date();
-        Date endDate = new Date();
-
-
-       Tuple tupleMock = mock(Tuple.class);
-       when(tupleMock.get(0, Date.class)).thenReturn(new Date());
-       when(tupleMock.get(1, String.class)).thenReturn("Description");
-       when(tupleMock.get(2, String.class)).thenReturn("Account");
-       when(tupleMock.get(3, BigDecimal.class)).thenReturn(new BigDecimal("100.00"));
-       when(tupleMock.get(4, String.class)).thenReturn("Currency");
-       when(tupleMock.get(5, String.class)).thenReturn("Reference");
-       when(tupleMock.get(6, Integer.class)).thenReturn(1);
-       when(tupleMock.get(7, BigInteger.class)).thenReturn(BigInteger.valueOf(12345));
-
-       List<Tuple> mockTuples = new ArrayList<>();
-       mockTuples.add(tupleMock);
-
-       when(paymentRepository.findDuplicatePaymentsByDate(startDate, endDate)).thenReturn(mockTuples);
-
-       // Act
-       List<DuplicatePaymentDto> result = paymentsReportService.findDuplicatePaymentsBy(startDate, endDate);
-
-       // Assert
-       assertThat(result).isNotNull();
-       assertThat(result.size()).isEqualTo(1);
-
-       DuplicatePaymentDto dto = result.get(0);
-
-       assertThat(tupleMock.get(0, Date.class)).isNotNull();
-       assertThat(tupleMock.get(1, String.class)).isEqualTo("Description");
-       assertThat(tupleMock.get(2, String.class)).isEqualTo("Account");
-       assertThat(tupleMock.get(3, BigDecimal.class)).isEqualTo("100.00");
-       assertThat(tupleMock.get(4, String.class)).isEqualTo("Currency");
-       assertThat(tupleMock.get(5, String.class)).isEqualTo("Reference");
-       assertThat(tupleMock.get(6, Integer.class)).isEqualTo(1);
-       assertThat(tupleMock.get(7, BigInteger.class)).isEqualTo(12345);
-
-    }
-
 
 }
