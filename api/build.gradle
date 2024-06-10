@@ -181,7 +181,6 @@ dependencies {
     contractTestImplementation("org.junit.jupiter:junit-jupiter-api:5.10.2")
     contractTestImplementation("org.junit.jupiter:junit-jupiter-engine:5.10.2")
     contractTestImplementation('org.junit.jupiter:junit-jupiter-api:5.10.2')
-    contractTestImplementation group: 'org.apache.commons', name: 'commons-io', version: versions.commonsIo
 
     functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-core', version: versions.serenity
     functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-cucumber', version: versions.serenityCucumber
