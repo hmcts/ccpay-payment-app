@@ -72,7 +72,7 @@ def versions = [
         sonarPitest     : '0.5',
         lombok          : '1.18.32',
         pact_version    : '4.1.7',
-        reformS2sClient : '3.1.4',
+        reformS2sClient : '5.1.2',
         serenity        : '4.1.17',
         serenityCucumber: '4.1.17',
 ]
@@ -89,6 +89,7 @@ dependencies {
     implementation group: 'com.github.hmcts.java-logging', name: 'logging-appinsights', version: javaLoggingVersion
     implementation group: 'com.github.hmcts', name: 'auth-checker-lib', version: '2.3.0'
     implementation group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: versions.reformS2sClient
+    implementation group: 'jakarta.servlet', name: 'jakarta.servlet-api', version: '6.1.0-M2'
     implementation group: 'org.springframework.boot', name: 'spring-boot-autoconfigure'
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web'
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security'
