@@ -11,17 +11,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.test.annotation.DirtiesContext;
-import uk.gov.hmcts.payment.api.reports.config.BarPaymentReportConfig;
-import uk.gov.hmcts.payment.api.reports.config.CardPaymentReportConfig;
-import uk.gov.hmcts.payment.api.reports.config.PaymentReportConfig;
-import uk.gov.hmcts.payment.api.reports.config.PbaCivilPaymentReportConfig;
-import uk.gov.hmcts.payment.api.reports.config.PbaCmcPaymentReportConfig;
-import uk.gov.hmcts.payment.api.reports.config.PbaDivorcePaymentReportConfig;
-import uk.gov.hmcts.payment.api.reports.config.PbaFinremPaymentReportConfig;
-import uk.gov.hmcts.payment.api.reports.config.PbaFplPaymentReportConfig;
-import uk.gov.hmcts.payment.api.reports.config.PbaPrlPaymentReportConfig;
-import uk.gov.hmcts.payment.api.reports.config.PbaProbatePaymentReportConfig;
-import uk.gov.hmcts.payment.api.reports.config.PbaSmcPaymentReportConfig;
+import uk.gov.hmcts.payment.api.reports.config.*;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 
 import java.util.Date;
@@ -53,6 +43,7 @@ public class PaymentsReportFacadeTest {
     private PbaProbatePaymentReportConfig pbaProbatePaymentReportConfig = new PbaProbatePaymentReportConfig("from", null, "subject", "message", true);
     private PbaFinremPaymentReportConfig pbaFinremPaymentReportConfig = new PbaFinremPaymentReportConfig("from", null, "subject", "message", true);
     private PbaSmcPaymentReportConfig pbaSmcPaymentReportConfig = new PbaSmcPaymentReportConfig("from", null, "subject", "message", true);
+    private DuplicatePaymentReportConfig duplicatePaymentReportConfig = new DuplicatePaymentReportConfig("from", null, "subject", "message", true);
 
 
     Map<PaymentReportType, PaymentReportConfig> map = ImmutableMap.<PaymentReportType, PaymentReportConfig>builder()
@@ -65,7 +56,8 @@ public class PaymentsReportFacadeTest {
         .put(PaymentReportType.PBA_DIVORCE, pbaDivorcePaymentReportConfig)
         .put(PaymentReportType.PBA_PROBATE, pbaProbatePaymentReportConfig)
         .put(PaymentReportType.PBA_FINREM, pbaFinremPaymentReportConfig)
-        .put(PaymentReportType.PBA_SMC, pbaSmcPaymentReportConfig).build();
+        .put(PaymentReportType.PBA_SMC, pbaSmcPaymentReportConfig)
+        .put(PaymentReportType.DUPLICATE_PAYMENT, duplicatePaymentReportConfig).build();
 
     @Before
     public void setUp() {
@@ -232,6 +224,20 @@ public class PaymentsReportFacadeTest {
 
         // then
         verify(reportService).generateCsvAndSendEmail(fromDate, toDate, PBA, "Specified Money Claims", pbaSmcPaymentReportConfig);
+
+    }
+
+    @Test
+    public void DuplicatePaymentReportType() {
+        // given
+        Date fromDate = new Date();
+        Date toDate = new Date();
+
+        // when
+        facade.generateDuplicatePaymentCsvAndSendEmail(fromDate, toDate);
+
+        // then
+        verify(reportService).generateDuplicatePaymentsCsvAndSendEmail(fromDate, toDate, duplicatePaymentReportConfig);
 
     }
 

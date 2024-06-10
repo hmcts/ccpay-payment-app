@@ -14,9 +14,6 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Component
 public class PaymentsReportFacade {
 
-    private static final String REPORT_TYPE_ALL_PAYMENTS = "";
-    private static final String REPORT_TYPE_DUPLICATE_PAYMENTS = "";
-
     private static final Logger LOG = getLogger(PaymentsReportFacade.class);
 
     private final PaymentsReportService reportService;
