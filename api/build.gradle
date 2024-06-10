@@ -6,7 +6,7 @@ buildscript {
     }
     dependencies {
         classpath("net.serenity-bdd:serenity-gradle-plugin:2.5.10")
-        classpath("net.serenity-bdd:serenity-single-page-report:2.6.0")
+        classpath("net.serenity-bdd:serenity-single-page-report:2.1.13")
     }
 }
 
@@ -72,10 +72,9 @@ def versions = [
         sonarPitest     : '0.5',
         lombok          : '1.18.32',
         pact_version    : '4.1.7',
-        reformS2sClient : '4.1.2',
+        reformS2sClient : '3.1.4',
         serenity        : '2.6.0',
         serenityCucumber: '3.0.1',
-        commonsIo       : '2.16.1'
 ]
 
 def javaLoggingVersion = '6.1.4'
@@ -124,7 +123,7 @@ dependencies {
         exclude(module: 'commons-logging')
         exclude(module: 'slf4j-simple')
     }
-    implementation group: 'commons-io', name: 'commons-io', version: versions.commonsIo
+    implementation group: 'commons-io', name: 'commons-io', version: '2.16.1'
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-mail'
     implementation group: 'org.springframework.retry', name: 'spring-retry'
     implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign'
