@@ -75,6 +75,7 @@ def versions = [
         reformS2sClient : '4.1.2',
         serenity        : '4.1.17',
         serenityCucumber: '4.1.17',
+        commonsIo       : '2.16.1'
 ]
 
 def javaLoggingVersion = '6.1.4'
@@ -123,7 +124,7 @@ dependencies {
         exclude(module: 'commons-logging')
         exclude(module: 'slf4j-simple')
     }
-    implementation group: 'commons-io', name: 'commons-io', version: '2.16.1'
+    implementation group: 'commons-io', name: 'commons-io', version: versions.commonsIo
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-mail'
     implementation group: 'org.springframework.retry', name: 'spring-retry'
     implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign'
@@ -180,6 +181,7 @@ dependencies {
     contractTestImplementation("org.junit.jupiter:junit-jupiter-api:5.10.2")
     contractTestImplementation("org.junit.jupiter:junit-jupiter-engine:5.10.2")
     contractTestImplementation('org.junit.jupiter:junit-jupiter-api:5.10.2')
+    contractTestImplementation group: 'org.apache.commons', name: 'commons-io', version: versions.commonsIo
 
     functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-core', version: versions.serenity
     functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-cucumber', version: versions.serenityCucumber
