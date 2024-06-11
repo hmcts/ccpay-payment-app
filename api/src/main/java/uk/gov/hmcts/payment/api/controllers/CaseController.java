@@ -114,8 +114,9 @@ public class CaseController {
         paymentGroupResponse = paymentRefundsService.checkRefundAgainstRemissionV2(headers, paymentGroupResponse, ccdCaseNumber);
 
         RefundListDtoResponse refundListDtoResponse = paymentRefundsService.getRefundsApprovedFromRefundService(ccdCaseNumber,headers);
-        paymentGroups.stream().forEach(paymentGroup-> paymentGroup.setApprovedRefunds(refundListDtoResponse.getRefundList()));
-
+        if (refundListDtoResponse != null) {
+            paymentGroups.stream().forEach(paymentGroup -> paymentGroup.setApprovedRefunds(refundListDtoResponse.getRefundList()));
+        }
         return paymentGroupResponse;
     }
 
