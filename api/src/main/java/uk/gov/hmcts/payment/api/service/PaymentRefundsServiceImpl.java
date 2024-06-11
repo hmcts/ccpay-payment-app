@@ -4,7 +4,6 @@ import java.math.BigInteger;
 import java.time.temporal.ChronoUnit;
 
 import org.apache.commons.lang3.EnumUtils;
-import org.apache.poi.hpsf.Decimal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -248,6 +247,17 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             }
         return new ResponseEntity<>(null, HttpStatus.OK);
     }
+
+
+    public RefundListDtoResponse getRefundsApprovedFromRefundService (String ccdCaseNumber, MultiValueMap<String, String> headers) {
+        return RefundListDtoResponse.buildRefundListWith()
+            .refundList(getRefundsFromRefundService(ccdCaseNumber, headers).getRefundList()
+                .stream()
+                .filter(e->e.getRefundStatus().getName().equals("Accepted")
+                ).collect(Collectors.toList())
+            ).build();
+    }
+
     private RefundListDtoResponse getRefundsFromRefundService(String ccdCaseNumber, MultiValueMap<String, String> headers) {
 
 
