@@ -280,7 +280,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         } catch (HttpClientErrorException e) {
 
             LOG.error("client err ", e);
-
+            e.printStackTrace();
             refundListDtoResponse = null;
 
         }
