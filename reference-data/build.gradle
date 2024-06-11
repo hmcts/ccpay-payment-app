@@ -10,5 +10,5 @@ dependencies {
         exclude(module: 'commons-logging')
     }
 
-    testImplementation group: 'org.testcontainers', name: 'postgresql', version: '1.15.3'
+    testImplementation group: 'org.testcontainers', name: 'postgresql', version: '1.19.8'
 }
