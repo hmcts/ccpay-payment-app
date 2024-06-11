@@ -281,7 +281,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
             LOG.error("client err ", e);
             e.printStackTrace();
-            refundListDtoResponse = null;
+            refundListDtoResponse = RefundListDtoResponse.buildRefundListWith().build();
 
         }
 
