@@ -278,11 +278,10 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             refundListDtoResponse = refundListDtoResponseEntity.hasBody() ? refundListDtoResponseEntity.getBody() : null;
 
         } catch (HttpClientErrorException e) {
+            e.printStackTrace();
 
             LOG.error("client err ", e);
-            e.printStackTrace();
             refundListDtoResponse = RefundListDtoResponse.buildRefundListWith().refundList(new ArrayList<>()).build();
-
         }
 
         return refundListDtoResponse;
