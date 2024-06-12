@@ -250,8 +250,10 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
 
     public RefundListDtoResponse getRefundsApprovedFromRefundService (String ccdCaseNumber, MultiValueMap<String, String> headers) {
+        final var refundListDtoResponse = getRefundsFromRefundService(ccdCaseNumber, headers);
+        if (refundListDtoResponse == null){ return null; }
         return RefundListDtoResponse.buildRefundListWith()
-            .refundList(getRefundsFromRefundService(ccdCaseNumber, headers).getRefundList()
+            .refundList(refundListDtoResponse.getRefundList()
                 .stream()
                 .filter(e->e.getRefundStatus().getName().equals("Accepted")
                 ).collect(Collectors.toList())
@@ -279,9 +281,8 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
         } catch (HttpClientErrorException e) {
             e.printStackTrace();
-
-            LOG.error("client err ", e);
-            refundListDtoResponse = RefundListDtoResponse.buildRefundListWith().refundList(new ArrayList<>()).build();
+            LOG.error("There has been an error calling refunds endpoint. ", e);
+            refundListDtoResponse = null;
         }
 
         return refundListDtoResponse;
