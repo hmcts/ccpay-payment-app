@@ -122,8 +122,8 @@ public class CaseController {
             paymentGroups.stream().forEach(paymentGroup -> paymentGroup.setRefunds(refundListDtoResponse.getRefundList()));
         }
 
+        LOG.info("Refund " + paymentGroupResponse.getPaymentGroups().get(0).getRefunds());
         if (paymentGroupResponse.getPaymentGroups().get(0).getRefunds() != null) {
-            LOG.info("Refund " + paymentGroupResponse.getPaymentGroups().get(0).getRefunds());
             if(!paymentGroupResponse.getPaymentGroups().get(0).getRefunds().isEmpty()){
                 LOG.info("Refund "+ paymentGroupResponse.getPaymentGroups().get(0).getRefunds().get(0).toString());
             }
