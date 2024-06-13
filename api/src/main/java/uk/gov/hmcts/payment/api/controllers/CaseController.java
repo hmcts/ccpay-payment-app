@@ -122,9 +122,15 @@ public class CaseController {
             paymentGroups.stream().forEach(paymentGroup -> paymentGroup.setRefunds(refundListDtoResponse.getRefundList()));
         }
 
-        LOG.info("getPayments"+  paymentGroupResponse.getPaymentGroups().get(0).getPayments().toString());
-        LOG.info("getRemissions "+paymentGroupResponse.getPaymentGroups().get(0).getRemissions().toString());
-        LOG.info("Refund "+ paymentGroupResponse.getPaymentGroups().get(0).getRefunds());
+        if (paymentGroupResponse.getPaymentGroups().get(0).getPayments() != null) {
+            LOG.info("getPayments" + paymentGroupResponse.getPaymentGroups().get(0).getPayments().toString());
+        }
+        if (paymentGroupResponse.getPaymentGroups().get(0).getRemissions() != null) {
+            LOG.info("getRemissions " + paymentGroupResponse.getPaymentGroups().get(0).getRemissions().toString());
+        }
+        if (paymentGroupResponse.getPaymentGroups().get(0).getRefunds() != null) {
+            LOG.info("Refund " + paymentGroupResponse.getPaymentGroups().get(0).getRefunds());
+        }
 
         if(!paymentGroupResponse.getPaymentGroups().get(0).getRemissions().isEmpty()){
             LOG.info("getRemissions "+paymentGroupResponse.getPaymentGroups().get(0).getRemissions().get(0).toString());
