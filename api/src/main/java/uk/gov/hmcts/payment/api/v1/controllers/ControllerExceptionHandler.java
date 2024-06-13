@@ -21,6 +21,8 @@ public class ControllerExceptionHandler {
     @ExceptionHandler(value = {RuntimeException.class})
     @ResponseStatus(code = INTERNAL_SERVER_ERROR)
     public void unknownException(RuntimeException e) {
+        LOG.error("GIVE ME A CLUE !!!!!");
+        e.printStackTrace();
         LOG.error("Unknown error has occurred with errorMessage: " + e.getMessage(), e);
     }
 
