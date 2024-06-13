@@ -497,7 +497,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
             = cardTestService
             .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN_PAYMENT, ccdCaseNumber);
         paymentGroupResponse
-            = casePaymentGroupResponse.getBody().as(PaymentGroupResponse.class);
+            = casePaymentGroupResponse.as(PaymentGroupResponse.class);
         paymentDtoOptional
             = paymentGroupResponse.getPaymentGroups().stream().findFirst();
 

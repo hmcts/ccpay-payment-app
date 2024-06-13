@@ -251,7 +251,9 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
     public RefundListDtoResponse getRefundsApprovedFromRefundService (String ccdCaseNumber, MultiValueMap<String, String> headers) {
         final var refundListDtoResponse = getRefundsFromRefundService(ccdCaseNumber, headers);
-        if (refundListDtoResponse == null){ return null; }
+        if (refundListDtoResponse == null){
+            return RefundListDtoResponse.buildRefundListWith().refundList(new ArrayList<>()).build();
+        }
         return RefundListDtoResponse.buildRefundListWith()
             .refundList(refundListDtoResponse.getRefundList()
                 .stream()
