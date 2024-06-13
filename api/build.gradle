@@ -204,7 +204,7 @@ task smokeTest(type: Test, description: 'Runs the smoke tests', group: 'Verifica
 task functionalTest(type: Test, description: 'Runs the functional tests', group: 'Verification') {
     filter {
         //specific test method
-        includeTestsMatching "uk.gov.hmcts.payment.functional.RefundsRequestorJourneyPBAFunctionalTest.checkIssueRefundAddRefundAddRemissionFlagWithBalance"
+        includeTestsMatching "uk.gov.hmcts.payment.functional.RefundsRequestorJourneyPBAFunctionalTest"
     }
     include "uk/gov/hmcts/payment/functional/**"
     testClassesDirs = sourceSets.functionalTest.output.classesDirs
