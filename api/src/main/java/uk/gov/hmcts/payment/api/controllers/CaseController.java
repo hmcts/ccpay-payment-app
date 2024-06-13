@@ -28,7 +28,6 @@ import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.PaymentGroupService;
 import uk.gov.hmcts.payment.api.service.PaymentRefundsService;
-import uk.gov.hmcts.payment.api.service.PaymentRefundsServiceImpl;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.service.RefundRemissionEnableService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
@@ -120,12 +119,21 @@ public class CaseController {
 
         RefundListDtoResponse refundListDtoResponse = paymentRefundsService.getRefundsApprovedFromRefundService(ccdCaseNumber,headers);
         if (refundListDtoResponse != null) {
-            paymentGroups.stream().forEach(paymentGroup -> paymentGroup.setApprovedRefunds(refundListDtoResponse.getRefundList()));
+            paymentGroups.stream().forEach(paymentGroup -> paymentGroup.setRefunds(refundListDtoResponse.getRefundList()));
         }
 
-        LOG.info("getPayments",paymentGroupResponse.getPaymentGroups().get(0).getPayments());
-        LOG.info("getRemissions",paymentGroupResponse.getPaymentGroups().get(0).getRemissions());
-        LOG.info("Refund",paymentGroupResponse.getPaymentGroups().get(0).getApprovedRefunds());
+        LOG.info("getPayments"+  paymentGroupResponse.getPaymentGroups().get(0).getPayments().toString());
+        LOG.info("getRemissions "+paymentGroupResponse.getPaymentGroups().get(0).getRemissions().toString());
+        LOG.info("Refund "+ paymentGroupResponse.getPaymentGroups().get(0).getRefunds());
+
+        if(!paymentGroupResponse.getPaymentGroups().get(0).getRemissions().isEmpty()){
+            LOG.info("getRemissions "+paymentGroupResponse.getPaymentGroups().get(0).getRemissions().get(0).toString());
+        }
+
+        if(!paymentGroupResponse.getPaymentGroups().get(0).getRefunds().isEmpty()){
+            LOG.info("Refund "+ paymentGroupResponse.getPaymentGroups().get(0).getRefunds().get(0).toString());
+        }
+
 
         return paymentGroupResponse;
     }

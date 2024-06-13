@@ -19,6 +19,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @NoArgsConstructor
 @Getter
 @Setter
+@ToString
 public class RemissionDto {
 
     private String id;

@@ -281,7 +281,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
         } catch (HttpClientErrorException e) {
             e.printStackTrace();
-            LOG.error("There has been an error calling refunds endpoint. ", e);
+            LOG.error("There has been an error calling refunds endpoint.", e);
             refundListDtoResponse = null;
         }
 

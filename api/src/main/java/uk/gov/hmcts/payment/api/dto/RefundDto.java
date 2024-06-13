@@ -9,6 +9,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 import uk.gov.hmcts.payment.api.model.ContactDetails;
 
 import java.math.BigDecimal;
@@ -23,6 +24,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @NoArgsConstructor
 @Getter
 @Setter
+@ToString
 public class RefundDto {
 
     private String ccdCaseNumber;
