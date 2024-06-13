@@ -138,7 +138,7 @@ dependencies {
     implementation group: 'com.github.hmcts', name: 'properties-volume-spring-boot-starter', version: '0.1.1'
 
     //Added this for spring boot upgrade as swagger was not working with the latest version.
-    implementation group: 'org.springframework.plugin', name: 'spring-plugin-core', version: '1.2.0.RELEASE'
+    implementation group: 'org.springframework.plugin', name: 'spring-plugin-core', version: '3.0.0'
     implementation(group: 'org.springframework.hateoas', name: 'spring-hateoas') {
         exclude(module: 'spring-plugin-core')
     }
