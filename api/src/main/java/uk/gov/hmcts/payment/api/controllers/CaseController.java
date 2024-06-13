@@ -123,12 +123,7 @@ public class CaseController {
         }
 
         LOG.info("Refund " + paymentGroupResponse.getPaymentGroups().get(0).getRefunds());
-        if (paymentGroupResponse.getPaymentGroups().get(0).getRefunds() != null) {
-            if(!paymentGroupResponse.getPaymentGroups().get(0).getRefunds().isEmpty()){
-                LOG.info("Refund "+ paymentGroupResponse.getPaymentGroups().get(0).getRefunds().get(0).toString());
-            }
-        }
-
+        LOG.info("END-- " + paymentGroupResponse.getPaymentGroups());
         return paymentGroupResponse;
     }
 
