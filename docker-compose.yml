@@ -92,7 +92,7 @@ services:
 
   payments-database:
     container_name: payments-database
-    image: postgres:16-alpine
+    image: postgres:11-alpine
     environment:
       - POSTGRES_USER=${POSTGRES_USERNAME}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
@@ -124,7 +124,7 @@ services:
 
   ccfr-fees-database:
     container_name: ccfr-fees-database
-    image: postgres:16-alpine
+    image: postgres:11-alpine
     environment:
       - POSTGRES_USER=fees_register
       - POSTGRES_PASSWORD=${FEE_REGISTER}
