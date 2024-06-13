@@ -4,6 +4,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.MultiValueMap;
@@ -26,6 +28,7 @@ import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.PaymentGroupService;
 import uk.gov.hmcts.payment.api.service.PaymentRefundsService;
+import uk.gov.hmcts.payment.api.service.PaymentRefundsServiceImpl;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.service.RefundRemissionEnableService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
@@ -41,6 +44,8 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 @Tag(name = "CaseController", description = "Case REST API")
 @Validated
 public class CaseController {
+
+    private static final Logger LOG = LoggerFactory.getLogger(CaseController.class);
 
     private final PaymentService<PaymentFeeLink, String> paymentService;
     private final PaymentGroupService<PaymentFeeLink, String> paymentGroupService;
@@ -117,6 +122,11 @@ public class CaseController {
         if (refundListDtoResponse != null) {
             paymentGroups.stream().forEach(paymentGroup -> paymentGroup.setApprovedRefunds(refundListDtoResponse.getRefundList()));
         }
+
+        LOG.info("getPayments",paymentGroupResponse.getPaymentGroups().get(0).getPayments());
+        LOG.info("getRemissions",paymentGroupResponse.getPaymentGroups().get(0).getRemissions());
+        LOG.info("Refund",paymentGroupResponse.getPaymentGroups().get(0).getApprovedRefunds());
+
         return paymentGroupResponse;
     }
 
