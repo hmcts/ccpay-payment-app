@@ -49,10 +49,6 @@ import static org.springframework.http.HttpStatus.*;
 @ActiveProfiles({"functional-tests", "liberataMock"})
 public class RefundsRequestorJourneyPBAFunctionalTest {
 
-    static {
-        // Set the default parser globally
-        RestAssured.defaultParser = Parser.JSON;
-    }
     private static String USER_TOKEN;
     private static String USER_TOKEN_PAYMENT;
     private static String SERVICE_TOKEN;

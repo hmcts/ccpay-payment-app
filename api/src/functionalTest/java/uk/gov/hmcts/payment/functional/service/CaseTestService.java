@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.functional.service;
 
+import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.parsing.Parser;
 import io.restassured.response.Response;
@@ -13,7 +14,10 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 @Named
 public class CaseTestService {
 
-
+    static {
+        // Set the default parser globally
+        RestAssured.defaultParser = Parser.JSON;
+    }
 
     public Response getPaymentGroupsForCase(final String userToken,
                                             final String serviceToken,

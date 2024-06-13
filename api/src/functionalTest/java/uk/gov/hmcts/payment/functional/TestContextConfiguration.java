@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import io.restassured.parsing.Parser;
 import io.restassured.path.json.config.JsonPathConfig;
 import io.restassured.path.json.mapper.factory.Jackson2ObjectMapperFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,11 +24,18 @@ import static io.restassured.config.ObjectMapperConfig.objectMapperConfig;
 @PropertySource("classpath:application-functional-tests.properties")
 public class TestContextConfiguration {
 
+    static {
+        // Set the default parser globally
+        RestAssured.defaultParser = Parser.JSON;
+    }
+
+
     @Value("${test.url:http://localhost:8080}")
     private String baseURL;
 
     @PostConstruct
     public void initialize() {
+
 
         // Create and configure the Jackson ObjectMapper
         ObjectMapper objectMapper = new ObjectMapper();
