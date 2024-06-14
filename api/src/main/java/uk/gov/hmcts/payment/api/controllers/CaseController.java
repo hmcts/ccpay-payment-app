@@ -22,7 +22,6 @@ import uk.gov.hmcts.payment.api.domain.service.ServiceRequestDomainService;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupResponse;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
-import uk.gov.hmcts.payment.api.dto.RefundListDtoResponse;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
@@ -116,11 +115,6 @@ public class CaseController {
         }
         PaymentGroupResponse paymentGroupResponse = new PaymentGroupResponse(paymentGroups);
         paymentGroupResponse = paymentRefundsService.checkRefundAgainstRemissionV2(headers, paymentGroupResponse, ccdCaseNumber);
-
-//        RefundListDtoResponse refundListDtoResponse = paymentRefundsService.getRefundsApprovedFromRefundService(ccdCaseNumber,headers);
-//        if (refundListDtoResponse != null) {
-//            paymentGroups.stream().forEach(paymentGroup -> paymentGroup.setRefunds(refundListDtoResponse.getRefundList()));
-//        }
 
         LOG.info("Refund " + paymentGroupResponse.getPaymentGroups().get(0).getRefunds());
         LOG.info("END case number:-----"+ ccdCaseNumber);
