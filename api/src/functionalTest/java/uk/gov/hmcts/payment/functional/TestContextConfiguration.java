@@ -24,12 +24,6 @@ import static io.restassured.config.ObjectMapperConfig.objectMapperConfig;
 @PropertySource("classpath:application-functional-tests.properties")
 public class TestContextConfiguration {
 
-    static {
-        // Set the default parser globally
-        RestAssured.defaultParser = Parser.JSON;
-    }
-
-
     @Value("${test.url:http://localhost:8080}")
     private String baseURL;
 
