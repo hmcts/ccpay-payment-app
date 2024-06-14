@@ -1,8 +1,6 @@
 package uk.gov.hmcts.payment.functional.service;
 
-import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
-import io.restassured.parsing.Parser;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import net.serenitybdd.rest.SerenityRest;
@@ -14,19 +12,13 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 @Named
 public class CaseTestService {
 
-    static {
-        // Set the default parser globally
-        RestAssured.defaultParser = Parser.JSON;
-    }
-
     public Response getPaymentGroupsForCase(final String userToken,
                                             final String serviceToken,
                                             final String ccdCaseNumber) {
         return givenWithAuthHeaders(userToken, serviceToken)
             .contentType(ContentType.JSON)
             .when()
-            .get("/cases/{ccdcasenumber}/paymentgroups",ccdCaseNumber)
-            .then().defaultParser(Parser.JSON).extract().response();
+            .get("/cases/{ccdcasenumber}/paymentgroups",ccdCaseNumber);
     }
 
     public RequestSpecification givenWithAuthHeaders(String userToken, String serviceToken) {

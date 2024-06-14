@@ -123,7 +123,7 @@ public class CaseController {
         }
 
         LOG.info("Refund " + paymentGroupResponse.getPaymentGroups().get(0).getRefunds());
-        LOG.info("END-----");
+        LOG.info("END case number:-----"+ ccdCaseNumber);
         return paymentGroupResponse;
     }
 
