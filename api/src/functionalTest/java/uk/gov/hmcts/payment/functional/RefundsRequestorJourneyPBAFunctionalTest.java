@@ -1,7 +1,5 @@
 package uk.gov.hmcts.payment.functional;
 
-import io.restassured.RestAssured;
-import io.restassured.parsing.Parser;
 import io.restassured.response.Response;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.apache.commons.lang3.RandomUtils;
@@ -499,7 +497,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
             = cardTestService
             .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN_PAYMENT, ccdCaseNumber);
         paymentGroupResponse
-            = casePaymentGroupResponse.as(PaymentGroupResponse.class);
+            = casePaymentGroupResponse.getBody().as(PaymentGroupResponse.class);
         paymentDtoOptional
             = paymentGroupResponse.getPaymentGroups().stream().findFirst();
 

@@ -23,8 +23,6 @@ public class ControllerExceptionHandler {
     public void unknownException(RuntimeException e) {
         LOG.error("GIVE ME A CLUE !!!!!");
         e.printStackTrace();
-
-        e.getCause().printStackTrace();
         LOG.error("Unknown error has occurred with errorMessage: " + e.getMessage(), e);
     }
 
