@@ -117,10 +117,10 @@ public class CaseController {
         PaymentGroupResponse paymentGroupResponse = new PaymentGroupResponse(paymentGroups);
         paymentGroupResponse = paymentRefundsService.checkRefundAgainstRemissionV2(headers, paymentGroupResponse, ccdCaseNumber);
 
-        RefundListDtoResponse refundListDtoResponse = paymentRefundsService.getRefundsApprovedFromRefundService(ccdCaseNumber,headers);
-        if (refundListDtoResponse != null) {
-            paymentGroups.stream().forEach(paymentGroup -> paymentGroup.setRefunds(refundListDtoResponse.getRefundList()));
-        }
+//        RefundListDtoResponse refundListDtoResponse = paymentRefundsService.getRefundsApprovedFromRefundService(ccdCaseNumber,headers);
+//        if (refundListDtoResponse != null) {
+//            paymentGroups.stream().forEach(paymentGroup -> paymentGroup.setRefunds(refundListDtoResponse.getRefundList()));
+//        }
 
         LOG.info("Refund " + paymentGroupResponse.getPaymentGroups().get(0).getRefunds());
         LOG.info("END case number:-----"+ ccdCaseNumber);
