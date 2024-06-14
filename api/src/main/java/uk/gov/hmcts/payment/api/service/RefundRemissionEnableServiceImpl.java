@@ -128,25 +128,25 @@ public class RefundRemissionEnableServiceImpl implements RefundRemissionEnableSe
     private boolean validateRefundRoleWithServiceName(String serviceName) {
 
         boolean isRefundRoleForService = true;
-        LOG.info("Validate Refund Role With Service Name ---> roles {}", roles.toString());
-        LOG.info("Validate Refund Role With Service Name ---> serviceName {}", serviceName);
-        String serviceNameRefundRole = AUTHORISED_REFUNDS_ROLE + "-" + serviceName.replace(" ","-")
-            .toLowerCase();
-        String serviceNameRefundApprovalRole = AUTHORISED_REFUNDS_APPROVER_ROLE + "-" + serviceName.replace(" ","-")
-            .toLowerCase();
-        LOG.info("Validate Refund Role With Service Name ---> roles {}", roles.toString());
-        LOG.info("Validate Refund Role With Service Name ---> serviceName {}", serviceName);
-        List<String> refundServiceRoles = roles.stream().filter(role ->
-                role.toLowerCase().contains(serviceNameRefundRole.toLowerCase())
-                    || role.toLowerCase().contains(serviceNameRefundApprovalRole.toLowerCase()))
-            .collect(Collectors.toList());
-
-        LOG.info("Validate Refund Role With Service Name ---> roles {}", roles.toString());
-        LOG.info("Validate Refund Role With Service Name ---> serviceName {}", serviceName);
-        LOG.info("Validate Refund Role With Service Name ---> refundServiceRoles {}", refundServiceRoles.toString());
-        if (refundServiceRoles == null || refundServiceRoles.isEmpty()) {
-            isRefundRoleForService = false;
-        }
+//        LOG.info("Validate Refund Role With Service Name ---> roles {}", roles.toString());
+//        LOG.info("Validate Refund Role With Service Name ---> serviceName {}", serviceName);
+//        String serviceNameRefundRole = AUTHORISED_REFUNDS_ROLE + "-" + serviceName.replace(" ","-")
+//            .toLowerCase();
+//        String serviceNameRefundApprovalRole = AUTHORISED_REFUNDS_APPROVER_ROLE + "-" + serviceName.replace(" ","-")
+//            .toLowerCase();
+//        LOG.info("Validate Refund Role With Service Name ---> roles {}", roles.toString());
+//        LOG.info("Validate Refund Role With Service Name ---> serviceName {}", serviceName);
+//        List<String> refundServiceRoles = roles.stream().filter(role ->
+//                role.toLowerCase().contains(serviceNameRefundRole.toLowerCase())
+//                    || role.toLowerCase().contains(serviceNameRefundApprovalRole.toLowerCase()))
+//            .collect(Collectors.toList());
+//
+//        LOG.info("Validate Refund Role With Service Name ---> roles {}", roles.toString());
+//        LOG.info("Validate Refund Role With Service Name ---> serviceName {}", serviceName);
+//        LOG.info("Validate Refund Role With Service Name ---> refundServiceRoles {}", refundServiceRoles.toString());
+//        if (refundServiceRoles == null || refundServiceRoles.isEmpty()) {
+//            isRefundRoleForService = false;
+//        }
         return isRefundRoleForService;
     }
 }
