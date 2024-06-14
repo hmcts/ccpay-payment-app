@@ -282,9 +282,10 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             refundListDtoResponse = refundListDtoResponseEntity.hasBody() ? refundListDtoResponseEntity.getBody() : null;
 
         } catch (HttpClientErrorException e) {
-            LOG.error("Catch the refund error for this case number: ", ccdCaseNumber);
-            LOG.error("Catch the refund error", e.getMessage());
-            LOG.error("There has been an error calling refunds endpoint.", e);
+            LOG.info("Catch the refund error for this case number: "+ ccdCaseNumber);
+            LOG.info("Catch the refund error", e.getMessage());
+            LOG.info("There has been an error calling refunds endpoint.", e);
+            e.printStackTrace();
             refundListDtoResponse = null;
         }
 
