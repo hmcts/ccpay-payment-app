@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.api.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
@@ -8,19 +9,22 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 import uk.gov.hmcts.payment.api.model.ContactDetails;
 
 import java.math.BigDecimal;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+@JsonInclude(NON_NULL)
 @Builder(builderMethodName = "buildRefundListDtoWith")
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
-@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-@JsonInclude(NON_NULL)
+@ToString
 public class RefundDto {
 
     private String ccdCaseNumber;

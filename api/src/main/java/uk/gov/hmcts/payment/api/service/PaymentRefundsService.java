@@ -19,4 +19,6 @@ public interface PaymentRefundsService {
 
 
     void deleteByRefundReference(String refundReference, MultiValueMap<String, String> headers);
+
+    RefundListDtoResponse getRefundsApprovedFromRefundService(String ccdCaseNumber, MultiValueMap<String, String> headers);
 }

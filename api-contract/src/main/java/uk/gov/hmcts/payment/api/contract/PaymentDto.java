@@ -10,6 +10,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 
 import javax.validation.constraints.NotEmpty;
@@ -30,6 +31,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
+@ToString
 public class PaymentDto {
 
     private String id;

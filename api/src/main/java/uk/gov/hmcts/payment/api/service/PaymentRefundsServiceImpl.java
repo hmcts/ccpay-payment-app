@@ -4,7 +4,6 @@ import java.math.BigInteger;
 import java.time.temporal.ChronoUnit;
 
 import org.apache.commons.lang3.EnumUtils;
-import org.apache.poi.hpsf.Decimal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -248,6 +247,21 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             }
         return new ResponseEntity<>(null, HttpStatus.OK);
     }
+
+
+    public RefundListDtoResponse getRefundsApprovedFromRefundService (String ccdCaseNumber, MultiValueMap<String, String> headers) {
+        final var refundListDtoResponse = getRefundsFromRefundService(ccdCaseNumber, headers);
+        if (refundListDtoResponse == null){
+            return RefundListDtoResponse.buildRefundListWith().refundList(new ArrayList<>()).build();
+        }
+        return RefundListDtoResponse.buildRefundListWith()
+            .refundList(refundListDtoResponse.getRefundList()
+                .stream()
+                .filter(e->e.getRefundStatus().getName().equals("Accepted")
+                ).collect(Collectors.toList())
+            ).build();
+    }
+
     private RefundListDtoResponse getRefundsFromRefundService(String ccdCaseNumber, MultiValueMap<String, String> headers) {
 
 
@@ -267,12 +281,14 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
             refundListDtoResponse = refundListDtoResponseEntity.hasBody() ? refundListDtoResponseEntity.getBody() : null;
 
-        } catch (HttpClientErrorException e) {
-
-            LOG.error("client err ", e);
+        } catch (Exception e) {
+            LOG.info("Catch the refund error for this case number: "+ ccdCaseNumber);
+            LOG.info("Catch the refund error", e.getMessage());
+            LOG.info("There has been an error calling refunds endpoint.", e);
+            e.printStackTrace();
+            LOG.info("Get cause:    ", e.getCause());
 
             refundListDtoResponse = null;
-
         }
 
         return refundListDtoResponse;
