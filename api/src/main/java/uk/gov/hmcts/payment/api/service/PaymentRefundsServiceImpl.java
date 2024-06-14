@@ -248,6 +248,20 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             }
         return new ResponseEntity<>(null, HttpStatus.OK);
     }
+
+    public RefundListDtoResponse getRefundsApprovedFromRefundService (String ccdCaseNumber, MultiValueMap<String, String> headers) {
+        final var refundListDtoResponse = getRefundsFromRefundService(ccdCaseNumber, headers);
+        if (refundListDtoResponse == null){
+            return RefundListDtoResponse.buildRefundListWith().refundList(new ArrayList<>()).build();
+        }
+        return RefundListDtoResponse.buildRefundListWith()
+            .refundList(refundListDtoResponse.getRefundList()
+                .stream()
+                .filter(e->e.getRefundStatus().getName().equals("Accepted")
+                ).collect(Collectors.toList())
+            ).build();
+    }
+
     private RefundListDtoResponse getRefundsFromRefundService(String ccdCaseNumber, MultiValueMap<String, String> headers) {
 
 
