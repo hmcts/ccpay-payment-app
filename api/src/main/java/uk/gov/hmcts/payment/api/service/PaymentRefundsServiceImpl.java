@@ -263,8 +263,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
     private RefundListDtoResponse getRefundsForCalculations(String ccdCaseNumber, MultiValueMap<String, String> headers) {
 
-
-        RefundListDtoResponse refundListDtoResponse;
+        RefundListDtoResponse refundListDtoResponse = null;
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(refundApiUrl + REFUND_ENDPOINT).queryParam("ccdCaseNumber",ccdCaseNumber);
 
@@ -278,13 +277,20 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             ResponseEntity<RefundListDtoResponse> refundListDtoResponseEntity  = restTemplateRefundsGroup
                 .exchange(builder.toUriString(), HttpMethod.GET, createEntity(headers), RefundListDtoResponse.class);
 
-            refundListDtoResponse = refundListDtoResponseEntity.hasBody() ? refundListDtoResponseEntity.getBody() : null;
+            return refundListDtoResponseEntity.hasBody() ? refundListDtoResponseEntity.getBody() : null;
 
+        } catch (HttpClientErrorException httpClientErrorException) {
+
+            if (httpClientErrorException.getStatusCode().equals(HttpStatus.BAD_REQUEST)
+                && httpClientErrorException.getMessage().equals("Refund list is empty for given criteria")) {
+                LOG.info("The refund list is empty.", httpClientErrorException);
+                return RefundListDtoResponse.buildRefundListWith().refundList(new ArrayList<>()).build();
+            } else {
+                LOG.error("Client err ", httpClientErrorException);
+            }
         } catch (Exception exception) {
 
-
             LOG.info("headers.toString!!!: " + headers.toString());
-
             LOG.info("Message!!!: " + exception.getMessage());
             LOG.info("Exception!!!: " + exception);
             exception.printStackTrace();
@@ -292,12 +298,8 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                 LOG.info("exception.getCause()!!!: " + exception.getCause());
                 LOG.info("exception.getCause().getMessage()!!!: " + exception.getCause().getMessage());
             }
-
-            LOG.error("client err ", exception);
-            refundListDtoResponse = null;
-
+            LOG.error("Client err ", exception);
         }
-
         return refundListDtoResponse;
 
     }
