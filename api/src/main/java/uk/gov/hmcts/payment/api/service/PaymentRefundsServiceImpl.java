@@ -4,7 +4,6 @@ import java.math.BigInteger;
 import java.time.temporal.ChronoUnit;
 
 import org.apache.commons.lang3.EnumUtils;
-import org.apache.poi.hpsf.Decimal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -250,7 +249,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
     }
 
     public RefundListDtoResponse getRefundsApprovedFromRefundService (String ccdCaseNumber, MultiValueMap<String, String> headers) {
-        final var refundListDtoResponse = getRefundsFromRefundService(ccdCaseNumber, headers);
+        final var refundListDtoResponse = getRefundsForCalculations(ccdCaseNumber, headers);
         if (refundListDtoResponse == null){
             return RefundListDtoResponse.buildRefundListWith().refundList(new ArrayList<>()).build();
         }
@@ -262,6 +261,41 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             ).build();
     }
 
+    private RefundListDtoResponse getRefundsForCalculations(String ccdCaseNumber, MultiValueMap<String, String> headers) {
+
+
+        RefundListDtoResponse refundListDtoResponse;
+
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(refundApiUrl + REFUND_ENDPOINT).queryParam("ccdCaseNumber",ccdCaseNumber);
+
+        LOG.info("builder.toUriString() : {}", builder.toUriString());
+
+        try {
+
+            LOG.info("restTemplateRefundsGroup : {}", restTemplateRefundsGroup);
+
+            // call refund app
+            ResponseEntity<RefundListDtoResponse> refundListDtoResponseEntity  = restTemplateRefundsGroup
+                .exchange(builder.toUriString(), HttpMethod.GET, createEntity(headers), RefundListDtoResponse.class);
+
+            refundListDtoResponse = refundListDtoResponseEntity.hasBody() ? refundListDtoResponseEntity.getBody() : null;
+
+        } catch (HttpClientErrorException httpClientErrorException) {
+            if (
+                httpClientErrorException.getStatusCode() != null &&
+                httpClientErrorException.getStatusCode().equals(HttpStatus.BAD_REQUEST) &&
+                httpClientErrorException.getMessage().equals("Refund list is empty for given criteria")) {
+
+                LOG.info("No Refund found: " +httpClientErrorException.getMessage());
+            }
+            LOG.error("client err ", httpClientErrorException);
+            refundListDtoResponse = null;
+
+        }
+
+        return refundListDtoResponse;
+
+    }
     private RefundListDtoResponse getRefundsFromRefundService(String ccdCaseNumber, MultiValueMap<String, String> headers) {
 
 
