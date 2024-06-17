@@ -282,6 +282,9 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
         } catch (Exception exception) {
 
+
+            LOG.info("headers.toString!!!: " + headers.toString());
+
             LOG.info("Message!!!: " + exception.getMessage());
             LOG.info("Exception!!!: " + exception);
             exception.printStackTrace();
