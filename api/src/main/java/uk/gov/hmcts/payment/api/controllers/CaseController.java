@@ -4,6 +4,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.MultiValueMap;
@@ -20,6 +22,7 @@ import uk.gov.hmcts.payment.api.domain.service.ServiceRequestDomainService;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupResponse;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
+import uk.gov.hmcts.payment.api.dto.RefundListDtoResponse;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
@@ -40,6 +43,8 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 @Tag(name = "CaseController", description = "Case REST API")
 @Validated
 public class CaseController {
+
+    private static final Logger LOG = LoggerFactory.getLogger(CaseController.class);
 
     private final PaymentService<PaymentFeeLink, String> paymentService;
     private final PaymentGroupService<PaymentFeeLink, String> paymentGroupService;
@@ -112,6 +117,16 @@ public class CaseController {
         PaymentGroupResponse paymentGroupResponse = new PaymentGroupResponse(paymentGroups);
 
         paymentGroupResponse = paymentRefundsService.checkRefundAgainstRemissionV2(headers, paymentGroupResponse, ccdCaseNumber);
+
+
+        RefundListDtoResponse refundListDtoResponse = paymentRefundsService.getRefundsApprovedFromRefundService(ccdCaseNumber,headers);
+        if (refundListDtoResponse != null) {
+            paymentGroups.stream().forEach(paymentGroup -> paymentGroup.setRefunds(refundListDtoResponse.getRefundList()));
+        }
+
+        LOG.info("Refund " + paymentGroupResponse.getPaymentGroups().get(0).getRefunds());
+        LOG.info("END case number:-----"+ ccdCaseNumber);
+
 
         return paymentGroupResponse;
     }
