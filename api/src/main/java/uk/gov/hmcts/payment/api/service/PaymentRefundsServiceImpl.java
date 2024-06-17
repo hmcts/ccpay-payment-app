@@ -280,15 +280,17 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
             refundListDtoResponse = refundListDtoResponseEntity.hasBody() ? refundListDtoResponseEntity.getBody() : null;
 
-        } catch (HttpClientErrorException httpClientErrorException) {
-            if (
-                httpClientErrorException.getStatusCode() != null &&
-                httpClientErrorException.getStatusCode().equals(HttpStatus.BAD_REQUEST) &&
-                httpClientErrorException.getMessage().equals("Refund list is empty for given criteria")) {
+        } catch (Exception exception) {
 
-                LOG.info("No Refund found: " +httpClientErrorException.getMessage());
+            LOG.info("Message!!!: " + exception.getMessage());
+            LOG.info("Exception!!!: " + exception);
+            exception.printStackTrace();
+            if (exception.getCause() != null) {
+                LOG.info("exception.getCause()!!!: " + exception.getCause());
+                LOG.info("exception.getCause().getMessage()!!!: " + exception.getCause().getMessage());
             }
-            LOG.error("client err ", httpClientErrorException);
+
+            LOG.error("client err ", exception);
             refundListDtoResponse = null;
 
         }
