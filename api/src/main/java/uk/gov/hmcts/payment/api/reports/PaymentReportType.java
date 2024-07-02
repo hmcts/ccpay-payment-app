@@ -6,6 +6,7 @@ import java.util.HashMap;
 
 public enum PaymentReportType {
 
+    DUPLICATE_PAYMENT,
     CARD,
     DIGITAL_BAR,
     PBA_CMC,

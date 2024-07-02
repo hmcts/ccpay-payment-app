@@ -269,7 +269,7 @@ serenity {
     reports = ["single-page-html"]
 }
 
-def getCheckedOutGitCommitHash() {
+static def getCheckedOutGitCommitHash() {
     'git rev-parse --verify --short HEAD'.execute().text.trim()
 }
 
