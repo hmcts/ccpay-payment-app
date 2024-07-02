@@ -1,10 +1,10 @@
 package uk.gov.hmcts.payment.functional;
 
 import io.restassured.response.Response;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
-import org.testcontainers.shaded.org.apache.commons.lang.RandomStringUtils;
 import uk.gov.hmcts.payment.api.dto.PBAResponse;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
 import uk.gov.hmcts.payment.functional.config.ValidUser;
