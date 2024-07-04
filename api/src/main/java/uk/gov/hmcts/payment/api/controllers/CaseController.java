@@ -123,11 +123,6 @@ public class CaseController {
         if (refundListDtoResponse != null) {
             paymentGroups.stream().forEach(paymentGroup -> paymentGroup.setRefunds(refundListDtoResponse.getRefundList()));
         }
-
-        LOG.info("Refund " + paymentGroupResponse.getPaymentGroups().get(0).getRefunds());
-        LOG.info("END case number:-----"+ ccdCaseNumber);
-
-
         return paymentGroupResponse;
     }
 
