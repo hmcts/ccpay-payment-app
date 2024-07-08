@@ -50,6 +50,11 @@ variable "core_product" {
   default = "ccpay"
 }
 
+variable "product_name" {
+  type    = string
+  default = "telephony"
+}
+
 # thumbprint of the SSL certificate for API gateway tests
 variable telephony_api_gateway_certificate_thumbprints {
   type = list(string)
@@ -69,9 +74,12 @@ variable flexible_sku_name {
   default = "GP_Standard_D2s_v3"
 }
 
-
 variable "aks_subscription_id" {}
 
 variable "additional_databases" {
   default = []
+}
+
+variable "apim_suffix" {
+  default = ""
 }
