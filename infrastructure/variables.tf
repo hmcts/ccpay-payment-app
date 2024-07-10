@@ -4,7 +4,7 @@ variable "product" {
 }
 
 variable "component" {
-  type    = string
+  type = string
 }
 
 variable "location" {
@@ -22,12 +22,12 @@ variable "subscription" {
 variable "tenant_id" {}
 
 variable "jenkins_AAD_objectId" {
-  type                        = string
-  description                 = "(Required) The Azure AD object ID of a user, service principal or security group in the Azure Active Directory tenant for the vault. The object ID must be unique for the list of access policies."
+  type        = string
+  description = "(Required) The Azure AD object ID of a user, service principal or security group in the Azure Active Directory tenant for the vault. The object ID must be unique for the list of access policies."
 }
 
 variable "microservice" {
-  type = string
+  type    = string
   default = "payment-app"
 }
 
@@ -50,9 +50,14 @@ variable "core_product" {
   default = "ccpay"
 }
 
+variable "product_name" {
+  type    = string
+  default = "telephony"
+}
+
 # thumbprint of the SSL certificate for API gateway tests
-variable telephony_api_gateway_certificate_thumbprints {
-  type = list(string)
+variable "telephony_api_gateway_certificate_thumbprints" {
+  type    = list(string)
   default = []
 }
 
@@ -65,13 +70,16 @@ variable "postgresql_flexible_server_port" {
   default = "5432"
 }
 
-variable flexible_sku_name {
+variable "flexible_sku_name" {
   default = "GP_Standard_D2s_v3"
 }
-
 
 variable "aks_subscription_id" {}
 
 variable "additional_databases" {
   default = []
+}
+
+variable "apim_suffix" {
+  default = ""
 }
