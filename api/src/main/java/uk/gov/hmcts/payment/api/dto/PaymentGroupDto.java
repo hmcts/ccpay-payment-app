@@ -23,6 +23,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @NoArgsConstructor
 @Getter
 @Setter
+@ToString
 public class PaymentGroupDto {
 
     private String paymentGroupReference;
@@ -42,5 +43,7 @@ public class PaymentGroupDto {
     private List<FeeDto> fees;
 
     private boolean isAnyPaymentDisputed;
+
+    private List<RefundDto> refunds;
 
 }
