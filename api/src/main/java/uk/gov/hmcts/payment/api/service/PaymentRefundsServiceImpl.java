@@ -772,7 +772,8 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
                             refundListDtoResponse.getRefundList().forEach(refundDto -> {
 
-                                if (refundDto.getPaymentReference().equals(paymentDto1.getReference())) {
+                                if (refundDto.getPaymentReference().equals(paymentDto1.getReference()) &&
+                                    isAnAcceptedRefund(refundDto)) {
                                     paymentDto1.setOverPayment(BigDecimal.ZERO);
                                 }
                             });
@@ -802,7 +803,8 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                         refundListDtoResponse.getRefundList().forEach(refundDto -> {
 
                             if (refundDto.getCcdCaseNumber().equals(feeDto.getCcdCaseNumber()) &&
-                                (Arrays.stream(refundDto.getFeeIds().split(",")).anyMatch(feeDto.getId().toString()::equals))
+                                (Arrays.stream(refundDto.getFeeIds().split(",")).anyMatch(feeDto.getId().toString()::equals)) &&
+                                isAnAcceptedRefund(refundDto)
                             ) {
                                 feeDto.setOverPayment(BigDecimal.ZERO);
                             }
@@ -826,6 +828,9 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         return paymentGroupDto;
     }
 
+    private boolean isAnAcceptedRefund(RefundDto refundDto){
+        return refundDto.getRefundStatus().getName().equals("Accepted");
+    }
 
     public PaymentGroupResponse checkRefundAgainstRemissionV2(MultiValueMap<String, String> headers,
                                                               PaymentGroupResponse paymentGroupResponse, String ccdCaseNumber) {
@@ -955,7 +960,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                         if (refundListDtoResponse != null) {
                             refundListDtoResponse.getRefundList().forEach(refundDto -> {
 
-                            if (refundDto.getCcdCaseNumber().equals(feeDto.getCcdCaseNumber())
+                            if (refundDto.getCcdCaseNumber().equals(feeDto.getCcdCaseNumber()) && isAnAcceptedRefund(refundDto)
                             ) {
                                 feeDto.setOverPayment(BigDecimal.ZERO);
                             }
@@ -968,7 +973,8 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
                             refundListDtoResponse.getRefundList().forEach(refundDto -> {
 
-                                if (refundDto.getPaymentReference().equals(paymentDto.getReference())) {
+                                if (refundDto.getPaymentReference().equals(paymentDto.getReference()) &&
+                                    isAnAcceptedRefund(refundDto)) {
                                     paymentDto.setOverPayment(BigDecimal.ZERO);
                                 }
                             });
