@@ -1,5 +1,3 @@
-sku_name            = "GP_Gen5_4"
-flexible_sku_name   = "GP_Standard_D4s_v3"
-aks_subscription_id = "8a07fdcd-6abd-48b3-ad88-ff737a4b9e3c"
-sku_capacity        = "4"
-apim_suffix         = "test"
+sku_name          = "GP_Gen5_4"
+flexible_sku_name = "GP_Standard_D4s_v3"
+sku_capacity      = "4"
