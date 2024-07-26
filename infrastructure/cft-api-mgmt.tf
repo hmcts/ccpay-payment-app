@@ -38,7 +38,6 @@ module "cft_api_mgmt_api" {
   api_mgmt_rg   = local.cft_api_mgmt_rg
   product_id    = module.cft_api_mgmt_product.product_id
   path          = local.api_base_path
-  protocols     = ["http", "https"]
   service_url   = "http://payment-api-${var.env}.service.core-compute-${var.env}.internal"
   swagger_url   = "https://raw.githubusercontent.com/hmcts/cnp-api-docs/master/docs/specs/ccpay-payment-app.telephony.json"
   protocols     = ["http", "https"]
