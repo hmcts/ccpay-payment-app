@@ -1,0 +1,78 @@
+<policies>
+    <backend>
+        <base/>
+    </backend>
+    <inbound>
+        <base/>
+        <choose>
+          <when condition="@(context.Request.Headers["X-ARR-ClientCertThumbprint"] == null)">
+              <return-response>
+                <set-status code="401" />
+                <set-body>Missing client certificate.</set-body>
+              </return-response>
+          </when>
+          <when condition="@(!(new string[] {${allowed_certificate_thumbprints}}.Contains(context.Request.Headers[&quot;X-ARR-ClientCertThumbprint&quot;].First().ToUpperInvariant())))">
+              <return-response>
+                <set-status code="401" />
+                <set-body>Invalid client certificate.</set-body>
+              </return-response>
+          </when>
+          <when condition="@(context.Request.Certificate == null || context.Request.Certificate.NotAfter < DateTime.Now || context.Request.Certificate.NotBefore > DateTime.Now || !(new string[] {${allowed_certificate_thumbprints}}.Any(c => c == context.Request.Certificate.Thumbprint)))" >
+              <return-response>
+                <set-status code="401" />
+                <set-body>Invalid client certificate. Please check expiry.</set-body>
+              </return-response>
+          </when>
+        </choose>
+        <!-- generate totp -->
+        <set-variable name="client_id" value="${s2s_client_id}" />
+        <set-variable name="client_secret" value="${s2s_client_secret}" />
+        <set-variable name="one_time_password" value="@{
+                const string Base32AllowedCharacters = &quot;ABCDEFGHIJKLMNOPQRSTUVWXYZ234567&quot;;
+                var bits = &quot;${s2s_client_secret}&quot;.ToUpper().ToCharArray().Select(c => Convert.ToString(Base32AllowedCharacters.IndexOf(c), 2).PadLeft(5, '0')).Aggregate((a, b) => a + b);
+                var secretKeyBytes = Enumerable.Range(0, bits.Length / 8).Select(i => Convert.ToByte(bits.Substring(i * 8, 8), 2)).ToArray();
+
+                var unixTimestamp = (long) (DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+                var timeIndex = unixTimestamp / 30;
+                byte[] challenge = BitConverter.GetBytes(timeIndex);
+                if (BitConverter.IsLittleEndian) {
+                    Array.Reverse(challenge);
+                }
+
+                HMACSHA1 hmac = new HMACSHA1(secretKeyBytes);
+                byte[] hash = hmac.ComputeHash(challenge);
+                int offset = hash[19] &amp; 0xf;
+                int truncatedHash = hash[offset] &amp; 0x7f;
+                for (int i = 1; i &lt; 4; i++)
+                {
+                    truncatedHash &lt;&lt;= 8;
+                    truncatedHash |= hash[offset + i] &amp; 0xff;
+                }
+                truncatedHash %= 1000000;
+                return truncatedHash.ToString(&quot;D6&quot;);
+            }"/>
+        <send-request ignore-error="false" timeout="20" response-variable-name="s2sBearerToken" mode="new">
+            <set-url>${s2s_base_url}/lease</set-url>
+            <set-method>POST</set-method>
+            <set-header name="Content-Type" exists-action="override">
+                <value>application/json</value>
+            </set-header>
+            <set-body>@{
+                return new JObject(
+                new JProperty("microservice", (string)context.Variables["client_id"]),
+                new JProperty("oneTimePassword", (string)context.Variables["one_time_password"])
+                ).ToString();
+                }</set-body>
+        </send-request>
+
+        <set-header name="ServiceAuthorization" exists-action="override">
+            <value>@("Bearer " + ((IResponse)context.Variables["s2sBearerToken"]).Body.As&lt;string&gt;())</value>
+        </set-header>
+    </inbound>
+    <outbound>
+        <base/>
+    </outbound>
+    <on-error>
+        <base/>
+    </on-error>
+</policies>

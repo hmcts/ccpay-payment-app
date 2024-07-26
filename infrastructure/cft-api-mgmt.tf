@@ -6,6 +6,17 @@ locals {
   cft_api_mgmt_rg     = join("-", ["cft", var.env, "network-rg"])
 }
 
+data "template_file" "cft_policy_template" {
+  template = file(join("", [path.module, "/template/cft-api-policy.xml"]))
+
+  vars = {
+    allowed_certificate_thumbprints = local.thumbprints_in_quotes_str
+    s2s_client_id                   = data.azurerm_key_vault_secret.s2s_client_id.value
+    s2s_client_secret               = data.azurerm_key_vault_secret.s2s_client_secret.value
+    s2s_base_url                    = local.s2sUrl
+  }
+}
+
 module "cft_api_mgmt_product" {
   source                        = "git@github.com:hmcts/cnp-module-api-mgmt-product?ref=master"
   name                          = var.product_name
@@ -30,6 +41,7 @@ module "cft_api_mgmt_api" {
   protocols     = ["http", "https"]
   service_url   = "http://payment-api-${var.env}.service.core-compute-${var.env}.internal"
   swagger_url   = "https://raw.githubusercontent.com/hmcts/cnp-api-docs/master/docs/specs/ccpay-payment-app.telephony.json"
+  protocols     = ["http", "https"]
   revision      = "1"
   providers = {
     azurerm = azurerm.aks-cftapps
@@ -41,7 +53,7 @@ module "cft_api_mgmt_policy" {
   api_mgmt_name          = local.cft_api_mgmt_name
   api_mgmt_rg            = local.cft_api_mgmt_rg
   api_name               = module.cft_api_mgmt_api.name
-  api_policy_xml_content = data.template_file.policy_template.rendered
+  api_policy_xml_content = data.template_file.cft_policy_template.rendered
   providers = {
     azurerm = azurerm.aks-cftapps
   }

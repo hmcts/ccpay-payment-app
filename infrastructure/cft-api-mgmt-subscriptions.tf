@@ -10,7 +10,7 @@ resource "azurerm_api_management_subscription" "fee_pay_team_telephony_subscript
   provider            = azurerm.aks-cftapps
 }
 
-resource "azurerm_key_vault_secret" "fee_pay_team_bulk_scan_subscription_key" {
+resource "azurerm_key_vault_secret" "fee_pay_team_telephony_subscription_key" {
   name         = "fee-pay-team-telephony-cft-apim-subscription-key"
   value        = azurerm_api_management_subscription.fee_pay_team_telephony_subscription.primary_key
   key_vault_id = data.azurerm_key_vault.payment_key_vault.id
