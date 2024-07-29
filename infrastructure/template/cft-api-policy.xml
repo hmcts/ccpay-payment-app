@@ -17,12 +17,12 @@
                 <set-body>Invalid client certificate.</set-body>
               </return-response>
           </when>
-          <when condition="@(context.Request.Certificate == null || context.Request.Certificate.NotAfter < DateTime.Now || context.Request.Certificate.NotBefore > DateTime.Now || !(new string[] {${allowed_certificate_thumbprints}}.Any(c => c == context.Request.Certificate.Thumbprint)))" >
-              <return-response>
-                <set-status code="401" />
-                <set-body>Invalid client certificate. Please check expiry.</set-body>
-              </return-response>
-          </when>
+<!--          <when condition="@(context.Request.Certificate == null || context.Request.Certificate.NotAfter < DateTime.Now || context.Request.Certificate.NotBefore > DateTime.Now || !(new string[] {${allowed_certificate_thumbprints}}.Any(c => c == context.Request.Certificate.Thumbprint)))" >-->
+<!--              <return-response>-->
+<!--                <set-status code="401" />-->
+<!--                <set-body>Invalid client certificate. Please check expiry.</set-body>-->
+<!--              </return-response>-->
+<!--          </when>-->
         </choose>
         <!-- generate totp -->
         <set-variable name="client_id" value="${s2s_client_id}" />
