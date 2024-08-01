@@ -254,11 +254,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             return RefundListDtoResponse.buildRefundListWith().refundList(new ArrayList<>()).build();
         }
         return RefundListDtoResponse.buildRefundListWith()
-            .refundList(refundListDtoResponse.getRefundList()
-                .stream()
-                .filter(e->e.getRefundStatus().getName().equals("Accepted")
-                ).collect(Collectors.toList())
-            ).build();
+            .refundList(refundListDtoResponse.getRefundList()).build();
     }
 
     private RefundListDtoResponse getRefundsForCalculations(String ccdCaseNumber, MultiValueMap<String, String> headers) {
