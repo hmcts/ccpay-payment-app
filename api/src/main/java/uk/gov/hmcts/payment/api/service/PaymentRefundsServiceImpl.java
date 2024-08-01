@@ -285,14 +285,10 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                 LOG.error("Client err ", httpClientErrorException);
             }
         } catch (Exception exception) {
-
-            LOG.info("headers.toString!!!: " + headers.toString());
-            LOG.info("Message!!!: " + exception.getMessage());
-            LOG.info("Exception!!!: " + exception);
             exception.printStackTrace();
             if (exception.getCause() != null) {
-                LOG.info("exception.getCause()!!!: " + exception.getCause());
-                LOG.info("exception.getCause().getMessage()!!!: " + exception.getCause().getMessage());
+                LOG.info("exception.getCause(): " + exception.getCause());
+                LOG.info("exception.getCause().getMessage(): " + exception.getCause().getMessage());
             }
             LOG.error("Client err ", exception);
         }

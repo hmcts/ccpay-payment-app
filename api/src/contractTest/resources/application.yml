@@ -4,4 +4,3 @@ logging:
     au.com.dius.pact: DEBUG
   pattern:
     console: "%d{yyyy-MMM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{15} - %msg%n"
-
