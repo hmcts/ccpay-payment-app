@@ -4,7 +4,6 @@ import java.math.BigInteger;
 import java.time.temporal.ChronoUnit;
 
 import org.apache.commons.lang3.EnumUtils;
-import org.apache.poi.hpsf.Decimal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -247,6 +246,54 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                     updateRemissionAmount(feeId, request.getAmount());
             }
         return new ResponseEntity<>(null, HttpStatus.OK);
+    }
+
+    public RefundListDtoResponse getRefundsApprovedFromRefundService (String ccdCaseNumber, MultiValueMap<String, String> headers) {
+        final var refundListDtoResponse = getRefundsForCalculations(ccdCaseNumber, headers);
+        if (refundListDtoResponse == null){
+            return RefundListDtoResponse.buildRefundListWith().refundList(new ArrayList<>()).build();
+        }
+        return RefundListDtoResponse.buildRefundListWith()
+            .refundList(refundListDtoResponse.getRefundList()).build();
+    }
+
+    private RefundListDtoResponse getRefundsForCalculations(String ccdCaseNumber, MultiValueMap<String, String> headers) {
+
+        RefundListDtoResponse refundListDtoResponse = null;
+
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(refundApiUrl + REFUND_ENDPOINT).queryParam("ccdCaseNumber",ccdCaseNumber);
+
+        LOG.info("builder.toUriString() : {}", builder.toUriString());
+
+        try {
+
+            LOG.info("restTemplateRefundsGroup : {}", restTemplateRefundsGroup);
+
+            // call refund app
+            ResponseEntity<RefundListDtoResponse> refundListDtoResponseEntity  = restTemplateRefundsGroup
+                .exchange(builder.toUriString(), HttpMethod.GET, createEntity(headers), RefundListDtoResponse.class);
+
+            return refundListDtoResponseEntity.hasBody() ? refundListDtoResponseEntity.getBody() : null;
+
+        } catch (HttpClientErrorException httpClientErrorException) {
+
+            if (httpClientErrorException.getStatusCode().equals(HttpStatus.BAD_REQUEST)
+                && httpClientErrorException.getMessage().equals("Refund list is empty for given criteria")) {
+                LOG.info("The refund list is empty.", httpClientErrorException);
+                return RefundListDtoResponse.buildRefundListWith().refundList(new ArrayList<>()).build();
+            } else {
+                LOG.error("Client err ", httpClientErrorException);
+            }
+        } catch (Exception exception) {
+            exception.printStackTrace();
+            if (exception.getCause() != null) {
+                LOG.info("exception.getCause(): " + exception.getCause());
+                LOG.info("exception.getCause().getMessage(): " + exception.getCause().getMessage());
+            }
+            LOG.error("Client err ", exception);
+        }
+        return refundListDtoResponse;
+
     }
     private RefundListDtoResponse getRefundsFromRefundService(String ccdCaseNumber, MultiValueMap<String, String> headers) {
 
@@ -717,7 +764,8 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
                             refundListDtoResponse.getRefundList().forEach(refundDto -> {
 
-                                if (refundDto.getPaymentReference().equals(paymentDto1.getReference())) {
+                                if (refundDto.getPaymentReference().equals(paymentDto1.getReference()) &&
+                                    isAnAcceptedRefund(refundDto)) {
                                     paymentDto1.setOverPayment(BigDecimal.ZERO);
                                 }
                             });
@@ -747,7 +795,8 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                         refundListDtoResponse.getRefundList().forEach(refundDto -> {
 
                             if (refundDto.getCcdCaseNumber().equals(feeDto.getCcdCaseNumber()) &&
-                                (Arrays.stream(refundDto.getFeeIds().split(",")).anyMatch(feeDto.getId().toString()::equals))
+                                (Arrays.stream(refundDto.getFeeIds().split(",")).anyMatch(feeDto.getId().toString()::equals)) &&
+                                isAnAcceptedRefund(refundDto)
                             ) {
                                 feeDto.setOverPayment(BigDecimal.ZERO);
                             }
@@ -771,6 +820,9 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         return paymentGroupDto;
     }
 
+    private boolean isAnAcceptedRefund(RefundDto refundDto){
+        return refundDto.getRefundStatus().getName().equals("Accepted");
+    }
 
     public PaymentGroupResponse checkRefundAgainstRemissionV2(MultiValueMap<String, String> headers,
                                                               PaymentGroupResponse paymentGroupResponse, String ccdCaseNumber) {
@@ -900,7 +952,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                         if (refundListDtoResponse != null) {
                             refundListDtoResponse.getRefundList().forEach(refundDto -> {
 
-                            if (refundDto.getCcdCaseNumber().equals(feeDto.getCcdCaseNumber())
+                            if (refundDto.getCcdCaseNumber().equals(feeDto.getCcdCaseNumber()) && isAnAcceptedRefund(refundDto)
                             ) {
                                 feeDto.setOverPayment(BigDecimal.ZERO);
                             }
@@ -913,7 +965,8 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
                             refundListDtoResponse.getRefundList().forEach(refundDto -> {
 
-                                if (refundDto.getPaymentReference().equals(paymentDto.getReference())) {
+                                if (refundDto.getPaymentReference().equals(paymentDto.getReference()) &&
+                                    isAnAcceptedRefund(refundDto)) {
                                     paymentDto.setOverPayment(BigDecimal.ZERO);
                                 }
                             });
