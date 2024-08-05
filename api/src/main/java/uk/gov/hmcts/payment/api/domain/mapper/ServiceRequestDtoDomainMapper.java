@@ -34,12 +34,14 @@ public class ServiceRequestDtoDomainMapper {
     private UserIdSupplier userIdSupplier;
     @Autowired
     private ServiceIdSupplier serviceIdSupplier;
+    @Autowired
+    private PaymentReference paymentReference;
 
     private static final Logger LOG = LoggerFactory.getLogger(ServiceRequestDtoDomainMapper.class);
 
     public ServiceRequestBo toDomain(ServiceRequestDto serviceRequestDto, OrganisationalServiceDto organisationalServiceDto) {
 
-        String serviceRequestReference = PaymentReference.getInstance().getNext();
+        String serviceRequestReference = paymentReference.getNext();
 
         return ServiceRequestBo.serviceRequestBoWith()
             .callBackUrl(serviceRequestDto.getCallBackUrl())

@@ -83,6 +83,8 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
     private String divorceFlowId;
     @Value("${pci-pal.antenna.prl.flow.id}")
     private String prlFlowId;
+    @Value("${pci-pal.antenna.iac.flow.id}")
+    private String iacFlowId;
 
     @Autowired
     public PciPalPaymentService(@Value("${pci-pal.api.url}") String url,
@@ -135,6 +137,7 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
         flowIdHashMap.put(SERVICE_TYPE_CMC, strategicFlowId);
         flowIdHashMap.put(SERVICE_TYPE_FINREM, strategicFlowId);
         flowIdHashMap.put(SERVICE_TYPE_PRL, prlFlowId);
+        flowIdHashMap.put(SERVICE_TYPE_IAC, iacFlowId);
 
         if (flowIdHashMap.containsKey(serviceType)) {
             LOG.info("Found flow id {} for service type {}", flowIdHashMap.get(serviceType), serviceType);

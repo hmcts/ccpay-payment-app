@@ -27,10 +27,6 @@ public class GovPayKeyRepository {
     }
 
     public String getKey(String microservice) {
-        keys.forEach((key,val)->{
-            LOG.info("key {}",key);
-            LOG.info("val {}",val);
-        });
         LOG.info("microservice.toLowerCase() {}",microservice.toLowerCase());
         return keys.get(microservice.toLowerCase());
     }

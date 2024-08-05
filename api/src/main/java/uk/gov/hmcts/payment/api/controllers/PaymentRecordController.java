@@ -56,6 +56,9 @@ public class PaymentRecordController {
     private PaymentService<PaymentFeeLink, String> paymentService;
 
     @Autowired
+    private PaymentReference paymentReference;
+
+    @Autowired
     public PaymentRecordController(PaymentRecordService<PaymentFeeLink, String> paymentRecordService,
                                    PaymentDtoMapper paymentDtoMapper,
                                    PaymentProviderRepository paymentProviderRespository,
@@ -76,7 +79,7 @@ public class PaymentRecordController {
     @RequestMapping(value = "/payment-records", method = POST)
     @ResponseBody
     public ResponseEntity<PaymentDto> recordPayment(@Valid @RequestBody PaymentRecordRequest paymentRecordRequest) throws CheckDigitException {
-        String paymentGroupReference = PaymentReference.getInstance().getNext();
+        String paymentGroupReference = paymentReference.getNext();
 
         List<SiteDTO> sites = referenceDataService.getSiteIDs();
 
