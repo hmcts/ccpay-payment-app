@@ -58,9 +58,9 @@ withNightlyPipeline("java", product, component) {
     env.REF_DATA_API_URL = params.REF_DATA_API_URL
     env.OAUTH2_REDIRECT_URI = params.OAUTH2_REDIRECT_URI
     loadVaultSecrets(secrets)
-//    enableSecurityScan()
-//    enableMutationTest()
-//    enableFortifyScan('ccpay-aat')
+    enableSecurityScan()
+    enableMutationTest()
+    enableFortifyScan('ccpay-aat')
     enableFullFunctionalTest()
     enableSlackNotifications('#fee-pay-nightly-pipeline')
 
