@@ -129,7 +129,7 @@ dependencies {
     implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign'
 
     implementation group: 'com.github.hmcts.ccfr-fees-register-app', name: 'fees-register-api-contract', version: '2.3.1'
-    implementation group: 'com.github.hmcts.ccfr-fees-register-app', name: 'fees-register-model', version: '2.3.1'
+    implementation group: 'com.github.hmcts.ccfr-fees-register-app', name: 'fees-register-model', version: '2.4.0'
 
     //Added this for spring boot upgrade as swagger was not working with the latest version.
     implementation group: 'org.springframework.plugin', name: 'spring-plugin-core', version: '1.2.0.RELEASE'
