@@ -1,10 +1,6 @@
 package uk.gov.hmcts.payment.api.service;
 
-import java.math.BigInteger;
-import java.time.temporal.ChronoUnit;
-
 import org.apache.commons.lang3.EnumUtils;
-import org.apache.poi.hpsf.Decimal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,14 +18,14 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
+import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.RefundsFeeDto;
 import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.exception.InvalidPartialRefundRequestException;
 import uk.gov.hmcts.payment.api.exception.InvalidRefundRequestException;
-import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
+import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.util.RefundEligibilityUtil;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotSuccessException;
@@ -37,6 +33,8 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.RemissionNotFoundException;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
@@ -891,11 +889,15 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                         if(activeRemission){
                             fee.setAddRemission(false);
                         }
+
+                        // PAY-7265: Check fee volume, must be a positive number greater than 0.
+                        if (fee.getVolume() == null || fee.getVolume() == 0) {
+                            LOG.warn("Fee volume is not set or is 0 for fee id: {}", fee.getId());
+                            fee.setVolume(1);
+                        }
                     }
 
-
                     //overpayment
-
                     paymentGroupDto.getFees().forEach(feeDto -> {
                         if (refundListDtoResponse != null) {
                             refundListDtoResponse.getRefundList().forEach(refundDto -> {
