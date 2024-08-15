@@ -6,14 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.model.DuplicateServiceRequestDto;
-import uk.gov.hmcts.payment.api.reports.PaymentReportType;
-
-import java.text.SimpleDateFormat;
-import java.util.List;
 import java.util.StringJoiner;
-import java.util.TimeZone;
 
 @Component
 @Getter
@@ -26,15 +20,15 @@ public class DuplicateServiceRequestReportConfig  {
 
     public static final String CSV_FILE_PREFIX = "hmcts_duplicate_service_requests";
 
-    @Value("${duplicatesr.email.from:dummy}")
+    @Value("${servicerequest.email.from:dummy}")
     private String from;
-    @Value("${duplicatesr.email.to:dummy}")
+    @Value("${servicerequest.email.to:dummy}")
     private String[] to;
-    @Value("${duplicatesr.email.subject:dummy}")
+    @Value("${servicerequest.email.subject:dummy}")
     private String subject;
-    @Value("${duplicatesr.email.message:dummy}")
+    @Value("${servicerequest.email.message:dummy}")
     private String message;
-    @Value("${duplicatesr.scheduler.enabled:false}")
+    @Value("${servicerequest.scheduler.enabled:false}")
     private boolean enabled;
 
     public String getCsvRecord(DuplicateServiceRequestDto duplicateServiceRequestDto){
