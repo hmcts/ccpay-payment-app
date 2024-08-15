@@ -4,19 +4,17 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.apache.commons.validator.ValidatorException;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.hmcts.payment.api.contract.exception.ValidationErrorDTO;
+import uk.gov.hmcts.payment.api.exception.ValidationErrorException;
 import uk.gov.hmcts.payment.api.reports.ServiceRequestReportService;
-import uk.gov.hmcts.payment.api.scheduler.Clock;
-
-import uk.gov.hmcts.payment.api.util.DateUtil;
-
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-
 import static org.slf4j.LoggerFactory.getLogger;
 
 @RestController
@@ -38,17 +36,19 @@ public class ServiceRequestReportController {
         @ApiResponse(responseCode = "200", description = "Reports sent")
     })
     @PostMapping(value = "/jobs/email-duplicate-reports")
-    public void generateAndEmailReport(@RequestParam(name = "date", required = true) String dateString) {
-
+    public void generateAndEmailReport(@RequestParam(name = "date", required = true) String dateString) throws ValidatorException {
 
         LOG.info("Inside /jobs/email-duplicate-reports");
-        //validator.validateDate(dateString);
 
-        // cw todo - through an exception? cant figure out what org code did
-        //LocalDateTime date = LocalDateTime.parse(dateString, dateUtil.getIsoDateTimeFormatter());
-
-
-        LocalDate date = LocalDate.parse(dateString, FORMATTER);
+        LocalDate date = null;
+        try {
+           date = LocalDate.parse(dateString, FORMATTER);
+        }
+        catch (Exception e){
+            ValidationErrorDTO dto = new ValidationErrorDTO();
+            dto.addFieldError("date", e.getMessage());
+            throw new ValidationErrorException("Error occurred", dto);
+        }
         serviceRequestReportService.generateCsvAndSendEmail(date);
     }
 }
