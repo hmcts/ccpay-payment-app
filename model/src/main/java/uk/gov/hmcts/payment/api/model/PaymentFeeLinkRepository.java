@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,4 +29,11 @@ public interface PaymentFeeLinkRepository extends CrudRepository<PaymentFeeLink,
 
     @Query(value = "SELECT concat(date_part('year', now()),'-',nextval('payment_reference_seq'))", nativeQuery = true)
     String getNextPaymentReference();
+
+    @Query(value = "select ccd_case_number, count(ccd_case_number)\n" +
+        "from payment_fee_link pfl\n" +
+        "where date_trunc('day', date_created) = :date\n" +
+        "group by ccd_case_number\n" +
+        "having count (ccd_case_number) > 1;", nativeQuery = true)
+    Optional<List<DuplicateServiceRequestDto>> getDuplicates(final @Param("date") LocalDate date);
 }

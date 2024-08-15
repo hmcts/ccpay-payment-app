@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.api.reports;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -15,6 +16,7 @@ import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.time.LocalDateTime;
@@ -85,7 +87,7 @@ public class PaymentsReportService {
             .collect(Collectors.toList());
     }
 
-    private void generateCsvAndSendEmail(List<PaymentDto> payments, PaymentReportConfig reportConfig) {
+    private void generateCsvAndSendEmail(List<PaymentDto> payments, PaymentReportConfig reportConfig)  {
         LOG.info("CollectionUtils.isNotEmpty(payments): {}", CollectionUtils.isNotEmpty(payments));
         String paymentsCsvFileName = reportConfig.getCsvFileNamePrefix() + LocalDateTime.now().format(formatter) + PAYMENTS_CSV_FILE_EXTENSION;
         byte[] paymentsByteArray = createPaymentsCsvByteArray(payments, paymentsCsvFileName, reportConfig);
@@ -95,6 +97,10 @@ public class PaymentsReportService {
             .subject(reportConfig.getSubject())
             .message(reportConfig.getMessage())
             .build();
+        try{
+            FileUtils.writeByteArrayToFile(new File("/Users/chrisw/" + paymentsCsvFileName), paymentsByteArray);
+        }
+        catch (IOException e){};
         sendEmail(email, paymentsByteArray, paymentsCsvFileName);
     }
 

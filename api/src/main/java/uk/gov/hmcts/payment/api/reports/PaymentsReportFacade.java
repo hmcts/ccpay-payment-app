@@ -29,7 +29,8 @@ public class PaymentsReportFacade {
         LOG.info("Inside generateCsvAndSendEmail with paymentMethodType: {} and serviceType: {} and startDate: {} and endDate: {}"
             , paymentMethodType, serviceType, startDate, endDate);
         PaymentReportConfig reportConfig = configMap.get(PaymentReportType.from(paymentMethodType, serviceType));
-        if (reportConfig.isEnabled()) {
+        //if (reportConfig.isEnabled()) {
+        if (true) {
             LOG.info("payments report flag is enabled for type :{} and service :{}. creating csv", paymentMethodType, serviceType);
             reportService.generateCsvAndSendEmail(startDate, endDate, paymentMethodType, serviceType, reportConfig);
         } else {

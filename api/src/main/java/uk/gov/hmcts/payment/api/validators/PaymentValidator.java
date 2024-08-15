@@ -53,7 +53,7 @@ public class PaymentValidator {
         return dateTimeString.flatMap(s -> validateDate(s, dto, fieldName));
     }
 
-    private Optional<LocalDateTime> validateDate(String dateString, ValidationErrorDTO dto, String fieldName) {
+    public Optional<LocalDateTime> validateDate(String dateString, ValidationErrorDTO dto, String fieldName) {
         Optional<LocalDateTime> formattedDate = parseFrom(dateString);
         if (!formattedDate.isPresent()) {
             dto.addFieldError(fieldName, "Invalid date format received, required data format is ISO");

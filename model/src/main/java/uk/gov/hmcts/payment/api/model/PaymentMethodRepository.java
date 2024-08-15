@@ -11,4 +11,6 @@ public interface PaymentMethodRepository extends AbstractRepository<PaymentMetho
     default String getEntityName() {
         return PaymentMethod.class.getName();
     }
+
+
 }
