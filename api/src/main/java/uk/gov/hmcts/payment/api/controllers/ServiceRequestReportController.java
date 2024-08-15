@@ -31,12 +31,12 @@ public class ServiceRequestReportController {
         this.serviceRequestReportService = serviceRequestReportService;
     }
 
-    @Operation(summary = "Email duplicate service request csv reports", description = "fetch duplicates service requests for a date, enter the date in format YYYY-MM-DD")
+    @Operation(summary = "Email duplicate service request count csv reports", description = "fetch duplicates service request count for a date, enter the date in format YYYY-MM-DD")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Reports sent")
     })
     @PostMapping(value = "/jobs/email-duplicate-reports")
-    public void generateAndEmailReport(@RequestParam(name = "date", required = true) String dateString) throws ValidatorException {
+    public void generateAndEmailReport(@RequestParam(name = "date", required = true) String dateString) throws ValidationErrorException {
 
         LOG.info("Inside /jobs/email-duplicate-reports");
 
