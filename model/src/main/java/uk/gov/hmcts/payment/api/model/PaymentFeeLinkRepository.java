@@ -25,7 +25,7 @@ public interface PaymentFeeLinkRepository extends CrudRepository<PaymentFeeLink,
         + "AND f.id = cast(:feeId as bigInt)",
         nativeQuery = true)
     Optional<PaymentFeeLink> findByPaymentReferenceAndFeeId(final @Param("paymentReference") String paymentReference,
-                                                            final @Param("feeId") Integer feeId);
+                                         final @Param("feeId") Integer feeId);
 
     @Query(value = "SELECT concat(date_part('year', now()),'-',nextval('payment_reference_seq'))", nativeQuery = true)
     String getNextPaymentReference();
