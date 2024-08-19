@@ -25,7 +25,7 @@ java {
 }
 
 dependencies{
-    testImplementation 'com.github.hmcts:fortify-client:1.4.1:all'
+    testImplementation 'com.github.hmcts:fortify-client:1.4.3:all'
 }
 
 task fortifyScan(type: JavaExec)  {
@@ -73,7 +73,20 @@ allprojects {
             dependencySet(group: 'com.google.guava', version: '33.2.0-jre') {
                 entry 'guava'
             }
+
+            dependencySet(group: 'ch.qos.logback', version: '1.5.7') {
+                entry 'logback-core'
+                entry 'logback-classic'
+            }
         }
+    }
+
+    configurations {
+        testCompile.exclude group: 'pull-parser', module: 'pull-parser'
+        testRuntime.exclude group: 'ch.qos.logback', module: 'logback-classic', version: '1.2.13'
+        testRuntime.exclude group: 'ch.qos.logback', module: 'logback-core', version: '1.2.13'
+        testCompile.exclude group: 'ch.qos.logback', module: 'logback-classic', version: '1.2.13'
+        testCompile.exclude group: 'ch.qos.logback', module: 'logback-core', version: '1.2.13'
     }
 
 
