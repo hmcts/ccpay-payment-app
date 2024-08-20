@@ -30,12 +30,12 @@ public class ServiceRequestReportController {
 
     @Operation(summary = "Email duplicate service request count csv reports", description = "fetch duplicates service request count for a date, enter the date in format YYYY-MM-DD")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Reports sent")
+        @ApiResponse(responseCode = "200", description = "Report sent")
     })
-    @PostMapping(value = "/jobs/email-duplicate-sr-reports")
+    @PostMapping(value = "/jobs/email-duplicate-sr-report")
     public void generateAndEmailDuplicateSRReport(@RequestParam(name = "date", required = true) String dateString) throws ValidationErrorException {
 
-        LOG.info("Inside /jobs/email-duplicate-sr-reports");
+        LOG.info("Inside /jobs/email-duplicate-sr-report");
 
         LocalDate date = null;
         try {
