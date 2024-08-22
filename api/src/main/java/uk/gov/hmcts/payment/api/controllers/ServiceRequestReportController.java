@@ -6,12 +6,14 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.MissingServletRequestParameterException;
+import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.payment.api.contract.exception.ValidationErrorDTO;
 import uk.gov.hmcts.payment.api.exception.ValidationErrorException;
 import uk.gov.hmcts.payment.api.reports.ServiceRequestReportService;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotSuccessException;
+
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -48,4 +50,17 @@ public class ServiceRequestReportController {
         }
         serviceRequestReportService.generateDuplicateSRCsvAndSendEmail(date);
     }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(ValidationErrorException.class)
+    public String reportValidationNotSuccess(ValidationErrorException ex) {
+        return ex.getMessage();
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public String reportMissingDateNotSuccess(MissingServletRequestParameterException ex) {
+        return ex.getMessage();
+    }
+
 }
