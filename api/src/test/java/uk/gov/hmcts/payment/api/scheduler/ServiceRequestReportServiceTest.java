@@ -71,7 +71,6 @@ public class ServiceRequestReportServiceTest {
         List<DuplicateServiceRequestDto> duplicateServiceRequestDtos = new ArrayList<>();
         duplicateServiceRequestDtos.add(duplicateServiceRequestDto);
 
-        when(paymentFeeLinkRepository.getNextPaymentReference()).thenReturn("123");
         when(paymentFeeLinkRepository.getDuplicates(any(LocalDate.class))).thenReturn( Optional.of(duplicateServiceRequestDtos));
 
         serviceRequestReportService.generateDuplicateSRCsvAndSendEmail(date);
