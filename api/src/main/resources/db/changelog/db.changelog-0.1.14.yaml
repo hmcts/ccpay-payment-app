@@ -1,7 +1,7 @@
 databaseChangeLog:
   - changeSet:
       id: 1810000000000-1
-      author: Dave Jones
+      author: DaveJ
       changes:
         - sql:
           splitStatements:
