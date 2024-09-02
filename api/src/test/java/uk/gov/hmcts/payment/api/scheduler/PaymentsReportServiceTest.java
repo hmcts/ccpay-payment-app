@@ -192,4 +192,5 @@ public class PaymentsReportServiceTest {
         verify(emailService, never()).sendEmail(any());
     }
 
+
 }
