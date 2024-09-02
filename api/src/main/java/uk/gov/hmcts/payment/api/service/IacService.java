@@ -6,4 +6,6 @@ import java.util.List;
 
 public interface IacService {
     ResponseEntity<SupplementaryPaymentDto> getIacSupplementaryInfo(List<PaymentDto> paymentDtos, String serviceName);
+
+    void updateCaseReferenceInPaymentDtos(List<PaymentDto> paymentDtos, String serviceName);
 }
