@@ -1,0 +1,10 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1810000000000-1
+      author: DaveJ
+      changes:
+        - sql:
+          splitStatements:
+          sql: >
+            ALTER TABLE fee ALTER COLUMN volume SET DEFAULT 1;
+            UPDATE fee SET volume = 1 WHERE volume IS NULL;
