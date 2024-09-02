@@ -43,4 +43,6 @@ public class PaymentGroupDto {
 
     private boolean isAnyPaymentDisputed;
 
+    private List<RefundDto> refunds;
+
 }
