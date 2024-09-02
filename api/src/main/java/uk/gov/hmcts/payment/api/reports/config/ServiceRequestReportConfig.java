@@ -20,15 +20,15 @@ public class ServiceRequestReportConfig {
 
     public static final String DUPLICATE_SR_CSV_FILE_PREFIX = "hmcts_duplicate_service_requests";
 
-    @Value("${servicerequest.email.from:dummy}")
+    @Value("${service.request.email.from:dummy}")
     private String from;
-    @Value("${servicerequest.email.to:dummy}")
+    @Value("${service.request.email.to:dummy}")
     private String[] to;
-    @Value("${servicerequest.email.subject:dummy}")
+    @Value("${service.request.email.subject:dummy}")
     private String subject;
-    @Value("${servicerequest.email.message:dummy}")
+    @Value("${service.request.email.message:dummy}")
     private String message;
-    @Value("${servicerequest.scheduler.enabled:false}")
+    @Value("${service.request.scheduler.enabled:false}")
     private boolean enabled;
     public String getDuplicateSRCsvRecord(DuplicateServiceRequestDto duplicateServiceRequestDto) {
         StringJoiner result = new StringJoiner("\n");
