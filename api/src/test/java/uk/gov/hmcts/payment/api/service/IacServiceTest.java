@@ -39,7 +39,7 @@ public class IacServiceTest {
     @InjectMocks
     private IacServiceImpl iacService;
 
-    static private String IAC_SERVICE_NAME = "IAC";
+    static private String IAC_SERVICE_CODE = "IAC";
 
     PaymentDto paymentDto;
 
@@ -49,7 +49,7 @@ public class IacServiceTest {
             .paymentReference("RC-2222-3333-4444-5555")
             .ccdCaseNumber("1111-2222-3333-4444")
             .caseReference(null)
-            .serviceName(IAC_SERVICE_NAME)
+            .serviceName(IAC_SERVICE_CODE)
             .amount(BigDecimal.valueOf(1)).build();
 
         MockitoAnnotations.openMocks(this);
@@ -62,7 +62,7 @@ public class IacServiceTest {
         when(restTemplateIacSupplementaryInfo.exchange(anyString(), any(), any(), eq(SupplementaryDetailsResponse.class)))
             .thenReturn(responseEntity);
 
-        ResponseEntity<SupplementaryPaymentDto> result = iacService.getIacSupplementaryInfo(paymentDtos, IAC_SERVICE_NAME);
+        ResponseEntity<SupplementaryPaymentDto> result = iacService.getIacSupplementaryInfo(paymentDtos, IAC_SERVICE_CODE);
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertNotNull(result.getBody());
@@ -74,7 +74,7 @@ public class IacServiceTest {
         when(restTemplateIacSupplementaryInfo.exchange(anyString(), any(), any(), eq(SupplementaryDetailsResponse.class)))
             .thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
 
-        ResponseEntity<SupplementaryPaymentDto> result = iacService.getIacSupplementaryInfo(paymentDtos, IAC_SERVICE_NAME);
+        ResponseEntity<SupplementaryPaymentDto> result = iacService.getIacSupplementaryInfo(paymentDtos, IAC_SERVICE_CODE);
 
         assertEquals(HttpStatus.PARTIAL_CONTENT, result.getStatusCode());
     }
@@ -85,7 +85,7 @@ public class IacServiceTest {
         PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith().ccdCaseNumber("1111-2222-3333-4444").caseReference("IAC/1234/REF").build();
         when(paymentFeeLinkRepository.findByCcdCaseNumber("1111-2222-3333-4444")).thenReturn(Optional.of(Collections.singletonList(paymentFeeLink)));
 
-        iacService.updateCaseReferenceInPaymentDtos(paymentDtos, IAC_SERVICE_NAME);
+        iacService.updateCaseReferenceInPaymentDtos(paymentDtos, IAC_SERVICE_CODE);
 
         assertEquals("IAC/1234/REF", paymentDto.getCaseReference());
     }
@@ -97,11 +97,10 @@ public class IacServiceTest {
         PaymentFeeLink paymentFeeLink2 = PaymentFeeLink.paymentFeeLinkWith().ccdCaseNumber("1111-2222-3333-4444").build();
         PaymentFeeLink paymentFeeLink3 = PaymentFeeLink.paymentFeeLinkWith().ccdCaseNumber("1111-2222-3333-4444").caseReference("IAC/1234/REF").build();
         PaymentFeeLink paymentFeeLink4 = PaymentFeeLink.paymentFeeLinkWith().ccdCaseNumber("1111-2222-3333-4444").build();
-
         List<PaymentFeeLink> paymentFeeLinks = List.of(paymentFeeLink1, paymentFeeLink2, paymentFeeLink3, paymentFeeLink4);
         when(paymentFeeLinkRepository.findByCcdCaseNumber("1111-2222-3333-4444")).thenReturn(Optional.of(paymentFeeLinks));
 
-        iacService.updateCaseReferenceInPaymentDtos(paymentDtos, IAC_SERVICE_NAME);
+        iacService.updateCaseReferenceInPaymentDtos(paymentDtos, IAC_SERVICE_CODE);
 
         assertEquals("IAC/1234/REF", paymentDto.getCaseReference());
     }
@@ -110,11 +109,10 @@ public class IacServiceTest {
     public void updateCaseReferenceInPaymentDtosIgnoredAsAlreadyPopulated() {
         paymentDto.setCaseReference("IAC/1234/REF");
         List<PaymentDto> paymentDtos = Collections.singletonList(paymentDto);
-        PaymentFeeLink paymentFeeLink = new PaymentFeeLink();
-        paymentFeeLink.setCaseReference("IAC/6789/REF");
+        PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith().caseReference("IAC/6789/REF").build();
         when(paymentFeeLinkRepository.findByCcdCaseNumber(anyString())).thenReturn(Optional.of(Collections.singletonList(paymentFeeLink)));
 
-        iacService.updateCaseReferenceInPaymentDtos(paymentDtos, IAC_SERVICE_NAME);
+        iacService.updateCaseReferenceInPaymentDtos(paymentDtos, IAC_SERVICE_CODE);
 
         assertEquals("IAC/1234/REF", paymentDto.getCaseReference());
     }
@@ -124,7 +122,7 @@ public class IacServiceTest {
         List<PaymentDto> paymentDtos = Collections.singletonList(paymentDto);
         when(paymentFeeLinkRepository.findByCcdCaseNumber(anyString())).thenReturn(Optional.empty());
 
-        iacService.updateCaseReferenceInPaymentDtos(paymentDtos, IAC_SERVICE_NAME);
+        iacService.updateCaseReferenceInPaymentDtos(paymentDtos, IAC_SERVICE_CODE);
 
         assertNull(paymentDto.getCaseReference());
     }
