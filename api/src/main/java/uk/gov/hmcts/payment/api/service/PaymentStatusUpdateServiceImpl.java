@@ -43,6 +43,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
     private static final String PAYMENT_METHOD = "cheque";
     private static final String FAILURE_AMOUNT_VALIDATION = "Failure amount is more than the possible amount";
 
+    private static final String TELEPHONY = "telephony";
     @Autowired
     PaymentStatusDtoMapper paymentStatusDtoMapper;
 
@@ -464,6 +465,34 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
 
             LOG.info("updateUnprocessedPayment successful");
         }
+    }
+
+    public List<TelephonyPaymentsReportDto> telephonyPaymentsReport(Date startDate, Date endDate, MultiValueMap<String, String> headers){
+        LOG.info("Enter telphonyPaymentsReport method");
+
+        ValidationErrorDTO validationError = new ValidationErrorDTO();
+
+        if(startDate.after(endDate)){
+            validationError.addFieldError("dates", "Start date cannot be greater than end date");
+            throw new ValidationErrorException("Error occurred in the report ", validationError);
+        }
+        List<Object[]> telephonyPaymentsList = paymentRepository.findAllByDateCreatedBetweenAndPaymentChannel(startDate, endDate, TELEPHONY);
+        if(telephonyPaymentsList.isEmpty()){
+            throw new PaymentNotFoundException("No Data found to generate Report");
+        }
+
+        return telephonyPaymentsList.stream()
+            .map(record -> TelephonyPaymentsReportDto.telephonyPaymentsReportDtoWith()
+                .serviceName((String) record[0])
+                .ccdReference((String) record[1])
+                .paymentReference((String) record[2])
+                .feeCode((String) record[3])
+                .paymentDate((Date) record[4])
+                .Amount((BigDecimal) record[5])
+                .paymentStatus(((String) record[6]))
+                .build())
+            .collect(Collectors.toList());
+
     }
 
 }

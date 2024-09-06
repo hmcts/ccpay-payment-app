@@ -46,4 +46,14 @@ public interface Payment2Repository extends CrudRepository<Payment, Integer>, Jp
     int updatePaymentUpdatedDateTime(@Param("rollbackdate") LocalDateTime rollbackDate,
                                    @Param("ccdcasenumber") String ccdCaseNumber);
 
+    @Query(value = "SELECT p.serviceType, p.ccdCaseNumber, p.reference, f.code, p.dateCreated, p.amount, p.paymentStatus.name " +
+        "FROM Payment p " +
+        "JOIN p.paymentLink pfl " +
+        "JOIN pfl.fees f " +
+        "WHERE p.dateCreated BETWEEN :fromDate AND :toDate AND p.paymentChannel.name = :paymentChannel")
+    List<Object[]> findAllByDateCreatedBetweenAndPaymentChannel(
+        @Param("fromDate") Date fromDate,
+        @Param("toDate") Date toDate,
+        @Param("paymentChannel") String paymentChannel);
+
 }

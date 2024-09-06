@@ -45,6 +45,7 @@ import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.math.BigDecimal;
@@ -596,6 +597,90 @@ public class PaymentStatusControllerTest {
     }
 
     @Test
+    public void returnSuccessTelephonyPaymentsReport() throws Exception{
+
+        when(paymentStatusUpdateService.telephonyPaymentsReport(any(),any(),any())).thenReturn(getTelephonyPaymentsDtoList());
+        when(paymentRepository.findAllByDateCreatedBetweenAndPaymentChannel(any(),any(),any())).thenReturn(getTelephonyPaymentsObjectList());
+        ResponseEntity<RefundPaymentFailureReportDtoResponse> responseEntity = new ResponseEntity<>(getFailureRefund(), HttpStatus.OK);
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add("Authorization", "auth");
+        headers.add("ServiceAuthorization", "service-auth");
+        headers.add("Content-Type", "application/json");
+        when(authTokenGenerator.generate()).thenReturn("test-token");
+
+        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
+        String endDate = LocalDate.now().toString(DATE_FORMAT);
+
+        MvcResult result = restActions
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
+            .get("/telephony-payments/telephony-payments-report?date_from=" + startDate + "&date_to=" + endDate)
+            .andExpect(status().isOk())
+            .andReturn();
+        TelephonyPaymentsReportResponse telephonyPaymentsReportResponse = objectMapper.readValue(result.getResponse().getContentAsByteArray(),
+            new TypeReference<>() {
+            });
+
+        assertThat(telephonyPaymentsReportResponse.getTelephonyPaymentsReportList().size()).isEqualTo(2);
+        assertThat(telephonyPaymentsReportResponse.getTelephonyPaymentsReportList().get(0).getPaymentReference()).isEqualTo("PAY123");
+
+    }
+    @Test
+    public void returnNoDataTelephonyPaymentsReport() throws Exception{
+
+        when(paymentStatusUpdateService.telephonyPaymentsReport(any(),any(),any())).thenThrow(new PaymentNotFoundException("No Data found to generate Report"));
+        ResponseEntity<RefundPaymentFailureReportDtoResponse> responseEntity = new ResponseEntity<>(getFailureRefund(), HttpStatus.OK);
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add("Authorization", "auth");
+        headers.add("ServiceAuthorization", "service-auth");
+        headers.add("Content-Type", "application/json");
+        when(authTokenGenerator.generate()).thenReturn("test-token");
+
+        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
+        String endDate = LocalDate.now().toString(DATE_FORMAT);
+
+        MvcResult result = restActions
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
+            .get("/telephony-payments/telephony-payments-report?date_from=" + startDate + "&date_to=" + endDate)
+            .andExpect(status().isNotFound())
+            .andReturn();
+
+        assertEquals("No Data found to generate Report", result.getResolvedException().getMessage());
+        assertEquals(404,result.getResponse().getStatus());
+
+    }
+
+
+    @Test
+    public void returnServiceUnavaliableTelephonyPaymentsReport() throws Exception{
+
+        when(paymentStatusUpdateService.telephonyPaymentsReport(any(),any(),any())).thenReturn(getTelephonyPaymentsDtoList());
+        when(paymentRepository.findAllByDateCreatedBetweenAndPaymentChannel(any(),any(),any())).thenReturn(getTelephonyPaymentsObjectList());when(featureToggler.getBooleanValue(eq("payment-status-update-flag"),anyBoolean())).thenReturn(true);
+        ResponseEntity<RefundPaymentFailureReportDtoResponse> responseEntity = new ResponseEntity<>(getFailureRefund(), HttpStatus.OK);
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add("Authorization", "auth");
+        headers.add("ServiceAuthorization", "service-auth");
+        headers.add("Content-Type", "application/json");
+        when(authTokenGenerator.generate()).thenReturn("test-token");
+
+        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
+        String endDate = LocalDate.now().toString(DATE_FORMAT);
+
+        MvcResult result = restActions
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
+            .get("/telephony-payments/telephony-payments-report?date_from=" + startDate + "&date_to=" + endDate)
+            .andExpect(status().isServiceUnavailable())
+            .andReturn();
+
+        assertEquals(503,result.getResponse().getStatus());
+
+    }
+
+
+
+    @Test
     public void lockedReportShouldThrowServiceUnavailable() throws Exception {
 
         MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
@@ -795,5 +880,43 @@ public class PaymentStatusControllerTest {
     private RefundPaymentFailureReportDtoResponse getFailureRefund(){
         return   RefundPaymentFailureReportDtoResponse.buildPaymentFailureListWith().paymentFailureDto(Arrays.asList(getRefund())).build();
 
+    }
+
+
+    private List<Object[]> getTelephonyPaymentsObjectList(){
+        Object[] mockRecord1 = new Object[] {
+            "Service1", "CCD123", "PAY123", "FEE001", new Date(), new BigDecimal("100.00"), "Success"
+        };
+        Object[] mockRecord2 = new Object[] {
+            "Service2", "CCD456", "PAY456", "FEE002", new Date(), new BigDecimal("200.00"), "Failed"
+        };
+
+        List<Object[]> telephonyPaymentsObjectList = Arrays.asList(mockRecord1, mockRecord2);
+
+        return telephonyPaymentsObjectList;
+    }
+
+    private List<TelephonyPaymentsReportDto> getTelephonyPaymentsDtoList(){
+        List<TelephonyPaymentsReportDto> mockReportList = Arrays.asList(
+            TelephonyPaymentsReportDto.telephonyPaymentsReportDtoWith()
+                .serviceName("Service1")
+                .ccdReference("CCD123")
+                .paymentReference("PAY123")
+                .feeCode("FEE001")
+                .paymentDate(new Date())
+                .Amount(new BigDecimal("100.00"))
+                .paymentStatus("Success")
+                .build(),
+            TelephonyPaymentsReportDto.telephonyPaymentsReportDtoWith()
+                .serviceName("Service2")
+                .ccdReference("CCD456")
+                .paymentReference("PAY456")
+                .feeCode("FEE002")
+                .paymentDate(new Date())
+                .Amount(new BigDecimal("200.00"))
+                .paymentStatus("Failed")
+                .build()
+        );
+        return mockReportList;
     }
 }

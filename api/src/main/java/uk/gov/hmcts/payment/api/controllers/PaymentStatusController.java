@@ -189,6 +189,28 @@ public class PaymentStatusController {
         return new PaymentFailureReportResponse(paymentFailureReportDto);
     }
 
+
+    @Operation(summary = "API to generate report for telephony payments ", description = "Get list of telephony payments by providing date range. MM/dd/yyyy is  the supported date/time format.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Report Generated"),
+        @ApiResponse(responseCode = "404", description = "No Data found to generate Report"),
+        @ApiResponse(responseCode = "500", description = "Internal Server Error")
+    })
+    @GetMapping("/telephony-payments/telephony-payments-report")
+    public TelephonyPaymentsReportResponse retrieveTelephonyPaymentsReport(@RequestParam("date_from") Date fromDate,
+                                                                            @RequestParam("date_to") Date toDate,
+                                                                            @RequestHeader(required = false) MultiValueMap<String, String> headers,
+                                                                            @RequestHeader("Authorization") String authorization) {
+
+        if (featureToggler.getBooleanValue(PAYMENT_STATUS_UPDATE_FLAG,false)) {
+            throw new LiberataServiceInaccessibleException("service unavailable");
+        }
+
+        LOG.info("Received telephony payments report request");
+        List<TelephonyPaymentsReportDto> telephonyPaymentsReportDto =  paymentStatusUpdateService.telephonyPaymentsReport(atStartOfDay(fromDate), atEndOfDay(toDate), headers);
+        return new TelephonyPaymentsReportResponse(telephonyPaymentsReportDto);
+    }
+
     @ResponseStatus(HttpStatus.TOO_MANY_REQUESTS)
     @ExceptionHandler(FailureReferenceNotFoundException.class)
     public String return429(FailureReferenceNotFoundException ex) {

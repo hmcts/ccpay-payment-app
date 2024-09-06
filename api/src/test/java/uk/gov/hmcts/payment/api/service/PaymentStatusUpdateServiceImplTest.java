@@ -7,6 +7,7 @@ import org.joda.time.format.DateTimeFormatter;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+//import org.junit.jupiter.api.Assertions;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -37,6 +38,8 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentFailureReportMapper;
@@ -56,14 +59,20 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.util.Optional;
 
+
+
 @RunWith(MockitoJUnitRunner.class)
 public class PaymentStatusUpdateServiceImplTest {
 
+    private Date startDate;
+    private Date endDate;
 
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
         clock = new Clock();
+        startDate = new Date(System.currentTimeMillis() - 1000 * 60 * 60 * 24);
+        endDate = new Date();
     }
 
 
@@ -519,6 +528,54 @@ public class PaymentStatusUpdateServiceImplTest {
         );
         String actualMessage = exception.getMessage();
         assertEquals("Representment date can not be prior to failure event date", actualMessage);
+    }
+
+
+    @Test
+    public void testTelephonyPaymentsReport_Success() {
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add("ServiceAuthorization", "service-auth");
+        List<Object[]> telephonyPaymentsList = Arrays.asList(
+            new Object[]{"Service1", "CCD123", "PAY123", "FEE001", new Date(), new BigDecimal("100.00"), "Success"},
+            new Object[]{"Service2", "CCD456", "PAY456", "FEE002", new Date(), new BigDecimal("200.00"), "Failed"}
+        );
+
+        when(paymentRepository.findAllByDateCreatedBetweenAndPaymentChannel(startDate, endDate, "telephony"))
+           .thenReturn(telephonyPaymentsList);
+
+        List<TelephonyPaymentsReportDto> actualReport = paymentStatusUpdateServiceImpl.telephonyPaymentsReport(startDate, endDate, headers);
+
+        assertEquals(2, actualReport.size());
+        assertEquals("Service1", actualReport.get(0).getServiceName());
+        assertEquals("Service2", actualReport.get(1).getServiceName());
+        verify(paymentRepository, times(1)).findAllByDateCreatedBetweenAndPaymentChannel(startDate, endDate, "telephony");
+    }
+
+    @Test
+    public void testTelephonyPaymentsReport_StartDateAfterEndDate() {
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add("ServiceAuthorization", "service-auth");
+        Date invalidStartDate = new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24);
+
+        ValidationErrorException exception = assertThrows(ValidationErrorException.class, () -> {
+            paymentStatusUpdateServiceImpl.telephonyPaymentsReport(invalidStartDate, endDate, headers);
+        });
+
+        assertEquals("Error occurred in the report ", exception.getMessage());
+    }
+
+    @Test
+    public void testTelephonyPaymentsReport_NoDataFound() {
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add("ServiceAuthorization", "service-auth");
+        when(paymentRepository.findAllByDateCreatedBetweenAndPaymentChannel(startDate, endDate, "telephony"))
+            .thenReturn(Arrays.asList());
+
+        PaymentNotFoundException exception = assertThrows(PaymentNotFoundException.class, () -> {
+            paymentStatusUpdateServiceImpl.telephonyPaymentsReport(startDate, endDate, headers);
+        });
+
+        assertEquals("No Data found to generate Report", exception.getMessage());
     }
 
 
