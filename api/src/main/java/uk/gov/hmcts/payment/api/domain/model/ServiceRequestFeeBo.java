@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.persistence.Column;
 import java.math.BigDecimal;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
@@ -31,5 +32,8 @@ public class ServiceRequestFeeBo {
     private String ccdCaseNumber; // Will be removed after get api's work without ccd dependency
 
     private BigDecimal amountDue;
+
+    private BigDecimal netAmount;
+
     //private List<RemissionDto> remissions;
 }
