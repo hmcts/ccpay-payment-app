@@ -22,6 +22,7 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -96,13 +97,17 @@ public class IacServiceImpl implements IacService {
     @Override
     public void updateCaseReferenceInPaymentDtos(List<PaymentDto> paymentDtos, String serviceName) {
         List<PaymentDto> iacPayments = getIacPayments(serviceName, paymentDtos);
+
         iacPayments.forEach(paymentDto ->
-            paymentFeeLinkRepository.findByCcdCaseNumber(paymentDto.getCcdCaseNumber()).ifPresent(paymentFeeLinks ->
-                paymentFeeLinks.stream().filter(paymentLink -> paymentDto.getCaseReference() == null && paymentLink.getCaseReference() != null).findFirst().ifPresent(paymentLink -> {
-                    paymentDto.setCaseReference(paymentLink.getCaseReference());
-                    LOG.info("Setting caseReference {} from paymentFeeLink for CCD Case {}", paymentLink.getCaseReference(), paymentDto.getCcdCaseNumber());
-                })
-            )
+            paymentFeeLinkRepository.findByPaymentReference(paymentDto.getPaymentGroupReference()).ifPresent(paymentFeeLink -> {
+                if (paymentDto.getCaseReference() == null && paymentFeeLink.getCaseReference() != null && paymentFeeLink.getCaseReference().length() > 0) {
+                    paymentDto.setCaseReference(paymentFeeLink.getCaseReference());
+                    LOG.info("Setting caseReference {} for Service Request {} in Case {}",
+                        paymentFeeLink.getCaseReference(),
+                        paymentDto.getPaymentGroupReference(),
+                        paymentDto.getCcdCaseNumber());
+                }
+            })
         );
     }
 

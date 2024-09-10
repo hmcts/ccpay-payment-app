@@ -46,6 +46,7 @@ public class IacServiceTest {
     @Before
     public void setUp() {
         paymentDto =  PaymentDto.payment2DtoWith()
+            .paymentGroupReference("2024-1706099566733")
             .paymentReference("RC-2222-3333-4444-5555")
             .ccdCaseNumber("1111-2222-3333-4444")
             .caseReference(null)
@@ -80,25 +81,10 @@ public class IacServiceTest {
     }
 
     @Test
-    public void updateCaseReferenceInPaymentDtosSuccess() {
+    public void updateCaseReferenceInPaymentDtoFeeLinksSuccess() {
         List<PaymentDto> paymentDtos = Collections.singletonList(paymentDto);
-        PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith().ccdCaseNumber("1111-2222-3333-4444").caseReference("IAC/1234/REF").build();
-        when(paymentFeeLinkRepository.findByCcdCaseNumber("1111-2222-3333-4444")).thenReturn(Optional.of(Collections.singletonList(paymentFeeLink)));
-
-        iacService.updateCaseReferenceInPaymentDtos(paymentDtos, IAC_SERVICE_CODE);
-
-        assertEquals("IAC/1234/REF", paymentDto.getCaseReference());
-    }
-
-    @Test
-    public void updateCaseReferenceInPaymentDtosMultipleFeeLinksSuccess() {
-        List<PaymentDto> paymentDtos = Collections.singletonList(paymentDto);
-        PaymentFeeLink paymentFeeLink1 = PaymentFeeLink.paymentFeeLinkWith().ccdCaseNumber("1111-2222-3333-4444").build();
-        PaymentFeeLink paymentFeeLink2 = PaymentFeeLink.paymentFeeLinkWith().ccdCaseNumber("1111-2222-3333-4444").build();
-        PaymentFeeLink paymentFeeLink3 = PaymentFeeLink.paymentFeeLinkWith().ccdCaseNumber("1111-2222-3333-4444").caseReference("IAC/1234/REF").build();
-        PaymentFeeLink paymentFeeLink4 = PaymentFeeLink.paymentFeeLinkWith().ccdCaseNumber("1111-2222-3333-4444").build();
-        List<PaymentFeeLink> paymentFeeLinks = List.of(paymentFeeLink1, paymentFeeLink2, paymentFeeLink3, paymentFeeLink4);
-        when(paymentFeeLinkRepository.findByCcdCaseNumber("1111-2222-3333-4444")).thenReturn(Optional.of(paymentFeeLinks));
+        PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith().paymentReference("2024-1706099566733").caseReference("IAC/1234/REF").build();
+        when(paymentFeeLinkRepository.findByPaymentReference("2024-1706099566733")).thenReturn(Optional.of(paymentFeeLink));
 
         iacService.updateCaseReferenceInPaymentDtos(paymentDtos, IAC_SERVICE_CODE);
 
@@ -110,11 +96,23 @@ public class IacServiceTest {
         paymentDto.setCaseReference("IAC/1234/REF");
         List<PaymentDto> paymentDtos = Collections.singletonList(paymentDto);
         PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith().caseReference("IAC/6789/REF").build();
-        when(paymentFeeLinkRepository.findByCcdCaseNumber(anyString())).thenReturn(Optional.of(Collections.singletonList(paymentFeeLink)));
+        when(paymentFeeLinkRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(paymentFeeLink));
 
         iacService.updateCaseReferenceInPaymentDtos(paymentDtos, IAC_SERVICE_CODE);
 
         assertEquals("IAC/1234/REF", paymentDto.getCaseReference());
+    }
+
+
+    @Test
+    public void updateCaseReferenceInPaymentDtosEmptyCaseReference() {
+        List<PaymentDto> paymentDtos = Collections.singletonList(paymentDto);
+        PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith().paymentReference("2024-1706099566733").caseReference("").build();
+        when(paymentFeeLinkRepository.findByPaymentReference("2024-1706099566733")).thenReturn(Optional.of(paymentFeeLink));
+
+        iacService.updateCaseReferenceInPaymentDtos(paymentDtos, IAC_SERVICE_CODE);
+
+        assertEquals(null, paymentDto.getCaseReference());
     }
 
     @Test
