@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -65,6 +66,22 @@ public class ServiceRequestBoTest {
 
     }
 
+    @Test
+    public void createServiceRequestException() {
+
+        String serviceRequestReference = "2200-1619524583862";
+
+        ServiceRequestBo serviceRequestBoDomain = getServiceRequestBoDomain(serviceRequestReference);
+
+        when(paymentFeeLinkRepository.save(any())).thenThrow(new RuntimeException("Error"));
+
+        try {
+            serviceRequestBo.createServiceRequest(serviceRequestBoDomain);
+        } catch (RuntimeException e) {
+            assertEquals("Error", e.getMessage());
+        }
+    }
+
 
     private ServiceRequestBo getServiceRequestBoDomain(String serviceRequestReference) {
         return ServiceRequestBo.serviceRequestBoWith()
@@ -109,6 +126,7 @@ public class ServiceRequestBoTest {
             .ccdCaseNumber(ccdCaseNumber)
             .version(serviceRequestFeeDto.getVersion())
             .volume(serviceRequestFeeDto.getVolume())
+            .netAmount(serviceRequestFeeDto.getCalculatedAmount())
             .build();
     }
 
