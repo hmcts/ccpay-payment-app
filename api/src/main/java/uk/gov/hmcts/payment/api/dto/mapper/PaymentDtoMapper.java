@@ -344,7 +344,7 @@ public class PaymentDtoMapper {
         LOG.info("apportionCheck value in PaymentDtoMapper: {}",apportionCheck);
         PaymentDto paymentDto = PaymentDto.payment2DtoWith()
             .paymentReference(payment.getReference())
-            .paymentGroupReference(apportionCheck ? null : paymentReference)
+            .paymentGroupReference(paymentReference)
             .serviceName(payment.getServiceType())
             .siteId(payment.getSiteId())
             .amount(payment.getAmount())
