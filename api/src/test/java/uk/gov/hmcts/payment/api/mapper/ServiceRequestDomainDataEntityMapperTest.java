@@ -35,6 +35,7 @@ public class ServiceRequestDomainDataEntityMapperTest {
 
         PaymentFeeLink result = serviceRequestDomainDataEntityMapper.toServiceRequestEntity(serviceRequestBo);
         assertEquals(serviceRequestBo.getReference(), result.getPaymentReference());
+        assertEquals(serviceRequestBo.getFees().get(0).getNetAmount(), getServiceRequestFee().getNetAmount());
     }
 
     @Test
@@ -59,6 +60,7 @@ public class ServiceRequestDomainDataEntityMapperTest {
     private ServiceRequestFeeBo getServiceRequestFee() {
         return ServiceRequestFeeBo.serviceRequestFeeBoWith()
             .amountDue(new BigDecimal(99.99))
+            .netAmount(new BigDecimal(99.99))
             .build();
     }
 }
