@@ -626,6 +626,7 @@ public class PaymentStatusControllerTest {
         assertThat(telephonyPaymentsReportResponse.getTelephonyPaymentsReportList().get(0).getPaymentReference()).isEqualTo("PAY123");
 
     }
+
     @Test
     public void returnNoDataTelephonyPaymentsReport() throws Exception{
 
@@ -650,35 +651,6 @@ public class PaymentStatusControllerTest {
         assertEquals(404,result.getResponse().getStatus());
 
     }
-
-
-    @Test
-    public void returnServiceUnavaliableTelephonyPaymentsReport() throws Exception{
-
-        when(paymentStatusUpdateService.telephonyPaymentsReport(any(),any(),any())).thenReturn(getTelephonyPaymentsDtoList());
-        when(paymentRepository.findAllByDateCreatedBetweenAndPaymentChannel(any(),any(),any())).thenReturn(getTelephonyPaymentsObjectList());
-        when(featureToggler.getBooleanValue(eq("payment-status-update-flag"),anyBoolean())).thenReturn(true);
-        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-        headers.add("Authorization", "auth");
-        headers.add("ServiceAuthorization", "service-auth");
-        headers.add("Content-Type", "application/json");
-        when(authTokenGenerator.generate()).thenReturn("test-token");
-
-        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
-        String endDate = LocalDate.now().toString(DATE_FORMAT);
-
-        MvcResult result = restActions
-            .withAuthorizedUser(USER_ID)
-            .withUserId(USER_ID)
-            .get("/telephony-payments/telephony-payments-report?date_from=" + startDate + "&date_to=" + endDate)
-            .andExpect(status().isServiceUnavailable())
-            .andReturn();
-
-        assertEquals(503,result.getResponse().getStatus());
-
-    }
-
-
 
     @Test
     public void lockedReportShouldThrowServiceUnavailable() throws Exception {

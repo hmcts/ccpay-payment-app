@@ -202,10 +202,6 @@ public class PaymentStatusController {
                                                                             @RequestHeader(required = false) MultiValueMap<String, String> headers,
                                                                             @RequestHeader("Authorization") String authorization) {
 
-        if (featureToggler.getBooleanValue(PAYMENT_STATUS_UPDATE_FLAG,false)) {
-            throw new LiberataServiceInaccessibleException("service unavailable");
-        }
-
         LOG.info("Received telephony payments report request");
         List<TelephonyPaymentsReportDto> telephonyPaymentsReportDto =  paymentStatusUpdateService.telephonyPaymentsReport(atStartOfDay(fromDate), atEndOfDay(toDate), headers);
         return new TelephonyPaymentsReportResponse(telephonyPaymentsReportDto);
