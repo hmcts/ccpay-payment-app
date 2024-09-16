@@ -69,6 +69,7 @@ public class ServiceRequestDtoDomainMapperTest {
         assertTrue(serviceRequestBo.getEnterpriseServiceName().equals("DIVORCE"));
         assertTrue(serviceRequestBo.getCcdCaseNumber().equals("8689869686968696"));
         assertTrue(serviceRequestBo.getReference().equals("2024-1234567890"));
+        assertTrue(serviceRequestBo.getFees().get(0).getNetAmount().equals(getServiceRequestFee().getCalculatedAmount()));
 
     }
 
