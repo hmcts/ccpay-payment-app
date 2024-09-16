@@ -57,6 +57,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
+import javax.persistence.Tuple;
 import java.util.Optional;
 
 
@@ -535,12 +536,13 @@ public class PaymentStatusUpdateServiceImplTest {
     public void testTelephonyPaymentsReport_Success() {
         MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
         headers.add("ServiceAuthorization", "service-auth");
-        List<Object[]> telephonyPaymentsList = Arrays.asList(
-            new Object[]{"Service1", "CCD123", "PAY123", "FEE001", new Date(), new BigDecimal("100.00"), "Success"},
-            new Object[]{"Service2", "CCD456", "PAY456", "FEE002", new Date(), new BigDecimal("200.00"), "Failed"}
+
+        List<Tuple> telephonyPaymentsList = Arrays.asList(
+            new CustomTupleForTelephonyPaymentsReport("Service1", "CCD123", "PAY123", "FEE001", new Date(), new BigDecimal("100.00"), "Success"),
+            new CustomTupleForTelephonyPaymentsReport("Service2", "CCD456", "PAY456", "FEE002", new Date(), new BigDecimal("200.00"), "Failed")
         );
 
-        when(paymentRepository.findAllByDateCreatedBetweenAndPaymentChannel(startDate, endDate, "telephony"))
+        when(paymentRepository.findAllByDateCreatedBetweenAndPaymentChannel(startDate, endDate, PaymentChannel.TELEPHONY))
            .thenReturn(telephonyPaymentsList);
 
         List<TelephonyPaymentsReportDto> actualReport = paymentStatusUpdateServiceImpl.telephonyPaymentsReport(startDate, endDate, headers);
@@ -548,7 +550,7 @@ public class PaymentStatusUpdateServiceImplTest {
         assertEquals(2, actualReport.size());
         assertEquals("Service1", actualReport.get(0).getServiceName());
         assertEquals("Service2", actualReport.get(1).getServiceName());
-        verify(paymentRepository, times(1)).findAllByDateCreatedBetweenAndPaymentChannel(startDate, endDate, "telephony");
+        verify(paymentRepository, times(1)).findAllByDateCreatedBetweenAndPaymentChannel(startDate, endDate, PaymentChannel.TELEPHONY);
     }
 
     @Test
@@ -568,7 +570,7 @@ public class PaymentStatusUpdateServiceImplTest {
     public void testTelephonyPaymentsReport_NoDataFound() {
         MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
         headers.add("ServiceAuthorization", "service-auth");
-        when(paymentRepository.findAllByDateCreatedBetweenAndPaymentChannel(startDate, endDate, "telephony"))
+        when(paymentRepository.findAllByDateCreatedBetweenAndPaymentChannel(startDate, endDate, PaymentChannel.TELEPHONY))
             .thenReturn(Arrays.asList());
 
         PaymentNotFoundException exception = assertThrows(PaymentNotFoundException.class, () -> {

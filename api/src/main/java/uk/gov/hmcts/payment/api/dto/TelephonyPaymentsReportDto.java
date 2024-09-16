@@ -40,7 +40,7 @@ public class TelephonyPaymentsReportDto {
     private Date paymentDate;
 
     @JsonProperty("Amount")
-    private BigDecimal Amount;
+    private BigDecimal amount;
 
     @JsonProperty("Payment Status")
     private String paymentStatus;

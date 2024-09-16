@@ -37,6 +37,7 @@ import uk.gov.hmcts.payment.api.dto.mapper.PaymentFailureReportMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentStatusDtoMapper;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
+import uk.gov.hmcts.payment.api.service.CustomTupleForTelephonyPaymentsReport;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.service.PaymentStatusUpdateService;
@@ -48,6 +49,7 @@ import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
+import javax.persistence.Tuple;
 import java.math.BigDecimal;
 
 import java.text.ParseException;
@@ -601,7 +603,6 @@ public class PaymentStatusControllerTest {
 
         when(paymentStatusUpdateService.telephonyPaymentsReport(any(),any(),any())).thenReturn(getTelephonyPaymentsDtoList());
         when(paymentRepository.findAllByDateCreatedBetweenAndPaymentChannel(any(),any(),any())).thenReturn(getTelephonyPaymentsObjectList());
-        ResponseEntity<RefundPaymentFailureReportDtoResponse> responseEntity = new ResponseEntity<>(getFailureRefund(), HttpStatus.OK);
         MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
         headers.add("Authorization", "auth");
         headers.add("ServiceAuthorization", "service-auth");
@@ -629,7 +630,6 @@ public class PaymentStatusControllerTest {
     public void returnNoDataTelephonyPaymentsReport() throws Exception{
 
         when(paymentStatusUpdateService.telephonyPaymentsReport(any(),any(),any())).thenThrow(new PaymentNotFoundException("No Data found to generate Report"));
-        ResponseEntity<RefundPaymentFailureReportDtoResponse> responseEntity = new ResponseEntity<>(getFailureRefund(), HttpStatus.OK);
         MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
         headers.add("Authorization", "auth");
         headers.add("ServiceAuthorization", "service-auth");
@@ -656,8 +656,8 @@ public class PaymentStatusControllerTest {
     public void returnServiceUnavaliableTelephonyPaymentsReport() throws Exception{
 
         when(paymentStatusUpdateService.telephonyPaymentsReport(any(),any(),any())).thenReturn(getTelephonyPaymentsDtoList());
-        when(paymentRepository.findAllByDateCreatedBetweenAndPaymentChannel(any(),any(),any())).thenReturn(getTelephonyPaymentsObjectList());when(featureToggler.getBooleanValue(eq("payment-status-update-flag"),anyBoolean())).thenReturn(true);
-        ResponseEntity<RefundPaymentFailureReportDtoResponse> responseEntity = new ResponseEntity<>(getFailureRefund(), HttpStatus.OK);
+        when(paymentRepository.findAllByDateCreatedBetweenAndPaymentChannel(any(),any(),any())).thenReturn(getTelephonyPaymentsObjectList());
+        when(featureToggler.getBooleanValue(eq("payment-status-update-flag"),anyBoolean())).thenReturn(true);
         MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
         headers.add("Authorization", "auth");
         headers.add("ServiceAuthorization", "service-auth");
@@ -883,17 +883,13 @@ public class PaymentStatusControllerTest {
     }
 
 
-    private List<Object[]> getTelephonyPaymentsObjectList(){
-        Object[] mockRecord1 = new Object[] {
-            "Service1", "CCD123", "PAY123", "FEE001", new Date(), new BigDecimal("100.00"), "Success"
-        };
-        Object[] mockRecord2 = new Object[] {
-            "Service2", "CCD456", "PAY456", "FEE002", new Date(), new BigDecimal("200.00"), "Failed"
-        };
+    private List<Tuple> getTelephonyPaymentsObjectList(){
+        List<Tuple> telephonyPaymentsList = Arrays.asList(
+            new CustomTupleForTelephonyPaymentsReport("Service1", "CCD123", "PAY123", "FEE001", new Date(), new BigDecimal("100.00"), "Success"),
+            new CustomTupleForTelephonyPaymentsReport("Service2", "CCD456", "PAY456", "FEE002", new Date(), new BigDecimal("200.00"), "Failed")
+        );
 
-        List<Object[]> telephonyPaymentsObjectList = Arrays.asList(mockRecord1, mockRecord2);
-
-        return telephonyPaymentsObjectList;
+       return telephonyPaymentsList;
     }
 
     private List<TelephonyPaymentsReportDto> getTelephonyPaymentsDtoList(){
@@ -904,7 +900,7 @@ public class PaymentStatusControllerTest {
                 .paymentReference("PAY123")
                 .feeCode("FEE001")
                 .paymentDate(new Date())
-                .Amount(new BigDecimal("100.00"))
+                .amount(new BigDecimal("100.00"))
                 .paymentStatus("Success")
                 .build(),
             TelephonyPaymentsReportDto.telephonyPaymentsReportDtoWith()
@@ -913,7 +909,7 @@ public class PaymentStatusControllerTest {
                 .paymentReference("PAY456")
                 .feeCode("FEE002")
                 .paymentDate(new Date())
-                .Amount(new BigDecimal("200.00"))
+                .amount(new BigDecimal("200.00"))
                 .paymentStatus("Failed")
                 .build()
         );

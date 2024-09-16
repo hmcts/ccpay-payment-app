@@ -22,7 +22,7 @@ public class TelephonyPaymentsReportDtoTest {
             .paymentReference("PAY123")
             .feeCode("FEE001")
             .paymentDate(paymentDate)
-            .Amount(new BigDecimal("100.00"))
+            .amount(new BigDecimal("100.00"))
             .paymentStatus("Success")
             .build();
 

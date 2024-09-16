@@ -31,6 +31,8 @@ import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
+import javax.persistence.Tuple;
+
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -43,7 +45,6 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
     private static final String PAYMENT_METHOD = "cheque";
     private static final String FAILURE_AMOUNT_VALIDATION = "Failure amount is more than the possible amount";
 
-    private static final String TELEPHONY = "telephony";
     @Autowired
     PaymentStatusDtoMapper paymentStatusDtoMapper;
 
@@ -476,23 +477,23 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
             validationError.addFieldError("dates", "Start date cannot be greater than end date");
             throw new ValidationErrorException("Error occurred in the report ", validationError);
         }
-        List<Object[]> telephonyPaymentsList = paymentRepository.findAllByDateCreatedBetweenAndPaymentChannel(startDate, endDate, TELEPHONY);
-        if(telephonyPaymentsList.isEmpty()){
+        List<Tuple> telephonyPaymentsTuples = paymentRepository.findAllByDateCreatedBetweenAndPaymentChannel(startDate, endDate, PaymentChannel.TELEPHONY);
+        if(telephonyPaymentsTuples.isEmpty()){
             throw new PaymentNotFoundException("No Data found to generate Report");
         }
-
-        return telephonyPaymentsList.stream()
-            .map(record -> TelephonyPaymentsReportDto.telephonyPaymentsReportDtoWith()
-                .serviceName((String) record[0])
-                .ccdReference((String) record[1])
-                .paymentReference((String) record[2])
-                .feeCode((String) record[3])
-                .paymentDate((Date) record[4])
-                .Amount((BigDecimal) record[5])
-                .paymentStatus(((String) record[6]))
+        List<TelephonyPaymentsReportDto> telephonyPaymentsReportDto = telephonyPaymentsTuples.stream()
+            .map(tup -> TelephonyPaymentsReportDto.telephonyPaymentsReportDtoWith()
+                .serviceName(tup.get("service_type", String.class))
+                .ccdReference(tup.get("ccd_case_number", String.class))
+                .paymentReference(tup.get("reference", String.class))
+                .feeCode(tup.get("code", String.class))
+                .paymentDate(tup.get("date_created", Date.class))
+                .amount(tup.get("amount", BigDecimal.class))
+                .paymentStatus(tup.get("payment_status", String.class))
                 .build())
             .collect(Collectors.toList());
 
+        return telephonyPaymentsReportDto;
     }
 
 }
