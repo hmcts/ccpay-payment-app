@@ -17,6 +17,12 @@ import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 import java.util.Date;
 import java.util.Map;
 
+
+import uk.gov.hmcts.payment.api.reports.config.PaymentReportConfig;
+
+import static org.mockito.Mockito.*;
+
+
 import static org.mockito.Mockito.verify;
 import static uk.gov.hmcts.payment.api.util.PaymentMethodType.CARD;
 import static uk.gov.hmcts.payment.api.util.PaymentMethodType.PBA;
@@ -32,6 +38,15 @@ public class PaymentsReportFacadeTest {
 
     @Mock
     private PaymentsReportService reportService;
+
+    @Mock
+    private Map<PaymentReportType, PaymentReportConfig> configMap;
+
+    @Mock
+    private PaymentReportConfig paymentReportConfig;
+
+    @Mock
+    private PaymentsReportFacade paymentsReportFacade;
 
     private CardPaymentReportConfig cardPaymentReportConfig = new CardPaymentReportConfig("from", null, "subject", "message", true);
     private BarPaymentReportConfig barPaymentReportConfig = new BarPaymentReportConfig("from", null, "subject", "message", true);
@@ -240,5 +255,99 @@ public class PaymentsReportFacadeTest {
         verify(reportService).generateDuplicatePaymentsCsvAndSendEmail(fromDate, toDate, duplicatePaymentReportConfig);
 
     }
+
+    @Test
+    public void testGenerateCsvAndSendEmail_WhenReportIsEnabled() {
+        // Arrange
+        Date startDate = new Date();
+        Date endDate = new Date();
+        PaymentMethodType paymentMethodType = PaymentMethodType.CARD;
+        String serviceType = "serviceType";
+
+
+       // when(configMap.get(PaymentReportType.from(paymentMethodType, serviceType))).thenReturn(paymentReportConfig);
+
+
+
+        // Enable the report in the config
+        when(paymentReportConfig.isEnabled()).thenReturn(true);
+
+        // Act
+        paymentsReportFacade.generateCsvAndSendEmail(startDate, endDate, paymentMethodType, serviceType);
+
+        // Assert
+        verify(reportService, times(1)).generateCsvAndSendEmail(
+            eq(startDate),
+            eq(endDate),
+            eq(paymentMethodType),
+            eq(serviceType),
+            eq(paymentReportConfig)
+        );
+    }
+
+
+    @Test
+    public void testGenerateCsvAndSendEmail_WhenReportIsDisabled() {
+        // Arrange
+        Date startDate = new Date();
+        Date endDate = new Date();
+        PaymentMethodType paymentMethodType = PaymentMethodType.CARD;
+        String serviceType = "service-type";
+
+        // Set up the config map to return the mock PaymentReportConfig
+       // when(configMap.get(PaymentReportType.from(paymentMethodType, serviceType))).thenReturn(paymentReportConfig);
+
+        // Disable the report in the config
+        when(paymentReportConfig.isEnabled()).thenReturn(false);
+
+        // Act
+        paymentsReportFacade.generateCsvAndSendEmail(startDate, endDate, paymentMethodType, serviceType);
+
+        // Assert
+        verify(reportService, never()).generateCsvAndSendEmail(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    public void testGenerateDuplicatePaymentCsvAndSendEmail_WhenReportIsEnabled() {
+        // Arrange
+        Date startDate = new Date();
+        Date endDate = new Date();
+
+        // Set up the config map to return the mock PaymentReportConfig for duplicate payments
+       // when(configMap.get(PaymentReportType.DUPLICATE_PAYMENT)).thenReturn(paymentReportConfig);
+
+        // Enable the report in the config
+        when(paymentReportConfig.isEnabled()).thenReturn(true);
+
+        // Act
+        paymentsReportFacade.generateDuplicatePaymentCsvAndSendEmail(startDate, endDate);
+
+        // Assert
+        verify(reportService, times(1)).generateDuplicatePaymentsCsvAndSendEmail(
+            eq(startDate),
+            eq(endDate),
+            eq(paymentReportConfig)
+        );
+    }
+
+    @Test
+    public void testGenerateDuplicatePaymentCsvAndSendEmail_WhenReportIsDisabled() {
+        // Arrange
+        Date startDate = new Date();
+        Date endDate = new Date();
+
+        // Set up the config map to return the mock PaymentReportConfig for duplicate payments
+        when(configMap.get(PaymentReportType.DUPLICATE_PAYMENT)).thenReturn(paymentReportConfig);
+
+        // Disable the report in the config
+        when(paymentReportConfig.isEnabled()).thenReturn(false);
+
+        // Act
+        paymentsReportFacade.generateDuplicatePaymentCsvAndSendEmail(startDate, endDate);
+
+        // Assert
+        verify(reportService, never()).generateDuplicatePaymentsCsvAndSendEmail(any(), any(), any());
+    }
+
 
 }
