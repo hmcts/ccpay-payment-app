@@ -79,50 +79,7 @@ public class DuplicatePaymentValidatorTest {
     private PaymentFeeLinkRepository paymentFeeLinkRepository;
     @Mock
     private Specification mockSpecification;
-    @Mock
-    private UserIdSupplier userIdSupplier;
-    @Mock
-    private Join<Object, Object> paymentJoin;
 
-
-    @Mock
-    private Root<Payment> root;
-
-    @Mock
-    private CriteriaBuilder cb;
-
-
-
-
-    @Mock
-    private Path<Object> userIdPath;
-
-    @Mock
-    private Path<Object> amountPath;
-
-    @Mock
-    private Path<Object> serviceTypePath;
-
-    @Mock
-    private Path<String> ccdCaseNumberPath;
-
-    @Mock
-    private Path<Object> caseReferencePath;
-
-    @Mock
-    private Path<PaymentChannel> paymentChannelPath;
-
-    @Mock
-    private Path<Object> dateCreatedPath;
-
-    @Mock
-    private CriteriaQuery<?> query;
-
-
-
-
-//    @InjectMocks
-//    private DuplicateSpecification duplicateSpecification;
 
     @InjectMocks
     private PaymentValidator paymentValidator;

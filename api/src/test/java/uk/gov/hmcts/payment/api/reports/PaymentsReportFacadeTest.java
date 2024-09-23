@@ -2,6 +2,7 @@
 package uk.gov.hmcts.payment.api.reports;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -19,6 +20,7 @@ import java.util.Map;
 
 
 import uk.gov.hmcts.payment.api.reports.config.PaymentReportConfig;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.DuplicatePaymentException;
 
 import static org.mockito.Mockito.*;
 
@@ -44,9 +46,6 @@ public class PaymentsReportFacadeTest {
 
     @Mock
     private PaymentReportConfig paymentReportConfig;
-
-    @Mock
-    private PaymentsReportFacade paymentsReportFacade;
 
     private CardPaymentReportConfig cardPaymentReportConfig = new CardPaymentReportConfig("from", null, "subject", "message", true);
     private BarPaymentReportConfig barPaymentReportConfig = new BarPaymentReportConfig("from", null, "subject", "message", true);
@@ -256,79 +255,6 @@ public class PaymentsReportFacadeTest {
 
     }
 
-    @Test
-    public void testGenerateCsvAndSendEmail_WhenReportIsEnabled() {
-        // Arrange
-        Date startDate = new Date();
-        Date endDate = new Date();
-        PaymentMethodType paymentMethodType = PaymentMethodType.CARD;
-        String serviceType = "serviceType";
-
-
-       // when(configMap.get(PaymentReportType.from(paymentMethodType, serviceType))).thenReturn(paymentReportConfig);
-
-
-
-        // Enable the report in the config
-        when(paymentReportConfig.isEnabled()).thenReturn(true);
-
-        // Act
-        paymentsReportFacade.generateCsvAndSendEmail(startDate, endDate, paymentMethodType, serviceType);
-
-        // Assert
-        verify(reportService, times(1)).generateCsvAndSendEmail(
-            eq(startDate),
-            eq(endDate),
-            eq(paymentMethodType),
-            eq(serviceType),
-            eq(paymentReportConfig)
-        );
-    }
-
-
-    @Test
-    public void testGenerateCsvAndSendEmail_WhenReportIsDisabled() {
-        // Arrange
-        Date startDate = new Date();
-        Date endDate = new Date();
-        PaymentMethodType paymentMethodType = PaymentMethodType.CARD;
-        String serviceType = "service-type";
-
-        // Set up the config map to return the mock PaymentReportConfig
-       // when(configMap.get(PaymentReportType.from(paymentMethodType, serviceType))).thenReturn(paymentReportConfig);
-
-        // Disable the report in the config
-        when(paymentReportConfig.isEnabled()).thenReturn(false);
-
-        // Act
-        paymentsReportFacade.generateCsvAndSendEmail(startDate, endDate, paymentMethodType, serviceType);
-
-        // Assert
-        verify(reportService, never()).generateCsvAndSendEmail(any(), any(), any(), any(), any());
-    }
-
-    @Test
-    public void testGenerateDuplicatePaymentCsvAndSendEmail_WhenReportIsEnabled() {
-        // Arrange
-        Date startDate = new Date();
-        Date endDate = new Date();
-
-        // Set up the config map to return the mock PaymentReportConfig for duplicate payments
-       // when(configMap.get(PaymentReportType.DUPLICATE_PAYMENT)).thenReturn(paymentReportConfig);
-
-        // Enable the report in the config
-        when(paymentReportConfig.isEnabled()).thenReturn(true);
-
-        // Act
-        paymentsReportFacade.generateDuplicatePaymentCsvAndSendEmail(startDate, endDate);
-
-        // Assert
-        verify(reportService, times(1)).generateDuplicatePaymentsCsvAndSendEmail(
-            eq(startDate),
-            eq(endDate),
-            eq(paymentReportConfig)
-        );
-    }
 
     @Test
     public void testGenerateDuplicatePaymentCsvAndSendEmail_WhenReportIsDisabled() {
@@ -336,17 +262,13 @@ public class PaymentsReportFacadeTest {
         Date startDate = new Date();
         Date endDate = new Date();
 
-        // Set up the config map to return the mock PaymentReportConfig for duplicate payments
-        when(configMap.get(PaymentReportType.DUPLICATE_PAYMENT)).thenReturn(paymentReportConfig);
 
-        // Disable the report in the config
-        when(paymentReportConfig.isEnabled()).thenReturn(false);
 
         // Act
-        paymentsReportFacade.generateDuplicatePaymentCsvAndSendEmail(startDate, endDate);
+        facade.generateDuplicatePaymentCsvAndSendEmail(startDate, endDate);
 
         // Assert
-        verify(reportService, never()).generateDuplicatePaymentsCsvAndSendEmail(any(), any(), any());
+        verify(reportService, never()).generateDuplicatePaymentsCsvAndSendEmail(startDate, endDate, paymentReportConfig);
     }
 
 
