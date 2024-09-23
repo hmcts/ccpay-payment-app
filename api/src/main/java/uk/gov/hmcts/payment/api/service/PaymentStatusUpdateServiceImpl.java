@@ -291,36 +291,35 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
 
         List<PaymentFailures> paymentFailuresList = paymentFailureRepository.findByDatesBetween(startDate, endDate);
 
-        if(paymentFailuresList.isEmpty()){
-            throw new PaymentNotFoundException("No Data found to generate Report");
+        if(!paymentFailuresList.isEmpty()) {
+
+            List<String> paymentReference = paymentFailuresList.stream().map(PaymentFailures::getPaymentReference).distinct().collect(Collectors.toList());
+
+            List<Payment> paymentList = paymentRepository.findByReferenceIn(paymentReference);
+            List<String> paymentRefForRefund = paymentList.stream().map(Payment::getReference).collect(Collectors.toList());
+
+            if (paymentList.size() > 0) {
+                refundPaymentFailureReportDtoResponse = fetchRefundResponse(paymentRefForRefund);
+            }
+
+            if (null != refundPaymentFailureReportDtoResponse) {
+                refundList = refundPaymentFailureReportDtoResponse.getPaymentFailureDto();
+            }
+
+            List<RefundDto> finalRefundList = refundList;
+            paymentFailuresList.stream()
+                .collect(Collectors.toList())
+                .forEach(paymentFailure -> {
+                    LOG.info("paymentFailure: {}", paymentFailure);
+                    failureReport.add(paymentFailureReportMapper.failureReportMapper(
+                        paymentFailure,
+                        paymentList.stream()
+                            .filter(dto -> dto.getReference().equals(paymentFailure.getPaymentReference()))
+                            .findAny().orElse(null),
+                        finalRefundList
+                    ));
+                });
         }
-
-        List<String> paymentReference= paymentFailuresList.stream().map(PaymentFailures::getPaymentReference).distinct().collect(Collectors.toList());
-
-        List<Payment> paymentList = paymentRepository.findByReferenceIn(paymentReference);
-        List<String> paymentRefForRefund = paymentList.stream().map(Payment::getReference).collect(Collectors.toList());
-
-         if(paymentList.size() > 0){
-            refundPaymentFailureReportDtoResponse = fetchRefundResponse(paymentRefForRefund);
-        }
-
-        if(null != refundPaymentFailureReportDtoResponse){
-            refundList = refundPaymentFailureReportDtoResponse.getPaymentFailureDto();
-        }
-
-        List<RefundDto> finalRefundList = refundList;
-        paymentFailuresList.stream()
-            .collect(Collectors.toList())
-            .forEach(paymentFailure -> {
-                LOG.info("paymentFailure: {}", paymentFailure);
-                failureReport.add(paymentFailureReportMapper.failureReportMapper(
-                    paymentFailure,
-                    paymentList.stream()
-                        .filter(dto -> dto.getReference().equals(paymentFailure.getPaymentReference()))
-                        .findAny().orElse(null),
-                    finalRefundList
-                ));
-            });
         return failureReport;
     }
 
@@ -478,9 +477,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
             throw new ValidationErrorException("Error occurred in the report ", validationError);
         }
         List<Tuple> telephonyPaymentsTuples = paymentRepository.findAllByDateCreatedBetweenAndPaymentChannel(startDate, endDate, PaymentChannel.TELEPHONY);
-        if(telephonyPaymentsTuples.isEmpty()){
-            throw new PaymentNotFoundException("No Data found to generate Report");
-        }
+
         List<TelephonyPaymentsReportDto> telephonyPaymentsReportDto = telephonyPaymentsTuples.stream()
             .map(tup -> TelephonyPaymentsReportDto.telephonyPaymentsReportDtoWith()
                 .serviceName(tup.get("service_type", String.class))
@@ -491,7 +488,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
                 .amount(tup.get("amount", BigDecimal.class))
                 .paymentStatus(tup.get("payment_status", String.class))
                 .build())
-            .collect(Collectors.toList());
+            .toList();
 
         return telephonyPaymentsReportDto;
     }

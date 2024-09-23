@@ -313,20 +313,6 @@ public class PaymentStatusUpdateServiceImplTest {
     }
 
     @Test
-    public void return404WhenPaymentNotFound(){
-
-        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-        headers.add("Authorization", "auth");
-        headers.add("ServiceAuthorization", "service-auth");
-        Date fromDate =clock.getYesterdayDate();
-        Date toDate = clock.getTodayDate();
-        assertThrows(
-            PaymentNotFoundException.class,
-            () -> paymentStatusUpdateServiceImpl.paymentFailureReport(fromDate,toDate,headers)
-        );
-    }
-
-    @Test
     public void getRefundSuccess() {
 
         ResponseEntity<RefundPaymentFailureReportDtoResponse> responseEntity = new ResponseEntity<>(getFailureRefund(), HttpStatus.OK);
@@ -563,20 +549,6 @@ public class PaymentStatusUpdateServiceImplTest {
         });
 
         assertEquals("Error occurred in the report ", exception.getMessage());
-    }
-
-    @Test
-    public void testTelephonyPaymentsReport_NoDataFound() {
-        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-        headers.add("ServiceAuthorization", "service-auth");
-        when(paymentRepository.findAllByDateCreatedBetweenAndPaymentChannel(startDate, endDate, PaymentChannel.TELEPHONY))
-            .thenReturn(Arrays.asList());
-
-        PaymentNotFoundException exception = assertThrows(PaymentNotFoundException.class, () -> {
-            paymentStatusUpdateServiceImpl.telephonyPaymentsReport(startDate, endDate, headers);
-        });
-
-        assertEquals("No Data found to generate Report", exception.getMessage());
     }
 
 
