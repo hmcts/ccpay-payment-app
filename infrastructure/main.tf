@@ -21,7 +21,6 @@ locals {
   #region API gateway
   thumbprints_in_quotes     = formatlist("&quot;%s&quot;", var.telephony_api_gateway_certificate_thumbprints)
   thumbprints_in_quotes_str = join(",", local.thumbprints_in_quotes)
-  api_policy                = replace(file("template/api-policy.xml"), "ALLOWED_CERTIFICATE_THUMBPRINTS", local.thumbprints_in_quotes_str)
   api_base_path             = "telephony-api"
   # endregion
 
@@ -82,48 +81,39 @@ module "payment-database-v15" {
 }
 
 # Populate Vault with DB info
-
 resource "azurerm_key_vault_secret" "POSTGRES-USER" {
   name = join("-", [var.component, "POSTGRES-USER"])
-  #   value     = module.payment-database-v11.user_name
   value        = module.payment-database-v15.username
   key_vault_id = data.azurerm_key_vault.payment_key_vault.id
 }
 
 resource "azurerm_key_vault_secret" "POSTGRES-PASS" {
   name = join("-", [var.component, "POSTGRES-PASS"])
-  #   value     = module.payment-database-v11.postgresql_password
   value        = module.payment-database-v15.password
   key_vault_id = data.azurerm_key_vault.payment_key_vault.id
 }
 
 resource "azurerm_key_vault_secret" "POSTGRES_HOST" {
   name = join("-", [var.component, "POSTGRES-HOST"])
-  #   value     = module.payment-database-v11.host_name
   value        = module.payment-database-v15.fqdn
   key_vault_id = data.azurerm_key_vault.payment_key_vault.id
 }
 
 resource "azurerm_key_vault_secret" "POSTGRES_PORT" {
   name = join("-", [var.component, "POSTGRES-PORT"])
-  #   value     = module.payment-database-v11.postgresql_listen_port
   value        = var.postgresql_flexible_server_port
   key_vault_id = data.azurerm_key_vault.payment_key_vault.id
 }
 
 resource "azurerm_key_vault_secret" "POSTGRES_DATABASE" {
   name = join("-", [var.component, "POSTGRES-DATABASE"])
-  #   value     = module.payment-database-v11.postgresql_database
   value        = var.database_name
   key_vault_id = data.azurerm_key_vault.payment_key_vault.id
 }
 
-
 # Populate Vault with SendGrid API token
-
 data "azurerm_key_vault" "sendgrid" {
   provider = azurerm.sendgrid
-
   name                = var.env != "prod" ? "sendgridnonprod" : "sendgridprod"
   resource_group_name = var.env != "prod" ? "SendGrid-nonprod" : "SendGrid-prod"
 }
@@ -140,9 +130,7 @@ resource "azurerm_key_vault_secret" "spring-mail-password" {
   key_vault_id = data.azurerm_key_vault.payment_key_vault.id
 }
 
-
 # region API (gateway)
-
 data "azurerm_key_vault_secret" "s2s_client_secret" {
   name         = "gateway-s2s-client-secret"
   key_vault_id = data.azurerm_key_vault.payment_key_vault.id
@@ -153,36 +141,3 @@ data "azurerm_key_vault_secret" "s2s_client_id" {
   key_vault_id = data.azurerm_key_vault.payment_key_vault.id
 }
 
-data "template_file" "policy_template" {
-  template = file("${path.module}/template/api-policy.xml")
-
-  vars = {
-    allowed_certificate_thumbprints = "${local.thumbprints_in_quotes_str}"
-    s2s_client_id                   = "${data.azurerm_key_vault_secret.s2s_client_id.value}"
-    s2s_client_secret               = "${data.azurerm_key_vault_secret.s2s_client_secret.value}"
-    s2s_base_url                    = "${local.s2sUrl}"
-  }
-}
-
-data "template_file" "api_template" {
-  template = file("${path.module}/template/api.json")
-}
-
-resource "azurerm_template_deployment" "telephony_api" {
-  template_body       = data.template_file.api_template.rendered
-  name                = "telephony-api-${var.env}"
-  deployment_mode     = "Incremental"
-  resource_group_name = "core-infra-${var.env}"
-  count               = var.env != "preview" ? 1 : 0
-
-  parameters = {
-    apiManagementServiceName = "core-api-mgmt-${var.env}"
-    apiName                  = "telephony-api"
-    apiProductName           = "telephony"
-    serviceUrl               = "http://payment-api-${var.env}.service.core-compute-${var.env}.internal"
-    apiBasePath              = local.api_base_path
-    policy                   = data.template_file.policy_template.rendered
-  }
-}
-
-# endregion
