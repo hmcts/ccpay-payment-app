@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.functional;
 
 import com.mifmif.common.regex.Generex;
+import io.restassured.response.Response;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.validator.routines.UrlValidator;
@@ -18,8 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
-import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
-import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
+import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.model.PaymentChannel;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
@@ -30,14 +30,13 @@ import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
 import uk.gov.hmcts.payment.functional.service.PaymentTestService;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
+import static org.springframework.http.HttpStatus.OK;
 
 @RunWith(SpringIntegrationSerenityRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
@@ -304,6 +303,84 @@ public class TelephonyPaymentsTest {
                     });
 
             });
+    }
+
+    @Test
+    public void telephonyPaymentReportValidation() {
+        String ccdCaseNumber = "11118888" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
+
+        FeeDto feeDto = FeeDto.feeDtoWith()
+            .calculatedAmount(new BigDecimal("593.00"))
+            .ccdCaseNumber(ccdCaseNumber)
+            .version("6")
+            .code("FEE0002")
+            .description("Filing an application for a divorce, nullity or civil partnership dissolution")
+            .build();
+
+        TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
+            .amount(new BigDecimal("593"))
+            .ccdCaseNumber(ccdCaseNumber)
+            .currency(CurrencyCode.GBP)
+            .caseType("DIVORCE")
+            .returnURL("https://www.moneyclaims.service.gov.uk")
+            .build();
+
+        PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(feeDto)).build();
+
+        dsl.given().userToken(USER_TOKEN_PAYMENT)
+            .s2sToken(SERVICE_TOKEN)
+            .when().addNewFeeAndPaymentGroup(groupDto)
+            .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
+                assertThat(paymentGroupFeeDto).isNotNull();
+
+                String paymentGroupReference = paymentGroupFeeDto.getPaymentGroupReference();
+
+                dsl.given().userToken(USER_TOKEN_PAYMENT)
+                    .s2sToken(SERVICE_TOKEN)
+                    .returnUrl("https://www.moneyclaims.service.gov.uk")
+                    .when().createTelephonyPayment(telephonyPaymentRequest, paymentGroupReference)
+                    .then().gotCreated(TelephonyCardPaymentsResponse.class, telephonyCardPaymentsResponse -> {
+                        assertThat(telephonyCardPaymentsResponse).isNotNull();
+                        assertThat(telephonyCardPaymentsResponse.getPaymentReference().matches(PAYMENT_REFERENCE_REGEX)).isTrue();
+                        assertThat(telephonyCardPaymentsResponse.getStatus()).isEqualTo("Initiated");
+                        paymentReference = telephonyCardPaymentsResponse.getPaymentReference();
+                    });
+                // pci-pal callback
+                TelephonyCallbackDto callbackDto = TelephonyCallbackDto.telephonyCallbackWith()
+                    .orderReference(paymentReference)
+                    .orderAmount("593")
+                    .transactionResult("SUCCESS")
+                    .build();
+
+                dsl.given().s2sToken(SERVICE_TOKEN)
+                    .when().telephonyCallback(callbackDto)
+                    .then().noContent();
+            });
+
+        String dateFrom = paymentTestService.getReportDate(new Date(System.currentTimeMillis()));
+        String dateTo = paymentTestService.getReportDate(new Date(System.currentTimeMillis()));
+
+        Response response = paymentTestService.getTelephonyPaymentsByStartAndEndDate(USER_TOKEN, SERVICE_TOKEN, dateFrom, dateTo)
+            .then()
+            .statusCode(OK.value()).extract().response();
+
+        TelephonyPaymentsReportResponse telephonyPaymentsReportResponse = response.getBody().as(TelephonyPaymentsReportResponse.class);
+
+        TelephonyPaymentsReportDto telephonyPaymentsReportDto = telephonyPaymentsReportResponse.getTelephonyPaymentsReportList().stream().filter(s -> s.getPaymentReference().equalsIgnoreCase(paymentReference)).findFirst().get();
+        String paymentDate = paymentTestService.getReportDate(telephonyPaymentsReportDto.getPaymentDate());
+        String expectedDate = paymentTestService.getReportDate(new Date(System.currentTimeMillis()));
+        assertEquals(paymentReference, telephonyPaymentsReportDto.getPaymentReference());
+        assertEquals("Divorce", telephonyPaymentsReportDto.getServiceName());
+        assertEquals(ccdCaseNumber, telephonyPaymentsReportDto.getCcdReference());
+        assertEquals("FEE0002", telephonyPaymentsReportDto.getFeeCode());
+        assertEquals(expectedDate, paymentDate);
+        assertEquals(new BigDecimal("593.00"), telephonyPaymentsReportDto.getAmount());
+        assertEquals("success", telephonyPaymentsReportDto.getPaymentStatus());
+
+
+        // delete payment record
+        paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentReference).then().statusCode(NO_CONTENT.value());
     }
 
     private PaymentRecordRequest getTelephonyPayment(String reference) {
