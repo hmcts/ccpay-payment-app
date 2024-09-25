@@ -31,5 +31,8 @@ public class ServiceRequestFeeBo {
     private String ccdCaseNumber; // Will be removed after get api's work without ccd dependency
 
     private BigDecimal amountDue;
+
+    private BigDecimal netAmount;
+
     //private List<RemissionDto> remissions;
 }

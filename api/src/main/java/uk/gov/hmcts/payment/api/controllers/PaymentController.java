@@ -192,6 +192,7 @@ public class PaymentController {
     ) {
 
         validatePullRequest(startDateTimeString, endDateTimeString, paymentMethodType, serviceType);
+        String iacServiceName = paymentService.getServiceNameByCode("IAC");
 
         Date fromDateTime = getFromDateTime(startDateTimeString);
 
@@ -207,13 +208,14 @@ public class PaymentController {
         populatePaymentDtos(paymentDtos, payments);
 
         Optional<Payment> iacPaymentAny = payments.stream()
-            .filter(p -> p.getServiceType().equalsIgnoreCase(paymentService.getServiceNameByCode("IAC"))).findAny();
+            .filter(p -> p.getServiceType().equalsIgnoreCase(iacServiceName)).findAny();
         boolean iacSupplementaryDetailsFeature = featureToggler.getBooleanValue("iac-supplementary-details-feature",false);
         LOG.info("IAC Supplementary Details feature flag in liberata API: {}", iacSupplementaryDetailsFeature);
         LOG.info("Is any IAC payment present: {}", iacPaymentAny.isPresent());
 
         if(iacPaymentAny.isPresent() && iacSupplementaryDetailsFeature){
-            return iacService.getIacSupplementaryInfo(paymentDtos,paymentService.getServiceNameByCode("IAC"));
+            iacService.updateCaseReferenceInPaymentDtos(paymentDtos,iacServiceName);
+            return iacService.getIacSupplementaryInfo(paymentDtos,iacServiceName);
         }
         return new ResponseEntity(new PaymentsResponse(paymentDtos),HttpStatus.OK);
 

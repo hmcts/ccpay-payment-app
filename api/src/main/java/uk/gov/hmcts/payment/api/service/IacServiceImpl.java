@@ -13,12 +13,16 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.dto.*;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -33,14 +37,17 @@ public class IacServiceImpl implements IacService {
     private RestTemplate restTemplateIacSupplementaryInfo;
 
     @Autowired
+    private PaymentFeeLinkRepository paymentFeeLinkRepository;
+
+    @Autowired
     private AuthTokenGenerator authTokenGenerator;
 
     @Override
     public ResponseEntity<SupplementaryPaymentDto> getIacSupplementaryInfo(List<PaymentDto> paymentDtos, String serviceName) {
        HttpStatus paymentResponseHttpStatus = HttpStatus.OK;
         boolean isExceptionOccur = false;
-        List<PaymentDto> iacPayments = paymentDtos.stream().filter(payment -> (payment.getServiceName().equalsIgnoreCase(serviceName))).
-            collect(Collectors.toList());
+
+        List<PaymentDto> iacPayments = getIacPayments(serviceName, paymentDtos);
         LOG.info("No of Iac payment retrieved  : {}", iacPayments.size());
 
         List<String> iacCcdCaseNos = iacPayments.stream().map(paymentDto -> paymentDto.getCcdCaseNumber()).
@@ -85,6 +92,28 @@ public class IacServiceImpl implements IacService {
                     build();
             }
            return new ResponseEntity(supplementaryPaymentDto, paymentResponseHttpStatus);
+    }
+
+    @Override
+    public void updateCaseReferenceInPaymentDtos(List<PaymentDto> paymentDtos, String serviceName) {
+        List<PaymentDto> iacPayments = getIacPayments(serviceName, paymentDtos);
+
+        iacPayments.forEach(paymentDto ->
+            paymentFeeLinkRepository.findByPaymentReference(paymentDto.getPaymentGroupReference()).ifPresent(paymentFeeLink -> {
+                if (paymentDto.getCaseReference() == null && paymentFeeLink.getCaseReference() != null && paymentFeeLink.getCaseReference().length() > 0) {
+                    paymentDto.setCaseReference(paymentFeeLink.getCaseReference());
+                    LOG.info("Setting caseReference {} for Service Request {} in Case {}",
+                        paymentFeeLink.getCaseReference(),
+                        paymentDto.getPaymentGroupReference(),
+                        paymentDto.getCcdCaseNumber());
+                }
+            })
+        );
+    }
+
+    private List<PaymentDto> getIacPayments(String serviceName, List<PaymentDto> paymentDtos) {
+        return paymentDtos.stream().filter(payment -> (payment.getServiceName().equalsIgnoreCase(serviceName))).
+            collect(Collectors.toList());
     }
 
     private ResponseEntity<SupplementaryDetailsResponse> getIacSupplementaryInfoResponse(List<String> iacCcdCaseNos) throws RestClientException {
