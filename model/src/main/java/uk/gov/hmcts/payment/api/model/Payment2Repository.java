@@ -8,6 +8,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import uk.gov.hmcts.payment.api.dto.Reference;
 
+import javax.persistence.Tuple;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
@@ -46,4 +47,14 @@ public interface Payment2Repository extends CrudRepository<Payment, Integer>, Jp
     int updatePaymentUpdatedDateTime(@Param("rollbackdate") LocalDateTime rollbackDate,
                                    @Param("ccdcasenumber") String ccdCaseNumber);
 
+
+    @Query(value = "SELECT p.service_type, p.ccd_case_number, p.reference, f.code, p.date_created, p.amount, p.payment_status " +
+        "FROM payment p " +
+        "JOIN payment_fee_link pfl ON pfl.id = p.payment_link_id " +
+        "JOIN fee f on f.payment_link_id = pfl.id " +
+        "WHERE p.date_created BETWEEN :fromDate AND :toDate AND p.payment_channel = :paymentChannel" , nativeQuery = true)
+    List<Tuple> findAllByDateCreatedBetweenAndPaymentChannel(
+        @Param("fromDate") Date fromDate,
+        @Param("toDate") Date toDate,
+        @Param("paymentChannel") PaymentChannel paymentChannel);
 }
