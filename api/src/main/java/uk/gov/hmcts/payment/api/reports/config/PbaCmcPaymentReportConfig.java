@@ -12,7 +12,7 @@ import uk.gov.hmcts.payment.api.reports.PaymentReportType;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class PbaCmcPaymentReportConfig implements PaymentReportConfig {
+public class PbaCmcPaymentReportConfig implements PaymentReportConfig<PaymentDto> {
 
     private static final String CREDIT_ACCOUNT_PAYMENTS_HEADER = "Service,Payment Group reference,Payment reference," +
         "CCD reference,Case reference,Organisation name,Customer internal reference,PBA Number,Payment created date," +

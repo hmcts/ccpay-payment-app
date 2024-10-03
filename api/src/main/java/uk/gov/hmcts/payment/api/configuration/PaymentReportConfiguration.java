@@ -4,19 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import uk.gov.hmcts.payment.api.reports.PaymentReportType;
-import uk.gov.hmcts.payment.api.reports.config.BarPaymentReportConfig;
-import uk.gov.hmcts.payment.api.reports.config.CardPaymentReportConfig;
-import uk.gov.hmcts.payment.api.reports.config.PaymentReportConfig;
-import uk.gov.hmcts.payment.api.reports.config.PbaCmcPaymentReportConfig;
-import uk.gov.hmcts.payment.api.reports.config.PbaCivilPaymentReportConfig;
-import uk.gov.hmcts.payment.api.reports.config.PbaDivorcePaymentReportConfig;
-import uk.gov.hmcts.payment.api.reports.config.PbaFinremPaymentReportConfig;
-import uk.gov.hmcts.payment.api.reports.config.PbaProbatePaymentReportConfig;
-import uk.gov.hmcts.payment.api.reports.config.PbaFplPaymentReportConfig;
-import uk.gov.hmcts.payment.api.reports.config.PbaPrlPaymentReportConfig;
-import uk.gov.hmcts.payment.api.reports.config.PbaIacPaymentReportConfig;
-import uk.gov.hmcts.payment.api.reports.config.PbaSmcPaymentReportConfig;
-
+import uk.gov.hmcts.payment.api.reports.config.*;
 
 import java.util.Map;
 
@@ -24,7 +12,8 @@ import java.util.Map;
 public class PaymentReportConfiguration {
 
     @Bean
-    public Map<PaymentReportType, PaymentReportConfig> configMap(CardPaymentReportConfig cardPaymentReportConfig,
+    public Map<PaymentReportType, PaymentReportConfig> configMap(DuplicatePaymentReportConfig duplicatePaymentReportConfig,
+                                                                 CardPaymentReportConfig cardPaymentReportConfig,
                                                                  BarPaymentReportConfig barPaymentReportConfig,
                                                                  PbaCmcPaymentReportConfig pbaCmcPaymentReportConfig,
                                                                  PbaProbatePaymentReportConfig pbaProbatePaymentReportConfig,
@@ -36,6 +25,7 @@ public class PaymentReportConfiguration {
                                                                  PbaIacPaymentReportConfig pbaIacPaymentReportConfig,
                                                                  PbaSmcPaymentReportConfig pbaSmcPaymentReportConfig) {
         return ImmutableMap.<PaymentReportType, PaymentReportConfig>builder()
+            .put(PaymentReportType.DUPLICATE_PAYMENT, duplicatePaymentReportConfig)
             .put(PaymentReportType.CARD, cardPaymentReportConfig)
             .put(PaymentReportType.DIGITAL_BAR, barPaymentReportConfig)
             .put(PaymentReportType.PBA_CMC, pbaCmcPaymentReportConfig)

@@ -12,7 +12,7 @@ import uk.gov.hmcts.payment.api.reports.PaymentReportType;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class CardPaymentReportConfig implements PaymentReportConfig {
+public class CardPaymentReportConfig implements PaymentReportConfig<PaymentDto> {
 
     private static final String CARD_PAYMENTS_HEADER = "Service,Payment Group reference,Payment reference," +
         "CCD reference,Case reference,Payment created date,Payment status updated date,Payment status," +
@@ -33,10 +33,7 @@ public class CardPaymentReportConfig implements PaymentReportConfig {
     private boolean enabled;
 
     @Override
-    public PaymentReportType getType() {
-        return PaymentReportType.CARD;
-    }
-
+    public PaymentReportType getType() { return PaymentReportType.CARD; }
     @Override
     public String getCsvHeader() {
         return CARD_PAYMENTS_HEADER;

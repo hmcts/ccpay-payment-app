@@ -25,4 +25,37 @@ public class ValidationErrorDTO {
         return !fieldErrors.isEmpty();
     }
 
+    public class ValidationErrorException extends RuntimeException {
+        private final ValidationErrorDTO validationErrorDTO;
+
+        public ValidationErrorException(String message, ValidationErrorDTO validationErrorDTO) {
+            super(message);
+            this.validationErrorDTO = validationErrorDTO;
+        }
+
+        public ValidationErrorDTO getValidationErrorDTO() {
+            return validationErrorDTO;
+        }
+    }
+    public class FieldError {
+        private final String field;
+        private final String message;
+
+        public FieldError(String field, String message) {
+            this.field = field;
+            this.message = message;
+        }
+
+        public String getField() {
+            return field;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+
+
+    }
+
+
 }
