@@ -22,6 +22,7 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -86,14 +87,15 @@ public class IacServiceImpl implements IacService {
 
                 // Update PaymentDtos with caseReferenceNumber from SupplementaryInfo
                 if (lstSupplementaryInfo != null) {
-                    for (SupplementaryInfo supplementaryInfo : lstSupplementaryInfo) {
-                        String ccdCaseNumber = supplementaryInfo.getCcdCaseNumber();
-                        String caseReferenceNumber = supplementaryInfo.getSupplementaryDetails().getCaseReferenceNumber();
-                        for (PaymentDto paymentDto : paymentDtos) {
-                            if (paymentDto.getCcdCaseNumber().equals(ccdCaseNumber)) {
-                                paymentDto.setCaseReference(caseReferenceNumber);
-                                LOG.info("Setting caseReference {} for CCD Case {}", caseReferenceNumber, ccdCaseNumber);
-                            }
+                    Map<String, String> caseReferenceMap = lstSupplementaryInfo.stream()
+                        .collect(Collectors.toMap(SupplementaryInfo::getCcdCaseNumber,
+                            info -> info.getSupplementaryDetails().getCaseReferenceNumber()));
+
+                    for (PaymentDto paymentDto : paymentDtos) {
+                        String caseReferenceNumber = caseReferenceMap.get(paymentDto.getCcdCaseNumber());
+                        if (caseReferenceNumber != null) {
+                            paymentDto.setCaseReference(caseReferenceNumber);
+                            LOG.info("Setting caseReference {} for CCD Case {}", caseReferenceNumber, paymentDto.getCcdCaseNumber());
                         }
                     }
                 }
