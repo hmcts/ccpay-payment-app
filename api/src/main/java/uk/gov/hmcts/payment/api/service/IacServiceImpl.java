@@ -80,8 +80,23 @@ public class IacServiceImpl implements IacService {
 
                 if (responseEntitySupplementaryInfo.getStatusCodeValue() == HttpStatus.PARTIAL_CONTENT.value() && lstMissingSupplementaryInfo == null) {
                     LOG.info("No missing supplementary info received from IAC for any CCD case numbers, however response is 206");
-                } else if (lstMissingSupplementaryInfo != null && lstMissingSupplementaryInfo.getCcdCaseNumbers() != null)
-                    LOG.info("missing supplementary info from IAC for CCD case numbers : {}", lstMissingSupplementaryInfo.getCcdCaseNumbers().toString());
+                } else if (lstMissingSupplementaryInfo != null && lstMissingSupplementaryInfo.getCcdCaseNumbers() != null) {
+                    LOG.info("Missing supplementary info from IAC for CCD case numbers : {}", lstMissingSupplementaryInfo.getCcdCaseNumbers().toString());
+                }
+
+                // Update PaymentDtos with caseReferenceNumber from SupplementaryInfo
+                if (lstSupplementaryInfo != null) {
+                    for (SupplementaryInfo supplementaryInfo : lstSupplementaryInfo) {
+                        String ccdCaseNumber = supplementaryInfo.getCcdCaseNumber();
+                        String caseReferenceNumber = supplementaryInfo.getSupplementaryDetails().getCaseReferenceNumber();
+                        for (PaymentDto paymentDto : paymentDtos) {
+                            if (paymentDto.getCcdCaseNumber().equals(ccdCaseNumber)) {
+                                paymentDto.setCaseReference(caseReferenceNumber);
+                                LOG.info("Setting caseReference {} for CCD Case {}", caseReferenceNumber, ccdCaseNumber);
+                            }
+                        }
+                    }
+                }
             }
 
             supplementaryPaymentDto = SupplementaryPaymentDto.supplementaryPaymentDtoWith().payments(paymentDtos).
@@ -91,24 +106,10 @@ public class IacServiceImpl implements IacService {
                  supplementaryPaymentDto = SupplementaryPaymentDto.supplementaryPaymentDtoWith().payments(paymentDtos).
                     build();
             }
+
+
+
            return new ResponseEntity(supplementaryPaymentDto, paymentResponseHttpStatus);
-    }
-
-    @Override
-    public void updateCaseReferenceInPaymentDtos(List<PaymentDto> paymentDtos, String serviceName) {
-        List<PaymentDto> iacPayments = getIacPayments(serviceName, paymentDtos);
-
-        iacPayments.forEach(paymentDto ->
-            paymentFeeLinkRepository.findByPaymentReference(paymentDto.getPaymentGroupReference()).ifPresent(paymentFeeLink -> {
-                if (paymentDto.getCaseReference() == null && paymentFeeLink.getCaseReference() != null && paymentFeeLink.getCaseReference().length() > 0) {
-                    paymentDto.setCaseReference(paymentFeeLink.getCaseReference());
-                    LOG.info("Setting caseReference {} for Service Request {} in Case {}",
-                        paymentFeeLink.getCaseReference(),
-                        paymentDto.getPaymentGroupReference(),
-                        paymentDto.getCcdCaseNumber());
-                }
-            })
-        );
     }
 
     private List<PaymentDto> getIacPayments(String serviceName, List<PaymentDto> paymentDtos) {

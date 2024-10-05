@@ -18,4 +18,7 @@ public class SupplementaryDetails {
 
     @NotNull
     private String surname;
+
+    @NotNull
+    private String caseReferenceNumber;
 }
