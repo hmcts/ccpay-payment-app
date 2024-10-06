@@ -13,17 +13,14 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.dto.*;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -57,6 +54,7 @@ public class IacServiceImpl implements IacService {
         ResponseEntity<SupplementaryDetailsResponse> responseEntitySupplementaryInfo = null;
 
         List<SupplementaryInfo> lstSupplementaryInfo = null;
+        List<LiberataSupplementaryInfo> lstLiberataSupplementaryInfo = null;
         SupplementaryPaymentDto supplementaryPaymentDto = null;
 
         if (!iacCcdCaseNos.isEmpty()) {
@@ -85,7 +83,6 @@ public class IacServiceImpl implements IacService {
                     LOG.info("Missing supplementary info from IAC for CCD case numbers : {}", lstMissingSupplementaryInfo.getCcdCaseNumbers().toString());
                 }
 
-                // Update PaymentDtos with caseReferenceNumber from SupplementaryInfo
                 if (lstSupplementaryInfo != null) {
                     Map<String, String> caseReferenceMap = lstSupplementaryInfo.stream()
                         .collect(Collectors.toMap(SupplementaryInfo::getCcdCaseNumber,
@@ -98,20 +95,29 @@ public class IacServiceImpl implements IacService {
                             LOG.info("Setting caseReference {} for CCD Case {}", caseReferenceNumber, paymentDto.getCcdCaseNumber());
                         }
                     }
+
+                    lstLiberataSupplementaryInfo = lstSupplementaryInfo.stream()
+                        .map(info -> LiberataSupplementaryInfo.liberataSupplementaryInfoWith()
+                            .ccdCaseNumber(info.getCcdCaseNumber())
+                            .supplementaryDetails(LiberataSupplementaryDetails.supplementaryDetailsWith()
+                                .surname(info.getSupplementaryDetails().getSurname())
+                                .build())
+                            .build())
+                        .collect(Collectors.toList());
                 }
             }
 
-            supplementaryPaymentDto = SupplementaryPaymentDto.supplementaryPaymentDtoWith().payments(paymentDtos).
-                supplementaryInfo(lstSupplementaryInfo).build();
-            }else{
-                LOG.info("No Iac payments retrieved");
-                 supplementaryPaymentDto = SupplementaryPaymentDto.supplementaryPaymentDtoWith().payments(paymentDtos).
-                    build();
-            }
+            supplementaryPaymentDto = SupplementaryPaymentDto.supplementaryPaymentDtoWith()
+                .payments(paymentDtos)
+                .supplementaryInfo(lstLiberataSupplementaryInfo)
+                .build();
+        }else{
+            LOG.info("No Iac payments retrieved");
+             supplementaryPaymentDto = SupplementaryPaymentDto.supplementaryPaymentDtoWith().payments(paymentDtos).
+                build();
+        }
 
-
-
-           return new ResponseEntity(supplementaryPaymentDto, paymentResponseHttpStatus);
+       return new ResponseEntity(supplementaryPaymentDto, paymentResponseHttpStatus);
     }
 
     private List<PaymentDto> getIacPayments(String serviceName, List<PaymentDto> paymentDtos) {

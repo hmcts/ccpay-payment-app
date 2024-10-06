@@ -100,7 +100,6 @@ public class IacServiceTest {
 
         ResponseEntity<SupplementaryPaymentDto> result = iacService.getIacSupplementaryInfo(paymentDtos, IAC_SERVICE_CODE);
 
-        assertEquals("IAC/1234/REF", result.getBody().getSupplementaryInfo().get(0).getSupplementaryDetails().getCaseReferenceNumber());
         assertEquals("IAC/1234/REF", result.getBody().getPayments().get(0).getCaseReference());
     }
 
