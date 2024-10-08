@@ -138,6 +138,8 @@ java:
           alias: GOV_PAY_AUTH_KEY_REFERENCE
         - name: gov-pay-keys-cmc
           alias: gov.pay.auth.key.cmc
+        - name: gov-pay-keys-cmc
+          alias: gov.pay.auth.key.civil_service
         - name: gov-pay-keys-cmc-claim-store
           alias: gov.pay.auth.key.cmc_claim_store
         - name: gov-pay-keys-divorce
