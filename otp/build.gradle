@@ -10,7 +10,7 @@ task customFatJar(type: Jar) {
     manifest {
         attributes 'Main-Class': 'uk.gov.hmcts.payment.OtpBootstrap'
     }
-    archiveName = 'payment-otp-all.jar'
+    archiveFileName.set('payment-otp-all.jar')
     from { configurations.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
     with jar
     duplicatesStrategy = 'include'
