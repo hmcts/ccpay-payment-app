@@ -34,7 +34,7 @@ task fortifyScan(type: JavaExec)  {
     jvmArgs = ['--add-opens=java.base/java.lang.reflect=ALL-UNNAMED']
 }
 
-allprojects {
+allprojects
     apply plugin: 'io.spring.dependency-management'
     apply plugin: 'idea'
     apply plugin: 'jacoco'
@@ -105,12 +105,11 @@ allprojects {
         reports {
             // xml is usually used to integrate code coverage with
             // other tools like SonarQube, Coveralls or Codecov
-            xml.enabled true
+            xml.required.set(true)
             // HTML reports can be used to see code coverage
             // without any external tools
-            html.enabled true
-            xml.destination = file("${project.buildDir}/reports/jacoco/test/jacocoTestReport.xml")
-        }
+            html.required.set(true)
+            xml.outputLocation.set(file("${project.buildDir}/reports/jacoco/test/jacocoTestReport.xml"))
     }
 
     codeCoverageReport.dependsOn {
@@ -190,7 +189,7 @@ jar {
 }
 
 bootJar {
-    archiveName 'payment-app.jar'
+    archiveFileName.set('payment-app.jar')
     manifest {
         attributes 'Implementation-Title': project.name, 'Implementation-Version': project.version
     }
