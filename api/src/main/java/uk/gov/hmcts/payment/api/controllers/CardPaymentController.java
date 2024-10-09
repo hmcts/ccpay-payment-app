@@ -52,7 +52,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.NoServiceFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.util.Optional;
 import java.util.stream.Collectors;
 

@@ -38,7 +38,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.*;
 import uk.gov.hmcts.payment.api.validators.DuplicatePaymentValidator;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Optional;
 
