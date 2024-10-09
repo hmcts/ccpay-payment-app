@@ -5,20 +5,24 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.*;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import java.util.List;
+
+import javax.validation.constraints.NotNull;
+
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
 @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
 @JsonInclude(NON_NULL)
-@Builder(builderMethodName = "supplementaryPaymentDtoWith")
+@Builder(builderMethodName = "liberataSupplementaryInfoWith")
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
-public class SupplementaryPaymentDto {
-    private List<PaymentDto> payments;
+public class LiberataSupplementaryInfo {
 
-    @JsonProperty("supplementary_info")
-    private List<LiberataSupplementaryInfo> supplementaryInfo;
- }
+    @NotNull
+    private String ccdCaseNumber;
+
+    @NotNull
+    @JsonProperty("supplementary_details")
+    private LiberataSupplementaryDetails supplementaryDetails;
+}

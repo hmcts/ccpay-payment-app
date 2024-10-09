@@ -1,24 +1,23 @@
 package uk.gov.hmcts.payment.api.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.*;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import java.util.List;
+
+import javax.validation.constraints.NotNull;
+
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
 @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
 @JsonInclude(NON_NULL)
-@Builder(builderMethodName = "supplementaryPaymentDtoWith")
+@Builder(builderMethodName = "supplementaryDetailsWith")
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
-public class SupplementaryPaymentDto {
-    private List<PaymentDto> payments;
+public class LiberataSupplementaryDetails {
 
-    @JsonProperty("supplementary_info")
-    private List<LiberataSupplementaryInfo> supplementaryInfo;
- }
+    @NotNull
+    private String surname;
+}

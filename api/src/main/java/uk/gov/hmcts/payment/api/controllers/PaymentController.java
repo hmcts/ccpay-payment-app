@@ -214,7 +214,6 @@ public class PaymentController {
         LOG.info("Is any IAC payment present: {}", iacPaymentAny.isPresent());
 
         if(iacPaymentAny.isPresent() && iacSupplementaryDetailsFeature){
-            iacService.updateCaseReferenceInPaymentDtos(paymentDtos,iacServiceName);
             return iacService.getIacSupplementaryInfo(paymentDtos,iacServiceName);
         }
         return new ResponseEntity(new PaymentsResponse(paymentDtos),HttpStatus.OK);
