@@ -82,38 +82,38 @@ module "payment-database-v15" {
 
 # Populate Vault with DB info
 resource "azurerm_key_vault_secret" "POSTGRES-USER" {
-  name = join("-", [var.component, "POSTGRES-USER"])
+  name         = join("-", [var.component, "POSTGRES-USER"])
   value        = module.payment-database-v15.username
   key_vault_id = data.azurerm_key_vault.payment_key_vault.id
 }
 
 resource "azurerm_key_vault_secret" "POSTGRES-PASS" {
-  name = join("-", [var.component, "POSTGRES-PASS"])
+  name         = join("-", [var.component, "POSTGRES-PASS"])
   value        = module.payment-database-v15.password
   key_vault_id = data.azurerm_key_vault.payment_key_vault.id
 }
 
 resource "azurerm_key_vault_secret" "POSTGRES_HOST" {
-  name = join("-", [var.component, "POSTGRES-HOST"])
+  name         = join("-", [var.component, "POSTGRES-HOST"])
   value        = module.payment-database-v15.fqdn
   key_vault_id = data.azurerm_key_vault.payment_key_vault.id
 }
 
 resource "azurerm_key_vault_secret" "POSTGRES_PORT" {
-  name = join("-", [var.component, "POSTGRES-PORT"])
+  name         = join("-", [var.component, "POSTGRES-PORT"])
   value        = var.postgresql_flexible_server_port
   key_vault_id = data.azurerm_key_vault.payment_key_vault.id
 }
 
 resource "azurerm_key_vault_secret" "POSTGRES_DATABASE" {
-  name = join("-", [var.component, "POSTGRES-DATABASE"])
+  name         = join("-", [var.component, "POSTGRES-DATABASE"])
   value        = var.database_name
   key_vault_id = data.azurerm_key_vault.payment_key_vault.id
 }
 
 # Populate Vault with SendGrid API token
 data "azurerm_key_vault" "sendgrid" {
-  provider = azurerm.sendgrid
+  provider            = azurerm.sendgrid
   name                = var.env != "prod" ? "sendgridnonprod" : "sendgridprod"
   resource_group_name = var.env != "prod" ? "SendGrid-nonprod" : "SendGrid-prod"
 }
