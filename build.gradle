@@ -13,15 +13,15 @@ def springBootVersion = '2.7.18'
 def springCloudVersion = '2021.0.9'
 
 def versions = [
-        lombok: '1.18.32',
-        javaVersion: '17',
-        jacocoVersion: '0.8.5'
+  lombok: '1.18.34',
+  javaVersion: '21',
+  jacocoVersion: '0.8.12'
 ]
 
 java {
-  toolchain {
-    languageVersion = JavaLanguageVersion.of(17)
-  }
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
 }
 
 dependencies{
@@ -34,7 +34,7 @@ task fortifyScan(type: JavaExec)  {
     jvmArgs = ['--add-opens=java.base/java.lang.reflect=ALL-UNNAMED']
 }
 
-allprojects
+allprojects {
     apply plugin: 'io.spring.dependency-management'
     apply plugin: 'idea'
     apply plugin: 'jacoco'
@@ -63,8 +63,8 @@ allprojects
         }
         dependencies {
             dependencySet(
-                    group: 'com.fasterxml.jackson.core',
-                    version: '2.17.0'
+              group: 'com.fasterxml.jackson.core',
+              version: '2.18.0'
             ) {
                 entry 'jackson-core'
                 entry 'jackson-databind'
@@ -112,6 +112,7 @@ allprojects
             // without any external tools
             html.required.set(true)
             xml.outputLocation.set(file("${project.buildDir}/reports/jacoco/test/jacocoTestReport.xml"))
+        }
     }
 
     codeCoverageReport.dependsOn {
@@ -171,7 +172,7 @@ subprojects {
 
     test {
         jvmArgs = [
-            '--add-opens', 'java.base/java.lang=ALL-UNNAMED'
+          '--add-opens', 'java.base/java.lang=ALL-UNNAMED'
         ]
     }
 }
@@ -204,32 +205,32 @@ dependencyCheck {
 }
 
 def sonarExclusions = [
-        '**/v1/**',
-        '**/OtpBootstrap.java',
-        '**/api/model/**',
-        '**/referencedata/model/**',
-        '**/api/dto/*.java',
-        '**/referencedata/dto/*.java',
-        '**/api/service/*Service.java',
-        '**/api/servicebus/TopicClientService.java',
-        '**/referencedata/service/*Service.java',
-        '**/api/service/MockAccountServiceImpl.java',
-        '**/api/service/MockCcdDataStoreClientServiceImpl.java',
-        '**/api/controllers/mock/MockCallbackControllerForTesting.java',
-        '**/api/controllers/ServiceRequestController.java',
-        '**/api/domain/mapper/**',
-        '**/api/dto/mapper/*Mapper.java',
-        '**/api/domain/service/**',
-        '**/api/contract/**',
-        '**/api/contract/*Dto.java',
-        '**/api/dto/mapper/**',
-        '**/api/reports/config/**',
-        '**/api/external/client/dto/**',
-        '**/api/external/client/exceptions/**',
-        '**/api/jpaaudit/listner/**',
-        '**/api/jpaaudit/model/**',
-        '**/api/service/PaymentRefundsServiceImpl.java',
-        '**/api/service/RefundRemissionEnableServiceImpl.java'
+  '**/v1/**',
+  '**/OtpBootstrap.java',
+  '**/api/model/**',
+  '**/referencedata/model/**',
+  '**/api/dto/*.java',
+  '**/referencedata/dto/*.java',
+  '**/api/service/*Service.java',
+  '**/api/servicebus/TopicClientService.java',
+  '**/referencedata/service/*Service.java',
+  '**/api/service/MockAccountServiceImpl.java',
+  '**/api/service/MockCcdDataStoreClientServiceImpl.java',
+  '**/api/controllers/mock/MockCallbackControllerForTesting.java',
+  '**/api/controllers/ServiceRequestController.java',
+  '**/api/domain/mapper/**',
+  '**/api/dto/mapper/*Mapper.java',
+  '**/api/domain/service/**',
+  '**/api/contract/**',
+  '**/api/contract/*Dto.java',
+  '**/api/dto/mapper/**',
+  '**/api/reports/config/**',
+  '**/api/external/client/dto/**',
+  '**/api/external/client/exceptions/**',
+  '**/api/jpaaudit/listner/**',
+  '**/api/jpaaudit/model/**',
+  '**/api/service/PaymentRefundsServiceImpl.java',
+  '**/api/service/RefundRemissionEnableServiceImpl.java'
 ]
 
 sonarqube {
@@ -250,7 +251,7 @@ sonarqube {
 project.tasks['sonarqube'].dependsOn codeCoverageReport
 
 tasks.withType(JavaExec).configureEach {
-  javaLauncher.set(javaToolchains.launcherFor(java.toolchain))
+    javaLauncher.set(javaToolchains.launcherFor(java.toolchain))
 }
 
 task smoke(type: GradleBuild, description: 'Runs smoke tests', group: 'Verification') {
