@@ -3,11 +3,11 @@ package uk.gov.hmcts.payment.api.contract.util;
 import org.junit.*;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 
-import javax.validation.ConstraintViolation;
-import javax.validation.Validation;
-import javax.validation.Validator;
-import javax.validation.ValidatorFactory;
-import javax.validation.constraints.AssertFalse;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
+import jakarta.validation.constraints.AssertFalse;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collections;

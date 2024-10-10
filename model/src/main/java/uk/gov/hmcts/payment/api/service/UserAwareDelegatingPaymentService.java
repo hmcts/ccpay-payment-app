@@ -32,8 +32,8 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidPaymentGroupReference
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.govpay.GovPayAuthUtil;
 
-import javax.persistence.criteria.*;
-import javax.validation.constraints.NotNull;
+import jakarta.persistence.criteria.*;
+import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.*;
 

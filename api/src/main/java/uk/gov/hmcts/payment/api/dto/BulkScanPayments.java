@@ -10,7 +10,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.*;
+import jakarta.validation.constraints.*;
 import java.util.Arrays;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
