@@ -19,6 +19,7 @@ import uk.gov.hmcts.payment.api.exception.LiberataServiceInaccessibleException;
 import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.util.AccountStatus;
 
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.PRECONDITION_FAILED;
 import static org.springframework.http.HttpStatus.GONE;
 
@@ -91,7 +92,6 @@ public class AccountController {
                         .errorMessage(JSON_ERROR_MESSAGE_ON_HOLD)
                         .build();
                     break;
-
                 case NOT_FOUND:
                     responseBody = "Account not found";
                     break;
@@ -102,7 +102,7 @@ public class AccountController {
             return ResponseEntity.status(ex.getStatusCode()).body(responseBody);
     }
 
-    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ResponseStatus(NOT_FOUND)
     @ExceptionHandler(AccountNotFoundException.class)
     public String return404(AccountNotFoundException ex) {
         return ex.getMessage();

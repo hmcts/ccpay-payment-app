@@ -114,7 +114,7 @@ dependencies {
     }
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-cache'
     implementation group: 'com.github.ben-manes.caffeine', name: 'caffeine', version: '3.1.8'
-    implementation "io.github.openfeign:feign-httpclient:13.2.1"
+    implementation group: 'org.apache.httpcomponents.client5', name: 'httpclient5', version: '5.2'
     implementation group: 'io.github.openfeign', name: 'feign-core', version: '13.2.1'
     implementation group: 'org.springframework.cloud', name: 'spring-cloud-openfeign-core'
     implementation group: 'org.ff4j', name: 'ff4j-spring-boot-web-api', version: '1.9'
