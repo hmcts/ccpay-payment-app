@@ -81,10 +81,10 @@ allprojects {
 
     configurations {
         testCompile.exclude group: 'pull-parser', module: 'pull-parser'
-        testRuntime.exclude group: 'ch.qos.logback', module: 'logback-classic', version: '1.2.13'
-        testRuntime.exclude group: 'ch.qos.logback', module: 'logback-core', version: '1.2.13'
-        testCompile.exclude group: 'ch.qos.logback', module: 'logback-classic', version: '1.2.13'
-        testCompile.exclude group: 'ch.qos.logback', module: 'logback-core', version: '1.2.13'
+        testRuntime.exclude group: 'ch.qos.logback', module: 'logback-classic', version: '1.5.8'
+        testRuntime.exclude group: 'ch.qos.logback', module: 'logback-core', version: '1.5.8'
+        testCompile.exclude group: 'ch.qos.logback', module: 'logback-classic', version: '1.5.8'
+        testCompile.exclude group: 'ch.qos.logback', module: 'logback-core', version: '1.5.8'
     }
 
 

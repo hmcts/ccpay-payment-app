@@ -2,12 +2,8 @@ package uk.gov.hmcts.payment.api.external.client;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.hystrix.contrib.javanica.annotation.DefaultProperties;
-import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
-import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
 import edu.umd.cs.findbugs.annotations.SuppressWarnings;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
@@ -28,17 +24,14 @@ import uk.gov.hmcts.payment.api.external.client.dto.RefundPaymentRequest;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayClientException;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayPaymentNotFoundException;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
 import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 
 @Component
 @SuppressWarnings(value = "HTTP_PARAMETER_POLLUTION", justification = "No way around it in a client")
-@DefaultProperties(groupKey = "govPay", commandProperties = {
-    @HystrixProperty(name ="circuitBreaker.requestVolumeThreshold", value = "20"),
-    @HystrixProperty(name ="circuitBreaker.errorThresholdPercentage", value = "50"),
-    @HystrixProperty(name ="metrics.rollingStats.timeInMilliseconds", value = "60000"),
-    @HystrixProperty(name = "execution.timeout.enabled", value = "false")
-})
 public class GovPayClient {
     private static final Logger LOG = LoggerFactory.getLogger(GovPayClient.class);
     private final String url;
@@ -57,19 +50,19 @@ public class GovPayClient {
         this.errorTranslator = errorTranslator;
     }
 
-    @HystrixCommand(commandKey = "createCardPayment")
+    @CircuitBreaker(name = "govPayService", fallbackMethod = "fallbackCreatePayment")
     public GovPayPayment createPayment(String authorizationKey, CreatePaymentRequest createPaymentRequest) {
         LOG.info("Inside createPayment in GovPayClient");
         return withIOExceptionHandling(() -> {
             HttpPost request = postRequestFor(authorizationKey, url, createPaymentRequest);
             HttpResponse response = httpClient.execute(request);
-            LOG.info("response {}",objectMapper.writeValueAsString(response.getStatusLine()));
+            LOG.info("response {}", objectMapper.writeValueAsString(response.getStatusLine()));
             checkNotAnError(response);
             return objectMapper.readValue(response.getEntity().getContent(), GovPayPayment.class);
         });
     }
 
-    @HystrixCommand(commandKey = "retrieveCardPayment", ignoreExceptions = {GovPayPaymentNotFoundException.class})
+    @CircuitBreaker(name = "govPayService", fallbackMethod = "fallbackRetrievePayment")
     public GovPayPayment retrievePayment(String authorizationKey, String govPayId) {
         LOG.info("retrievePayment");
         return withIOExceptionHandling(() -> {
@@ -80,14 +73,15 @@ public class GovPayClient {
         });
     }
 
+
     public void cancelPayment(String authorizationKey, String cancelUrl) {
-            LOG.info("CANCELLING PAYMENT");
-            withIOExceptionHandling(() -> {
-                HttpPost request = postRequestFor(authorizationKey, cancelUrl, null);
-                HttpResponse response = httpClient.execute(request);
-                checkNotAnError(response);
-                return null;
-            });
+        LOG.info("CANCELLING PAYMENT");
+        withIOExceptionHandling(() -> {
+            HttpPost request = postRequestFor(authorizationKey, cancelUrl, null);
+            HttpResponse response = httpClient.execute(request);
+            checkNotAnError(response);
+            return null;
+        });
     }
 
     public void refundPayment(String authorizationKey, String refundsUrl, RefundPaymentRequest refundPaymentRequest) {
@@ -100,17 +94,17 @@ public class GovPayClient {
     }
 
     private HttpPost postRequestFor(String authorizationKey, String url, Object entity) throws JsonProcessingException {
-        LOG.info("new StringEntity(objectMapper.writeValueAsString(entity) {}",objectMapper.writeValueAsString(entity));
+        LOG.info("new StringEntity(objectMapper.writeValueAsString(entity) {}", objectMapper.writeValueAsString(entity));
         return postRequestFor(authorizationKey, url, new StringEntity(objectMapper.writeValueAsString(entity), APPLICATION_JSON));
     }
 
     private HttpPost postRequestFor(String authorizationKey, String url, HttpEntity entity) throws JsonProcessingException {
         LOG.info("Inside postRequestFor in GovPayClient");
-        LOG.info("authorizationKey {} ",authorizationKey);
-        LOG.info("url {} ",url);
-        try{
+        LOG.info("authorizationKey {} ", authorizationKey);
+        LOG.info("url {} ", url);
+        try {
             LOG.info("entity {}", entity.getContent().toString());
-        }catch (Exception e){
+        } catch (Exception e) {
             LOG.info(e.getMessage());
         }
 
@@ -149,6 +143,25 @@ public class GovPayClient {
             throw new GovPayClientException(e);
         }
     }
+
+    private GovPayPayment fallbackCreatePayment(String authorizationKey, CreatePaymentRequest createPaymentRequest, Throwable t) {
+        LOG.error("Fallback method for createPayment due to: ", t);
+        // Handle fallback logic here, e.g., return a default GovPayPayment or throw a custom exception.
+        return new GovPayPayment(); // Example fallback behavior
+    }
+
+    private GovPayPayment fallbackRetrievePayment(String authorizationKey, String govPayId, Throwable t) throws GovPayPaymentNotFoundException {
+        LOG.error("Fallback method for retrievePayment due to: ", t);
+
+        // Re-throw the exception if it's GovPayPaymentNotFoundException to bypass fallback behavior.
+        if (t instanceof GovPayPaymentNotFoundException) {
+            throw (GovPayPaymentNotFoundException) t;
+        }
+
+        // Otherwise, handle other exceptions with a fallback response or action.
+        return new GovPayPayment(); // Example fallback behavior
+    }
+
 
     private interface CheckedExceptionProvider<T> {
         T get() throws IOException;

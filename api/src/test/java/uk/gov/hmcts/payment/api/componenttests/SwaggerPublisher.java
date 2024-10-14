@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.api.componenttests;
 
 import com.microsoft.applicationinsights.web.internal.WebRequestTrackingFilter;
+import jakarta.servlet.ServletContext;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -15,6 +16,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.context.WebApplicationContext;
 
+import javax.servlet.FilterConfig;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -41,10 +43,10 @@ public class SwaggerPublisher {
     @Before
     public void setup() {
         filter = new WebRequestTrackingFilter();
-        filter.init(new MockFilterConfig()); // using a mock that you construct with init params and all
+        filter.init((FilterConfig) new MockFilterConfig()); // using a mock that you construct with init params and all
         this.mvc = webAppContextSetup(this.webAppContext)
             .apply(springSecurity())
-            .addFilters(filter).build();
+            .apply(springSecurity()).build();;
     }
 
     @After
