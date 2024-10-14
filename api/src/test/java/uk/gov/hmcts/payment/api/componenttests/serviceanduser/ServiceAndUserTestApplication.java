@@ -92,11 +92,11 @@ public class ServiceAndUserTestApplication {
         private AuthCheckerServiceAndAnonymousUserFilter filter;
 
         @Bean
-        protected void securityFilterChain(HttpSecurity http) throws Exception {
+        protected SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
             http
                 .addFilter(filter)
                 .authorizeRequests().anyRequest().authenticated();
-             http.build();
+            return http.build();
         }
     }
 
