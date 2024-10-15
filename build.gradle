@@ -139,6 +139,7 @@ subprojects {
     ext['jackson.version'] = '2.17.1' // CVE-2021-46877, CVE-2022-42003, CVE-2022-42004, CVE-2020-36518
 
     dependencies {
+        implementation group: 'jakarta.servlet', name: 'jakarta.servlet-api', version: '6.1.0'
         implementation ('com.sun.xml.bind:jaxb-osgi:4.0.5')
         testImplementation 'io.github.openfeign:feign-jackson:13.2.1'
         implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version:'2.17.1'

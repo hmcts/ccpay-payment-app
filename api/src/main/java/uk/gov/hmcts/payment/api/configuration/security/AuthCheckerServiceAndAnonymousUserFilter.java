@@ -10,27 +10,23 @@ import uk.gov.hmcts.reform.auth.checker.core.user.User;
 import uk.gov.hmcts.reform.auth.checker.core.user.UserRequestAuthorizer;
 import uk.gov.hmcts.reform.auth.checker.spring.serviceanduser.ServiceAndUserPair;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-
 @Slf4j
 public class AuthCheckerServiceAndAnonymousUserFilter extends AbstractPreAuthenticatedProcessingFilter {
 
-
     private final RequestAuthorizer<Service> serviceRequestAuthorizer;
     private final RequestAuthorizer<User> userRequestAuthorizer;
-    private static final Set anonymousRole = new HashSet<String>(Arrays.asList("ROLE_ANONYMOUS"));
-
+    private static final Set<String> anonymousRole = new HashSet<>(Arrays.asList("ROLE_ANONYMOUS"));
 
     public AuthCheckerServiceAndAnonymousUserFilter(RequestAuthorizer<Service> serviceRequestAuthorizer,
-                                                    RequestAuthorizer<User> userRequestAuthorizer) {
+            RequestAuthorizer<User> userRequestAuthorizer) {
         this.serviceRequestAuthorizer = serviceRequestAuthorizer;
         this.userRequestAuthorizer = userRequestAuthorizer;
     }
-
 
     @Override
     protected Object getPreAuthenticatedPrincipal(HttpServletRequest request) {
@@ -40,8 +36,9 @@ public class AuthCheckerServiceAndAnonymousUserFilter extends AbstractPreAuthent
         }
         User user = authorizeUser(request);
 
-        if (user == null)
+        if (user == null) {
             return null;
+        }
 
         return new ServiceAndUserPair(service, user);
     }
@@ -49,15 +46,15 @@ public class AuthCheckerServiceAndAnonymousUserFilter extends AbstractPreAuthent
     @Override
     protected Object getPreAuthenticatedCredentials(HttpServletRequest request) {
         String preAuthenticatedCredentials = request.getHeader(UserRequestAuthorizer.AUTHORISATION);
-        return (preAuthenticatedCredentials != null) ? preAuthenticatedCredentials : " " ;
+        return (preAuthenticatedCredentials != null) ? preAuthenticatedCredentials : " ";
     }
 
     private User authorizeUser(HttpServletRequest request) {
         try {
             return userRequestAuthorizer.authorise(request);
         } catch (BearerTokenMissingException btme) {
-                return new User("anonymous", anonymousRole);
-        } catch(AuthCheckerException ace) {
+            return new User("anonymous", anonymousRole);
+        } catch (AuthCheckerException ace) {
             log.debug("Unsuccessful user authentication", ace);
             return null;
         }
@@ -71,6 +68,4 @@ public class AuthCheckerServiceAndAnonymousUserFilter extends AbstractPreAuthent
             return null;
         }
     }
-
-
 }
