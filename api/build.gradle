@@ -86,7 +86,7 @@ dependencies {
     implementation project(':case-payment-orders-client')
     implementation group: 'com.github.hmcts.java-logging', name: 'logging', version: javaLoggingVersion
     implementation group: 'com.github.hmcts.java-logging', name: 'logging-appinsights', version: javaLoggingVersion
-    implementation group: 'com.github.hmcts', name: 'auth-checker-lib', version: '3.0.3'
+    implementation group: 'com.github.hmcts', name: 'auth-checker-lib', version: '3.0.2'
     implementation group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: versions.reformS2sClient
     implementation group: 'org.springframework.boot', name: 'spring-boot-autoconfigure'
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web'
@@ -99,7 +99,6 @@ dependencies {
     implementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.5.7'
     implementation group: 'ch.qos.logback', name: 'logback-core', version: '1.5.7'
     implementation group: 'xerces', name: 'xercesImpl', version: '2.12.2'
-    implementation group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.14'
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.17.0'
     implementation group: 'org.springdoc', name: 'springdoc-openapi-ui', version: '1.8.0'
     implementation group: 'org.springdoc', name: 'springdoc-openapi-webmvc-core', version: '1.8.0'
