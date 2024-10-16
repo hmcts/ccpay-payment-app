@@ -17,6 +17,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.controllers.CreditAccountPaymentController;
+import uk.gov.hmcts.payment.api.controllers.PaymentReference;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
 import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
@@ -69,6 +70,8 @@ class CreditAccountPaymentProviderTest {
     FeePayApportionRepository feePayApportionRepository;
     @Autowired
     PaymentFeeRepository paymentFeeRepository;
+    @Autowired
+    PaymentReference paymentReferenceMock;
     @Autowired
     FF4j ff4j;
     @Autowired
@@ -130,7 +133,7 @@ class CreditAccountPaymentProviderTest {
         testTarget.setControllers(
             new CreditAccountPaymentController(creditAccountPaymentService, creditAccountDtoMapper, accountServiceMock, paymentValidator,
                 feePayApportionService, featureToggler, pbaStatusErrorMapper, requestMapper, Arrays.asList("CMC"), paymentService,
-                referenceDataService, authTokenGenerator));
+                referenceDataService, authTokenGenerator, paymentReferenceMock));
         if (context != null) {
             context.setTarget(testTarget);
         }
