@@ -245,7 +245,6 @@ task providerContractTest(type: Test) {
 
 task runProviderPactVerification(type: Test) {
     logger.lifecycle("Runs pact provider Tests")
-    systemProperty 'pact.verifier.publishResults','true'
     testClassesDirs = sourceSets.contractTest.output.classesDirs
     classpath = sourceSets.contractTest.runtimeClasspath
 }
