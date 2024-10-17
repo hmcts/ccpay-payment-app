@@ -56,7 +56,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
-import javax.persistence.Tuple;
+import jakarta.persistence.Tuple;
 import java.util.Optional;
 
 

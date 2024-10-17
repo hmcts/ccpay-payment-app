@@ -6,7 +6,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import javax.persistence.Tuple;
+import jakarta.persistence.Tuple;
 
 import java.math.BigDecimal;
 import java.util.Arrays;

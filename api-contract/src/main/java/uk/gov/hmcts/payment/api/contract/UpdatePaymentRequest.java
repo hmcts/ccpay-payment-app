@@ -9,7 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Wither;
 
-import javax.validation.constraints.AssertFalse;
+import jakarta.validation.constraints.AssertFalse;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
