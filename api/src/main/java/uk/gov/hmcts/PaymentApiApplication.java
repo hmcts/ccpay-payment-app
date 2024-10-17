@@ -22,7 +22,7 @@ import org.springframework.http.MediaType;
 import org.springframework.plugin.core.OrderAwarePluginRegistry;
 import org.springframework.plugin.core.PluginRegistry;
 
-import javax.servlet.ServletContextListener;
+import jakarta.servlet.ServletContextListener;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
