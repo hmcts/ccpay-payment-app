@@ -36,16 +36,10 @@ import uk.gov.hmcts.payment.api.contract.PaymentAllocationDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.TelephonyCardPaymentsRequest;
 import uk.gov.hmcts.payment.api.contract.TelephonyCardPaymentsResponse;
-import uk.gov.hmcts.payment.api.contract.TelephonyPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
-import uk.gov.hmcts.payment.api.dto.BulkScanPaymentRequest;
-import uk.gov.hmcts.payment.api.dto.BulkScanPaymentRequestStrategic;
-import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
-import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
-import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
-import uk.gov.hmcts.payment.api.dto.PciPalPayment;
-import uk.gov.hmcts.payment.api.dto.PciPalPaymentRequest;
-import uk.gov.hmcts.payment.api.dto.RemissionRequest;
+import uk.gov.hmcts.payment.api.dto.*;
+import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
+import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestFeeDto;
 import uk.gov.hmcts.payment.api.external.client.dto.State;
 import uk.gov.hmcts.payment.api.external.client.dto.TelephonyProviderAuthorisationResponse;
 import uk.gov.hmcts.payment.api.model.Payment;
@@ -77,8 +71,7 @@ import java.util.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -663,7 +656,7 @@ public class PaymentGroupControllerTest {
     }
 
     @Test
-    public void addNewPaymenttoExistingPaymentGroupTest() throws Exception {
+    public void addTelephonyPaymenttoExistingPaymentGroupTest() throws Exception {
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(getNewFee()))
             .build();
@@ -734,12 +727,101 @@ public class PaymentGroupControllerTest {
 
         PaymentDto paymentsResponse = objectMapper.readValue(result4.getResponse().getContentAsString(), PaymentDto.class);
 
+        assertNotNull(paymentDtoResult);
         assertNotNull(paymentsResponse);
+        assertEquals("Initiated", paymentDtoResult.getStatus());
         assertEquals("Initiated", paymentsResponse.getStatus());
         assertEquals(telephonyPaymentRequest.getAmount(), paymentsResponse.getAmount());
         assertTrue(paymentsResponse.getReference().matches(PAYMENT_REFERENCE_REGEX));
         assertEquals(telephonyPaymentRequest.getAmount(), paymentsResponse.getAmount());
         assertEquals("Amount saved in remissionDbBackdoor is equal to the on inside the request", amount, paymentsResponse.getAmount());
+    }
+
+    @Test
+    public void addTelephonyPaymenttoExistingServiceRequestTest() throws Exception {
+        ServiceRequestFeeDto serviceRequestFeeDto = ServiceRequestFeeDto.feeDtoWith()
+            .calculatedAmount(new BigDecimal("200"))
+            .code("FEE0123")
+            .version("1")
+            .volume(1)
+            .build();
+
+        CasePaymentRequest casePaymentRequest = CasePaymentRequest.casePaymentRequestWith()
+            .action("action")
+            .responsibleParty("party")
+            .build();
+
+        ServiceRequestDto serviceRequestDto = ServiceRequestDto.serviceRequestDtoWith()
+            .casePaymentRequest(casePaymentRequest)
+            .caseReference("123245677")
+            .hmctsOrgId("AAD7")
+            .ccdCaseNumber("2154234356342357")
+            .caseReference("123245677")
+            .fees(Arrays.asList(serviceRequestFeeDto))
+            .callBackUrl("https://www.divorce.service.gov.uk/update/payment")
+            .build();
+
+        PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(getConsecutiveFee())).build();
+
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AAD7")
+            .serviceDescription("Divorce")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenReturn(organisationalServiceDto);
+
+        MvcResult result = restActions
+            .post("/service-request", serviceRequestDto)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        ServiceRequestResponseDto serviceRequestResponseDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), ServiceRequestResponseDto.class);
+
+        assertThat(serviceRequestResponseDto).isNotNull();
+        assertThat(serviceRequestResponseDto.getServiceRequestReference()).isNotNull();
+
+        when(featureToggler.getBooleanValue("pci-pal-antenna-feature", false)).thenReturn(true);
+
+        when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
+            .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
+
+        when(pciPalPaymentService.getPaymentProviderAutorisationTokens()).thenReturn(getTelephonyProviderAuthorisationResponse());
+
+        when(pciPalPaymentService.getTelephonyProviderLink(any(PciPalPaymentRequest.class)
+            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
+
+        BigDecimal amount = new BigDecimal("200");
+        TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
+            .caseType("tax_exception")
+            .amount(amount)
+            .ccdCaseNumber("2154234356342357")
+            .returnURL("https://www.divorce.service.gov.uk")
+            .currency(CurrencyCode.GBP)
+            .build();
+
+        MvcResult result2 = restActions
+            .withReturnUrl("https://www.moneyclaims.service.gov.uk")
+            .post("/payment-groups/" + serviceRequestResponseDto.getServiceRequestReference() + "/telephony-card-payments", telephonyPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto telephonyCardResponseResult = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertNotNull(telephonyCardResponseResult);
+        assertTrue(telephonyCardResponseResult.getPaymentReference().matches(PAYMENT_REFERENCE_REGEX));
+        assertEquals(serviceRequestResponseDto.getServiceRequestReference(), telephonyCardResponseResult.getPaymentGroupReference());
+        assertEquals("Initiated", telephonyCardResponseResult.getStatus());
+
+        MvcResult result3 = restActions
+            .get("/card-payments/" + telephonyCardResponseResult.getPaymentReference())
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentDto paymentsResponse = objectMapper.readValue(result3.getResponse().getContentAsString(), PaymentDto.class);
+        assertNotNull(paymentsResponse);
+        assertEquals("Initiated", paymentsResponse.getStatus());
+        assertEquals("123245677", paymentsResponse.getCaseReference());
+        assertEquals(amount, paymentsResponse.getAmount());
     }
 
     @Test

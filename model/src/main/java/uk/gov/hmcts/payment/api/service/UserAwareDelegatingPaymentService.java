@@ -304,9 +304,11 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
     private Payment buildPayment(String paymentReference, PaymentServiceRequest paymentServiceRequest) {
         return Payment.paymentWith().userId(userIdSupplier.get())
             .amount(paymentServiceRequest.getAmount())
-            .description(paymentServiceRequest.getDescription()).returnUrl(paymentServiceRequest.getReturnUrl())
+            .description(paymentServiceRequest.getDescription())
+            .returnUrl(paymentServiceRequest.getReturnUrl())
             .ccdCaseNumber(paymentServiceRequest.getCcdCaseNumber())
-            .caseReference(paymentServiceRequest.getCaseReference()).currency(paymentServiceRequest.getCurrency())
+            .caseReference(paymentServiceRequest.getCaseReference())
+            .currency(paymentServiceRequest.getCurrency())
             .siteId(paymentServiceRequest.getSiteId())
             .serviceType(paymentServiceRequest.getServiceType())
             .s2sServiceName(serviceIdSupplier.get())
