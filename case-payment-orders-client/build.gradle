@@ -1,7 +1,7 @@
 def versions = [
         reformS2sClient : '3.1.4',
-        junit           : '5.7.1',
-        junitPlatform   : '1.7.1'
+        junit           : '5.10.2',
+        junitPlatform   : '1.10.2'
 ]
 
 description = 'Managing case payment orders'

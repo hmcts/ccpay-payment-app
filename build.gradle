@@ -2,10 +2,10 @@ plugins {
     id 'application'
     id "org.sonarqube" version "5.1.0.4882"
     id 'org.springframework.boot' version '2.7.18'
-    id 'io.spring.dependency-management' version '1.1.4'
-    id 'org.owasp.dependencycheck' version '9.1.0'
-    id "uk.gov.hmcts.java" version '0.12.59'
-    id "com.gorylenko.gradle-git-properties" version "2.4.1"
+    id 'io.spring.dependency-management' version '1.1.6'
+    id 'org.owasp.dependencycheck' version '10.0.4'
+    id "uk.gov.hmcts.java" version '0.12.63'
+    id "com.gorylenko.gradle-git-properties" version "2.4.2"
     id 'jacoco'
 }
 
@@ -13,9 +13,9 @@ def springBootVersion = '2.7.18'
 def springCloudVersion = '2021.0.9'
 
 def versions = [
-        lombok: '1.18.32',
+        lombok: '1.18.34',
         javaVersion: '17',
-        jacocoVersion: '0.8.5'
+        jacocoVersion: '0.8.12'
 ]
 
 java {
@@ -25,7 +25,7 @@ java {
 }
 
 dependencies{
-    testImplementation 'com.github.hmcts:fortify-client:1.4.3:all'
+    testImplementation 'com.github.hmcts:fortify-client:1.4.4:all'
 }
 
 task fortifyScan(type: JavaExec)  {
@@ -64,17 +64,17 @@ allprojects {
         dependencies {
             dependencySet(
                     group: 'com.fasterxml.jackson.core',
-                    version: '2.17.0'
+                    version: '2.18.0'
             ) {
                 entry 'jackson-core'
                 entry 'jackson-databind'
             }
             // CVE-2020-8908
-            dependencySet(group: 'com.google.guava', version: '33.2.0-jre') {
+            dependencySet(group: 'com.google.guava', version: '33.3.1-jre') {
                 entry 'guava'
             }
 
-            dependencySet(group: 'ch.qos.logback', version: '1.5.7') {
+            dependencySet(group: 'ch.qos.logback', version: '1.5.8') {
                 entry 'logback-core'
                 entry 'logback-classic'
             }
@@ -134,9 +134,9 @@ subprojects {
         }
     }
 
-    ext['tomcat.version'] = '9.0.88' // CVE-2023-46589, CVE-2023-42794, CVE-2023-28709
-    ext['netty.version'] = '4.1.100.Final' // CVE-2023-44487
-    ext['jackson.version'] = '2.17.1' // CVE-2021-46877, CVE-2022-42003, CVE-2022-42004, CVE-2020-36518
+    ext['tomcat.version'] = '9.0.95' // CVE-2023-46589, CVE-2023-42794, CVE-2023-28709
+    ext['netty.version'] = '4.1.114.Final' // CVE-2023-44487
+    ext['jackson.version'] = '2.18.0' // CVE-2021-46877, CVE-2022-42003, CVE-2022-42004, CVE-2020-36518
 
     dependencies {
         implementation ('com.sun.xml.bind:jaxb-osgi:4.0.5')
