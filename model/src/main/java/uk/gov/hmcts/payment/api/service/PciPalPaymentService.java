@@ -1,18 +1,17 @@
 package uk.gov.hmcts.payment.api.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.http.Header;
-import org.apache.http.HttpHeaders;
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.message.BasicHeader;
-import org.apache.http.message.BasicNameValuePair;
+import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.NameValuePair;
+import org.apache.hc.client5.http.classic.HttpClient;
+import org.apache.hc.client5.http.entity.UrlEncodedFormEntity;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.apache.hc.core5.http.message.BasicHeader;
+import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -115,8 +114,8 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
 
             StringEntity entity = new StringEntity(objectMapper.writeValueAsString(telephonyProviderLinkIdRequest));
             httpPost.setEntity(entity);
-            HttpResponse response = httpClient.execute(httpPost);
-            if (response != null && response.getStatusLine() != null && response.getStatusLine().getStatusCode() == 200) {
+            ClassicHttpResponse response = (ClassicHttpResponse) httpClient.execute(httpPost);
+            if (response.getCode() == HttpStatus.SC_OK) {
                 LOG.info("Success Response from PCI PAL!!!");
                 TelephonyProviderLinkIdResponse telephonyProviderLinkIdResponse = objectMapper.readValue(response.getEntity().getContent(), TelephonyProviderLinkIdResponse.class);
                 telephonyProviderAuthorisationResponse.setNextUrl(viewIdURL + telephonyProviderLinkIdResponse.getId() + "/framed");
@@ -160,7 +159,7 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
 
             HttpPost httpPost = new HttpPost(tokensURL);
             httpPost.setEntity(new UrlEncodedFormEntity(params));
-            HttpResponse response1 = httpClient.execute(httpPost);
+            ClassicHttpResponse response1 = (ClassicHttpResponse) httpClient.execute(httpPost);
             LOG.info("After 1st PCI PAL call!!!");
             return objectMapper.readValue(response1.getEntity().getContent(), TelephonyProviderAuthorisationResponse.class);
         });

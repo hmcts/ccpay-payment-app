@@ -6,7 +6,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
-import org.apache.http.MethodNotSupportedException;
+import org.apache.hc.core5.http.MethodNotSupportedException;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
@@ -545,7 +545,14 @@ public class PaymentGroupController {
                 .channel(PaymentChannel.TELEPHONY.getName())
                 .provider(PaymentProvider.PCI_PAL.getName())
                 .build();
-            PaymentFeeLink paymentLink = delegatingPaymentService.update(paymentServiceRequest);
+            PaymentFeeLink paymentLink = new PaymentFeeLink();
+            try {
+                paymentLink = delegatingPaymentService.update(paymentServiceRequest);
+
+            }catch (MethodNotSupportedException e) {
+                LOG.error("Error occurred while creating payment in Payment Group", e);
+                throw new RuntimeException(e);
+            }
             Payment payment = getPayment(paymentLink, paymentServiceRequest.getPaymentReference());
 
             PciPalPaymentRequest pciPalPaymentRequest = PciPalPaymentRequest.pciPalPaymentRequestWith().orderAmount(telephonyCardPaymentsRequest.getAmount().toString()).orderCurrency(telephonyCardPaymentsRequest.getCurrency().getCode())
