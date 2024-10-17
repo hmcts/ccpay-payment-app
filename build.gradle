@@ -48,7 +48,6 @@ allprojects {
     repositories {
         mavenLocal()
         mavenCentral()
-        jcenter()
         maven { url 'https://repo.spring.io/libs-milestone' }
         maven { url 'https://jitpack.io' }
     }
@@ -107,11 +106,11 @@ allprojects {
         reports {
             // xml is usually used to integrate code coverage with
             // other tools like SonarQube, Coveralls or Codecov
-            xml.enabled true
+            xml.required.set(true)
             // HTML reports can be used to see code coverage
             // without any external tools
-            html.enabled true
-            xml.destination = file("${project.buildDir}/reports/jacoco/test/jacocoTestReport.xml")
+            html.required.set(true)
+            xml.outputLocation.set(file("${project.buildDir}/reports/jacoco/test/jacocoTestReport.xml"))
         }
     }
 
@@ -188,7 +187,7 @@ jar {
 }
 
 bootJar {
-    archiveName 'payment-app.jar'
+    archiveFileName.set('payment-app.jar')
     manifest {
         attributes 'Implementation-Title': project.name, 'Implementation-Version': project.version
     }
