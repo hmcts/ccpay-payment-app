@@ -1,5 +1,5 @@
 def versions = [
-        reformS2sClient : '3.1.4',
+        reformS2sClient : '5.2.0',
         junit           : '5.10.2',
         junitPlatform   : '1.10.2'
 ]
@@ -11,6 +11,7 @@ test {
 }
 
 dependencies {
+    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web'
     implementation group: 'org.springframework', name: 'spring-context'
     implementation group: 'org.springframework.data', name: 'spring-data-commons'
     implementation group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: versions.reformS2sClient

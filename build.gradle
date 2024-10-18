@@ -82,10 +82,10 @@ allprojects {
 
     configurations {
         testCompile.exclude group: 'pull-parser', module: 'pull-parser'
-        testRuntime.exclude group: 'ch.qos.logback', module: 'logback-classic', version: '1.2.13'
-        testRuntime.exclude group: 'ch.qos.logback', module: 'logback-core', version: '1.2.13'
-        testCompile.exclude group: 'ch.qos.logback', module: 'logback-classic', version: '1.2.13'
-        testCompile.exclude group: 'ch.qos.logback', module: 'logback-core', version: '1.2.13'
+        testRuntime.exclude group: 'ch.qos.logback', module: 'logback-classic', version: '1.5.8'
+        testRuntime.exclude group: 'ch.qos.logback', module: 'logback-core', version: '1.5.8'
+        testCompile.exclude group: 'ch.qos.logback', module: 'logback-classic', version: '1.5.8'
+        testCompile.exclude group: 'ch.qos.logback', module: 'logback-core', version: '1.5.8'
     }
 
 
@@ -138,6 +138,7 @@ subprojects {
     ext['jackson.version'] = '2.18.0' // CVE-2021-46877, CVE-2022-42003, CVE-2022-42004, CVE-2020-36518
 
     dependencies {
+        implementation group: 'jakarta.servlet', name: 'jakarta.servlet-api', version: '6.1.0'
         implementation ('com.sun.xml.bind:jaxb-osgi:4.0.5')
         testImplementation 'io.github.openfeign:feign-jackson:13.2.1'
         implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version:'2.17.1'

@@ -2,13 +2,12 @@ package uk.gov.hmcts.payment.api.componenttests;
 
 import com.microsoft.applicationinsights.web.internal.WebRequestTrackingFilter;
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.mock.web.MockFilterConfig;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -20,7 +19,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
-import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
@@ -38,13 +36,9 @@ public class SwaggerPublisher {
     @Autowired
     private WebApplicationContext webAppContext;
 
-    @Before
+    @BeforeEach
     public void setup() {
-        filter = new WebRequestTrackingFilter();
-        filter.init(new MockFilterConfig()); // using a mock that you construct with init params and all
-        this.mvc = webAppContextSetup(this.webAppContext)
-            .apply(springSecurity())
-            .addFilters(filter).build();
+        this.mvc = webAppContextSetup(webAppContext).build();
     }
 
     @After
@@ -63,9 +57,9 @@ public class SwaggerPublisher {
 
     private void generateDocsForGroup(String groupName) throws Exception {
         byte[] specs = mvc.perform(
-            get("/v3/api-docs?group=" + groupName)
-                .header("Authorization", "Bearer spoof")
-        )
+                get("/v3/api-docs?group=" + groupName)
+                    .header("Authorization", "Bearer spoof")
+            )
             .andExpect(status().isOk())
             .andReturn()
             .getResponse()
