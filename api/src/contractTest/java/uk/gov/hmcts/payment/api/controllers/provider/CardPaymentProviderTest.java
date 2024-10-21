@@ -227,7 +227,7 @@ class CardPaymentProviderTest {
             .paymentProvider(PaymentProvider.paymentProviderWith().name("gov pay").build())
             .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
             .externalReference(externalReference)
-            .reference("RC-1519-9028-2432-000" + number)
+            .reference("654321ABC")
             .status("submitted")
             .statusHistories(Arrays.asList(statusHistory))
             .dateUpdated(now)
