@@ -32,12 +32,12 @@ public class PaymentAuthCheckerConfiguration {
     }
 
     @Bean
-    public Function<HttpServletRequest, Collection<String>> authorizedRolesExtractor() {
+    public Function<HttpServletRequest, Collection<String>> authorizedRoleExtractor() {
         return (any) -> Collections.emptyList();
     }
 
     @Bean
-    public Function<HttpServletRequest, Collection<String>> authorizedServicesExtractor() {
+    public Function<HttpServletRequest, Collection<String>> authorizedServiceExtractor() {
         return (any) -> authorizedServices;
     }
 }

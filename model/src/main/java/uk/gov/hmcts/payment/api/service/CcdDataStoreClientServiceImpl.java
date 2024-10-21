@@ -3,6 +3,7 @@ package uk.gov.hmcts.payment.api.service;
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
@@ -11,6 +12,7 @@ import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
 
 @Service
 @Profile("!ccdMock")
+@EnableFeignClients(basePackages = "uk.gov.hmcts.reform.ccd.client")
 public class CcdDataStoreClientServiceImpl implements CcdDataStoreClientService<CaseDetails, String> {
 
     @Autowired

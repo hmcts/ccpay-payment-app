@@ -12,6 +12,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import uk.gov.hmcts.reform.auth.checker.core.RequestAuthorizer;
 import uk.gov.hmcts.reform.auth.checker.core.service.Service;
@@ -52,7 +53,7 @@ public class SpringSecurityConfiguration {
         protected void configure(HttpSecurity http) throws Exception {
             http
                 .addFilter(authCheckerServiceOnlyFilter)
-                .csrf(csrf -> csrf.disable())
+                .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
                     .requestMatchers(HttpMethod.GET, "/payments").authenticated()
                     .requestMatchers(HttpMethod.GET, "/payments1").authenticated()
@@ -114,9 +115,9 @@ public class SpringSecurityConfiguration {
             http.exceptionHandling(exceptionHandling -> exceptionHandling.accessDeniedHandler(accessDeniedHandler()));
             http.addFilter(authCheckerFilter)
                 .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(STATELESS))
-                .csrf(csrf -> csrf.disable()) //NOSONAR
-                .formLogin(formLogin -> formLogin.disable())
-                .logout(logout -> logout.disable())
+                .csrf(AbstractHttpConfigurer::disable) //NOSONAR
+                .formLogin(AbstractHttpConfigurer::disable)
+                .logout(AbstractHttpConfigurer::disable)
                 .authorizeRequests()
                 .requestMatchers(HttpMethod.GET, "/cases/{ccdcasenumber}/paymentgroups").hasAnyAuthority(PAYMENTS_ROLE, CASE_MANAGER_ROLE, FINANCE_MANAGER_ROLE, ORGANISATION_MANAGER_ROLE, USER_MANAGER_ROLE)
                 .requestMatchers(HttpMethod.GET, "/cases/{case}/payments").hasAuthority(PAYMENTS_ROLE)
