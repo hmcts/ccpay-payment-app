@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,7 +25,7 @@ import org.springframework.http.MediaType;
 import org.springframework.plugin.core.OrderAwarePluginRegistry;
 import org.springframework.plugin.core.PluginRegistry;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
@@ -86,16 +86,17 @@ public class ServiceAndUserTestApplication {
 
     @Configuration
     @EnableWebSecurity
-    public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
+    public class SecurityConfiguration {
 
         @Autowired
         private AuthCheckerServiceAndAnonymousUserFilter filter;
 
-        @Override
-        protected void configure(HttpSecurity http) throws Exception {
+        @Bean
+        protected SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
             http
                 .addFilter(filter)
                 .authorizeRequests().anyRequest().authenticated();
+            return http.build();
         }
     }
 
