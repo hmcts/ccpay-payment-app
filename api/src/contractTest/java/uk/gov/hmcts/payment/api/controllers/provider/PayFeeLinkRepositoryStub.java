@@ -4,9 +4,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.repository.query.Param;
+import uk.gov.hmcts.payment.api.model.DuplicateServiceRequestDto;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -51,6 +54,9 @@ public class PayFeeLinkRepositoryStub implements PaymentFeeLinkRepository {
     public Iterable<PaymentFeeLink> findAllById(Iterable<Integer> integers) {
         return null;
     }
+
+    @Override
+    public Optional<List<DuplicateServiceRequestDto>> getDuplicates(final @Param("date") LocalDate date) { return Optional.empty(); }
 
     @Override
     public long count() {
