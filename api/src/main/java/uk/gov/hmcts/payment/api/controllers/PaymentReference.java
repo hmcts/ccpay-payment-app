@@ -7,11 +7,15 @@ import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
 @Component
 public class PaymentReference {
 
-    @Autowired
     private PaymentFeeLinkRepository paymentFeeLinkRepository;
 
     public String getNext() {
         return paymentFeeLinkRepository.getNextPaymentReference();
+    }
+
+    @Autowired
+    public PaymentReference(PaymentFeeLinkRepository paymentFeeLinkRepository) {
+        this.paymentFeeLinkRepository = paymentFeeLinkRepository;
     }
 
 }

@@ -51,14 +51,17 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
                         if (feePayApportion.getCallSurplusAmount() == null) {
                             feePayApportion.setCallSurplusAmount(BigDecimal.valueOf(0));
                         }
-                        fee.setAmountDue(fee.getAmountDue().subtract(feePayApportion.getApportionAmount()
-                            .add(feePayApportion.getCallSurplusAmount())));
+                        BigDecimal amountDue = fee.getAmountDue().subtract(feePayApportion.getApportionAmount().add(feePayApportion.getCallSurplusAmount()));
+                        LOG.info("Calculated fee id " + fee.getId() + " as  amountDue " + amountDue );
+                        fee.setAmountDue(amountDue);
 
                         if (payment.getPaymentChannel() != null && payment.getPaymentChannel().getName() != null &&
                             (payment.getPaymentChannel().getName().equalsIgnoreCase("telephony") ||
                                 payment.getPaymentChannel().getName().equalsIgnoreCase("online"))) {
                             if (fee.getAmountDue() != null && fee.getAmountDue().compareTo(BigDecimal.valueOf(0)) < 0) {
-                                feePayApportion.setCallSurplusAmount(feePayApportion.getCallSurplusAmount().subtract(fee.getAmountDue()));
+                                BigDecimal callSurplusAmount = feePayApportion.getCallSurplusAmount().subtract(fee.getAmountDue());
+                                LOG.info("Calculated  feePayApportion id " + feePayApportion.getId() + " callSurplusAmount " + callSurplusAmount);
+                                feePayApportion.setCallSurplusAmount(callSurplusAmount);
                                 feePayApportionRepository.save(feePayApportion);
                             }
                         }

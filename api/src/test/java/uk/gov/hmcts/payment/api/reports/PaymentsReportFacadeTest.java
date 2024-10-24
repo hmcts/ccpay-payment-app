@@ -2,6 +2,7 @@
 package uk.gov.hmcts.payment.api.reports;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -11,21 +12,18 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.test.annotation.DirtiesContext;
-import uk.gov.hmcts.payment.api.reports.config.BarPaymentReportConfig;
-import uk.gov.hmcts.payment.api.reports.config.CardPaymentReportConfig;
-import uk.gov.hmcts.payment.api.reports.config.PaymentReportConfig;
-import uk.gov.hmcts.payment.api.reports.config.PbaCivilPaymentReportConfig;
-import uk.gov.hmcts.payment.api.reports.config.PbaCmcPaymentReportConfig;
-import uk.gov.hmcts.payment.api.reports.config.PbaDivorcePaymentReportConfig;
-import uk.gov.hmcts.payment.api.reports.config.PbaFinremPaymentReportConfig;
-import uk.gov.hmcts.payment.api.reports.config.PbaFplPaymentReportConfig;
-import uk.gov.hmcts.payment.api.reports.config.PbaPrlPaymentReportConfig;
-import uk.gov.hmcts.payment.api.reports.config.PbaProbatePaymentReportConfig;
-import uk.gov.hmcts.payment.api.reports.config.PbaSmcPaymentReportConfig;
+import uk.gov.hmcts.payment.api.reports.config.*;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 
 import java.util.Date;
 import java.util.Map;
+
+
+import uk.gov.hmcts.payment.api.reports.config.PaymentReportConfig;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.DuplicatePaymentException;
+
+import static org.mockito.Mockito.*;
+
 
 import static org.mockito.Mockito.verify;
 import static uk.gov.hmcts.payment.api.util.PaymentMethodType.CARD;
@@ -43,6 +41,12 @@ public class PaymentsReportFacadeTest {
     @Mock
     private PaymentsReportService reportService;
 
+    @Mock
+    private Map<PaymentReportType, PaymentReportConfig> configMap;
+
+    @Mock
+    private PaymentReportConfig paymentReportConfig;
+
     private CardPaymentReportConfig cardPaymentReportConfig = new CardPaymentReportConfig("from", null, "subject", "message", true);
     private BarPaymentReportConfig barPaymentReportConfig = new BarPaymentReportConfig("from", null, "subject", "message", true);
     private PbaCmcPaymentReportConfig pbaCmcPaymentReportConfig = new PbaCmcPaymentReportConfig("from", null, "subject", "message", true);
@@ -53,6 +57,7 @@ public class PaymentsReportFacadeTest {
     private PbaProbatePaymentReportConfig pbaProbatePaymentReportConfig = new PbaProbatePaymentReportConfig("from", null, "subject", "message", true);
     private PbaFinremPaymentReportConfig pbaFinremPaymentReportConfig = new PbaFinremPaymentReportConfig("from", null, "subject", "message", true);
     private PbaSmcPaymentReportConfig pbaSmcPaymentReportConfig = new PbaSmcPaymentReportConfig("from", null, "subject", "message", true);
+    private DuplicatePaymentReportConfig duplicatePaymentReportConfig = new DuplicatePaymentReportConfig("from", null, "subject", "message", true);
 
 
     Map<PaymentReportType, PaymentReportConfig> map = ImmutableMap.<PaymentReportType, PaymentReportConfig>builder()
@@ -65,7 +70,8 @@ public class PaymentsReportFacadeTest {
         .put(PaymentReportType.PBA_DIVORCE, pbaDivorcePaymentReportConfig)
         .put(PaymentReportType.PBA_PROBATE, pbaProbatePaymentReportConfig)
         .put(PaymentReportType.PBA_FINREM, pbaFinremPaymentReportConfig)
-        .put(PaymentReportType.PBA_SMC, pbaSmcPaymentReportConfig).build();
+        .put(PaymentReportType.PBA_SMC, pbaSmcPaymentReportConfig)
+        .put(PaymentReportType.DUPLICATE_PAYMENT, duplicatePaymentReportConfig).build();
 
     @Before
     public void setUp() {
@@ -234,5 +240,36 @@ public class PaymentsReportFacadeTest {
         verify(reportService).generateCsvAndSendEmail(fromDate, toDate, PBA, "Specified Money Claims", pbaSmcPaymentReportConfig);
 
     }
+
+    @Test
+    public void DuplicatePaymentReportType() {
+        // given
+        Date fromDate = new Date();
+        Date toDate = new Date();
+
+        // when
+        facade.generateDuplicatePaymentCsvAndSendEmail(fromDate, toDate);
+
+        // then
+        verify(reportService).generateDuplicatePaymentsCsvAndSendEmail(fromDate, toDate, duplicatePaymentReportConfig);
+
+    }
+
+
+    @Test
+    public void testGenerateDuplicatePaymentCsvAndSendEmail_WhenReportIsDisabled() {
+        // Arrange
+        Date startDate = new Date();
+        Date endDate = new Date();
+
+
+
+        // Act
+        facade.generateDuplicatePaymentCsvAndSendEmail(startDate, endDate);
+
+        // Assert
+        verify(reportService, never()).generateDuplicatePaymentsCsvAndSendEmail(startDate, endDate, paymentReportConfig);
+    }
+
 
 }

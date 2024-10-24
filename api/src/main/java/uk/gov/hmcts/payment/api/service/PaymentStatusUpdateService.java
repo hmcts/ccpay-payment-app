@@ -5,6 +5,7 @@ import uk.gov.hmcts.payment.api.dto.PaymentFailureReportDto;
 import uk.gov.hmcts.payment.api.dto.PaymentStatusBouncedChequeDto;
 import uk.gov.hmcts.payment.api.dto.PaymentStatusChargebackDto;
 import uk.gov.hmcts.payment.api.dto.PaymentStatusUpdateSecond;
+import uk.gov.hmcts.payment.api.dto.TelephonyPaymentsReportDto;
 import uk.gov.hmcts.payment.api.dto.UnprocessedPayment;
 import uk.gov.hmcts.payment.api.model.PaymentFailures;
 
@@ -27,4 +28,7 @@ public interface PaymentStatusUpdateService {
                                        MultiValueMap<String, String> headers);
 
     void updateUnprocessedPayment();
+
+    List<TelephonyPaymentsReportDto> telephonyPaymentsReport(Date startDate, Date endDate, MultiValueMap<String, String> headers);
+
 }

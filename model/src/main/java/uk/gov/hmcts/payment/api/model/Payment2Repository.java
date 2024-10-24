@@ -6,8 +6,10 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
+import uk.gov.hmcts.payment.api.dto.DuplicatePaymentDto;
 import uk.gov.hmcts.payment.api.dto.Reference;
 
+import javax.persistence.Tuple;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
@@ -46,4 +48,23 @@ public interface Payment2Repository extends CrudRepository<Payment, Integer>, Jp
     int updatePaymentUpdatedDateTime(@Param("rollbackdate") LocalDateTime rollbackDate,
                                    @Param("ccdcasenumber") String ccdCaseNumber);
 
+    @Query(value = "SELECT max(date_updated),ccd_case_number,service_type,amount,payment_channel,payment_method,payment_link_id,COUNT(*) as count "
+        + "FROM Payment "
+        + "GROUP BY ccd_case_number,service_type,amount,payment_channel,payment_method,payment_link_id,payment_status "
+        + "HAVING COUNT(*) > 1 AND payment_status = 'success' AND "
+        + "max(date_updated) >= :startDate AND max(date_updated) < :endDate "
+        + "ORDER BY service_type, payment_method, COUNT(*) DESC",
+        nativeQuery = true)
+    List<Tuple> findDuplicatePaymentsByDate(@Param("startDate") Date startDate,
+                                            @Param("endDate") Date endDate);
+
+    @Query(value = "SELECT p.service_type, p.ccd_case_number, p.reference, f.code, p.date_created, p.amount, p.payment_status " +
+        "FROM payment p " +
+        "JOIN payment_fee_link pfl ON pfl.id = p.payment_link_id " +
+        "JOIN fee f on f.payment_link_id = pfl.id " +
+        "WHERE p.date_created BETWEEN :fromDate AND :toDate AND p.payment_channel = :paymentChannel" , nativeQuery = true)
+    List<Tuple> findAllByDateCreatedBetweenAndPaymentChannel(
+        @Param("fromDate") Date fromDate,
+        @Param("toDate") Date toDate,
+        @Param("paymentChannel") PaymentChannel paymentChannel);
 }

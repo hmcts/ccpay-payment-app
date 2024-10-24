@@ -12,7 +12,7 @@ import uk.gov.hmcts.payment.api.reports.PaymentReportType;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class BarPaymentReportConfig implements PaymentReportConfig {
+public class BarPaymentReportConfig implements PaymentReportConfig<PaymentDto> {
 
     private static final String PAYMENTS_HEADER = "Service,Payment Group reference,Payment reference," +
         "CCD reference,Case reference,Organisation name,Customer internal reference,PBA Number,Payment created date," +

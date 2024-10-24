@@ -1,9 +1,10 @@
 package uk.gov.hmcts.payment.api.reports.config;
 
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.dto.DuplicatePaymentDto;
 import uk.gov.hmcts.payment.api.reports.PaymentReportType;
 
-public interface PaymentReportConfig {
+public interface PaymentReportConfig<T> {
 
     PaymentReportType getType();
 
@@ -21,6 +22,6 @@ public interface PaymentReportConfig {
 
     String getCsvHeader();
 
-    String getCsvRecord(PaymentDto paymentDto);
+    String getCsvRecord(T dto);
 
 }

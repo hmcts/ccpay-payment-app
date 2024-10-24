@@ -65,6 +65,7 @@ public class ServiceRequestDtoDomainMapper {
             .ccdCaseNumber(ccdCaseNumber)
             .version(serviceRequestFeeDto.getVersion())
             .volume(serviceRequestFeeDto.getVolume())
+            .netAmount(serviceRequestFeeDto.getCalculatedAmount())
             .build();
     }
 

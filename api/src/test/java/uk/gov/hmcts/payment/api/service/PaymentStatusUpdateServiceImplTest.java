@@ -37,6 +37,8 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentFailureReportMapper;
@@ -54,16 +56,23 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
+import javax.persistence.Tuple;
 import java.util.Optional;
+
+
 
 @RunWith(MockitoJUnitRunner.class)
 public class PaymentStatusUpdateServiceImplTest {
 
+    private Date startDate;
+    private Date endDate;
 
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
         clock = new Clock();
+        startDate = new Date(System.currentTimeMillis() - 1000 * 60 * 60 * 24);
+        endDate = new Date();
     }
 
 
@@ -304,20 +313,6 @@ public class PaymentStatusUpdateServiceImplTest {
     }
 
     @Test
-    public void return404WhenPaymentNotFound(){
-
-        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-        headers.add("Authorization", "auth");
-        headers.add("ServiceAuthorization", "service-auth");
-        Date fromDate =clock.getYesterdayDate();
-        Date toDate = clock.getTodayDate();
-        assertThrows(
-            PaymentNotFoundException.class,
-            () -> paymentStatusUpdateServiceImpl.paymentFailureReport(fromDate,toDate,headers)
-        );
-    }
-
-    @Test
     public void getRefundSuccess() {
 
         ResponseEntity<RefundPaymentFailureReportDtoResponse> responseEntity = new ResponseEntity<>(getFailureRefund(), HttpStatus.OK);
@@ -519,6 +514,41 @@ public class PaymentStatusUpdateServiceImplTest {
         );
         String actualMessage = exception.getMessage();
         assertEquals("Representment date can not be prior to failure event date", actualMessage);
+    }
+
+
+    @Test
+    public void testTelephonyPaymentsReport_Success() {
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add("ServiceAuthorization", "service-auth");
+
+        List<Tuple> telephonyPaymentsList = Arrays.asList(
+            new CustomTupleForTelephonyPaymentsReport("Service1", "CCD123", "PAY123", "FEE001", new Date(), new BigDecimal("100.00"), "Success"),
+            new CustomTupleForTelephonyPaymentsReport("Service2", "CCD456", "PAY456", "FEE002", new Date(), new BigDecimal("200.00"), "Failed")
+        );
+
+        when(paymentRepository.findAllByDateCreatedBetweenAndPaymentChannel(startDate, endDate, PaymentChannel.TELEPHONY))
+           .thenReturn(telephonyPaymentsList);
+
+        List<TelephonyPaymentsReportDto> actualReport = paymentStatusUpdateServiceImpl.telephonyPaymentsReport(startDate, endDate, headers);
+
+        assertEquals(2, actualReport.size());
+        assertEquals("Service1", actualReport.get(0).getServiceName());
+        assertEquals("Service2", actualReport.get(1).getServiceName());
+        verify(paymentRepository, times(1)).findAllByDateCreatedBetweenAndPaymentChannel(startDate, endDate, PaymentChannel.TELEPHONY);
+    }
+
+    @Test
+    public void testTelephonyPaymentsReport_StartDateAfterEndDate() {
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add("ServiceAuthorization", "service-auth");
+        Date invalidStartDate = new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24);
+
+        ValidationErrorException exception = assertThrows(ValidationErrorException.class, () -> {
+            paymentStatusUpdateServiceImpl.telephonyPaymentsReport(invalidStartDate, endDate, headers);
+        });
+
+        assertEquals("Error occurred in the report ", exception.getMessage());
     }
 
 

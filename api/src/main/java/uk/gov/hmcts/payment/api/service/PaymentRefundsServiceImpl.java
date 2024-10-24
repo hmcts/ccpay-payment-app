@@ -161,11 +161,11 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             //need to validate if multipleApportionment scenario present for single feeId validation needed
             Optional<List<FeePayApportion>> feePayApportion = feePayApportionRepository.findByFeeId(paymentFee.getId());
             if (feePayApportion.isPresent() && !feePayApportion.get().isEmpty()) {
-                Optional<FeePayApportion> result = feePayApportion.get().stream().findFirst();
+                Optional<FeePayApportion> payApportion = feePayApportion.get().stream().findFirst();
 
                 final var payment = getPaymentSuccessful(feePayApportion);
 
-                BigDecimal remissionAmount =  getRefundAmount(payment,remission.get());
+                BigDecimal remissionAmount =  getRefundAmount(payment,remission.get(),payApportion);
                 validateThePaymentBeforeInitiatingRefund(payment, headers);
 
                 RefundRequestDto refundRequest = RefundRequestDto.refundRequestDtoWith()
@@ -207,11 +207,16 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         return payments.get(0);
     }
 
-    private BigDecimal getRefundAmount(Payment payment,Remission remission){
+    private BigDecimal getRefundAmount(Payment payment,Remission remission, Optional<FeePayApportion>  payApportion){
 
         if ( payment.getPaymentLink().getFees().size() > 1 ){
-            LOG.info("The payment has more than one fee, The refund value to used is getHwfAmount {}",remission.getHwfAmount());
-            return remission.getHwfAmount();
+            if (payApportion.isEmpty()) {
+                LOG.info("The payment has more than one fee, The refund value to used is getHwfAmount {}", remission.getHwfAmount());
+                return remission.getHwfAmount();
+            } else {
+                LOG.info("The payment has more than one fee, The refund value to used is payApportion {}", payApportion.get().getApportionAmount());
+                return payApportion.get().getApportionAmount();
+            }
         }
 
         if (remission.getFee() == null || remission.getFee().getRemissions() == null ||  remission.getFee().getRemissions().isEmpty()) {

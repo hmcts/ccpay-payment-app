@@ -59,4 +59,23 @@ public class PaymentReportController {
 
         paymentsReportFacade.generateCsvAndSendEmail(fromDate, toDate, paymentMethodTypeName, service);
     }
+
+    @Operation(summary = "API to generate report for payment failure ", description = "Get list of payments failures by providing date range. MM/dd/yyyy is  the supported date/time format.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Report Generated, email only sent if data exists"),
+        @ApiResponse(responseCode = "500", description = "Internal Server Error")
+    })
+    @PostMapping(value = "/jobs/duplicate-payment-process")
+    public void duplicatePaymentEmailReport(@RequestParam(name = "start_date", required = false) Optional<String> startDateString,
+                                            @RequestParam(name = "end_date", required = false) Optional<String> endDateString) {
+
+        LOG.info("Inside /jobs/duplicate-payment-process");
+        validator.validateToFromDates(startDateString, endDateString);
+
+        Date fromDate = startDateString.map(s -> clock.atStartOfDay(s, FORMATTER)).orElseGet(clock::getYesterdayDate);
+        Date toDate = endDateString.map(s -> clock.atEndOfDay(s, FORMATTER)).orElseGet(clock::getTodayDate);
+
+        paymentsReportFacade.generateDuplicatePaymentCsvAndSendEmail(fromDate, toDate);
+    }
+
 }

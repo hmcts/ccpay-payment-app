@@ -1824,16 +1824,16 @@ public class PaymentStatusFunctionalTest {
         assertEquals("successful operation", ping2Response.getBody().prettyPrint());
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        params.add("date_from", getReportDate(new Date(System.currentTimeMillis())));
-        params.add("date_to", getReportDate(new Date(System.currentTimeMillis())));
+        params.add("date_from", paymentTestService.getReportDate(new Date(System.currentTimeMillis())));
+        params.add("date_to", paymentTestService.getReportDate(new Date(System.currentTimeMillis())));
         Response response = paymentTestService.paymentFailureReport(USER_TOKEN_PAYMENT, SERVICE_TOKEN_PAYMENT, params);
 
         PaymentFailureReportResponse paymentFailureReportResponse = response.getBody().as(PaymentFailureReportResponse.class);
 
         PaymentFailureReportDto paymentFailureReportDto = paymentFailureReportResponse.getPaymentFailureReportList().stream().filter(s -> s.getFailureReference().equalsIgnoreCase(paymentsFailureResponse.getPaymentFailureList().get(0).getPaymentFailureInitiated().getFailureReference())).findFirst().get();
-        String eventDate = getReportDate(paymentFailureReportDto.getEventDate());
-        String representmentReportDate = getReportDate(paymentFailureReportDto.getRepresentmentDate());
-        String expectedDate = getReportDate(new Date(System.currentTimeMillis()));
+        String eventDate = paymentTestService.getReportDate(paymentFailureReportDto.getEventDate());
+        String representmentReportDate = paymentTestService.getReportDate(paymentFailureReportDto.getRepresentmentDate());
+        String expectedDate = paymentTestService.getReportDate(new Date(System.currentTimeMillis()));
         assertEquals(paymentDto.getReference(), paymentFailureReportDto.getPaymentReference());
         assertEquals("Chargeback", paymentFailureReportDto.getEventName());
         assertEquals(new BigDecimal("50.00"), paymentFailureReportDto.getDisputedAmount());
@@ -1882,15 +1882,15 @@ public class PaymentStatusFunctionalTest {
         assertThat(chargebackResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        params.add("date_from", getReportDate(new Date(System.currentTimeMillis())));
-        params.add("date_to", getReportDate(new Date(System.currentTimeMillis())));
+        params.add("date_from", paymentTestService.getReportDate(new Date(System.currentTimeMillis())));
+        params.add("date_to", paymentTestService.getReportDate(new Date(System.currentTimeMillis())));
         Response response = paymentTestService.paymentFailureReport(USER_TOKEN_PAYMENT, SERVICE_TOKEN_PAYMENT, params);
 
         PaymentFailureReportResponse paymentFailureReportResponse = response.getBody().as(PaymentFailureReportResponse.class);
 
         PaymentFailureReportDto paymentFailureReportDto = paymentFailureReportResponse.getPaymentFailureReportList().stream().filter(s -> s.getFailureReference().equalsIgnoreCase(paymentsFailureResponse.getPaymentFailureList().get(0).getPaymentFailureInitiated().getFailureReference())).findFirst().get();
-        String eventDate = getReportDate(paymentFailureReportDto.getEventDate());
-        String expectedDate = getReportDate(new Date(System.currentTimeMillis()));
+        String eventDate = paymentTestService.getReportDate(paymentFailureReportDto.getEventDate());
+        String expectedDate = paymentTestService.getReportDate(new Date(System.currentTimeMillis()));
         assertEquals(paymentDto.getReference(), paymentFailureReportDto.getPaymentReference());
         assertEquals("Chargeback", paymentFailureReportDto.getEventName());
         assertEquals(new BigDecimal("50.00"), paymentFailureReportDto.getDisputedAmount());
@@ -1979,7 +1979,7 @@ public class PaymentStatusFunctionalTest {
         assertThat(refundResponse1.statusCode()).isEqualTo(HttpStatus.CREATED.value());
         RefundResponse refundResponseFromPost = refundResponse.getBody().as(RefundResponse.class);
         RefundResponse refundResponseFromPost1 = refundResponse1.getBody().as(RefundResponse.class);
-        assertThat(refundResponseFromPost.getRefundAmount()).isEqualTo(new BigDecimal("5.00"));
+        assertThat(refundResponseFromPost.getRefundAmount()).isEqualTo(new BigDecimal("90.00"));
         assertThat(REFUNDS_REGEX_PATTERN.matcher(refundResponseFromPost.getRefundReference()).matches()).isTrue();
         PaymentStatusChargebackDto paymentStatusChargebackDto
             = PaymentFixture.chargebackRequest(paymentDto.getReference());
@@ -2014,8 +2014,8 @@ public class PaymentStatusFunctionalTest {
         assertEquals("successful operation", ping2Response.getBody().prettyPrint());
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        params.add("date_from", getReportDate(new Date(System.currentTimeMillis())));
-        params.add("date_to", getReportDate(new Date(System.currentTimeMillis())));
+        params.add("date_from", paymentTestService.getReportDate(new Date(System.currentTimeMillis())));
+        params.add("date_to", paymentTestService.getReportDate(new Date(System.currentTimeMillis())));
         Response responseReport = paymentTestService.paymentFailureReport(USER_TOKEN_PAYMENT, SERVICE_TOKEN_PAYMENT, params);
 
         PaymentFailureReportResponse paymentFailureReportResponse = responseReport.getBody().as(PaymentFailureReportResponse.class);
@@ -2025,9 +2025,9 @@ public class PaymentStatusFunctionalTest {
         String secondRefundAmount = String.valueOf(refundResponseFromPost1.getRefundAmount().toString());
         String joinedRefundAmount = String.join(",", firstRefundAmount, secondRefundAmount);
         PaymentFailureReportDto paymentFailureReportDto = paymentFailureReportResponse.getPaymentFailureReportList().stream().filter(s -> s.getFailureReference().equalsIgnoreCase(paymentsFailureResponse.getPaymentFailureList().get(0).getPaymentFailureInitiated().getFailureReference())).findFirst().get();
-        String eventDate = getReportDate(paymentFailureReportDto.getEventDate());
-        String representmentReportDate = getReportDate(paymentFailureReportDto.getRepresentmentDate());
-        String expectedDate = getReportDate(new Date(System.currentTimeMillis()));
+        String eventDate = paymentTestService.getReportDate(paymentFailureReportDto.getEventDate());
+        String representmentReportDate = paymentTestService.getReportDate(paymentFailureReportDto.getRepresentmentDate());
+        String expectedDate = paymentTestService.getReportDate(new Date(System.currentTimeMillis()));
         assertEquals(paymentDto.getReference(), paymentFailureReportDto.getPaymentReference());
         assertEquals("Chargeback", paymentFailureReportDto.getEventName());
         assertEquals(new BigDecimal("50.00"), paymentFailureReportDto.getDisputedAmount());
@@ -2483,11 +2483,6 @@ public class PaymentStatusFunctionalTest {
         // delete payment record
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentReference.get()).then().statusCode(NO_CONTENT.value());
 
-    }
-
-    private String getReportDate(Date date) {
-        java.time.format.DateTimeFormatter reportNameDateFormat = java.time.format.DateTimeFormatter.ofPattern("MM/dd/yyyy");
-        return date == null ? null : java.time.LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault()).format(reportNameDateFormat);
     }
 
     private static RetroRemissionRequest getRetroRemissionRequest(final String remissionAmount) {

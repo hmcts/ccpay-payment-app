@@ -49,6 +49,7 @@ public class ServiceRequestDomainDataEntityMapper {
             .ccdCaseNumber(orderFeeBo.getCcdCaseNumber()) // Will be removed after get api's work without ccd dependency
             .version(orderFeeBo.getVersion())
             .volume(orderFeeBo.getVolume())
+            .netAmount(orderFeeBo.getNetAmount())
             .dateCreated(new Timestamp(System.currentTimeMillis()))
             .build();
     }

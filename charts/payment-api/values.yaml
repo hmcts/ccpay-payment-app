@@ -40,7 +40,7 @@ java:
 
     GOV_PAY_URL: "https://publicapi.payments.service.gov.uk/v1/payments"
     GOV_PAY_OPERATIONAL_SERVICES: "ccd_gw,api_gw,xui_webapp"
-    PCI_PAL_CALLBACK_URL: https://core-api-mgmt-{{ .Values.global.environment }}.azure-api.net/telephony-api/telephony/callback
+    PCI_PAL_CALLBACK_URL: https://cft-mtls-api-mgmt-appgw.{{ .Values.global.environment }}.platform.hmcts.net/telephony-api/telephony/callback
 
     TRUSTED_S2S_SERVICE_NAMES: "refunds_api,iac,cmc,cmc_claim_store,probate_frontend,divorce_frontend,ccd_gw,bar_api,api_gw,finrem_payment_service,ccpay_bubble,jui_webapp,xui_webapp,fpl_case_service,civil_service,paymentoutcome_web,adoption_web,prl_cos_api,notifications_service"
     CARD_PAYMENTS_REPORT_SCHEDULER_ENABLED: "true"
@@ -83,14 +83,14 @@ java:
     PBA_IAC_PAYMENTS_EMAIL_FROM: "no-reply@mail-payment-nonprod.platform.hmcts.net"
     PBA_IAC_PAYMENTS_EMAIL_MESSAGE: "Hi, <br/><br/>Please find attached Payment by Account reconciliation report. <br/><br/>Regards, <br/>Fees & Payments Team <br/><br/>"
     PBA_IAC_PAYMENTS_EMAIL_SUBJECT: "CNP:PBA IAC Reconciliation Report"
+    DUPLICATE_PAYMENTS_REPORT_SCHEDULER_ENABLED: "true"
+    DUPLICATE_PAYMENTS_EMAIL_FROM: "no-reply@mail-payment-nonprod.platform.hmcts.net"
+    DUPLICATE_PAYMENTS_EMAIL_MESSAGE: "Hi, <br/><br/>Please find attached Potential Duplicate Payments report. <br/><br/>Regards, <br/>Fees & Payments Team <br/><br/>"
+    DUPLICATE_PAYMENTS_EMAIL_SUBJECT: "CNP:Potential Duplicate Payments Report"
     PBA_SMC_PAYMENTS_REPORT_SCHEDULER_ENABLED: "true"
     PBA_SMC_PAYMENTS_EMAIL_FROM: "no-reply@mail-payment-nonprod.platform.hmcts.net"
     PBA_SMC_PAYMENTS_EMAIL_MESSAGE: "Hi, <br/><br/>Please find attached Payment by Account reconciliation report. <br/><br/>Regards, <br/>Fees & Payments Team <br/><br/>"
     PBA_SMC_PAYMENTS_EMAIL_SUBJECT: "CNP:PBA Specified Money Claims Reconciliation Report"
-    SERVICE_REQUEST_REPORT_SCHEDULER_ENABLED: "true"
-    SERVICE_REQUEST_EMAIL_FROM: "no-reply@mail-payment-nonprod.platform.hmcts.net"
-    SERVICE_REQUEST_EMAIL_SUBJECT: "CNP:Service Request Report"
-    SERVICE_REQUEST_EMAIL_MESSAGE: "Hi <br/><br/>Please find attached today's Service Request report. <br/><br/>Regards <br/><br/>Payments team <br/><br/>"
     SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: true
     SPRING_MAIL_PROPERTIES_MAIL_SMTP_SSL_TRUST: "smtp.sendgrid.net"
     SPRING_MAIL_PROPERTIES_MAIL_SMTP_SSL_PROTOCOLS: "TLSv1.2"
@@ -138,6 +138,8 @@ java:
           alias: GOV_PAY_AUTH_KEY_REFERENCE
         - name: gov-pay-keys-cmc
           alias: gov.pay.auth.key.cmc
+        - name: gov-pay-keys-cmc
+          alias: gov.pay.auth.key.civil_service
         - name: gov-pay-keys-cmc-claim-store
           alias: gov.pay.auth.key.cmc_claim_store
         - name: gov-pay-keys-divorce
@@ -230,5 +232,5 @@ java:
           alias: ccpay-payment-status-connection-string
         - name: pba-smc-payments-email-to
           alias: pba.smc.payments.email.to
-        - name: service-request-email-to
-          alias: service.request.email.to
+        - name: duplicate-payments-email-to
+          alias: duplicate.payments.email.to

@@ -12,6 +12,8 @@ import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.*;
 
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -146,6 +148,13 @@ public class PaymentTestService {
         return givenWithServiceHeaders(serviceToken)
             .when()
             .get("/reconciliation-payments?end_date={endDate}&start_date={startDate}", endDate, startDate);
+
+    }
+
+    public Response getTelephonyPaymentsByStartAndEndDate(String userToken, String serviceToken, String dateFrom, String dateTo) {
+        return givenWithAuthHeaders(userToken, serviceToken)
+            .when()
+            .get("/telephony-payments/telephony-payments-report?date_from={dateFrom}&date_to={dateTo}", dateFrom, dateTo);
 
     }
 
@@ -285,6 +294,11 @@ public class PaymentTestService {
             .params(params)
             .when()
             .get("/payment-failures/failure-report");
+    }
+
+    public String getReportDate(Date date) {
+        java.time.format.DateTimeFormatter reportNameDateFormat = java.time.format.DateTimeFormatter.ofPattern("MM/dd/yyyy");
+        return date == null ? null : java.time.LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault()).format(reportNameDateFormat);
     }
 
 }

@@ -31,6 +31,8 @@ import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
+import javax.persistence.Tuple;
+
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -289,36 +291,35 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
 
         List<PaymentFailures> paymentFailuresList = paymentFailureRepository.findByDatesBetween(startDate, endDate);
 
-        if(paymentFailuresList.isEmpty()){
-            throw new PaymentNotFoundException("No Data found to generate Report");
+        if(!paymentFailuresList.isEmpty()) {
+
+            List<String> paymentReference = paymentFailuresList.stream().map(PaymentFailures::getPaymentReference).distinct().collect(Collectors.toList());
+
+            List<Payment> paymentList = paymentRepository.findByReferenceIn(paymentReference);
+            List<String> paymentRefForRefund = paymentList.stream().map(Payment::getReference).collect(Collectors.toList());
+
+            if (paymentList.size() > 0) {
+                refundPaymentFailureReportDtoResponse = fetchRefundResponse(paymentRefForRefund);
+            }
+
+            if (null != refundPaymentFailureReportDtoResponse) {
+                refundList = refundPaymentFailureReportDtoResponse.getPaymentFailureDto();
+            }
+
+            List<RefundDto> finalRefundList = refundList;
+            paymentFailuresList.stream()
+                .collect(Collectors.toList())
+                .forEach(paymentFailure -> {
+                    LOG.info("paymentFailure: {}", paymentFailure);
+                    failureReport.add(paymentFailureReportMapper.failureReportMapper(
+                        paymentFailure,
+                        paymentList.stream()
+                            .filter(dto -> dto.getReference().equals(paymentFailure.getPaymentReference()))
+                            .findAny().orElse(null),
+                        finalRefundList
+                    ));
+                });
         }
-
-        List<String> paymentReference= paymentFailuresList.stream().map(PaymentFailures::getPaymentReference).distinct().collect(Collectors.toList());
-
-        List<Payment> paymentList = paymentRepository.findByReferenceIn(paymentReference);
-        List<String> paymentRefForRefund = paymentList.stream().map(Payment::getReference).collect(Collectors.toList());
-
-         if(paymentList.size() > 0){
-            refundPaymentFailureReportDtoResponse = fetchRefundResponse(paymentRefForRefund);
-        }
-
-        if(null != refundPaymentFailureReportDtoResponse){
-            refundList = refundPaymentFailureReportDtoResponse.getPaymentFailureDto();
-        }
-
-        List<RefundDto> finalRefundList = refundList;
-        paymentFailuresList.stream()
-            .collect(Collectors.toList())
-            .forEach(paymentFailure -> {
-                LOG.info("paymentFailure: {}", paymentFailure);
-                failureReport.add(paymentFailureReportMapper.failureReportMapper(
-                    paymentFailure,
-                    paymentList.stream()
-                        .filter(dto -> dto.getReference().equals(paymentFailure.getPaymentReference()))
-                        .findAny().orElse(null),
-                    finalRefundList
-                ));
-            });
         return failureReport;
     }
 
@@ -464,6 +465,32 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
 
             LOG.info("updateUnprocessedPayment successful");
         }
+    }
+
+    public List<TelephonyPaymentsReportDto> telephonyPaymentsReport(Date startDate, Date endDate, MultiValueMap<String, String> headers){
+        LOG.info("Enter telphonyPaymentsReport method");
+
+        ValidationErrorDTO validationError = new ValidationErrorDTO();
+
+        if(startDate.after(endDate)){
+            validationError.addFieldError("dates", "Start date cannot be greater than end date");
+            throw new ValidationErrorException("Error occurred in the report ", validationError);
+        }
+        List<Tuple> telephonyPaymentsTuples = paymentRepository.findAllByDateCreatedBetweenAndPaymentChannel(startDate, endDate, PaymentChannel.TELEPHONY);
+
+        List<TelephonyPaymentsReportDto> telephonyPaymentsReportDto = telephonyPaymentsTuples.stream()
+            .map(tup -> TelephonyPaymentsReportDto.telephonyPaymentsReportDtoWith()
+                .serviceName(tup.get("service_type", String.class))
+                .ccdReference(tup.get("ccd_case_number", String.class))
+                .paymentReference(tup.get("reference", String.class))
+                .feeCode(tup.get("code", String.class))
+                .paymentDate(tup.get("date_created", Date.class))
+                .amount(tup.get("amount", BigDecimal.class))
+                .paymentStatus(tup.get("payment_status", String.class))
+                .build())
+            .toList();
+
+        return telephonyPaymentsReportDto;
     }
 
 }
