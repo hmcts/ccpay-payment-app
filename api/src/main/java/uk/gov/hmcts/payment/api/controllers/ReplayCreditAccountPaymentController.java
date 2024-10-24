@@ -75,7 +75,7 @@ public class ReplayCreditAccountPaymentController {
 
         //Validate csv file
         if (replayPBAPaymentsFile.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return ResponseEntity.badRequest().build();
         }
 
         // Parse CSV file to get list of PBA payments for replay
@@ -181,7 +181,7 @@ public class ReplayCreditAccountPaymentController {
 
     @ExceptionHandler(value = {PaymentNotFoundException.class})
     public ResponseEntity httpClientErrorException() {
-        return new ResponseEntity(HttpStatus.NOT_FOUND);
+        return ResponseEntity.notFound().build();
     }
 
     @ExceptionHandler(value = {PaymentException.class})

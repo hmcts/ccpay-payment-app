@@ -48,7 +48,7 @@ public class TelephonyController {
         LOG.info("Received callback request from pci-apl : {}", callbackDto);
         paymentService.updateTelephonyPaymentStatus(callbackDto.getOrderReference(),
             callbackDto.getTransactionResult().toLowerCase(), callbackDto.toString());
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return ResponseEntity.noContent().build();
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)

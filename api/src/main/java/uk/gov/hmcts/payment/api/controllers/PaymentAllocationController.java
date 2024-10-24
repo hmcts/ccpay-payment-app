@@ -78,7 +78,7 @@ public class PaymentAllocationController {
 
             return new ResponseEntity<>(allocationDto, HttpStatus.CREATED);
         }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        return ResponseEntity.notFound().build();
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)

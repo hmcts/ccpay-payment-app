@@ -88,10 +88,10 @@ public class PaymentOldController {
                                     @PathVariable("paymentId") Integer paymentId) {
         try {
             paymentService.cancel(paymentId);
-            return new ResponseEntity<>(NO_CONTENT);
+            return ResponseEntity.noContent().build();
         } catch (GovPayCancellationFailedException e) {
             LOG.info("Cancellation failed", keyValue("paymentId", paymentId));
-            return new ResponseEntity<>(BAD_REQUEST);
+            return ResponseEntity.badRequest().build();
         }
     }
 
@@ -107,21 +107,21 @@ public class PaymentOldController {
                                     @Valid @RequestBody RefundPaymentRequestDto request) {
         try {
             paymentService.refund(paymentId, request.getAmount(), request.getRefundAmountAvailable());
-            return new ResponseEntity<>(CREATED);
+            return ResponseEntity.status(CREATED).build();
         } catch (GovPayRefundAmountMismatch e) {
             LOG.info("Refund amount available mismatch", keyValue("paymentId", paymentId));
-            return new ResponseEntity<>(PRECONDITION_FAILED);
+            return ResponseEntity.status(PRECONDITION_FAILED).build();
         }
     }
 
     @ExceptionHandler(value = {GovPayPaymentNotFoundException.class, PaymentNotFoundException.class})
     public ResponseEntity httpClientErrorException() {
-        return new ResponseEntity(NOT_FOUND);
+        return ResponseEntity.notFound().build();
     }
 
     @ExceptionHandler(value = {GovPayException.class})
     public ResponseEntity httpClientErrorException(GovPayException e) {
         LOG.error("Error while calling payments", e);
-        return new ResponseEntity(INTERNAL_SERVER_ERROR);
+        return ResponseEntity.internalServerError().build();
     }
 }

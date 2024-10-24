@@ -229,7 +229,7 @@ public class CreditAccountPaymentController {
 
     @ExceptionHandler(value = {PaymentNotFoundException.class})
     public ResponseEntity httpClientErrorException() {
-        return new ResponseEntity(HttpStatus.NOT_FOUND);
+        return ResponseEntity.notFound().build();
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)

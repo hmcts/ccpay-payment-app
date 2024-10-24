@@ -25,15 +25,15 @@ public class MockCallbackControllerForTesting {
     public ResponseEntity mockCallback(@RequestBody PaymentDto paymentDto) {
         LOG.info("Callback request:{}", paymentDto);
         callbackList.add(paymentDto.getReference());
-        return new ResponseEntity<>(HttpStatus.OK);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/serviceCallback/{reference}")
     public ResponseEntity exists(@PathVariable("reference") String reference) {
         if (callbackList.contains(reference)) {
             callbackList.remove(reference);
-            return new ResponseEntity<>(HttpStatus.OK);
+            return ResponseEntity.ok().build();
         }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        return ResponseEntity.notFound().build();
     }
 }

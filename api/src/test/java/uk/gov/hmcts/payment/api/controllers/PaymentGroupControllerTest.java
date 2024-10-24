@@ -1339,7 +1339,7 @@ public class PaymentGroupControllerTest {
             eq(HttpMethod.PATCH),
             any(HttpEntity.class),
             eq(String.class), any(Map.class)))
-            .thenReturn(new ResponseEntity(HttpStatus.OK));
+            .thenReturn(ResponseEntity.ok().build());
 
         when(featureToggler.getBooleanValue("prod-strategic-fix", false)).thenReturn(true);
 

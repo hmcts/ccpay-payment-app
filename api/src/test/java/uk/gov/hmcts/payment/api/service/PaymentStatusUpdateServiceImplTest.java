@@ -136,7 +136,7 @@ public class PaymentStatusUpdateServiceImplTest {
             eq(HttpMethod.PATCH),
             any(HttpEntity.class),
             eq(String.class), any(Map.class)))
-            .thenReturn(new ResponseEntity(HttpStatus.OK));
+            .thenReturn(ResponseEntity.ok().build());
         boolean cancelRefund = paymentStatusUpdateServiceImpl.cancelFailurePaymentRefund(paymentStatusBouncedChequeDto.getPaymentReference());
 
         assertTrue(cancelRefund);
@@ -185,7 +185,7 @@ public class PaymentStatusUpdateServiceImplTest {
             eq(HttpMethod.PATCH),
             any(HttpEntity.class),
             eq(String.class), any(Map.class)))
-            .thenReturn(new ResponseEntity(HttpStatus.OK));
+            .thenReturn(ResponseEntity.ok().build());
         boolean cancelRefund = paymentStatusUpdateServiceImpl.cancelFailurePaymentRefund(paymentStatusChargebackDto.getPaymentReference());
 
         assertTrue(cancelRefund);
