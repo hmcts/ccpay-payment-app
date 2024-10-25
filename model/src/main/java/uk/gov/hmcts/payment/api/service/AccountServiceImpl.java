@@ -2,11 +2,10 @@ package uk.gov.hmcts.payment.api.service;
 
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
-import org.springframework.security.oauth2.client.OAuth2RestOperations;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.util.AccountStatus;
 
@@ -16,8 +15,7 @@ import java.math.BigDecimal;
 @Profile("!liberataMock")
 public class AccountServiceImpl implements AccountService<AccountDto, String> {
 
-    @Autowired
-    private OAuth2RestOperations restTemplate;
+    private RestTemplate restTemplate;
 
     @Value("${liberata.api.account.url}")
     private String baseUrl;

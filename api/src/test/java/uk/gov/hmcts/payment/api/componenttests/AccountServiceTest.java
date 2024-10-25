@@ -5,12 +5,13 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.security.oauth2.client.OAuth2RestOperations;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.service.AccountServiceImpl;
 import uk.gov.hmcts.payment.api.util.AccountStatus;
@@ -26,8 +27,8 @@ import static org.mockito.Mockito.when;
 @ActiveProfiles({"local", "componenttest"})
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 public class AccountServiceTest {
-    @Mock
-    private OAuth2RestOperations restTemplateMock;
+
+    private RestTemplate restTemplate;
 
     @InjectMocks
     private AccountServiceImpl accountServiceImpl;
@@ -44,7 +45,7 @@ public class AccountServiceTest {
         setField(accountServiceImpl, accountServiceImpl.getClass().getDeclaredField("baseUrl"), baseUrl);
         AccountDto expectedDto = new AccountDto(pbaCode, "accountName", new BigDecimal(100),
             new BigDecimal(100), AccountStatus.ACTIVE, new Date());
-        when(restTemplateMock.getForObject(baseUrl + "/" + pbaCode, AccountDto.class)).thenReturn(expectedDto);
+        when(restTemplate.getForObject(baseUrl + "/" + pbaCode, AccountDto.class)).thenReturn(expectedDto);
         assertEquals(expectedDto, accountServiceImpl.retrieve(pbaCode));
     }
 
@@ -53,7 +54,7 @@ public class AccountServiceTest {
         String pbaCode = "PBAFUNC12345";
         AccountDto expectedDto = new AccountDto(pbaCode, "CAERPHILLY COUNTY BOROUGH COUNCIL", new BigDecimal(28879),
             new BigDecimal(30000), AccountStatus.ACTIVE,null);
-        when(restTemplateMock.getForObject(baseUrl + "/" + pbaCode, AccountDto.class)).thenReturn(expectedDto);
+        when(restTemplate.getForObject(baseUrl + "/" + pbaCode, AccountDto.class)).thenReturn(expectedDto);
         assertEquals(expectedDto, accountServiceImpl.retrieve(pbaCode));
     }
 
@@ -67,3 +68,4 @@ public class AccountServiceTest {
         }
     }
 }
+
