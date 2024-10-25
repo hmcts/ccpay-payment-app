@@ -84,11 +84,13 @@ dependencies {
     implementation project(':payment-model')
     implementation project(':payment-reference-data')
     implementation project(':case-payment-orders-client')
-    implementation 'jakarta.servlet:jakarta.servlet-api:6.1.0'
+    implementation 'jakarta.servlet:jakarta.servlet-api:6.0.0'
     implementation group: 'com.github.hmcts.java-logging', name: 'logging', version: javaLoggingVersion
     implementation group: 'com.github.hmcts.java-logging', name: 'logging-appinsights', version: javaLoggingVersion
     implementation group: 'com.github.hmcts', name: 'auth-checker-lib', version: '3.0.2'
-    implementation group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: versions.reformS2sClient
+    implementation (group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: versions.reformS2sClient) {
+        exclude group: 'org.apache.httpcomponents', module: 'httpclient'
+    }
     implementation group: 'org.springframework.boot', name: 'spring-boot-autoconfigure'
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web'
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security'
@@ -164,7 +166,7 @@ dependencies {
     testImplementation group: 'io.rest-assured', name: 'rest-assured'
     testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-thymeleaf'
     testImplementation group: 'org.testcontainers', name: 'postgresql', version: '1.19.8'
-    testImplementation 'org.awaitility:awaitility:3.1.6'
+    testImplementation 'org.awaitility:awaitility:4.2.0'
     testImplementation group: 'org.powermock', name: 'powermock-module-junit4', version: '2.0.9'
     testImplementation 'org.powermock:powermock-api-mockito2:2.0.9'
     // smoke
@@ -190,7 +192,6 @@ dependencies {
     contractTestImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test'
     contractTestImplementation("org.junit.jupiter:junit-jupiter-api:5.10.2")
     contractTestImplementation("org.junit.jupiter:junit-jupiter-engine:5.10.2")
-    contractTestImplementation('org.junit.jupiter:junit-jupiter-api:5.10.2')
 
     functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-core', version: versions.serenity
     functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-cucumber', version: versions.serenityCucumber
