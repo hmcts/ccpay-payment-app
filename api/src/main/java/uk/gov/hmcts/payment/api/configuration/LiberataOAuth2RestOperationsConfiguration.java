@@ -1,53 +1,40 @@
 package uk.gov.hmcts.payment.api.configuration;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.oauth2.client.DefaultOAuth2ClientContext;
-import org.springframework.security.oauth2.client.OAuth2RestOperations;
-import org.springframework.security.oauth2.client.OAuth2RestTemplate;
-import org.springframework.security.oauth2.client.resource.OAuth2ProtectedResourceDetails;
-import org.springframework.security.oauth2.client.token.AccessTokenRequest;
-import org.springframework.security.oauth2.client.token.DefaultAccessTokenRequest;
-import org.springframework.security.oauth2.client.token.grant.password.ResourceOwnerPasswordResourceDetails;
-import org.springframework.security.oauth2.config.annotation.web.configuration.EnableOAuth2Client;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientProvider;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientProviderBuilder;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizedClientManager;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
+import org.springframework.security.oauth2.client.web.reactive.function.client.ServletOAuth2AuthorizedClientExchangeFilterFunction;
+import org.springframework.web.reactive.function.client.WebClient;
 
-@EnableOAuth2Client
 @Configuration
 public class LiberataOAuth2RestOperationsConfiguration {
 
-    @Value("${liberata.oauth2.token.url}")
-    private String tokenUrl;
-
-    @Value("${liberata.oauth2.client.id}")
-    private String clientId;
-
-    @Value("${liberata.oauth2.client.secret}")
-    private String clientSecret;
-
-    @Value("${liberata.oauth2.username}")
-    private String username;
-
-    @Value("${liberata.oauth2.password}")
-    private String password;
-
     @Bean
-    protected OAuth2ProtectedResourceDetails resourceDetails() {
-        ResourceOwnerPasswordResourceDetails resource = new ResourceOwnerPasswordResourceDetails();
-        resource.setAccessTokenUri(tokenUrl);
-        resource.setClientId(clientId);
-        resource.setClientSecret(clientSecret);
-        resource.setGrantType("password");
-        resource.setUsername(username);
-        resource.setPassword(password);
+    public OAuth2AuthorizedClientManager authorizedClientManager(
+        ClientRegistrationRepository clientRegistrationRepository,
+        OAuth2AuthorizedClientRepository authorizedClientRepository) {
 
-        return resource;
+        OAuth2AuthorizedClientProvider authorizedClientProvider =
+            OAuth2AuthorizedClientProviderBuilder.builder()
+                .clientCredentials()
+                .build();
+
+        DefaultOAuth2AuthorizedClientManager authorizedClientManager =
+            new DefaultOAuth2AuthorizedClientManager(clientRegistrationRepository, authorizedClientRepository);
+        authorizedClientManager.setAuthorizedClientProvider(authorizedClientProvider);
+
+        return authorizedClientManager;
     }
 
     @Bean
-    public OAuth2RestOperations restTemplate() {
-        AccessTokenRequest atr = new DefaultAccessTokenRequest();
-
-        return new OAuth2RestTemplate(resourceDetails(), new DefaultOAuth2ClientContext(atr));
+    public WebClient webClient(OAuth2AuthorizedClientManager authorizedClientManager) {
+        return WebClient.builder()
+            .filter(new ServletOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager))
+            .build();
     }
 }
