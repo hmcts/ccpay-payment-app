@@ -2,8 +2,6 @@ package uk.gov.hmcts.payment.api.domain.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
-import com.netflix.hystrix.HystrixCommand;
-import com.netflix.hystrix.exception.HystrixRuntimeException;
 import org.apache.poi.ss.formula.functions.T;
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.Before;
@@ -55,6 +53,7 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeoutException;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.Assert.assertNotNull;
@@ -369,7 +368,7 @@ public class ServiceRequestDomainServiceTest {
     }
 
     @Test
-    public void addPaymentsHystrixRuntimeExceptionThrownTest() throws Exception {
+    public void addPaymentsTimeoutExceptionThrownTest() throws Exception {
 
         ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto.paymentDtoWith()
             .accountNumber("1234")
@@ -419,7 +418,7 @@ public class ServiceRequestDomainServiceTest {
         when(paymentDtoMapper.toPaymentStatusDto(any(),any(),any(), any())).thenReturn(paymentStatusDto);
 
         when(accountService.retrieve(serviceRequestPaymentDto.getAccountNumber())).thenThrow(
-            new HystrixRuntimeException(HystrixRuntimeException.FailureType.TIMEOUT, HystrixCommand.class, "ErrorThrown", null, null));
+            new TimeoutException("Error thrown"));
 
         AccountDto accountDto = AccountDto.accountDtoWith()
             .accountNumber("1234")

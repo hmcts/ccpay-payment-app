@@ -1,7 +1,7 @@
 package uk.gov.hmcts.payment.api.service;
 
-import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
-import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.timelimiter.annotation.TimeLimiter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
@@ -10,6 +10,7 @@ import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.util.AccountStatus;
 
 import java.math.BigDecimal;
+import java.util.Date;
 
 @Service
 @Profile("!liberataMock")
@@ -21,10 +22,8 @@ public class AccountServiceImpl implements AccountService<AccountDto, String> {
     private String baseUrl;
 
     @Override
-    @HystrixCommand(commandKey = "retrievePbaAccount", commandProperties = {
-        @HystrixProperty(name = "execution.isolation.thread.timeoutInMilliseconds", value = "15000"),
-        @HystrixProperty(name = "fallback.enabled", value = "false")
-    })
+    @CircuitBreaker(name = "defaultCircuitBreaker")
+    @TimeLimiter(name = "retrievePbaAccountTimeLimiter")
     public AccountDto retrieve(String pbaCode) {
         if(pbaCode.equalsIgnoreCase("PBAFUNC12345")){
             return AccountDto.accountDtoWith()
@@ -37,6 +36,4 @@ public class AccountServiceImpl implements AccountService<AccountDto, String> {
         }
         return restTemplate.getForObject(baseUrl + "/" + pbaCode, AccountDto.class);
     }
-
-
 }

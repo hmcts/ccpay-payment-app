@@ -1,7 +1,6 @@
 package uk.gov.hmcts.payment.api.service;
 
-import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
-import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Profile;
@@ -19,9 +18,7 @@ public class CcdDataStoreClientServiceImpl implements CcdDataStoreClientService<
     private CoreCaseDataApi coreCaseDataApi;
 
     @Override
-    @HystrixCommand(commandKey = "retrieveCcdCaseInformation", commandProperties = {
-        @HystrixProperty(name = "execution.timeout.enabled", value = "false")
-    })
+    @CircuitBreaker(name = "defaultCircuitBreaker")
     public CaseDetails getCase(String userAuthToken, String serviceAuthToken, String ccdCaseReference) {
         // Get case details from ccd.
         return coreCaseDataApi.getCase(userAuthToken, serviceAuthToken, ccdCaseReference);
