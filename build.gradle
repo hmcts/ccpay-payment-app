@@ -138,6 +138,7 @@ subprojects {
     ext['jackson.version'] = '2.18.0' // CVE-2021-46877, CVE-2022-42003, CVE-2022-42004, CVE-2020-36518
 
     dependencies {
+        implementation group: 'com.microsoft.azure', name: 'applicationinsights-web', version: '3.4.0'
         implementation group: 'jakarta.servlet', name: 'jakarta.servlet-api', version: '6.0.0'
         implementation ('com.sun.xml.bind:jaxb-osgi:4.0.5')
         testImplementation 'io.github.openfeign:feign-jackson:13.2.1'

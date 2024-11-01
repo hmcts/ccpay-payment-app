@@ -1,6 +1,5 @@
 package uk.gov.hmcts.payment.api.componenttests;
 
-import com.microsoft.applicationinsights.web.internal.WebRequestTrackingFilter;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,7 +29,6 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @AutoConfigureMockMvc
 public class SwaggerPublisher {
 
-    WebRequestTrackingFilter filter;
     @Autowired
     private MockMvc mvc;
     @Autowired
@@ -43,7 +41,6 @@ public class SwaggerPublisher {
 
     @After
     public void tearDown() {
-        filter = null;
         this.mvc = null;
     }
 
