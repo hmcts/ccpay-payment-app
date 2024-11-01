@@ -14,13 +14,13 @@ def springCloudVersion = '2023.0.3'
 
 def versions = [
         lombok: '1.18.34',
-        javaVersion: '17',
+        javaVersion: '21',
         jacocoVersion: '0.8.12'
 ]
 
 java {
   toolchain {
-    languageVersion = JavaLanguageVersion.of(17)
+    languageVersion = JavaLanguageVersion.of(21)
   }
 }
 
@@ -29,7 +29,7 @@ dependencies{
 }
 
 task fortifyScan(type: JavaExec)  {
-    main = "uk.gov.hmcts.fortifyclient.FortifyClientMainApp"
+    mainClass = "uk.gov.hmcts.fortifyclient.FortifyClientMainApp"
     classpath += sourceSets.test.runtimeClasspath
     jvmArgs = ['--add-opens=java.base/java.lang.reflect=ALL-UNNAMED']
 }
@@ -123,11 +123,12 @@ subprojects {
     apply plugin: 'java'
     apply plugin: "jacoco"
 
-    tasks.withType(JavaCompile) {
+    tasks.withType(JavaCompile).configureEach {
         options.encoding = 'UTF-8'
+        options.compilerArgs << '-parameters'
     }
 
-    tasks.withType(Test) {
+    tasks.withType(Test).configureEach {
         testLogging {
             exceptionFormat = 'full'
         }
@@ -159,7 +160,7 @@ subprojects {
         implementation 'org.springframework.boot:spring-boot-starter-validation'
         implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: '2.17.2'
         implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jdk8', version: '2.17.2'
-        implementation(group: 'com.github.hmcts', name: 'ccd-client', version: '5.0.1') {
+        implementation(group: 'com.github.hmcts', name: 'ccd-client', version: '5.0.3') {
             sourceSets {
                 main {
                     java {
@@ -182,7 +183,9 @@ dependencies {
     implementation project(':payment-api')
 }
 
-mainClassName = 'uk.gov.hmcts.PaymentApiApplication'
+application  {
+    mainClass = 'uk.gov.hmcts.PaymentApiApplication'
+}
 
 jar {
     enabled = true
