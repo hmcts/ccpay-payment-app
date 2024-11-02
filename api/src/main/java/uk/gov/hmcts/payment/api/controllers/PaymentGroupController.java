@@ -509,7 +509,6 @@ public class PaymentGroupController {
         Map<String, String> params = new HashMap<>();
         params.put("dcn", dcn);
         params.put("status", status);
-//        return new ResponseEntity<String>("new ArrayList<>()", HttpStatus.OK);
         LOG.info("Calling Bulk scan api to mark payment as processed from Payment Api");
         return restTemplatePaymentGroup.exchange(bulkScanPaymentsProcessedUrl + "/bulk-scan-payments/{dcn}/status/{status}", HttpMethod.PATCH, entity, String.class, params);
     }
@@ -528,15 +527,20 @@ public class PaymentGroupController {
         @PathVariable("payment-group-reference") String paymentGroupReference,
         @Valid @RequestBody TelephonyCardPaymentsRequest telephonyCardPaymentsRequest) throws CheckDigitException, MethodNotSupportedException {
 
+        PaymentFeeLink paymentLink = paymentGroupService.findByPaymentGroupReference(paymentGroupReference);
+
         boolean antennaFeature = featureToggler.getBooleanValue("pci-pal-antenna-feature", false);
         LOG.info("Feature Flag Value in CardPaymentController : {}", antennaFeature);
+
         if (antennaFeature) {
             LOG.info("Inside Telephony check!!!");
+
             OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(Optional.ofNullable(telephonyCardPaymentsRequest.getCaseType()),Optional.empty(), headers);
             TelephonyProviderAuthorisationResponse telephonyProviderAuthorisationResponse = pciPalPaymentService.getPaymentProviderAutorisationTokens();
             PaymentServiceRequest paymentServiceRequest = PaymentServiceRequest.paymentServiceRequestWith()
                 .paymentGroupReference(paymentGroupReference)
                 .paymentReference(referenceUtil.getNext("RC"))
+                .caseReference(paymentLink.getCaseReference())
                 .ccdCaseNumber(telephonyCardPaymentsRequest.getCcdCaseNumber())
                 .currency(telephonyCardPaymentsRequest.getCurrency().getCode())
                 .siteId(organisationalServiceDto.getServiceCode())
@@ -545,14 +549,7 @@ public class PaymentGroupController {
                 .channel(PaymentChannel.TELEPHONY.getName())
                 .provider(PaymentProvider.PCI_PAL.getName())
                 .build();
-            PaymentFeeLink paymentLink = new PaymentFeeLink();
-            try {
-                paymentLink = delegatingPaymentService.update(paymentServiceRequest);
-
-            }catch (MethodNotSupportedException e) {
-                LOG.error("Error occurred while creating payment in Payment Group", e);
-                throw new RuntimeException(e);
-            }
+            paymentLink = delegatingPaymentService.update(paymentServiceRequest);
             Payment payment = getPayment(paymentLink, paymentServiceRequest.getPaymentReference());
 
             PciPalPaymentRequest pciPalPaymentRequest = PciPalPaymentRequest.pciPalPaymentRequestWith().orderAmount(telephonyCardPaymentsRequest.getAmount().toString()).orderCurrency(telephonyCardPaymentsRequest.getCurrency().getCode())

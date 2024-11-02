@@ -7,6 +7,7 @@ dependencies {
     implementation project(':payment-gov-pay-client')
     implementation project(':payment-reference-data')
     implementation project(':case-payment-orders-client')
+    implementation group: 'com.google.guava', name: 'guava', version: '33.3.1-jre'
     implementation group: 'org.apache.httpcomponents.client5', name: 'httpclient5', version: '5.2'
     implementation group: 'net.logstash.logback', name: 'logstash-logback-encoder', version:'7.4'
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web'
@@ -21,7 +22,7 @@ dependencies {
     implementation group: 'com.querydsl', name: 'querydsl-jpa', version:'5.1.0'
     api group: 'commons-validator', name: 'commons-validator', version:'1.8.0'
     implementation group: 'com.github.hmcts.java-logging', name: 'logging-appinsights', version: '6.1.4'
-    implementation group: 'com.netflix.hystrix', name: 'hystrix-javanica', version: '1.5.18'
+    implementation group: 'io.github.resilience4j', name: 'resilience4j-spring-boot3', version: '2.2.0'
     api group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '5.10.9'
 
     testImplementation(group: 'org.springframework.boot', name: 'spring-boot-starter-test') {

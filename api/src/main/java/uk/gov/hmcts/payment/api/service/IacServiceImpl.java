@@ -53,6 +53,7 @@ public class IacServiceImpl implements IacService {
         ResponseEntity<SupplementaryDetailsResponse> responseEntitySupplementaryInfo = null;
 
         List<SupplementaryInfo> lstSupplementaryInfo = null;
+        List<LiberataSupplementaryInfo> lstLiberataSupplementaryInfo = null;
         SupplementaryPaymentDto supplementaryPaymentDto = null;
 
         if (!iacCcdCaseNos.isEmpty()) {
@@ -77,35 +78,45 @@ public class IacServiceImpl implements IacService {
 
                 if (responseEntitySupplementaryInfo.getStatusCodeValue() == HttpStatus.PARTIAL_CONTENT.value() && lstMissingSupplementaryInfo == null) {
                     LOG.info("No missing supplementary info received from IAC for any CCD case numbers, however response is 206");
-                } else if (lstMissingSupplementaryInfo != null && lstMissingSupplementaryInfo.getCcdCaseNumbers() != null)
-                    LOG.info("missing supplementary info from IAC for CCD case numbers : {}", lstMissingSupplementaryInfo.getCcdCaseNumbers().toString());
-            }
-
-            supplementaryPaymentDto = SupplementaryPaymentDto.supplementaryPaymentDtoWith().payments(paymentDtos).
-                supplementaryInfo(lstSupplementaryInfo).build();
-            }else{
-                LOG.info("No Iac payments retrieved");
-                 supplementaryPaymentDto = SupplementaryPaymentDto.supplementaryPaymentDtoWith().payments(paymentDtos).
-                    build();
-            }
-           return new ResponseEntity(supplementaryPaymentDto, paymentResponseHttpStatus);
-    }
-
-    @Override
-    public void updateCaseReferenceInPaymentDtos(List<PaymentDto> paymentDtos, String serviceName) {
-        List<PaymentDto> iacPayments = getIacPayments(serviceName, paymentDtos);
-
-        iacPayments.forEach(paymentDto ->
-            paymentFeeLinkRepository.findByPaymentReference(paymentDto.getPaymentGroupReference()).ifPresent(paymentFeeLink -> {
-                if (paymentDto.getCaseReference() == null && paymentFeeLink.getCaseReference() != null && paymentFeeLink.getCaseReference().length() > 0) {
-                    paymentDto.setCaseReference(paymentFeeLink.getCaseReference());
-                    LOG.info("Setting caseReference {} for Service Request {} in Case {}",
-                        paymentFeeLink.getCaseReference(),
-                        paymentDto.getPaymentGroupReference(),
-                        paymentDto.getCcdCaseNumber());
+                } else if (lstMissingSupplementaryInfo != null && lstMissingSupplementaryInfo.getCcdCaseNumbers() != null) {
+                    LOG.info("Missing supplementary info from IAC for CCD case numbers : {}", lstMissingSupplementaryInfo.getCcdCaseNumbers().toString());
                 }
-            })
-        );
+
+                if (lstSupplementaryInfo != null) {
+                    Map<String, String> caseReferenceMap = lstSupplementaryInfo.stream()
+                        .collect(Collectors.toMap(SupplementaryInfo::getCcdCaseNumber,
+                            info -> info.getSupplementaryDetails().getCaseReferenceNumber()));
+
+                    for (PaymentDto paymentDto : paymentDtos) {
+                        String caseReferenceNumber = caseReferenceMap.get(paymentDto.getCcdCaseNumber());
+                        if (caseReferenceNumber != null) {
+                            paymentDto.setCaseReference(caseReferenceNumber);
+                            LOG.info("Setting caseReference {} for CCD Case {}", caseReferenceNumber, paymentDto.getCcdCaseNumber());
+                        }
+                    }
+
+                    lstLiberataSupplementaryInfo = lstSupplementaryInfo.stream()
+                        .map(info -> LiberataSupplementaryInfo.liberataSupplementaryInfoWith()
+                            .ccdCaseNumber(info.getCcdCaseNumber())
+                            .supplementaryDetails(LiberataSupplementaryDetails.supplementaryDetailsWith()
+                                .surname(info.getSupplementaryDetails().getSurname())
+                                .build())
+                            .build())
+                        .collect(Collectors.toList());
+                }
+            }
+
+            supplementaryPaymentDto = SupplementaryPaymentDto.supplementaryPaymentDtoWith()
+                .payments(paymentDtos)
+                .supplementaryInfo(lstLiberataSupplementaryInfo)
+                .build();
+        }else{
+            LOG.info("No Iac payments retrieved");
+             supplementaryPaymentDto = SupplementaryPaymentDto.supplementaryPaymentDtoWith().payments(paymentDtos).
+                build();
+        }
+
+       return new ResponseEntity(supplementaryPaymentDto, paymentResponseHttpStatus);
     }
 
     private List<PaymentDto> getIacPayments(String serviceName, List<PaymentDto> paymentDtos) {

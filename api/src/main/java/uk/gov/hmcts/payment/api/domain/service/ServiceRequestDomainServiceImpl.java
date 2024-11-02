@@ -10,7 +10,7 @@ import com.microsoft.azure.servicebus.Message;
 import com.microsoft.azure.servicebus.ReceiveMode;
 import com.microsoft.azure.servicebus.primitives.ConnectionStringBuilder;
 import com.microsoft.azure.servicebus.primitives.ServiceBusException;
-import com.netflix.hystrix.exception.HystrixRuntimeException;
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -310,8 +310,8 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
             } catch (HttpClientErrorException ex) {
                 LOG.error("Account information could not be found, exception: {}", ex.getMessage());
                 throw new AccountNotFoundException("Account information could not be found");
-            } catch (HystrixRuntimeException hystrixRuntimeException) {
-                LOG.error("Liberata response not received in time, exception: {}", hystrixRuntimeException.getMessage());
+            } catch (CallNotPermittedException callNotPermittedException) {
+                LOG.error("Liberata response not received in time, exception: {}", callNotPermittedException.getMessage());
                 throw new LiberataServiceTimeoutException("Unable to retrieve account information due to timeout");
             } catch (Exception ex) {
                 LOG.error("Unable to retrieve account information, exception: {}", ex.getMessage());
