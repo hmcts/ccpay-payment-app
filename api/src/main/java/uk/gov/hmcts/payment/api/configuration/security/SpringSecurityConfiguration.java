@@ -7,6 +7,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -49,6 +50,28 @@ public class SpringSecurityConfiguration {
 
     @Bean
     @Order(1)
+    protected SecurityFilterChain publicFilterChain(HttpSecurity http) throws Exception {
+        http
+            .securityMatcher(
+                "/favicon.ico",
+                "/health",
+                "/health/liveness",
+                "/health/readiness",
+                "/info",
+                "/swagger-ui.html",
+                "/swagger-ui/**",
+                "/v2/**",
+                "/")
+            .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
+            .anonymous(Customizer.withDefaults())
+            .csrf(AbstractHttpConfigurer::disable)
+            .formLogin(AbstractHttpConfigurer::disable)
+            .logout(AbstractHttpConfigurer::disable);
+        return http.build();
+    }
+
+    @Bean
+    @Order(2)
     protected SecurityFilterChain configureExternal(HttpSecurity http) throws Exception {
         http
             .addFilter(authCheckerServiceOnlyFilter)
@@ -66,7 +89,7 @@ public class SpringSecurityConfiguration {
     }
 
     @Bean
-    @Order(2)
+    @Order(3)
     protected SecurityFilterChain configureInternal(HttpSecurity http) throws Exception {
         http.exceptionHandling(exceptionHandling -> exceptionHandling.accessDeniedHandler(accessDeniedHandler()));
         http
