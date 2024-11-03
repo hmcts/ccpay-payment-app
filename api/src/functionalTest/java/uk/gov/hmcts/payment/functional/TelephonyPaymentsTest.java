@@ -135,7 +135,6 @@ public class TelephonyPaymentsTest {
                     .s2sToken(SERVICE_TOKEN)
                     .returnUrl("https://www.moneyclaims.service.gov.uk")
                     .when()
-                    .enableSearch()
                     .searchPaymentsByServiceBetweenDates("Civil Money Claims", startDateTime, endDateTime)
                     .then().got(PaymentsResponse.class, paymentsResponse -> {
                         assertTrue("correct payment has been retrieved",
@@ -181,7 +180,6 @@ public class TelephonyPaymentsTest {
                     .s2sToken(SERVICE_TOKEN)
                     .returnUrl("https://www.moneyclaims.service.gov.uk")
                     .when()
-                    .enableSearch()
                     .searchPaymentsByServiceBetweenDates("Civil Money Claims", startDateTime, endDateTime)
                     .then().got(PaymentsResponse.class, paymentsResponse -> {
                         assertTrue("correct payment has been retrieved",
@@ -229,7 +227,6 @@ public class TelephonyPaymentsTest {
                     .s2sToken(SERVICE_TOKEN)
                     .returnUrl("https://www.moneyclaims.service.gov.uk")
                     .when()
-                    .enableSearch()
                     .searchPaymentsByServiceBetweenDates("Civil Money Claims", startDateTime, endDateTime)
                     .then().got(PaymentsResponse.class, paymentsResponse -> {
                         assertTrue("correct payment has been retrieved",

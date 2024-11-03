@@ -15,7 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import uk.gov.hmcts.payment.api.configuration.FeatureFlagsConfiguration;
+import uk.gov.hmcts.payment.api.configuration.FeatureFlags;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.controllers.CreditAccountPaymentController;
 import uk.gov.hmcts.payment.api.controllers.PaymentReference;
@@ -74,7 +74,7 @@ class CreditAccountPaymentProviderTest {
     @Autowired
     PaymentReference paymentReferenceMock;
     @Autowired
-    FeatureFlagsConfiguration.FeatureFlags featureFlags;
+    FeatureFlags featureFlags;
     @Autowired
     FeePayApportionService feePayApportionService;
     @Autowired

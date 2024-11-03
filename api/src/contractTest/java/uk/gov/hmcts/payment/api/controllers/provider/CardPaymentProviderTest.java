@@ -19,7 +19,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.fees2.register.data.service.FeeService;
-import uk.gov.hmcts.payment.api.configuration.FeatureFlagsConfiguration;
+import uk.gov.hmcts.payment.api.configuration.FeatureFlags;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.controllers.CardPaymentController;
 import uk.gov.hmcts.payment.api.controllers.PaymentController;
@@ -85,7 +85,7 @@ class CardPaymentProviderTest {
     @Autowired
     PciPalPaymentService pciPalPaymentService;
     @Autowired
-    FeatureFlagsConfiguration.FeatureFlags featureFlags;
+    FeatureFlags featureFlags;
     @Autowired
     FeePayApportionService feePayApportionService;
 
@@ -177,7 +177,7 @@ class CardPaymentProviderTest {
 
     @State({"Payments exist for a case"})
     public void toPaymentsForACasesWithSuccess() {
-        when(featureFlags.paymentSearch).thenReturn(Boolean.TRUE);
+        when(featureFlags.check("payment_search")).thenReturn(Boolean.TRUE);
         PaymentFeeLink paymentLink = populateCardPaymentToDb("1", "e2kkddts5215h9qqoeuth5c0v", "ccd_gw").getPaymentLink();
         when(paymentFeeLinkRepositoryMock.findAll(any(Specification.class))).thenReturn(Arrays.asList(paymentLink));
 

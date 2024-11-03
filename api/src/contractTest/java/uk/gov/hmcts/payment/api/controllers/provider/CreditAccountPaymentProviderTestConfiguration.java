@@ -1,11 +1,11 @@
 package uk.gov.hmcts.payment.api.controllers.provider;
 
-import org.ff4j.FF4j;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import uk.gov.hmcts.payment.api.audit.AuditRepository;
+import uk.gov.hmcts.payment.api.configuration.FeatureFlags;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.configuration.security.AuthenticatedServiceIdSupplier;
 import uk.gov.hmcts.payment.api.controllers.PaymentReference;
@@ -92,11 +92,11 @@ public class CreditAccountPaymentProviderTestConfiguration {
     @MockBean
     DuplicatePaymentValidator paymentValidator;
     @MockBean
-    FF4j ff4j;
-    @MockBean
     FeePayApportionService feePayApportionService;
     @MockBean
     LaunchDarklyFeatureToggler featureToggler;
+    @MockBean
+    FeatureFlags featureFlags;
     @MockBean
     FeePayApportionRepository feePayApportionRepository;
     @MockBean

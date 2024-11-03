@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.payment.api.audit.AuditRepository;
-import uk.gov.hmcts.payment.api.configuration.FeatureFlagsConfiguration;
+import uk.gov.hmcts.payment.api.configuration.FeatureFlags;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.configuration.security.AuthenticatedServiceIdSupplier;
 import uk.gov.hmcts.payment.api.dto.PciPalPayment;
@@ -161,7 +161,7 @@ public class CardPaymentProviderTestConfiguration {
     @MockBean
     public PciPalPaymentService pciPalPaymentService;
     @MockBean
-    public FeatureFlagsConfiguration.FeatureFlags featureFlags;
+    public FeatureFlags featureFlags;
     @MockBean
     FeePayApportionService feePayApportionService;
 

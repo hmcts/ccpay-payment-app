@@ -18,7 +18,7 @@ import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.ff4j.utils.Util.assertNotNull;
+import static org.junit.Assert.assertNotNull;
 
 @RunWith(SpringIntegrationSerenityRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
