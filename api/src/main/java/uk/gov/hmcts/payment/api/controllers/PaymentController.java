@@ -5,13 +5,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.commons.lang3.tuple.Pair;
-import org.ff4j.FF4j;
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.hmcts.payment.api.configuration.FeatureFlags;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
@@ -68,7 +69,7 @@ public class PaymentController {
     private final PaymentStatusRepository paymentStatusRepository;
     private final PaymentDtoMapper paymentDtoMapper;
     private final PaymentValidator validator;
-    private final FF4j ff4j;
+    private final FeatureFlags featureFlags;
     private final DateTimeFormatter formatter;
     private final PaymentFeeRepository paymentFeeRepository;
     private final LaunchDarklyFeatureToggler featureToggler;
@@ -82,7 +83,8 @@ public class PaymentController {
     @Autowired
     public PaymentController(PaymentService<PaymentFeeLink, String> paymentService,
                              PaymentStatusRepository paymentStatusRepository, CallbackService callbackService,
-                             PaymentDtoMapper paymentDtoMapper, PaymentValidator paymentValidator, FF4j ff4j,
+                             PaymentDtoMapper paymentDtoMapper, PaymentValidator paymentValidator,
+                             FeatureFlags featureFlags,
                              DateUtil dateUtil, PaymentFeeRepository paymentFeeRepository,
                              LaunchDarklyFeatureToggler featureToggler) {
         this.paymentService = paymentService;
@@ -90,7 +92,7 @@ public class PaymentController {
         this.paymentStatusRepository = paymentStatusRepository;
         this.paymentDtoMapper = paymentDtoMapper;
         this.validator = paymentValidator;
-        this.ff4j = ff4j;
+        this.featureFlags = featureFlags;
         this.formatter = dateUtil.getIsoDateTimeFormatter();
         this.paymentFeeRepository = paymentFeeRepository;
         this.featureToggler = featureToggler;
@@ -296,7 +298,7 @@ public class PaymentController {
     }
 
     private void validatePullRequest(@RequestParam(name = "start_date", required = false) Optional<String> startDateTimeString, @RequestParam(name = "end_date", required = false) Optional<String> endDateTimeString, @RequestParam(name = "payment_method", required = false) Optional<String> paymentMethodType, @RequestParam(name = "service_name", required = false) Optional<String> serviceType) {
-        if (!ff4j.check("payment-search")) {
+        if (!featureFlags.check("payment_search")) {
             throw new PaymentException("Payment search feature is not available for usage.");
         }
 
@@ -374,7 +376,7 @@ public class PaymentController {
             }
         }
         //End of Apportion logic
-        PaymentDto paymentDto = paymentDtoMapper.toReconciliationResponseDtoForLibereta(payment, paymentReference, fees, ff4j, isPaymentAfterApportionment);
+        PaymentDto paymentDto = paymentDtoMapper.toReconciliationResponseDtoForLibereta(payment, paymentReference, fees, featureFlags, isPaymentAfterApportionment);
         paymentDto = filterFeeCode(paymentDto);
         paymentDtos.add(paymentDto);
     }
@@ -414,7 +416,7 @@ public class PaymentController {
     }
 
     private List<Payment> getPayments(List<Payment> payments) {
-        boolean bulkScanCheck = ff4j.check("bulk-scan-check");
+        boolean bulkScanCheck = featureFlags.check("is_bulk_scan_payments_enabled");
         LOG.info("bulkScanCheck value: {}", bulkScanCheck);
         if (!bulkScanCheck) {
             LOG.info("BSP Feature OFF : No of Payments retrieved for Liberata Pull : {}", payments.size());

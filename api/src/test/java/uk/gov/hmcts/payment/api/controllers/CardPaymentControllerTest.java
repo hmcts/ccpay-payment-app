@@ -31,6 +31,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.componenttests.PaymentDbBackdoor;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
+import uk.gov.hmcts.payment.api.configuration.FeatureFlags;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
@@ -117,6 +118,8 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
     @MockBean
     @Qualifier("restTemplatePaymentGroup")
     private RestTemplate restTemplatePaymentGroup;
+    @MockBean
+    private FeatureFlags featureFlagsMock;
 
     protected CustomResultMatcher body() {
         return new CustomResultMatcher(objectMapper);
@@ -750,9 +753,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
 
     @Test
     public void cancelPayment_withFeatureFlagDisabled_shouldReturnValidMessage() throws Exception {
-        restActions
-            .post("/api/ff4j/store/features/payment-cancel/disable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("payment_cancel")).thenReturn(false);
 
         MvcResult result = createMockPayment();
 
@@ -768,9 +769,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
     @Test
     @Transactional
     public void cancelPaymentSuccess_shouldReturn204Test() throws Exception {
-        restActions
-            .post("/api/ff4j/store/features/payment-cancel/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("payment_cancel")).thenReturn(true);
         MvcResult result = createMockPayment();
 
         PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
@@ -788,9 +787,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
     @Test
     @Transactional
     public void cancelPaymentBadRequest_shouldReturn400Test() throws Exception {
-        restActions
-            .post("/api/ff4j/store/features/payment-cancel/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("payment_cancel")).thenReturn(true);
         MvcResult result = createMockPayment();
 
         PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
@@ -819,9 +816,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
     @Test
     @Transactional
     public void cancelPaymentIncorrectPaymentRef_shouldReturn404Test() throws Exception {
-        restActions
-            .post("/api/ff4j/store/features/payment-cancel/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("payment_cancel")).thenReturn(true);
         MvcResult result = createMockPayment();
 
         PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
@@ -840,9 +835,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
     @Test
     @Transactional
     public void cancelPaymentInternalServerError_shouldReturn500Test() throws Exception {
-        restActions
-            .post("/api/ff4j/store/features/payment-cancel/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("payment_cancel")).thenReturn(true);
         MvcResult result = createMockPayment();
 
         PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);

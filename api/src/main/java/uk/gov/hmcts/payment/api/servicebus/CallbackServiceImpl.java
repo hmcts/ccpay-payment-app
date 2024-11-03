@@ -2,12 +2,12 @@ package uk.gov.hmcts.payment.api.servicebus;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.servicebus.Message;
-import org.ff4j.FF4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.payment.api.configuration.FeatureFlags;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.dto.PaymentStatusDto;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
@@ -27,17 +27,17 @@ public class CallbackServiceImpl implements CallbackService {
 
     private final TopicClientProxy topicClient;
 
-    private final FF4j ff4j;
-
     private final PaymentGroupDtoMapper paymentGroupDtoMapper;
+
+    private final FeatureFlags featureFlags;
 
     @Autowired
     public CallbackServiceImpl(PaymentDtoMapper paymentDtoMapper, ObjectMapper objectMapper,
-                               TopicClientProxy topicClient, FF4j ff4j, @Lazy  PaymentGroupDtoMapper paymentGroupDtoMapper) {
+                               TopicClientProxy topicClient, FeatureFlags featureFlags, @Lazy  PaymentGroupDtoMapper paymentGroupDtoMapper) {
         this.paymentDtoMapper = paymentDtoMapper;
         this.objectMapper = objectMapper;
         this.topicClient = topicClient;
-        this.ff4j = ff4j;
+        this.featureFlags = featureFlags;
         this.paymentGroupDtoMapper = paymentGroupDtoMapper;
     }
 
@@ -45,7 +45,7 @@ public class CallbackServiceImpl implements CallbackService {
 
     public synchronized void callback(PaymentFeeLink paymentFeeLink, Payment payment) {
 
-        if (!ff4j.check(CallbackService.FEATURE)) {
+        if (!featureFlags.check("payment_service_callback")) {
             LOG.warn("Service callback feature is disabled");
             return;
         }

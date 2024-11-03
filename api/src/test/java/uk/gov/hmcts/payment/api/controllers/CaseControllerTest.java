@@ -27,6 +27,7 @@ import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.componenttests.PaymentDbBackdoor;
 import uk.gov.hmcts.payment.api.componenttests.PaymentFeeDbBackdoor;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
+import uk.gov.hmcts.payment.api.configuration.FeatureFlags;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
@@ -126,6 +127,9 @@ public class CaseControllerTest extends PaymentsDataUtil {
     @Autowired()
     @Qualifier("restTemplateRefundsGroup")
     private RestTemplate restTemplateRefundsGroup;
+
+    @MockBean
+    private FeatureFlags featureFlagsMock;
 
     RestActions restActions;
     MockMvc mvc;
@@ -327,11 +331,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
         populateCardPaymentToDb("1");
         populateCreditAccountPaymentToDb("1");
 
-        restActions
-            .withAuthorizedUser(UserResolverBackdoor.CITIZEN_ID)
-            .withUserId(UserResolverBackdoor.CITIZEN_ID)
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("payment_search")).thenReturn(true);
 
         MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
         RestActions restActions_Citizen = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
@@ -351,11 +351,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
         populateCardPaymentToDb("1");
         populateCreditAccountPaymentToDb("1");
 
-        restActions
-            .withAuthorizedUser(USER_ID)
-            .withUserId(USER_ID)
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("payment_search")).thenReturn(true);
 
         assertThat(restActions
             .withAuthorizedUser(USER_ID)

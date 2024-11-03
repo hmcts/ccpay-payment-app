@@ -32,7 +32,7 @@ public class LiberataService {
     @Qualifier("restTemplateLiberata")
     private RestTemplate restTemplate;
 
-    public String getAccessToken(String clientRegistrationId) {
+    public String getAccessToken() {
         // Create the request body
         String body = String.format("grant_type=password&username=%s&password=%s&client_id=%s&client_secret=%s",
             username, password, clientId, clientSecret);

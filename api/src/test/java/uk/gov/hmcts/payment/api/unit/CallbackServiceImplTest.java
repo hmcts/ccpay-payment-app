@@ -3,7 +3,6 @@ package uk.gov.hmcts.payment.api.unit;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.servicebus.IMessage;
 import com.microsoft.azure.servicebus.primitives.ServiceBusException;
-import org.ff4j.FF4j;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -13,6 +12,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.test.annotation.DirtiesContext;
 import uk.gov.hmcts.payment.api.componenttests.CardPaymentComponentTest;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
+import uk.gov.hmcts.payment.api.configuration.FeatureFlags;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
@@ -37,21 +37,21 @@ public class CallbackServiceImplTest {
         .build();
     @Mock
     private TopicClientProxy topicClient;
-    @Mock
-    private FF4j ff4j;
     private CallbackService callbackService;
     @Mock
     private PaymentDtoMapper paymentDtoMapper;
     private ObjectMapper objectMapper = new ObjectMapper();
+    @Mock
+    FeatureFlags featureFlags;
 
     @Mock
     private PaymentGroupDtoMapper paymentGroupDtoMapper;
 
     @Before
     public void init() {
-        callbackService = new CallbackServiceImpl(paymentDtoMapper, objectMapper, topicClient, ff4j,
+        callbackService = new CallbackServiceImpl(paymentDtoMapper, objectMapper, topicClient, featureFlags,
                 paymentGroupDtoMapper);
-        when(ff4j.check(CallbackService.FEATURE)).thenReturn(true);
+        when(featureFlags.check("payment_service_callback")).thenReturn(true);
     }
 
     @After
@@ -97,7 +97,7 @@ public class CallbackServiceImplTest {
     @Test
     public void testThatWhenFeatureIsOffInPaymentFeeLinkBusIsNotCalled() {
 
-        when(ff4j.check(CallbackService.FEATURE)).thenReturn(false);
+        when(featureFlags.check("payment_service_callback")).thenReturn(false);
 
         callbackService.callback(paymentFeeLink, paymentFeeLink.getPayments().get(0));
 

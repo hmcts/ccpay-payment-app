@@ -6,7 +6,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
-import org.ff4j.FF4j;
 import org.owasp.encoder.Encode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.hmcts.payment.api.configuration.FeatureFlags;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
@@ -76,7 +76,7 @@ public class CardPaymentController implements ApplicationContextAware {
     private final DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService;
     private final PaymentDtoMapper paymentDtoMapper;
     private final CardDetailsService<CardDetails, String> cardDetailsService;
-    private final FF4j ff4j;
+    private final FeatureFlags featureFlags;
     private final FeePayApportionService feePayApportionService;
     private final LaunchDarklyFeatureToggler featureToggler;
     private final ReferenceDataService referenceDataService;
@@ -94,12 +94,12 @@ public class CardPaymentController implements ApplicationContextAware {
                                  PaymentDtoMapper paymentDtoMapper,
                                  CardDetailsService<CardDetails, String> cardDetailsService,
                                  PciPalPaymentService pciPalPaymentService,
-                                 FF4j ff4j,
+                                 FeatureFlags featureFlags,
                                  FeePayApportionService feePayApportionService, LaunchDarklyFeatureToggler featureToggler, ReferenceDataService referenceDataService) {
         this.delegatingPaymentService = cardDelegatingPaymentService;
         this.paymentDtoMapper = paymentDtoMapper;
         this.cardDetailsService = cardDetailsService;
-        this.ff4j = ff4j;
+        this.featureFlags = featureFlags;
         this.feePayApportionService = feePayApportionService;
         this.featureToggler = featureToggler;
         this.referenceDataService = referenceDataService;
@@ -238,7 +238,7 @@ public class CardPaymentController implements ApplicationContextAware {
     })
     @PostMapping(value = "/card-payments/{reference}/cancel")
     public ResponseEntity cancelPayment(@PathVariable("reference") String paymentReference) {
-        if (!ff4j.check("payment-cancel")) {
+        if(!featureFlags.check("payment_cancel")) {
             throw new PaymentException("Payment cancel feature is not available for usage.");
         }
         delegatingPaymentService.cancel(paymentReference);

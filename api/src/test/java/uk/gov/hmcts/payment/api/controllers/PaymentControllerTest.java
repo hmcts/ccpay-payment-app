@@ -2,7 +2,6 @@ package uk.gov.hmcts.payment.api.controllers;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.ff4j.services.domain.FeatureApiBean;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormat;
@@ -23,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.componenttests.PaymentDbBackdoor;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
+import uk.gov.hmcts.payment.api.configuration.FeatureFlags;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
@@ -47,7 +47,6 @@ import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -97,6 +96,8 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     private ObjectMapper objectMapper;
     @MockBean
     private LaunchDarklyFeatureToggler featureToggler;
+    @MockBean
+    FeatureFlags featureFlagsMock;
 
     protected CustomResultMatcher body() {
         return new CustomResultMatcher(objectMapper);
@@ -311,10 +312,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         populateCardPaymentToDb("1");
         populateCreditAccountPaymentToDb("2");
 
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
-
+        when(featureFlagsMock.check("payment_search")).thenReturn(true);
 
         String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
         String endDate = LocalDate.now().toString(DATE_FORMAT);
@@ -335,13 +333,9 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         populateCardPaymentToDb("1");
         populateCreditAccountPaymentToDb("2");
 
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("payment_search")).thenReturn(true);
 
-        restActions
-            .post("/api/ff4j/store/features/bulk-scan-check/disable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("is_bulk_scan_payments_enabled")).thenReturn(false);
 
         String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
         String endDate = LocalDate.now().toString(DATE_FORMAT);
@@ -363,9 +357,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         populateCardPaymentToDb("1");
         populateCreditAccountPaymentToDb("1");
 
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("payment_search")).thenReturn(true);
 
         String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
         String endDate = LocalDate.now().toString(DATE_FORMAT);
@@ -400,13 +392,9 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
         String endDate = LocalDate.now().toString(DATE_FORMAT);
 
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("payment_search")).thenReturn(true);
 
-        restActions
-            .post("/api/ff4j/store/features/bulk-scan-check/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("is_bulk_scan_payments_enabled")).thenReturn(true);
 
         MvcResult result = restActions
             .get("/payments?start_date=" + startDate + "&end_date=" + endDate + "&payment_method=CARD")
@@ -445,9 +433,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
         String endDate = LocalDate.now().toString(DATE_FORMAT);
 
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("payment_search")).thenReturn(true);
 
         MvcResult result = restActions
             .get("/payments?start_date=" + startDate + "&end_date=" + endDate + "&payment_method=PBA")
@@ -469,13 +455,9 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
         String endDate = LocalDate.now().toString(DATE_FORMAT);
 
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("payment_search")).thenReturn(true);
 
-        restActions
-            .post("/api/ff4j/store/features/bulk-scan-check/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("is_bulk_scan_payments_enabled")).thenReturn(true);
 
         MvcResult result = restActions
             .get("/payments?start_date=" + startDate + "&end_date=" + endDate + "&payment_method=ALL")
@@ -496,9 +478,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
         String endDate = LocalDate.now().toString(DATE_FORMAT);
 
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("payment_search")).thenReturn(true);
 
         MvcResult result = restActions
             .get("/payments?start_date=" + startDate + "&end_date=" + endDate + "&service_name=DIVORCE")
@@ -519,9 +499,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
         String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
 
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("payment_search")).thenReturn(true);
 
         MvcResult result = restActions
             .get("/payments?start_date=" + startDate + "&payment_method=ALL")
@@ -542,9 +520,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
         String endDate = LocalDate.now().toString(DATE_FORMAT);
 
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("payment_search")).thenReturn(true);
 
         MvcResult result = restActions
             .get("/payments?end_date=" + endDate + "&payment_method=ALL")
@@ -562,13 +538,9 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         populateCardPaymentToDb("1");
         populateCreditAccountPaymentToDb("2");
 
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("payment_search")).thenReturn(true);
 
-        restActions
-            .post("/api/ff4j/store/features/bulk-scan-check/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("is_bulk_scan_payments_enabled")).thenReturn(true);
 
         String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
         String endDate = LocalDate.now().toString(DATE_FORMAT);
@@ -593,9 +565,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
         Payment creditPayment = populateCreditAccountPaymentToDb("2");
 
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("payment_search")).thenReturn(true);
 
         String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
         String endDate = LocalDate.now().toString(DATE_FORMAT);
@@ -611,7 +581,6 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
     }
 
-
     @Test
     @Transactional
     public void searchAllPayments_withInvalidMethodType_shouldReturn400() throws Exception {
@@ -620,9 +589,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         String startDate = LocalDate.now().toString(DATE_FORMAT);
         String endDate = startDate;
 
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("payment_search")).thenReturn(true);
 
         MvcResult result = restActions
             .get("/payments?start_date=" + startDate + "&end_date=" + endDate + "&payment_method=UNKNOWN")
@@ -643,9 +610,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         String startDate = LocalDate.now().toString(DATE_FORMAT);
         String endDate = LocalDate.now().plusDays(1).toString(DATE_FORMAT);
 
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("payment_search")).thenReturn(true);
 
         MvcResult result = restActions
             .get("/payments?start_date=" + startDate + "&end_date=" + endDate + "&payment_method=CARD")
@@ -664,9 +629,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     public void searchAllPayments_withInvalidFormatDates_shouldReturn400() throws Exception {
         populateCardPaymentToDb("1");
 
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("payment_search")).thenReturn(true);
 
         MvcResult result = restActions
             .get("/payments?start_date=12/05/2018&end_date=14-05-2018&payment_method=CARD")
@@ -681,58 +644,6 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
-    public void testFindFeatureFlag_withCorrectUID() throws Exception {
-        MvcResult result = restActions
-            .get("/api/ff4j/store/features/payment-search")
-            .andExpect(status().isOk())
-            .andReturn();
-
-        FeatureApiBean feature = objectMapper.readValue(result.getResponse().getContentAsByteArray(), FeatureApiBean.class);
-        assertThat(feature.getUid()).isEqualTo("payment-search");
-        assertThat(feature.getEnable()).isEqualTo(true);
-        assertThat(feature.getDescription()).isEqualTo("Payments search API");
-    }
-
-    @Test
-    public void testFindFeatureFlag_withIncorrectUID_shouldReturn404() throws Exception {
-        restActions
-            .get("/api/ff4j/store/features/my-feature")
-            .andExpect(status().isInternalServerError());
-    }
-
-    @Test
-    @Transactional
-    public void testEnableFeatureFlag_withCorrectUID() throws Exception {
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
-
-        MvcResult result = restActions
-            .get("/api/ff4j/store/features/payment-search")
-            .andExpect(status().isOk())
-            .andReturn();
-
-        FeatureApiBean feature = objectMapper.readValue(result.getResponse().getContentAsByteArray(), FeatureApiBean.class);
-        assertThat(feature.getUid()).isEqualTo("payment-search");
-        assertThat(feature.getEnable()).isEqualTo(true);
-        assertThat(feature.getDescription()).isEqualTo("Payments search API");
-    }
-
-    @Test
-    public void testRetrievePayments_withFeatureFlagDisabled_shouldReturnValidMessage() throws Exception {
-        restActions
-            .post("/api/ff4j/store/features/payment-search/disable")
-            .andExpect(status().isAccepted());
-
-        MvcResult result = restActions
-            .get("/payments?payment_method=ALL")
-            .andExpect(status().isBadRequest())
-            .andReturn();
-
-        assertThat(result.getResponse().getContentAsString()).isEqualTo("Payment search feature is not available for usage.");
-    }
-
-    @Test
     @Transactional
     public void searchCardPayments_withValidStartDateAndNoEndDate_shouldReturnOk() throws Exception {
 
@@ -742,13 +653,9 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
         String endDate = LocalDate.now().toString(DATE_FORMAT);
 
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("payment_search")).thenReturn(true);
 
-        restActions
-            .post("/api/ff4j/store/features/bulk-scan-check/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("is_bulk_scan_payments_enabled")).thenReturn(true);
 
         MvcResult result = restActions
             .get("/payments?start_date=" + startDate + "&end_date=" + endDate + "&payment_method=CARD")
@@ -787,9 +694,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
         String endDate = LocalDateTime.now().toString(DATE_TIME_FORMAT);
 
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("payment_search")).thenReturn(true);
 
         MvcResult result = restActions
             .get("/payments?end_date=" + endDate + "&start_date=" + startDate + "&payment_method=CARD")
@@ -827,9 +732,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         String startDate = LocalDate.now().toString("dd/MM/yyyy");
         String endDate = startDate;
 
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("payment_search")).thenReturn(true);
 
         MvcResult result = restActions
             .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
@@ -850,9 +753,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         String startDate = LocalDateTime.now().toString(DATE_FORMAT);
         String endDate = LocalDateTime.now().toString(DATE_FORMAT);
 
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("payment_search")).thenReturn(true);
 
         MvcResult result1 = restActions
             .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
@@ -874,9 +775,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         String startDate = LocalDate.now().toString(DATE_FORMAT);
         String endDate = LocalDate.now().toString(DATE_FORMAT);
 
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("payment_search")).thenReturn(true);
 
         MvcResult result1 = restActions
             .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
@@ -898,10 +797,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         String startDate = LocalDateTime.now().toString(DATE_FORMAT_DD_MM_YYYY);
         String endDate = LocalDateTime.now().minusSeconds(1).toString(DATE_FORMAT_DD_MM_YYYY);
 
-
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("payment_search")).thenReturn(true);
 
         MvcResult result1 = restActions
             .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
@@ -920,9 +816,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         String startDate = LocalDateTime.now().toString(DATE_TIME_FORMAT_T_HH_MM_SS);
         String endDate = LocalDateTime.now().toString(DATE_TIME_FORMAT_T_HH_MM_SS);
 
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("payment_search")).thenReturn(true);
 
         MvcResult result1 = restActions
             .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
@@ -949,13 +843,9 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         String startDate = LocalDateTime.now().toString(DATE_FORMAT);
         String endDate = LocalDateTime.now().toString(DATE_FORMAT);
 
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("payment_search")).thenReturn(true);
 
-        restActions
-            .post("/api/ff4j/store/features/bulk-scan-check/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("is_bulk_scan_payments_enabled")).thenReturn(true);
 
         MvcResult result1 = restActions
             .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
@@ -1002,13 +892,9 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         String startDate = LocalDateTime.now().toString(DATE_FORMAT);
         String endDate = LocalDateTime.now().toString(DATE_FORMAT);
 
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("payment_search")).thenReturn(true);
 
-        restActions
-            .post("/api/ff4j/store/features/bulk-scan-check/disable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("is_bulk_scan_payments_enabled")).thenReturn(false);
 
         MvcResult result1 = restActions
             .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
@@ -1070,9 +956,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         String startDate = LocalDateTime.now().toString(DATE_FORMAT);
         String endDate = LocalDateTime.now().toString(DATE_FORMAT);
 
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("payment_search")).thenReturn(true);
 
         MvcResult result1 = restActions
             .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
@@ -1104,13 +988,9 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         String startDate = LocalDateTime.now().toString(DATE_FORMAT);
         String endDate = LocalDateTime.now().toString(DATE_FORMAT);
 
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("payment_search")).thenReturn(true);
 
-        restActions
-            .post("/api/ff4j/store/features/bulk-scan-check/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("is_bulk_scan_payments_enabled")).thenReturn(true);
 
         MvcResult result1 = restActions
             .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
@@ -1131,13 +1011,9 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         String startDate = LocalDateTime.now().toString(DATE_FORMAT);
         String endDate = LocalDateTime.now().toString(DATE_FORMAT);
 
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("payment_search")).thenReturn(true);
 
-        restActions
-            .post("/api/ff4j/store/features/bulk-scan-check/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("is_bulk_scan_payments_enabled")).thenReturn(true);
 
         MvcResult result1 = restActions
             .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
@@ -1159,13 +1035,9 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         String endDate = LocalDateTime.now().toString(DATE_FORMAT);
         when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(false);
 
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("payment_search")).thenReturn(true);
 
-        restActions
-            .post("/api/ff4j/store/features/bulk-scan-check/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("is_bulk_scan_payments_enabled")).thenReturn(true);
 
         MvcResult result1 = restActions
             .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
@@ -1187,13 +1059,9 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         String endDate = LocalDateTime.now().toString(DATE_FORMAT);
         when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
 
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("payment_search")).thenReturn(true);
 
-        restActions
-            .post("/api/ff4j/store/features/bulk-scan-check/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("is_bulk_scan_payments_enabled")).thenReturn(true);
 
         MvcResult result1 = restActions
             .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
@@ -1215,13 +1083,9 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         String endDate = LocalDateTime.now().toString(DATE_FORMAT);
         when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(false);
 
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("payment_search")).thenReturn(true);
 
-        restActions
-            .post("/api/ff4j/store/features/bulk-scan-check/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("is_bulk_scan_payments_enabled")).thenReturn(true);
 
         MvcResult result1 = restActions
             .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
@@ -1243,13 +1107,9 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         String endDate = LocalDateTime.now().toString(DATE_FORMAT);
         when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
 
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("payment_search")).thenReturn(true);
 
-        restActions
-            .post("/api/ff4j/store/features/bulk-scan-check/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("is_bulk_scan_payments_enabled")).thenReturn(true);
 
         MvcResult result1 = restActions
             .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
@@ -1271,13 +1131,11 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         String startDate = LocalDateTime.now().toString(DATE_FORMAT);
         String endDate = LocalDateTime.now().toString(DATE_FORMAT);
         when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
 
-        restActions
-            .post("/api/ff4j/store/features/bulk-scan-check/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("payment_search")).thenReturn(true);
+
+        when(featureFlagsMock.check("is_bulk_scan_payments_enabled")).thenReturn(true);
+
         MvcResult result1 = restActions
             .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
@@ -1298,13 +1156,11 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         String startDate = LocalDateTime.now().toString(DATE_FORMAT);
         String endDate = LocalDateTime.now().toString(DATE_FORMAT);
         when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
 
-        restActions
-            .post("/api/ff4j/store/features/bulk-scan-check/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("payment_search")).thenReturn(true);
+
+        when(featureFlagsMock.check("is_bulk_scan_payments_enabled")).thenReturn(true);
+
         MvcResult result1 = restActions
             .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
@@ -1325,13 +1181,11 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         String startDate = LocalDateTime.now().toString(DATE_FORMAT);
         String endDate = LocalDateTime.now().toString(DATE_FORMAT);
         when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
 
-        restActions
-            .post("/api/ff4j/store/features/bulk-scan-check/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("payment_search")).thenReturn(true);
+
+        when(featureFlagsMock.check("is_bulk_scan_payments_enabled")).thenReturn(true);
+
         MvcResult result1 = restActions
             .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
@@ -1366,13 +1220,10 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         String endDate = LocalDateTime.now().toString(DATE_FORMAT);
         when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(false);
 
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("payment_search")).thenReturn(true);
 
-        restActions
-            .post("/api/ff4j/store/features/bulk-scan-check/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("is_bulk_scan_payments_enabled")).thenReturn(true);
+
         MvcResult result1 = restActions
             .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
@@ -1404,13 +1255,11 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         String endDate = LocalDateTime.now().toString(DATE_FORMAT);
         when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
         payment.setDateCreated(parseDate("01.05.2020"));
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
 
-        restActions
-            .post("/api/ff4j/store/features/bulk-scan-check/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("payment_search")).thenReturn(true);
+
+        when(featureFlagsMock.check("is_bulk_scan_payments_enabled")).thenReturn(true);
+
         MvcResult result1 = restActions
             .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
@@ -1432,13 +1281,11 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         String endDate = LocalDateTime.now().toString(DATE_FORMAT);
         when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
         payment.setDateCreated(parseDate("01.06.2020"));
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
 
-        restActions
-            .post("/api/ff4j/store/features/bulk-scan-check/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("payment_search")).thenReturn(true);
+
+        when(featureFlagsMock.check("is_bulk_scan_payments_enabled")).thenReturn(true);
+
         MvcResult result1 = restActions
             .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
@@ -1460,13 +1307,11 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         String endDate = LocalDateTime.now().toString(DATE_FORMAT);
         when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
         payment.setDateCreated(parseDate("05.06.2020"));
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
 
-        restActions
-            .post("/api/ff4j/store/features/bulk-scan-check/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("payment_search")).thenReturn(true);
+
+        when(featureFlagsMock.check("is_bulk_scan_payments_enabled")).thenReturn(true);
+
         MvcResult result1 = restActions
             .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
@@ -1487,13 +1332,9 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         String startDate = LocalDateTime.now().toString(DATE_FORMAT);
         String endDate = LocalDateTime.now().toString(DATE_FORMAT);
 
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("payment_search")).thenReturn(true);
 
-        restActions
-            .post("/api/ff4j/store/features/bulk-scan-check/disable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("is_bulk_scan_payments_enabled")).thenReturn(false);
 
         MvcResult result1 = restActions
             .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
@@ -1516,9 +1357,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         String startDate = LocalDateTime.now().toString(DATE_FORMAT);
         String endDate = LocalDateTime.now().toString(DATE_FORMAT);
 
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("payment_search")).thenReturn(true);
 
         MvcResult result1 = restActions
             .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
@@ -1602,13 +1441,9 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         String startDate = LocalDateTime.now().toString(DATE_FORMAT);
         String endDate = LocalDateTime.now().toString(DATE_TIME_FORMAT);
 
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("payment_search")).thenReturn(true);
 
-        restActions
-            .post("/api/ff4j/store/features/bulk-scan-check/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("is_bulk_scan_payments_enabled")).thenReturn(true);
 
         MvcResult result1 = restActions
             .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
@@ -1653,9 +1488,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
         String endDate = LocalDate.now().toString(DATE_FORMAT);
 
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("payment_search")).thenReturn(true);
 
         MvcResult result = restActions
             .get("/reconciliation-payments?start_date=" + startDate + "&end_date=" + endDate)

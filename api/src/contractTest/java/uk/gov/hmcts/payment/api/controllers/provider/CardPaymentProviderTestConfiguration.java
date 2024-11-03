@@ -1,6 +1,5 @@
 package uk.gov.hmcts.payment.api.controllers.provider;
 
-import org.ff4j.FF4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -8,6 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.payment.api.audit.AuditRepository;
+import uk.gov.hmcts.payment.api.configuration.FeatureFlagsConfiguration;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.configuration.security.AuthenticatedServiceIdSupplier;
 import uk.gov.hmcts.payment.api.dto.PciPalPayment;
@@ -161,7 +161,7 @@ public class CardPaymentProviderTestConfiguration {
     @MockBean
     public PciPalPaymentService pciPalPaymentService;
     @MockBean
-    public FF4j ff4j;
+    public FeatureFlagsConfiguration.FeatureFlags featureFlags;
     @MockBean
     FeePayApportionService feePayApportionService;
 

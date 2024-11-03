@@ -1,12 +1,12 @@
 package uk.gov.hmcts.payment.api.mapper;
 
-import org.ff4j.FF4j;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import uk.gov.hmcts.payment.api.configuration.FeatureFlags;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.PaymentAllocationDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
@@ -22,7 +22,6 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -35,7 +34,7 @@ public class PaymentDtoMapperTest {
     LaunchDarklyFeatureToggler featureToggler;
 
     @Mock
-    FF4j ff4j;
+    FeatureFlags featureFlags;
 
     @InjectMocks
     PaymentDtoMapper paymentDtoMapper = new PaymentDtoMapper();
@@ -275,8 +274,9 @@ public class PaymentDtoMapperTest {
 
     @Test
     public void testToReconciliationResponseDtoForLibereta(){
-        when(ff4j.check(any(String.class))).thenReturn(true);
-        PaymentDto paymentDto = paymentDtoMapper.toReconciliationResponseDtoForLibereta(payment1,"group-reference",paymentFees,ff4j,true);
+        when(featureFlags.check("is_bulk_scan_payments_enabled")).thenReturn(true);
+
+        PaymentDto paymentDto = paymentDtoMapper.toReconciliationResponseDtoForLibereta(payment1,"group-reference",paymentFees,featureFlags,true);
         assertEquals("group-reference",paymentDto.getPaymentGroupReference());
     }
 

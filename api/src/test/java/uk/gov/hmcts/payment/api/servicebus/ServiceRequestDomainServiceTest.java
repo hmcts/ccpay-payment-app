@@ -3,7 +3,6 @@ package uk.gov.hmcts.payment.api.servicebus;
 import com.microsoft.azure.servicebus.IMessage;
 import com.microsoft.azure.servicebus.IMessageReceiver;
 import com.microsoft.azure.servicebus.primitives.ServiceBusException;
-import org.ff4j.FF4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -40,9 +39,6 @@ public class ServiceRequestDomainServiceTest  {
 
     @MockBean
     private TopicClientProxy topicClientProxy;
-
-    @Autowired
-    private FF4j ff4j;
 
     @Test
     public void deadLetterTest() throws ServiceBusException, InterruptedException, IOException {

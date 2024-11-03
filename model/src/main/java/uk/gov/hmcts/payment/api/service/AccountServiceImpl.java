@@ -38,7 +38,7 @@ public class AccountServiceImpl implements AccountService<AccountDto, String> {
 
     @Override
     @CircuitBreaker(name = "defaultCircuitBreaker")
-    @TimeLimiter(name = "retrievePbaAccountTimeLimiter")
+    // @TimeLimiter(name = "retrievePbaAccountTimeLimiter") -- now done in restTemplateLiberata
     public AccountDto retrieve(String pbaCode) {
         LOG.info("AccountDto retrieve(String pbaCode) called with pbaCode: {}", pbaCode);
         if (pbaCode.equalsIgnoreCase("PBAFUNC12345")) {
@@ -51,14 +51,10 @@ public class AccountServiceImpl implements AccountService<AccountDto, String> {
                 .build();
         }
 
-        String accessToken = liberataService.getAccessToken("liberata-client");
+        String accessToken = liberataService.getAccessToken();
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(accessToken);
-
-        LOG.error("Calling Liberata API to retrieve account details for PBA code: {}", pbaCode);
-        LOG.error("getAccessToken: {}", accessToken);
-
         HttpEntity<String> entity = new HttpEntity<>(headers);
-        return restTemplate.getForObject(baseUrl + "/" + pbaCode, AccountDto.class);
+        return restTemplate.getForObject(baseUrl + "/" + pbaCode, AccountDto.class, entity);
     }
 }

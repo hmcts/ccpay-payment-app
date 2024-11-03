@@ -15,6 +15,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -23,6 +24,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ResourceUtils;
 import org.springframework.web.context.WebApplicationContext;
+import uk.gov.hmcts.payment.api.configuration.FeatureFlags;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
@@ -76,6 +78,9 @@ public class PaymentRecordControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
     private CheckDigit cd;
+
+    @MockBean
+    private FeatureFlags featureFlagsMock;
 
     protected CustomResultMatcher body() {
         return new CustomResultMatcher(objectMapper);
@@ -187,6 +192,7 @@ public class PaymentRecordControllerTest {
     @Transactional
     public void testGetBarPaymentsForBetweenDates() throws Exception {
         PaymentRecordRequest cashPaymentRequest = getCashPaymentRequest();
+
         restActions
             .post("/payment-records", cashPaymentRequest)
             .andExpect(status().isCreated());
@@ -198,7 +204,6 @@ public class PaymentRecordControllerTest {
 
         String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
         String endDate = LocalDate.now().toString(DATE_FORMAT);
-
 
         MvcResult result = restActions
             .get("/payments?payment_method=cheque&service_name=DIGITAL_BAR" + "&start_date=" + startDate + "&end_date=" + endDate)
@@ -524,9 +529,7 @@ public class PaymentRecordControllerTest {
         assertThat(response.getReference().matches(PAYMENT_REFERENCE_REFEX)).isEqualTo(true);
         assertThat(response.getStatus()).isEqualTo("Success");
 
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("payment_search")).thenReturn(true);
 
         String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
         String endDate = LocalDate.now().toString(DATE_FORMAT);
@@ -558,10 +561,7 @@ public class PaymentRecordControllerTest {
         assertThat(response).isNotNull();
         assertThat(response.getPaymentGroupReference()).isNotNull();
 
-
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
+        when(featureFlagsMock.check("payment_search")).thenReturn(true);
 
         String endDate = DateTime.now().toString("yyyy-MM-dd HH:mm:ss");
         MvcResult result = restActions

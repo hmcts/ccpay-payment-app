@@ -8,13 +8,14 @@ import au.com.dius.pact.provider.junitsupport.State;
 import au.com.dius.pact.provider.junitsupport.loader.PactBroker;
 import au.com.dius.pact.provider.junitsupport.loader.VersionSelector;
 import au.com.dius.pact.provider.spring.junit5.MockMvcTestTarget;
-import org.ff4j.FF4j;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import uk.gov.hmcts.payment.api.configuration.FeatureFlagsConfiguration;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.controllers.CreditAccountPaymentController;
 import uk.gov.hmcts.payment.api.controllers.PaymentReference;
@@ -73,7 +74,7 @@ class CreditAccountPaymentProviderTest {
     @Autowired
     PaymentReference paymentReferenceMock;
     @Autowired
-    FF4j ff4j;
+    FeatureFlagsConfiguration.FeatureFlags featureFlags;
     @Autowired
     FeePayApportionService feePayApportionService;
     @Autowired

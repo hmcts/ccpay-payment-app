@@ -9,7 +9,6 @@ import au.com.dius.pact.provider.junitsupport.loader.PactBroker;
 import au.com.dius.pact.provider.junitsupport.loader.VersionSelector;
 import au.com.dius.pact.provider.spring.junit5.MockMvcTestTarget;
 import com.google.common.collect.ImmutableMap;
-import org.ff4j.FF4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,6 +19,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.fees2.register.data.service.FeeService;
+import uk.gov.hmcts.payment.api.configuration.FeatureFlagsConfiguration;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.controllers.CardPaymentController;
 import uk.gov.hmcts.payment.api.controllers.PaymentController;
@@ -85,7 +85,7 @@ class CardPaymentProviderTest {
     @Autowired
     PciPalPaymentService pciPalPaymentService;
     @Autowired
-    FF4j ff4j;
+    FeatureFlagsConfiguration.FeatureFlags featureFlags;
     @Autowired
     FeePayApportionService feePayApportionService;
 
@@ -152,13 +152,13 @@ class CardPaymentProviderTest {
         System.getProperties().setProperty("pact.verifier.publishResults", "true");
         MockMvcTestTarget testTarget = new MockMvcTestTarget();
         CardPaymentController cardPaymentController =
-            new CardPaymentController(cardDelegatingPaymentService, paymentDtoMapper, cardDetailsService, pciPalPaymentService, ff4j,
+            new CardPaymentController(cardDelegatingPaymentService, paymentDtoMapper, cardDetailsService, pciPalPaymentService, featureFlags,
                 feePayApportionService, featureToggler, referenceDataService);
         cardPaymentController.setApplicationContext(applicationContext);
         testTarget.setControllers(
             cardPaymentController,
             new PaymentController(paymentService, paymentStatusRepositoryMock, callbackServiceMock,
-                paymentDtoMapper, paymentValidator, ff4j,
+                paymentDtoMapper, paymentValidator, featureFlags,
                 dateUtil, paymentFeeRepositoryMock, featureToggler));
         if (context != null) {
             context.setTarget(testTarget);
@@ -177,7 +177,7 @@ class CardPaymentProviderTest {
 
     @State({"Payments exist for a case"})
     public void toPaymentsForACasesWithSuccess() {
-        when(ff4j.check("payment-search")).thenReturn(Boolean.TRUE);
+        when(featureFlags.paymentSearch).thenReturn(Boolean.TRUE);
         PaymentFeeLink paymentLink = populateCardPaymentToDb("1", "e2kkddts5215h9qqoeuth5c0v", "ccd_gw").getPaymentLink();
         when(paymentFeeLinkRepositoryMock.findAll(any(Specification.class))).thenReturn(Arrays.asList(paymentLink));
 

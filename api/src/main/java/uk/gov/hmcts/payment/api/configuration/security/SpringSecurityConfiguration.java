@@ -58,8 +58,10 @@ public class SpringSecurityConfiguration {
                 "/health/liveness",
                 "/health/readiness",
                 "/info",
+                "/v3/**",
                 "/swagger-ui.html",
                 "/swagger-ui/**",
+                "/swagger-resources/**",
                 "/v2/**",
                 "/")
             .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
@@ -114,6 +116,7 @@ public class SpringSecurityConfiguration {
                 .requestMatchers(HttpMethod.GET, "/case-payment-orders**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/payment-failures/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/accounts/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/payment-failures/**").hasAuthority(PAYMENTS_ROLE)
                 .requestMatchers(HttpMethod.PATCH, "/payment-failures/**").permitAll()
                 .anyRequest().authenticated()
