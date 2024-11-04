@@ -49,29 +49,7 @@ public class SpringSecurityConfiguration {
     }
 
     @Bean
-    @Order(1)
-    protected SecurityFilterChain publicFilterChain(HttpSecurity http) throws Exception {
-        http
-            .securityMatcher(
-                "/favicon.ico",
-                "/health",
-                "/health/liveness",
-                "/health/readiness",
-                "/info",
-                "/swagger-ui.html",
-                "/swagger-ui/**",
-                "/v2/**",
-                "/")
-            .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
-            .anonymous(Customizer.withDefaults())
-            .csrf(AbstractHttpConfigurer::disable)
-            .formLogin(AbstractHttpConfigurer::disable)
-            .logout(AbstractHttpConfigurer::disable);
-        return http.build();
-    }
-
-    @Bean
-    @Order(2)
+    @Order(3)
     protected SecurityFilterChain configureExternal(HttpSecurity http) throws Exception {
         http
             .addFilter(authCheckerServiceOnlyFilter)
@@ -89,10 +67,9 @@ public class SpringSecurityConfiguration {
     }
 
     @Bean
-    @Order(3)
+    @Order(2)
     protected SecurityFilterChain configureInternal(HttpSecurity http) throws Exception {
-        http.exceptionHandling(exceptionHandling -> exceptionHandling.accessDeniedHandler(accessDeniedHandler()));
-        http
+        http.exceptionHandling(exceptionHandling -> exceptionHandling.accessDeniedHandler(accessDeniedHandler()))
             .addFilter(authCheckerUserOnlyFilter)
             .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(STATELESS))
             .csrf(AbstractHttpConfigurer::disable) //NOSONAR
@@ -113,11 +90,36 @@ public class SpringSecurityConfiguration {
                 .requestMatchers(HttpMethod.GET, "/reference-data/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/case-payment-orders**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/payment-failures/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/payment-failures/**").hasAuthority(PAYMENTS_ROLE)
                 .requestMatchers(HttpMethod.PATCH, "/payment-failures/**").permitAll()
                 .anyRequest().authenticated()
             );
+        return http.build();
+    }
+
+    @Bean
+    @Order(1)
+    protected SecurityFilterChain publicFilterChain(HttpSecurity http) throws Exception {
+        http
+            .securityMatcher(
+                "/favicon.ico",
+                "/health",
+                "/health/liveness",
+                "/health/readiness",
+                "/info",
+                "/v3/**",
+                "/swagger-ui.html",
+                "/swagger-ui/**",
+                "/swagger-resources/**",
+                "/v2/**",
+                "/")
+            .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
+            .anonymous(Customizer.withDefaults())
+            .csrf(AbstractHttpConfigurer::disable)
+            .formLogin(AbstractHttpConfigurer::disable)
+            .logout(AbstractHttpConfigurer::disable);
         return http.build();
     }
 

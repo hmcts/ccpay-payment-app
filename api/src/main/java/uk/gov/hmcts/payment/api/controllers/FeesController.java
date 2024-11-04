@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +13,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.service.FeesService;
+
+import java.util.Optional;
 
 @RestController
 @Tag(name = "Fees", description = "Fees REST API")
@@ -32,7 +36,11 @@ public class FeesController {
         @ApiResponse(responseCode = "400", description = "Fees not found")
     })
     @DeleteMapping(value = "/fees/{feeId}")
-    public ResponseEntity<Boolean> deleteFee(@PathVariable("feeId") String feeId) throws EmptyResultDataAccessException {
+    public ResponseEntity<Boolean> deleteFee(@NotNull @PathVariable("feeId") String feeId) throws EmptyResultDataAccessException {
+        Optional<PaymentFee> paymentFee = feesService.getPaymentFee(Integer.parseInt(feeId));
+        if (paymentFee.isEmpty()) {
+            throw new EmptyResultDataAccessException("Fee not found", 1);
+        }
         feesService.deleteFee(Integer.parseInt(feeId));
         return new ResponseEntity<>(true, HttpStatus.NO_CONTENT);
     }

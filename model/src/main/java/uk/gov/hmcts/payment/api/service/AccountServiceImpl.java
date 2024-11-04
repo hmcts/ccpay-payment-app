@@ -1,24 +1,23 @@
 package uk.gov.hmcts.payment.api.service;
 
+import io.github.resilience4j.timelimiter.annotation.TimeLimiter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
-import io.github.resilience4j.timelimiter.annotation.TimeLimiter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.util.AccountStatus;
 
 import java.math.BigDecimal;
-import java.util.Date;
+import java.util.concurrent.TimeoutException;
 
 @Service
 @Profile("!liberataMock")
@@ -38,8 +37,10 @@ public class AccountServiceImpl implements AccountService<AccountDto, String> {
 
     @Override
     @CircuitBreaker(name = "defaultCircuitBreaker")
-    @TimeLimiter(name = "retrievePbaAccountTimeLimiter")
-    public AccountDto retrieve(String pbaCode) {
+    // @TimeLimiter(name = "retrievePbaAccountTimeLimiter")
+    // - requires CompletableFuture implementation.
+    // - timeout implementation done in restTemplateLiberata bean.
+    public AccountDto retrieve(String pbaCode) throws ResourceAccessException {
         LOG.info("AccountDto retrieve(String pbaCode) called with pbaCode: {}", pbaCode);
         if (pbaCode.equalsIgnoreCase("PBAFUNC12345")) {
             return AccountDto.accountDtoWith()
@@ -51,14 +52,10 @@ public class AccountServiceImpl implements AccountService<AccountDto, String> {
                 .build();
         }
 
-        String accessToken = liberataService.getAccessToken("liberata-client");
+        String accessToken = liberataService.getAccessToken();
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(accessToken);
-
-        LOG.error("Calling Liberata API to retrieve account details for PBA code: {}", pbaCode);
-        LOG.error("getAccessToken: {}", accessToken);
-
         HttpEntity<String> entity = new HttpEntity<>(headers);
-        return restTemplate.getForObject(baseUrl + "/" + pbaCode, AccountDto.class);
+        return restTemplate.getForObject(baseUrl + "/" + pbaCode, AccountDto.class, entity);
     }
 }

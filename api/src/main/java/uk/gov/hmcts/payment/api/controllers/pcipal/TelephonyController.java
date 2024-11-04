@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.payment.api.controllers.PaymentExternalAPI;
 import uk.gov.hmcts.payment.api.dto.TelephonyCallbackDto;
@@ -57,4 +58,8 @@ public class TelephonyController {
         return ex.getMessage();
     }
 
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<String> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        return new ResponseEntity<>("Validation error", HttpStatus.BAD_REQUEST);
+    }
 }

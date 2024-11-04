@@ -25,6 +25,12 @@ public class RestTemplateConfiguration {
     @Value("${iac.read.timeout}")
     private String iacReadTimeout;
 
+    @Value("${liberata.connect.timeout:10000}")
+    private String liberataConnectTimeout;
+
+    @Value("${liberata.read.timeout:10000}")
+    private String liberataReadTimeout;
+
     @Bean(name = {"serviceTokenParserHttpClient", "userTokenParserHttpClient"})
     public CloseableHttpClient paymentsHttpClient() {
         return HttpClients.custom()
@@ -39,7 +45,26 @@ public class RestTemplateConfiguration {
 
     @Bean (value = "restTemplateLiberata")
     public RestTemplate restTemplateLiberata() {
-        return new RestTemplate(new HttpComponentsClientHttpRequestFactory());
+        int connectTimeout = Integer.parseInt(liberataConnectTimeout);
+        int readTimeout = Integer.parseInt(liberataReadTimeout);
+
+        PoolingHttpClientConnectionManager connectionManager =
+            PoolingHttpClientConnectionManagerBuilder.create()
+                .setDefaultSocketConfig(SocketConfig.custom()
+                    .setSoTimeout(Timeout.ofMilliseconds(readTimeout))
+                    .build())
+                .setDefaultConnectionConfig(ConnectionConfig.custom()
+                    .setSocketTimeout(Timeout.ofMilliseconds(readTimeout))
+                    .setConnectTimeout(Timeout.ofMilliseconds(connectTimeout))
+                    .build())
+                .build();
+
+        CloseableHttpClient httpClient = HttpClients.custom()
+            .setConnectionManager(connectionManager)
+            .build();
+
+        HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
+        return new RestTemplate(factory);
     }
 
     @Bean (value = "restTemplateRefundsGroup")
