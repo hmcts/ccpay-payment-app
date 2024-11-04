@@ -30,10 +30,10 @@ public interface PaymentFeeLinkRepository extends CrudRepository<PaymentFeeLink,
     @Query(value = "SELECT concat(date_part('year', now()),'-',nextval('payment_reference_seq'))", nativeQuery = true)
     String getNextPaymentReference();
 
-    @Query(value = "select ccd_case_number, count(ccd_case_number)\n" +
-        "from payment_fee_link pfl\n" +
-        "where date_trunc('day', date_created) = :date\n" +
-        "group by ccd_case_number\n" +
+    @Query(value = "select ccd_case_number, count(ccd_case_number) " +
+        "from payment_fee_link pfl " +
+        "where date_trunc('day', date_created) = :date " +
+        "group by ccd_case_number " +
         "having count (ccd_case_number) > 1;", nativeQuery = true)
     Optional<List<DuplicateServiceRequestDto>> getDuplicates(final @Param("date") LocalDate date);
 }
