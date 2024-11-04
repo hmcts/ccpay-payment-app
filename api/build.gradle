@@ -100,7 +100,7 @@ dependencies {
     implementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.5.7'
     implementation group: 'ch.qos.logback', name: 'logback-core', version: '1.5.7'
     implementation group: 'xerces', name: 'xercesImpl', version: '2.12.2'
-    implementation group: 'org.apache.httpcomponents.client5', name: 'httpclient5', version: '5.2'
+    implementation group: 'org.apache.httpcomponents.client5', name: 'httpclient5', version: '5.4.1'
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.17.0'
     implementation group: 'org.springdoc', name: 'springdoc-openapi-starter-webmvc-ui', version: '2.6.0'
     implementation (group: 'org.liquibase', name: 'liquibase-core', version: '4.29.2') {
