@@ -104,16 +104,20 @@ public class SpringSecurityConfiguration {
     protected SecurityFilterChain publicFilterChain(HttpSecurity http) throws Exception {
         http
             .securityMatcher(
-                "/favicon.ico",
+                "/swagger-ui.html",
+                "/swagger-resources/**",
+                "/swagger-ui/**",
+                "/v3/**",
+                "/refdata/methods",
+                "/refdata/channels",
+                "/refdata/providers",
+                "/refdata/status",
                 "/health",
                 "/health/liveness",
                 "/health/readiness",
                 "/info",
-                "/v3/**",
-                "/swagger-ui.html",
-                "/swagger-ui/**",
-                "/swagger-resources/**",
-                "/v2/**",
+                "/favicon.ico",
+                "/mock-api/**",
                 "/")
             .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
             .anonymous(Customizer.withDefaults())
