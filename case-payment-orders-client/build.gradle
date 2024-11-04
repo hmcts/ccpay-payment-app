@@ -17,7 +17,7 @@ dependencies {
     implementation (group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: versions.reformS2sClient) {
         exclude group: 'org.apache.httpcomponents', module: 'httpclient'
     }
-    implementation group: 'org.apache.httpcomponents.client5', name: 'httpclient5', version: '5.4.1'
+    implementation group: 'org.apache.httpcomponents.client5', name: 'httpclient5', version: '5.2'
     implementation "com.fasterxml.jackson.core:jackson-databind:2.17.0"
 
     testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', {
