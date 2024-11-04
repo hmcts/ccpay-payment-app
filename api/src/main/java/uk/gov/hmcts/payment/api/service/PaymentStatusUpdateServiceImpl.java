@@ -192,7 +192,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
     private void validatePaymentFailureAmount(PaymentStatusChargebackDto paymentStatusChargebackDto, Payment payment){
 
         if (paymentStatusChargebackDto.getAmount().compareTo(payment.getAmount()) > 0) {
-            throw new InvalidPaymentFailureRequestException(FAILURE_AMOUNT_VALIDATION);
+            outputPaymentStatusChargebackDto(paymentStatusChargebackDto);
         }
 
         Optional < List < PaymentFailures >> paymentFailuresList = paymentFailureRepository.findByPaymentReference(paymentStatusChargebackDto.getPaymentReference());
@@ -491,6 +491,22 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
             .toList();
 
         return telephonyPaymentsReportDto;
+    }
+
+    private void outputPaymentStatusChargebackDto(PaymentStatusChargebackDto paymentStatusChargebackDto){
+        LOG.info("Invalid Payment Failure Request: Payment Reference: {}, Failure Reference: {}, " +
+                "CCD Case Number: {}, Reason: {}, Amount: {}, Additional Reference: {}, " +
+                "Event DateTime: {}, Has Amount Debited: {}",
+            paymentStatusChargebackDto.getPaymentReference() != null ? paymentStatusChargebackDto.getPaymentReference() : "N/A",
+            paymentStatusChargebackDto.getFailureReference() != null ? paymentStatusChargebackDto.getFailureReference() : "N/A",
+            paymentStatusChargebackDto.getCcdCaseNumber() != null ? paymentStatusChargebackDto.getCcdCaseNumber() : "N/A",
+            paymentStatusChargebackDto.getReason() != null ? paymentStatusChargebackDto.getReason() : "N/A",
+            paymentStatusChargebackDto.getAmount() != null ? paymentStatusChargebackDto.getAmount() : BigDecimal.ZERO,
+            paymentStatusChargebackDto.getAdditionalReference() != null ? paymentStatusChargebackDto.getAdditionalReference() : "N/A",
+            paymentStatusChargebackDto.getEventDateTime() != null ? paymentStatusChargebackDto.getEventDateTime() : "N/A",
+            paymentStatusChargebackDto.getHasAmountDebited() != null ? paymentStatusChargebackDto.getHasAmountDebited() : "N/A");
+
+        throw new InvalidPaymentFailureRequestException(FAILURE_AMOUNT_VALIDATION);
     }
 
 }
