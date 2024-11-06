@@ -1,5 +1,7 @@
 package uk.gov.hmcts.payment.api.controllers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.*;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -81,7 +83,12 @@ public class PaymentStatusController {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
         }
 
-        LOG.info("Received payment status request for chargeback : {}", paymentStatusChargebackDto);
+        try {
+            String jsonString = new ObjectMapper().writeValueAsString(paymentStatusChargebackDto);
+            LOG.info("Received payment status request for chargeback : {}", jsonString);
+        } catch (JsonProcessingException e) {
+            LOG.error("Error converting paymentStatusChargebackDto to JSON", e);
+        }
 
         PaymentFailures insertPaymentFailures = paymentStatusUpdateService.insertChargebackPaymentFailure(paymentStatusChargebackDto);
 
