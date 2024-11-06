@@ -66,7 +66,7 @@ public class AccountServiceTest {
     public void retrieveMockAccountReturnsAccountDto() throws Exception {
         String pbaCode = "PBAFUNC12345";
         AccountDto expectedDto = new AccountDto(pbaCode, "CAERPHILLY COUNTY BOROUGH COUNCIL", new BigDecimal(28879),
-            new BigDecimal(30000), AccountStatus.ACTIVE,null);
+            new BigDecimal(30000), AccountStatus.ACTIVE, null);
         assertEquals(expectedDto, accountServiceImpl.retrieve(pbaCode));
     }
 

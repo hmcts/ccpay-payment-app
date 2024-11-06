@@ -21,7 +21,7 @@ public class PayFeeLinkRepositoryStub implements PaymentFeeLinkRepository {
         entity.getPayments().forEach(p -> p.setId(10001));
         entity.getPayments().forEach(payment -> {
             payment.setDateCreated(createDate);
-            payment.getStatusHistories().forEach( history -> {
+            payment.getStatusHistories().forEach(history -> {
                 history.setDateCreated(createDate);
                 history.setDateUpdated(createDate);
             });

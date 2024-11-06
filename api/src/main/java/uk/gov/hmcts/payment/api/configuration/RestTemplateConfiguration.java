@@ -114,9 +114,4 @@ public class RestTemplateConfiguration {
     public RestTemplate restTemplateGetRefund() {
         return  new RestTemplate(new HttpComponentsClientHttpRequestFactory());
     }
-
-    @Bean ("restTemplateAccount")
-    public RestTemplate restTemplateAccount() {
-        return new RestTemplate(new HttpComponentsClientHttpRequestFactory());
-    }
 }
