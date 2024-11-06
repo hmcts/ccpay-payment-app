@@ -17,6 +17,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.ResourceAccessException;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestDomainDataEntityMapper;
 import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestDtoDomainMapper;
@@ -418,7 +419,7 @@ public class ServiceRequestDomainServiceTest {
         when(paymentDtoMapper.toPaymentStatusDto(any(),any(),any(), any())).thenReturn(paymentStatusDto);
 
         when(accountService.retrieve(serviceRequestPaymentDto.getAccountNumber())).thenThrow(
-            new TimeoutException("Error thrown"));
+            new ResourceAccessException("Error thrown"));
 
         AccountDto accountDto = AccountDto.accountDtoWith()
             .accountNumber("1234")
@@ -431,7 +432,7 @@ public class ServiceRequestDomainServiceTest {
             ServiceRequestPaymentBo bo =
                 serviceRequestDomainService.addPayments(getPaymentFeeLink(), "123", serviceRequestPaymentDto);
         }catch(Exception ex){
-            Assertions.assertEquals(ex.getMessage(),"Unable to retrieve account information due to timeout");
+            Assertions.assertEquals("Unable to retrieve account information, please try again later", ex.getMessage());
         }
 
     }

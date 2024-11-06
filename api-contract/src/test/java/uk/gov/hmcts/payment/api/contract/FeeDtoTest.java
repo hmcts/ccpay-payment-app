@@ -9,6 +9,8 @@ import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -28,7 +30,9 @@ public class FeeDtoTest {
 
         Set<ConstraintViolation<FeeDto>> violations = validator.validate(feeDto);
         Iterator<ConstraintViolation<FeeDto>> iterator = violations.iterator();
-        assertThat(iterator).extracting(ConstraintViolation::getMessage)
+        assertThat(StreamSupport.stream(violations.spliterator(), false)
+            .collect(Collectors.toList()))
+            .extracting(ConstraintViolation::getMessage)
             .contains("must be greater than 0");
     }
 
@@ -40,9 +44,10 @@ public class FeeDtoTest {
         Set<ConstraintViolation<FeeDto>> violations = validator.validate(feeDto);
 
         Iterator<ConstraintViolation<FeeDto>> iterator = violations.iterator();
-        assertThat(iterator).extracting(ConstraintViolation::getMessage)
+        assertThat(StreamSupport.stream(violations.spliterator(), false)
+            .collect(Collectors.toList()))
+            .extracting(ConstraintViolation::getMessage)
             .contains("must be greater than 0");
     }
-
 
 }

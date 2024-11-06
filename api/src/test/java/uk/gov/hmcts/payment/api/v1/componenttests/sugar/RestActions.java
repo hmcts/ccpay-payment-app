@@ -33,17 +33,17 @@ public class RestActions {
     public RestActions withAuthorizedService(String serviceId) {
         String token = UUID.randomUUID().toString();
         serviceRequestAuthorizer.registerToken(token, serviceId);
-        httpHeaders.add(ServiceRequestAuthorizer.AUTHORISATION, token);
+        httpHeaders.set(ServiceRequestAuthorizer.AUTHORISATION, token);
         return this;
     }
 
     public RestActions withUserId(String userId) {
-        httpHeaders.add("user-id", userId);
+        httpHeaders.set("user-id", userId);
         return this;
     }
 
     public RestActions withReturnUrl(String returnUrl) {
-        httpHeaders.add("return-url", returnUrl);
+        httpHeaders.set("return-url", returnUrl);
         return this;
     }
 
@@ -53,7 +53,7 @@ public class RestActions {
     }
 
     //If header is present this replaces the value
-    public RestActions withHeaderIfpresent(String header, String value) {
+    public RestActions withHeaderIfPresent(String header, String value) {
         httpHeaders.set(header, value);
         return this;
     }
@@ -61,7 +61,7 @@ public class RestActions {
     public RestActions withAuthorizedUser(String userId) {
         String token = UUID.randomUUID().toString();
         userRequestAuthorizer.registerToken(token, userId);
-        httpHeaders.add(UserRequestAuthorizer.AUTHORISATION, token);
+        httpHeaders.set(UserRequestAuthorizer.AUTHORISATION, token);
         return this;
     }
 
