@@ -17,7 +17,11 @@ import javax.persistence.*;
 public class PaymentStatus {
 
     public final static PaymentStatus CREATED = new PaymentStatus("created", "created");
+    public final static PaymentStatus STARTED = new PaymentStatus("started", "started");
     public final static PaymentStatus SUCCESS = new PaymentStatus("success", "success");
+    public final static PaymentStatus CANCELLED = new PaymentStatus("cancelled", "cancelled");
+    public final static PaymentStatus PENDING = new PaymentStatus("pending", "pending");
+    public final static PaymentStatus ERROR = new PaymentStatus("error", "error");
     public final static PaymentStatus FAILED = new PaymentStatus("failed", "failed");
 
     @Id
