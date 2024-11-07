@@ -2,7 +2,6 @@ package uk.gov.hmcts.payment.api.domain.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.common.collect.Lists;
 import com.microsoft.azure.servicebus.ClientFactory;
 import com.microsoft.azure.servicebus.IMessage;
@@ -26,7 +25,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestDomainDataEntityMapper;
 import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestDtoDomainMapper;
 import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestPaymentDomainDataEntityMapper;
@@ -53,17 +51,29 @@ import uk.gov.hmcts.payment.api.exceptions.ServiceRequestReferenceNotFoundExcept
 import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.mapper.PBAStatusErrorMapper;
-import uk.gov.hmcts.payment.api.model.*;
-import uk.gov.hmcts.payment.api.service.*;
+import uk.gov.hmcts.payment.api.model.IdempotencyKeys;
+import uk.gov.hmcts.payment.api.model.IdempotencyKeysPK;
+import uk.gov.hmcts.payment.api.model.IdempotencyKeysRepository;
+import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.Payment2Repository;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
+import uk.gov.hmcts.payment.api.model.PaymentStatus;
+import uk.gov.hmcts.payment.api.model.StatusHistory;
+import uk.gov.hmcts.payment.api.service.AccountService;
+import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
+import uk.gov.hmcts.payment.api.service.FeePayApportionService;
+import uk.gov.hmcts.payment.api.service.FeesService;
+import uk.gov.hmcts.payment.api.service.PaymentGroupService;
+import uk.gov.hmcts.payment.api.service.PaymentService;
+import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.servicebus.TopicClientProxy;
 import uk.gov.hmcts.payment.api.servicebus.TopicClientService;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentGroupNotFoundException;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotSuccessException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoAmountDue;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoMatchingAmount;
 
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -392,13 +402,12 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
             return true;
         }
 
-        // Already created or started state payment existed, is this successful?
+        // Already created state payment exists, is this successful?
         Date ninetyMinAgo = new Date(System.currentTimeMillis() - 90 * 60 * 1000);
         Optional<Payment> existingPayment = paymentFeeLink.getPayments().stream()
-            .filter(payment -> (payment.getPaymentStatus().getName().equalsIgnoreCase(PaymentStatus.CREATED.getName())
-                || payment.getPaymentStatus().getName().equalsIgnoreCase(PaymentStatus.STARTED.getName()))
+            .filter(payment -> payment.getPaymentStatus().getName().equalsIgnoreCase(PaymentStatus.CREATED.getName())
                 && payment.getPaymentProvider().getName().equalsIgnoreCase(PAYMENT_PROVIDER_GOV_PAY)
-                && payment.getDateCreated().compareTo(ninetyMinAgo) >= 0).max(Comparator.comparing(Payment::getDateCreated));
+                && payment.getDateCreated().compareTo(ninetyMinAgo) >= 0).findFirst();
 
         if (existingPayment.isPresent()) {
             GovPayPayment payment = delegateGovPay.retrieve(existingPayment.get().getExternalReference());

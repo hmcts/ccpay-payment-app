@@ -42,19 +42,13 @@ import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.*;
 import uk.gov.hmcts.payment.api.servicebus.TopicClientService;
-import uk.gov.hmcts.payment.api.v1.model.PaymentService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentGroupNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoAmountDue;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoMatchingAmount;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.Assert.assertNotNull;
@@ -69,7 +63,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
-
 
 @RunWith(SpringRunner.class)
 public class ServiceRequestDomainServiceTest {
@@ -629,21 +622,32 @@ public class ServiceRequestDomainServiceTest {
             .returnUrl("http://localhost:8080/paymentConfirmation")
             .build();
 
-        PaymentProvider paymentProvider = new PaymentProvider();
-        paymentProvider.setName("gov pay");
+        PaymentProvider paymentProviderGovPay = PaymentProvider.paymentProviderWith().name("gov pay").build();
+        PaymentProvider paymentProviderPciPal = PaymentProvider.paymentProviderWith().name("pci pal").build();
+
+        Payment successfulPaymentPciPal = Payment.paymentWith().paymentChannel(PaymentChannel.ONLINE)
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
+            .currency("GBP")
+            .amount(new BigDecimal(99.99).setScale(2, RoundingMode.HALF_EVEN))
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
+            .paymentProvider(paymentProviderPciPal)
+            .dateCreated(new Date())
+            .reference("RC-1234-2345-3456-7654")
+            .paymentLink(getPaymentFeeLink())
+            .build();
 
         Payment successfulPayment = Payment.paymentWith().paymentChannel(PaymentChannel.ONLINE)
             .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
             .currency("GBP")
             .amount(new BigDecimal(99.99).setScale(2, RoundingMode.HALF_EVEN))
             .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
-            .paymentProvider(paymentProvider)
+            .paymentProvider(paymentProviderGovPay)
             .dateCreated(new Date())
             .reference("RC-1234-2345-3456-4567")
             .paymentLink(getPaymentFeeLink())
             .build();
 
-        List<Payment> payments = Arrays.asList(successfulPayment);
+        List<Payment> payments = Arrays.asList(successfulPaymentPciPal, successfulPayment);
         PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith()
             .paymentReference("2024-1750000008178")
             .fees(Arrays.asList(PaymentFee.feeWith().amountDue(new BigDecimal(10))
@@ -686,22 +690,47 @@ public class ServiceRequestDomainServiceTest {
             .returnUrl("http://localhost:8080/paymentConfirmation")
             .build();
 
-        PaymentProvider paymentProvider = new PaymentProvider();
-        paymentProvider.setName("gov pay");
+        PaymentProvider paymentProviderGovPay = PaymentProvider.paymentProviderWith().name("gov pay").build();
+        PaymentProvider paymentProviderPciPal = PaymentProvider.paymentProviderWith().name("pci pal").build();
+
+        Payment cancelledPayment = Payment.paymentWith().paymentChannel(PaymentChannel.ONLINE)
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
+            .currency("GBP")
+            .amount(new BigDecimal(99.99).setScale(2, RoundingMode.HALF_EVEN))
+            .paymentStatus(PaymentStatus.paymentStatusWith().name(PaymentStatus.CANCELLED.getName()).build())
+            .paymentProvider(paymentProviderPciPal)
+            .dateCreated(new Date())
+            .reference("RC-1234-2345-3456-7654")
+            .externalReference("72f8303f-47fa-4633-af89-54000e78283b")
+            .paymentLink(getPaymentFeeLink())
+            .build();
+
+        Date hundredMinAgo = new Date(System.currentTimeMillis() - 100 * 60 * 1000);
+        Payment createdPaymentOutdated = Payment.paymentWith().paymentChannel(PaymentChannel.ONLINE)
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
+            .currency("GBP")
+            .amount(new BigDecimal(99.99).setScale(2, RoundingMode.HALF_EVEN))
+            .paymentStatus(PaymentStatus.paymentStatusWith().name(PaymentStatus.CREATED.getName()).build())
+            .paymentProvider(paymentProviderGovPay)
+            .dateCreated(hundredMinAgo)
+            .reference("RC-1234-2345-3456-9876")
+            .externalReference("91af658a-d0ab-449e-9b30-5dd17082f2e8")
+            .paymentLink(getPaymentFeeLink())
+            .build();
 
         Payment createdPayment = Payment.paymentWith().paymentChannel(PaymentChannel.ONLINE)
             .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
             .currency("GBP")
             .amount(new BigDecimal(99.99).setScale(2, RoundingMode.HALF_EVEN))
-            .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
-            .paymentProvider(paymentProvider)
+            .paymentStatus(PaymentStatus.paymentStatusWith().name(PaymentStatus.CREATED.getName()).build())
+            .paymentProvider(paymentProviderGovPay)
             .dateCreated(new Date())
             .reference("RC-1234-2345-3456-4567")
-            .externalReference("paymentId")
+            .externalReference("3c937cbb-d4c5-4b50-b3a0-5eb2f1f5dbec")
             .paymentLink(getPaymentFeeLink())
             .build();
 
-        List<Payment> payments = Arrays.asList(createdPayment);
+        List<Payment> payments = Arrays.asList(cancelledPayment,createdPayment);
         PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith()
             .paymentReference("2024-1750000008178")
             .fees(Arrays.asList(PaymentFee.feeWith().amountDue(new BigDecimal(10))
