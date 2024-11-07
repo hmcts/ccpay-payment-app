@@ -1069,7 +1069,12 @@ public class ServiceRequestControllerTest {
             .paymentReference("RC-ref")
             .build();
 
-        when(serviceRequestDomainService.create(any(),any(),any(),any(), )).thenReturn(onlineCardPaymentResponse);
+        ResponseEntity<OnlineCardPaymentResponse> response = new ResponseEntity<>(onlineCardPaymentResponse, HttpStatus.CREATED);
+        when(serviceRequestDomainService.create(any(),any(),any(),any())).thenReturn(response);
+
+        when(govPayClient.createPayment(anyString(), any())).thenReturn(getGovPayPayment());
+
+        when(serviceRequestDomainService.create(any(),any(),any(),any())).thenReturn(response);
 
         MvcResult result = restActions
             .post("/service-request/" + serviceRequestReference + "/card-payments", onlineCardPaymentRequest)
@@ -1160,7 +1165,8 @@ public class ServiceRequestControllerTest {
 
         OnlineCardPaymentResponse onlineCardPaymentResponseSample = OnlineCardPaymentResponse.onlineCardPaymentResponseWith().status("created").build();
 
-        when(serviceRequestDomainService.create(any(),any(),any(),any(), )).thenReturn(onlineCardPaymentResponseSample);
+        ResponseEntity<OnlineCardPaymentResponse> response = new ResponseEntity<>(onlineCardPaymentResponseSample, HttpStatus.CREATED);
+        when(serviceRequestDomainService.create(any(),any(),any(),any())).thenReturn(response);
 
 
         MvcResult result = restActions
@@ -1189,8 +1195,9 @@ public class ServiceRequestControllerTest {
         when(govPayClient.createPayment(anyString(), any())).thenReturn(getGovPayPayment());
 
         OnlineCardPaymentResponse onlineCardPaymentResponseSample = OnlineCardPaymentResponse.onlineCardPaymentResponseWith().status("created").build();
+        ResponseEntity<OnlineCardPaymentResponse> response = new ResponseEntity<>(onlineCardPaymentResponseSample, HttpStatus.CREATED);
 
-        when(serviceRequestDomainService.create(any(),any(),any(),any(), )).thenReturn(onlineCardPaymentResponseSample);
+        when(serviceRequestDomainService.create(any(),any(),any(),any())).thenReturn(response);
 
         MvcResult result = restActions
             .withHeader("service-callback-url", "dummy")

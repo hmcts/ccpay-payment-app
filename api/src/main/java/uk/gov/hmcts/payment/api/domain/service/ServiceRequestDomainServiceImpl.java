@@ -80,8 +80,7 @@ import java.util.stream.Collectors;
 public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainService {
 
     private static final Logger LOG = LoggerFactory.getLogger(ServiceRequestDomainServiceImpl.class);
-    private static final String FAILED = "failed";
-    private static final String SUCCESS = "success";
+    private static final String PAYMENT_PROVIDER_GOV_PAY= "gov pay";
     private static final String MSGCONTENTTYPE = "application/json";
     @Value("${case-payment-orders.api.url}")
     private  String callBackUrl;
@@ -160,7 +159,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     private PaymentService<PaymentFeeLink, String> paymentService;
 
     private Function<PaymentFeeLink, Payment> getFirstSuccessPayment = serviceRequest -> serviceRequest.getPayments().stream().
-        filter(payment -> payment.getPaymentStatus().getName().equalsIgnoreCase("success")).collect(Collectors.toList()).get(0);
+        filter(payment -> payment.getPaymentStatus().getName().equalsIgnoreCase(PaymentStatus.SUCCESS.getName())).collect(Collectors.toList()).get(0);
 
     @Override
     public List<PaymentFeeLink> findByCcdCaseNumber(String ccdCaseNumber) {
@@ -203,8 +202,8 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         if (hasOnlineCardPaymentAlreadySuccess(serviceRequest)) {
             LOG.info("Successful payment found, returning user back to {}", returnUrl);
             HttpHeaders headers = new HttpHeaders();
-            headers.add(HttpHeaders.LOCATION, returnUrl);  // Set the URL to redirect to
-            headers.add(HttpHeaders.CACHE_CONTROL, "no-store");
+            headers.set(HttpHeaders.LOCATION, returnUrl);  // Set the URL to redirect to
+            headers.set(HttpHeaders.CACHE_CONTROL, "no-store");
             return new ResponseEntity<>(headers, HttpStatus.FOUND);
         }
 
@@ -270,7 +269,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         sendMessageToTopic(paymentStatusDto, serviceRequestCallbackURL.getCallBackUrl());
         LOG.info("Send PBA payment status to topic completed ");
 
-        if (payment.getPaymentStatus().getName().equals(FAILED)) {
+        if (payment.getPaymentStatus().getName().equals(PaymentStatus.FAILED.getName())) {
             LOG.info("CreditAccountPayment Response 402(FORBIDDEN) for ccdCaseNumber : {} PaymentStatus : {}", payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
             serviceRequestPaymentBo = serviceRequestPaymentDomainDataEntityMapper.toDomain(payment);
             return serviceRequestPaymentBo;
@@ -296,7 +295,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
             feePayApportionService.processApportion(pbaPayment);
 
             // Update Fee Amount Due as Payment Status received from PBA Payment as SUCCESS
-            if (Lists.newArrayList("success", "pending").contains(pbaPayment.getPaymentStatus().getName().toLowerCase())) {
+            if (Lists.newArrayList(PaymentStatus.SUCCESS.getName(), PaymentStatus.PENDING.getName()).contains(pbaPayment.getPaymentStatus().getName().toLowerCase())) {
                 LOG.info("Update Fee Amount Due as Payment Status received from PBA Payment as %s" + pbaPayment.getPaymentStatus().getName());
                 feePayApportionService.updateFeeAmountDue(pbaPayment);
             }
@@ -332,7 +331,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         }
 
         //status history from created -> success
-        if (payment.getPaymentStatus().getName().equalsIgnoreCase(SUCCESS)) {
+        if (payment.getPaymentStatus().getName().equalsIgnoreCase(PaymentStatus.SUCCESS.getName())) {
             payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
                 .status(payment.getPaymentStatus().getName())
                 .build()));
@@ -382,8 +381,8 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
 
         // Find an existing successful payment in DB
         Optional<Payment> successPayment = paymentFeeLink.getPayments().stream()
-            .filter(payment -> payment.getPaymentStatus().getName().equalsIgnoreCase("success")
-                && payment.getPaymentProvider().getName().equalsIgnoreCase("gov pay"))
+            .filter(payment -> payment.getPaymentStatus().getName().equalsIgnoreCase(PaymentStatus.SUCCESS.getName())
+                && payment.getPaymentProvider().getName().equalsIgnoreCase(PAYMENT_PROVIDER_GOV_PAY))
             .findFirst();
 
         if (successPayment.isPresent()) {
@@ -396,9 +395,9 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         // Already created or started state payment existed, is this successful?
         Date ninetyMinAgo = new Date(System.currentTimeMillis() - 90 * 60 * 1000);
         Optional<Payment> existingPayment = paymentFeeLink.getPayments().stream()
-            .filter(payment -> (payment.getPaymentStatus().getName().equalsIgnoreCase("created")
-                || payment.getPaymentStatus().getName().equalsIgnoreCase("started"))
-                && payment.getPaymentProvider().getName().equalsIgnoreCase("gov pay")
+            .filter(payment -> (payment.getPaymentStatus().getName().equalsIgnoreCase(PaymentStatus.CREATED.getName())
+                || payment.getPaymentStatus().getName().equalsIgnoreCase(PaymentStatus.STARTED.getName()))
+                && payment.getPaymentProvider().getName().equalsIgnoreCase(PAYMENT_PROVIDER_GOV_PAY)
                 && payment.getDateCreated().compareTo(ninetyMinAgo) >= 0).max(Comparator.comparing(Payment::getDateCreated));
 
         if (existingPayment.isPresent()) {
@@ -419,8 +418,8 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         // Already created state payment existed, then cancel gov pay section present
         Date ninetyMinAgo = new Date(System.currentTimeMillis() - 90 * 60 * 1000);
         Optional<Payment> existingPayment = paymentFeeLink.getPayments().stream()
-            .filter(payment -> payment.getPaymentStatus().getName().equalsIgnoreCase("created")
-                && payment.getPaymentProvider().getName().equalsIgnoreCase("gov pay")
+            .filter(payment -> payment.getPaymentStatus().getName().equalsIgnoreCase(PaymentStatus.CREATED.getName())
+                && payment.getPaymentProvider().getName().equalsIgnoreCase(PAYMENT_PROVIDER_GOV_PAY)
                 && payment.getDateCreated().compareTo(ninetyMinAgo) >= 0).max(Comparator.comparing(Payment::getDateCreated));
 
         if (existingPayment.isPresent()) {

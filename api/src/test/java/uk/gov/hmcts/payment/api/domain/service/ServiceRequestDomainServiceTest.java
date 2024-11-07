@@ -42,6 +42,7 @@ import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.*;
 import uk.gov.hmcts.payment.api.servicebus.TopicClientService;
+import uk.gov.hmcts.payment.api.v1.model.PaymentService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentGroupNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoAmountDue;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoMatchingAmount;
@@ -60,6 +61,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
@@ -101,6 +103,9 @@ public class ServiceRequestDomainServiceTest {
 
     @Mock
     DelegatingPaymentService<GovPayPayment, String> delegateGovPay;
+
+    @Mock
+    DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService;
 
     @Mock
     ServiceRequestDomainDataEntityMapper serviceRequestDomainDataEntityMapper;
@@ -431,7 +436,7 @@ public class ServiceRequestDomainServiceTest {
             ServiceRequestPaymentBo bo =
                 serviceRequestDomainService.addPayments(getPaymentFeeLink(), "123", serviceRequestPaymentDto);
         }catch(Exception ex){
-            Assertions.assertEquals(ex.getMessage(),"Unable to retrieve account information due to timeout");
+            assertEquals(ex.getMessage(),"Unable to retrieve account information due to timeout");
         }
 
     }
@@ -500,7 +505,7 @@ public class ServiceRequestDomainServiceTest {
             ServiceRequestPaymentBo bo =
                 serviceRequestDomainService.addPayments(getPaymentFeeLink(), "123", serviceRequestPaymentDto);
         }catch(Exception ex){
-            Assertions.assertEquals(ex.getMessage(),"Unable to retrieve account information, please try again later");
+            assertEquals(ex.getMessage(),"Unable to retrieve account information, please try again later");
         }
 
     }
@@ -570,7 +575,7 @@ public class ServiceRequestDomainServiceTest {
             ServiceRequestPaymentBo bo =
                 serviceRequestDomainService.addPayments(getPaymentFeeLink(), "123", serviceRequestPaymentDto);
         }catch(Exception ex){
-            Assertions.assertEquals(ex.getMessage(),"Account information could not be found");
+            assertEquals(ex.getMessage(),"Account information could not be found");
         }
 
     }
@@ -578,7 +583,6 @@ public class ServiceRequestDomainServiceTest {
 
     @Test
     public void createOnlineCardPaymentTest() throws Exception {
-
 
         OnlineCardPaymentRequest onlineCardPaymentRequest = OnlineCardPaymentRequest.onlineCardPaymentRequestWith()
             .language("Eng")
@@ -611,11 +615,140 @@ public class ServiceRequestDomainServiceTest {
 
         when(featureToggler.getBooleanValue(any(),any())).thenReturn(true);
 
-        OnlineCardPaymentResponse onlineCardPaymentResponse = serviceRequestDomainService.create(onlineCardPaymentRequest,"","","", );
+        ResponseEntity<OnlineCardPaymentResponse> onlineCardPaymentResponse = serviceRequestDomainService.create(onlineCardPaymentRequest,"","","");
 
         assertNotNull(onlineCardPaymentResponse);
     }
 
+    @Test
+    public void createOnlineCardPaymentExistingSuccessPaymentFoundPayHubTest() throws Exception {
+
+        OnlineCardPaymentRequest onlineCardPaymentRequest = OnlineCardPaymentRequest.onlineCardPaymentRequestWith()
+            .language("en")
+            .amount(new BigDecimal(99.99).setScale(2, RoundingMode.HALF_EVEN))
+            .returnUrl("http://localhost:8080/paymentConfirmation")
+            .build();
+
+        PaymentProvider paymentProvider = new PaymentProvider();
+        paymentProvider.setName("gov pay");
+
+        Payment successfulPayment = Payment.paymentWith().paymentChannel(PaymentChannel.ONLINE)
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
+            .currency("GBP")
+            .amount(new BigDecimal(99.99).setScale(2, RoundingMode.HALF_EVEN))
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
+            .paymentProvider(paymentProvider)
+            .dateCreated(new Date())
+            .reference("RC-1234-2345-3456-4567")
+            .paymentLink(getPaymentFeeLink())
+            .build();
+
+        List<Payment> payments = Arrays.asList(successfulPayment);
+        PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith()
+            .paymentReference("2024-1750000008178")
+            .fees(Arrays.asList(PaymentFee.feeWith().amountDue(new BigDecimal(10))
+                .calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE0001").volume(1).build()))
+            .payments(payments)
+            .build();
+
+        when(paymentFeeLinkRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(paymentFeeLink));
+
+        ResponseEntity<OnlineCardPaymentResponse> response = serviceRequestDomainService.create(
+            onlineCardPaymentRequest,
+            "",
+            onlineCardPaymentRequest.getReturnUrl(),
+            "");
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.FOUND, response.getStatusCode());
+        assertEquals(onlineCardPaymentRequest.getReturnUrl(), response.getHeaders().getLocation().toString());
+        assertEquals("RC-1234-2345-3456-4567", successfulPayment.getReference());
+        assertEquals("gov pay", successfulPayment.getPaymentProvider().getName());
+        assertEquals("success", successfulPayment.getPaymentStatus().getName());
+        assertEquals(new BigDecimal(99.99).setScale(2, RoundingMode.HALF_EVEN), successfulPayment.getAmount());
+        assertEquals("GBP", successfulPayment.getCurrency());
+        assertEquals("card", successfulPayment.getPaymentMethod().getName());
+        assertEquals(PaymentChannel.ONLINE, successfulPayment.getPaymentChannel());
+        assertEquals("2024-1750000008178", paymentFeeLink.getPaymentReference());
+        assertEquals(new BigDecimal(10), paymentFeeLink.getFees().get(0).getAmountDue());
+        assertEquals(new BigDecimal("99.99"), paymentFeeLink.getFees().get(0).getCalculatedAmount());
+        assertEquals("FEE0001", paymentFeeLink.getFees().get(0).getCode());
+        assertEquals("1", paymentFeeLink.getFees().get(0).getVersion());
+        assertEquals(1, paymentFeeLink.getFees().get(0).getVolume());
+    }
+
+    @Test
+    public void createOnlineCardPaymentExistingSuccessPaymentFoundGovPayTest() throws Exception {
+
+        OnlineCardPaymentRequest onlineCardPaymentRequest = OnlineCardPaymentRequest.onlineCardPaymentRequestWith()
+            .language("en")
+            .amount(new BigDecimal(99.99).setScale(2, RoundingMode.HALF_EVEN))
+            .returnUrl("http://localhost:8080/paymentConfirmation")
+            .build();
+
+        PaymentProvider paymentProvider = new PaymentProvider();
+        paymentProvider.setName("gov pay");
+
+        Payment createdPayment = Payment.paymentWith().paymentChannel(PaymentChannel.ONLINE)
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
+            .currency("GBP")
+            .amount(new BigDecimal(99.99).setScale(2, RoundingMode.HALF_EVEN))
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
+            .paymentProvider(paymentProvider)
+            .dateCreated(new Date())
+            .reference("RC-1234-2345-3456-4567")
+            .externalReference("paymentId")
+            .paymentLink(getPaymentFeeLink())
+            .build();
+
+        List<Payment> payments = Arrays.asList(createdPayment);
+        PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith()
+            .paymentReference("2024-1750000008178")
+            .fees(Arrays.asList(PaymentFee.feeWith().amountDue(new BigDecimal(10))
+                .calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE0001").volume(1).build()))
+            .payments(payments)
+            .build();
+
+        when(paymentFeeLinkRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(paymentFeeLink));
+
+        GovPayPayment successfulGovPayPayment = GovPayPayment.govPaymentWith()
+            .amount(9999)
+            .state(new State("success", true, null, null))
+            .description("description")
+            .reference("RC-1234-2345-3456-4567")
+            .paymentId("paymentId")
+            .paymentProvider("gov pay")
+            .returnUrl("http://localhost:8080/paymentConfirmation")
+            .links(GovPayPayment.Links.linksWith().cancel(new Link("any", ImmutableMap.of(), "cancelHref", "any")).build())
+            .build();
+
+        when(delegateGovPay.retrieve(anyString())).thenReturn(successfulGovPayPayment);
+
+        ResponseEntity<OnlineCardPaymentResponse> response = serviceRequestDomainService.create(
+            onlineCardPaymentRequest,
+            "",
+            onlineCardPaymentRequest.getReturnUrl(),
+            "");
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.FOUND, response.getStatusCode());
+        assertEquals(onlineCardPaymentRequest.getReturnUrl(), response.getHeaders().getLocation().toString());
+        assertEquals("success", successfulGovPayPayment.getState().getStatus());
+        assertEquals("RC-1234-2345-3456-4567", successfulGovPayPayment.getReference());
+        assertEquals("RC-1234-2345-3456-4567", createdPayment.getReference());
+        assertEquals("gov pay", createdPayment.getPaymentProvider().getName());
+        assertEquals("created", createdPayment.getPaymentStatus().getName());
+        assertEquals(new BigDecimal(99.99).setScale(2, RoundingMode.HALF_EVEN), createdPayment.getAmount());
+        assertEquals("GBP", createdPayment.getCurrency());
+        assertEquals("card", createdPayment.getPaymentMethod().getName());
+        assertEquals(PaymentChannel.ONLINE, createdPayment.getPaymentChannel());
+        assertEquals("2024-1750000008178", paymentFeeLink.getPaymentReference());
+        assertEquals(new BigDecimal(10), paymentFeeLink.getFees().get(0).getAmountDue());
+        assertEquals(new BigDecimal("99.99"), paymentFeeLink.getFees().get(0).getCalculatedAmount());
+        assertEquals("FEE0001", paymentFeeLink.getFees().get(0).getCode());
+        assertEquals("1", paymentFeeLink.getFees().get(0).getVersion());
+        assertEquals(1, paymentFeeLink.getFees().get(0).getVolume());
+    }
 
     @Test
     public void createOnlineCardPaymentWithPaymentFeeLinksPaymentTest() throws Exception {
@@ -644,11 +777,14 @@ public class ServiceRequestDomainServiceTest {
             .paymentLink(getPaymentFeeLink())
             .currency("GBP")
             .paymentStatus(PaymentStatus.CREATED)
+            .externalReference("paymentId")
             .build();
 
         when(serviceRequestDomainDataEntityMapper.toPaymentEntity(any(),any(), any())).thenReturn(payment);
 
         when(paymentRepository.save(any())).thenReturn(payment);
+
+        when(delegatingPaymentService.retrieve(anyString())).thenReturn(paymentFeeLinkMock);
 
         when(delegateGovPay.retrieve(anyString())).thenReturn(getGovPayPayment());
 
@@ -656,7 +792,7 @@ public class ServiceRequestDomainServiceTest {
 
         when(paymentFeeLinkMock.getPayments()).thenReturn(getPaymentFeeLinkWithPayments().getPayments());
 
-        OnlineCardPaymentResponse onlineCardPaymentResponse = serviceRequestDomainService.create(onlineCardPaymentRequest,"","","", );
+        ResponseEntity<OnlineCardPaymentResponse> onlineCardPaymentResponse = serviceRequestDomainService.create(onlineCardPaymentRequest,"","","");
 
         assertNotNull(onlineCardPaymentResponse);
 
@@ -813,6 +949,7 @@ public class ServiceRequestDomainServiceTest {
         payment.setPaymentProvider(paymentProvider);
         Date ninetyTwoAgo = new Date(System.currentTimeMillis() - 89 * 60 * 1000);
         payment.setDateCreated(ninetyTwoAgo);
+        payment.setExternalReference("externalReference");
         payments.add(payment);
 
         return PaymentFeeLink.paymentFeeLinkWith()
