@@ -492,5 +492,4 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
 
         return telephonyPaymentsReportDto;
     }
-
 }
