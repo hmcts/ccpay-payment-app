@@ -17,6 +17,8 @@ import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.payment.api.controllers.ServiceRequestController;
 import uk.gov.hmcts.payment.api.domain.service.ServiceRequestDomainService;
@@ -80,7 +82,8 @@ class ServiceRequestProviderTest {
             .status("Initiated")
             .dateCreated(creationDate)
             .build();
-        when(serviceRequestDomainServiceMock.create(any(OnlineCardPaymentRequest.class), eq("2022-1662375472431"), eq("https://localhost"), ArgumentMatchers.isNull(), )).thenReturn(onlineCardPaymentResponse);
+        ResponseEntity<OnlineCardPaymentResponse> onlineCardPaymentResponseEntity = new ResponseEntity(onlineCardPaymentResponse, HttpStatus.CREATED);
+        when(serviceRequestDomainServiceMock.create(any(OnlineCardPaymentRequest.class), eq("2022-1662375472431"), eq("https://localhost"), ArgumentMatchers.isNull())).thenReturn(onlineCardPaymentResponseEntity);
 
     }
 }
