@@ -46,5 +46,4 @@ public interface ServiceRequestDomainService {
 
     IMessageReceiver createDLQConnection() throws ServiceBusException, InterruptedException;
 
-    PaymentDto updateStatusByInternalReferenceAndSendStatusNotification(String internalReference) throws JsonProcessingException;
 }

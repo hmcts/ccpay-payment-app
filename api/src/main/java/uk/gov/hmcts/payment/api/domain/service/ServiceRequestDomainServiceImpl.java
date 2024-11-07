@@ -483,33 +483,6 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     }
 
     @Override
-    public PaymentDto updateStatusByInternalReferenceAndSendStatusNotification(String internalReference) throws JsonProcessingException {
-        Payment payment = paymentService.findPayment(internalReference);
-        LOG.info("internalReference: {} - Payment: {}", internalReference, payment);
-        List<FeePayApportion> feePayApportionList = paymentService.findByPaymentId(payment.getId());
-        if(feePayApportionList.isEmpty()){
-            throw new PaymentNotSuccessException("Payment is not successful");
-        }
-        List<PaymentFee> fees = feePayApportionList.stream().map(feePayApportion -> feeService.getPaymentFee(feePayApportion.getFeeId()).get())
-            .collect(Collectors.toSet()).stream().collect(Collectors.toList());
-        PaymentFeeLink paymentFeeLink = fees.get(0).getPaymentLink();
-        LOG.info("paymentFeeLink getEnterpriseServiceName {}",paymentFeeLink.getEnterpriseServiceName());
-        LOG.info("paymentFeeLink getCcdCaseNumber {}",paymentFeeLink.getCcdCaseNumber());
-        PaymentFeeLink  retrieveDelegatingPaymentService = delegatingPaymentService.retrieve(paymentFeeLink, payment.getReference());
-        String serviceRequestStatus = paymentGroup.toPaymentGroupDto(retrieveDelegatingPaymentService).getServiceRequestStatus();
-        ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-        Payment paymentNew = paymentService.findPayment(internalReference);
-        String serviceRequestReference = paymentFeeLink.getPaymentReference();
-        LOG.info("Sending payment to Topic with internalReference: {}", paymentNew.getInternalReference());
-        PaymentStatusDto paymentStatusDto = paymentDtoMapper.toPaymentStatusDto(serviceRequestReference, "", paymentNew, serviceRequestStatus);
-        sendMessageToTopic(paymentStatusDto, paymentFeeLink.getCallBackUrl());
-        String jsonpaymentStatusDto = ow.writeValueAsString(paymentStatusDto);
-        LOG.info("json format paymentStatusDto to Topic {}",jsonpaymentStatusDto);
-        LOG.info("callback URL paymentStatusDto to Topic {}",paymentFeeLink.getCallBackUrl());
-        return paymentDtoMapper.toRetrieveCardPaymentResponseDtoWithoutExtReference( retrieveDelegatingPaymentService, internalReference);
-    }
-
-    @Override
     public void deadLetterProcess(IMessageReceiver subscriptionClient) throws ServiceBusException, InterruptedException, IOException {
 
         int receivedMessages =0;
@@ -544,7 +517,6 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         }
         LOG.info("Number of messages received from subscrition: {}", receivedMessages);
     }
-
 
     @Override
     public void sendMessageTopicCPO(ServiceRequestDto serviceRequestDto, String serviceRequestReference){

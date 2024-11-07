@@ -15,7 +15,6 @@ package uk.gov.hmcts.payment.api.controllers;
     import org.slf4j.Logger;
     import org.slf4j.LoggerFactory;
     import org.springframework.beans.factory.annotation.Autowired;
-    import org.springframework.http.HttpHeaders;
     import org.springframework.http.HttpStatus;
     import org.springframework.http.ResponseEntity;
     import org.springframework.transaction.annotation.Transactional;
@@ -50,7 +49,6 @@ package uk.gov.hmcts.payment.api.controllers;
     import uk.gov.hmcts.payment.api.service.FeesService;
     import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotSuccessException;
 
-    import javax.servlet.http.HttpServletResponse;
     import javax.validation.Valid;
     import java.io.IOException;
     import java.util.List;
@@ -321,7 +319,29 @@ public class ServiceRequestController {
     @GetMapping(value = "/card-payments/{internal-reference}/status")
     public PaymentDto retrieveStatusByInternalReference(@PathVariable("internal-reference") String internalReference) throws JsonProcessingException {
         LOG.info("Entered /card-payments/{internal-reference}/status using internalReference: {}", internalReference);
-        return serviceRequestDomainService.updateStatusByInternalReferenceAndSendStatusNotification(internalReference);
+        Payment payment = paymentService.findPayment(internalReference);
+        LOG.info("internalReference: {} - Payment: {}", internalReference, payment);
+        List<FeePayApportion> feePayApportionList = paymentService.findByPaymentId(payment.getId());
+        if(feePayApportionList.isEmpty()){
+            throw new PaymentNotSuccessException("Payment is not successful");
+        }
+        List<PaymentFee> fees = feePayApportionList.stream().map(feePayApportion ->feeService.getPaymentFee(feePayApportion.getFeeId()).get())
+            .collect(Collectors.toSet()).stream().collect(Collectors.toList());
+        PaymentFeeLink paymentFeeLink = fees.get(0).getPaymentLink();
+        LOG.info("paymentFeeLink getEnterpriseServiceName {}",paymentFeeLink.getEnterpriseServiceName());
+        LOG.info("paymentFeeLink getCcdCaseNumber {}",paymentFeeLink.getCcdCaseNumber());
+        PaymentFeeLink  retrieveDelegatingPaymentService = delegatingPaymentService.retrieve(paymentFeeLink, payment.getReference());
+        String serviceRequestStatus = paymentGroup.toPaymentGroupDto(retrieveDelegatingPaymentService).getServiceRequestStatus();
+        ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+        Payment paymentNew = paymentService.findPayment(internalReference);
+        String serviceRequestReference = paymentFeeLink.getPaymentReference();
+        LOG.info("Sending payment to Topic with internalReference: {}", paymentNew.getInternalReference());
+        PaymentStatusDto paymentStatusDto = paymentDtoMapper.toPaymentStatusDto(serviceRequestReference, "", paymentNew, serviceRequestStatus);
+        serviceRequestDomainService.sendMessageToTopic(paymentStatusDto, paymentFeeLink.getCallBackUrl());
+        String jsonpaymentStatusDto = ow.writeValueAsString(paymentStatusDto);
+        LOG.info("json format paymentStatusDto to Topic {}",jsonpaymentStatusDto);
+        LOG.info("callback URL paymentStatusDto to Topic {}",paymentFeeLink.getCallBackUrl());
+        return paymentDtoMapper.toRetrieveCardPaymentResponseDtoWithoutExtReference( retrieveDelegatingPaymentService, internalReference);
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
