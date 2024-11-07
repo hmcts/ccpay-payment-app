@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.api.domain.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.common.collect.Lists;
 import com.microsoft.azure.servicebus.ClientFactory;
 import com.microsoft.azure.servicebus.IMessage;
@@ -17,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -24,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
+import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestDomainDataEntityMapper;
 import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestDtoDomainMapper;
 import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestPaymentDomainDataEntityMapper;
@@ -50,27 +53,17 @@ import uk.gov.hmcts.payment.api.exceptions.ServiceRequestReferenceNotFoundExcept
 import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.mapper.PBAStatusErrorMapper;
-import uk.gov.hmcts.payment.api.model.IdempotencyKeys;
-import uk.gov.hmcts.payment.api.model.IdempotencyKeysPK;
-import uk.gov.hmcts.payment.api.model.IdempotencyKeysRepository;
-import uk.gov.hmcts.payment.api.model.Payment;
-import uk.gov.hmcts.payment.api.model.Payment2Repository;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
-import uk.gov.hmcts.payment.api.model.PaymentStatus;
-import uk.gov.hmcts.payment.api.model.StatusHistory;
-import uk.gov.hmcts.payment.api.service.AccountService;
-import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
-import uk.gov.hmcts.payment.api.service.FeePayApportionService;
-import uk.gov.hmcts.payment.api.service.PaymentGroupService;
-import uk.gov.hmcts.payment.api.service.ReferenceDataService;
+import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.service.*;
 import uk.gov.hmcts.payment.api.servicebus.TopicClientProxy;
 import uk.gov.hmcts.payment.api.servicebus.TopicClientService;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentGroupNotFoundException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotSuccessException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoAmountDue;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoMatchingAmount;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -160,6 +153,12 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     @Autowired
     PaymentDtoMapper paymentDtoMapper;
 
+    @Autowired
+    private FeesService feeService;
+
+    @Autowired
+    private PaymentService<PaymentFeeLink, String> paymentService;
+
     private Function<PaymentFeeLink, Payment> getFirstSuccessPayment = serviceRequest -> serviceRequest.getPayments().stream().
         filter(payment -> payment.getPaymentStatus().getName().equalsIgnoreCase("success")).collect(Collectors.toList()).get(0);
 
@@ -191,27 +190,36 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     }
 
     @Override
-    public OnlineCardPaymentResponse create(OnlineCardPaymentRequest onlineCardPaymentRequest, String serviceRequestReference, String returnURL, String serviceCallbackURL) throws CheckDigitException {
-        //find service request
+    public ResponseEntity<OnlineCardPaymentResponse> create(OnlineCardPaymentRequest onlineCardPaymentRequest, String serviceRequestReference, String returnUrl, String serviceCallbackURL) throws CheckDigitException {
+        // Find service request
         PaymentFeeLink serviceRequest = paymentFeeLinkRepository.findByPaymentReference(serviceRequestReference).orElseThrow(() -> new ServiceRequestReferenceNotFoundException("Order reference doesn't exist"));
 
-        LOG.info("returnURL {}",returnURL);
+        LOG.info("returnURL {}",returnUrl);
 
-        //General business validation
+        // General business validation
         businessValidationForOnlinePaymentServiceRequestOrder(serviceRequest, onlineCardPaymentRequest);
 
-        //If exist, will cancel existing payment channel session with gov pay
+        // Check if successful online card payment exists, return to return-url.
+        if (hasOnlineCardPaymentAlreadySuccess(serviceRequest)) {
+            LOG.info("Successful payment found, returning user back to {}", returnUrl);
+            HttpHeaders headers = new HttpHeaders();
+            headers.add(HttpHeaders.LOCATION, returnUrl);  // Set the URL to redirect to
+            headers.add(HttpHeaders.CACHE_CONTROL, "no-store");
+            return new ResponseEntity<>(headers, HttpStatus.FOUND);
+        }
+
+        // If exist, will cancel existing payment channel session with gov pay
         checkOnlinePaymentAlreadyExistWithCreatedState(serviceRequest);
 
-        //Payment - Boundary Object
-        ServiceRequestOnlinePaymentBo requestOnlinePaymentBo = serviceRequestDtoDomainMapper.toDomain(onlineCardPaymentRequest, returnURL, serviceCallbackURL);
+        // Payment - Boundary Object
+        ServiceRequestOnlinePaymentBo requestOnlinePaymentBo = serviceRequestDtoDomainMapper.toDomain(onlineCardPaymentRequest, returnUrl, serviceCallbackURL);
 
         // GovPay - Request and creation
         CreatePaymentRequest createGovPayRequest = serviceRequestDtoDomainMapper.createGovPayRequest(requestOnlinePaymentBo);
         LOG.info("Reaching card payment");
         GovPayPayment govPayPayment = delegateGovPay.create(createGovPayRequest, serviceRequest.getEnterpriseServiceName());
 
-        //Payment - Entity creation
+        // Payment - Entity creation
         Payment paymentEntity = serviceRequestDomainDataEntityMapper.toPaymentEntity(requestOnlinePaymentBo, govPayPayment, serviceRequest);
         paymentEntity.setPaymentLink(serviceRequest);
         serviceRequest.getPayments().add(paymentEntity);
@@ -221,17 +229,17 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature", false);
         LOG.info("ApportionFeature Flag Value in online card payment : {}", apportionFeature);
         if (apportionFeature) {
-            //Apportion payment
+            // Apportion payment
             feePayApportionService.processApportion(paymentEntity);
         }
 
-        return OnlineCardPaymentResponse.onlineCardPaymentResponseWith()
+        return new ResponseEntity<>(OnlineCardPaymentResponse.onlineCardPaymentResponseWith()
             .dateCreated(paymentEntity.getDateCreated())
             .externalReference(paymentEntity.getExternalReference())
             .nextUrl(paymentEntity.getNextUrl())
             .paymentReference(paymentEntity.getReference())
             .status(PayStatusToPayHubStatus.valueOf(paymentEntity.getPaymentStatus().getName()).getMappedStatus())
-            .build();
+            .build(), HttpStatus.CREATED);
     }
 
     @Override
@@ -243,7 +251,6 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         serviceRequestPaymentBo.setStatus(PaymentStatus.CREATED.getName());
         Payment payment = serviceRequestPaymentDomainDataEntityMapper.toEntity(serviceRequestPaymentBo, serviceRequest);
         payment.setPaymentLink(serviceRequest);
-
 
         //2. Account check for PBA-Payment
         payment = accountCheckForPBAPayment(serviceRequest, serviceRequestPaymentDto, payment);
@@ -261,7 +268,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         PaymentFeeLink serviceRequestCallbackURL = paymentFeeLinkRepository.findByPaymentReference(serviceRequestReference)
             .orElseThrow(() -> new ServiceRequestReferenceNotFoundException("Order reference doesn't exist"));
         sendMessageToTopic(paymentStatusDto, serviceRequestCallbackURL.getCallBackUrl());
-        LOG.info("send PBA payment status to topic completed ");
+        LOG.info("Send PBA payment status to topic completed ");
 
         if (payment.getPaymentStatus().getName().equals(FAILED)) {
             LOG.info("CreditAccountPayment Response 402(FORBIDDEN) for ccdCaseNumber : {} PaymentStatus : {}", payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
@@ -277,7 +284,6 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         serviceRequestPaymentBo = serviceRequestPaymentDomainDataEntityMapper.toDomain(payment);
         return serviceRequestPaymentBo;
     }
-
 
     private void extractApportionmentForPBA(PaymentFeeLink serviceRequest) {
         // trigger Apportion based on the launch darkly feature flag
@@ -372,20 +378,55 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         }
     }
 
-    private void checkOnlinePaymentAlreadyExistWithCreatedState(PaymentFeeLink paymentFeeLink)  {
-        //Already created state payment existed, then cancel gov pay section present
-        Date ninetyMinAgo = new Date(System.currentTimeMillis() - 90 * 60 * 1000);
-        Optional<Payment> existedPayment = paymentFeeLink.getPayments().stream()
-            .filter(payment -> payment.getPaymentStatus().getName().equalsIgnoreCase("created")
-                && payment.getPaymentProvider().getName().equalsIgnoreCase("gov pay")
-                && payment.getDateCreated().compareTo(ninetyMinAgo) >= 0)
-            .sorted(Comparator.comparing(Payment::getDateCreated).reversed())
+    private boolean hasOnlineCardPaymentAlreadySuccess(PaymentFeeLink paymentFeeLink) {
+
+        // Find an existing successful payment in DB
+        Optional<Payment> successPayment = paymentFeeLink.getPayments().stream()
+            .filter(payment -> payment.getPaymentStatus().getName().equalsIgnoreCase("success")
+                && payment.getPaymentProvider().getName().equalsIgnoreCase("gov pay"))
             .findFirst();
 
-        if (!existedPayment.isEmpty()) {
-            GovPayPayment currentPayment = delegateGovPay.retrieve(existedPayment.get().getExternalReference());
-            if(canCancelPayment(currentPayment)) {
-                delegatingPaymentService.cancel(existedPayment.get(), paymentFeeLink.getCcdCaseNumber(), paymentFeeLink.getEnterpriseServiceName());
+        if (successPayment.isPresent()) {
+            LOG.info("Payment {} for serviceRequest {} already exists with status success in PayHub.",
+                successPayment.get().getReference(),
+                successPayment.get().getPaymentLink().getPaymentReference());
+            return true;
+        }
+
+        // Already created or started state payment existed, is this successful?
+        Date ninetyMinAgo = new Date(System.currentTimeMillis() - 90 * 60 * 1000);
+        Optional<Payment> existingPayment = paymentFeeLink.getPayments().stream()
+            .filter(payment -> (payment.getPaymentStatus().getName().equalsIgnoreCase("created")
+                || payment.getPaymentStatus().getName().equalsIgnoreCase("started"))
+                && payment.getPaymentProvider().getName().equalsIgnoreCase("gov pay")
+                && payment.getDateCreated().compareTo(ninetyMinAgo) >= 0).max(Comparator.comparing(Payment::getDateCreated));
+
+        if (existingPayment.isPresent()) {
+            GovPayPayment payment = delegateGovPay.retrieve(existingPayment.get().getExternalReference());
+            if (payment.getState().getStatus().equals("success")) {
+                LOG.info("Payment {} for serviceRequest {} already exists with status success in GovPay.",
+                    existingPayment.get().getReference(),
+                    existingPayment.get().getPaymentLink().getPaymentReference());
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void checkOnlinePaymentAlreadyExistWithCreatedState(PaymentFeeLink paymentFeeLink) {
+
+        // Already created state payment existed, then cancel gov pay section present
+        Date ninetyMinAgo = new Date(System.currentTimeMillis() - 90 * 60 * 1000);
+        Optional<Payment> existingPayment = paymentFeeLink.getPayments().stream()
+            .filter(payment -> payment.getPaymentStatus().getName().equalsIgnoreCase("created")
+                && payment.getPaymentProvider().getName().equalsIgnoreCase("gov pay")
+                && payment.getDateCreated().compareTo(ninetyMinAgo) >= 0).max(Comparator.comparing(Payment::getDateCreated));
+
+        if (existingPayment.isPresent()) {
+            GovPayPayment payment = delegateGovPay.retrieve(existingPayment.get().getExternalReference());
+            if (canCancelPayment(payment)) {
+                delegatingPaymentService.cancel(existingPayment.get(), paymentFeeLink.getCcdCaseNumber(), paymentFeeLink.getEnterpriseServiceName());
             }
         }
     }
@@ -439,6 +480,33 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         String topic = "ccpay-service-request-cpo-update-topic";
         IMessageReceiver subscriptionClient = ClientFactory.createMessageReceiverFromConnectionStringBuilder(new ConnectionStringBuilder(connectionString, topic+"/subscriptions/" + subName+"/$deadletterqueue"), ReceiveMode.RECEIVEANDDELETE);
         return subscriptionClient;
+    }
+
+    @Override
+    public PaymentDto updateStatusByInternalReferenceAndSendStatusNotification(String internalReference) throws JsonProcessingException {
+        Payment payment = paymentService.findPayment(internalReference);
+        LOG.info("internalReference: {} - Payment: {}", internalReference, payment);
+        List<FeePayApportion> feePayApportionList = paymentService.findByPaymentId(payment.getId());
+        if(feePayApportionList.isEmpty()){
+            throw new PaymentNotSuccessException("Payment is not successful");
+        }
+        List<PaymentFee> fees = feePayApportionList.stream().map(feePayApportion -> feeService.getPaymentFee(feePayApportion.getFeeId()).get())
+            .collect(Collectors.toSet()).stream().collect(Collectors.toList());
+        PaymentFeeLink paymentFeeLink = fees.get(0).getPaymentLink();
+        LOG.info("paymentFeeLink getEnterpriseServiceName {}",paymentFeeLink.getEnterpriseServiceName());
+        LOG.info("paymentFeeLink getCcdCaseNumber {}",paymentFeeLink.getCcdCaseNumber());
+        PaymentFeeLink  retrieveDelegatingPaymentService = delegatingPaymentService.retrieve(paymentFeeLink, payment.getReference());
+        String serviceRequestStatus = paymentGroup.toPaymentGroupDto(retrieveDelegatingPaymentService).getServiceRequestStatus();
+        ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+        Payment paymentNew = paymentService.findPayment(internalReference);
+        String serviceRequestReference = paymentFeeLink.getPaymentReference();
+        LOG.info("Sending payment to Topic with internalReference: {}", paymentNew.getInternalReference());
+        PaymentStatusDto paymentStatusDto = paymentDtoMapper.toPaymentStatusDto(serviceRequestReference, "", paymentNew, serviceRequestStatus);
+        sendMessageToTopic(paymentStatusDto, paymentFeeLink.getCallBackUrl());
+        String jsonpaymentStatusDto = ow.writeValueAsString(paymentStatusDto);
+        LOG.info("json format paymentStatusDto to Topic {}",jsonpaymentStatusDto);
+        LOG.info("callback URL paymentStatusDto to Topic {}",paymentFeeLink.getCallBackUrl());
+        return paymentDtoMapper.toRetrieveCardPaymentResponseDtoWithoutExtReference( retrieveDelegatingPaymentService, internalReference);
     }
 
     @Override

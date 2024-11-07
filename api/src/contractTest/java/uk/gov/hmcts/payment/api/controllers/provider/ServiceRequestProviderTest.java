@@ -80,7 +80,7 @@ class ServiceRequestProviderTest {
             .status("Initiated")
             .dateCreated(creationDate)
             .build();
-        when(serviceRequestDomainServiceMock.create(any(OnlineCardPaymentRequest.class), eq("2022-1662375472431"), eq("https://localhost"), ArgumentMatchers.isNull())).thenReturn(onlineCardPaymentResponse);
+        when(serviceRequestDomainServiceMock.create(any(OnlineCardPaymentRequest.class), eq("2022-1662375472431"), eq("https://localhost"), ArgumentMatchers.isNull(), )).thenReturn(onlineCardPaymentResponse);
 
     }
 }

@@ -50,7 +50,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -612,7 +611,7 @@ public class ServiceRequestDomainServiceTest {
 
         when(featureToggler.getBooleanValue(any(),any())).thenReturn(true);
 
-        OnlineCardPaymentResponse onlineCardPaymentResponse = serviceRequestDomainService.create(onlineCardPaymentRequest,"","","");
+        OnlineCardPaymentResponse onlineCardPaymentResponse = serviceRequestDomainService.create(onlineCardPaymentRequest,"","","", );
 
         assertNotNull(onlineCardPaymentResponse);
     }
@@ -657,7 +656,7 @@ public class ServiceRequestDomainServiceTest {
 
         when(paymentFeeLinkMock.getPayments()).thenReturn(getPaymentFeeLinkWithPayments().getPayments());
 
-        OnlineCardPaymentResponse onlineCardPaymentResponse = serviceRequestDomainService.create(onlineCardPaymentRequest,"","","");
+        OnlineCardPaymentResponse onlineCardPaymentResponse = serviceRequestDomainService.create(onlineCardPaymentRequest,"","","", );
 
         assertNotNull(onlineCardPaymentResponse);
 

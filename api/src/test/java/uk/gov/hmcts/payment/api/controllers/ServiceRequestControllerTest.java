@@ -32,7 +32,6 @@ import uk.gov.hmcts.payment.api.domain.service.IdempotencyService;
 import uk.gov.hmcts.payment.api.domain.service.ServiceRequestDomainService;
 import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.dto.PaymentReference;
-import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestFeeDto;
@@ -1070,7 +1069,7 @@ public class ServiceRequestControllerTest {
             .paymentReference("RC-ref")
             .build();
 
-        when(serviceRequestDomainService.create(any(),any(),any(),any())).thenReturn(onlineCardPaymentResponse);
+        when(serviceRequestDomainService.create(any(),any(),any(),any(), )).thenReturn(onlineCardPaymentResponse);
 
         MvcResult result = restActions
             .post("/service-request/" + serviceRequestReference + "/card-payments", onlineCardPaymentRequest)
@@ -1161,7 +1160,7 @@ public class ServiceRequestControllerTest {
 
         OnlineCardPaymentResponse onlineCardPaymentResponseSample = OnlineCardPaymentResponse.onlineCardPaymentResponseWith().status("created").build();
 
-        when(serviceRequestDomainService.create(any(),any(),any(),any())).thenReturn(onlineCardPaymentResponseSample);
+        when(serviceRequestDomainService.create(any(),any(),any(),any(), )).thenReturn(onlineCardPaymentResponseSample);
 
 
         MvcResult result = restActions
@@ -1191,7 +1190,7 @@ public class ServiceRequestControllerTest {
 
         OnlineCardPaymentResponse onlineCardPaymentResponseSample = OnlineCardPaymentResponse.onlineCardPaymentResponseWith().status("created").build();
 
-        when(serviceRequestDomainService.create(any(),any(),any(),any())).thenReturn(onlineCardPaymentResponseSample);
+        when(serviceRequestDomainService.create(any(),any(),any(),any(), )).thenReturn(onlineCardPaymentResponseSample);
 
         MvcResult result = restActions
             .withHeader("service-callback-url", "dummy")
