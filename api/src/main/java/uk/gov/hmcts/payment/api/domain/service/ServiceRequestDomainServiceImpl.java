@@ -397,8 +397,8 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
 
         if (successPayment.isPresent()) {
             LOG.info("Payment {} for serviceRequest {} already exists with status success in PayHub.",
-                successPayment.get().getReference(),
-                successPayment.get().getPaymentLink().getPaymentReference());
+                    successPayment.map(Payment::getReference).orElse("N/A"),
+                    successPayment.map(apayment -> apayment.getPaymentLink().getPaymentReference()).orElse("N/A"));
             return true;
         }
 
@@ -413,8 +413,8 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
             GovPayPayment payment = delegateGovPay.retrieve(existingPayment.get().getExternalReference());
             if (payment.getState().getStatus().equals("success")) {
                 LOG.info("Payment {} for serviceRequest {} already exists with status success in GovPay.",
-                    existingPayment.get().getReference(),
-                    existingPayment.get().getPaymentLink().getPaymentReference());
+                        existingPayment.map(Payment::getReference).orElse("N/A"),
+                        existingPayment.map(apayment -> apayment.getPaymentLink().getPaymentReference()).orElse("N/A"));
                 return true;
             }
         }
