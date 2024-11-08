@@ -286,6 +286,7 @@ public class ServiceRequestController {
     @Operation(summary = "Create online card payment", description = "Create online card payment")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "201", description = "Payment created"),
+        @ApiResponse(responseCode = "302", description = "A successful payment request has been made in GovPay, redirecting back to the return URL"),
         @ApiResponse(responseCode = "400", description = "Bad request. Payment creation failed"),
         @ApiResponse(responseCode = "403", description = "Unauthenticated request"),
         @ApiResponse(responseCode = "404", description = "Service request not found"),
