@@ -16,12 +16,12 @@ dependencies {
     implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign'
 
     api group: 'org.springframework.security', name: 'spring-security-oauth2-client', version: '6.0.8'
-    implementation (group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '5.2.0') {
-        exclude group: 'org.apache.httpcomponents', module: 'httpclient'
-    }
     implementation group: 'com.querydsl', name: 'querydsl-jpa', version:'5.1.0'
     api group: 'commons-validator', name: 'commons-validator', version:'1.8.0'
     implementation group: 'com.github.hmcts.java-logging', name: 'logging-appinsights', version: '6.1.4'
+    implementation (group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '5.2.0') {
+        exclude group: 'org.apache.httpcomponents', module: 'httpclient'
+    }
     implementation group: 'io.github.resilience4j', name: 'resilience4j-spring-boot3', version: '2.2.0'
     api group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '5.10.9'
 
