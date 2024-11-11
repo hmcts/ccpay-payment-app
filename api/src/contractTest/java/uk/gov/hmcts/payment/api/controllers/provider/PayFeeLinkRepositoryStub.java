@@ -140,7 +140,8 @@ public class PayFeeLinkRepositoryStub implements PaymentFeeLinkRepository {
     }
 
     @Override
-    public <S extends PaymentFeeLink, R> R findBy(Specification<PaymentFeeLink> spec, Function<FluentQuery.FetchableFluentQuery<S>, R> queryFunction) {
+    public <S extends PaymentFeeLink, R> R findBy(Specification<PaymentFeeLink> spec,
+                                                  Function<FluentQuery.FetchableFluentQuery<S>, R> queryFunction) {
         return null;
     }
 

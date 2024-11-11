@@ -17,7 +17,6 @@ import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.util.AccountStatus;
 
 import java.math.BigDecimal;
-import java.util.concurrent.TimeoutException;
 
 @Service
 @Profile("!liberataMock")
@@ -37,9 +36,7 @@ public class AccountServiceImpl implements AccountService<AccountDto, String> {
 
     @Override
     @CircuitBreaker(name = "defaultCircuitBreaker")
-    // @TimeLimiter(name = "retrievePbaAccountTimeLimiter")
-    // - requires CompletableFuture implementation.
-    // - timeout implementation done in restTemplateLiberata bean.
+    @TimeLimiter(name = "retrievePbaAccountTimeLimiter")
     public AccountDto retrieve(String pbaCode) throws ResourceAccessException {
         LOG.info("AccountDto retrieve(String pbaCode) called with pbaCode: {}", pbaCode);
         if (pbaCode.equalsIgnoreCase("PBAFUNC12345")) {

@@ -78,7 +78,6 @@ public class GovPayClient {
         });
     }
 
-
     public void cancelPayment(String authorizationKey, String cancelUrl) {
         LOG.info("CANCELLING PAYMENT");
         withIOExceptionHandling(() -> {

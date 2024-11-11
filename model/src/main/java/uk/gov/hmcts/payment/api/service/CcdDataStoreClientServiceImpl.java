@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.api.service;
 
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.timelimiter.annotation.TimeLimiter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Profile;
@@ -19,6 +20,7 @@ public class CcdDataStoreClientServiceImpl implements CcdDataStoreClientService<
 
     @Override
     @CircuitBreaker(name = "defaultCircuitBreaker")
+    @TimeLimiter(name = "defaultCircuitBreaker")
     public CaseDetails getCase(String userAuthToken, String serviceAuthToken, String ccdCaseReference) {
         // Get case details from ccd.
         return coreCaseDataApi.getCase(userAuthToken, serviceAuthToken, ccdCaseReference);
