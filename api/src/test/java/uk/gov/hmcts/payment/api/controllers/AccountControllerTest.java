@@ -1,7 +1,6 @@
 package uk.gov.hmcts.payment.api.controllers;
 
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
-import org.checkerframework.checker.units.qual.A;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
