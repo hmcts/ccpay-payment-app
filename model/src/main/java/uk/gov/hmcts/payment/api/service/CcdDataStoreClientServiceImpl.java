@@ -20,7 +20,6 @@ public class CcdDataStoreClientServiceImpl implements CcdDataStoreClientService<
 
     @Override
     @CircuitBreaker(name = "defaultCircuitBreaker")
-    @TimeLimiter(name = "defaultCircuitBreaker")
     public CaseDetails getCase(String userAuthToken, String serviceAuthToken, String ccdCaseReference) {
         // Get case details from ccd.
         return coreCaseDataApi.getCase(userAuthToken, serviceAuthToken, ccdCaseReference);
