@@ -25,7 +25,6 @@ import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.RefundPaymentRequest;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayClientException;
-import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayPaymentNotFoundException;
 
 import java.io.IOException;
 
@@ -53,7 +52,7 @@ public class GovPayClient {
         this.errorTranslator = errorTranslator;
     }
 
-    @CircuitBreaker(name = "govPayService", fallbackMethod = "fallbackCreatePayment")
+    @CircuitBreaker(name = "createCardPayment")
     public GovPayPayment createPayment(String authorizationKey, CreatePaymentRequest createPaymentRequest) {
         LOG.info("Inside createPayment in GovPayClient");
         return withIOExceptionHandling(() -> {
@@ -66,7 +65,7 @@ public class GovPayClient {
         });
     }
 
-    @CircuitBreaker(name = "govPayService", fallbackMethod = "fallbackRetrievePayment")
+    @CircuitBreaker(name = "retrieveCardPayment")
     public GovPayPayment retrievePayment(String authorizationKey, String govPayId) {
         LOG.info("retrievePayment");
         return withIOExceptionHandling(() -> {
@@ -147,25 +146,6 @@ public class GovPayClient {
             throw new GovPayClientException(e);
         }
     }
-
-    private GovPayPayment fallbackCreatePayment(String authorizationKey, CreatePaymentRequest createPaymentRequest, Throwable t) {
-        LOG.error("Fallback method for createPayment due to: ", t);
-        // Handle fallback logic here, e.g., return a default GovPayPayment or throw a custom exception.
-        return new GovPayPayment(); // Example fallback behavior
-    }
-
-    private GovPayPayment fallbackRetrievePayment(String authorizationKey, String govPayId, Throwable t) throws GovPayPaymentNotFoundException {
-        LOG.error("Fallback method for retrievePayment due to: ", t);
-
-        // Re-throw the exception if it's GovPayPaymentNotFoundException to bypass fallback behavior.
-        if (t instanceof GovPayPaymentNotFoundException) {
-            throw (GovPayPaymentNotFoundException) t;
-        }
-
-        // Otherwise, handle other exceptions with a fallback response or action.
-        return new GovPayPayment(); // Example fallback behavior
-    }
-
 
     private interface CheckedExceptionProvider<T> {
         T get() throws IOException, ParseException;
