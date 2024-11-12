@@ -78,12 +78,31 @@ def versions = [
 
 def javaLoggingVersion = '6.1.4'
 
+configurations.all {
+    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+        if (details.requested.group == 'io.opentelemetry' && details.requested.name != 'opentelemetry-api-incubator') {
+            details.useVersion '1.44.1'
+        }
+    }
+}
+
+
+
 dependencies {
     implementation project(':payment-gov-pay-client')
     implementation project(':payment-api-contract')
     implementation project(':payment-model')
     implementation project(':payment-reference-data')
     implementation project(':case-payment-orders-client')
+    implementation platform("io.opentelemetry:opentelemetry-bom:1.44.1")
+    runtimeOnly 'io.opentelemetry:opentelemetry-api-incubator:1.44.1-alpha'
+    implementation group: 'io.opentelemetry', name: 'opentelemetry-sdk'
+    implementation group: 'io.opentelemetry', name: 'opentelemetry-exporter-logging'
+    implementation group: 'io.opentelemetry', name: 'opentelemetry-api'
+    implementation group: 'io.opentelemetry', name:'opentelemetry-sdk-extension-autoconfigure'
+    implementation (group: 'com.azure', name:'opentelemetry-exporters-azuremonitor', version:'1.0.0-beta.1') {
+        exclude group: 'io.opentelemetry'
+    }
     implementation group: 'com.github.hmcts.java-logging', name: 'logging', version: javaLoggingVersion
     implementation group: 'com.github.hmcts.java-logging', name: 'logging-appinsights', version: javaLoggingVersion
     implementation group: 'com.github.hmcts', name: 'auth-checker-lib', version: '3.0.0'
