@@ -74,7 +74,6 @@ def versions = [
         reformS2sClient : '5.2.0',
         serenity        : '4.2.3',
         serenityCucumber: '4.2.3',
-        opentelemetry   : '1.44.1'
 ]
 
 def javaLoggingVersion = '6.1.4'
@@ -96,8 +95,7 @@ dependencies {
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security'
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa'
-    implementation group: 'org.springframework.plugin', name: 'spring-plugin-core', version: '2.0.0.RELEASE'
-    implementation group: 'io.github.resilience4j', name: 'resilience4j-spring-boot3', version:'2.0.2'
+    implementation 'io.github.resilience4j:resilience4j-spring-boot3:2.0.2'
     implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.14.0'
     implementation group: 'net.logstash.logback', name: 'logstash-logback-encoder', version: '8.0'
     implementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.5.7'
@@ -144,6 +142,7 @@ dependencies {
         exclude group: 'uk.gov.hmcts.fees2.register.data.service.impl.IdamServiceImpl.class'
     }
     //Added this for spring boot upgrade as swagger was not working with the latest version.
+    implementation group: 'org.springframework.plugin', name: 'spring-plugin-core', version: '2.0.0.RELEASE'
     implementation(group: 'org.springframework.hateoas', name: 'spring-hateoas') {
         exclude(module: 'spring-plugin-core')
     }
