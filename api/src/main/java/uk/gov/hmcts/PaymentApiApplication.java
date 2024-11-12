@@ -14,7 +14,6 @@ import org.springframework.cache.caffeine.CaffeineCache;
 import org.springframework.cache.support.SimpleCacheManager;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.scheduling.annotation.EnableAsync;
 import uk.gov.hmcts.payment.api.logging.Markers;
 import org.springframework.hateoas.client.LinkDiscoverer;
@@ -27,8 +26,7 @@ import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 @EnableCaching
-@EnableFeignClients(basePackages = "uk.gov.hmcts.payment.api")
-@ComponentScan(basePackages = "uk.gov.hmcts.payment")
+@EnableFeignClients
 @EnableAsync
 @SpringBootApplication
 @OpenAPIDefinition
