@@ -88,7 +88,7 @@ public class PaymentRecordServiceTest {
         savedPayment.getFees().forEach(f -> {
             assertEquals(f.getCode(), "FEE0001");
             assertEquals(f.getCalculatedAmount(), new BigDecimal("100.11"));
-            assertEquals(f.getVolume(), new Integer(1));
+            assertEquals(f.getVolume(), Integer.valueOf(1));
             assertEquals(f.getReference(), "caseReference");
 
         });
