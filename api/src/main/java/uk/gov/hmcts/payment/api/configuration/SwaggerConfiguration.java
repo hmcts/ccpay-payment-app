@@ -57,9 +57,7 @@ public class SwaggerConfiguration {
 
     @Bean
     public OpenAPI customOpenAPI() {
-        return new OpenAPI()
-            .openapi("3.0.1")
-            .components(new Components())
+        return new OpenAPI().components(new Components())
             .info(new Info().title("Payment App").version("1.0.0"));
     }
 
