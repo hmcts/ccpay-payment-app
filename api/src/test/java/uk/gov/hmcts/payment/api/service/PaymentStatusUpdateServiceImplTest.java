@@ -226,7 +226,6 @@ public class PaymentStatusUpdateServiceImplTest {
         Payment payment = getPayment();
         PaymentStatusChargebackDto paymentStatusChargebackDto =getPaymentStatusChargebackDtoForBadRequest();
         when(paymentRepository.findByReference(any())).thenReturn(Optional.of(payment));
-        when(paymentFailureRepository.findByPaymentReference(any())).thenReturn(Optional.of(getPaymentFailuresList()));
         assertThrows(
             InvalidPaymentFailureRequestException.class,
             () -> paymentStatusUpdateServiceImpl.insertChargebackPaymentFailure(paymentStatusChargebackDto)
