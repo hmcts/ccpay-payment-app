@@ -704,7 +704,7 @@ public class PaymentStatusUpdateServiceImplTest {
 
         return PaymentStatusChargebackDto.paymentStatusChargebackRequestWith()
             .additionalReference("AR1234")
-            .amount(BigDecimal.valueOf(500))
+            .amount(BigDecimal.valueOf(600))
             .failureReference("FR12345")
             .eventDateTime("2021-10-10T10:10:10")
             .ccdCaseNumber("123456")
