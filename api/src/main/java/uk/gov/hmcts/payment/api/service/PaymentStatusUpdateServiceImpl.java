@@ -194,24 +194,6 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         if (paymentStatusChargebackDto.getAmount().compareTo(payment.getAmount()) > 0) {
             throw new InvalidPaymentFailureRequestException(FAILURE_AMOUNT_VALIDATION);
         }
-
-        Optional < List < PaymentFailures >> paymentFailuresList = paymentFailureRepository.findByPaymentReference(paymentStatusChargebackDto.getPaymentReference());
-
-        BigDecimal totalDisputeAmount = BigDecimal.ZERO;
-
-        if (paymentFailuresList.isPresent() && !paymentFailuresList.get().isEmpty()) {
-
-            for (PaymentFailures paymentFailure: paymentFailuresList.get()) {
-
-                totalDisputeAmount = paymentFailure.getAmount().add(totalDisputeAmount);
-            }
-
-            totalDisputeAmount = paymentStatusChargebackDto.getAmount().add(totalDisputeAmount);
-        }
-
-        if (totalDisputeAmount.compareTo(payment.getAmount()) > 0) {
-            throw new InvalidPaymentFailureRequestException(FAILURE_AMOUNT_VALIDATION);
-        }
     }
 
     private void validateBounceChequeRequest(PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto, Payment payment){
