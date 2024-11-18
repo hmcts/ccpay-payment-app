@@ -226,7 +226,6 @@ public class PaymentStatusUpdateServiceImplTest {
         Payment payment = getPayment();
         PaymentStatusChargebackDto paymentStatusChargebackDto =getPaymentStatusChargebackDtoForBadRequest();
         when(paymentRepository.findByReference(any())).thenReturn(Optional.of(payment));
-        when(paymentFailureRepository.findByPaymentReference(any())).thenReturn(Optional.of(getPaymentFailuresList()));
         assertThrows(
             InvalidPaymentFailureRequestException.class,
             () -> paymentStatusUpdateServiceImpl.insertChargebackPaymentFailure(paymentStatusChargebackDto)
@@ -704,7 +703,7 @@ public class PaymentStatusUpdateServiceImplTest {
 
         return PaymentStatusChargebackDto.paymentStatusChargebackRequestWith()
             .additionalReference("AR1234")
-            .amount(BigDecimal.valueOf(500))
+            .amount(BigDecimal.valueOf(600))
             .failureReference("FR12345")
             .eventDateTime("2021-10-10T10:10:10")
             .ccdCaseNumber("123456")
