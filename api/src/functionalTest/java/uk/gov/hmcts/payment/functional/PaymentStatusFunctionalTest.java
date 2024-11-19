@@ -49,10 +49,9 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.time.ZoneId;
 import java.util.regex.Pattern;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.http.HttpStatus.*;
 
 @RunWith(SpringIntegrationSerenityRunner.class)
@@ -709,14 +708,15 @@ public class PaymentStatusFunctionalTest {
         Response chargebackResponse1 = paymentTestService.postChargeback(
             SERVICE_TOKEN_PAYMENT,
             paymentStatusChargebackDto);
+        assertThat(chargebackResponse1.getStatusCode()).isEqualTo(HttpStatus.OK.value());
 
         PaymentFailureResponse paymentsFailureResponse1 =
             paymentTestService.getFailurePayment(USER_TOKEN_PAYMENT, SERVICE_TOKEN, paymentStatusChargebackDto1.getPaymentReference()).then()
                 .statusCode(OK.value()).extract().as(PaymentFailureResponse.class);
 
-        assertThat(paymentsFailureResponse1.getPaymentFailureList().get(0).getPaymentFailureInitiated().getFailureReference()).isEqualTo(paymentStatusChargebackDto1.getFailureReference());
-
-        assertThat(chargebackResponse1.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+        PaymentFailureResponseDto paymentFailureResponseDto = paymentsFailureResponse1.getPaymentFailureList().stream()
+            .filter(o -> o.getPaymentFailureInitiated().getFailureReference().equals(paymentStatusChargebackDto1.getFailureReference())).findFirst().get();
+        assertThat(paymentFailureResponseDto.getPaymentFailureInitiated().getFailureReference()).isEqualTo(paymentStatusChargebackDto1.getFailureReference());
 
         // delete payment record
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentReference.get()).then().statusCode(NO_CONTENT.value());
