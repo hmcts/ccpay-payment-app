@@ -703,7 +703,7 @@ public class PaymentStatusFunctionalTest {
 
         // Ping 3 for Chargeback event
         PaymentStatusChargebackDto paymentStatusChargebackDto1
-            = PaymentFixture.chargebackRequest(paymentReference.get());
+            = PaymentFixture.chargebackRequestService(paymentReference.get(), paymentStatusChargebackDto.getCcdCaseNumber());
 
         Response chargebackResponse1 = paymentTestService.postChargeback(
             SERVICE_TOKEN_PAYMENT,
