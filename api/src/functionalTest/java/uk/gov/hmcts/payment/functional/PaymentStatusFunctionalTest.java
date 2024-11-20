@@ -707,7 +707,7 @@ public class PaymentStatusFunctionalTest {
 
         Response chargebackResponse1 = paymentTestService.postChargeback(
             SERVICE_TOKEN_PAYMENT,
-            paymentStatusChargebackDto);
+            paymentStatusChargebackDto1);
         assertThat(chargebackResponse1.getStatusCode()).isEqualTo(HttpStatus.OK.value());
 
         PaymentFailureResponse paymentsFailureResponse1 =
