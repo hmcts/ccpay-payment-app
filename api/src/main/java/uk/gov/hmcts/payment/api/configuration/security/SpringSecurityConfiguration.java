@@ -49,7 +49,7 @@ public class SpringSecurityConfiguration {
     }
 
     @Bean
-    @Order(2)
+    @Order(3)
     protected SecurityFilterChain configureExternal(HttpSecurity http) throws Exception {
         http
             .addFilter(authCheckerServiceOnlyFilter)
@@ -67,7 +67,7 @@ public class SpringSecurityConfiguration {
     }
 
     @Bean
-    @Order(3)
+    @Order(2)
     protected SecurityFilterChain configureInternal(HttpSecurity http) throws Exception {
         http.exceptionHandling(exceptionHandling -> exceptionHandling.accessDeniedHandler(accessDeniedHandler()))
             .addFilter(authCheckerUserOnlyFilter)
@@ -83,7 +83,7 @@ public class SpringSecurityConfiguration {
                 .requestMatchers(HttpMethod.POST, "/card-payments/*/cancel").hasAnyAuthority(PAYMENTS_ROLE, CITIZEN_ROLE)
                 .requestMatchers(HttpMethod.GET, "/card-payments/*/details").hasAnyAuthority(PAYMENTS_ROLE, CITIZEN_ROLE)
                 .requestMatchers(HttpMethod.GET, "/pba-accounts/*/payments").hasAnyAuthority(PAYMENTS_ROLE,"pui-finance-manager","caseworker-cmc-solicitor", "caseworker-publiclaw-solicitor", "caseworker-probate-solicitor", "caseworker-financialremedy-solicitor", "caseworker-divorce-solicitor")
-                .requestMatchers(HttpMethod.GET, "/card-payments/*/status").hasAnyAuthority(PAYMENTS_ROLE, CITIZEN_ROLE)
+                //.requestMatchers(HttpMethod.GET, "/card-payments/*/status").hasAnyAuthority(PAYMENTS_ROLE, CITIZEN_ROLE)
                 .requestMatchers(HttpMethod.POST,"/refund-for-payment").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE)
                 .requestMatchers(HttpMethod.POST,"/refund-retro-remission").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE)
                 .requestMatchers(HttpMethod.PATCH,"/refund/resubmit/*").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE)
