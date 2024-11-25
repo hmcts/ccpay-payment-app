@@ -286,6 +286,7 @@ public class ServiceRequestController {
     @Operation(summary = "Create online card payment", description = "Create online card payment")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "201", description = "Payment created"),
+        @ApiResponse(responseCode = "302", description = "A successful payment request has been made in GovPay, redirecting back to the return URL"),
         @ApiResponse(responseCode = "400", description = "Bad request. Payment creation failed"),
         @ApiResponse(responseCode = "403", description = "Unauthenticated request"),
         @ApiResponse(responseCode = "404", description = "Service request not found"),
@@ -306,7 +307,8 @@ public class ServiceRequestController {
                                                                        @PathVariable("service-request-reference") String serviceRequestReference,
                                                                        @Valid @RequestBody OnlineCardPaymentRequest onlineCardPaymentRequest) throws CheckDigitException, JsonProcessingException {
         returnURL = onlineCardPaymentRequest.getReturnUrl();
-        return new ResponseEntity<>(serviceRequestDomainService.create(onlineCardPaymentRequest, serviceRequestReference, returnURL, serviceCallbackURL), HttpStatus.CREATED);
+        LOG.info("Entered /card-payments/{internal-reference}/card-payments using internalReference: {}", serviceRequestReference);
+        return serviceRequestDomainService.create(onlineCardPaymentRequest, serviceRequestReference, returnURL, serviceCallbackURL);
     }
 
     @Operation(summary = "Get card payment status by Internal Reference", description = "Get payment status for supplied Internal Reference")
