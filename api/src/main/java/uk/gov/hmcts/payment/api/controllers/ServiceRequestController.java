@@ -6,7 +6,8 @@ package uk.gov.hmcts.payment.api.controllers;
     import com.microsoft.azure.servicebus.IMessageReceiver;
     import com.microsoft.azure.servicebus.TopicClient;
     import com.microsoft.azure.servicebus.primitives.ServiceBusException;
-    import io.swagger.v3.oas.annotations.*;
+    import io.swagger.v3.oas.annotations.Operation;
+    import io.swagger.v3.oas.annotations.Parameter;
     import io.swagger.v3.oas.annotations.responses.ApiResponse;
     import io.swagger.v3.oas.annotations.responses.ApiResponses;
     import io.swagger.v3.oas.annotations.tags.Tag;
@@ -22,7 +23,16 @@ package uk.gov.hmcts.payment.api.controllers;
     import org.springframework.util.MultiValueMap;
     import org.springframework.validation.BindingResult;
     import org.springframework.validation.FieldError;
-    import org.springframework.web.bind.annotation.*;
+    import org.springframework.web.bind.annotation.ExceptionHandler;
+    import org.springframework.web.bind.annotation.GetMapping;
+    import org.springframework.web.bind.annotation.PatchMapping;
+    import org.springframework.web.bind.annotation.PathVariable;
+    import org.springframework.web.bind.annotation.PostMapping;
+    import org.springframework.web.bind.annotation.RequestBody;
+    import org.springframework.web.bind.annotation.RequestHeader;
+    import org.springframework.web.bind.annotation.ResponseBody;
+    import org.springframework.web.bind.annotation.ResponseStatus;
+    import org.springframework.web.bind.annotation.RestController;
     import uk.gov.hmcts.payment.api.contract.PaymentDto;
     import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
     import uk.gov.hmcts.payment.api.domain.service.IdempotencyService;
@@ -307,7 +317,7 @@ public class ServiceRequestController {
                                                                        @PathVariable("service-request-reference") String serviceRequestReference,
                                                                        @Valid @RequestBody OnlineCardPaymentRequest onlineCardPaymentRequest) throws CheckDigitException, JsonProcessingException {
         returnURL = onlineCardPaymentRequest.getReturnUrl();
-        LOG.info("Entered /card-payments/{internal-reference}/card-payments using internalReference: {}", serviceRequestReference);
+        LOG.info("Entered /service-request/{internal-reference}/card-payments using internalReference: {}", serviceRequestReference);
         return serviceRequestDomainService.create(onlineCardPaymentRequest, serviceRequestReference, returnURL, serviceCallbackURL);
     }
 
