@@ -527,7 +527,7 @@ public class PaymentStatusUpdateServiceImplTest {
             new CustomTupleForTelephonyPaymentsReport("Service2", "CCD456", "PAY456", "FEE002", new Date(), new BigDecimal("200.00"), "Failed")
         );
 
-        when(paymentRepository.findAllByDateCreatedBetweenAndPaymentChannel(startDate, endDate, PaymentChannel.TELEPHONY))
+        when(paymentRepository.findAllByDateCreatedBetweenAndPaymentChannel(startDate, endDate, PaymentChannel.TELEPHONY.getName()))
            .thenReturn(telephonyPaymentsList);
 
         List<TelephonyPaymentsReportDto> actualReport = paymentStatusUpdateServiceImpl.telephonyPaymentsReport(startDate, endDate, headers);
@@ -535,7 +535,7 @@ public class PaymentStatusUpdateServiceImplTest {
         assertEquals(2, actualReport.size());
         assertEquals("Service1", actualReport.get(0).getServiceName());
         assertEquals("Service2", actualReport.get(1).getServiceName());
-        verify(paymentRepository, times(1)).findAllByDateCreatedBetweenAndPaymentChannel(startDate, endDate, PaymentChannel.TELEPHONY);
+        verify(paymentRepository, times(1)).findAllByDateCreatedBetweenAndPaymentChannel(startDate, endDate, PaymentChannel.TELEPHONY.getName());
     }
 
     @Test
