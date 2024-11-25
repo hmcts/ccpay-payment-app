@@ -488,7 +488,7 @@ public class PaymentFixture {
     }
 
     public static PaymentStatusChargebackDto chargebackRequestService(String paymentReference, String ccdCaseNumber){
-        String failureReference = "FR-111-CC13-" + RandomUtils.nextInt();
+        String failureReference = "FR-111-CC14-" + RandomUtils.nextInt();
         DateTime actualDateTime = new DateTime(System.currentTimeMillis());
         return PaymentStatusChargebackDto.paymentStatusChargebackRequestWith()
             .reason("RR001")

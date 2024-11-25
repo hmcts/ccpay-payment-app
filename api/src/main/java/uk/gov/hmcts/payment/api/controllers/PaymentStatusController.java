@@ -1,5 +1,7 @@
 package uk.gov.hmcts.payment.api.controllers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.*;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -52,7 +54,6 @@ public class PaymentStatusController {
         @ApiResponse(responseCode = "404", description = "No Payments available for the given Payment reference"),
         @ApiResponse(responseCode = "429", description = "Request already received for this failure reference"),
         @ApiResponse(responseCode = "500", description = "Internal Server Error")
-
     })
     @PaymentExternalAPI
     @PostMapping(path = "/payment-failures/bounced-cheque")
@@ -73,15 +74,19 @@ public class PaymentStatusController {
 
     }
 
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "successful operation"),
+    })
     @PaymentExternalAPI
     @PostMapping(path = "/payment-failures/chargeback")
-    public ResponseEntity<String> paymentStatusChargeBack(@Valid @RequestBody PaymentStatusChargebackDto paymentStatusChargebackDto){
+    public ResponseEntity<String> paymentStatusChargeBack(@Valid @RequestBody PaymentStatusChargebackDto paymentStatusChargebackDto) throws JsonProcessingException {
 
         if (featureToggler.getBooleanValue(PAYMENT_STATUS_UPDATE_FLAG,false)) {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
         }
 
-        LOG.info("Received payment status request for chargeback : {}", paymentStatusChargebackDto);
+        String jsonString = new ObjectMapper().writeValueAsString(paymentStatusChargebackDto);
+        LOG.info("Received payment status request for chargeback : {}", jsonString);
 
         PaymentFailures insertPaymentFailures = paymentStatusUpdateService.insertChargebackPaymentFailure(paymentStatusChargebackDto);
 
