@@ -59,12 +59,13 @@ public interface Payment2Repository extends CrudRepository<Payment, Integer>, Jp
                                             @Param("endDate") Date endDate);
 
     @Query("SELECT p.serviceType, p.ccdCaseNumber, p.reference, f.code, p.dateCreated, p.amount, p.paymentStatus " +
-           "FROM Payment p " +
-           "JOIN p.paymentFeeLink pfl " +
-           "JOIN pfl.fees f " +
-           "WHERE p.dateCreated BETWEEN :fromDate AND :toDate AND p.paymentChannel = :paymentChannel")
+            "FROM Payment p " +
+            "JOIN p.paymentFeeLink pfl " +
+            "JOIN pfl.fees f " +
+            "WHERE p.dateCreated BETWEEN :fromDate AND :toDate AND p.paymentChannel.name = :paymentChannel")
     List<Tuple> findAllByDateCreatedBetweenAndPaymentChannel(
-        @Param("fromDate") Date fromDate,
-        @Param("toDate") Date toDate,
-        @Param("paymentChannel") PaymentChannel paymentChannel);
+            @Param("fromDate") Date fromDate,
+            @Param("toDate") Date toDate,
+            @Param("paymentChannel") String paymentChannel);
+
 }
