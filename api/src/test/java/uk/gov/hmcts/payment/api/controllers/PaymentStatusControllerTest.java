@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.api.controllers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.joda.time.DateTime;
@@ -9,11 +10,13 @@ import org.joda.time.format.DateTimeFormatter;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -46,7 +49,6 @@ import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 
-import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import javax.persistence.Tuple;
@@ -61,7 +63,7 @@ import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -125,8 +127,8 @@ public class PaymentStatusControllerTest {
     @MockBean
     private Payment2Repository paymentRepository;
 
-   @MockBean
-   private PaymentService<PaymentFeeLink, String> paymentService;
+    @MockBean
+    private PaymentService<PaymentFeeLink, String> paymentService;
 
     @MockBean
     private DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService;
@@ -173,7 +175,6 @@ public class PaymentStatusControllerTest {
             .andReturn();
 
         assertEquals("No Payments available for the given Payment reference",result.getResolvedException().getMessage());
-
 
     }
 
@@ -350,7 +351,15 @@ public class PaymentStatusControllerTest {
     }
 
     @Test
-    public void testDeletePayment() throws Exception {
+    public void testDeletePaymentByReference() {
+        String failureReference = "FR12345";
+        doNothing().when(paymentStatusUpdateService).deleteByFailureReference(failureReference);
+        paymentStatusController.deleteByFailureReference(failureReference);
+        verify(paymentStatusUpdateService).deleteByFailureReference(failureReference);
+    }
+
+    @Test
+    public void testDeletePaymentReferenceNotFound() throws Exception {
         restActions.delete("/payment-status-delete/test")
             .andExpect(status().isNotFound())
             .andReturn();
