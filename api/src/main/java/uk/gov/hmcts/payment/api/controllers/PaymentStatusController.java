@@ -54,7 +54,6 @@ public class PaymentStatusController {
         @ApiResponse(responseCode = "404", description = "No Payments available for the given Payment reference"),
         @ApiResponse(responseCode = "429", description = "Request already received for this failure reference"),
         @ApiResponse(responseCode = "500", description = "Internal Server Error")
-
     })
     @PaymentExternalAPI
     @PostMapping(path = "/payment-failures/bounced-cheque")
@@ -75,20 +74,19 @@ public class PaymentStatusController {
 
     }
 
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "successful operation"),
+    })
     @PaymentExternalAPI
     @PostMapping(path = "/payment-failures/chargeback")
-    public ResponseEntity<String> paymentStatusChargeBack(@Valid @RequestBody PaymentStatusChargebackDto paymentStatusChargebackDto){
+    public ResponseEntity<String> paymentStatusChargeBack(@Valid @RequestBody PaymentStatusChargebackDto paymentStatusChargebackDto) throws JsonProcessingException {
 
         if (featureToggler.getBooleanValue(PAYMENT_STATUS_UPDATE_FLAG,false)) {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
         }
 
-        try {
-            String jsonString = new ObjectMapper().writeValueAsString(paymentStatusChargebackDto);
-            LOG.info("Received payment status request for chargeback : {}", jsonString);
-        } catch (JsonProcessingException e) {
-            LOG.error("Error converting paymentStatusChargebackDto to JSON", e);
-        }
+        String jsonString = new ObjectMapper().writeValueAsString(paymentStatusChargebackDto);
+        LOG.info("Received payment status request for chargeback : {}", jsonString);
 
         PaymentFailures insertPaymentFailures = paymentStatusUpdateService.insertChargebackPaymentFailure(paymentStatusChargebackDto);
 
