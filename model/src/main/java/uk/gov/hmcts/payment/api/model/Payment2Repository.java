@@ -58,11 +58,11 @@ public interface Payment2Repository extends CrudRepository<Payment, Integer>, Jp
     List<Tuple> findDuplicatePaymentsByDate(@Param("startDate") Date startDate,
                                             @Param("endDate") Date endDate);
 
-    @Query(value = "SELECT p.service_type, p.ccd_case_number, p.reference, f.code, p.date_created, p.amount, p.payment_status " +
-        "FROM payment p " +
-        "JOIN payment_fee_link pfl ON pfl.id = p.payment_link_id " +
-        "JOIN fee f on f.payment_link_id = pfl.id " +
-        "WHERE p.date_created BETWEEN :fromDate AND :toDate AND p.payment_channel = :paymentChannel" , nativeQuery = true)
+    @Query("SELECT p.serviceType, p.ccdCaseNumber, p.reference, f.code, p.dateCreated, p.amount, p.paymentStatus " +
+           "FROM Payment p " +
+           "JOIN p.paymentFeeLink pfl " +
+           "JOIN pfl.fees f " +
+           "WHERE p.dateCreated BETWEEN :fromDate AND :toDate AND p.paymentChannel = :paymentChannel")
     List<Tuple> findAllByDateCreatedBetweenAndPaymentChannel(
         @Param("fromDate") Date fromDate,
         @Param("toDate") Date toDate,
