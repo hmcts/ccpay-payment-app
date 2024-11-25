@@ -1,6 +1,5 @@
 package uk.gov.hmcts.payment.api.controllers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.joda.time.DateTime;
@@ -10,12 +9,12 @@ import org.joda.time.format.DateTimeFormatter;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.jupiter.api.Assertions;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
+
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -35,10 +34,30 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
-import uk.gov.hmcts.payment.api.dto.*;
+import uk.gov.hmcts.payment.api.dto.PaymentFailureReportResponse;
+import uk.gov.hmcts.payment.api.dto.PaymentFailureResponseDto;
+import uk.gov.hmcts.payment.api.dto.PaymentStatusBouncedChequeDto;
+import uk.gov.hmcts.payment.api.dto.PaymentStatusChargebackDto;
+import uk.gov.hmcts.payment.api.dto.PaymentStatusUpdateSecond;
+import uk.gov.hmcts.payment.api.dto.RefundDto;
+import uk.gov.hmcts.payment.api.dto.RefundPaymentFailureReportDtoResponse;
+import uk.gov.hmcts.payment.api.dto.RepresentmentStatus;
+import uk.gov.hmcts.payment.api.dto.SearchResponse;
+import uk.gov.hmcts.payment.api.dto.TelephonyPaymentsReportDto;
+import uk.gov.hmcts.payment.api.dto.TelephonyPaymentsReportResponse;
+import uk.gov.hmcts.payment.api.dto.UnprocessedPayment;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentFailureReportMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentStatusDtoMapper;
-import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.model.FeePayApportion;
+import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.Payment2Repository;
+import uk.gov.hmcts.payment.api.model.PaymentChannel;
+import uk.gov.hmcts.payment.api.model.PaymentFailureRepository;
+import uk.gov.hmcts.payment.api.model.PaymentFailures;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentMethod;
+import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.service.CustomTupleForTelephonyPaymentsReport;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
@@ -63,7 +82,11 @@ import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -82,9 +105,6 @@ public class PaymentStatusControllerTest {
     public void setUp() {
         MockitoAnnotations.initMocks(this);
     }
-
-    @InjectMocks
-    PaymentStatusController paymentStatusController;
 
     MockMvc mvc;
     @Autowired
@@ -109,7 +129,13 @@ public class PaymentStatusControllerTest {
     private PaymentStatusDtoMapper paymentStatusDtoMapper;
 
     @Mock
+    private ObjectMapper paymentStatusControllerObjectMapper;
+
+    @Mock
     private PaymentStatusUpdateService paymentStatusUpdateService;
+
+    @Mock
+    private Logger logger;
 
     @MockBean
     @Qualifier("restTemplateRefundCancel")
@@ -144,10 +170,14 @@ public class PaymentStatusControllerTest {
     @Spy
     private PaymentFailureReportMapper paymentFailureReportMapper;
 
+    @InjectMocks
+    PaymentStatusController paymentStatusController;
+
     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.ENGLISH);
 
     @Before
     public void setup() {
+        MockitoAnnotations.openMocks(this);
         mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
         this.restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
 
@@ -275,7 +305,7 @@ public class PaymentStatusControllerTest {
 
     }
 
-   @Test
+    @Test
     public void returnSuccessWhenPaymentFailureIsSucessfullOpertionForChargeback() throws Exception {
 
         Payment payment = getPayment();
@@ -572,6 +602,39 @@ public class PaymentStatusControllerTest {
             .andReturn();
 
         assertEquals(200, result.getResponse().getStatus());
+    }
+
+    @Test
+    public void testFullyUnprocessedPaymentUpdate() throws Exception{
+        when(featureToggler.getBooleanValue(eq("payment-status-update-flag"),anyBoolean())).thenReturn(false);
+        when(paymentFailureRepository.findDcn()).thenReturn(getPaymentFailuresDcnList());
+        when(paymentFailureRepository.findByFailureReference(any())).thenReturn(Optional.of(getPaymentFailures()));
+        when(paymentRepository.findByDocumentControlNumberInAndPaymentMethod(any(),any())).thenReturn(Arrays.asList(getPayment()));
+
+        MvcResult result = restActions
+            .patch("/jobs/unprocessed-payment-update")
+            .andExpect(status().isOk())
+            .andReturn();
+
+        assertEquals(200, result.getResponse().getStatus());
+        verify(paymentFailureRepository, atLeastOnce()).findByFailureReference(any());
+        verify(paymentRepository, atLeastOnce()).findByDocumentControlNumberInAndPaymentMethod(any(),any());
+        verify(paymentFailureRepository, atLeastOnce()).findDcn();
+    }
+
+    @Test
+    public void testFullyUnprocessedPaymentUpdateWhenFeatureFlagIsEnabled() throws Exception{
+        when(featureToggler.getBooleanValue(eq("payment-status-update-flag"),anyBoolean())).thenReturn(true);
+
+        MvcResult result = restActions
+            .patch("/jobs/unprocessed-payment-update")
+            .andExpect(status().isOk())
+            .andReturn();
+
+        assertEquals(200, result.getResponse().getStatus());
+        verify(paymentFailureRepository, never()).findByFailureReference(any());
+        verify(paymentRepository, never()).findByDocumentControlNumberInAndPaymentMethod(any(),any());
+        verify(paymentFailureRepository, never()).findDcn();
     }
 
     @Test
