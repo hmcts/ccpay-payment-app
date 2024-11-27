@@ -37,10 +37,6 @@ public class FeesController {
     })
     @DeleteMapping(value = "/fees/{feeId}")
     public ResponseEntity<Boolean> deleteFee(@NotNull @PathVariable("feeId") String feeId) throws EmptyResultDataAccessException {
-        Optional<PaymentFee> paymentFee = feesService.getPaymentFee(Integer.parseInt(feeId));
-        if (paymentFee.isEmpty()) {
-            throw new EmptyResultDataAccessException("Fee not found", 1);
-        }
         feesService.deleteFee(Integer.parseInt(feeId));
         return new ResponseEntity<>(true, HttpStatus.NO_CONTENT);
     }
