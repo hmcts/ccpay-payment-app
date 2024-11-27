@@ -134,10 +134,6 @@ subprojects {
         }
     }
 
-    ext['tomcat.version'] = '10.1.31' // CVE-2023-46589, CVE-2023-42794, CVE-2023-28709
-    ext['netty.version'] = '4.1.114.Final' // CVE-2023-44487
-    ext['jackson.version'] = '2.18.0' // CVE-2021-46877, CVE-2022-42003, CVE-2022-42004, CVE-2020-36518
-
     dependencies {
         implementation ('com.sun.xml.bind:jaxb-osgi:4.0.5')
         testImplementation 'io.github.openfeign:feign-jackson:13.2.1'

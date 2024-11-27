@@ -29,9 +29,7 @@ public class FeeDtoTest {
         feeDto.setVolume(-1);
 
         Set<ConstraintViolation<FeeDto>> violations = validator.validate(feeDto);
-        Iterator<ConstraintViolation<FeeDto>> iterator = violations.iterator();
-        assertThat(StreamSupport.stream(violations.spliterator(), false)
-            .collect(Collectors.toList()))
+        assertThat(violations.stream().toList())
             .extracting(ConstraintViolation::getMessage)
             .contains("must be greater than 0");
     }
@@ -44,8 +42,7 @@ public class FeeDtoTest {
         Set<ConstraintViolation<FeeDto>> violations = validator.validate(feeDto);
 
         Iterator<ConstraintViolation<FeeDto>> iterator = violations.iterator();
-        assertThat(StreamSupport.stream(violations.spliterator(), false)
-            .collect(Collectors.toList()))
+        assertThat(violations.stream().toList())
             .extracting(ConstraintViolation::getMessage)
             .contains("must be greater than 0");
     }

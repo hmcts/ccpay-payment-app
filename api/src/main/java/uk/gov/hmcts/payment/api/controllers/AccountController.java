@@ -78,25 +78,30 @@ public class AccountController {
     @ExceptionHandler(HttpClientErrorException.class)
     public ResponseEntity<Object> returnAccountStatusError(HttpClientErrorException ex) {
 
-            Object responseBody;
+        Object responseBody;
 
-        HttpStatusCode statusCode = ex.getStatusCode();
-        if (statusCode.equals(GONE)) {
-            responseBody = AccountStatusError.accountStatusErrorWith()
-                .status(STATUS_DELETED)
-                .errorMessage(JSON_ERROR_MESSAGE_GONE)
-                .build();
-        } else if (statusCode.equals(PRECONDITION_FAILED)) {
-            responseBody = AccountStatusError.accountStatusErrorWith()
-                .status(STATUS_ON_HOLD)
-                .errorMessage(JSON_ERROR_MESSAGE_ON_HOLD)
-                .build();
-        } else if (statusCode.equals(NOT_FOUND)) {
-            responseBody = "Account not found";
-        } else {
-            throw ex;
+        switch (ex.getStatusCode()) {
+            case GONE:
+                responseBody = AccountStatusError.accountStatusErrorWith()
+                    .status(STATUS_DELETED)
+                    .errorMessage(JSON_ERROR_MESSAGE_GONE)
+                    .build();
+                break;
+            case PRECONDITION_FAILED:
+                responseBody = AccountStatusError.accountStatusErrorWith()
+                    .status(STATUS_ON_HOLD)
+                    .errorMessage(JSON_ERROR_MESSAGE_ON_HOLD)
+                    .build();
+                break;
+
+            case NOT_FOUND:
+                responseBody = "Account not found";
+                break;
+
+            default:
+                throw ex;
         }
-            return ResponseEntity.status(ex.getStatusCode()).body(responseBody);
+        return ResponseEntity.status(ex.getStatusCode()).body(responseBody);
     }
 
     @ResponseStatus(NOT_FOUND)
