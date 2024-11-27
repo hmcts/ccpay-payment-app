@@ -2,6 +2,10 @@ plugins {
     id 'java-library'
 }
 
+test {
+    useJUnitPlatform()
+}
+
 description = ''
 dependencies {
     implementation project(':payment-gov-pay-client')
