@@ -31,11 +31,14 @@ public class GovPayClientTest {
 
     @Before
     public void setUp() throws Exception {
-        CloseableHttpClient httpClient = HttpClients.createDefault();
+        CloseableHttpClient minimalHttpClient = HttpClients.custom()
+            .disableCookieManagement()
+            .disableAuthCaching()
+            .build();
 
         client = new GovPayClient(
             "http://localhost:" + wireMockRule.port(),
-            httpClient,
+            minimalHttpClient,
             new ObjectMapper(),
             new GovPayErrorTranslator(new ObjectMapper())
         );

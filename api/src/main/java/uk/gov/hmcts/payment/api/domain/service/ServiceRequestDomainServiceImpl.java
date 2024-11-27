@@ -316,7 +316,6 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         LOG.info("PBA Old Config Service Names : {}", pbaConfig1ServiceNames);
         Boolean isPBAConfig1Journey = pbaConfig1ServiceNames.contains(serviceRequest.getEnterpriseServiceName());
 
-
         if (!isPBAConfig1Journey) {
             LOG.info("Checking with Liberata for Service : {}", serviceRequest.getEnterpriseServiceName());
             AccountDto accountDetails;
