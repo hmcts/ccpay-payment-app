@@ -24,12 +24,13 @@ public class Payment2RepositoryTest {
 
     private Date fromDate;
     private Date toDate;
-    private PaymentChannel telephonyChannel = PaymentChannel.TELEPHONY;
+    private PaymentChannel telephonyChannel;
 
     @BeforeEach
     public void setUp() {
         fromDate = new Date(System.currentTimeMillis() - 1000 * 60 * 60 * 24);
         toDate = new Date();
+        telephonyChannel = PaymentChannel.TELEPHONY;
     }
 
     @Test
