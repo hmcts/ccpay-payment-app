@@ -1,16 +1,13 @@
 package uk.gov.hmcts.payment.api.contract;
 
-import org.junit.Before;
-import org.junit.Test;
-
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
-import java.util.Iterator;
+import org.junit.Before;
+import org.junit.Test;
+
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -41,7 +38,6 @@ public class FeeDtoTest {
 
         Set<ConstraintViolation<FeeDto>> violations = validator.validate(feeDto);
 
-        Iterator<ConstraintViolation<FeeDto>> iterator = violations.iterator();
         assertThat(violations.stream().toList())
             .extracting(ConstraintViolation::getMessage)
             .contains("must be greater than 0");

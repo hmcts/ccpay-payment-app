@@ -717,7 +717,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
         Feature feature = ff4j.getFeature("payment-search");
         assertThat(feature.getUid()).isEqualTo("payment-search");
-        assertThat(feature.isEnable()).isEqualTo(false);
+        assertThat(feature.isEnable()).isFalse();
         assertThat(feature.getDescription()).isEqualTo("Payments search API");
 
         // Leave the feature flag in the enabled state

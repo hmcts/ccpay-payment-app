@@ -16,17 +16,17 @@ import org.springframework.web.client.RestTemplate;
 @Configuration
 public class RestTemplateConfiguration {
 
-    @Value("${iac.connect.timeout}")
-    private String iacConnectTimeout;
+    @Value("${iac.connect.timeout:5000}")
+    private int iacConnectTimeout;
 
-    @Value("${iac.read.timeout}")
-    private String iacReadTimeout;
+    @Value("${iac.read.timeout:5000}")
+    private int iacReadTimeout;
 
     @Value("${liberata.connect.timeout:10000}")
-    private String liberataConnectTimeout;
+    private int liberataConnectTimeout;
 
     @Value("${liberata.read.timeout:10000}")
-    private String liberataReadTimeout;
+    private int liberataReadTimeout;
 
     @Bean(name = {"serviceTokenParserHttpClient", "userTokenParserHttpClient"})
     public CloseableHttpClient paymentsHttpClient() {
@@ -42,17 +42,7 @@ public class RestTemplateConfiguration {
 
     @Bean (value = "restTemplateLiberata")
     public RestTemplate restTemplateLiberata() {
-        int readTimeout = Integer.parseInt(liberataReadTimeout);
-        int connectTimeout = Integer.parseInt(liberataConnectTimeout);
-
-        PoolingHttpClientConnectionManager connectionManager = setupConnectionManager(readTimeout, connectTimeout);
-
-        CloseableHttpClient httpClient = HttpClients.custom()
-            .setConnectionManager(connectionManager)
-            .build();
-
-        HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
-        return new RestTemplate(factory);
+        return createRestTemplate(liberataReadTimeout, liberataConnectTimeout);
     }
 
     @Bean (value = "restTemplateRefundsGroup")
@@ -62,17 +52,7 @@ public class RestTemplateConfiguration {
 
     @Bean (value = "restTemplateIacSupplementaryInfo")
     public RestTemplate restTemplateIacSupplementaryInfo() {
-        int readTimeout = Integer.parseInt(iacReadTimeout);
-        int connectTimeout = Integer.parseInt(iacConnectTimeout);
-
-        PoolingHttpClientConnectionManager connectionManager = setupConnectionManager(readTimeout, connectTimeout);
-
-        CloseableHttpClient httpClient = HttpClients.custom()
-            .setConnectionManager(connectionManager)
-            .build();
-
-        HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
-        return new RestTemplate(factory);
+        return createRestTemplate(iacReadTimeout, iacConnectTimeout);
     }
 
     @Bean("restTemplateIdam")
@@ -84,6 +64,7 @@ public class RestTemplateConfiguration {
     public RestTemplate restTemplateRefData() {
         return  new RestTemplate(new HttpComponentsClientHttpRequestFactory());
     }
+
     @Bean("restTemplateRefundCancel")
     public RestTemplate restTemplateRefundCancel() {
         return  new RestTemplate(new HttpComponentsClientHttpRequestFactory());
@@ -94,8 +75,8 @@ public class RestTemplateConfiguration {
         return new RestTemplate(new HttpComponentsClientHttpRequestFactory());
     }
 
-    private PoolingHttpClientConnectionManager setupConnectionManager(int readTimeout, int connectTimeout) {
-        return PoolingHttpClientConnectionManagerBuilder.create()
+    private RestTemplate createRestTemplate(int readTimeout, int connectTimeout) {
+        PoolingHttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
             .setDefaultSocketConfig(SocketConfig.custom()
                 .setSoTimeout(Timeout.ofMilliseconds(readTimeout))
                 .build())
@@ -104,5 +85,12 @@ public class RestTemplateConfiguration {
                 .setConnectTimeout(Timeout.ofMilliseconds(connectTimeout))
                 .build())
             .build();
+
+        CloseableHttpClient httpClient = HttpClients.custom()
+            .setConnectionManager(connectionManager)
+            .build();
+
+        HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
+        return new RestTemplate(factory);
     }
 }

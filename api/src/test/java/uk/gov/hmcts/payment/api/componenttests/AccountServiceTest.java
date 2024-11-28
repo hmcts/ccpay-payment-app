@@ -29,7 +29,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(SpringExtension.class)
 @ActiveProfiles({"local", "componenttest"})
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
-public class AccountServiceTest {
+class AccountServiceTest {
 
     @Mock
     private RestTemplate restTemplate;
@@ -49,7 +49,7 @@ public class AccountServiceTest {
         .build();
 
     @Test
-    public void retrieveExistingAccountReturnsAccountDto() throws Exception {
+    void retrieveExistingAccountReturnsAccountDto() throws Exception {
         String pbaCode = "PBA1234";
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth("accessToken");
@@ -63,7 +63,7 @@ public class AccountServiceTest {
     }
 
     @Test
-    public void retrieveMockAccountReturnsAccountDto() throws Exception {
+    void retrieveMockAccountReturnsAccountDto() throws Exception {
         String pbaCode = "PBAFUNC12345";
         AccountDto expectedDto = new AccountDto(pbaCode, "CAERPHILLY COUNTY BOROUGH COUNCIL", new BigDecimal(28879),
             new BigDecimal(30000), AccountStatus.ACTIVE, null);
