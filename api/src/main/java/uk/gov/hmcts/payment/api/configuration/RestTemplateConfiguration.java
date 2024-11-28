@@ -42,19 +42,10 @@ public class RestTemplateConfiguration {
 
     @Bean (value = "restTemplateLiberata")
     public RestTemplate restTemplateLiberata() {
-        int connectTimeout = Integer.parseInt(liberataConnectTimeout);
         int readTimeout = Integer.parseInt(liberataReadTimeout);
+        int connectTimeout = Integer.parseInt(liberataConnectTimeout);
 
-        PoolingHttpClientConnectionManager connectionManager =
-            PoolingHttpClientConnectionManagerBuilder.create()
-                .setDefaultSocketConfig(SocketConfig.custom()
-                    .setSoTimeout(Timeout.ofMilliseconds(readTimeout))
-                    .build())
-                .setDefaultConnectionConfig(ConnectionConfig.custom()
-                    .setSocketTimeout(Timeout.ofMilliseconds(readTimeout))
-                    .setConnectTimeout(Timeout.ofMilliseconds(connectTimeout))
-                    .build())
-                .build();
+        PoolingHttpClientConnectionManager connectionManager = setupConnectionManager(readTimeout, connectTimeout);
 
         CloseableHttpClient httpClient = HttpClients.custom()
             .setConnectionManager(connectionManager)
@@ -71,19 +62,10 @@ public class RestTemplateConfiguration {
 
     @Bean (value = "restTemplateIacSupplementaryInfo")
     public RestTemplate restTemplateIacSupplementaryInfo() {
-        int connectTimeout = Integer.parseInt(iacConnectTimeout);
         int readTimeout = Integer.parseInt(iacReadTimeout);
+        int connectTimeout = Integer.parseInt(iacConnectTimeout);
 
-        PoolingHttpClientConnectionManager connectionManager =
-            PoolingHttpClientConnectionManagerBuilder.create()
-                .setDefaultSocketConfig(SocketConfig.custom()
-                    .setSoTimeout(Timeout.ofMilliseconds(readTimeout))
-                    .build())
-                .setDefaultConnectionConfig(ConnectionConfig.custom()
-                    .setSocketTimeout(Timeout.ofMilliseconds(readTimeout))
-                    .setConnectTimeout(Timeout.ofMilliseconds(connectTimeout))
-                    .build())
-                .build();
+        PoolingHttpClientConnectionManager connectionManager = setupConnectionManager(readTimeout, connectTimeout);
 
         CloseableHttpClient httpClient = HttpClients.custom()
             .setConnectionManager(connectionManager)
@@ -109,6 +91,18 @@ public class RestTemplateConfiguration {
 
     @Bean("restTemplateGetRefund")
     public RestTemplate restTemplateGetRefund() {
-        return  new RestTemplate(new HttpComponentsClientHttpRequestFactory());
+        return new RestTemplate(new HttpComponentsClientHttpRequestFactory());
+    }
+
+    private PoolingHttpClientConnectionManager setupConnectionManager(int readTimeout, int connectTimeout) {
+        return PoolingHttpClientConnectionManagerBuilder.create()
+            .setDefaultSocketConfig(SocketConfig.custom()
+                .setSoTimeout(Timeout.ofMilliseconds(readTimeout))
+                .build())
+            .setDefaultConnectionConfig(ConnectionConfig.custom()
+                .setSocketTimeout(Timeout.ofMilliseconds(readTimeout))
+                .setConnectTimeout(Timeout.ofMilliseconds(connectTimeout))
+                .build())
+            .build();
     }
 }
