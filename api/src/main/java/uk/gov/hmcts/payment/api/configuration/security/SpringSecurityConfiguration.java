@@ -35,6 +35,7 @@ public class SpringSecurityConfiguration {
     private static final String CASE_MANAGER_ROLE = "pui-case-manager";
     private static final String AUTHORISED_REFUNDS_ROLE = "payments-refund";
     private static final String AUTHORISED_REFUNDS_APPROVER_ROLE = "payments-refund-approver";
+    private static final String PAYMENT_FAILURES_API = "/payment-failures/**";
 
     @Configuration
     @Order(1)
@@ -129,7 +130,7 @@ public class SpringSecurityConfiguration {
                 .antMatchers(HttpMethod.POST, "/card-payments").hasAnyAuthority(PAYMENTS_ROLE, CITIZEN_ROLE)
                 .antMatchers(HttpMethod.POST, "/card-payments/*/cancel").hasAnyAuthority(PAYMENTS_ROLE, CITIZEN_ROLE)
                 .antMatchers(HttpMethod.GET, "/card-payments/*/details").hasAnyAuthority(PAYMENTS_ROLE, CITIZEN_ROLE)
-                .antMatchers(HttpMethod.GET, "/pba-accounts/*/payments").hasAnyAuthority(PAYMENTS_ROLE,"pui-finance-manager","caseworker-cmc-solicitor", "caseworker-publiclaw-solicitor", "caseworker-probate-solicitor", "caseworker-financialremedy-solicitor", "caseworker-divorce-solicitor")
+                .antMatchers(HttpMethod.GET, "/pba-accounts/*/payments").hasAnyAuthority(PAYMENTS_ROLE,FINANCE_MANAGER_ROLE,"caseworker-cmc-solicitor", "caseworker-publiclaw-solicitor", "caseworker-probate-solicitor", "caseworker-financialremedy-solicitor", "caseworker-divorce-solicitor")
                 .antMatchers(HttpMethod.GET, "/card-payments/*/status").hasAnyAuthority(PAYMENTS_ROLE, CITIZEN_ROLE)
                 .antMatchers(HttpMethod.POST,"/refund-for-payment").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE)
                 .antMatchers(HttpMethod.POST,"/refund-retro-remission").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE)
@@ -137,9 +138,9 @@ public class SpringSecurityConfiguration {
                 .antMatchers(HttpMethod.GET, "/reference-data/**").permitAll()
                 .antMatchers(HttpMethod.GET, "/case-payment-orders**").permitAll()
                 .antMatchers(HttpMethod.POST, "/api/**").permitAll()
-                .antMatchers(HttpMethod.POST, "/payment-failures/**").permitAll()
-                .antMatchers(HttpMethod.GET, "/payment-failures/**").hasAuthority(PAYMENTS_ROLE)
-                .antMatchers(HttpMethod.PATCH, "/payment-failures/**").permitAll()
+                .antMatchers(HttpMethod.POST, PAYMENT_FAILURES_API).permitAll()
+                .antMatchers(HttpMethod.GET, PAYMENT_FAILURES_API).hasAuthority(PAYMENTS_ROLE)
+                .antMatchers(HttpMethod.PATCH, PAYMENT_FAILURES_API).permitAll()
                 .anyRequest().authenticated();
         }
     }

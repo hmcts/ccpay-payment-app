@@ -5,8 +5,6 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Repository;
 import uk.gov.hmcts.fees2.register.api.contract.Fee2Dto;
 
-import javax.transaction.Transactional;
-
 import java.util.Map;
 import java.util.Optional;
 
