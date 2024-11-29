@@ -237,28 +237,28 @@ public class CardPaymentController implements ApplicationContextAware {
         @ApiResponse(responseCode = "500", description = "Downstream system error")
     })
     @PostMapping(value = "/card-payments/{reference}/cancel")
-    public ResponseEntity cancelPayment(@PathVariable("reference") String paymentReference) {
+    public ResponseEntity<Void> cancelPayment(@PathVariable("reference") String paymentReference) {
         if (!ff4j.check("payment-cancel")) {
             throw new PaymentException("Payment cancel feature is not available for usage.");
         }
         delegatingPaymentService.cancel(paymentReference);
-        return new ResponseEntity(NO_CONTENT);
+        return new ResponseEntity<>(NO_CONTENT);
     }
 
     @ExceptionHandler(value = {GovPayCancellationFailedException.class})
-    public ResponseEntity cancellationFailedException(GovPayCancellationFailedException ex) {
-        return new ResponseEntity(BAD_REQUEST);
+    public ResponseEntity<Void> cancellationFailedException(GovPayCancellationFailedException ex) {
+        return new ResponseEntity<>(BAD_REQUEST);
     }
 
     @ExceptionHandler(value = {GovPayPaymentNotFoundException.class, PaymentNotFoundException.class})
-    public ResponseEntity httpClientErrorException() {
-        return new ResponseEntity(NOT_FOUND);
+    public ResponseEntity<Void> httpClientErrorException() {
+        return new ResponseEntity<>(NOT_FOUND);
     }
 
     @ExceptionHandler(value = {GovPayException.class})
-    public ResponseEntity httpClientErrorException(GovPayException e) {
+    public ResponseEntity<Void> httpClientErrorException(GovPayException e) {
         LOG.error("Error while calling payments", e);
-        return new ResponseEntity(INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(INTERNAL_SERVER_ERROR);
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
