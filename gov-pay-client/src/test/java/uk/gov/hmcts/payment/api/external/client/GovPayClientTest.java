@@ -36,7 +36,7 @@ public class GovPayClientTest {
             new ObjectMapper(),
             new GovPayErrorTranslator(new ObjectMapper())
         );
-        MockitoAnnotations.initMocks(this);
+        MockitoAnnotations.openMocks(this);
     }
 
     @Test

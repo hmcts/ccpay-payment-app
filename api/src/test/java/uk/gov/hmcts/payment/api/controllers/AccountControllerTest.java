@@ -1,7 +1,6 @@
 package uk.gov.hmcts.payment.api.controllers;
 
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
-import org.checkerframework.checker.units.qual.A;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -108,7 +107,7 @@ public class AccountControllerTest {
     public void getLiberataServiceInaccessibleException() {
 
         //For Same account return Auth exception
-        when(accountServiceMock.retrieve(eq("PBA4324"))).thenThrow(OAuth2AccessDeniedException.class);
+        when(accountServiceMock.retrieve("PBA4324")).thenThrow(OAuth2AccessDeniedException.class);
 
         //For Any other account return account object
         when(accountServiceMock.retrieve(not(eq("PBA4324")))).thenReturn(expectedDto);
