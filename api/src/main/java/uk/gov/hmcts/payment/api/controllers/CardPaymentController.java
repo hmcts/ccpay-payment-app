@@ -52,15 +52,11 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.NoServiceFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
-import static org.springframework.http.HttpStatus.NO_CONTENT;
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 
@@ -242,23 +238,23 @@ public class CardPaymentController implements ApplicationContextAware {
             throw new PaymentException("Payment cancel feature is not available for usage.");
         }
         delegatingPaymentService.cancel(paymentReference);
-        return new ResponseEntity(NO_CONTENT);
+        return ResponseEntity.noContent().build();
     }
 
     @ExceptionHandler(value = {GovPayCancellationFailedException.class})
     public ResponseEntity cancellationFailedException(GovPayCancellationFailedException ex) {
-        return new ResponseEntity(BAD_REQUEST);
+        return ResponseEntity.badRequest().build();
     }
 
     @ExceptionHandler(value = {GovPayPaymentNotFoundException.class, PaymentNotFoundException.class})
     public ResponseEntity httpClientErrorException() {
-        return new ResponseEntity(NOT_FOUND);
+        return ResponseEntity.notFound().build();
     }
 
     @ExceptionHandler(value = {GovPayException.class})
     public ResponseEntity httpClientErrorException(GovPayException e) {
         LOG.error("Error while calling payments", e);
-        return new ResponseEntity(INTERNAL_SERVER_ERROR);
+        return ResponseEntity.internalServerError().build();
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)

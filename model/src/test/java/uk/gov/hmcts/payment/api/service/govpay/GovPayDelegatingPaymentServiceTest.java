@@ -81,7 +81,7 @@ public class GovPayDelegatingPaymentServiceTest {
 
         assertNotNull(govPayPayment);
         assertNotNull(govPayPayment2);
-        assertEquals(govPayPayment.getAmount(), new Integer(10000));
+        assertEquals(govPayPayment.getAmount(), Integer.valueOf(10000));
         assertEquals(govPayPayment.getState().getStatus(), "created");
     }
 

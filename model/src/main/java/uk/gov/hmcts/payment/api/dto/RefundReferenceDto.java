@@ -2,7 +2,7 @@ package uk.gov.hmcts.payment.api.dto;
 
 import lombok.*;
 
-import javax.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotEmpty;
 
 @Builder(builderMethodName = "refundReferenceDtoWith")
 @AllArgsConstructor

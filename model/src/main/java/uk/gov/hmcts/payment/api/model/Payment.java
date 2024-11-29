@@ -7,7 +7,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import uk.gov.hmcts.payment.api.jpaaudit.listner.Auditable;
 import uk.gov.hmcts.payment.api.jpaaudit.listner.PaymentEntityListener;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;

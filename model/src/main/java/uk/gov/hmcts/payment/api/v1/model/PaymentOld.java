@@ -1,7 +1,7 @@
 package uk.gov.hmcts.payment.api.v1.model;
 
 import java.util.Date;
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

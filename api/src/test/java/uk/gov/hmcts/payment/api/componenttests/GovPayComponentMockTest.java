@@ -117,7 +117,7 @@ public class GovPayComponentMockTest {
         assertEquals(govPayPayment.getState().getStatus(), "Created");
         assertEquals(govPayPayment.getPaymentId(), "ak8gtvb438drmp59cs7ijppr3i");
         assertEquals(govPayPayment.getDescription(), "New passport application");
-        assertEquals(govPayPayment.getAmount(), new Integer(10189));
+        assertEquals(govPayPayment.getAmount(), Integer.valueOf(10189));
     }
 
     @Test
@@ -136,7 +136,7 @@ public class GovPayComponentMockTest {
 
         GovPayPayment govPayPayment = response.getBody();
         assertNotNull(govPayPayment);
-        assertEquals(govPayPayment.getAmount(), new Integer(1199));
+        assertEquals(govPayPayment.getAmount(), Integer.valueOf(1199));
         assertEquals(govPayPayment.getReference(), reference);
         assertEquals(govPayPayment.getState().getStatus(), "Success");
     }

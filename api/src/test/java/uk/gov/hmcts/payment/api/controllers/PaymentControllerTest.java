@@ -2,7 +2,8 @@ package uk.gov.hmcts.payment.api.controllers;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.ff4j.services.domain.FeatureApiBean;
+import org.ff4j.FF4j;
+import org.ff4j.core.Feature;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormat;
@@ -47,7 +48,6 @@ import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -66,7 +66,6 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
-import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "componenttest", "mockcallbackservice"})
@@ -98,6 +97,8 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     private ObjectMapper objectMapper;
     @MockBean
     private LaunchDarklyFeatureToggler featureToggler;
+    @Autowired
+    private FF4j ff4j;
 
     protected CustomResultMatcher body() {
         return new CustomResultMatcher(objectMapper);
@@ -134,7 +135,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .build();
         PaymentFee fee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").build();
 
-        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-15186168000").payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        PaymentFeeLink paymentFeeLink = db.create(PaymentFeeLink.paymentFeeLinkWith().paymentReference("2018-15186168000").payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);
         Payment savedPayment = paymentFeeLink.getPayments().get(0);
 
@@ -175,7 +176,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .build();
         PaymentFee fee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").build();
 
-        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-15186168000").payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        PaymentFeeLink paymentFeeLink = db.create(PaymentFeeLink.paymentFeeLinkWith().paymentReference("2018-15186168000").payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);
         Payment savedPayment = paymentFeeLink.getPayments().get(0);
 
@@ -217,7 +218,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .build();
         PaymentFee fee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").build();
 
-        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-15186168000").payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        PaymentFeeLink paymentFeeLink = db.create(PaymentFeeLink.paymentFeeLinkWith().paymentReference("2018-15186168000").payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);
         Payment savedPayment = paymentFeeLink.getPayments().get(0);
 
@@ -270,7 +271,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .build();
         PaymentFee fee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").build();
 
-        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-15186168000").payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        PaymentFeeLink paymentFeeLink = db.create(PaymentFeeLink.paymentFeeLinkWith().paymentReference("2018-15186168000").payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);
         Payment savedPayment = paymentFeeLink.getPayments().get(0);
 
@@ -385,10 +386,9 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
         assertThat(payment.getCcdCaseNumber()).isEqualTo("ccdCaseNumber1");
 
-        assertThat(payment.getReference()).isNotBlank();
+        assertThat(payment.getPaymentReference()).isEqualTo("RC-1519-9028-2432-0001");
         assertThat(payment.getAmount()).isPositive();
         assertThat(payment.getDateCreated()).isNotNull();
-        assertThat(payment.getCustomerReference()).isNotBlank();
     }
 
     @Test
@@ -683,14 +683,8 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
     @Test
     public void testFindFeatureFlag_withCorrectUID() throws Exception {
-        MvcResult result = restActions
-            .get("/api/ff4j/store/features/payment-search")
-            .andExpect(status().isOk())
-            .andReturn();
-
-        FeatureApiBean feature = objectMapper.readValue(result.getResponse().getContentAsByteArray(), FeatureApiBean.class);
+        Feature feature = ff4j.getFeature("payment-search");
         assertThat(feature.getUid()).isEqualTo("payment-search");
-        assertThat(feature.getEnable()).isEqualTo(true);
         assertThat(feature.getDescription()).isEqualTo("Payments search API");
     }
 
@@ -708,15 +702,28 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .post("/api/ff4j/store/features/payment-search/enable")
             .andExpect(status().isAccepted());
 
-        MvcResult result = restActions
-            .get("/api/ff4j/store/features/payment-search")
-            .andExpect(status().isOk())
-            .andReturn();
-
-        FeatureApiBean feature = objectMapper.readValue(result.getResponse().getContentAsByteArray(), FeatureApiBean.class);
+        Feature feature = ff4j.getFeature("payment-search");
         assertThat(feature.getUid()).isEqualTo("payment-search");
-        assertThat(feature.getEnable()).isEqualTo(true);
+        assertThat(feature.isEnable()).isEqualTo(true);
         assertThat(feature.getDescription()).isEqualTo("Payments search API");
+    }
+
+    @Test
+    @Transactional
+    public void testDisableFeatureFlag_withCorrectUID() throws Exception {
+        restActions
+            .post("/api/ff4j/store/features/payment-search/disable")
+            .andExpect(status().isAccepted());
+
+        Feature feature = ff4j.getFeature("payment-search");
+        assertThat(feature.getUid()).isEqualTo("payment-search");
+        assertThat(feature.isEnable()).isFalse();
+        assertThat(feature.getDescription()).isEqualTo("Payments search API");
+
+        // Leave the feature flag in the enabled state
+        restActions
+            .post("/api/ff4j/store/features/payment-search/enable")
+            .andExpect(status().isAccepted());
     }
 
     @Test

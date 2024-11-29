@@ -3,7 +3,7 @@ package uk.gov.hmcts.payment.api.service;
 import com.google.common.collect.ImmutableMap;
 import net.logstash.logback.argument.StructuredArguments;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
-import org.apache.http.MethodNotSupportedException;
+import org.apache.hc.core5.http.MethodNotSupportedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
