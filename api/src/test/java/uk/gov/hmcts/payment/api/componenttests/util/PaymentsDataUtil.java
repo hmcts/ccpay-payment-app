@@ -114,7 +114,6 @@ public class PaymentsDataUtil {
             .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
             .paymentProvider(PaymentProvider.paymentProviderWith().name("gov pay").build())
             .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
-            .customerReference("customerRef" + number)
             .externalReference("e2kkddts5215h9qqoeuth5c0v" + number)
             .reference("RC-1519-9028-2432-000" + number)
             .statusHistories(Arrays.asList(statusHistory))

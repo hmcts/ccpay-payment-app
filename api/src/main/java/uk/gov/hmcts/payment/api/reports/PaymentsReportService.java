@@ -16,7 +16,7 @@ import uk.gov.hmcts.payment.api.reports.config.PaymentReportConfig;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 
-import jakarta.persistence.Tuple;
+import javax.persistence.Tuple;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;

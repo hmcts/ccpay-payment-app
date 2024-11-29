@@ -6,12 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -19,13 +14,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.dto.IacSupplementaryRequest;
-import uk.gov.hmcts.payment.api.dto.LiberataSupplementaryDetails;
-import uk.gov.hmcts.payment.api.dto.LiberataSupplementaryInfo;
-import uk.gov.hmcts.payment.api.dto.MissingSupplementaryInfo;
-import uk.gov.hmcts.payment.api.dto.SupplementaryDetailsResponse;
-import uk.gov.hmcts.payment.api.dto.SupplementaryInfo;
-import uk.gov.hmcts.payment.api.dto.SupplementaryPaymentDto;
+import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
@@ -53,7 +42,7 @@ public class IacServiceImpl implements IacService {
 
     @Override
     public ResponseEntity<SupplementaryPaymentDto> getIacSupplementaryInfo(List<PaymentDto> paymentDtos, String serviceName) {
-       HttpStatusCode paymentResponseHttpStatus = HttpStatus.OK;
+       HttpStatus paymentResponseHttpStatus = HttpStatus.OK;
         boolean isExceptionOccur = false;
 
         List<PaymentDto> iacPayments = getIacPayments(serviceName, paymentDtos);

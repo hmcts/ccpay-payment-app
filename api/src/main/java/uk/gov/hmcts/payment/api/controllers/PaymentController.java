@@ -117,10 +117,10 @@ public class PaymentController {
 
             serviceRequestCaseUtil.updateServiceRequestCaseDetails(payment.get().getPaymentLink(), payment.get());
 
-            return ResponseEntity.noContent().build();
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
 
-        return ResponseEntity.notFound().build();
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     /*
@@ -136,7 +136,7 @@ public class PaymentController {
         updatePaymentsForCCDCaseNumberByCertainDays(@PathVariable("ccd_case_number")
                                                         final String ccd_case_number, @PathVariable("lag_time") final String lag_time) {
         paymentService.updatePaymentsForCCDCaseNumberByCertainDays(ccd_case_number, lag_time);
-        return ResponseEntity.noContent().build();
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @Operation(summary = "Get payments for between dates", description = "Get list of payments. You can optionally provide start date and end dates which can include times as well. Following are the supported date/time formats. These are yyyy-MM-dd, dd-MM-yyyy," +
@@ -237,10 +237,10 @@ public class PaymentController {
             if (payment.get().getServiceCallbackUrl() != null) {
                 callbackService.callback(payment.get().getPaymentLink(), payment.get());
             }
-            return ResponseEntity.noContent().build();
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
 
-        return ResponseEntity.notFound().build();
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     @Operation(summary = "Get payment details by payment reference", description = "Get payment details for supplied payment reference")

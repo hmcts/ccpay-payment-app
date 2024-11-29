@@ -56,7 +56,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
-import jakarta.persistence.Tuple;
+import javax.persistence.Tuple;
 import java.util.Optional;
 
 
@@ -136,7 +136,7 @@ public class PaymentStatusUpdateServiceImplTest {
             eq(HttpMethod.PATCH),
             any(HttpEntity.class),
             eq(String.class), any(Map.class)))
-            .thenReturn(ResponseEntity.ok().build());
+            .thenReturn(new ResponseEntity(HttpStatus.OK));
         boolean cancelRefund = paymentStatusUpdateServiceImpl.cancelFailurePaymentRefund(paymentStatusBouncedChequeDto.getPaymentReference());
 
         assertTrue(cancelRefund);
@@ -185,7 +185,7 @@ public class PaymentStatusUpdateServiceImplTest {
             eq(HttpMethod.PATCH),
             any(HttpEntity.class),
             eq(String.class), any(Map.class)))
-            .thenReturn(ResponseEntity.ok().build());
+            .thenReturn(new ResponseEntity(HttpStatus.OK));
         boolean cancelRefund = paymentStatusUpdateServiceImpl.cancelFailurePaymentRefund(paymentStatusChargebackDto.getPaymentReference());
 
         assertTrue(cancelRefund);
@@ -526,7 +526,7 @@ public class PaymentStatusUpdateServiceImplTest {
             new CustomTupleForTelephonyPaymentsReport("Service2", "CCD456", "PAY456", "FEE002", new Date(), new BigDecimal("200.00"), "Failed")
         );
 
-        when(paymentRepository.findAllByDateCreatedBetweenAndPaymentChannel(startDate, endDate, PaymentChannel.TELEPHONY.getName()))
+        when(paymentRepository.findAllByDateCreatedBetweenAndPaymentChannel(startDate, endDate, PaymentChannel.TELEPHONY))
            .thenReturn(telephonyPaymentsList);
 
         List<TelephonyPaymentsReportDto> actualReport = paymentStatusUpdateServiceImpl.telephonyPaymentsReport(startDate, endDate, headers);
@@ -534,7 +534,7 @@ public class PaymentStatusUpdateServiceImplTest {
         assertEquals(2, actualReport.size());
         assertEquals("Service1", actualReport.get(0).getServiceName());
         assertEquals("Service2", actualReport.get(1).getServiceName());
-        verify(paymentRepository, times(1)).findAllByDateCreatedBetweenAndPaymentChannel(startDate, endDate, PaymentChannel.TELEPHONY.getName());
+        verify(paymentRepository, times(1)).findAllByDateCreatedBetweenAndPaymentChannel(startDate, endDate, PaymentChannel.TELEPHONY);
     }
 
     @Test

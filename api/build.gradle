@@ -2,6 +2,7 @@ buildscript {
     repositories {
         mavenLocal()
         mavenCentral()
+        jcenter()
     }
     dependencies {
         classpath("net.serenity-bdd:serenity-gradle-plugin:2.5.10")
@@ -71,9 +72,9 @@ def versions = [
         sonarPitest     : '0.5',
         lombok          : '1.18.32',
         pact_version    : '4.1.7',
-        reformS2sClient : '5.2.0',
-        serenity        : '4.2.9',
-        serenityCucumber: '4.2.9',
+        reformS2sClient : '3.1.4',
+        serenity        : '2.6.0',
+        serenityCucumber: '3.0.1',
 ]
 
 def javaLoggingVersion = '6.1.4'
@@ -86,26 +87,24 @@ dependencies {
     implementation project(':case-payment-orders-client')
     implementation group: 'com.github.hmcts.java-logging', name: 'logging', version: javaLoggingVersion
     implementation group: 'com.github.hmcts.java-logging', name: 'logging-appinsights', version: javaLoggingVersion
-    implementation group: 'com.github.hmcts', name: 'auth-checker-lib', version: '3.0.0'
-    implementation (group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: versions.reformS2sClient) {
-        exclude group: 'org.apache.httpcomponents', module: 'httpclient'
-    }
+    implementation group: 'com.github.hmcts', name: 'auth-checker-lib', version: '2.1.5'
+    implementation group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: versions.reformS2sClient
     implementation group: 'org.springframework.boot', name: 'spring-boot-autoconfigure'
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web'
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security'
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa'
+    implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-netflix-hystrix', version: '2.2.10.RELEASE'
     implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.14.0'
     implementation group: 'net.logstash.logback', name: 'logstash-logback-encoder', version: '8.0'
     implementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.5.7'
     implementation group: 'ch.qos.logback', name: 'logback-core', version: '1.5.7'
     implementation group: 'xerces', name: 'xercesImpl', version: '2.12.2'
-    implementation group: 'org.apache.httpcomponents.client5', name: 'httpclient5', version: '5.2'
+    implementation group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.14'
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.17.0'
-    implementation group: 'org.springdoc', name: 'springdoc-openapi-starter-webmvc-ui', version: '2.6.0'
-    implementation (group: 'org.liquibase', name: 'liquibase-core', version: '4.29.2') {
-        exclude group: 'javax.xml.bind', module: 'jaxb-api'
-    }
+    implementation group: 'org.springdoc', name: 'springdoc-openapi-ui', version: '1.8.0'
+    implementation group: 'org.springdoc', name: 'springdoc-openapi-webmvc-core', version: '1.8.0'
+    implementation 'org.liquibase:liquibase-core'
     implementation(group: 'com.microsoft.azure', name: 'azure-servicebus-spring-boot-starter', version: '2.2.5') {
         exclude(module: 'adal4j')
         exclude(module: 'azure-core-http-netty')
@@ -116,13 +115,14 @@ dependencies {
     }
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-cache'
     implementation group: 'com.github.ben-manes.caffeine', name: 'caffeine', version: '3.1.8'
+    implementation "io.github.openfeign:feign-httpclient:13.2.1"
     implementation group: 'io.github.openfeign', name: 'feign-core', version: '13.2.1'
-    implementation group: 'io.github.resilience4j', name:'resilience4j-spring-boot3', version:'2.0.2'
     implementation group: 'org.springframework.cloud', name: 'spring-cloud-openfeign-core'
-    implementation group: 'org.ff4j', name: 'ff4j-spring-boot-starter-webmvc', version: '2.1'
+    implementation group: 'org.ff4j', name: 'ff4j-spring-boot-web-api', version: '1.9'
+    implementation group: 'org.ff4j', name: 'ff4j-web', version: '2.0.0'
     implementation group: 'commons-fileupload', name: 'commons-fileupload', version: '1.5'
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-thymeleaf'
-    implementation(group: 'org.postgresql', name: 'postgresql', version: '42.7.4') {
+    implementation(group: 'org.postgresql', name: 'postgresql', version: '42.7.3') {
         exclude(module: 'commons-logging')
         exclude(module: 'slf4j-simple')
     }
@@ -131,18 +131,13 @@ dependencies {
     implementation group: 'org.springframework.retry', name: 'spring-retry'
     implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign'
 
-    implementation (group: 'com.github.hmcts.ccfr-fees-register-app', name: 'fees-register-api-contract', version: '2.4.0') {
-        exclude group: 'javax.xml.stream', module: 'stax-api'
-        exclude group: 'javax.xml.bind', module: 'jaxb-api'
-        exclude group: 'org.springdoc', module: 'springdoc-openapi-webmvc-core'
-        exclude group: 'org.springdoc', module: 'springdoc-openapi-ui'
-    }
+    implementation group: 'com.github.hmcts.ccfr-fees-register-app', name: 'fees-register-api-contract', version: '2.4.0'
 
     contractTestImplementation(group: 'com.github.hmcts.ccfr-fees-register-app', name: 'fees-register-model', version: '2.4.0'){
         exclude group: 'uk.gov.hmcts.fees2.register.data.service.impl.IdamServiceImpl.class'
     }
     //Added this for spring boot upgrade as swagger was not working with the latest version.
-    implementation group: 'org.springframework.plugin', name: 'spring-plugin-core', version: '2.0.0.RELEASE'
+    implementation group: 'org.springframework.plugin', name: 'spring-plugin-core', version: '1.2.0.RELEASE'
     implementation(group: 'org.springframework.hateoas', name: 'spring-hateoas') {
         exclude(module: 'spring-plugin-core')
     }
@@ -151,18 +146,15 @@ dependencies {
     }
     testImplementation group: 'org.springframework.security', name: 'spring-security-test'
     testImplementation group: 'org.hamcrest', name: 'hamcrest-all', version: '1.3'
-    testImplementation group: 'org.hsqldb', name: 'hsqldb', version: '2.7.3'
-    testImplementation group: 'com.github.tomakehurst', name: 'wiremock-jre8', version: '3.0.1'
+    testImplementation group: 'org.hsqldb', name: 'hsqldb', version: '2.7.2'
+    testImplementation group: 'com.github.tomakehurst', name: 'wiremock'
     testImplementation group: 'org.projectlombok', name: 'lombok', version: versions.lombok
     testImplementation group: 'io.rest-assured', name: 'rest-assured'
     testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-thymeleaf'
-    testImplementation group: 'org.testcontainers', name: 'postgresql', version: '1.20.3'
-
-    // JUnit 4 dependencies
+    testImplementation group: 'org.testcontainers', name: 'postgresql', version: '1.19.8'
+    testImplementation 'org.awaitility:awaitility:3.1.6'
     testImplementation group: 'org.powermock', name: 'powermock-module-junit4', version: '2.0.9'
-    testImplementation group: 'org.powermock', name: 'powermock-api-mockito2', version: '2.0.9'
-    testRuntimeOnly group: 'org.junit.vintage', name: 'junit-vintage-engine', version: '5.10.0'
-
+    testImplementation 'org.powermock:powermock-api-mockito2:2.0.9'
     // smoke
     smokeTestImplementation sourceSets.test.runtimeClasspath
     // functional
@@ -186,6 +178,7 @@ dependencies {
     contractTestImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test'
     contractTestImplementation("org.junit.jupiter:junit-jupiter-api:5.10.2")
     contractTestImplementation("org.junit.jupiter:junit-jupiter-engine:5.10.2")
+    contractTestImplementation('org.junit.jupiter:junit-jupiter-api:5.10.2')
 
     functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-core', version: versions.serenity
     functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-cucumber', version: versions.serenityCucumber
@@ -195,7 +188,6 @@ dependencies {
     functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-screenplay', version: versions.serenity
     functionalTestImplementation group: 'io.rest-assured', name: 'xml-path'
     functionalTestImplementation group: 'io.rest-assured', name: 'json-path'
-    functionalTestImplementation group: 'org.awaitility', name: 'awaitility', version: '4.2.2'
 }
 
 test {
@@ -225,9 +217,6 @@ project.ext {
     pacticipantVersion = getCheckedOutGitCommitHash()
 }
 
-test {
-    useJUnitPlatform()
-}
 
 task consumerContractTest(type: Test) {
     logger.lifecycle("Running consumer contract Tests")
