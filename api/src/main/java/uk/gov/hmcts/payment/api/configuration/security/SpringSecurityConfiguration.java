@@ -37,10 +37,6 @@ public class SpringSecurityConfiguration {
     private static final String AUTHORISED_REFUNDS_APPROVER_ROLE = "payments-refund-approver";
     private static final String PAYMENT_FAILURES_API = "/payment-failures/**";
 
-    public SpringSecurityConfiguration() {
-        // Required by Sonarqube
-    }
-
     @Configuration
     @Order(1)
     public static class ExternalApiSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter {
