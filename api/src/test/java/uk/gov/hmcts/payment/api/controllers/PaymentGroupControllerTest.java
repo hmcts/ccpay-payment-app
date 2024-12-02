@@ -1,7 +1,7 @@
 package uk.gov.hmcts.payment.api.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.lang.math.RandomUtils;
+import org.apache.commons.lang3.RandomUtils;
 import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.Before;
@@ -1421,7 +1421,7 @@ public class PaymentGroupControllerTest {
             eq(HttpMethod.PATCH),
             any(HttpEntity.class),
             eq(String.class), any(Map.class)))
-            .thenReturn(new ResponseEntity(HttpStatus.OK));
+            .thenReturn(ResponseEntity.ok().build());
 
         when(featureToggler.getBooleanValue("prod-strategic-fix", false)).thenReturn(true);
 

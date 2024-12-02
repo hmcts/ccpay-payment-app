@@ -10,7 +10,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import uk.gov.hmcts.payment.api.model.PaymentAllocationStatus;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 import java.util.Date;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
