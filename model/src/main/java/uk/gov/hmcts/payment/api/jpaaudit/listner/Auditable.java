@@ -3,8 +3,8 @@ package uk.gov.hmcts.payment.api.jpaaudit.listner;
 import lombok.Data;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import javax.persistence.EntityListeners;
-import javax.persistence.MappedSuperclass;
+import jakarta.persistence.EntityListeners;
+import jakarta.persistence.MappedSuperclass;
 
 @Data
 @MappedSuperclass

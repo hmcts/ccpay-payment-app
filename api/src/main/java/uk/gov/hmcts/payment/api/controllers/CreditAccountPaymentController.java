@@ -38,7 +38,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.*;
 import uk.gov.hmcts.payment.api.validators.DuplicatePaymentValidator;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Optional;
 
@@ -228,8 +228,8 @@ public class CreditAccountPaymentController {
     }
 
     @ExceptionHandler(value = {PaymentNotFoundException.class})
-    public ResponseEntity<Void> httpClientErrorException() {
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    public ResponseEntity httpClientErrorException() {
+        return ResponseEntity.notFound().build();
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)

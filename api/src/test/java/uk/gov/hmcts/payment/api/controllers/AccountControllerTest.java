@@ -9,7 +9,7 @@ import org.mockito.Mock;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.oauth2.client.resource.OAuth2AccessDeniedException;
+import org.springframework.security.oauth2.core.OAuth2AuthorizationException;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -107,7 +107,7 @@ public class AccountControllerTest {
     public void getLiberataServiceInaccessibleException() {
 
         //For Same account return Auth exception
-        when(accountServiceMock.retrieve("PBA4324")).thenThrow(OAuth2AccessDeniedException.class);
+        when(accountServiceMock.retrieve(eq("PBA4324"))).thenThrow(OAuth2AuthorizationException.class);
 
         //For Any other account return account object
         when(accountServiceMock.retrieve(not(eq("PBA4324")))).thenReturn(expectedDto);
