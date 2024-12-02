@@ -10,6 +10,7 @@ import com.microsoft.azure.servicebus.Message;
 import com.microsoft.azure.servicebus.ReceiveMode;
 import com.microsoft.azure.servicebus.primitives.ConnectionStringBuilder;
 import com.microsoft.azure.servicebus.primitives.ServiceBusException;
+import com.netflix.hystrix.exception.HystrixRuntimeException;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +24,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.ResourceAccessException;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestDomainDataEntityMapper;
 import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestDtoDomainMapper;
@@ -325,8 +325,8 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
             } catch (HttpClientErrorException ex) {
                 LOG.error("Account information could not be found, exception: {}", ex.getMessage());
                 throw new AccountNotFoundException("Account information could not be found");
-            } catch (ResourceAccessException ex) {
-                LOG.error("Liberata response not received in time, exception: {}", ex.getMessage());
+            } catch (HystrixRuntimeException hystrixRuntimeException) {
+                LOG.error("Liberata response not received in time, exception: {}", hystrixRuntimeException.getMessage());
                 throw new LiberataServiceTimeoutException("Unable to retrieve account information due to timeout");
             } catch (Exception ex) {
                 LOG.error("Unable to retrieve account information, exception: {}", ex.getMessage());

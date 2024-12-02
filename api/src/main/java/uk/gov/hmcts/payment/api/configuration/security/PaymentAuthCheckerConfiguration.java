@@ -1,11 +1,11 @@
 package uk.gov.hmcts.payment.api.configuration.security;
 
 
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -31,12 +31,12 @@ public class PaymentAuthCheckerConfiguration {
         };
     }
 
-    @Bean(value = "authorizedRolesExtractor")
+    @Bean
     public Function<HttpServletRequest, Collection<String>> authorizedRolesExtractor() {
         return (any) -> Collections.emptyList();
     }
 
-    @Bean(value = "authorizedServiceExtractor")
+    @Bean
     public Function<HttpServletRequest, Collection<String>> authorizedServicesExtractor() {
         return (any) -> authorizedServices;
     }

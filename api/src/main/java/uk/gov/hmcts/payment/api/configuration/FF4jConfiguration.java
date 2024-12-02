@@ -8,7 +8,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import uk.gov.hmcts.payment.api.service.CallbackService;
 
 @Configuration
@@ -46,7 +45,6 @@ public class FF4jConfiguration {
     @Value("${feature.discontinued.fees}")
     private boolean discontinuedFeesFeatureEnabled = true;
 
-    @Primary
     @Bean
     public FF4j getFf4j() {
 

@@ -7,7 +7,7 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.*;
 
-import jakarta.validation.constraints.*;
+import javax.validation.constraints.*;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Objects;

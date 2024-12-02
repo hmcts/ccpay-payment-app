@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import java.util.List;
 import lombok.*;
-import jakarta.validation.constraints.NotNull;
+import javax.validation.constraints.NotNull;
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
 @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)

@@ -5,7 +5,7 @@ import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import net.serenitybdd.rest.SerenityRest;
 
-import jakarta.inject.Named;
+import javax.inject.Named;
 
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 

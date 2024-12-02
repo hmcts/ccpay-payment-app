@@ -3,7 +3,8 @@ package uk.gov.hmcts.payment.api.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
-import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
+import com.netflix.hystrix.HystrixCommand;
+import com.netflix.hystrix.exception.HystrixRuntimeException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -525,7 +526,8 @@ public class ServiceRequestControllerTest {
 
     @Test
     public void createPBAPaymentWithServiceRequestTimeOutTest() throws Exception {
-        when(accountService.retrieve("PBA12346")).thenThrow(CallNotPermittedException.class);
+        when(accountService.retrieve("PBA12346")).thenThrow(
+            new HystrixRuntimeException(HystrixRuntimeException.FailureType.TIMEOUT, HystrixCommand.class, "Unable to retrieve account information", null, null));
 
         String serviceRequestReference = getServiceRequestReference();
 

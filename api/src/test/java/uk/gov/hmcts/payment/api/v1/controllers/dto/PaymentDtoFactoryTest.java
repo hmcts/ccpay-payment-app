@@ -10,7 +10,7 @@ import uk.gov.hmcts.payment.api.v1.contract.PaymentOldDto;
 import uk.gov.hmcts.payment.api.v1.controllers.PaymentDtoFactory;
 import uk.gov.hmcts.payment.api.v1.model.PaymentOld;
 
-import jakarta.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequest;
 import java.util.Collections;
 import java.util.Date;
 

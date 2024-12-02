@@ -19,7 +19,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentFeeNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.RemissionAlreadyExistException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.RemissionNotFoundException;
 
-import jakarta.transaction.Transactional;
+import javax.transaction.Transactional;
 import java.util.Collections;
 import java.util.Optional;
 

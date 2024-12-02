@@ -12,8 +12,8 @@ import lombok.experimental.Wither;
 import org.apache.commons.lang3.StringUtils;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.*;
+import javax.validation.Valid;
+import javax.validation.constraints.*;
 import java.math.BigDecimal;
 import java.util.List;
 
