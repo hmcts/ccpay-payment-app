@@ -54,16 +54,17 @@ public class SpringSecurityConfiguration {
         @Override
         protected void configure(HttpSecurity http) throws Exception {
             http
-                .authorizeHttpRequests()
-                .requestMatchers(HttpMethod.GET, "/payments").permitAll()
-                .requestMatchers(HttpMethod.PATCH, "/payments/**").permitAll()
-                .requestMatchers(HttpMethod.POST, "/telephony/callback").permitAll()
-                .requestMatchers(HttpMethod.GET, "/card-payments/*/status").permitAll()
-                .requestMatchers(  "/jobs/**").permitAll()
+                .requestMatchers()
+                .antMatchers(HttpMethod.GET, "/payments")
+                .antMatchers(HttpMethod.GET, "/payments1")
+                .antMatchers(HttpMethod.PATCH, "/payments/**")
+                .antMatchers(HttpMethod.POST, "/telephony/callback")
+                .antMatchers(HttpMethod.GET, "/card-payments/*/status")
+                .antMatchers(  "/jobs/**")
                 .and()
                 .addFilter(authCheckerServiceOnlyFilter)
                 .csrf().disable() //NOSONAR
-                .authorizeHttpRequests()
+                .authorizeRequests()
                 .anyRequest().authenticated();
         }
     }
@@ -85,7 +86,7 @@ public class SpringSecurityConfiguration {
 
         @Override
         public void configure(WebSecurity web) {
-            web.ignoring().requestMatchers("/swagger-ui.html",
+            web.ignoring().antMatchers("/swagger-ui.html",
                 "/webjars/springfox-swagger-ui/**",
                 "/swagger-resources/**",
                 "/swagger-ui/**",
@@ -123,7 +124,7 @@ public class SpringSecurityConfiguration {
                 .csrf().disable() //NOSONAR
                 .formLogin().disable()
                 .logout().disable()
-                .authorizeHttpRequests()
+                .authorizeHttpRequests(authorise -> authorise
                 .requestMatchers(HttpMethod.GET, "/cases/{ccdcasenumber}/paymentgroups").hasAnyAuthority(PAYMENTS_ROLE, CASE_MANAGER_ROLE, FINANCE_MANAGER_ROLE, ORGANISATION_MANAGER_ROLE, USER_MANAGER_ROLE)
                 .requestMatchers(HttpMethod.GET, "/cases/{case}/payments").hasAuthority(PAYMENTS_ROLE)
                 .requestMatchers(HttpMethod.DELETE, "/fees/**").hasAuthority(PAYMENTS_ROLE)
@@ -141,7 +142,7 @@ public class SpringSecurityConfiguration {
                 .requestMatchers(HttpMethod.POST, PAYMENT_FAILURES_API).permitAll()
                 .requestMatchers(HttpMethod.GET, PAYMENT_FAILURES_API).hasAuthority(PAYMENTS_ROLE)
                 .requestMatchers(HttpMethod.PATCH, PAYMENT_FAILURES_API).permitAll()
-                .anyRequest().authenticated();
+                .anyRequest().authenticated());
         }
     }
 
