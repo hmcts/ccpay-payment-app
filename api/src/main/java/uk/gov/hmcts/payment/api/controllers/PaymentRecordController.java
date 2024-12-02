@@ -34,7 +34,7 @@ import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.referencedata.dto.SiteDTO;
 
-import jakarta.validation.Valid;
+import javax.validation.Valid;
 import java.util.List;
 import java.util.stream.Collectors;
 

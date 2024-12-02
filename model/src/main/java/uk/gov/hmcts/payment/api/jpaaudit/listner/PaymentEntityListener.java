@@ -4,12 +4,12 @@ import uk.gov.hmcts.payment.api.jpaaudit.model.AuditEventsType;
 import uk.gov.hmcts.payment.api.jpaaudit.model.PaymentAuditHistory;
 import uk.gov.hmcts.payment.api.model.Payment;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PostPersist;
-import jakarta.persistence.PostUpdate;
-import jakarta.transaction.Transactional;
+import javax.persistence.EntityManager;
+import javax.persistence.PostPersist;
+import javax.persistence.PostUpdate;
+import javax.transaction.Transactional;
 
-import static jakarta.transaction.Transactional.TxType.MANDATORY;
+import static javax.transaction.Transactional.TxType.MANDATORY;
 import static uk.gov.hmcts.payment.api.jpaaudit.listner.Action.INSERTED;
 import static uk.gov.hmcts.payment.api.jpaaudit.listner.Action.UPDATED;
 import static uk.gov.hmcts.payment.api.jpaaudit.model.AuditEventsType.PAYMENT_CREATED;

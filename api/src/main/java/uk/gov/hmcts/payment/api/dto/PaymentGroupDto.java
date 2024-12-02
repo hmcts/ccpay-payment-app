@@ -9,7 +9,7 @@ import lombok.*;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 
-import jakarta.validation.Valid;
+import javax.validation.Valid;
 import java.util.Date;
 import java.util.List;
 

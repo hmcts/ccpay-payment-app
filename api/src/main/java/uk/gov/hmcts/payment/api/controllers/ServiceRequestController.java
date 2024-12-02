@@ -59,7 +59,7 @@ package uk.gov.hmcts.payment.api.controllers;
     import uk.gov.hmcts.payment.api.service.FeesService;
     import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotSuccessException;
 
-    import jakarta.validation.Valid;
+    import javax.validation.Valid;
     import java.io.IOException;
     import java.util.List;
     import java.util.Optional;
