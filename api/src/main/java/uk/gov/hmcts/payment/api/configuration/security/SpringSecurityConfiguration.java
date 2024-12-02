@@ -54,17 +54,16 @@ public class SpringSecurityConfiguration {
         @Override
         protected void configure(HttpSecurity http) throws Exception {
             http
-                .requestMatchers()
-                .antMatchers(HttpMethod.GET, "/payments")
-                .antMatchers(HttpMethod.GET, "/payments1")
-                .antMatchers(HttpMethod.PATCH, "/payments/**")
-                .antMatchers(HttpMethod.POST, "/telephony/callback")
-                .antMatchers(HttpMethod.GET, "/card-payments/*/status")
-                .antMatchers(  "/jobs/**")
+                .authorizeHttpRequests()
+                .requestMatchers(HttpMethod.GET, "/payments").permitAll()
+                .requestMatchers(HttpMethod.PATCH, "/payments/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/telephony/callback").permitAll()
+                .requestMatchers(HttpMethod.GET, "/card-payments/*/status").permitAll()
+                .requestMatchers(  "/jobs/**").permitAll()
                 .and()
                 .addFilter(authCheckerServiceOnlyFilter)
                 .csrf().disable() //NOSONAR
-                .authorizeRequests()
+                .authorizeHttpRequests()
                 .anyRequest().authenticated();
         }
     }
@@ -86,7 +85,7 @@ public class SpringSecurityConfiguration {
 
         @Override
         public void configure(WebSecurity web) {
-            web.ignoring().antMatchers("/swagger-ui.html",
+            web.ignoring().requestMatchers("/swagger-ui.html",
                 "/webjars/springfox-swagger-ui/**",
                 "/swagger-resources/**",
                 "/swagger-ui/**",
@@ -124,24 +123,24 @@ public class SpringSecurityConfiguration {
                 .csrf().disable() //NOSONAR
                 .formLogin().disable()
                 .logout().disable()
-                .authorizeRequests()
-                .antMatchers(HttpMethod.GET, "/cases/{ccdcasenumber}/paymentgroups").hasAnyAuthority(PAYMENTS_ROLE, CASE_MANAGER_ROLE, FINANCE_MANAGER_ROLE, ORGANISATION_MANAGER_ROLE, USER_MANAGER_ROLE)
-                .antMatchers(HttpMethod.GET, "/cases/{case}/payments").hasAuthority(PAYMENTS_ROLE)
-                .antMatchers(HttpMethod.DELETE, "/fees/**").hasAuthority(PAYMENTS_ROLE)
-                .antMatchers(HttpMethod.POST, "/card-payments").hasAnyAuthority(PAYMENTS_ROLE, CITIZEN_ROLE)
-                .antMatchers(HttpMethod.POST, "/card-payments/*/cancel").hasAnyAuthority(PAYMENTS_ROLE, CITIZEN_ROLE)
-                .antMatchers(HttpMethod.GET, "/card-payments/*/details").hasAnyAuthority(PAYMENTS_ROLE, CITIZEN_ROLE)
-                .antMatchers(HttpMethod.GET, "/pba-accounts/*/payments").hasAnyAuthority(PAYMENTS_ROLE,FINANCE_MANAGER_ROLE,"caseworker-cmc-solicitor", "caseworker-publiclaw-solicitor", "caseworker-probate-solicitor", "caseworker-financialremedy-solicitor", "caseworker-divorce-solicitor")
-                .antMatchers(HttpMethod.GET, "/card-payments/*/status").hasAnyAuthority(PAYMENTS_ROLE, CITIZEN_ROLE)
-                .antMatchers(HttpMethod.POST,"/refund-for-payment").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE)
-                .antMatchers(HttpMethod.POST,"/refund-retro-remission").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE)
-                .antMatchers(HttpMethod.PATCH,"/refund/resubmit/*").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE)
-                .antMatchers(HttpMethod.GET, "/reference-data/**").permitAll()
-                .antMatchers(HttpMethod.GET, "/case-payment-orders**").permitAll()
-                .antMatchers(HttpMethod.POST, "/api/**").permitAll()
-                .antMatchers(HttpMethod.POST, PAYMENT_FAILURES_API).permitAll()
-                .antMatchers(HttpMethod.GET, PAYMENT_FAILURES_API).hasAuthority(PAYMENTS_ROLE)
-                .antMatchers(HttpMethod.PATCH, PAYMENT_FAILURES_API).permitAll()
+                .authorizeHttpRequests()
+                .requestMatchers(HttpMethod.GET, "/cases/{ccdcasenumber}/paymentgroups").hasAnyAuthority(PAYMENTS_ROLE, CASE_MANAGER_ROLE, FINANCE_MANAGER_ROLE, ORGANISATION_MANAGER_ROLE, USER_MANAGER_ROLE)
+                .requestMatchers(HttpMethod.GET, "/cases/{case}/payments").hasAuthority(PAYMENTS_ROLE)
+                .requestMatchers(HttpMethod.DELETE, "/fees/**").hasAuthority(PAYMENTS_ROLE)
+                .requestMatchers(HttpMethod.POST, "/card-payments").hasAnyAuthority(PAYMENTS_ROLE, CITIZEN_ROLE)
+                .requestMatchers(HttpMethod.POST, "/card-payments/*/cancel").hasAnyAuthority(PAYMENTS_ROLE, CITIZEN_ROLE)
+                .requestMatchers(HttpMethod.GET, "/card-payments/*/details").hasAnyAuthority(PAYMENTS_ROLE, CITIZEN_ROLE)
+                .requestMatchers(HttpMethod.GET, "/pba-accounts/*/payments").hasAnyAuthority(PAYMENTS_ROLE,FINANCE_MANAGER_ROLE,"caseworker-cmc-solicitor", "caseworker-publiclaw-solicitor", "caseworker-probate-solicitor", "caseworker-financialremedy-solicitor", "caseworker-divorce-solicitor")
+                .requestMatchers(HttpMethod.GET, "/card-payments/*/status").hasAnyAuthority(PAYMENTS_ROLE, CITIZEN_ROLE)
+                .requestMatchers(HttpMethod.POST,"/refund-for-payment").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE)
+                .requestMatchers(HttpMethod.POST,"/refund-retro-remission").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE)
+                .requestMatchers(HttpMethod.PATCH,"/refund/resubmit/*").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE)
+                .requestMatchers(HttpMethod.GET, "/reference-data/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/case-payment-orders**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/**").permitAll()
+                .requestMatchers(HttpMethod.POST, PAYMENT_FAILURES_API).permitAll()
+                .requestMatchers(HttpMethod.GET, PAYMENT_FAILURES_API).hasAuthority(PAYMENTS_ROLE)
+                .requestMatchers(HttpMethod.PATCH, PAYMENT_FAILURES_API).permitAll()
                 .anyRequest().authenticated();
         }
     }
