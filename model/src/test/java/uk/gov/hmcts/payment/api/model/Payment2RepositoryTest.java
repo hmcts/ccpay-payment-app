@@ -1,12 +1,12 @@
 package uk.gov.hmcts.payment.api.model;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import javax.persistence.Tuple;
+import jakarta.persistence.Tuple;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -16,7 +16,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class Payment2RepositoryTest {
 
     @Mock
@@ -24,13 +24,13 @@ public class Payment2RepositoryTest {
 
     private Date fromDate;
     private Date toDate;
-    private PaymentChannel paymentChannel;
+    private PaymentChannel telephonyChannel;
 
     @BeforeEach
     public void setUp() {
         fromDate = new Date(System.currentTimeMillis() - 1000 * 60 * 60 * 24);
         toDate = new Date();
-        paymentChannel = PaymentChannel.TELEPHONY;
+        telephonyChannel = PaymentChannel.TELEPHONY;
     }
 
     @Test
@@ -38,10 +38,10 @@ public class Payment2RepositoryTest {
         Tuple mockTuple1 = new CustomTuple("Service1", "CCD123", "REF123", "FEE001", new Date(), new BigDecimal("100.00"), "Success");
         Tuple mockTuple2 = new CustomTuple("Service2", "CCD456", "REF456", "FEE002", new Date(), new BigDecimal("200.00"), "Failed");
 
-        when(payment2Repository.findAllByDateCreatedBetweenAndPaymentChannel(fromDate, toDate, paymentChannel))
+        when(payment2Repository.findAllByDateCreatedBetweenAndPaymentChannel(fromDate, toDate, telephonyChannel.getName()))
             .thenReturn(Arrays.asList(mockTuple1, mockTuple2));
 
-        List<Tuple> results = payment2Repository.findAllByDateCreatedBetweenAndPaymentChannel(fromDate, toDate, paymentChannel);
+        List<Tuple> results = payment2Repository.findAllByDateCreatedBetweenAndPaymentChannel(fromDate, toDate, telephonyChannel.getName());
 
         assertEquals(2, results.size());
         assertEquals("Service1", results.get(0).get("service_type", String.class));
@@ -54,10 +54,10 @@ public class Payment2RepositoryTest {
 
     @Test
     public void testFindAllByDateCreatedBetweenAndPaymentChannel_EmptyResult() {
-        when(payment2Repository.findAllByDateCreatedBetweenAndPaymentChannel(fromDate, toDate, paymentChannel))
+        when(payment2Repository.findAllByDateCreatedBetweenAndPaymentChannel(fromDate, toDate, telephonyChannel.getName()))
             .thenReturn(Arrays.asList());
 
-        List<Tuple> results = payment2Repository.findAllByDateCreatedBetweenAndPaymentChannel(fromDate, toDate, paymentChannel);
+        List<Tuple> results = payment2Repository.findAllByDateCreatedBetweenAndPaymentChannel(fromDate, toDate, telephonyChannel.getName());
 
         assertEquals(0, results.size());
     }
@@ -66,10 +66,10 @@ public class Payment2RepositoryTest {
     public void testFindAllByDateCreatedBetweenAndPaymentChannel_InvalidDateRange() {
         Date invalidFromDate = new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24);
 
-        when(payment2Repository.findAllByDateCreatedBetweenAndPaymentChannel(invalidFromDate, toDate, paymentChannel))
+        when(payment2Repository.findAllByDateCreatedBetweenAndPaymentChannel(invalidFromDate, toDate, telephonyChannel.getName()))
             .thenReturn(Arrays.asList());
 
-        List<Tuple> results = payment2Repository.findAllByDateCreatedBetweenAndPaymentChannel(invalidFromDate, toDate, paymentChannel);
+        List<Tuple> results = payment2Repository.findAllByDateCreatedBetweenAndPaymentChannel(invalidFromDate, toDate, telephonyChannel.getName());
 
         assertEquals(0, results.size());
     }
@@ -78,10 +78,10 @@ public class Payment2RepositoryTest {
     public void testFindAllByDateCreatedBetweenAndPaymentChannel_SpecificPaymentChannel() {
         Tuple mockTuple = new CustomTuple("Service1", "CCD123", "REF123", "FEE001", new Date(), new BigDecimal("100.00"), "Success");
 
-        when(payment2Repository.findAllByDateCreatedBetweenAndPaymentChannel(fromDate, toDate, paymentChannel))
+        when(payment2Repository.findAllByDateCreatedBetweenAndPaymentChannel(fromDate, toDate, telephonyChannel.getName()))
             .thenReturn(Arrays.asList(mockTuple));
 
-        List<Tuple> results = payment2Repository.findAllByDateCreatedBetweenAndPaymentChannel(fromDate, toDate, paymentChannel);
+        List<Tuple> results = payment2Repository.findAllByDateCreatedBetweenAndPaymentChannel(fromDate, toDate, telephonyChannel.getName());
 
         assertEquals(1, results.size());
         assertEquals("Service1", results.get(0).get("service_type", String.class));

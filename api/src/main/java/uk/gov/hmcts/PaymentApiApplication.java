@@ -12,7 +12,6 @@ import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.caffeine.CaffeineCache;
 import org.springframework.cache.support.SimpleCacheManager;
-import org.springframework.cloud.client.circuitbreaker.EnableCircuitBreaker;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -22,7 +21,7 @@ import org.springframework.http.MediaType;
 import org.springframework.plugin.core.OrderAwarePluginRegistry;
 import org.springframework.plugin.core.PluginRegistry;
 
-import javax.servlet.ServletContextListener;
+import jakarta.servlet.ServletContextListener;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
@@ -30,7 +29,6 @@ import java.util.concurrent.TimeUnit;
 @EnableFeignClients
 @EnableAsync
 @SpringBootApplication
-@EnableCircuitBreaker
 @OpenAPIDefinition
 public class PaymentApiApplication {
     private static final Logger LOG = LoggerFactory.getLogger(PaymentApiApplication.class);
@@ -59,7 +57,7 @@ public class PaymentApiApplication {
         cacheManager.setCaches(Arrays.asList(
             new CaffeineCache("feesDtoMap", Caffeine.newBuilder()
                 .expireAfterWrite(1440, TimeUnit.MINUTES)
-                    .build()),
+                .build()),
             new CaffeineCache("sites", Caffeine.newBuilder()
                 .expireAfterWrite(48, TimeUnit.HOURS)
                 .build())

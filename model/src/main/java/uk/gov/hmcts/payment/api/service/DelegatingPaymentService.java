@@ -1,7 +1,7 @@
 package uk.gov.hmcts.payment.api.service;
 
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
-import org.apache.http.MethodNotSupportedException;
+import org.apache.hc.core5.http.MethodNotSupportedException;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
 import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
 import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;

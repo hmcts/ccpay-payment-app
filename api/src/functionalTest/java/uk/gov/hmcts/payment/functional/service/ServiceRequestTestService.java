@@ -12,7 +12,7 @@ import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
 
 import java.util.HashMap;
 import java.util.Map;
-import javax.inject.Named;
+import jakarta.inject.Named;
 
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 

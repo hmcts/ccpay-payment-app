@@ -1,7 +1,7 @@
 package uk.gov.hmcts.payment.functional;
 
 import net.serenitybdd.rest.SerenityRest;
-import org.awaitility.Duration;
+import org.awaitility.Durations;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -112,8 +112,8 @@ public class CallBackServiceFunctionalTest {
         // Step 5: verify callback invocation from azure functions
         // Looks like there is no mock server for this api to work, so this can be verified manually in azure logs
         await()
-            .pollInterval(Duration.TWO_HUNDRED_MILLISECONDS)
-            .atMost(Duration.TWO_SECONDS)
+            .pollInterval(Durations.TWO_HUNDRED_MILLISECONDS)
+            .atMost(Durations.TWO_SECONDS)
             .until(() -> SerenityRest.given().get(testProps.mockCallBackUrl + "/" + reference[0]).getStatusCode() == 200);
     }
 
