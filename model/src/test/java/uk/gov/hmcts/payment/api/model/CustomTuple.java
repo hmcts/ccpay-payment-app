@@ -1,7 +1,7 @@
 package uk.gov.hmcts.payment.api.model;
 
-import jakarta.persistence.Tuple;
-import jakarta.persistence.TupleElement;
+import javax.persistence.Tuple;
+import javax.persistence.TupleElement;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;

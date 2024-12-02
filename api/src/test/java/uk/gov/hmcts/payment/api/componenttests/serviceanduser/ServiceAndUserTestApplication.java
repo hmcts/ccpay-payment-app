@@ -5,16 +5,14 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.payment.api.configuration.security.AuthCheckerServiceAndAnonymousUserFilter;
-import uk.gov.hmcts.payment.api.configuration.security.PaymentAuthCheckerConfiguration;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.reform.auth.checker.core.RequestAuthorizer;
@@ -27,14 +25,13 @@ import org.springframework.http.MediaType;
 import org.springframework.plugin.core.OrderAwarePluginRegistry;
 import org.springframework.plugin.core.PluginRegistry;
 
-import jakarta.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequest;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.function.Function;
 
 @SpringBootApplication
-@Import(PaymentAuthCheckerConfiguration.class)
 public class ServiceAndUserTestApplication {
     public static void main(String[] args) {
         SpringApplication.run(ServiceAndUserTestApplication.class, args);
@@ -79,8 +76,8 @@ public class ServiceAndUserTestApplication {
 
         @Bean
         public AuthCheckerServiceAndAnonymousUserFilter authCheckerServiceAndUserFilter(RequestAuthorizer<User> userRequestAuthorizer,
-                                                                                        RequestAuthorizer<Service> serviceRequestAuthorizer,
-                                                                                        AuthenticationManager authenticationManager) {
+                                                                               RequestAuthorizer<Service> serviceRequestAuthorizer,
+                                                                               AuthenticationManager authenticationManager) {
             AuthCheckerServiceAndAnonymousUserFilter filter = new AuthCheckerServiceAndAnonymousUserFilter(serviceRequestAuthorizer, userRequestAuthorizer);
             filter.setAuthenticationManager(authenticationManager);
             return filter;
@@ -89,17 +86,16 @@ public class ServiceAndUserTestApplication {
 
     @Configuration
     @EnableWebSecurity
-    public class SecurityConfiguration {
+    public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
         @Autowired
         private AuthCheckerServiceAndAnonymousUserFilter filter;
 
-        @Bean
-        protected SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        @Override
+        protected void configure(HttpSecurity http) throws Exception {
             http
                 .addFilter(filter)
                 .authorizeRequests().anyRequest().authenticated();
-            return http.build();
         }
     }
 
@@ -109,3 +105,4 @@ public class ServiceAndUserTestApplication {
         return relProviderPluginRegistry;
     }
 }
+

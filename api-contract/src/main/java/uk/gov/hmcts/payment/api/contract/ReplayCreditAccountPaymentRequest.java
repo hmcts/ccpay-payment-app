@@ -3,7 +3,7 @@ package uk.gov.hmcts.payment.api.contract;
 import com.opencsv.bean.CsvBindByName;
 import lombok.*;
 
-import jakarta.validation.constraints.NotNull;
+import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 
 @Getter

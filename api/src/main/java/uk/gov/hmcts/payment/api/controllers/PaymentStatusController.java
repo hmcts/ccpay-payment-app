@@ -23,7 +23,7 @@ import uk.gov.hmcts.payment.api.model.PaymentFailures;
 import uk.gov.hmcts.payment.api.service.PaymentStatusUpdateService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
-import jakarta.validation.Valid;
+import javax.validation.Valid;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;

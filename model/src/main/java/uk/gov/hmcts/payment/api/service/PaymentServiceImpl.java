@@ -33,7 +33,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
-import jakarta.validation.constraints.NotNull;
+import javax.validation.constraints.NotNull;
 
 
 @Service

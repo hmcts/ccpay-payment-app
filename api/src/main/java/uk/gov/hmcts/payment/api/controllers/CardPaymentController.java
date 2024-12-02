@@ -52,11 +52,15 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.NoServiceFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
-import jakarta.validation.Valid;
+import javax.validation.Valid;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 
@@ -233,28 +237,28 @@ public class CardPaymentController implements ApplicationContextAware {
         @ApiResponse(responseCode = "500", description = "Downstream system error")
     })
     @PostMapping(value = "/card-payments/{reference}/cancel")
-    public ResponseEntity cancelPayment(@PathVariable("reference") String paymentReference) {
+    public ResponseEntity<Void> cancelPayment(@PathVariable("reference") String paymentReference) {
         if (!ff4j.check("payment-cancel")) {
             throw new PaymentException("Payment cancel feature is not available for usage.");
         }
         delegatingPaymentService.cancel(paymentReference);
-        return ResponseEntity.noContent().build();
+        return new ResponseEntity<>(NO_CONTENT);
     }
 
     @ExceptionHandler(value = {GovPayCancellationFailedException.class})
-    public ResponseEntity cancellationFailedException(GovPayCancellationFailedException ex) {
-        return ResponseEntity.badRequest().build();
+    public ResponseEntity<Void> cancellationFailedException(GovPayCancellationFailedException ex) {
+        return new ResponseEntity<>(BAD_REQUEST);
     }
 
     @ExceptionHandler(value = {GovPayPaymentNotFoundException.class, PaymentNotFoundException.class})
-    public ResponseEntity httpClientErrorException() {
-        return ResponseEntity.notFound().build();
+    public ResponseEntity<Void> httpClientErrorException() {
+        return new ResponseEntity<>(NOT_FOUND);
     }
 
     @ExceptionHandler(value = {GovPayException.class})
-    public ResponseEntity httpClientErrorException(GovPayException e) {
+    public ResponseEntity<Void> httpClientErrorException(GovPayException e) {
         LOG.error("Error while calling payments", e);
-        return ResponseEntity.internalServerError().build();
+        return new ResponseEntity<>(INTERNAL_SERVER_ERROR);
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
