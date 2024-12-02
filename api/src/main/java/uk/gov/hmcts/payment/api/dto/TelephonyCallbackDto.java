@@ -2,7 +2,7 @@ package uk.gov.hmcts.payment.api.dto;
 
 import lombok.*;
 
-import jakarta.validation.constraints.NotNull;
+import javax.validation.constraints.NotNull;
 
 @Getter
 @Setter

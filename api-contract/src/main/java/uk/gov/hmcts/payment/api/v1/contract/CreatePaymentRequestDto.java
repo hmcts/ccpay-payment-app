@@ -10,9 +10,9 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Wither;
 import org.hibernate.validator.constraints.URL;
 
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 

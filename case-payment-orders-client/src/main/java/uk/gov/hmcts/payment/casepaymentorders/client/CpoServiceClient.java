@@ -25,7 +25,7 @@ import uk.gov.hmcts.payment.casepaymentorders.client.exceptions.CpoBadRequestExc
 import uk.gov.hmcts.payment.casepaymentorders.client.exceptions.CpoClientException;
 import uk.gov.hmcts.payment.casepaymentorders.client.exceptions.CpoInternalServerErrorException;
 
-import static org.apache.hc.core5.http.HttpHeaders.CONTENT_TYPE;
+import static org.apache.http.HttpHeaders.CONTENT_TYPE;
 
 @Component
 public class CpoServiceClient {

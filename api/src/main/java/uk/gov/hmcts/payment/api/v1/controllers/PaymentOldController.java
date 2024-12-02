@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
+import javax.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -88,10 +88,10 @@ public class PaymentOldController {
                                     @PathVariable("paymentId") Integer paymentId) {
         try {
             paymentService.cancel(paymentId);
-            return ResponseEntity.noContent().build();
+            return new ResponseEntity<>(NO_CONTENT);
         } catch (GovPayCancellationFailedException e) {
             LOG.info("Cancellation failed", keyValue("paymentId", paymentId));
-            return ResponseEntity.badRequest().build();
+            return new ResponseEntity<>(BAD_REQUEST);
         }
     }
 
@@ -107,21 +107,21 @@ public class PaymentOldController {
                                     @Valid @RequestBody RefundPaymentRequestDto request) {
         try {
             paymentService.refund(paymentId, request.getAmount(), request.getRefundAmountAvailable());
-            return ResponseEntity.status(CREATED).build();
+            return new ResponseEntity<>(CREATED);
         } catch (GovPayRefundAmountMismatch e) {
             LOG.info("Refund amount available mismatch", keyValue("paymentId", paymentId));
-            return ResponseEntity.status(PRECONDITION_FAILED).build();
+            return new ResponseEntity<>(PRECONDITION_FAILED);
         }
     }
 
     @ExceptionHandler(value = {GovPayPaymentNotFoundException.class, PaymentNotFoundException.class})
     public ResponseEntity httpClientErrorException() {
-        return ResponseEntity.notFound().build();
+        return new ResponseEntity(NOT_FOUND);
     }
 
     @ExceptionHandler(value = {GovPayException.class})
     public ResponseEntity httpClientErrorException(GovPayException e) {
         LOG.error("Error while calling payments", e);
-        return ResponseEntity.internalServerError().build();
+        return new ResponseEntity(INTERNAL_SERVER_ERROR);
     }
 }
