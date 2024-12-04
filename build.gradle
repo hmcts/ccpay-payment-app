@@ -74,7 +74,7 @@ allprojects {
                 entry 'guava'
             }
 
-            dependencySet(group: 'ch.qos.logback', version: '1.5.7') {
+            dependencySet(group: 'ch.qos.logback', version: '1.5.12') {
                 entry 'logback-core'
                 entry 'logback-classic'
             }
