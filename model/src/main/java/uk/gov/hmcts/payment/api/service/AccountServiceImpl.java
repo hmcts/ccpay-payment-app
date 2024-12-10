@@ -17,6 +17,7 @@ import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.util.AccountStatus;
 
 import java.math.BigDecimal;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 @Profile("!liberataMock")
@@ -36,23 +37,29 @@ public class AccountServiceImpl implements AccountService<AccountDto, String> {
 
     @Override
     @CircuitBreaker(name = "defaultCircuitBreaker")
-    @TimeLimiter(name = "retrievePbaAccountTimeLimiter")
     public AccountDto retrieve(String pbaCode) throws ResourceAccessException {
         LOG.info("AccountDto retrieve(String pbaCode) called with pbaCode: {}", pbaCode);
-        if (pbaCode.equalsIgnoreCase("PBAFUNC12345")) {
-            return AccountDto.accountDtoWith()
-                .accountNumber("PBAFUNC12345")
-                .accountName("CAERPHILLY COUNTY BOROUGH COUNCIL")
-                .creditLimit(BigDecimal.valueOf(28879))
-                .availableBalance(BigDecimal.valueOf(30000))
-                .status(AccountStatus.ACTIVE)
-                .build();
-        }
+        return retrieveAsync(pbaCode).join();
+    }
 
-        String accessToken = liberataService.getAccessToken();
-        HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(accessToken);
-        HttpEntity<String> entity = new HttpEntity<>(headers);
-        return restTemplate.getForObject(baseUrl + "/" + pbaCode, AccountDto.class, entity);
+    @TimeLimiter(name = "retrievePbaAccountTimeLimiter")
+    private CompletableFuture<AccountDto> retrieveAsync(String pbaCode) {
+        return CompletableFuture.supplyAsync(() -> {
+            if (pbaCode.equalsIgnoreCase("PBAFUNC12345")) {
+                return AccountDto.accountDtoWith()
+                    .accountNumber("PBAFUNC12345")
+                    .accountName("CAERPHILLY COUNTY BOROUGH COUNCIL")
+                    .creditLimit(BigDecimal.valueOf(28879))
+                    .availableBalance(BigDecimal.valueOf(30000))
+                    .status(AccountStatus.ACTIVE)
+                    .build();
+            }
+
+            String accessToken = liberataService.getAccessToken();
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(accessToken);
+            HttpEntity<String> entity = new HttpEntity<>(headers);
+            return restTemplate.getForObject(baseUrl + "/" + pbaCode, AccountDto.class, entity);
+        });
     }
 }
