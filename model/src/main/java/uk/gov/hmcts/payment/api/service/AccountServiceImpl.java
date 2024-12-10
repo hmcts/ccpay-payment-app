@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
@@ -58,8 +60,9 @@ public class AccountServiceImpl implements AccountService<AccountDto, String> {
             String accessToken = liberataService.getAccessToken();
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(accessToken);
-            HttpEntity<String> entity = new HttpEntity<>(headers);
-            return restTemplate.getForObject(baseUrl + "/" + pbaCode, AccountDto.class, entity);
+            HttpEntity<Void> entity = new HttpEntity<>(headers);
+            ResponseEntity<AccountDto> response = restTemplate.exchange(baseUrl + "/" + pbaCode, HttpMethod.GET, entity, AccountDto.class);
+            return response.getBody();
         });
     }
 }
