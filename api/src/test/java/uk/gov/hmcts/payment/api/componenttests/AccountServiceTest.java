@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.client.RestTemplate;
@@ -57,8 +59,9 @@ class AccountServiceTest {
         setField(accountServiceImpl, accountServiceImpl.getClass().getDeclaredField("baseUrl"), baseUrl);
         AccountDto expectedDto = new AccountDto(pbaCode, "accountName", new BigDecimal(100),
             new BigDecimal(100), AccountStatus.ACTIVE, new Date());
+        ResponseEntity<AccountDto> expectedResponse = ResponseEntity.ok(expectedDto);
         when(liberataService.getAccessToken()).thenReturn("accessToken");
-        when(restTemplate.getForObject(baseUrl + "/" + pbaCode, AccountDto.class, entity)).thenReturn(expectedDto);
+        when(restTemplate.exchange(baseUrl + "/" + pbaCode, HttpMethod.GET, entity, AccountDto.class)).thenReturn(expectedResponse);
         assertEquals(expectedDto, accountServiceImpl.retrieve(pbaCode));
     }
 
