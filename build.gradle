@@ -25,7 +25,7 @@ java {
 }
 
 dependencies{
-    testImplementation 'com.github.hmcts:fortify-client:1.4.4:all'
+    testImplementation 'com.github.hmcts:fortify-client:1.4.5:all'
 }
 
 task fortifyScan(type: JavaExec)  {
@@ -73,7 +73,7 @@ allprojects {
                 entry 'guava'
             }
 
-            dependencySet(group: 'ch.qos.logback', version: '1.5.8') {
+            dependencySet(group: 'ch.qos.logback', version: '1.5.12') {
                 entry 'logback-core'
                 entry 'logback-classic'
             }
