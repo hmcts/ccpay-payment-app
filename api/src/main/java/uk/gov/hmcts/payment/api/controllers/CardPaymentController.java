@@ -82,7 +82,6 @@ public class CardPaymentController implements ApplicationContextAware {
 
     private ApplicationContext applicationContext;
 
-    @Autowired
     private PaymentReference paymentReference;
 
     @Autowired
@@ -91,7 +90,10 @@ public class CardPaymentController implements ApplicationContextAware {
                                  CardDetailsService<CardDetails, String> cardDetailsService,
                                  PciPalPaymentService pciPalPaymentService,
                                  FF4j ff4j,
-                                 FeePayApportionService feePayApportionService, LaunchDarklyFeatureToggler featureToggler, ReferenceDataService referenceDataService) {
+                                 FeePayApportionService feePayApportionService,
+                                 LaunchDarklyFeatureToggler featureToggler,
+                                 ReferenceDataService referenceDataService,
+                                 PaymentReference paymentReference){
         this.delegatingPaymentService = cardDelegatingPaymentService;
         this.paymentDtoMapper = paymentDtoMapper;
         this.cardDetailsService = cardDetailsService;
@@ -99,6 +101,7 @@ public class CardPaymentController implements ApplicationContextAware {
         this.feePayApportionService = feePayApportionService;
         this.featureToggler = featureToggler;
         this.referenceDataService = referenceDataService;
+        this.paymentReference = paymentReference;
     }
 
     @Operation(summary = "Create card payment", description = "Create card payment")
