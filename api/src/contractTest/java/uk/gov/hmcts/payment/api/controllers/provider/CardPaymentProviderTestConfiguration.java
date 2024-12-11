@@ -10,6 +10,7 @@ import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.payment.api.audit.AuditRepository;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.configuration.security.AuthenticatedServiceIdSupplier;
+import uk.gov.hmcts.payment.api.controllers.PaymentReference;
 import uk.gov.hmcts.payment.api.dto.PciPalPayment;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.external.client.GovPayClient;
@@ -191,5 +192,8 @@ public class CardPaymentProviderTestConfiguration {
 
     @MockBean
     ServiceRequestCaseUtil serviceRequestCaseUtil;
+
+    @MockBean
+    PaymentReference paymentReference;
 
 }
