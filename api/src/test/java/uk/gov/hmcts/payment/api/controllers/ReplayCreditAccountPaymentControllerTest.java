@@ -1,7 +1,6 @@
 package uk.gov.hmcts.payment.api.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.lang.math.RandomUtils;
 import org.assertj.core.util.Files;
 import org.junit.After;
 import org.junit.Assert;
@@ -40,7 +39,7 @@ import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
@@ -52,6 +51,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.util.Files.newFile;
@@ -278,7 +278,7 @@ public class ReplayCreditAccountPaymentControllerTest extends PaymentsDataUtil {
             Map<String, CreditAccountPaymentRequest> csvParseMapWithIncorrectPayRef = new HashMap<>();
 
             csvParseMap.entrySet().stream().forEach(entry -> {
-                csvParseMapWithIncorrectPayRef.put("RC-1607-0707-3939-" + RandomUtils.nextInt(9999), entry.getValue());
+                csvParseMapWithIncorrectPayRef.put("RC-1607-0707-3939-" + ThreadLocalRandom.current().nextInt(9999), entry.getValue());
             });
 
             //Create CSV
@@ -359,7 +359,7 @@ public class ReplayCreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
             when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
 
-            Double calculatedAmount = Double.parseDouble(Integer.toString(RandomUtils.nextInt(99) + 1));
+            Double calculatedAmount = Double.parseDouble(Integer.toString(ThreadLocalRandom.current().nextInt(99) + 1));
 
             List<FeeDto> fees = getFees(calculatedAmount);
 
@@ -385,14 +385,14 @@ public class ReplayCreditAccountPaymentControllerTest extends PaymentsDataUtil {
     private CreditAccountPaymentRequest getPBAPayment(Double calculatedAmount, List<FeeDto> fees) {
         return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
             .amount(new BigDecimal(calculatedAmount))
-            .ccdCaseNumber("1607065" + RandomUtils.nextInt(999999999))
-            .accountNumber("\"PBA0073" + RandomUtils.nextInt(999) + "\"")
+            .ccdCaseNumber("1607065" + ThreadLocalRandom.current().nextInt(999999999))
+            .accountNumber("\"PBA0073" + ThreadLocalRandom.current().nextInt(999) + "\"")
             .description("Money Claim issue fee")
-            .caseReference("\"9eb95270-7fee-48cf-afa2-e6c58ee" + RandomUtils.nextInt(999) + "ba\"")
+            .caseReference("\"9eb95270-7fee-48cf-afa2-e6c58ee" + ThreadLocalRandom.current().nextInt(999) + "ba\"")
             .service("CMC")
             .currency(CurrencyCode.GBP)
-            .customerReference("DEA2682/1/SWG" + RandomUtils.nextInt(999))
-            .organisationName("\"Slater & Gordon" + RandomUtils.nextInt(999) + "\"")
+            .customerReference("DEA2682/1/SWG" + ThreadLocalRandom.current().nextInt(999))
+            .organisationName("\"Slater & Gordon" + ThreadLocalRandom.current().nextInt(999) + "\"")
             .siteId("Y689")
             .fees(fees)
             .build();
@@ -402,8 +402,8 @@ public class ReplayCreditAccountPaymentControllerTest extends PaymentsDataUtil {
     private List<FeeDto> getFees(Double calculatedAmount) {
         List<FeeDto> fees = new ArrayList<>();
         fees.add(FeeDto.feeDtoWith()
-            .code("FEE020" + RandomUtils.nextInt(9))
-            .version(Integer.toString(RandomUtils.nextInt(9)))
+            .code("FEE020" + ThreadLocalRandom.current().nextInt(9))
+            .version(Integer.toString(ThreadLocalRandom.current().nextInt(9)))
             .calculatedAmount(new BigDecimal(calculatedAmount)).build());
         return fees;
     }

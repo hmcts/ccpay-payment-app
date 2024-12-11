@@ -1,5 +1,9 @@
 package uk.gov.hmcts.payment.api.validators;
 
+import org.mockito.Mockito;
+import org.springframework.validation.FieldError;
+import uk.gov.hmcts.payment.api.contract.exception.FieldErrorDTO;
+import uk.gov.hmcts.payment.api.contract.exception.ValidationErrorDTO;
 import com.google.common.collect.Lists;
 import org.junit.After;
 import org.junit.Before;
@@ -7,40 +11,48 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
+import org.mockito.BDDMockito;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.annotation.DirtiesContext;
-import uk.gov.hmcts.payment.api.contract.exception.FieldErrorDTO;
-import uk.gov.hmcts.payment.api.contract.exception.ValidationErrorDTO;
-import uk.gov.hmcts.payment.api.exception.ValidationErrorException;
-import uk.gov.hmcts.payment.api.model.Payment;
-import uk.gov.hmcts.payment.api.model.PaymentChannel;
-import uk.gov.hmcts.payment.api.model.PaymentFee;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
+import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.util.DateUtil;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.DuplicatePaymentException;
+import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
+import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.PaymentChannel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import uk.gov.hmcts.payment.api.exception.ValidationErrorException;
+import org.springframework.data.jpa.domain.Specification;
+
+import java.time.LocalDateTime;
+import java.util.Optional;
+
+import static org.junit.Assert.assertThrows;
+import static org.mockito.BDDMockito.willReturn;
+import static org.mockito.Mockito.*;
+import org.junit.Test;
+import static org.junit.Assert.*;
+
+import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Optional;
+import jakarta.persistence.criteria.*;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
+
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import java.util.Date;
+import static org.mockito.ArgumentMatchers.eq;
 
 
 

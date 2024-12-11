@@ -170,7 +170,7 @@ public class FeesControllerTest {
     @Test
     public void deleteNoFeesExistingTest() throws Exception {
 
-        Integer feeId = 12;
+        Integer feeId = 99999;
         MvcResult result1 = restActions.
             delete("/fees/" + feeId)
             .andExpect(status().isBadRequest())

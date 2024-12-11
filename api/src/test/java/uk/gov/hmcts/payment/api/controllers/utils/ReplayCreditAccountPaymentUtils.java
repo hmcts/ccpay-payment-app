@@ -1,13 +1,12 @@
 package uk.gov.hmcts.payment.api.controllers.utils;
 
-import org.apache.commons.lang.math.RandomUtils;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.componenttests.util.CSVUtil;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -15,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Component
 public class ReplayCreditAccountPaymentUtils {
@@ -22,14 +22,14 @@ public class ReplayCreditAccountPaymentUtils {
     public CreditAccountPaymentRequest getPBAPayment(Double calculatedAmount, List<FeeDto> fees) {
         return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
             .amount(new BigDecimal(calculatedAmount))
-            .ccdCaseNumber("1607065" + RandomUtils.nextInt(999999999))
-            .accountNumber("\"PBA0073" + RandomUtils.nextInt(999) + "\"")
+            .ccdCaseNumber("1607065" + ThreadLocalRandom.current().nextInt(999999999))
+            .accountNumber("\"PBA0073" + ThreadLocalRandom.current().nextInt(999) + "\"")
             .description("Money Claim issue fee")
-            .caseReference("\"9eb95270-7fee-48cf-afa2-e6c58ee" + RandomUtils.nextInt(999) + "ba\"")
+            .caseReference("\"9eb95270-7fee-48cf-afa2-e6c58ee" + ThreadLocalRandom.current().nextInt(999) + "ba\"")
             .service("CMC")
             .currency(CurrencyCode.GBP)
-            .customerReference("DEA2682/1/SWG" + RandomUtils.nextInt(999))
-            .organisationName("\"Slater & Gordon" + RandomUtils.nextInt(999) + "\"")
+            .customerReference("DEA2682/1/SWG" + ThreadLocalRandom.current().nextInt(999))
+            .organisationName("\"Slater & Gordon" + ThreadLocalRandom.current().nextInt(999) + "\"")
             .siteId("Y689")
             .fees(fees)
             .build();
@@ -39,8 +39,8 @@ public class ReplayCreditAccountPaymentUtils {
     public List<FeeDto> getFees(Double calculatedAmount) {
         List<FeeDto> fees = new ArrayList<>();
         fees.add(FeeDto.feeDtoWith()
-            .code("FEE020" + RandomUtils.nextInt(9))
-            .version(Integer.toString(RandomUtils.nextInt(9)))
+            .code("FEE020" + ThreadLocalRandom.current().nextInt(9))
+            .version(Integer.toString(ThreadLocalRandom.current().nextInt(9)))
             .calculatedAmount(new BigDecimal(calculatedAmount)).build());
         return fees;
     }

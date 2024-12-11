@@ -10,12 +10,12 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import uk.gov.hmcts.payment.api.dto.CasePaymentRequest;
 
-import javax.validation.Valid;
-import javax.validation.constraints.AssertFalse;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.AssertFalse;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;

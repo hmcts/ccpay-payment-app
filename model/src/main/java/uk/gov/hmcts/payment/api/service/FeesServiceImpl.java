@@ -21,6 +21,10 @@ public class FeesServiceImpl implements FeesService {
 
     @Override
     public void deleteFee(int feeId) throws EmptyResultDataAccessException {
+        Optional<PaymentFee> paymentFee = getPaymentFee(feeId);
+        if (paymentFee.isEmpty()) {
+            throw new EmptyResultDataAccessException("Fee not found", 1);
+        }
         paymentFeeRepository.deleteById(feeId);
     }
 
