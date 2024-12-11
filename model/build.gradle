@@ -16,7 +16,7 @@ dependencies {
     api group: 'commons-validator', name: 'commons-validator', version:'1.8.0'
     implementation group: 'com.github.hmcts.java-logging', name: 'logging-appinsights', version: '6.1.7'
     implementation group: 'com.netflix.hystrix', name: 'hystrix-javanica', version: '1.5.18'
-    api group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '5.10.9'
+    api group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '7.6.0'
 
     testImplementation(group: 'org.springframework.boot', name: 'spring-boot-starter-test') {
       exclude(module: 'commons-logging')
