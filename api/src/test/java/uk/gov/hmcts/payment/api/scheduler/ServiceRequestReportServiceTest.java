@@ -10,6 +10,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import uk.gov.hmcts.payment.api.email.Email;
 import uk.gov.hmcts.payment.api.email.EmailService;
 import uk.gov.hmcts.payment.api.model.DuplicateServiceRequestDto;
+import uk.gov.hmcts.payment.api.model.DuplicateServiceRequestKey;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
 import uk.gov.hmcts.payment.api.reports.ServiceRequestReportService;
 import uk.gov.hmcts.payment.api.reports.config.ServiceRequestReportConfig;
@@ -48,21 +49,38 @@ public class ServiceRequestReportServiceTest {
 
         duplicateServiceRequestDto = new DuplicateServiceRequestDto() {
             @Override
+            public String getFee_codes() {
+                return "FEE0123";
+            }
+
+            @Override
+            public Integer getPayment_link_id() {
+                return 123;
+            }
+
+            @Override
             public String getCcd_case_number() {
                 return "123";
             }
 
             @Override
-            public Integer getCount() {
-                return 3;
+            public String getEnterprise_service_name() {
+                return "Probate";
             }
+
         };
+
+        DuplicateServiceRequestKey duplicateServiceRequestKey =  DuplicateServiceRequestKey.builder()
+            .service("Probate")
+            .feeCodes("FEE0123")
+            .ccd("123")
+            .build();
 
         when(reportConfig.getFrom()).thenReturn("fromEmail");
         when(reportConfig.getTo()).thenReturn(new String[]{"toEmail"});
         when(reportConfig.getSubject()).thenReturn("emailSubject");
         when(reportConfig.getMessage()).thenReturn("emailMessage");
-        when(reportConfig.getDuplicateSRCsvRecord(duplicateServiceRequestDto)).thenReturn("123,3");
+        when(reportConfig.getDuplicateSRCsvRecord(duplicateServiceRequestKey, 2)).thenReturn("FEE0123,2,123,Probate");
     }
 
     @Test
