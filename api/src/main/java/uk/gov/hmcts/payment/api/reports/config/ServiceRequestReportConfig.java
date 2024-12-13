@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.payment.api.model.DuplicateServiceRequestDto;
+import uk.gov.hmcts.payment.api.model.DuplicateServiceRequestKey;
 
 import java.util.StringJoiner;
 @Component
@@ -16,7 +16,7 @@ import java.util.StringJoiner;
 @Data
 public class ServiceRequestReportConfig {
 
-    public static final String DUPLICATE_SR_HEADER = "ccd, count";
+    public static final String DUPLICATE_SR_HEADER = "fees, service request count, ccd, service";
 
     public static final String DUPLICATE_SR_CSV_FILE_PREFIX = "hmcts_duplicate_service_requests";
 
@@ -30,11 +30,14 @@ public class ServiceRequestReportConfig {
     private String message;
     @Value("${service.request.scheduler.enabled:false}")
     private boolean enabled;
-    public String getDuplicateSRCsvRecord(DuplicateServiceRequestDto duplicateServiceRequestDto) {
+    public String getDuplicateSRCsvRecord(DuplicateServiceRequestKey duplicateServiceRequestKey,
+                                          Integer duplicateServiceRequestCount) {
         StringJoiner result = new StringJoiner("\n");
         StringJoiner sb = new StringJoiner(",")
-            .add(duplicateServiceRequestDto.getCcd_case_number())
-            .add(Integer.toString(duplicateServiceRequestDto.getCount()));
+            .add(duplicateServiceRequestKey.getFeeCodes())
+            .add(duplicateServiceRequestCount.toString())
+            .add(duplicateServiceRequestKey.getCcd())
+            .add(duplicateServiceRequestKey.getService());
         result.add(sb.toString());
         return result.toString();
     }
