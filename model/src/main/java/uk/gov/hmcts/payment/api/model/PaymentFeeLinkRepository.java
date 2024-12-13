@@ -30,10 +30,17 @@ public interface PaymentFeeLinkRepository extends CrudRepository<PaymentFeeLink,
     @Query(value = "SELECT concat(date_part('year', now()),'-',nextval('payment_reference_seq'))", nativeQuery = true)
     String getNextPaymentReference();
 
-    @Query(value = "select ccd_case_number, count(ccd_case_number) " +
-        "from payment_fee_link pfl " +
-        "where date_trunc('day', date_created) = :date " +
-        "group by ccd_case_number " +
-        "having count (ccd_case_number) > 1;", nativeQuery = true)
+    @Query(value = "SELECT STRING_AGG(fee.code, '| ') AS fee_codes, fee.payment_link_id, fee.ccd_case_number,  pfl.enterprise_service_name " +
+        "FROM fee " +
+        "JOIN payment_fee_link pfl ON pfl.id = fee.payment_link_id " +
+        "WHERE fee.ccd_case_number IN (SELECT fee.ccd_case_number " +
+        "FROM fee " +
+        "JOIN payment_fee_link pfl ON pfl.id = fee.payment_link_id " +
+        "WHERE date_trunc('day', pfl.date_created) = :date " +
+        "GROUP BY fee.code, fee.ccd_case_number, pfl.enterprise_service_name " +
+        "HAVING COUNT(*) > 1) " +
+        "AND date_trunc('day', pfl.date_created) = :date " +
+        "GROUP BY fee.ccd_case_number, fee.payment_link_id, pfl.enterprise_service_name;",nativeQuery = true)
     Optional<List<DuplicateServiceRequestDto>> getDuplicates(final @Param("date") LocalDate date);
+
 }
