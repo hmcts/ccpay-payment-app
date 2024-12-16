@@ -31,7 +31,7 @@ import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
-import javax.persistence.Tuple;
+import jakarta.persistence.Tuple;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -458,7 +458,7 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
             validationError.addFieldError("dates", "Start date cannot be greater than end date");
             throw new ValidationErrorException("Error occurred in the report ", validationError);
         }
-        List<Tuple> telephonyPaymentsTuples = paymentRepository.findAllByDateCreatedBetweenAndPaymentChannel(startDate, endDate, PaymentChannel.TELEPHONY);
+        List<Tuple> telephonyPaymentsTuples = paymentRepository.findAllByDateCreatedBetweenAndPaymentChannel(startDate, endDate, PaymentChannel.TELEPHONY.getName());
 
         List<TelephonyPaymentsReportDto> telephonyPaymentsReportDto = telephonyPaymentsTuples.stream()
             .map(tup -> TelephonyPaymentsReportDto.telephonyPaymentsReportDtoWith()

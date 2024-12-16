@@ -3,7 +3,8 @@ package uk.gov.hmcts.payment.api.external.client;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.github.tomakehurst.wiremock.matching.EqualToJsonPattern;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -30,9 +31,14 @@ public class GovPayClientTest {
 
     @Before
     public void setUp() throws Exception {
+        CloseableHttpClient minimalHttpClient = HttpClients.custom()
+            .disableCookieManagement()
+            .disableAuthCaching()
+            .build();
+
         client = new GovPayClient(
             "http://localhost:" + wireMockRule.port(),
-            HttpClients.createMinimal(),
+            minimalHttpClient,
             new ObjectMapper(),
             new GovPayErrorTranslator(new ObjectMapper())
         );
