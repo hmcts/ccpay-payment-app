@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.ResourceAccessException;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.exception.LiberataServiceInaccessibleException;
@@ -69,6 +70,8 @@ public class AccountController {
 
         } catch (HttpClientErrorException ex) {
             throw ex;
+        } catch (ResourceAccessException ex2) {
+            throw new HttpClientErrorException(NOT_FOUND, ex2.getMessage());
         } catch (Exception exception) {
             throw new LiberataServiceInaccessibleException("Failed to connect with Liberata. " + exception.getMessage());
         }

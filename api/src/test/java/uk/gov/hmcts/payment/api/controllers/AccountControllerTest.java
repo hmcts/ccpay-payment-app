@@ -14,6 +14,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.ResourceAccessException;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.exception.LiberataServiceInaccessibleException;
@@ -192,6 +193,17 @@ public class AccountControllerTest {
         AccountDto dto = new AccountDto();
         dto.setStatus(AccountStatus.ON_HOLD);
         when(accountServiceMock.retrieve(anyString())).thenReturn(dto);
+
+        assertThrows(HttpClientErrorException.class, () -> accountController.getAccounts("123"));
+    }
+
+    @Test
+    public void whenRetrieveResourceAccessException_thenExceptionIsRethrown() {
+
+        AccountDto dto = new AccountDto();
+        dto.setStatus(AccountStatus.ON_HOLD);
+        ResourceAccessException ex = new ResourceAccessException("ResourceAccessException");
+        when(accountServiceMock.retrieve(anyString())).thenThrow(ex);
 
         assertThrows(HttpClientErrorException.class, () -> accountController.getAccounts("123"));
     }
