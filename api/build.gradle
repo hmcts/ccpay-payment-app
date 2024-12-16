@@ -76,7 +76,7 @@ def versions = [
         serenityCucumber: '4.2.9',
 ]
 
-def javaLoggingVersion = '6.1.4'
+def javaLoggingVersion = '6.1.7'
 
 dependencies {
     implementation project(':payment-gov-pay-client')
