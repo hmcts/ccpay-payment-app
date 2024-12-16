@@ -49,8 +49,12 @@ static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
     ]
 }
 
+env.TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX = "hmctspublic.azurecr.io/imported/"
+
 // Vars for Kubernetes
-env.PACT_BROKER_FULL_URL = 'https://pact-broker.platform.hmcts.net'
+env.PACT_BROKER_URL = 'pact-broker.platform.hmcts.net'
+env.PACT_BROKER_SCHEME = 'https'
+env.PACT_BROKER_PORT = '443'
 withPipeline(type, product, app) {
     enableAksStagingDeployment()
     overrideVaultEnvironments(vaultOverrides)
@@ -158,13 +162,11 @@ withPipeline(type, product, app) {
     disableLegacyDeployment()
     onMaster() {
         enablePactAs([
-                AppPipelineDsl.PactRoles.CONSUMER,
                 AppPipelineDsl.PactRoles.PROVIDER
         ])
     }
     onPR() {
         enablePactAs([
-                AppPipelineDsl.PactRoles.CONSUMER,
                 AppPipelineDsl.PactRoles.PROVIDER
         ])
 

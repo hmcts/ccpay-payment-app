@@ -47,7 +47,6 @@ import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -690,7 +689,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
         FeatureApiBean feature = objectMapper.readValue(result.getResponse().getContentAsByteArray(), FeatureApiBean.class);
         assertThat(feature.getUid()).isEqualTo("payment-search");
-        assertThat(feature.getEnable()).isEqualTo(true);
+        assertThat(feature.getEnable()).isTrue();
         assertThat(feature.getDescription()).isEqualTo("Payments search API");
     }
 
@@ -715,7 +714,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
         FeatureApiBean feature = objectMapper.readValue(result.getResponse().getContentAsByteArray(), FeatureApiBean.class);
         assertThat(feature.getUid()).isEqualTo("payment-search");
-        assertThat(feature.getEnable()).isEqualTo(true);
+        assertThat(feature.getEnable()).isTrue();
         assertThat(feature.getDescription()).isEqualTo("Payments search API");
     }
 

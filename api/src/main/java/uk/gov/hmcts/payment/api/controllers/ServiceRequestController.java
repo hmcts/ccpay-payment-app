@@ -6,7 +6,8 @@ package uk.gov.hmcts.payment.api.controllers;
     import com.microsoft.azure.servicebus.IMessageReceiver;
     import com.microsoft.azure.servicebus.TopicClient;
     import com.microsoft.azure.servicebus.primitives.ServiceBusException;
-    import io.swagger.v3.oas.annotations.*;
+    import io.swagger.v3.oas.annotations.Operation;
+    import io.swagger.v3.oas.annotations.Parameter;
     import io.swagger.v3.oas.annotations.responses.ApiResponse;
     import io.swagger.v3.oas.annotations.responses.ApiResponses;
     import io.swagger.v3.oas.annotations.tags.Tag;
@@ -22,7 +23,16 @@ package uk.gov.hmcts.payment.api.controllers;
     import org.springframework.util.MultiValueMap;
     import org.springframework.validation.BindingResult;
     import org.springframework.validation.FieldError;
-    import org.springframework.web.bind.annotation.*;
+    import org.springframework.web.bind.annotation.ExceptionHandler;
+    import org.springframework.web.bind.annotation.GetMapping;
+    import org.springframework.web.bind.annotation.PatchMapping;
+    import org.springframework.web.bind.annotation.PathVariable;
+    import org.springframework.web.bind.annotation.PostMapping;
+    import org.springframework.web.bind.annotation.RequestBody;
+    import org.springframework.web.bind.annotation.RequestHeader;
+    import org.springframework.web.bind.annotation.ResponseBody;
+    import org.springframework.web.bind.annotation.ResponseStatus;
+    import org.springframework.web.bind.annotation.RestController;
     import uk.gov.hmcts.payment.api.contract.PaymentDto;
     import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
     import uk.gov.hmcts.payment.api.domain.service.IdempotencyService;
@@ -286,6 +296,7 @@ public class ServiceRequestController {
     @Operation(summary = "Create online card payment", description = "Create online card payment")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "201", description = "Payment created"),
+        @ApiResponse(responseCode = "302", description = "A successful payment request has been made in GovPay, redirecting back to the return URL"),
         @ApiResponse(responseCode = "400", description = "Bad request. Payment creation failed"),
         @ApiResponse(responseCode = "403", description = "Unauthenticated request"),
         @ApiResponse(responseCode = "404", description = "Service request not found"),
@@ -306,7 +317,8 @@ public class ServiceRequestController {
                                                                        @PathVariable("service-request-reference") String serviceRequestReference,
                                                                        @Valid @RequestBody OnlineCardPaymentRequest onlineCardPaymentRequest) throws CheckDigitException, JsonProcessingException {
         returnURL = onlineCardPaymentRequest.getReturnUrl();
-        return new ResponseEntity<>(serviceRequestDomainService.create(onlineCardPaymentRequest, serviceRequestReference, returnURL, serviceCallbackURL), HttpStatus.CREATED);
+        LOG.info("Entered /service-request/{internal-reference}/card-payments using internalReference: {}", serviceRequestReference);
+        return serviceRequestDomainService.create(onlineCardPaymentRequest, serviceRequestReference, returnURL, serviceCallbackURL);
     }
 
     @Operation(summary = "Get card payment status by Internal Reference", description = "Get payment status for supplied Internal Reference")

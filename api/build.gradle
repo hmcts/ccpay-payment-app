@@ -97,8 +97,8 @@ dependencies {
     implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-netflix-hystrix', version: '2.2.10.RELEASE'
     implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.14.0'
     implementation group: 'net.logstash.logback', name: 'logstash-logback-encoder', version: '8.0'
-    implementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.5.7'
-    implementation group: 'ch.qos.logback', name: 'logback-core', version: '1.5.7'
+    implementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.5.12'
+    implementation group: 'ch.qos.logback', name: 'logback-core', version: '1.5.12'
     implementation group: 'xerces', name: 'xercesImpl', version: '2.12.2'
     implementation group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.14'
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.17.0'
@@ -122,7 +122,7 @@ dependencies {
     implementation group: 'org.ff4j', name: 'ff4j-web', version: '2.0.0'
     implementation group: 'commons-fileupload', name: 'commons-fileupload', version: '1.5'
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-thymeleaf'
-    implementation(group: 'org.postgresql', name: 'postgresql', version: '42.7.3') {
+    implementation(group: 'org.postgresql', name: 'postgresql', version: '42.7.4') {
         exclude(module: 'commons-logging')
         exclude(module: 'slf4j-simple')
     }
@@ -146,12 +146,12 @@ dependencies {
     }
     testImplementation group: 'org.springframework.security', name: 'spring-security-test'
     testImplementation group: 'org.hamcrest', name: 'hamcrest-all', version: '1.3'
-    testImplementation group: 'org.hsqldb', name: 'hsqldb', version: '2.7.2'
+    testImplementation group: 'org.hsqldb', name: 'hsqldb', version: '2.7.4'
     testImplementation group: 'com.github.tomakehurst', name: 'wiremock'
     testImplementation group: 'org.projectlombok', name: 'lombok', version: versions.lombok
     testImplementation group: 'io.rest-assured', name: 'rest-assured'
     testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-thymeleaf'
-    testImplementation group: 'org.testcontainers', name: 'postgresql', version: '1.19.8'
+    testImplementation group: 'org.testcontainers', name: 'postgresql', version: '1.20.4'
     testImplementation 'org.awaitility:awaitility:3.1.6'
     testImplementation group: 'org.powermock', name: 'powermock-module-junit4', version: '2.0.9'
     testImplementation 'org.powermock:powermock-api-mockito2:2.0.9'

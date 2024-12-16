@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -62,7 +63,9 @@ import uk.gov.hmcts.payment.api.model.StatusHistory;
 import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.service.FeePayApportionService;
+import uk.gov.hmcts.payment.api.service.FeesService;
 import uk.gov.hmcts.payment.api.service.PaymentGroupService;
+import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.servicebus.TopicClientProxy;
 import uk.gov.hmcts.payment.api.servicebus.TopicClientService;
@@ -87,8 +90,7 @@ import java.util.stream.Collectors;
 public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainService {
 
     private static final Logger LOG = LoggerFactory.getLogger(ServiceRequestDomainServiceImpl.class);
-    private static final String FAILED = "failed";
-    private static final String SUCCESS = "success";
+    private static final String PAYMENT_PROVIDER_GOV_PAY= "gov pay";
     private static final String MSGCONTENTTYPE = "application/json";
     @Value("${case-payment-orders.api.url}")
     private  String callBackUrl;
@@ -160,8 +162,14 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     @Autowired
     PaymentDtoMapper paymentDtoMapper;
 
+    @Autowired
+    private FeesService feeService;
+
+    @Autowired
+    private PaymentService<PaymentFeeLink, String> paymentService;
+
     private Function<PaymentFeeLink, Payment> getFirstSuccessPayment = serviceRequest -> serviceRequest.getPayments().stream().
-        filter(payment -> payment.getPaymentStatus().getName().equalsIgnoreCase("success")).collect(Collectors.toList()).get(0);
+        filter(payment -> payment.getPaymentStatus().getName().equalsIgnoreCase(PaymentStatus.SUCCESS.getName())).collect(Collectors.toList()).get(0);
 
     @Override
     public List<PaymentFeeLink> findByCcdCaseNumber(String ccdCaseNumber) {
@@ -191,27 +199,36 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     }
 
     @Override
-    public OnlineCardPaymentResponse create(OnlineCardPaymentRequest onlineCardPaymentRequest, String serviceRequestReference, String returnURL, String serviceCallbackURL) throws CheckDigitException {
-        //find service request
+    public ResponseEntity<OnlineCardPaymentResponse> create(OnlineCardPaymentRequest onlineCardPaymentRequest, String serviceRequestReference, String returnUrl, String serviceCallbackURL) throws CheckDigitException {
+        // Find service request
         PaymentFeeLink serviceRequest = paymentFeeLinkRepository.findByPaymentReference(serviceRequestReference).orElseThrow(() -> new ServiceRequestReferenceNotFoundException("Order reference doesn't exist"));
 
-        LOG.info("returnURL {}",returnURL);
+        LOG.info("returnURL {}",returnUrl);
 
-        //General business validation
+        // General business validation
         businessValidationForOnlinePaymentServiceRequestOrder(serviceRequest, onlineCardPaymentRequest);
 
-        //If exist, will cancel existing payment channel session with gov pay
+        // Check if successful online card payment exists, return to return-url.
+        if (hasOnlineCardPaymentAlreadySuccess(serviceRequest)) {
+            LOG.info("Successful payment found, returning user back to {}", returnUrl);
+            HttpHeaders headers = new HttpHeaders();
+            headers.set(HttpHeaders.LOCATION, returnUrl);  // Set the URL to redirect to
+            headers.set(HttpHeaders.CACHE_CONTROL, "no-store");
+            return new ResponseEntity<>(headers, HttpStatus.FOUND);
+        }
+
+        // If exist, will cancel existing payment channel session with gov pay
         checkOnlinePaymentAlreadyExistWithCreatedState(serviceRequest);
 
-        //Payment - Boundary Object
-        ServiceRequestOnlinePaymentBo requestOnlinePaymentBo = serviceRequestDtoDomainMapper.toDomain(onlineCardPaymentRequest, returnURL, serviceCallbackURL);
+        // Payment - Boundary Object
+        ServiceRequestOnlinePaymentBo requestOnlinePaymentBo = serviceRequestDtoDomainMapper.toDomain(onlineCardPaymentRequest, returnUrl, serviceCallbackURL);
 
         // GovPay - Request and creation
         CreatePaymentRequest createGovPayRequest = serviceRequestDtoDomainMapper.createGovPayRequest(requestOnlinePaymentBo);
         LOG.info("Reaching card payment");
         GovPayPayment govPayPayment = delegateGovPay.create(createGovPayRequest, serviceRequest.getEnterpriseServiceName());
 
-        //Payment - Entity creation
+        // Payment - Entity creation
         Payment paymentEntity = serviceRequestDomainDataEntityMapper.toPaymentEntity(requestOnlinePaymentBo, govPayPayment, serviceRequest);
         paymentEntity.setPaymentLink(serviceRequest);
         serviceRequest.getPayments().add(paymentEntity);
@@ -221,17 +238,17 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature", false);
         LOG.info("ApportionFeature Flag Value in online card payment : {}", apportionFeature);
         if (apportionFeature) {
-            //Apportion payment
+            // Apportion payment
             feePayApportionService.processApportion(paymentEntity);
         }
 
-        return OnlineCardPaymentResponse.onlineCardPaymentResponseWith()
+        return new ResponseEntity<>(OnlineCardPaymentResponse.onlineCardPaymentResponseWith()
             .dateCreated(paymentEntity.getDateCreated())
             .externalReference(paymentEntity.getExternalReference())
             .nextUrl(paymentEntity.getNextUrl())
             .paymentReference(paymentEntity.getReference())
             .status(PayStatusToPayHubStatus.valueOf(paymentEntity.getPaymentStatus().getName()).getMappedStatus())
-            .build();
+            .build(), HttpStatus.CREATED);
     }
 
     @Override
@@ -243,7 +260,6 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         serviceRequestPaymentBo.setStatus(PaymentStatus.CREATED.getName());
         Payment payment = serviceRequestPaymentDomainDataEntityMapper.toEntity(serviceRequestPaymentBo, serviceRequest);
         payment.setPaymentLink(serviceRequest);
-
 
         //2. Account check for PBA-Payment
         payment = accountCheckForPBAPayment(serviceRequest, serviceRequestPaymentDto, payment);
@@ -261,9 +277,9 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         PaymentFeeLink serviceRequestCallbackURL = paymentFeeLinkRepository.findByPaymentReference(serviceRequestReference)
             .orElseThrow(() -> new ServiceRequestReferenceNotFoundException("Order reference doesn't exist"));
         sendMessageToTopic(paymentStatusDto, serviceRequestCallbackURL.getCallBackUrl());
-        LOG.info("send PBA payment status to topic completed ");
+        LOG.info("Send PBA payment status to topic completed ");
 
-        if (payment.getPaymentStatus().getName().equals(FAILED)) {
+        if (payment.getPaymentStatus().getName().equals(PaymentStatus.FAILED.getName())) {
             LOG.info("CreditAccountPayment Response 402(FORBIDDEN) for ccdCaseNumber : {} PaymentStatus : {}", payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
             serviceRequestPaymentBo = serviceRequestPaymentDomainDataEntityMapper.toDomain(payment);
             return serviceRequestPaymentBo;
@@ -278,7 +294,6 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         return serviceRequestPaymentBo;
     }
 
-
     private void extractApportionmentForPBA(PaymentFeeLink serviceRequest) {
         // trigger Apportion based on the launch darkly feature flag
         boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature", false);
@@ -290,7 +305,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
             feePayApportionService.processApportion(pbaPayment);
 
             // Update Fee Amount Due as Payment Status received from PBA Payment as SUCCESS
-            if (Lists.newArrayList("success", "pending").contains(pbaPayment.getPaymentStatus().getName().toLowerCase())) {
+            if (Lists.newArrayList(PaymentStatus.SUCCESS.getName(), PaymentStatus.PENDING.getName()).contains(pbaPayment.getPaymentStatus().getName().toLowerCase())) {
                 LOG.info("Update Fee Amount Due as Payment Status received from PBA Payment as %s" + pbaPayment.getPaymentStatus().getName());
                 feePayApportionService.updateFeeAmountDue(pbaPayment);
             }
@@ -326,7 +341,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         }
 
         //status history from created -> success
-        if (payment.getPaymentStatus().getName().equalsIgnoreCase(SUCCESS)) {
+        if (payment.getPaymentStatus().getName().equalsIgnoreCase(PaymentStatus.SUCCESS.getName())) {
             payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
                 .status(payment.getPaymentStatus().getName())
                 .build()));
@@ -372,20 +387,54 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         }
     }
 
-    private void checkOnlinePaymentAlreadyExistWithCreatedState(PaymentFeeLink paymentFeeLink)  {
-        //Already created state payment existed, then cancel gov pay section present
-        Date ninetyMinAgo = new Date(System.currentTimeMillis() - 90 * 60 * 1000);
-        Optional<Payment> existedPayment = paymentFeeLink.getPayments().stream()
-            .filter(payment -> payment.getPaymentStatus().getName().equalsIgnoreCase("created")
-                && payment.getPaymentProvider().getName().equalsIgnoreCase("gov pay")
-                && payment.getDateCreated().compareTo(ninetyMinAgo) >= 0)
-            .sorted(Comparator.comparing(Payment::getDateCreated).reversed())
+    private boolean hasOnlineCardPaymentAlreadySuccess(PaymentFeeLink paymentFeeLink) {
+
+        // Find an existing successful payment in DB
+        Optional<Payment> successPayment = paymentFeeLink.getPayments().stream()
+            .filter(payment -> payment.getPaymentStatus().getName().equalsIgnoreCase(PaymentStatus.SUCCESS.getName())
+                && payment.getPaymentProvider().getName().equalsIgnoreCase(PAYMENT_PROVIDER_GOV_PAY))
             .findFirst();
 
-        if (!existedPayment.isEmpty()) {
-            GovPayPayment currentPayment = delegateGovPay.retrieve(existedPayment.get().getExternalReference());
-            if(canCancelPayment(currentPayment)) {
-                delegatingPaymentService.cancel(existedPayment.get(), paymentFeeLink.getCcdCaseNumber(), paymentFeeLink.getEnterpriseServiceName());
+        if (successPayment.isPresent()) {
+            LOG.info("Payment {} for serviceRequest {} already exists with status success in PayHub.",
+                    successPayment.map(Payment::getReference).orElse("N/A"),
+                    successPayment.map(apayment -> apayment.getPaymentLink().getPaymentReference()).orElse("N/A"));
+            return true;
+        }
+
+        // Already created state payment exists, is this successful?
+        Date ninetyMinAgo = new Date(System.currentTimeMillis() - 90 * 60 * 1000);
+        Optional<Payment> existingPayment = paymentFeeLink.getPayments().stream()
+            .filter(payment -> payment.getPaymentStatus().getName().equalsIgnoreCase(PaymentStatus.CREATED.getName())
+                && payment.getPaymentProvider().getName().equalsIgnoreCase(PAYMENT_PROVIDER_GOV_PAY)
+                && payment.getDateCreated().compareTo(ninetyMinAgo) >= 0).findFirst();
+
+        if (existingPayment.isPresent()) {
+            GovPayPayment payment = delegateGovPay.retrieve(existingPayment.get().getExternalReference());
+            if (payment.getState().getStatus().equals("success")) {
+                LOG.info("Payment {} for serviceRequest {} already exists with status success in GovPay.",
+                        existingPayment.map(Payment::getReference).orElse("N/A"),
+                        existingPayment.map(apayment -> apayment.getPaymentLink().getPaymentReference()).orElse("N/A"));
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void checkOnlinePaymentAlreadyExistWithCreatedState(PaymentFeeLink paymentFeeLink) {
+
+        // Already created state payment existed, then cancel gov pay section present
+        Date ninetyMinAgo = new Date(System.currentTimeMillis() - 90 * 60 * 1000);
+        Optional<Payment> existingPayment = paymentFeeLink.getPayments().stream()
+            .filter(payment -> payment.getPaymentStatus().getName().equalsIgnoreCase(PaymentStatus.CREATED.getName())
+                && payment.getPaymentProvider().getName().equalsIgnoreCase(PAYMENT_PROVIDER_GOV_PAY)
+                && payment.getDateCreated().compareTo(ninetyMinAgo) >= 0).max(Comparator.comparing(Payment::getDateCreated));
+
+        if (existingPayment.isPresent()) {
+            GovPayPayment payment = delegateGovPay.retrieve(existingPayment.get().getExternalReference());
+            if (canCancelPayment(payment)) {
+                delegatingPaymentService.cancel(existingPayment.get(), paymentFeeLink.getCcdCaseNumber(), paymentFeeLink.getEnterpriseServiceName());
             }
         }
     }
@@ -476,7 +525,6 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         }
         LOG.info("Number of messages received from subscrition: {}", receivedMessages);
     }
-
 
     @Override
     public void sendMessageTopicCPO(ServiceRequestDto serviceRequestDto, String serviceRequestReference){

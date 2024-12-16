@@ -23,6 +23,7 @@ import uk.gov.hmcts.fees2.register.data.service.FeeService;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.controllers.CardPaymentController;
 import uk.gov.hmcts.payment.api.controllers.PaymentController;
+import uk.gov.hmcts.payment.api.controllers.PaymentReference;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.external.client.GovPayClient;
 import uk.gov.hmcts.payment.api.external.client.dto.CardDetails;
@@ -135,6 +136,9 @@ class CardPaymentProviderTest {
     @Autowired
     GovPayKeyRepository govPayKeyRepositoryMock;
 
+    @Autowired
+    PaymentReference paymentReferenceMock;
+
     @Value("${PACT_BRANCH_NAME}")
     String branchName;
 
@@ -151,9 +155,10 @@ class CardPaymentProviderTest {
     void before(PactVerificationContext context) {
         System.getProperties().setProperty("pact.verifier.publishResults", "true");
         MockMvcTestTarget testTarget = new MockMvcTestTarget();
+        when(paymentReferenceMock.getNext()).thenReturn("123");
         CardPaymentController cardPaymentController =
             new CardPaymentController(cardDelegatingPaymentService, paymentDtoMapper, cardDetailsService, pciPalPaymentService, ff4j,
-                feePayApportionService, featureToggler, referenceDataService);
+                feePayApportionService, featureToggler, referenceDataService, paymentReferenceMock);
         cardPaymentController.setApplicationContext(applicationContext);
         testTarget.setControllers(
             cardPaymentController,

@@ -7,24 +7,13 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
-import javax.persistence.Tuple;
-import javax.persistence.TupleElement;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.ArrayList;
-import static org.mockito.Mockito.*;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.util.stream.Collectors;
 import org.springframework.test.annotation.DirtiesContext;
 import uk.gov.hmcts.payment.api.dto.DuplicatePaymentDto;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.email.Email;
 import uk.gov.hmcts.payment.api.email.EmailService;
+import uk.gov.hmcts.payment.api.model.Payment2Repository;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.reports.FeesService;
 import uk.gov.hmcts.payment.api.reports.PaymentsReportService;
@@ -34,15 +23,19 @@ import uk.gov.hmcts.payment.api.reports.config.PaymentReportConfig;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
-import uk.gov.hmcts.payment.api.model.Payment2Repository;
 
-
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import javax.persistence.Tuple;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(org.mockito.junit.MockitoJUnitRunner.class)
 @DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)

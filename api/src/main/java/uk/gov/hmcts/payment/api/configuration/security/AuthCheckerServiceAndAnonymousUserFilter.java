@@ -10,10 +10,10 @@ import uk.gov.hmcts.reform.auth.checker.core.user.User;
 import uk.gov.hmcts.reform.auth.checker.core.user.UserRequestAuthorizer;
 import uk.gov.hmcts.reform.auth.checker.spring.serviceanduser.ServiceAndUserPair;
 
-import javax.servlet.http.HttpServletRequest;
-import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import javax.servlet.http.HttpServletRequest;
 
 
 @Slf4j
@@ -22,7 +22,7 @@ public class AuthCheckerServiceAndAnonymousUserFilter extends AbstractPreAuthent
 
     private final RequestAuthorizer<Service> serviceRequestAuthorizer;
     private final RequestAuthorizer<User> userRequestAuthorizer;
-    private static final Set anonymousRole = new HashSet<String>(Arrays.asList("ROLE_ANONYMOUS"));
+    private static final Set<String> anonymousRole = new HashSet<>(List.of("ROLE_ANONYMOUS"));
 
 
     public AuthCheckerServiceAndAnonymousUserFilter(RequestAuthorizer<Service> serviceRequestAuthorizer,
