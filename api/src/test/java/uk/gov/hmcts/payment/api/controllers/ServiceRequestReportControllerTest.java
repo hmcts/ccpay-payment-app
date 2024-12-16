@@ -16,9 +16,17 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.domain.service.ServiceRequestDomainService;
 import uk.gov.hmcts.payment.api.email.EmailService;
+import uk.gov.hmcts.payment.api.model.DuplicateServiceRequestDto;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
+
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -56,6 +64,9 @@ public class ServiceRequestReportControllerTest {
     @MockBean
     ServiceRequestDomainService serviceRequestDomainService;
 
+    @MockBean
+    PaymentFeeLinkRepository paymentFeeLinkRepository;
+
     @Before
     public void setup() {
 
@@ -67,6 +78,57 @@ public class ServiceRequestReportControllerTest {
             .withAuthorizedUser(USER_ID)
             .withUserId(USER_ID)
             .withReturnUrl("https://www.moneyclaims.service.gov.uk");
+
+        DuplicateServiceRequestDto duplicateServiceRequestDto1 = new DuplicateServiceRequestDto() {
+            @Override
+            public String getFee_codes() {
+                return "FEE0123";
+            }
+
+            @Override
+            public Integer getPayment_link_id() {
+                return 123;
+            }
+
+            @Override
+            public String getCcd_case_number() {
+                return "123";
+            }
+
+            @Override
+            public String getEnterprise_service_name() {
+                return "Probate";
+            }
+        };
+
+        DuplicateServiceRequestDto duplicateServiceRequestDto2 = new DuplicateServiceRequestDto() {
+            @Override
+            public String getFee_codes() {
+                return "FEE0123";
+            }
+
+            @Override
+            public Integer getPayment_link_id() {
+                return 124;
+            }
+
+            @Override
+            public String getCcd_case_number() {
+                return "123";
+            }
+
+            @Override
+            public String getEnterprise_service_name() {
+                return "Probate";
+            }
+        };
+
+        List<DuplicateServiceRequestDto> duplicateServiceRequestDtos = new ArrayList<>();
+        duplicateServiceRequestDtos.add(duplicateServiceRequestDto1);
+        duplicateServiceRequestDtos.add(duplicateServiceRequestDto2);
+
+        when(paymentFeeLinkRepository.getDuplicates(any(LocalDate.class))).thenReturn(Optional.of(duplicateServiceRequestDtos));
+
     }
 
     @Test
