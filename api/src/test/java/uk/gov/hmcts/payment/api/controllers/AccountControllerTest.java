@@ -205,7 +205,7 @@ public class AccountControllerTest {
         ResourceAccessException ex = new ResourceAccessException("ResourceAccessException");
         when(accountServiceMock.retrieve(anyString())).thenThrow(ex);
 
-        assertThrows(HttpClientErrorException.class, () -> accountController.getAccounts("123"));
+        assertThrows(LiberataServiceInaccessibleException.class, () -> accountController.getAccounts("123"));
     }
 
 
