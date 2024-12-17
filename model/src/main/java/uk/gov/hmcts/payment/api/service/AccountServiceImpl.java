@@ -13,6 +13,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
@@ -20,6 +21,7 @@ import uk.gov.hmcts.payment.api.util.AccountStatus;
 
 import java.math.BigDecimal;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 @Service
 @Profile("!liberataMock")
@@ -39,9 +41,19 @@ public class AccountServiceImpl implements AccountService<AccountDto, String> {
 
     @Override
     @CircuitBreaker(name = "defaultCircuitBreaker")
-    public AccountDto retrieve(String pbaCode) throws ResourceAccessException {
+    public AccountDto retrieve(String pbaCode) throws HttpClientErrorException, ResourceAccessException {
         LOG.info("AccountDto retrieve(String pbaCode) called with pbaCode: {}", pbaCode);
-        return retrieveAsync(pbaCode).join();
+        try {
+            return retrieveAsync(pbaCode).join(); // This will now throw CompletionException if something fails
+        } catch (CompletionException ce) {
+            if (ce.getCause() instanceof HttpClientErrorException) {
+                throw (HttpClientErrorException) ce.getCause();
+            } else if (ce.getCause() instanceof ResourceAccessException) {
+                    throw (ResourceAccessException) ce.getCause();
+            } else {
+                throw ce;
+            }
+        }
     }
 
     @TimeLimiter(name = "retrievePbaAccountTimeLimiter")
