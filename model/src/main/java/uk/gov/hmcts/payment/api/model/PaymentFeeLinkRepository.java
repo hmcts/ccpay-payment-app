@@ -30,7 +30,7 @@ public interface PaymentFeeLinkRepository extends CrudRepository<PaymentFeeLink,
     @Query(value = "SELECT concat(date_part('year', now()),'-',nextval('payment_reference_seq'))", nativeQuery = true)
     String getNextPaymentReference();
 
-    @Query(value = "SELECT STRING_AGG(fee.code, '| ') AS fee_codes, fee.payment_link_id, fee.ccd_case_number,  pfl.enterprise_service_name " +
+    @Query(value = "SELECT STRING_AGG(fee.code, '|' order by fee.code) AS fee_codes, fee.payment_link_id, fee.ccd_case_number,  pfl.enterprise_service_name " +
         "FROM fee " +
         "JOIN payment_fee_link pfl ON pfl.id = fee.payment_link_id " +
         "WHERE fee.ccd_case_number IN (SELECT fee.ccd_case_number " +
