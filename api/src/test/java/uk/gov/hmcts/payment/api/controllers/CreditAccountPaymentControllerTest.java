@@ -2,7 +2,7 @@ package uk.gov.hmcts.payment.api.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
-import org.apache.commons.lang.math.RandomUtils;
+import org.apache.commons.lang3.RandomUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -73,7 +73,6 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
-import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "componenttest"})
@@ -292,7 +291,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             .build();
         PaymentFee fee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").build();
 
-        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-15186162020").payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        PaymentFeeLink paymentFeeLink = db.create(PaymentFeeLink.paymentFeeLinkWith().paymentReference("2018-15186162020").payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);
 
         Payment savedPayment = paymentFeeLink.getPayments().get(0);
@@ -355,7 +354,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             .build();
         PaymentFee fee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").build();
 
-        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-15199028243").payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        PaymentFeeLink paymentFeeLink = db.create(PaymentFeeLink.paymentFeeLinkWith().paymentReference("2018-15199028243").payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);
 
         Payment savedPayment = paymentFeeLink.getPayments().get(0);

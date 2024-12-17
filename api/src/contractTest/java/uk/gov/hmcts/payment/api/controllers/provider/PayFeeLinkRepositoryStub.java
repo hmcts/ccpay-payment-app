@@ -6,6 +6,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.query.Param;
 import uk.gov.hmcts.payment.api.model.DuplicateServiceRequestDto;
+import org.springframework.data.repository.query.FluentQuery;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
 
@@ -13,6 +14,7 @@ import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 
 public class PayFeeLinkRepositoryStub implements PaymentFeeLinkRepository {
     @Override
@@ -22,7 +24,7 @@ public class PayFeeLinkRepositoryStub implements PaymentFeeLinkRepository {
         entity.getPayments().forEach(p -> p.setId(10001));
         entity.getPayments().forEach(payment -> {
             payment.setDateCreated(createDate);
-            payment.getStatusHistories().forEach( history -> {
+            payment.getStatusHistories().forEach(history -> {
                 history.setDateCreated(createDate);
                 history.setDateUpdated(createDate);
             });
@@ -136,6 +138,17 @@ public class PayFeeLinkRepositoryStub implements PaymentFeeLinkRepository {
     @Override
     public boolean exists(Specification<PaymentFeeLink> spec) {
         return false;
+    }
+
+    @Override
+    public long delete(Specification<PaymentFeeLink> spec) {
+        return 0;
+    }
+
+    @Override
+    public <S extends PaymentFeeLink, R> R findBy(Specification<PaymentFeeLink> spec,
+                                                  Function<FluentQuery.FetchableFluentQuery<S>, R> queryFunction) {
+        return null;
     }
 
     @Override

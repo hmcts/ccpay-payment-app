@@ -2,21 +2,20 @@ package uk.gov.hmcts.payment.api.external.client;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.hystrix.contrib.javanica.annotation.DefaultProperties;
-import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
-import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
 import edu.umd.cs.findbugs.annotations.SuppressWarnings;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import org.apache.hc.client5.http.classic.HttpClient;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.ParseException;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.message.BasicHeader;
+import org.apache.hc.core5.http.Header;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpHeaders;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.message.BasicHeader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,19 +25,15 @@ import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.RefundPaymentRequest;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayClientException;
-import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayPaymentNotFoundException;
 
-import static org.apache.http.HttpHeaders.CONTENT_TYPE;
-import static org.apache.http.entity.ContentType.APPLICATION_JSON;
+import java.io.IOException;
+
+import static org.apache.hc.core5.http.ContentType.APPLICATION_JSON;
+import static org.apache.hc.core5.http.HttpHeaders.CONTENT_TYPE;
+
 
 @Component
 @SuppressWarnings(value = "HTTP_PARAMETER_POLLUTION", justification = "No way around it in a client")
-@DefaultProperties(groupKey = "govPay", commandProperties = {
-    @HystrixProperty(name ="circuitBreaker.requestVolumeThreshold", value = "20"),
-    @HystrixProperty(name ="circuitBreaker.errorThresholdPercentage", value = "50"),
-    @HystrixProperty(name ="metrics.rollingStats.timeInMilliseconds", value = "60000"),
-    @HystrixProperty(name = "execution.timeout.enabled", value = "false")
-})
 public class GovPayClient {
     private static final Logger LOG = LoggerFactory.getLogger(GovPayClient.class);
     private final String url;
@@ -57,60 +52,62 @@ public class GovPayClient {
         this.errorTranslator = errorTranslator;
     }
 
-    @HystrixCommand(commandKey = "createCardPayment")
+    @CircuitBreaker(name = "createCardPayment")
     public GovPayPayment createPayment(String authorizationKey, CreatePaymentRequest createPaymentRequest) {
         LOG.info("Inside createPayment in GovPayClient");
         return withIOExceptionHandling(() -> {
             HttpPost request = postRequestFor(authorizationKey, url, createPaymentRequest);
-            HttpResponse response = httpClient.execute(request);
-            LOG.info("response {}",objectMapper.writeValueAsString(response.getStatusLine()));
+            ClassicHttpResponse response = (ClassicHttpResponse) httpClient.execute(request);
+            LOG.info("response {}", objectMapper.writeValueAsString(response.getCode()));
             checkNotAnError(response);
-            return objectMapper.readValue(response.getEntity().getContent(), GovPayPayment.class);
+            String responseBody = EntityUtils.toString(response.getEntity());
+            return objectMapper.readValue(responseBody, GovPayPayment.class);
         });
     }
 
-    @HystrixCommand(commandKey = "retrieveCardPayment", ignoreExceptions = {GovPayPaymentNotFoundException.class})
+    @CircuitBreaker(name = "retrieveCardPayment")
     public GovPayPayment retrievePayment(String authorizationKey, String govPayId) {
         LOG.info("retrievePayment");
         return withIOExceptionHandling(() -> {
             HttpGet request = getRequestFor(authorizationKey, url + "/" + govPayId);
-            HttpResponse response = httpClient.execute(request);
+            ClassicHttpResponse response = (ClassicHttpResponse) httpClient.execute(request);
             checkNotAnError(response);
-            return objectMapper.readValue(response.getEntity().getContent(), GovPayPayment.class);
+            String responseBody = EntityUtils.toString(response.getEntity());
+            return objectMapper.readValue(responseBody, GovPayPayment.class);
         });
     }
 
     public void cancelPayment(String authorizationKey, String cancelUrl) {
-            LOG.info("CANCELLING PAYMENT");
-            withIOExceptionHandling(() -> {
-                HttpPost request = postRequestFor(authorizationKey, cancelUrl, null);
-                HttpResponse response = httpClient.execute(request);
-                checkNotAnError(response);
-                return null;
-            });
+        LOG.info("CANCELLING PAYMENT");
+        withIOExceptionHandling(() -> {
+            HttpPost request = postRequestFor(authorizationKey, cancelUrl, null);
+            ClassicHttpResponse response = (ClassicHttpResponse) httpClient.execute(request);
+            checkNotAnError(response);
+            return null;
+        });
     }
 
     public void refundPayment(String authorizationKey, String refundsUrl, RefundPaymentRequest refundPaymentRequest) {
         withIOExceptionHandling(() -> {
             HttpPost request = postRequestFor(authorizationKey, refundsUrl, refundPaymentRequest);
-            HttpResponse response = httpClient.execute(request);
+            ClassicHttpResponse response = (ClassicHttpResponse) httpClient.execute(request);
             checkNotAnError(response);
             return null;
         });
     }
 
     private HttpPost postRequestFor(String authorizationKey, String url, Object entity) throws JsonProcessingException {
-        LOG.info("new StringEntity(objectMapper.writeValueAsString(entity) {}",objectMapper.writeValueAsString(entity));
+        LOG.info("new StringEntity(objectMapper.writeValueAsString(entity) {}", objectMapper.writeValueAsString(entity));
         return postRequestFor(authorizationKey, url, new StringEntity(objectMapper.writeValueAsString(entity), APPLICATION_JSON));
     }
 
     private HttpPost postRequestFor(String authorizationKey, String url, HttpEntity entity) throws JsonProcessingException {
         LOG.info("Inside postRequestFor in GovPayClient");
-        LOG.info("authorizationKey {} ",authorizationKey);
-        LOG.info("url {} ",url);
-        try{
+        LOG.info("authorizationKey {} ", authorizationKey);
+        LOG.info("url {} ", url);
+        try {
             LOG.info("entity {}", entity.getContent().toString());
-        }catch (Exception e){
+        } catch (Exception e) {
             LOG.info(e.getMessage());
         }
 
@@ -132,8 +129,8 @@ public class GovPayClient {
         return new BasicHeader(HttpHeaders.AUTHORIZATION, "Bearer " + authorizationKey);
     }
 
-    private void checkNotAnError(HttpResponse httpResponse) throws IOException {
-        int status = httpResponse.getStatusLine().getStatusCode();
+    private void checkNotAnError(ClassicHttpResponse httpResponse) throws IOException {
+        int status = httpResponse.getCode();
 
         if (status >= 400) {
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -145,12 +142,12 @@ public class GovPayClient {
     private <T> T withIOExceptionHandling(CheckedExceptionProvider<T> provider) {
         try {
             return provider.get();
-        } catch (IOException e) {
+        } catch (IOException | ParseException e) {
             throw new GovPayClientException(e);
         }
     }
 
     private interface CheckedExceptionProvider<T> {
-        T get() throws IOException;
+        T get() throws IOException, ParseException;
     }
 }

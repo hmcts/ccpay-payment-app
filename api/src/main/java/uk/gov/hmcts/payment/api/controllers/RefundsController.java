@@ -27,7 +27,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotSuccessException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.RemissionNotFoundException;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 @RestController
 @Tag(name = "RefundsController", description = "Refunds REST API")
