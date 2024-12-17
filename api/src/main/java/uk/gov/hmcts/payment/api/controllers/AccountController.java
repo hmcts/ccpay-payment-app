@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +24,7 @@ import static org.springframework.http.HttpStatus.GONE;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.PRECONDITION_FAILED;
 
+@Slf4j
 @RestController
 @Tag(name = "AccountController", description = "Account REST API")
 public class AccountController {
@@ -69,6 +71,7 @@ public class AccountController {
         } catch (HttpClientErrorException ex) {
             throw ex;
         } catch (Exception exception) {
+            log.error("Failed to connect with Liberata: ", exception);
             throw new LiberataServiceInaccessibleException("Failed to connect with Liberata. " + exception.getMessage());
         }
     }
