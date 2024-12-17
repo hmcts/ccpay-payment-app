@@ -73,7 +73,7 @@ import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
-import javax.persistence.Tuple;
+import jakarta.persistence.Tuple;
 import java.math.BigDecimal;
 
 import java.text.ParseException;
@@ -263,7 +263,7 @@ public class PaymentStatusControllerTest {
             eq(HttpMethod.PATCH),
             any(HttpEntity.class),
             eq(String.class), any(Map.class)))
-            .thenReturn(new ResponseEntity(HttpStatus.OK));
+            .thenReturn(ResponseEntity.ok().build());
         MvcResult result1 = restActions
             .post("/payment-failures/bounced-cheque", paymentStatusBouncedChequeDto)
             .andExpect(status().isOk())
@@ -343,7 +343,7 @@ public class PaymentStatusControllerTest {
             eq(HttpMethod.PATCH),
             any(HttpEntity.class),
             eq(String.class), any(Map.class)))
-            .thenReturn(new ResponseEntity(HttpStatus.OK));
+            .thenReturn(ResponseEntity.ok().build());
         MvcResult result = restActions
             .post("/payment-failures/chargeback", paymentStatusChargebackDto)
             .andExpect(status().isOk())
@@ -528,7 +528,7 @@ public class PaymentStatusControllerTest {
                 .dcn("88")
                 .poBoxNumber("8")
                 .build();
-        ResponseEntity responseEntity = new ResponseEntity(HttpStatus.OK);
+        ResponseEntity responseEntity = ResponseEntity.ok().build();
         when(this.restTemplatePaymentGroup.exchange(any(),
                 eq(HttpMethod.GET),
                 any(HttpEntity.class),
@@ -557,7 +557,7 @@ public class PaymentStatusControllerTest {
                 eq(HttpMethod.GET),
                 any(HttpEntity.class),
                 eq(SearchResponse.class), any(HashMap.class)))
-                .thenReturn(new ResponseEntity(HttpStatus.NOT_FOUND));
+                .thenReturn(ResponseEntity.notFound().build());
         MvcResult result = restActions
                 .post("/payment-failures/unprocessed-payment", unprocessedPayment)
                 .andExpect(status().isNotFound())
@@ -581,7 +581,7 @@ public class PaymentStatusControllerTest {
                 eq(HttpMethod.GET),
                 any(HttpEntity.class),
                 eq(SearchResponse.class), any(HashMap.class)))
-                .thenReturn(new ResponseEntity(HttpStatus.OK));
+                .thenReturn(ResponseEntity.ok().build());
         when(paymentFailureRepository.save(any())).thenThrow(DataIntegrityViolationException.class);
         MvcResult result = restActions
                 .post("/payment-failures/unprocessed-payment", unprocessedPayment)

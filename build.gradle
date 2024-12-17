@@ -1,26 +1,26 @@
 plugins {
     id 'application'
     id "org.sonarqube" version "5.1.0.4882"
-    id 'org.springframework.boot' version '2.7.18'
-    id 'io.spring.dependency-management' version '1.1.4'
-    id 'org.owasp.dependencycheck' version '9.1.0'
-    id "uk.gov.hmcts.java" version '0.12.59'
-    id "com.gorylenko.gradle-git-properties" version "2.4.1"
+    id 'org.springframework.boot' version '3.3.4'
+    id 'io.spring.dependency-management' version '1.1.6'
+    id 'org.owasp.dependencycheck' version '10.0.4'
+    id "uk.gov.hmcts.java" version '0.12.63'
+    id "com.gorylenko.gradle-git-properties" version "2.4.2"
     id 'jacoco'
 }
 
-def springBootVersion = '2.7.18'
-def springCloudVersion = '2021.0.9'
+def springBootVersion = '3.3.4'
+def springCloudVersion = '2023.0.3'
 
 def versions = [
-        lombok: '1.18.32',
-        javaVersion: '17',
-        jacocoVersion: '0.8.5'
+        lombok: '1.18.36',
+        javaVersion: '21',
+        jacocoVersion: '0.8.12'
 ]
 
 java {
   toolchain {
-    languageVersion = JavaLanguageVersion.of(17)
+    languageVersion = JavaLanguageVersion.of(21)
   }
 }
 
@@ -29,7 +29,7 @@ dependencies{
 }
 
 task fortifyScan(type: JavaExec)  {
-    main = "uk.gov.hmcts.fortifyclient.FortifyClientMainApp"
+    mainClass = "uk.gov.hmcts.fortifyclient.FortifyClientMainApp"
     classpath += sourceSets.test.runtimeClasspath
     jvmArgs = ['--add-opens=java.base/java.lang.reflect=ALL-UNNAMED']
 }
@@ -48,7 +48,6 @@ allprojects {
     repositories {
         mavenLocal()
         mavenCentral()
-        jcenter()
         maven { url 'https://repo.spring.io/libs-milestone' }
         maven { url 'https://jitpack.io' }
     }
@@ -64,13 +63,13 @@ allprojects {
         dependencies {
             dependencySet(
                     group: 'com.fasterxml.jackson.core',
-                    version: '2.17.0'
+                    version: '2.18.0'
             ) {
                 entry 'jackson-core'
                 entry 'jackson-databind'
             }
             // CVE-2020-8908
-            dependencySet(group: 'com.google.guava', version: '33.2.0-jre') {
+            dependencySet(group: 'com.google.guava', version: '33.3.1-jre') {
                 entry 'guava'
             }
 
@@ -83,10 +82,10 @@ allprojects {
 
     configurations {
         testCompile.exclude group: 'pull-parser', module: 'pull-parser'
-        testRuntime.exclude group: 'ch.qos.logback', module: 'logback-classic', version: '1.2.13'
-        testRuntime.exclude group: 'ch.qos.logback', module: 'logback-core', version: '1.2.13'
-        testCompile.exclude group: 'ch.qos.logback', module: 'logback-classic', version: '1.2.13'
-        testCompile.exclude group: 'ch.qos.logback', module: 'logback-core', version: '1.2.13'
+        testRuntime.exclude group: 'ch.qos.logback', module: 'logback-classic', version: '1.5.8'
+        testRuntime.exclude group: 'ch.qos.logback', module: 'logback-core', version: '1.5.8'
+        testCompile.exclude group: 'ch.qos.logback', module: 'logback-classic', version: '1.5.8'
+        testCompile.exclude group: 'ch.qos.logback', module: 'logback-core', version: '1.5.8'
     }
 
 
@@ -107,11 +106,11 @@ allprojects {
         reports {
             // xml is usually used to integrate code coverage with
             // other tools like SonarQube, Coveralls or Codecov
-            xml.enabled true
+            xml.required.set(true)
             // HTML reports can be used to see code coverage
             // without any external tools
-            html.enabled true
-            xml.destination = file("${project.buildDir}/reports/jacoco/test/jacocoTestReport.xml")
+            html.required.set(true)
+            xml.outputLocation.set(file("${project.buildDir}/reports/jacoco/test/jacocoTestReport.xml"))
         }
     }
 
@@ -124,34 +123,32 @@ subprojects {
     apply plugin: 'java'
     apply plugin: "jacoco"
 
-    tasks.withType(JavaCompile) {
+    tasks.withType(JavaCompile).configureEach {
         options.encoding = 'UTF-8'
+        options.compilerArgs << '-parameters'
     }
 
-    tasks.withType(Test) {
+    tasks.withType(Test).configureEach {
         testLogging {
             exceptionFormat = 'full'
         }
     }
 
-    ext['tomcat.version'] = '9.0.88' // CVE-2023-46589, CVE-2023-42794, CVE-2023-28709
-    ext['netty.version'] = '4.1.100.Final' // CVE-2023-44487
-    ext['jackson.version'] = '2.17.1' // CVE-2021-46877, CVE-2022-42003, CVE-2022-42004, CVE-2020-36518
-
     dependencies {
         implementation ('com.sun.xml.bind:jaxb-osgi:4.0.5')
         testImplementation 'io.github.openfeign:feign-jackson:13.2.1'
+        testImplementation 'io.github.openfeign:feign-micrometer:13.5'
         implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version:'2.17.1'
         implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version:'2.17.1'
         implementation group: 'joda-time', name: 'joda-time', version: '2.12.7'
         implementation group: 'org.jboss.aerogear', name: 'aerogear-otp-java', version:'1.0.0'
         implementation group:'org.apache.poi', name: 'poi-ooxml', version: '5.2.5'
         testImplementation group: 'junit', name: 'junit', version: '4.13.2'
-        testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.8.0'
+        testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.26.3'
         testImplementation group: 'org.mockito', name: 'mockito-core', version: '5.11.0'
         compileOnly group: 'net.sourceforge.findbugs', name: 'annotations', version: '1.3.2'
         implementation group: 'org.owasp.encoder', name: 'encoder', version: '1.2.3'
-        testImplementation group: 'com.github.tomakehurst', name: 'wiremock', version: '2.35.2'
+        testImplementation group: 'com.github.tomakehurst', name: 'wiremock-jre8', version: '3.0.1'
         compileOnly group: 'org.projectlombok', name: 'lombok', version: versions.lombok
         annotationProcessor group: 'org.projectlombok', name: 'lombok', version: versions.lombok
         testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: versions.lombok
@@ -181,14 +178,16 @@ dependencies {
     implementation project(':payment-api')
 }
 
-mainClassName = 'uk.gov.hmcts.PaymentApiApplication'
+application  {
+    mainClass = 'uk.gov.hmcts.PaymentApiApplication'
+}
 
 jar {
     enabled = true
 }
 
 bootJar {
-    archiveName 'payment-app.jar'
+    archiveFileName.set('payment-app.jar')
     manifest {
         attributes 'Implementation-Title': project.name, 'Implementation-Version': project.version
     }

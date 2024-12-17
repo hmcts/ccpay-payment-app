@@ -62,7 +62,7 @@ public class ServiceRequestDomainServiceTest  {
         Map <String ,String>  msgProperties = new HashMap<>();
         msgProperties.put("action", "500");
 
-        when(subscriptionClient.receive()).thenReturn(msg,null);
+        when(subscriptionClient.receive()).thenReturn(msg, (IMessage) null);
         when(msg.getBody()).thenReturn(dataInBytes);
         when(msg.getProperties()).thenReturn(msgProperties);
         when(topicClientService.getTopicClientProxy()).thenReturn(topicClientProxy);

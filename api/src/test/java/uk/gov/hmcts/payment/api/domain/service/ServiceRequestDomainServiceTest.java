@@ -2,8 +2,6 @@ package uk.gov.hmcts.payment.api.domain.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
-import com.netflix.hystrix.HystrixCommand;
-import com.netflix.hystrix.exception.HystrixRuntimeException;
 import org.apache.poi.ss.formula.functions.T;
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.Before;
@@ -19,6 +17,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.ResourceAccessException;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestDomainDataEntityMapper;
 import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestDtoDomainMapper;
@@ -48,7 +47,14 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNo
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.TimeoutException;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.Assert.assertNotNull;
@@ -366,7 +372,7 @@ public class ServiceRequestDomainServiceTest {
     }
 
     @Test
-    public void addPaymentsHystrixRuntimeExceptionThrownTest() throws Exception {
+    public void addPaymentsTimeoutExceptionThrownTest() throws Exception {
 
         ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto.paymentDtoWith()
             .accountNumber("1234")
@@ -416,7 +422,7 @@ public class ServiceRequestDomainServiceTest {
         when(paymentDtoMapper.toPaymentStatusDto(any(),any(),any(), any())).thenReturn(paymentStatusDto);
 
         when(accountService.retrieve(serviceRequestPaymentDto.getAccountNumber())).thenThrow(
-            new HystrixRuntimeException(HystrixRuntimeException.FailureType.TIMEOUT, HystrixCommand.class, "ErrorThrown", null, null));
+            new ResourceAccessException("Error thrown"));
 
         AccountDto accountDto = AccountDto.accountDtoWith()
             .accountNumber("1234")

@@ -9,7 +9,7 @@ import org.springframework.data.repository.query.Param;
 import uk.gov.hmcts.payment.api.dto.DuplicatePaymentDto;
 import uk.gov.hmcts.payment.api.dto.Reference;
 
-import javax.persistence.Tuple;
+import jakarta.persistence.Tuple;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
@@ -66,5 +66,5 @@ public interface Payment2Repository extends CrudRepository<Payment, Integer>, Jp
     List<Tuple> findAllByDateCreatedBetweenAndPaymentChannel(
         @Param("fromDate") Date fromDate,
         @Param("toDate") Date toDate,
-        @Param("paymentChannel") PaymentChannel paymentChannel);
+        @Param("paymentChannel") String paymentChannel);
 }
