@@ -73,7 +73,6 @@ public class AccountController {
         }
     }
 
-
     @ExceptionHandler(HttpClientErrorException.class)
     public ResponseEntity<Object> returnAccountStatusError(HttpClientErrorException ex) {
 
@@ -92,11 +91,9 @@ public class AccountController {
                     .errorMessage(JSON_ERROR_MESSAGE_ON_HOLD)
                     .build();
                 break;
-
             case NOT_FOUND:
                 responseBody = "Account not found";
-                break;
-
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseBody);
             default:
                 throw ex;
         }
