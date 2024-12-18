@@ -10,7 +10,7 @@ plugins {
 }
 
 def springBootVersion = '3.3.4'
-def springCloudVersion = '2023.0.3'
+def springCloudVersion = '2023.0.4'
 
 def versions = [
         lombok: '1.18.36',
@@ -25,7 +25,7 @@ java {
 }
 
 dependencies{
-    testImplementation 'com.github.hmcts:fortify-client:1.4.5:all'
+    testImplementation 'com.github.hmcts:fortify-client:1.4.6:all'
 }
 
 task fortifyScan(type: JavaExec)  {
@@ -144,7 +144,7 @@ subprojects {
         implementation group: 'org.jboss.aerogear', name: 'aerogear-otp-java', version:'1.0.0'
         implementation group:'org.apache.poi', name: 'poi-ooxml', version: '5.2.5'
         testImplementation group: 'junit', name: 'junit', version: '4.13.2'
-        testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.23.1'
+        testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.26.3'
         testImplementation group: 'org.mockito', name: 'mockito-core', version: '5.11.0'
         compileOnly group: 'net.sourceforge.findbugs', name: 'annotations', version: '1.3.2'
         implementation group: 'org.owasp.encoder', name: 'encoder', version: '1.2.3'
