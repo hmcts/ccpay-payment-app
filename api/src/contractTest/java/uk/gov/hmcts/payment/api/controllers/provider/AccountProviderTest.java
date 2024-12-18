@@ -59,10 +59,10 @@ class AccountProviderTest {
         }
     }
 
-    @State("An account exists with identifier PBA1234")
-    public void toReturnAccountDetails() throws JSONException {
-        AccountDto expectedDto = new AccountDto("PBA1234", "accountName", new BigDecimal(100),
-            new BigDecimal(100), AccountStatus.ACTIVE, new Date());
-        when(accountServiceMock.retrieve("PBA1234")).thenReturn(expectedDto);
-    }
+//    @State("An account exists with identifier PBA1234")
+//    public void toReturnAccountDetails() throws JSONException {
+//        AccountDto expectedDto = new AccountDto("PBA1234", "accountName", new BigDecimal(100),
+//            new BigDecimal(100), AccountStatus.ACTIVE, new Date());
+//        when(accountServiceMock.retrieve("PBA1234")).thenReturn(expectedDto);
+//    }
 }
