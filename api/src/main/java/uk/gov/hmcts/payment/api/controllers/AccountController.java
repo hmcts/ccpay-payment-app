@@ -4,9 +4,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,10 +20,11 @@ import uk.gov.hmcts.payment.api.exception.LiberataServiceInaccessibleException;
 import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.util.AccountStatus;
 
+import static org.springframework.http.HttpStatus.GONE;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.PRECONDITION_FAILED;
-import static org.springframework.http.HttpStatus.GONE;
 
+@Slf4j
 @RestController
 @Tag(name = "AccountController", description = "Account REST API")
 public class AccountController {
@@ -70,10 +71,10 @@ public class AccountController {
         } catch (HttpClientErrorException ex) {
             throw ex;
         } catch (Exception exception) {
+            log.error("Failed to connect with Liberata: ", exception);
             throw new LiberataServiceInaccessibleException("Failed to connect with Liberata. " + exception.getMessage());
         }
     }
-
 
     @ExceptionHandler(HttpClientErrorException.class)
     public ResponseEntity<Object> returnAccountStatusError(HttpClientErrorException ex) {
@@ -93,11 +94,9 @@ public class AccountController {
                     .errorMessage(JSON_ERROR_MESSAGE_ON_HOLD)
                     .build();
                 break;
-
             case NOT_FOUND:
                 responseBody = "Account not found";
-                break;
-
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseBody);
             default:
                 throw ex;
         }
