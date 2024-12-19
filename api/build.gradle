@@ -142,7 +142,7 @@ dependencies {
         exclude group: 'uk.gov.hmcts.fees2.register.data.service.impl.IdamServiceImpl.class'
     }
     //Added this for spring boot upgrade as swagger was not working with the latest version.
-    implementation group: 'org.springframework.plugin', name: 'spring-plugin-core', version: '2.0.0.RELEASE'
+    implementation group: 'org.springframework.plugin', name: 'spring-plugin-core', version: '3.0.0'
     implementation(group: 'org.springframework.hateoas', name: 'spring-hateoas') {
         exclude(module: 'spring-plugin-core')
     }
@@ -156,7 +156,7 @@ dependencies {
     testImplementation group: 'org.projectlombok', name: 'lombok', version: versions.lombok
     testImplementation group: 'io.rest-assured', name: 'rest-assured'
     testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-thymeleaf'
-    testImplementation group: 'org.testcontainers', name: 'postgresql', version: '1.20.3'
+    testImplementation group: 'org.testcontainers', name: 'postgresql', version: '1.20.4'
 
     // JUnit 4 dependencies
     testImplementation group: 'org.powermock', name: 'powermock-module-junit4', version: '2.0.9'
