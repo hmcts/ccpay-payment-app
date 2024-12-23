@@ -73,6 +73,8 @@ java:
           alias: gov.pay.auth.key.adoption_web
         - name: gov-pay-keys-prl
           alias: gov.pay.auth.key.prl_cos_api
+        - name: service-request-email-to
+          alias: service.request.email.to
   postgresql:
     enabled: true
     primary:
