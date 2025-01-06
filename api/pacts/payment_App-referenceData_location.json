@@ -1,161 +1,161 @@
 {
+  "provider": {
+    "name": "referenceData_location"
+  },
   "consumer": {
     "name": "payment_App"
   },
   "interactions": [
     {
       "description": "A request for Organisational Service Details",
-      "providerStates": [
-        {
-          "name": "Organisational Service details exist"
-        }
-      ],
       "request": {
-        "headers": {
-          "Authorization": "Bearer UserAuthToken",
-          "Content-Type": "application/json",
-          "ServiceAuthorization": "ServiceToken"
-        },
-        "matchingRules": {
-          "header": {
-            "Content-Type": {
-              "combine": "AND",
-              "matchers": [
-                {
-                  "match": "regex",
-                  "regex": "application/json"
-                }
-              ]
-            }
-          }
-        },
         "method": "GET",
         "path": "/refdata/location/orgServices",
+        "headers": {
+          "Authorization": "Bearer UserAuthToken",
+          "ServiceAuthorization": "ServiceToken",
+          "Content-Type": "application/json"
+        },
         "query": {
           "ccdCaseType": [
             "Divorce"
           ]
-        }
-      },
-      "response": {
-        "body": [
-          {
-            "business_area": "businessArea",
-            "ccd_case_types": [
-              "Divorce"
-            ],
-            "ccd_service_name": "ccdServiceName",
-            "jurisdiction": "jurisdiction",
-            "org_unit": "orgUnit",
-            "service_code": "AA07",
-            "service_description": "DIVORCE",
-            "service_id": 437345065,
-            "service_short_description": "DIVORCE"
-          }
-        ],
-        "headers": {
-          "Content-Type": "application/json"
         },
         "matchingRules": {
-          "body": {
-            "$[0].business_area": {
-              "combine": "AND",
-              "matchers": [
-                {
-                  "match": "type"
-                }
-              ]
-            },
-            "$[0].ccd_case_types[0]": {
-              "combine": "AND",
-              "matchers": [
-                {
-                  "match": "type"
-                }
-              ]
-            },
-            "$[0].ccd_service_name": {
-              "combine": "AND",
-              "matchers": [
-                {
-                  "match": "type"
-                }
-              ]
-            },
-            "$[0].jurisdiction": {
-              "combine": "AND",
-              "matchers": [
-                {
-                  "match": "type"
-                }
-              ]
-            },
-            "$[0].org_unit": {
-              "combine": "AND",
-              "matchers": [
-                {
-                  "match": "type"
-                }
-              ]
-            },
-            "$[0].service_code": {
-              "combine": "AND",
-              "matchers": [
-                {
-                  "match": "type"
-                }
-              ]
-            },
-            "$[0].service_description": {
-              "combine": "AND",
-              "matchers": [
-                {
-                  "match": "type"
-                }
-              ]
-            },
-            "$[0].service_id": {
-              "combine": "AND",
-              "matchers": [
-                {
-                  "match": "number"
-                }
-              ]
-            },
-            "$[0].service_short_description": {
-              "combine": "AND",
-              "matchers": [
-                {
-                  "match": "type"
-                }
-              ]
-            }
-          },
           "header": {
             "Content-Type": {
-              "combine": "AND",
               "matchers": [
                 {
                   "match": "regex",
                   "regex": "application/json"
                 }
-              ]
+              ],
+              "combine": "AND"
             }
           }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
         },
-        "status": 200
-      }
+        "body": [
+          {
+            "org_unit": "orgUnit",
+            "service_description": "DIVORCE",
+            "jurisdiction": "jurisdiction",
+            "service_id": 437345065,
+            "ccd_service_name": "ccdServiceName",
+            "business_area": "businessArea",
+            "service_code": "AA07",
+            "ccd_case_types": [
+              "Divorce"
+            ],
+            "service_short_description": "DIVORCE"
+          }
+        ],
+        "matchingRules": {
+          "header": {
+            "Content-Type": {
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "application/json"
+                }
+              ],
+              "combine": "AND"
+            }
+          },
+          "body": {
+            "$[0].jurisdiction": {
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ],
+              "combine": "AND"
+            },
+            "$[0].service_id": {
+              "matchers": [
+                {
+                  "match": "number"
+                }
+              ],
+              "combine": "AND"
+            },
+            "$[0].org_unit": {
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ],
+              "combine": "AND"
+            },
+            "$[0].business_area": {
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ],
+              "combine": "AND"
+            },
+            "$[0].service_description": {
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ],
+              "combine": "AND"
+            },
+            "$[0].service_code": {
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ],
+              "combine": "AND"
+            },
+            "$[0].service_short_description": {
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ],
+              "combine": "AND"
+            },
+            "$[0].ccd_service_name": {
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ],
+              "combine": "AND"
+            },
+            "$[0].ccd_case_types[0]": {
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ],
+              "combine": "AND"
+            }
+          }
+        }
+      },
+      "providerStates": [
+        {
+          "name": "Organisational Service details exist"
+        }
+      ]
     }
   ],
   "metadata": {
-    "pact-jvm": {
-      "version": "4.1.43"
-    },
     "pactSpecification": {
       "version": "3.0.0"
+    },
+    "pact-jvm": {
+      "version": "4.1.7"
     }
-  },
-  "provider": {
-    "name": "referenceData_location"
   }
 }
