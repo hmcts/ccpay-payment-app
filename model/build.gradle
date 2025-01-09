@@ -11,7 +11,7 @@ dependencies {
     implementation project(':payment-gov-pay-client')
     implementation project(':payment-reference-data')
     implementation project(':case-payment-orders-client')
-    implementation group: 'com.google.guava', name: 'guava', version: '33.3.1-jre'
+    implementation group: 'com.google.guava', name: 'guava', version: '33.4.0-jre'
     implementation group: 'org.apache.httpcomponents.client5', name: 'httpclient5', version: '5.2'
     implementation group: 'net.logstash.logback', name: 'logstash-logback-encoder', version:'7.4'
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web'
