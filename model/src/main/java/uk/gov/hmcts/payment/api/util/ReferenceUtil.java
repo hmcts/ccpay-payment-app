@@ -7,23 +7,23 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.springframework.stereotype.Component;
 
-import java.security.SecureRandom;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Component
 public class ReferenceUtil {
 
     private static final String PAYMENT_REF_REGEX = "(?<=\\G.{4})";
 
-    public String getNext2(String prefix) throws CheckDigitException {
+    public String getNext(String prefix) throws CheckDigitException {
         DateTime dateTime = new DateTime(DateTimeZone.UTC);
         long timeInMillis = dateTime.getMillis() / 10;
 
         StringBuilder sb = new StringBuilder();
         sb.append(timeInMillis);
 
-        // append the random 4 characters
-        SecureRandom random = new SecureRandom();
-        sb.append(String.format("%03d", random.nextInt(1000)));
+        // append the random 3 digits
+        int randomDigits = ThreadLocalRandom.current().nextInt(1000);
+        sb.append(String.format("%03d", randomDigits));
 
         CheckDigit checkDigit = new LuhnCheckDigit();
         sb.append(checkDigit.calculate(sb.toString()));
