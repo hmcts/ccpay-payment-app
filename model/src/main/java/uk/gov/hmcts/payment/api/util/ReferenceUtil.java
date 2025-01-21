@@ -14,16 +14,16 @@ public class ReferenceUtil {
 
     private static final String PAYMENT_REF_REGEX = "(?<=\\G.{4})";
 
-    public String getNext(String prefix) throws CheckDigitException {
+    public String getNext2(String prefix) throws CheckDigitException {
         DateTime dateTime = new DateTime(DateTimeZone.UTC);
-        long timeInMillis = dateTime.getMillis() / 100;
+        long timeInMillis = dateTime.getMillis() / 10;
 
         StringBuilder sb = new StringBuilder();
         sb.append(timeInMillis);
 
         // append the random 4 characters
         SecureRandom random = new SecureRandom();
-        sb.append(String.format("%04d", random.nextInt(10000)));
+        sb.append(String.format("%03d", random.nextInt(1000)));
 
         CheckDigit checkDigit = new LuhnCheckDigit();
         sb.append(checkDigit.calculate(sb.toString()));
