@@ -72,8 +72,8 @@ def versions = [
         lombok          : '1.18.36',
         pact_version    : '4.1.7',
         reformS2sClient : '5.3.0',
-        serenity        : '4.2.11',
-        serenityCucumber: '4.2.11',
+        serenity        : '4.2.12',
+        serenityCucumber: '4.2.12',
 ]
 
 def javaLoggingVersion = '6.1.7'
@@ -122,7 +122,7 @@ dependencies {
     implementation group: 'org.ff4j', name: 'ff4j-spring-boot-starter-webmvc', version: '2.1'
     implementation group: 'commons-fileupload', name: 'commons-fileupload', version: '1.5'
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-thymeleaf'
-    implementation(group: 'org.postgresql', name: 'postgresql', version: '42.7.4') {
+    implementation(group: 'org.postgresql', name: 'postgresql', version: '42.7.5') {
         exclude(module: 'commons-logging')
         exclude(module: 'slf4j-simple')
     }
