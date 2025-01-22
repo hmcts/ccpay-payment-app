@@ -7,7 +7,7 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.springframework.stereotype.Component;
 
-import java.util.concurrent.ThreadLocalRandom;
+import java.security.SecureRandom;
 
 @Component
 public class ReferenceUtil {
@@ -22,8 +22,9 @@ public class ReferenceUtil {
         sb.append(timeInMillis);
 
         // append the random 3 digits
-        int randomDigits = ThreadLocalRandom.current().nextInt(1000);
-        sb.append(String.format("%03d", randomDigits));
+        SecureRandom random = new SecureRandom();
+        sb.append(String.format("%03d", random.nextInt(1000)));
+
 
         CheckDigit checkDigit = new LuhnCheckDigit();
         sb.append(checkDigit.calculate(sb.toString()));
