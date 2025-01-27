@@ -18,9 +18,7 @@ import uk.gov.hmcts.payment.api.service.PaymentService;
 import java.util.Arrays;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -77,6 +75,19 @@ public class MaintenanceJobsControllerMockTest {
 
         verify(delegatingPaymentService, times(2)).retrieveWithCallBack("xxx");
 
+    }
+
+    @Test
+    public void testExceptionWhileUpdatingPaymentStatus() throws Exception {
+        Reference reference = new Reference("invalid-reference");
+        doReturn(Arrays.asList(reference)).when(paymentService).listInitiatedStatusPaymentsReferences();
+        doThrow(new RuntimeException("Test Exception")).when(delegatingPaymentService).retrieveWithCallBack(reference.getReference());
+
+        this.mockMvc.perform(patch("/jobs/card-payments-status-update"))
+            .andExpect(status().isOk());
+
+        verify(paymentService).listInitiatedStatusPaymentsReferences();
+        verify(delegatingPaymentService).retrieveWithCallBack(reference.getReference());
     }
 
 }

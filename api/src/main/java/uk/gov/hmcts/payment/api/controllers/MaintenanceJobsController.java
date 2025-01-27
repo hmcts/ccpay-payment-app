@@ -63,11 +63,16 @@ public class MaintenanceJobsController {
             topicClientProxy.setKeepClientAlive(true);
         }
 
-        long count = referenceList
-            .stream()
-            .map(Reference::getReference)
-            .map(delegatingPaymentService::retrieveWithCallBack)
-            .filter(p -> p != null && p.getPayments() != null && p.getPayments().get(0) != null && p.getPayments().get(0).getStatus() != null)
+        long count = referenceList.stream()
+            .filter(reference -> {
+                try {
+                    PaymentFeeLink paymentFeeLink = delegatingPaymentService.retrieveWithCallBack(reference.getReference());
+                    return paymentFeeLink != null && paymentFeeLink.getPayments() != null && paymentFeeLink.getPayments().get(0) != null && paymentFeeLink.getPayments().get(0).getStatus() != null;
+                } catch (Exception e) {
+                    LOG.error("Error while updating payment status for reference {}", reference.getReference(), e);
+                    return false;
+                }
+            })
             .count();
 
         LOG.warn("{} payment references were successfully updated", count);
