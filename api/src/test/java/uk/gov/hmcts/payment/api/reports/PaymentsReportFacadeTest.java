@@ -49,7 +49,6 @@ public class PaymentsReportFacadeTest {
 
     private CardPaymentReportConfig cardPaymentReportConfig = new CardPaymentReportConfig("from", null, "subject", "message", true);
     private BarPaymentReportConfig barPaymentReportConfig = new BarPaymentReportConfig("from", null, "subject", "message", true);
-    private PbaCmcPaymentReportConfig pbaCmcPaymentReportConfig = new PbaCmcPaymentReportConfig("from", null, "subject", "message", true);
     private PbaCivilPaymentReportConfig pbaCivilPaymentReportConfig = new PbaCivilPaymentReportConfig("from", null, "subject", "message", true);
     private PbaDivorcePaymentReportConfig pbaDivorcePaymentReportConfig = new PbaDivorcePaymentReportConfig("from", null, "subject", "message", true);
     private PbaFplPaymentReportConfig pbaFplPaymentReportConfig = new PbaFplPaymentReportConfig("from", null, "subject", "message", true);
@@ -62,7 +61,6 @@ public class PaymentsReportFacadeTest {
 
     Map<PaymentReportType, PaymentReportConfig> map = ImmutableMap.<PaymentReportType, PaymentReportConfig>builder()
         .put(PaymentReportType.CARD, cardPaymentReportConfig)
-        .put(PaymentReportType.PBA_CMC, pbaCmcPaymentReportConfig)
         .put(PaymentReportType.PBA_CIVIL, pbaCivilPaymentReportConfig)
         .put(PaymentReportType.DIGITAL_BAR, barPaymentReportConfig)
         .put(PaymentReportType.PBA_FPL, pbaFplPaymentReportConfig)
@@ -120,20 +118,6 @@ public class PaymentsReportFacadeTest {
 
         // then
         verify(reportService).generateCsvAndSendEmail(fromDate, toDate, PBA, "Civil", pbaCivilPaymentReportConfig);
-    }
-
-    @Test
-    public void PbaCmcDelegatePaymentReportType() {
-
-        // given
-        Date fromDate = new Date();
-        Date toDate = new Date();
-
-        // given & when
-
-        facade.generateCsvAndSendEmail(fromDate, toDate, PBA, "Civil Money Claims");
-
-        verify(reportService).generateCsvAndSendEmail(fromDate, toDate, PBA, "Civil Money Claims", pbaCmcPaymentReportConfig);
     }
 
 

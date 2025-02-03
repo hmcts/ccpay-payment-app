@@ -9,7 +9,6 @@ public enum PaymentReportType {
     DUPLICATE_PAYMENT,
     CARD,
     DIGITAL_BAR,
-    PBA_CMC,
     PBA_DIVORCE,
     PBA_PROBATE,
     PBA_FINREM,
@@ -44,7 +43,6 @@ public enum PaymentReportType {
         HashMap<String, String> serviceTypeHashMap = new HashMap<>();
 
 
-        serviceTypeHashMap.put("Civil Money Claims", "CMC");
         serviceTypeHashMap.put("Financial Remedy", "FINREM");
         serviceTypeHashMap.put("Finrem", "FINREM");
         serviceTypeHashMap.put("Family Public Law", "FPL");
