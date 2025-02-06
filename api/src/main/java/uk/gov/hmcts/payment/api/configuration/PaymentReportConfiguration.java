@@ -14,7 +14,6 @@ public class PaymentReportConfiguration {
     @Bean
     public Map<PaymentReportType, PaymentReportConfig> configMap(DuplicatePaymentReportConfig duplicatePaymentReportConfig,
                                                                  CardPaymentReportConfig cardPaymentReportConfig,
-                                                                 BarPaymentReportConfig barPaymentReportConfig,
                                                                  PbaProbatePaymentReportConfig pbaProbatePaymentReportConfig,
                                                                  PbaFinremPaymentReportConfig pbaFinremPaymentReportConfig,
                                                                  PbaDivorcePaymentReportConfig pbaDivorcePaymentReportConfig,
@@ -26,7 +25,6 @@ public class PaymentReportConfiguration {
         return ImmutableMap.<PaymentReportType, PaymentReportConfig>builder()
             .put(PaymentReportType.DUPLICATE_PAYMENT, duplicatePaymentReportConfig)
             .put(PaymentReportType.CARD, cardPaymentReportConfig)
-            .put(PaymentReportType.DIGITAL_BAR, barPaymentReportConfig)
             .put(PaymentReportType.PBA_PROBATE, pbaProbatePaymentReportConfig)
             .put(PaymentReportType.PBA_FINREM, pbaFinremPaymentReportConfig)
             .put(PaymentReportType.PBA_DIVORCE, pbaDivorcePaymentReportConfig)

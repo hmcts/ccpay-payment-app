@@ -48,7 +48,6 @@ public class PaymentsReportFacadeTest {
     private PaymentReportConfig paymentReportConfig;
 
     private CardPaymentReportConfig cardPaymentReportConfig = new CardPaymentReportConfig("from", null, "subject", "message", true);
-    private BarPaymentReportConfig barPaymentReportConfig = new BarPaymentReportConfig("from", null, "subject", "message", true);
     private PbaCivilPaymentReportConfig pbaCivilPaymentReportConfig = new PbaCivilPaymentReportConfig("from", null, "subject", "message", true);
     private PbaDivorcePaymentReportConfig pbaDivorcePaymentReportConfig = new PbaDivorcePaymentReportConfig("from", null, "subject", "message", true);
     private PbaFplPaymentReportConfig pbaFplPaymentReportConfig = new PbaFplPaymentReportConfig("from", null, "subject", "message", true);
@@ -62,7 +61,6 @@ public class PaymentsReportFacadeTest {
     Map<PaymentReportType, PaymentReportConfig> map = ImmutableMap.<PaymentReportType, PaymentReportConfig>builder()
         .put(PaymentReportType.CARD, cardPaymentReportConfig)
         .put(PaymentReportType.PBA_CIVIL, pbaCivilPaymentReportConfig)
-        .put(PaymentReportType.DIGITAL_BAR, barPaymentReportConfig)
         .put(PaymentReportType.PBA_FPL, pbaFplPaymentReportConfig)
         .put(PaymentReportType.PBA_PRL, pbaPrlPaymentReportConfig)
         .put(PaymentReportType.PBA_DIVORCE, pbaDivorcePaymentReportConfig)
@@ -94,18 +92,6 @@ public class PaymentsReportFacadeTest {
         verify(reportService).generateCsvAndSendEmail(fromDate, toDate, CARD, null, cardPaymentReportConfig);
     }
 
-    @Test
-    public void shouldDelegateToServiceIfExistingConfigurationForService() {
-            // given
-            Date fromDate = new Date();
-            Date toDate = new Date();
-
-            // when
-            facade.generateCsvAndSendEmail(fromDate, toDate, null, "DIGITAL_BAR");
-
-            // then
-            verify(reportService).generateCsvAndSendEmail(fromDate, toDate, null, "DIGITAL_BAR", barPaymentReportConfig);
-        }
 
     @Test
     public void PbaCivilDelegatePaymentReportType() {
