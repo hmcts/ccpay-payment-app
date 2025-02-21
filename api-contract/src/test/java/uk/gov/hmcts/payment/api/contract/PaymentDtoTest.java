@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.api.contract;
 
 
+import com.sun.tools.xjc.model.CDefaultValue;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -13,7 +14,6 @@ import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Ignore
 public class PaymentDtoTest {
 
     private final String feeWithVolumeCode;
@@ -68,8 +68,11 @@ public class PaymentDtoTest {
     private Boolean remissionEnable;
     private String internalReference;
     private List<DisputeDto> disputeDto;
+    private String defaultVolum;
 
     public PaymentDtoTest() {
+        amount = new BigDecimal(1);
+        defaultVolum = "1";
         feeWithVolumeCode = "X0001";
         feeVersion = "3";
         calculatedAmountForFeeWithVolume = new BigDecimal(1);
@@ -93,47 +96,62 @@ public class PaymentDtoTest {
         paymentGroupReference = "paymentGroupReference";
         apportionedPayment = new BigDecimal(1);
         dateReceiptProcessed = currentDateTime.toDate();
-
+        sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss zzz");
+        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+        List<StatusHistoryDto> statusHistories = new ArrayList<>();
+        List<PaymentAllocationDto> paymentAllocations = new ArrayList<>();
     }
 
     @Before
     public void beforeEach() {
-        sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss zzz");
-        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
-        DateTime currentDateTime = new DateTime();
-        dateCreated = currentDateTime.toDate();
-        dateUpdated = currentDateTime.plusDays(1).toDate();
-        List<StatusHistoryDto> statusHistories = new ArrayList<>();
-        List<PaymentAllocationDto> paymentAllocations = new ArrayList<>();
-        PaymentDto.LinksDto links = new PaymentDto.LinksDto();
+        testDto = defaultTestDto(testDto);
+        feeNoVolumeDto = FeeDto.feeDtoWith().feeAmount(feeAmount).code(feeNoVolumeCode).version(feeVersion)
+            .calculatedAmount(calculatedAmountForFeeNoVolume).memoLine(memoLine).naturalAccountCode(naturalAccountCode)
+            .description(feeDescription).caseReference(caseReference).apportionAmount(apportionAmount)
+            .allocatedAmount(allocatedAmount).dateApportioned(dateApportioned).dateCreated(dateCreated)
+            .dateUpdated(dateUpdated).amountDue(amountDue).paymentGroupReference(paymentGroupReference)
+            .apportionedPayment(apportionedPayment).dateReceiptProcessed(dateReceiptProcessed).build();
 
-        amount = new BigDecimal(1);
-        id = "1";
-        description = "description";
-        reference = "reference";
-        gbp = CurrencyCode.GBP;
-        ccdNumber = "ccdNumber";
-        caseReference = "caseReference";
-        paymentReference = "paymentReference";
-        channel = "channel";
-        method = "method";
-        externalProvider = "externalProvider";
-        status = "status";
-        externalReference = "externalReference";
-        siteId = "siteId";
-        serviceName = "serviceName";
-        customerReference = "customerReference";
-        accountNumber = "accountNumber";
-        organisationName = "organisationName";
-        paymentGroupReference = "paymentGroupReference";
-        giroSlipNo = "giroSlipNo";
-        reportedDateOffline = new Date();
-        documentControlNumber = "12345";
-        bankedDate = new Date();
-        payerName = "test";
-        refundEnable = true;
-        remissionEnable=true;
+        feeWithVolumeDto = FeeDto.feeDtoWith().feeAmount(feeAmount).code(feeWithVolumeCode).version(feeVersion)
+            .calculatedAmount(calculatedAmountForFeeNoVolume).memoLine(memoLine).naturalAccountCode(naturalAccountCode)
+            .description(feeDescription).caseReference(caseReference).apportionAmount(apportionAmount)
+            .allocatedAmount(allocatedAmount).dateApportioned(dateApportioned).dateCreated(dateCreated)
+            .dateUpdated(dateUpdated).amountDue(amountDue).paymentGroupReference(paymentGroupReference)
+            .apportionedPayment(apportionedPayment).dateReceiptProcessed(dateReceiptProcessed).volume(volume).build();
     }
+
+    private PaymentDto defaultTestDto(PaymentDto paymentDto) {
+        paymentDto = new PaymentDto();
+        paymentDto.setAmount(amount);
+        paymentDto.setCaseReference(caseReference);
+        paymentDto.setCcdCaseNumber(ccdNumber);
+        paymentDto.setChannel(channel);
+        paymentDto.setCurrency(gbp);
+        paymentDto.setDateCreated(dateCreated);
+        paymentDto.setDateUpdated(dateUpdated);
+        paymentDto.setDescription(description);
+        paymentDto.setExternalProvider(externalProvider);
+        paymentDto.setExternalReference(externalReference);
+        paymentDto.setId(id);
+        paymentDto.setMethod(method);
+        paymentDto.setOrganisationName(organisationName);
+        paymentDto.setPaymentGroupReference(paymentGroupReference);
+        paymentDto.setPaymentReference(paymentReference);
+        paymentDto.setReference(reference);
+        paymentDto.setSiteId(siteId);
+        paymentDto.setStatus(status);
+        paymentDto.setServiceName(serviceName);
+        paymentDto.setCustomerReference(customerReference);
+        paymentDto.setAccountNumber(accountNumber);
+        paymentDto.setGiroSlipNo(giroSlipNo);
+        paymentDto.setReportedDateOffline(reportedDateOffline);
+        paymentDto.setDocumentControlNumber(documentControlNumber);
+        paymentDto.setBankedDate(bankedDate);
+        paymentDto.setPayerName(payerName);
+        paymentDto.setRefundEnable(refundEnable);
+        return paymentDto;
+    }
+
 
     @Test
     public void cardPaymentCsvFillsVolumeAmountWhenExists() {
@@ -432,7 +450,7 @@ public class PaymentDtoTest {
             .add(calculatedAmountForFeeNoVolume.toString())
             .add("\"" + memoLine + "\"")
             .add(naturalAccountCode)
-            .add(volume.toString());
+            .add(defaultVolum);
 
         assertThat(testDto.toPaymentCsv()).isEqualTo(joiner.toString());
     }
