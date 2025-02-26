@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1810000000000-2
+      author: DaveJ
+      changes:
+        - sql:
+          splitStatements:
+          sql: >
+            -- Set default volume to 1 and update existing null values (repeated from 0.1.14)
+            ALTER TABLE fee ALTER COLUMN volume SET DEFAULT 1;
+            UPDATE fee SET volume = 1 WHERE volume IS NULL;

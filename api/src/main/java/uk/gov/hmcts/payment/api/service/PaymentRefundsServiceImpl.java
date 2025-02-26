@@ -620,8 +620,8 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                                 || refundDto.getRefundStatus().getName().equalsIgnoreCase("Sent for approval"))) {
                                 totalRefundAmount = totalRefundAmount.add(refundDto.getAmount());
                             }
+                        }
                     }
-                }
                 }
             }
         }
