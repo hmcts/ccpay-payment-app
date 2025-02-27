@@ -47,10 +47,6 @@ java:
     CARD_PAYMENTS_EMAIL_FROM: "no-reply@mail-payment-nonprod.platform.hmcts.net"
     CARD_PAYMENTS_EMAIL_MESSAGE: "Hi, <br/><br/>Please find attached Payment by Account reconciliation report. <br/><br/>Regards, <br/>Fees & Payments Team <br/><br/>"
     CARD_PAYMENTS_EMAIL_SUBJECT: "CNP:Card Payments Reconciliation Report"
-    BAR_PAYMENTS_REPORT_SCHEDULER_ENABLED: "true"
-    BAR_PAYMENTS_EMAIL_FROM: "no-reply@mail-payment-nonprod.platform.hmcts.net"
-    BAR_PAYMENTS_EMAIL_MESSAGE: "Hi, <br/><br/>Please find attached Payment by Account reconciliation report. <br/><br/>Regards, <br/>Fees & Payments Team <br/><br/>"
-    BAR_PAYMENTS_EMAIL_SUBJECT: "CNP:BAR Reconciliation Report"
     PBA_PROBATE_PAYMENTS_REPORT_SCHEDULER_ENABLED: "true"
     PBA_PROBATE_PAYMENTS_EMAIL_FROM: "no-reply@mail-payment-nonprod.platform.hmcts.net"
     PBA_PROBATE_PAYMENTS_EMAIL_MESSAGE: "Hi, <br/><br/>Please find attached Payment by Account reconciliation report. <br/><br/>Regards, <br/>Fees & Payments Team <br/><br/>"
@@ -178,10 +174,6 @@ java:
           alias: azure.application-insights.instrumentation-key
         - name: card-payments-email-to
           alias: card.payments.email.to
-        - name: bar-payments-email-to
-          alias: bar.payments.email.to
-        - name: pba-cmc-payments-email-to
-          alias: pba.cmc.payments.email.to
         - name: pba-probate-payments-email-to
           alias: pba.probate.payments.email.to
         - name: pba-finrem-payments-email-to
