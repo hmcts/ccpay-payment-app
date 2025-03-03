@@ -13,13 +13,13 @@ dependencies:
     repository: 'https://hmctspublic.azurecr.io/helm/v1/repo/'
   - name: ccpay-refunds-api
     version: 1.0.17
-    repository: 'https://hmctspublic.azurecr.io/helm/v1/repo/'
+    repository: 'oci://hmctspublic.azurecr.io/helm'
     condition: ccpay-refunds-api.enabled
   - name: ccpay-bulkscanning-api
     version: 1.0.28
-    repository: 'https://hmctspublic.azurecr.io/helm/v1/repo/'
+    repository: 'oci://hmctspublic.azurecr.io/helm'
     condition: ccpay-bulkscanning-api.enabled
   - name: ccpay-notifications-service
     version: 1.0.16
-    repository: 'https://hmctspublic.azurecr.io/helm/v1/repo/'
+    repository: 'oci://hmctspublic.azurecr.io/helm'
     condition: ccpay-notifications-service.enabled
