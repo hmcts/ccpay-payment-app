@@ -887,7 +887,9 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                                         fee.setAddRemission(false);
                                         remission.setAddRefund(true);
                                         for (PaymentDto payment : paymentGroupDto.getPayments()) {
-                                            payment.setIssueRefund(false);
+                                            if ("Success".equals(payment.getStatus())) {
+                                                payment.setIssueRefund(true);
+                                            }
                                         }
                                     }
                                     //IF THERE IS A PROCESSED REFUND FOR THE FEE
