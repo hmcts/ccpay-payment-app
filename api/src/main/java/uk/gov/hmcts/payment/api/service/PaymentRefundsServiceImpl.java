@@ -707,7 +707,11 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                                         activeRemission =true;
                                         fee.setAddRemission(false);
                                         remission.setAddRefund(true);
-                                        paymentDto.setIssueRefund(false);
+                                        if(paymentDto.getStatus()=="Success") {
+                                            paymentDto.setIssueRefund(true);
+                                        }else{
+                                            paymentDto.setIssueRefund(false);
+                                        }
                                     }
                                     //IF THERE IS A PROCESSED REFUND FOR THE FEE
                                     else if (refundedFees.stream().flatMap(List::stream).anyMatch(fee.getId().toString()::equals)) {
