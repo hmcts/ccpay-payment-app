@@ -28,7 +28,7 @@ You should take this into consideration and if necessary implement some backgrou
 * **Access authorization**. Payment gateway implements a simple url based authorization rule. User with id 999, will only be granted 
 access to urls /users/999/payments/\*, any request to /users/{OTHER_ID}/payments/\* will result in 403.
 * **Refunds**. Although, both HMCTS Payment Gateway and GOV.UK Pay implement refund endpoints, they **WILL NOT WORK** due to limitations
-of MoJ financial arrangements  & back-office systems.
+of MoJ financial arrangements & back-office systems.
 
 ### Building
 The project uses [Gradle](https://gradle.org) as a build tool but you don't have install it locally since there is a
