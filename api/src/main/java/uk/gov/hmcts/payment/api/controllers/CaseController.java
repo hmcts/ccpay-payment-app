@@ -96,6 +96,7 @@ public class CaseController {
     @Operation(summary = "Get payment groups for a case", description = "Get payment groups for a case")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Payment Groups retrieved"),
+        @ApiResponse(responseCode = "204", description = "Payment Groups not found"),
         @ApiResponse(responseCode = "400", description = "Bad request"),
         @ApiResponse(responseCode = "403", description = "Payment Info Forbidden"),
         @ApiResponse(responseCode = "404", description = "Payment Groups not found")
