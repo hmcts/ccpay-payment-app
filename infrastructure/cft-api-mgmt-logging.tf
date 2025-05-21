@@ -3,7 +3,7 @@ resource "azurerm_api_management_api_diagnostic" "apim_payment_api_logs" {
   identifier               = "applicationinsights"
   resource_group_name      = local.cft_api_mgmt_rg
   api_management_name      = local.cft_api_mgmt_name
-  api_name                 = "payment-api"
+  api_name                 = join("-", [var.product_name, "api"])
   api_management_logger_id = "/subscriptions/${var.aks_subscription_id}/resourceGroups/${local.cft_api_mgmt_rg}/providers/Microsoft.ApiManagement/service/${local.cft_api_mgmt_name}/loggers/cft-api-mgmt-${local.cft_api_mgmt_suffix}-logger"
 
   sampling_percentage       = 100.0
@@ -49,6 +49,6 @@ resource "azurerm_api_management_api_diagnostic" "apim_payment_api_logs" {
   }
 
   depends_on = [
-    module.cft_api_mgmt_oauth2_api
+    module.cft_api_mgmt_api
   ]
 }
