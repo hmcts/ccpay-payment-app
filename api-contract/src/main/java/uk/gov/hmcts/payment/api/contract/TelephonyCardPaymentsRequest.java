@@ -53,4 +53,7 @@ public class TelephonyCardPaymentsRequest {
     @NotEmpty
     private String returnURL;
 
+    @JsonProperty("telephony_system")
+    private String telephonySystem;
+
 }

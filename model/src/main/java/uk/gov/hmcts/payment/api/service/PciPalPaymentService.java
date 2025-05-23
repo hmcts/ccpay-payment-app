@@ -47,6 +47,8 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
     private static final String SERVICE_TYPE_FINREM = "Financial Remedy";
     private static final String SERVICE_TYPE_IAC = "Immigration and Asylum Appeals";
     private static final String SERVICE_TYPE_PRL = "Family Private Law";
+    private static final String KERV = "kerv";
+
 
     private final String callbackUrl;
     private final String url;
@@ -60,30 +62,55 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
     private String ppAccountIDDivorce;
     @Value("${pci-pal.antenna.grant.type}")
     private String grantType;
+    @Value("${pci-pal.kerv.grant.type}")
+    private String kervGrantType;
     @Value("${pci-pal.antenna.tenant.name}")
     private String tenantName;
+    @Value("${pci-pal.kerv.tenant.name}")
+    private String kervTenantName;
     @Value("${pci-pal.antenna.user.name}")
     private String userName;
+    @Value("${pci-pal.kerv.user.name}")
+    private String kervUserName;
     @Value("${pci-pal.antenna.client.id}")
     private String clientId;
+    @Value("${pci-pal.kerv.client.id}")
+    private String kervClientId;
     @Value("${pci-pal.antenna.client.secret}")
     private String clientSecret;
+    @Value("${pci-pal.kerv.client.secret}")
+    private String kervClientSecret;
     @Value("${pci-pal.antenna.get.tokens.url}")
     private String tokensURL;
     @Value("${pci-pal.antenna.launch.url}")
     private String launchURL;
+    @Value("${pci-pal.kerv.launch.url}")
+    private String launchKervURL;
     @Value("${pci-pal.antenna.view.id.url}")
     private String viewIdURL;
+    @Value("${pci-pal.kerv.view.id.url}")
+    private String viewKervIdURL;
     @Value("${pci-pal.antenna.strategic.flow.id}")
     private String strategicFlowId;
+    @Value("${pci-pal.kerv.strategic.flow.id}")
+    private String strategicKervFlowId;
     @Value("${pci-pal.antenna.probate.flow.id}")
     private String probateFlowId;
+    @Value("${pci-pal.kerv.probate.flow.id}")
+    private String probateKervFlowId;
     @Value("${pci-pal.antenna.divorce.flow.id}")
     private String divorceFlowId;
+    @Value("${pci-pal.kerv.divorce.flow.id}")
+    private String divorceKervFlowId;
     @Value("${pci-pal.antenna.prl.flow.id}")
     private String prlFlowId;
+    @Value("${pci-pal.kerv.prl.flow.id}")
+    private String prlKervFlowId;
     @Value("${pci-pal.antenna.iac.flow.id}")
     private String iacFlowId;
+    @Value("${pci-pal.kerv.iac.flow.id}")
+    private String iacKervFlowId;
+
 
     @Autowired
     public PciPalPaymentService(@Value("${pci-pal.api.url}") String url,
@@ -94,11 +121,12 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
         this.objectMapper = objectMapper;
     }
 
-    public TelephonyProviderAuthorisationResponse getTelephonyProviderLink(PciPalPaymentRequest pciPalPaymentRequest, TelephonyProviderAuthorisationResponse telephonyProviderAuthorisationResponse, String serviceType, String returnURL) {
+    public TelephonyProviderAuthorisationResponse getTelephonyProviderLink(PciPalPaymentRequest pciPalPaymentRequest, TelephonyProviderAuthorisationResponse telephonyProviderAuthorisationResponse, String serviceType, String returnURL, String telephonyProvider) {
         return withIOExceptionHandling(() -> {
 
-            String flowId = getFlowId(serviceType);
-            LOG.info("flowId: {}   serviceType: {}    launchURL: {}   viewIdURL: {}   callbackUrl: {}   returnURL: {} ", flowId, serviceType, launchURL, viewIdURL, callbackUrl, returnURL);
+
+            String flowId = getFlowId(serviceType, telephonyProvider);
+            LOG.info("flowId: {}   serviceType: {}    launchURL: {}   viewIdURL: {}   callbackUrl: {}   returnURL: {}  telephonyProvider: {}", flowId, serviceType, launchURL, viewIdURL, callbackUrl, returnURL, telephonyProvider);
             HttpPost httpPost = new HttpPost(launchURL);
             httpPost.addHeader(CONTENT_TYPE, APPLICATION_JSON.toString());
             httpPost.addHeader(authorizationHeader(telephonyProviderAuthorisationResponse.getAccessToken()));
@@ -127,17 +155,26 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
     }
 
 
-    public String getFlowId(String serviceType) {
+    public String getFlowId(String serviceType, String telephonyProvider) {
         String flowId;
 
         Map<String, String> flowIdHashMap = new HashMap<>();
-        flowIdHashMap.put(SERVICE_TYPE_DIVORCE, divorceFlowId);
-        flowIdHashMap.put(SERVICE_TYPE_PROBATE, probateFlowId);
-        flowIdHashMap.put(SERVICE_TYPE_CMC, strategicFlowId);
-        flowIdHashMap.put(SERVICE_TYPE_FINREM, strategicFlowId);
-        flowIdHashMap.put(SERVICE_TYPE_PRL, prlFlowId);
-        flowIdHashMap.put(SERVICE_TYPE_IAC, iacFlowId);
-
+        if(telephonyProvider!=null && telephonyProvider.equalsIgnoreCase(KERV)) {
+            flowIdHashMap.put(SERVICE_TYPE_DIVORCE, divorceKervFlowId);
+            flowIdHashMap.put(SERVICE_TYPE_PROBATE, probateKervFlowId);
+            flowIdHashMap.put(SERVICE_TYPE_CMC, strategicKervFlowId);
+            flowIdHashMap.put(SERVICE_TYPE_FINREM, strategicKervFlowId);
+            flowIdHashMap.put(SERVICE_TYPE_PRL, prlKervFlowId);
+            flowIdHashMap.put(SERVICE_TYPE_IAC, iacKervFlowId);
+        }
+        else{
+            flowIdHashMap.put(SERVICE_TYPE_PROBATE, ppAccountIDProbate);
+            flowIdHashMap.put(SERVICE_TYPE_CMC, ppAccountIDStrategic);
+            flowIdHashMap.put(SERVICE_TYPE_DIVORCE, ppAccountIDDivorce);
+            flowIdHashMap.put(SERVICE_TYPE_FINREM, ppAccountIDStrategic);
+            flowIdHashMap.put(SERVICE_TYPE_PRL, ppAccountIDStrategic);
+            flowIdHashMap.put(SERVICE_TYPE_IAC, iacFlowId);
+        }
         if (flowIdHashMap.containsKey(serviceType)) {
             LOG.info("Found flow id {} for service type {}", flowIdHashMap.get(serviceType), serviceType);
             flowId = flowIdHashMap.get(serviceType);
@@ -164,6 +201,25 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
             return objectMapper.readValue(response1.getEntity().getContent(), TelephonyProviderAuthorisationResponse.class);
         });
     }
+
+    public TelephonyProviderAuthorisationResponse getKervPaymentProviderAutorisationTokens(String idamUserId) {
+        return withIOExceptionHandling(() -> {
+            LOG.info("tokensURL: {}", tokensURL);
+            List<NameValuePair> params = new ArrayList<>();
+            params.add(new BasicNameValuePair("grant_type", kervGrantType));
+            params.add(new BasicNameValuePair("tenantname", kervTenantName));
+            params.add(new BasicNameValuePair("username", idamUserId)); //will be using the idam user name
+            params.add(new BasicNameValuePair("client_id", kervClientId));
+            params.add(new BasicNameValuePair("client_secret", kervClientSecret));
+
+            HttpPost httpPost = new HttpPost(tokensURL);
+            httpPost.setEntity(new UrlEncodedFormEntity(params));
+            ClassicHttpResponse response1 = (ClassicHttpResponse) httpClient.execute(httpPost);
+            LOG.info("After 1st PCI PAL call using Kerv creds!!!");
+            return objectMapper.readValue(response1.getEntity().getContent(), TelephonyProviderAuthorisationResponse.class);
+        });
+    }
+
     private Header authorizationHeader(String authorizationKey) {
         return new BasicHeader(HttpHeaders.AUTHORIZATION, "Bearer " + authorizationKey);
 
