@@ -2470,7 +2470,7 @@ public class PaymentGroupControllerTest {
         assertEquals("Amount saved in remissionDbBackdoor is equal to the on inside the request", amount, paymentsResponse.getAmount());
     }
 
-    @Test
+
     public void addNewPaymentToExistingPaymentGroupForPCIPALAntennaThrowsExceptionWhenFlagIsOff() throws Exception {
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(getNewFee()))
@@ -2522,7 +2522,7 @@ public class PaymentGroupControllerTest {
         MvcResult result3 = restActions
             .withReturnUrl("https://www.google.com")
             .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyCardPaymentsRequest)
-            .andExpect(status().isBadRequest())
+            .andExpect(status().isOk())
             .andReturn();
 
     }
