@@ -25,7 +25,7 @@ java {
 }
 
 dependencies{
-    testImplementation 'com.github.hmcts:fortify-client:1.4.8:all'
+    testImplementation 'com.github.hmcts:fortify-client:1.4.9:all'
 }
 
 task fortifyScan(type: JavaExec)  {
@@ -48,8 +48,8 @@ allprojects {
     repositories {
         mavenLocal()
         mavenCentral()
-        maven { url 'https://repo.spring.io/libs-milestone' }
-        maven { url 'https://jitpack.io' }
+        maven { url = 'https://repo.spring.io/libs-milestone' }
+        maven { url = 'https://pkgs.dev.azure.com/hmcts/Artifacts/_packaging/hmcts-lib/maven/v1' }
     }
 
     apply from: "${rootDir}/cve-resolution-strategy.gradle"
@@ -157,7 +157,7 @@ subprojects {
         implementation 'org.springframework.boot:spring-boot-starter-validation'
         implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: '2.18.3'
         implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jdk8', version: '2.18.3'
-        implementation(group: 'com.github.hmcts', name: 'ccd-client', version: '5.0.3') {
+        implementation(group: 'com.github.hmcts', name: 'core-case-data-store-client', version: '5.1.0') {
             sourceSets {
                 main {
                     java {
