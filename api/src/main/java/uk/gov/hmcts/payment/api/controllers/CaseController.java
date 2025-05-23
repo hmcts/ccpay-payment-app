@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -95,12 +96,13 @@ public class CaseController {
     @Operation(summary = "Get payment groups for a case", description = "Get payment groups for a case")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Payment Groups retrieved"),
+        @ApiResponse(responseCode = "204", description = "Payment Groups not found"),
         @ApiResponse(responseCode = "400", description = "Bad request"),
         @ApiResponse(responseCode = "403", description = "Payment Info Forbidden"),
         @ApiResponse(responseCode = "404", description = "Payment Groups not found")
     })
     @RequestMapping(value = "/cases/{ccdcasenumber}/paymentgroups", method = GET)
-    public PaymentGroupResponse retrieveCasePaymentGroups(@PathVariable(name = "ccdcasenumber") String ccdCaseNumber,
+    public ResponseEntity<PaymentGroupResponse> retrieveCasePaymentGroups(@PathVariable(name = "ccdcasenumber") String ccdCaseNumber,
         @RequestHeader(required = false) MultiValueMap<String, String> headers) {
 
         refundRemissionEnableService.setUserRoles(headers);
@@ -112,7 +114,7 @@ public class CaseController {
             .collect(Collectors.toList());
 
         if (paymentGroups == null || paymentGroups.isEmpty()) {
-            throw new PaymentGroupNotFoundException("No Service found for given CaseType or HMCTS Org Id");
+            return ResponseEntity.noContent().build();
         }
         PaymentGroupResponse paymentGroupResponse = new PaymentGroupResponse(paymentGroups);
 
@@ -123,7 +125,7 @@ public class CaseController {
         if (refundListDtoResponse != null) {
             paymentGroups.stream().forEach(paymentGroup -> paymentGroup.setRefunds(refundListDtoResponse.getRefundList()));
         }
-        return paymentGroupResponse;
+        return ResponseEntity.ok(paymentGroupResponse);
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
