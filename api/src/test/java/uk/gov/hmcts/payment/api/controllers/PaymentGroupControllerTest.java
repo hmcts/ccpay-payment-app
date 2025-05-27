@@ -88,6 +88,7 @@ public class PaymentGroupControllerTest {
     private static final String USER_ID_PAYMENT_ROLE = UserResolverBackdoor.CASEWORKER_ID;
     private static final String USER_ID = UserResolverBackdoor.CITIZEN_ID;
     private final static String PAYMENT_REFERENCE_REGEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
+    public static final String ANTENNA = "Antenna";
     @Autowired
     protected PaymentDbBackdoor paymentDbBackdoor;
     @Autowired
@@ -710,6 +711,7 @@ public class PaymentGroupControllerTest {
             .ccdCaseNumber("2154234356342357")
             .returnURL("https://www.moneyclaims.service.gov.uk")
             .currency(CurrencyCode.GBP)
+            .telephonySystem(ANTENNA)
             .build();
 
         MvcResult result3 = restActions
@@ -798,6 +800,7 @@ public class PaymentGroupControllerTest {
             .ccdCaseNumber("2154234356342357")
             .returnURL("https://www.divorce.service.gov.uk")
             .currency(CurrencyCode.GBP)
+            .telephonySystem(ANTENNA)
             .build();
 
         MvcResult result2 = restActions
@@ -837,6 +840,7 @@ public class PaymentGroupControllerTest {
             .ccdCaseNumber("2154234356342357")
             .returnURL("https://www.google.com")
             .currency(CurrencyCode.GBP)
+            .telephonySystem(ANTENNA)
             .build();
 
         when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
@@ -922,6 +926,7 @@ public class PaymentGroupControllerTest {
             .ccdCaseNumber("2154234356342357")
             .returnURL("https://www.google.com")
             .currency(CurrencyCode.GBP)
+            .telephonySystem(ANTENNA)
             .build();
 
         when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
@@ -975,6 +980,7 @@ public class PaymentGroupControllerTest {
                 .ccdCaseNumber("2154234356342357")
                 .returnURL("https://www.google.com")
                 .currency(CurrencyCode.GBP)
+                .telephonySystem(ANTENNA)
                 .build();
 
         when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
@@ -1029,6 +1035,7 @@ public class PaymentGroupControllerTest {
             .ccdCaseNumber("2154234356342357")
             .returnURL("https://www.google.com")
             .currency(CurrencyCode.GBP)
+            .telephonySystem(ANTENNA)
             .build();
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
@@ -1110,6 +1117,7 @@ public class PaymentGroupControllerTest {
             .ccdCaseNumber("2154234356342357")
             .returnURL("https://www.google.com")
             .currency(CurrencyCode.GBP)
+            .telephonySystem(ANTENNA)
             .build();
 
         restActions
@@ -1140,6 +1148,7 @@ public class PaymentGroupControllerTest {
             .returnURL("https://www.google.com")
             .currency(CurrencyCode.GBP)
             .caseType("")
+            .telephonySystem(ANTENNA)
             .build();
 
         restActions
@@ -1171,6 +1180,7 @@ public class PaymentGroupControllerTest {
             .ccdCaseNumber("2154234356342357")
             .returnURL("https://www.google.com")
             .currency(CurrencyCode.GBP)
+            .telephonySystem(ANTENNA)
             .build();
 
         when(featureToggler.getBooleanValue("pci-pal-antenna-feature", false)).thenReturn(true);
@@ -1206,6 +1216,7 @@ public class PaymentGroupControllerTest {
             .ccdCaseNumber("2154234356342357")
             .returnURL("https://www.google.com")
             .currency(CurrencyCode.GBP)
+            .telephonySystem(ANTENNA)
             .build();
 
         when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenThrow(new GatewayTimeoutException("Test Error"));
