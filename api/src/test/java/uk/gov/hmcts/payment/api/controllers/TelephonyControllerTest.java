@@ -9,7 +9,6 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -48,7 +47,6 @@ import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -300,7 +298,7 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
         assertEquals(updatedTsForFirstReq, updatedTsForSecondReq);
     }
 
-    @Ignore
+    @Ignore("temporally ignored to deploy changes")
     @Test
     public void updateTelephonyPaymentStatusWithSuccess_Apportionment() throws Exception {
 
@@ -375,7 +373,7 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
         assertThat(payments.get(0).getPaymentStatus().getName()).isEqualToIgnoringCase("success");
     }
 
-    @Ignore
+    @Ignore("temporally ignored to deploy changes")
     @Test
     public void updateTelephonyPaymentStatusWithFailed_Apportionment() throws Exception {
 
