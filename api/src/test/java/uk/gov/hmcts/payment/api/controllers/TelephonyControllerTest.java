@@ -47,6 +47,7 @@ import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -434,6 +435,7 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
             "customData1=MOJTest120190124123432&customData2=MASTERCARD&customData3=CreditCard&customData4=";
 
         restActions
+            .withHeader("authorization","Bearer 131313")
             .postWithFormData("/telephony/callback", rawFormData)
             .andExpect(status().isNoContent());
 
