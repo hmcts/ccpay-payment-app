@@ -331,7 +331,7 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
         when(pciPalPaymentService.getPaymentProviderAutorisationTokens()).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         when(pciPalPaymentService.getTelephonyProviderLink(any(PciPalPaymentRequest.class)
-            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
+            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
             .caseType("DIVORCE")
@@ -413,7 +413,7 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
         when(pciPalPaymentService.getPaymentProviderAutorisationTokens()).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         when(pciPalPaymentService.getTelephonyProviderLink(any(PciPalPaymentRequest.class)
-            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
+            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString(),anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
 
 
         MvcResult result2 = restActions
