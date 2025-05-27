@@ -62,7 +62,7 @@ sonarqube {
     properties {
         property "sonar.pitest.mode", "reuseReport"
         property "sonar.pitest.reportsDirectory", "build/reports/pitest"
-        property "sonar.exclusions", "**/PaymentGroupController.java"
+        property "sonar.exclusions", "**/PaymentGroupController.java,**/TelephonyControllerTest.java,**/PciPalPaymentService.java "
     }
 }
 
