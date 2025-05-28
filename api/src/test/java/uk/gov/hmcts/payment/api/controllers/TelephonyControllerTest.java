@@ -298,7 +298,7 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
         assertEquals(updatedTsForFirstReq, updatedTsForSecondReq);
     }
 
-    @Ignore("temporally ignored to deploy changes")
+    @Ignore("It needs to add user bear token in the mocking, now we do get userID from /telephony-card-payments")
     @Test
     public void updateTelephonyPaymentStatusWithSuccess_Apportionment() throws Exception {
 
@@ -373,7 +373,7 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
         assertThat(payments.get(0).getPaymentStatus().getName()).isEqualToIgnoringCase("success");
     }
 
-    @Ignore("temporally ignored to deploy changes")
+    @Ignore("It needs to add user bear token in the mocking, now we do get userID from /telephony-card-payments")
     @Test
     public void updateTelephonyPaymentStatusWithFailed_Apportionment() throws Exception {
 
