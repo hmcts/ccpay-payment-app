@@ -540,6 +540,7 @@ public class PaymentGroupController {
         @Valid @RequestBody TelephonyCardPaymentsRequest telephonyCardPaymentsRequest) throws CheckDigitException, MethodNotSupportedException {
 
         PaymentFeeLink paymentLink = paymentGroupService.findByPaymentGroupReference(paymentGroupReference);
+        LOG.info("--------Here is the value of getTelephonySystem: {}", telephonyCardPaymentsRequest.getTelephonySystem());
 
         boolean antennaFeature = featureToggler.getBooleanValue("pci-pal-antenna-feature", false);
         LOG.info("Feature Flag Value in CardPaymentController : {}", antennaFeature);
@@ -562,6 +563,11 @@ public class PaymentGroupController {
             .build();
         paymentLink = delegatingPaymentService.update(paymentServiceRequest);
         Payment payment = getPayment(paymentLink, paymentServiceRequest.getPaymentReference());
+
+        headers.forEach((key, values) -> {
+            LOG.info("--------Here is the value of key: {}", key);
+            LOG.info("--------Here is the value of headers: {}", values);
+        });
 
         String idamUserId = getIdamUserId(headers);
 
