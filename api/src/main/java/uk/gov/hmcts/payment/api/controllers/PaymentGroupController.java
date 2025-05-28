@@ -540,7 +540,12 @@ public class PaymentGroupController {
         @Valid @RequestBody TelephonyCardPaymentsRequest telephonyCardPaymentsRequest) throws CheckDigitException, MethodNotSupportedException {
 
         PaymentFeeLink paymentLink = paymentGroupService.findByPaymentGroupReference(paymentGroupReference);
-        LOG.info("--------Here is the value of getTelephonySystem: {}", telephonyCardPaymentsRequest.getTelephonySystem());
+        LOG.info("--------Here is the value of getTelephonySystem: {}", telephonyCardPaymentsRequest.getPaymentMethod());
+
+        headers.forEach((key, values) -> {
+            LOG.info("--------Here is the value of key: {}", key);
+            LOG.info("--------Here is the value of headers: {}", values);
+        });
 
         boolean antennaFeature = featureToggler.getBooleanValue("pci-pal-antenna-feature", false);
         LOG.info("Feature Flag Value in CardPaymentController : {}", antennaFeature);
@@ -564,12 +569,11 @@ public class PaymentGroupController {
         paymentLink = delegatingPaymentService.update(paymentServiceRequest);
         Payment payment = getPayment(paymentLink, paymentServiceRequest.getPaymentReference());
 
-        headers.forEach((key, values) -> {
-            LOG.info("--------Here is the value of key: {}", key);
-            LOG.info("--------Here is the value of headers: {}", values);
-        });
+        LOG.info("--------Here is the value of getTelephonySystem ----");
 
         String idamUserId = getIdamUserId(headers);
+
+        LOG.info("--------Here is the value of idamUserId: {}",idamUserId);
 
         PciPalPaymentRequest pciPalPaymentRequest = PciPalPaymentRequest.pciPalPaymentRequestWith().orderAmount(telephonyCardPaymentsRequest.getAmount().toString()).orderCurrency(telephonyCardPaymentsRequest.getCurrency().getCode())
             .orderReference(payment.getReference()).build();
@@ -593,15 +597,15 @@ public class PaymentGroupController {
         PciPalPaymentRequest pciPalPaymentRequest,
         OrganisationalServiceDto organisationalServiceDto, String idamUserId) {
 
-        if (telephonyCardPaymentsRequest.getTelephonySystem() != null
-            && telephonyCardPaymentsRequest.getTelephonySystem().equalsIgnoreCase(KERV)) {
+        if (telephonyCardPaymentsRequest.getPaymentMethod() != null
+            && telephonyCardPaymentsRequest.getPaymentMethod().equalsIgnoreCase(KERV)) {
             TelephonyProviderAuthorisationResponse response = pciPalPaymentService.getKervPaymentProviderAutorisationTokens(idamUserId);
             return pciPalPaymentService.getTelephonyProviderLink(
                 pciPalPaymentRequest, response, organisationalServiceDto.getServiceDescription(),
                 telephonyCardPaymentsRequest.getReturnURL(), KERV);
-        } else if ((telephonyCardPaymentsRequest.getTelephonySystem() == null
-            || telephonyCardPaymentsRequest.getTelephonySystem().isEmpty())
-            || telephonyCardPaymentsRequest.getTelephonySystem().equalsIgnoreCase(ANTENNA)) {
+        } else if ((telephonyCardPaymentsRequest.getPaymentMethod() == null
+            || telephonyCardPaymentsRequest.getPaymentMethod().isEmpty())
+            || telephonyCardPaymentsRequest.getPaymentMethod().equalsIgnoreCase(ANTENNA)) {
             TelephonyProviderAuthorisationResponse response = pciPalPaymentService.getPaymentProviderAutorisationTokens();
             return pciPalPaymentService.getTelephonyProviderLink(
                 pciPalPaymentRequest, response, organisationalServiceDto.getServiceDescription(),

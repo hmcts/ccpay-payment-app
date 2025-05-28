@@ -52,7 +52,7 @@ public class TelephonyCardPaymentsRequest {
     @NotEmpty
     private String returnURL;
 
-    @JsonProperty("telephony_system")
-    private String telephonySystem;
+    @JsonProperty("payment_method")
+    private String paymentMethod;
 
 }
