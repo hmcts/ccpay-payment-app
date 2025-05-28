@@ -713,7 +713,7 @@ public class PaymentGroupControllerTest {
             .ccdCaseNumber("2154234356342357")
             .returnURL("https://www.moneyclaims.service.gov.uk")
             .currency(CurrencyCode.GBP)
-            .telephonySystem(ANTENNA)
+            .paymentMethod(ANTENNA)
             .build();
 
         MvcResult result3 = restActions
@@ -802,7 +802,7 @@ public class PaymentGroupControllerTest {
             .ccdCaseNumber("2154234356342357")
             .returnURL("https://www.divorce.service.gov.uk")
             .currency(CurrencyCode.GBP)
-            .telephonySystem(ANTENNA)
+            .paymentMethod(ANTENNA)
             .build();
 
         MvcResult result2 = restActions
@@ -842,7 +842,7 @@ public class PaymentGroupControllerTest {
             .ccdCaseNumber("2154234356342357")
             .returnURL("https://www.google.com")
             .currency(CurrencyCode.GBP)
-            .telephonySystem(ANTENNA)
+            .paymentMethod(ANTENNA)
             .build();
 
         when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
@@ -928,7 +928,7 @@ public class PaymentGroupControllerTest {
             .ccdCaseNumber("2154234356342357")
             .returnURL("https://www.google.com")
             .currency(CurrencyCode.GBP)
-            .telephonySystem(ANTENNA)
+            .paymentMethod(ANTENNA)
             .build();
 
         when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
@@ -982,7 +982,7 @@ public class PaymentGroupControllerTest {
                 .ccdCaseNumber("2154234356342357")
                 .returnURL("https://www.google.com")
                 .currency(CurrencyCode.GBP)
-                .telephonySystem(ANTENNA)
+                .paymentMethod(ANTENNA)
                 .build();
 
         when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
@@ -1037,7 +1037,7 @@ public class PaymentGroupControllerTest {
             .ccdCaseNumber("2154234356342357")
             .returnURL("https://www.google.com")
             .currency(CurrencyCode.GBP)
-            .telephonySystem(ANTENNA)
+            .paymentMethod(ANTENNA)
             .build();
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
@@ -1119,7 +1119,7 @@ public class PaymentGroupControllerTest {
             .ccdCaseNumber("2154234356342357")
             .returnURL("https://www.google.com")
             .currency(CurrencyCode.GBP)
-            .telephonySystem(ANTENNA)
+            .paymentMethod(ANTENNA)
             .build();
 
         restActions
@@ -1150,7 +1150,7 @@ public class PaymentGroupControllerTest {
             .returnURL("https://www.google.com")
             .currency(CurrencyCode.GBP)
             .caseType("")
-            .telephonySystem(ANTENNA)
+            .paymentMethod(ANTENNA)
             .build();
 
         restActions
@@ -1182,7 +1182,7 @@ public class PaymentGroupControllerTest {
             .ccdCaseNumber("2154234356342357")
             .returnURL("https://www.google.com")
             .currency(CurrencyCode.GBP)
-            .telephonySystem(ANTENNA)
+            .paymentMethod(ANTENNA)
             .build();
 
         when(featureToggler.getBooleanValue("pci-pal-antenna-feature", false)).thenReturn(true);
@@ -1218,7 +1218,7 @@ public class PaymentGroupControllerTest {
             .ccdCaseNumber("2154234356342357")
             .returnURL("https://www.google.com")
             .currency(CurrencyCode.GBP)
-            .telephonySystem(ANTENNA)
+            .paymentMethod(ANTENNA)
             .build();
 
         when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenThrow(new GatewayTimeoutException("Test Error"));
