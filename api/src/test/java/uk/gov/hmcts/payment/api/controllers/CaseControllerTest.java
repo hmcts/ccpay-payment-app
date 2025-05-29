@@ -737,7 +737,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .withAuthorizedUser(USER_ID)
             .withUserId(USER_ID)
             .get("/cases/ccdCaseNumber2/paymentgroups")
-            .andExpect(status().isNotFound())
+            .andExpect(status().isNoContent())
             .andReturn();
     }
 
