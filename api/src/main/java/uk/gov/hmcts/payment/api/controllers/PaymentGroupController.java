@@ -77,7 +77,6 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidPaymentGroupReference
 import uk.gov.hmcts.payment.api.v1.model.exceptions.NoServiceFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.TelephonyServiceException;
 import uk.gov.hmcts.payment.referencedata.dto.SiteDTO;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
@@ -550,10 +549,10 @@ public class PaymentGroupController {
         boolean antennaFeature = featureToggler.getBooleanValue("pci-pal-antenna-feature", false);
         LOG.info("Feature Flag Value in CardPaymentController : {}", antennaFeature);
 
-        //OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(Optional.ofNullable(telephonyCardPaymentsRequest.getCaseType()),Optional.empty(), headers);
-        OrganisationalServiceDto organisationalServiceDto = new OrganisationalServiceDto();
-        organisationalServiceDto.setServiceCode("AA08");
-        organisationalServiceDto.setServiceDescription("ppAccountIDProbate");
+        OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(Optional.ofNullable(telephonyCardPaymentsRequest.getCaseType()),Optional.empty(), headers);
+        //OrganisationalServiceDto organisationalServiceDto = new OrganisationalServiceDto();
+        //organisationalServiceDto.setServiceCode("AA08");
+        //organisationalServiceDto.setServiceDescription("ppAccountIDProbate");
         PaymentServiceRequest paymentServiceRequest = PaymentServiceRequest.paymentServiceRequestWith()
             .paymentGroupReference(paymentGroupReference)
             .paymentReference(referenceUtil.getNext("RC"))
@@ -592,7 +591,7 @@ public class PaymentGroupController {
     }
 
 
-    private TelephonyProviderAuthorisationResponse handleTelephonyProviderAuthorisation(
+    public TelephonyProviderAuthorisationResponse handleTelephonyProviderAuthorisation(
         TelephonyCardPaymentsRequest telephonyCardPaymentsRequest,
         PciPalPaymentRequest pciPalPaymentRequest,
         OrganisationalServiceDto organisationalServiceDto, String idamUserId) {
@@ -615,7 +614,7 @@ public class PaymentGroupController {
     }
 
 
-    private String getIdamUserId(MultiValueMap<String, String> headers) {
+    public String getIdamUserId(MultiValueMap<String, String> headers) {
 
         if (!headers.isEmpty()) {
             IdamUserIdResponse uid = idamService.getUserId(headers);

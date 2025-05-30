@@ -39,6 +39,7 @@ import uk.gov.hmcts.payment.api.contract.TelephonyCardPaymentsRequest;
 import uk.gov.hmcts.payment.api.contract.TelephonyCardPaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.*;
+import uk.gov.hmcts.payment.api.dto.idam.IdamUserIdResponse;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestFeeDto;
 import uk.gov.hmcts.payment.api.external.client.dto.State;
@@ -49,6 +50,7 @@ import uk.gov.hmcts.payment.api.model.PaymentChannel;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
+import uk.gov.hmcts.payment.api.service.IdamService;
 import uk.gov.hmcts.payment.api.service.PciPalPaymentService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.service.RefundRemissionEnableService;
@@ -81,7 +83,6 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "componenttest"})
-@Ignore("Temporarily disabling all tests in this class")
 @SpringBootTest(webEnvironment = MOCK)
 @DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
 @Transactional
@@ -128,6 +129,8 @@ public class PaymentGroupControllerTest {
     private LaunchDarklyFeatureToggler featureToggler;
     @MockBean
     private RefundRemissionEnableService refundRemissionEnableService;
+    @MockBean
+    private IdamService idamService;
 
     protected CustomResultMatcher body() {
         return new CustomResultMatcher(objectMapper);
@@ -698,6 +701,12 @@ public class PaymentGroupControllerTest {
 
         when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenReturn(organisationalServiceDto);
 
+        IdamUserIdResponse mockIdamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith()
+            .uid("123456789")
+            .sub("mock-sub-id")
+            .build();
+        when(idamService.getUserId(any())).thenReturn(mockIdamUserIdResponse);
+
         when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
             .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
 
@@ -787,6 +796,12 @@ public class PaymentGroupControllerTest {
 
         when(featureToggler.getBooleanValue("pci-pal-antenna-feature", false)).thenReturn(true);
 
+        IdamUserIdResponse mockIdamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith()
+            .uid("123456789")
+            .sub("mock-sub-id")
+            .build();
+        when(idamService.getUserId(any())).thenReturn(mockIdamUserIdResponse);
+
         when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
             .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
 
@@ -844,6 +859,12 @@ public class PaymentGroupControllerTest {
             .currency(CurrencyCode.GBP)
             .paymentMethod(ANTENNA)
             .build();
+
+        IdamUserIdResponse mockIdamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith()
+            .uid("123456789")
+            .sub("mock-sub-id")
+            .build();
+        when(idamService.getUserId(any())).thenReturn(mockIdamUserIdResponse);
 
         when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
             .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
@@ -944,6 +965,12 @@ public class PaymentGroupControllerTest {
             .serviceDescription("Divorce")
             .build();
 
+        IdamUserIdResponse mockIdamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith()
+            .uid("123456789")
+            .sub("mock-sub-id")
+            .build();
+        when(idamService.getUserId(any())).thenReturn(mockIdamUserIdResponse);
+
         when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenReturn(organisationalServiceDto);
 
         MvcResult result3 = restActions
@@ -984,6 +1011,12 @@ public class PaymentGroupControllerTest {
                 .currency(CurrencyCode.GBP)
                 .paymentMethod(ANTENNA)
                 .build();
+
+        IdamUserIdResponse mockIdamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith()
+            .uid("123456789")
+            .sub("mock-sub-id")
+            .build();
+        when(idamService.getUserId(any())).thenReturn(mockIdamUserIdResponse);
 
         when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
                 .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
@@ -1029,6 +1062,12 @@ public class PaymentGroupControllerTest {
         PaymentGroupDto paymentGroupDto = addNewPaymentToExistingPaymentGroup();
 
         when(featureToggler.getBooleanValue("pci-pal-antenna-feature", false)).thenReturn(true);
+
+        IdamUserIdResponse mockIdamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith()
+            .uid("123456789")
+            .sub("mock-sub-id")
+            .build();
+        when(idamService.getUserId(any())).thenReturn(mockIdamUserIdResponse);
 
         BigDecimal amount = new BigDecimal("200");
         TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
@@ -1107,6 +1146,12 @@ public class PaymentGroupControllerTest {
             .serviceCode("AAD7")
             .serviceDescription("Divorce")
             .build();
+
+        IdamUserIdResponse mockIdamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith()
+            .uid("123456789")
+            .sub("mock-sub-id")
+            .build();
+        when(idamService.getUserId(any())).thenReturn(mockIdamUserIdResponse);
 
         when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenReturn(organisationalServiceDto);
 
@@ -2139,6 +2184,11 @@ public class PaymentGroupControllerTest {
             .serviceCode("AA07")
             .serviceDescription("Divorce")
             .build();
+        IdamUserIdResponse mockIdamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith()
+            .uid("123456789")
+            .sub("mock-sub-id")
+            .build();
+        when(idamService.getUserId(any())).thenReturn(mockIdamUserIdResponse);
 
         when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
             .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
@@ -2215,6 +2265,11 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("120.00");
 
+        IdamUserIdResponse mockIdamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith()
+            .uid("123456789")
+            .sub("mock-sub-id")
+            .build();
+        when(idamService.getUserId(any())).thenReturn(mockIdamUserIdResponse);
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("AA08")
@@ -2271,6 +2326,12 @@ public class PaymentGroupControllerTest {
         when(featureToggler.getBooleanValue("pci-pal-antenna-feature", false)).thenReturn(true);
         PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(getConsecutiveFee())).build();
+
+        IdamUserIdResponse mockIdamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith()
+            .uid("123456789")
+            .sub("mock-sub-id")
+            .build();
+        when(idamService.getUserId(any())).thenReturn(mockIdamUserIdResponse);
 
         MvcResult result = restActions
             .post("/payment-groups", request)
@@ -2434,6 +2495,12 @@ public class PaymentGroupControllerTest {
 
 
         BigDecimal amount = new BigDecimal("200");
+
+        IdamUserIdResponse mockIdamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith()
+            .uid("123456789")
+            .sub("mock-sub-id")
+            .build();
+        when(idamService.getUserId(any())).thenReturn(mockIdamUserIdResponse);
 
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
@@ -2785,6 +2852,12 @@ public class PaymentGroupControllerTest {
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
             .fees(fees)
             .build();
+
+        IdamUserIdResponse mockIdamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith()
+            .uid("123456789")
+            .sub("mock-sub-id")
+            .build();
+        when(idamService.getUserId(any())).thenReturn(mockIdamUserIdResponse);
 
         MvcResult result = restActions
             .post("/payment-groups", request)
