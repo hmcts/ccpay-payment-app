@@ -145,9 +145,12 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
             ClassicHttpResponse response = (ClassicHttpResponse) httpClient.execute(httpPost);
             if (response.getCode() == HttpStatus.SC_OK) {
                 LOG.info("Success Response from PCI PAL!!!");
+
                 TelephonyProviderLinkIdResponse telephonyProviderLinkIdResponse = objectMapper.readValue(response.getEntity().getContent(), TelephonyProviderLinkIdResponse.class);
+                LOG.info("ResponseCode: {} flowId: {}   serviceType: {}    launchURL: {}   viewIdURL: {}   callbackUrl: {}   returnURL: {}  telephonyProvider: {} nextURL: {}", response.getCode(), flowId, serviceType, launchURL, viewIdURL, callbackUrl, returnURL, telephonyProvider, viewIdURL + telephonyProviderLinkIdResponse.getId() + "/framed");
                 telephonyProviderAuthorisationResponse.setNextUrl(viewIdURL + telephonyProviderLinkIdResponse.getId() + "/framed");
             } else {
+                LOG.info("ResponseCode: {} flowId: {}   serviceType: {}    launchURL: {}   viewIdURL: {}   callbackUrl: {}   returnURL: {}  telephonyProvider: {}", response.getCode(), flowId, serviceType, launchURL, viewIdURL, callbackUrl, returnURL, telephonyProvider);
                 throw new PaymentException("Received error from PCI PAL!!!");
             }
             return telephonyProviderAuthorisationResponse;
@@ -168,11 +171,11 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
             flowIdHashMap.put(SERVICE_TYPE_IAC, iacKervFlowId);
         }
         else{
-            flowIdHashMap.put(SERVICE_TYPE_PROBATE, ppAccountIDProbate);
-            flowIdHashMap.put(SERVICE_TYPE_CMC, ppAccountIDStrategic);
-            flowIdHashMap.put(SERVICE_TYPE_DIVORCE, ppAccountIDDivorce);
-            flowIdHashMap.put(SERVICE_TYPE_FINREM, ppAccountIDStrategic);
-            flowIdHashMap.put(SERVICE_TYPE_PRL, ppAccountIDStrategic);
+            flowIdHashMap.put(SERVICE_TYPE_DIVORCE, divorceFlowId);
+            flowIdHashMap.put(SERVICE_TYPE_PROBATE, probateFlowId);
+            flowIdHashMap.put(SERVICE_TYPE_CMC, strategicFlowId);
+            flowIdHashMap.put(SERVICE_TYPE_FINREM, strategicFlowId);
+            flowIdHashMap.put(SERVICE_TYPE_PRL, prlFlowId);
             flowIdHashMap.put(SERVICE_TYPE_IAC, iacFlowId);
         }
         if (flowIdHashMap.containsKey(serviceType)) {
