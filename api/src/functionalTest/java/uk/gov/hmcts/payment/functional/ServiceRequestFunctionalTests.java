@@ -240,7 +240,9 @@ public class ServiceRequestFunctionalTests {
 
         Response getPaymentGroupResponse =
             serviceRequestTestService.getPaymentGroups(USER_TOKEN_PAYMENT, SERVICE_TOKEN, "Unknown");
-        assertThat(getPaymentGroupResponse.getStatusCode()).isEqualTo(NO_CONTENT.value());
+        assertThat(getPaymentGroupResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND.value());
+        assertThat(getPaymentGroupResponse.getBody().asString())
+            .isEqualTo("No Service found for given CaseType or HMCTS Org Id");
     }
 
     @Test
@@ -741,7 +743,7 @@ public class ServiceRequestFunctionalTests {
     public void negative_get_service_request_for_invalid_ccd_case_number() {
         Response getPaymentGroupResponse =
             serviceRequestTestService.getPaymentGroups(USER_TOKEN_PAYMENT, SERVICE_TOKEN, "Test-Invalid");
-        assertThat(getPaymentGroupResponse.getStatusCode()).isEqualTo(NO_CONTENT.value());
+        assertThat(getPaymentGroupResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND.value());
     }
 
     @Test
