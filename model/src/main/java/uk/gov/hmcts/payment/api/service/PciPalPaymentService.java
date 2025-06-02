@@ -127,7 +127,7 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
 
             String flowId = getFlowId(serviceType, telephonyProvider);
             LOG.info("flowId: {}   serviceType: {}    launchURL: {}   viewIdURL: {}   callbackUrl: {}   returnURL: {}  telephonyProvider: {}", flowId, serviceType, launchURL, viewIdURL, callbackUrl, returnURL, telephonyProvider);
-            HttpPost httpPost = new HttpPost(launchURL);
+            HttpPost httpPost = new HttpPost(telephonyProvider.equalsIgnoreCase(KERV) ? launchKervURL : launchURL);
             httpPost.addHeader(CONTENT_TYPE, APPLICATION_JSON.toString());
             httpPost.addHeader(authorizationHeader(telephonyProviderAuthorisationResponse.getAccessToken()));
             TelephonyProviderLinkIdRequest telephonyProviderLinkIdRequest = TelephonyProviderLinkIdRequest.telephonyProviderLinkIdRequestWith().flowId(flowId)

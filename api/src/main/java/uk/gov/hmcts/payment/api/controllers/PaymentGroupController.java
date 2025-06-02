@@ -539,7 +539,7 @@ public class PaymentGroupController {
         @Valid @RequestBody TelephonyCardPaymentsRequest telephonyCardPaymentsRequest) throws CheckDigitException, MethodNotSupportedException {
 
         PaymentFeeLink paymentLink = paymentGroupService.findByPaymentGroupReference(paymentGroupReference);
-        LOG.info("--------Here is the value of getTelephonySystem: {}", telephonyCardPaymentsRequest.getPaymentMethod());
+        LOG.info("--------Here is the value of getTelephonySystem: {}", telephonyCardPaymentsRequest.getTelephonySystem());
 
         headers.forEach((key, values) -> {
             LOG.info("--------Here is the value of key: {}", key);
@@ -550,9 +550,6 @@ public class PaymentGroupController {
         LOG.info("Feature Flag Value in CardPaymentController : {}", antennaFeature);
 
         OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(Optional.ofNullable(telephonyCardPaymentsRequest.getCaseType()),Optional.empty(), headers);
-        //OrganisationalServiceDto organisationalServiceDto = new OrganisationalServiceDto();
-        //organisationalServiceDto.setServiceCode("AA08");
-        //organisationalServiceDto.setServiceDescription("ppAccountIDProbate");
         PaymentServiceRequest paymentServiceRequest = PaymentServiceRequest.paymentServiceRequestWith()
             .paymentGroupReference(paymentGroupReference)
             .paymentReference(referenceUtil.getNext("RC"))
@@ -596,15 +593,15 @@ public class PaymentGroupController {
         PciPalPaymentRequest pciPalPaymentRequest,
         OrganisationalServiceDto organisationalServiceDto, String idamUserId) {
 
-        if (telephonyCardPaymentsRequest.getPaymentMethod() != null
-            && telephonyCardPaymentsRequest.getPaymentMethod().equalsIgnoreCase(KERV)) {
+        if (telephonyCardPaymentsRequest.getTelephonySystem() != null
+            && telephonyCardPaymentsRequest.getTelephonySystem().equalsIgnoreCase(KERV)) {
             TelephonyProviderAuthorisationResponse response = pciPalPaymentService.getKervPaymentProviderAutorisationTokens(idamUserId);
             return pciPalPaymentService.getTelephonyProviderLink(
                 pciPalPaymentRequest, response, organisationalServiceDto.getServiceDescription(),
                 telephonyCardPaymentsRequest.getReturnURL(), KERV);
-        } else if ((telephonyCardPaymentsRequest.getPaymentMethod() == null
-            || telephonyCardPaymentsRequest.getPaymentMethod().isEmpty())
-            || telephonyCardPaymentsRequest.getPaymentMethod().equalsIgnoreCase(ANTENNA)) {
+        } else if ((telephonyCardPaymentsRequest.getTelephonySystem() == null
+            || telephonyCardPaymentsRequest.getTelephonySystem().isEmpty())
+            || telephonyCardPaymentsRequest.getTelephonySystem().equalsIgnoreCase(ANTENNA)) {
             TelephonyProviderAuthorisationResponse response = pciPalPaymentService.getPaymentProviderAutorisationTokens();
             return pciPalPaymentService.getTelephonyProviderLink(
                 pciPalPaymentRequest, response, organisationalServiceDto.getServiceDescription(),
@@ -624,7 +621,6 @@ public class PaymentGroupController {
             if (obfuscatedIdamUserId == null) {
                 throw new PaymentException("Obfuscated IDAM User ID is null");
             }
-
             return obfuscatedIdamUserId;
         }
         throw new PaymentException("Headers are empty");
