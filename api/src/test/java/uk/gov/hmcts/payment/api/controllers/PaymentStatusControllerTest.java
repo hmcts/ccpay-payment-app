@@ -369,17 +369,16 @@ public class PaymentStatusControllerTest {
     }
 
     @Test
-    public void return404WhenPaymentFailureNotFoundByPaymentReference() throws Exception {
+    public void return204WhenPaymentFailureNotFoundByPaymentReference() throws Exception {
 
         when(paymentFailureRepository.findByPaymentReferenceOrderByFailureEventDateTimeDesc(any())).thenReturn(Optional.empty());
         MvcResult result = restActions
             .withAuthorizedUser(USER_ID)
             .withUserId(USER_ID)
             .get("/payment-failures/RC-1637-5072-9888-4233")
-            .andExpect(status().isNotFound())
+            .andExpect(status().isNoContent())
             .andReturn();
-        assertEquals("no record found", result.getResolvedException().getMessage());
-        assertEquals(404,result.getResponse().getStatus());
+        assertEquals(204,result.getResponse().getStatus());
     }
 
     @Test
