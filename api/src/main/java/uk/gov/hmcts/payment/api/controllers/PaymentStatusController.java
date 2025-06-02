@@ -114,23 +114,28 @@ public class PaymentStatusController {
     @Operation(summary = "Get payment failure by payment reference", description = "Get payment failure for supplied payment reference")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Payment failure retrieved"),
-        @ApiResponse(responseCode = "404", description = "No record found"),
+        @ApiResponse(responseCode = "204", description = "No record found"),
         @ApiResponse(responseCode = "500", description = "Internal Server Error")
     })
     @GetMapping("/payment-failures/{paymentReference}")
-    public PaymentFailureResponse retrievePaymentFailure(@PathVariable("paymentReference") String paymentReference) {
+    public ResponseEntity<PaymentFailureResponse> retrievePaymentFailure(@PathVariable("paymentReference") String paymentReference) {
 
         if (featureToggler.getBooleanValue(PAYMENT_STATUS_UPDATE_FLAG,false)) {
             throw new LiberataServiceInaccessibleException("service unavailable");
         }
+        List<PaymentFailureResponseDto> payments;
 
-        List<PaymentFailureResponseDto> payments = paymentStatusUpdateService
-            .searchPaymentFailure(paymentReference)
-            .stream()
-            .map(paymentStatusResponseMapper::toPaymentFailure)
-            .collect(Collectors.toList());
-
-        return new PaymentFailureResponse(payments);
+        try {
+            payments = paymentStatusUpdateService
+                .searchPaymentFailure(paymentReference)
+                .stream()
+                .map(paymentStatusResponseMapper::toPaymentFailure)
+                .collect(Collectors.toList());
+        }
+        catch (PaymentNotFoundException e) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(new PaymentFailureResponse(payments));
     }
 
     @Operation(summary = "Delete payment failure by failure reference for functional test", description = "Delete payment details for supplied failure reference")
