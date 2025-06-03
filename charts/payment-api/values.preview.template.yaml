@@ -69,8 +69,6 @@ java:
           alias: pci-pal.kerv.launch.url
         - name: pci-pal-kerv-view-id-url
           alias: pci-pal.kerv.view.id.url
-        - name: pci-pal-kerv-return-url
-          alias: pci-pal.kerv.return.url
         - name: pci-pal-kerv-probate-flow-id
           alias: pci-pal.kerv.probate.flow.id
         - name: pci-pal-kerv-divorce-flow-id

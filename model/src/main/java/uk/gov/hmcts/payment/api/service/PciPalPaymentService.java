@@ -211,7 +211,7 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
             List<NameValuePair> params = new ArrayList<>();
             params.add(new BasicNameValuePair("grant_type", kervGrantType));
             params.add(new BasicNameValuePair("tenantname", kervTenantName));
-            params.add(new BasicNameValuePair("username", idamUserId)); //will be using the idam user name
+            params.add(new BasicNameValuePair("username", idamUserId));
             params.add(new BasicNameValuePair("client_id", kervClientId));
             params.add(new BasicNameValuePair("client_secret", kervClientSecret));
 
