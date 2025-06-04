@@ -36,7 +36,10 @@ def secrets = [
         secret('payment-s2s-secret','S2S_PAYMENT_APP_SERVICE_SECRET'),
         secret('ref-data-professional-client-secret','IDAM_RD_PROFESSIONAL_CLIENT_SECRET'),
         secret('probate-solicitor-username', 'PROBATE_SOLICITOR_USER'),
-        secret('probate-solicitor-password', 'PROBATE_SOLICITOR_PASSWORD')
+        secret('probate-solicitor-password', 'PROBATE_SOLICITOR_PASSWORD'),
+        secret('pci-pal-kerv-probate-flow-id', 'PCI_PAL_KERV_PROBATE_FLOW_ID'),
+        secret('pci-pal-kerv-launch-url', 'PCI_PAL_KERV_LAUNCH_URL'),
+        secrect('pci-pal-kerv-view-id-url', 'PCI_PAL_KERV_VIEW_ID_URL')
     ]
 ]
 

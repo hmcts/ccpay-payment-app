@@ -126,7 +126,8 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
 
 
             String flowId = getFlowId(serviceType, telephonyProvider);
-            LOG.info("flowId: {}   serviceType: {}    launchURL: {}   viewIdURL: {}   callbackUrl: {}   returnURL: {}  telephonyProvider: {}", flowId, serviceType, telephonyProvider.equalsIgnoreCase(KERV) ? launchKervURL : launchURL, viewIdURL, callbackUrl, returnURL, telephonyProvider);
+            LOG.info("flowId: {}   serviceType: {}    launchURL: {}   viewIdURL: {}   callbackUrl: {}   returnURL: {}  telephonyProvider: {}", flowId, serviceType, telephonyProvider.equalsIgnoreCase(KERV) ? launchKervURL : launchURL,
+                telephonyProvider.equalsIgnoreCase(KERV) ? viewKervIdURL : viewIdURL, callbackUrl, returnURL, telephonyProvider);
             HttpPost httpPost = new HttpPost(telephonyProvider.equalsIgnoreCase(KERV) ? launchKervURL : launchURL);
             httpPost.addHeader(CONTENT_TYPE, APPLICATION_JSON.toString());
             httpPost.addHeader(authorizationHeader(telephonyProviderAuthorisationResponse.getAccessToken()));
@@ -147,10 +148,16 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
                 LOG.info("Success Response from PCI PAL!!!");
 
                 TelephonyProviderLinkIdResponse telephonyProviderLinkIdResponse = objectMapper.readValue(response.getEntity().getContent(), TelephonyProviderLinkIdResponse.class);
-                LOG.info("ResponseCode: {} flowId: {}   serviceType: {}    launchURL: {}   viewIdURL: {}   callbackUrl: {}   returnURL: {}  telephonyProvider: {} nextURL: {}", response.getCode(), flowId, serviceType, telephonyProvider.equalsIgnoreCase(KERV) ? launchKervURL : launchURL, viewIdURL, callbackUrl, returnURL, telephonyProvider, viewIdURL + telephonyProviderLinkIdResponse.getId() + "/framed");
-                telephonyProviderAuthorisationResponse.setNextUrl(viewIdURL + telephonyProviderLinkIdResponse.getId() + "/framed");
+                LOG.info("ResponseCode: {} flowId: {}   serviceType: {}    launchURL: {}   viewIdURL: {}   callbackUrl: {}   returnURL: {}  telephonyProvider: {} nextURL: {}",
+                    response.getCode(), flowId, serviceType, telephonyProvider.equalsIgnoreCase(KERV) ? launchKervURL : launchURL,
+                    telephonyProvider.equalsIgnoreCase(KERV) ? viewKervIdURL : viewIdURL, callbackUrl, returnURL,
+                    telephonyProvider, viewIdURL + telephonyProviderLinkIdResponse.getId() + "/framed");
+
+                telephonyProviderAuthorisationResponse.setNextUrl((telephonyProvider != null && telephonyProvider.equalsIgnoreCase(KERV) ? viewKervIdURL : viewIdURL) + telephonyProviderLinkIdResponse.getId() + "/framed");
             } else {
-                LOG.info("ResponseCode: {} flowId: {}   serviceType: {}    launchURL: {}   viewIdURL: {}   callbackUrl: {}   returnURL: {}  telephonyProvider: {}", response.getCode(), flowId, serviceType, telephonyProvider.equalsIgnoreCase(KERV) ? launchKervURL : launchURL, viewIdURL, callbackUrl, returnURL, telephonyProvider);
+                LOG.info("ResponseCode: {} flowId: {}   serviceType: {}    launchURL: {}   viewIdURL: {}   callbackUrl: {}   returnURL: {}  telephonyProvider: {}",
+                    response.getCode(), flowId, serviceType, telephonyProvider.equalsIgnoreCase(KERV) ? launchKervURL : launchURL,
+                    telephonyProvider.equalsIgnoreCase(KERV) ? viewKervIdURL : viewIdURL, callbackUrl, returnURL, telephonyProvider);
                 throw new PaymentException("Received error from PCI PAL!!!");
             }
             return telephonyProviderAuthorisationResponse;
