@@ -70,7 +70,7 @@ java:
         - name: pci-pal-kerv-view-id-url
           alias: pci-pal.kerv.view.id.url
         - name: pci-pal-kerv-probate-flow-id
-          alias: pci-pal.kerv.probate.flow.id
+          alias: PCI_PAL_KERV_PROBATE_FLOW_ID
         - name: pci-pal-kerv-divorce-flow-id
           alias: pci-pal.kerv.divorce.flow.id
         - name: pci-pal-kerv-prl-flow-id
