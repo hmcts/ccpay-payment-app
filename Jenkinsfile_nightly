@@ -39,7 +39,7 @@ def secrets = [
         secret('probate-solicitor-password', 'PROBATE_SOLICITOR_PASSWORD'),
         secret('pci-pal-kerv-probate-flow-id', 'PCI_PAL_KERV_PROBATE_FLOW_ID'),
         secret('pci-pal-kerv-launch-url', 'PCI_PAL_KERV_LAUNCH_URL'),
-        secrect('pci-pal-kerv-view-id-url', 'PCI_PAL_KERV_VIEW_ID_URL')
+        secret('pci-pal-kerv-view-id-url', 'PCI_PAL_KERV_VIEW_ID_URL')
     ]
 ]
 
