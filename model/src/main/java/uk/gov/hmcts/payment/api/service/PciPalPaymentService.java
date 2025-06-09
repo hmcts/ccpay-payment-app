@@ -154,6 +154,12 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
                     telephonyProvider, viewIdURL + telephonyProviderLinkIdResponse.getId() + "/framed");
 
                 telephonyProviderAuthorisationResponse.setNextUrl((telephonyProvider != null && telephonyProvider.equalsIgnoreCase(KERV) ? viewKervIdURL : viewIdURL) + telephonyProviderLinkIdResponse.getId() + "/framed");
+            } else if (response.getCode() == HttpStatus.SC_BAD_REQUEST) {
+                String responseBody = response.getEntity() != null ? new String(response.getEntity().getContent().readAllBytes()) : "No response body";
+                LOG.info("ResponseCode: {} ResponseBody: {} flowId: {}   serviceType: {}    launchURL: {}   viewIdURL: {}   callbackUrl: {}   returnURL: {}  telephonyProvider: {}",
+                    response.getCode(), responseBody, flowId, serviceType, telephonyProvider.equalsIgnoreCase(KERV) ? launchKervURL : launchURL,
+                    telephonyProvider.equalsIgnoreCase(KERV) ? viewKervIdURL : viewIdURL, callbackUrl, returnURL, telephonyProvider);
+                throw new PaymentException("This telephony system does not support telephony calls for the service '"+ serviceType +"'.");
             } else {
                 String responseBody = response.getEntity() != null ? new String(response.getEntity().getContent().readAllBytes()) : "No response body";
                 LOG.info("ResponseCode: {} ResponseBody: {} flowId: {}   serviceType: {}    launchURL: {}   viewIdURL: {}   callbackUrl: {}   returnURL: {}  telephonyProvider: {}",
