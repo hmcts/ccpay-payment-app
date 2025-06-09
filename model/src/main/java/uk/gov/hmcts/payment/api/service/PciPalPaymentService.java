@@ -155,8 +155,9 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
 
                 telephonyProviderAuthorisationResponse.setNextUrl((telephonyProvider != null && telephonyProvider.equalsIgnoreCase(KERV) ? viewKervIdURL : viewIdURL) + telephonyProviderLinkIdResponse.getId() + "/framed");
             } else {
-                LOG.info("ResponseCode: {} flowId: {}   serviceType: {}    launchURL: {}   viewIdURL: {}   callbackUrl: {}   returnURL: {}  telephonyProvider: {}",
-                    response.getCode(), flowId, serviceType, telephonyProvider.equalsIgnoreCase(KERV) ? launchKervURL : launchURL,
+                String responseBody = response.getEntity() != null ? new String(response.getEntity().getContent().readAllBytes()) : "No response body";
+                LOG.info("ResponseCode: {} ResponseBody: {} flowId: {}   serviceType: {}    launchURL: {}   viewIdURL: {}   callbackUrl: {}   returnURL: {}  telephonyProvider: {}",
+                    response.getCode(), responseBody, flowId, serviceType, telephonyProvider.equalsIgnoreCase(KERV) ? launchKervURL : launchURL,
                     telephonyProvider.equalsIgnoreCase(KERV) ? viewKervIdURL : viewIdURL, callbackUrl, returnURL, telephonyProvider);
                 throw new PaymentException("Received error from PCI PAL!!!");
             }
