@@ -73,7 +73,7 @@ def versions = [
         sonarPitest     : '0.5',
         lombok          : '1.18.36',
         pact_version    : '4.1.7',
-        reformS2sClient : '5.3.0',
+        reformS2sClient : '5.3.2',
         serenity        : '4.2.16',
         serenityCucumber: '4.2.16',
 ]
@@ -117,7 +117,7 @@ dependencies {
         exclude(module: 'azure-core')
     }
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-cache'
-    implementation group: 'com.github.ben-manes.caffeine', name: 'caffeine', version: '3.2.0'
+    implementation group: 'com.github.ben-manes.caffeine', name: 'caffeine', version: '3.2.1'
     implementation group: 'io.github.openfeign', name: 'feign-core', version: '13.2.1'
     implementation group: 'io.github.resilience4j', name:'resilience4j-spring-boot3', version:'2.0.2'
     implementation group: 'org.springframework.cloud', name: 'spring-cloud-openfeign-core'

@@ -290,7 +290,7 @@ public class PaymentStatusFunctionalTest {
     }
 
     @Test
-    public void return_404_Get_for_payment_failure() {
+    public void return_204_Get_for_payment_failure() {
 
         String accountNumber = testProps.existingAccountNumber;
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
@@ -302,9 +302,8 @@ public class PaymentStatusFunctionalTest {
 
         Response paymentsFailureResponse =
             paymentTestService.getFailurePayment(USER_TOKEN_PAYMENT, SERVICE_TOKEN, "RC-1656-9291-1811-2800");
-        assertThat(paymentsFailureResponse.body().prettyPrint()).isEqualTo("no record found");
 
-        assertThat(paymentsFailureResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND.value());
+        assertThat(paymentsFailureResponse.getStatusCode()).isEqualTo(NO_CONTENT.value());
 
         // delete payment record
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
@@ -2145,10 +2144,10 @@ public class PaymentStatusFunctionalTest {
         assertEquals("ABA6", paymentFailureReportDto.getOrgId());
         assertEquals(accountPaymentRequest.getCcdCaseNumber(), paymentFailureReportDto.getCcdReference());
         assertEquals("Probate", paymentFailureReportDto.getServiceName());
-        assertThat(joinedRefundAmount.contains(paymentFailureReportDto.getRefundAmount()));
+        assertThat(joinedRefundAmount).contains(paymentFailureReportDto.getRefundAmount());
         assertEquals(expectedDate, eventDate);
         assertEquals(expectedDate, representmentReportDate);
-        assertThat(joinedRefundReference.contains(paymentFailureReportDto.getRefundReference()));
+        assertThat(joinedRefundReference).contains(paymentFailureReportDto.getRefundReference());
         assertEquals("RR001", paymentFailureReportDto.getFailureReason());
 
 
