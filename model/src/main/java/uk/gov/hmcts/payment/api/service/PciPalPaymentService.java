@@ -145,15 +145,11 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
             httpPost.setEntity(entity);
             ClassicHttpResponse response = (ClassicHttpResponse) httpClient.execute(httpPost);
             if (response.getCode() == HttpStatus.SC_OK) {
+
                 LOG.info("Success Response from PCI PAL!!!");
-
                 TelephonyProviderLinkIdResponse telephonyProviderLinkIdResponse = objectMapper.readValue(response.getEntity().getContent(), TelephonyProviderLinkIdResponse.class);
-                LOG.info("ResponseCode: {} flowId: {}   serviceType: {}    launchURL: {}   viewIdURL: {}   callbackUrl: {}   returnURL: {}  telephonyProvider: {} nextURL: {}",
-                    response.getCode(), flowId, serviceType, telephonyProvider.equalsIgnoreCase(KERV) ? launchKervURL : launchURL,
-                    telephonyProvider.equalsIgnoreCase(KERV) ? viewKervIdURL : viewIdURL, callbackUrl, returnURL,
-                    telephonyProvider, viewIdURL + telephonyProviderLinkIdResponse.getId() + "/framed");
-
                 telephonyProviderAuthorisationResponse.setNextUrl((telephonyProvider != null && telephonyProvider.equalsIgnoreCase(KERV) ? viewKervIdURL : viewIdURL) + telephonyProviderLinkIdResponse.getId() + "/framed");
+
             } else if (response.getCode() == HttpStatus.SC_BAD_REQUEST) {
                 String responseBody = response.getEntity() != null ? new String(response.getEntity().getContent().readAllBytes()) : "No response body";
                 LOG.info("ResponseCode: {} ResponseBody: {} flowId: {}   serviceType: {}    launchURL: {}   viewIdURL: {}   callbackUrl: {}   returnURL: {}  telephonyProvider: {}",
