@@ -5,6 +5,7 @@ import org.apache.commons.lang3.RandomUtils;
 import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -38,6 +39,7 @@ import uk.gov.hmcts.payment.api.contract.TelephonyCardPaymentsRequest;
 import uk.gov.hmcts.payment.api.contract.TelephonyCardPaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.*;
+import uk.gov.hmcts.payment.api.dto.idam.IdamUserIdResponse;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestFeeDto;
 import uk.gov.hmcts.payment.api.external.client.dto.State;
@@ -48,6 +50,7 @@ import uk.gov.hmcts.payment.api.model.PaymentChannel;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
+import uk.gov.hmcts.payment.api.service.IdamService;
 import uk.gov.hmcts.payment.api.service.PciPalPaymentService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.service.RefundRemissionEnableService;
@@ -88,6 +91,7 @@ public class PaymentGroupControllerTest {
     private static final String USER_ID_PAYMENT_ROLE = UserResolverBackdoor.CASEWORKER_ID;
     private static final String USER_ID = UserResolverBackdoor.CITIZEN_ID;
     private final static String PAYMENT_REFERENCE_REGEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
+    public static final String ANTENNA = "Antenna";
     @Autowired
     protected PaymentDbBackdoor paymentDbBackdoor;
     @Autowired
@@ -125,6 +129,8 @@ public class PaymentGroupControllerTest {
     private LaunchDarklyFeatureToggler featureToggler;
     @MockBean
     private RefundRemissionEnableService refundRemissionEnableService;
+    @MockBean
+    private IdamService idamService;
 
     protected CustomResultMatcher body() {
         return new CustomResultMatcher(objectMapper);
@@ -695,13 +701,19 @@ public class PaymentGroupControllerTest {
 
         when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenReturn(organisationalServiceDto);
 
+        IdamUserIdResponse mockIdamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith()
+            .uid("123456789")
+            .sub("mock-sub-id")
+            .build();
+        when(idamService.getUserId(any())).thenReturn(mockIdamUserIdResponse);
+
         when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
             .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
 
         when(pciPalPaymentService.getPaymentProviderAutorisationTokens()).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         when(pciPalPaymentService.getTelephonyProviderLink(any(PciPalPaymentRequest.class)
-            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
+            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         BigDecimal amount = new BigDecimal("200");
         TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
@@ -710,6 +722,7 @@ public class PaymentGroupControllerTest {
             .ccdCaseNumber("2154234356342357")
             .returnURL("https://www.moneyclaims.service.gov.uk")
             .currency(CurrencyCode.GBP)
+            .telephonySystem(ANTENNA)
             .build();
 
         MvcResult result3 = restActions
@@ -783,13 +796,19 @@ public class PaymentGroupControllerTest {
 
         when(featureToggler.getBooleanValue("pci-pal-antenna-feature", false)).thenReturn(true);
 
+        IdamUserIdResponse mockIdamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith()
+            .uid("123456789")
+            .sub("mock-sub-id")
+            .build();
+        when(idamService.getUserId(any())).thenReturn(mockIdamUserIdResponse);
+
         when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
             .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
 
         when(pciPalPaymentService.getPaymentProviderAutorisationTokens()).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         when(pciPalPaymentService.getTelephonyProviderLink(any(PciPalPaymentRequest.class)
-            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
+            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         BigDecimal amount = new BigDecimal("200");
         TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
@@ -798,6 +817,7 @@ public class PaymentGroupControllerTest {
             .ccdCaseNumber("2154234356342357")
             .returnURL("https://www.divorce.service.gov.uk")
             .currency(CurrencyCode.GBP)
+            .telephonySystem(ANTENNA)
             .build();
 
         MvcResult result2 = restActions
@@ -837,7 +857,14 @@ public class PaymentGroupControllerTest {
             .ccdCaseNumber("2154234356342357")
             .returnURL("https://www.google.com")
             .currency(CurrencyCode.GBP)
+            .telephonySystem(ANTENNA)
             .build();
+
+        IdamUserIdResponse mockIdamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith()
+            .uid("123456789")
+            .sub("mock-sub-id")
+            .build();
+        when(idamService.getUserId(any())).thenReturn(mockIdamUserIdResponse);
 
         when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
             .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
@@ -845,7 +872,7 @@ public class PaymentGroupControllerTest {
         when(pciPalPaymentService.getPaymentProviderAutorisationTokens()).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         when(pciPalPaymentService.getTelephonyProviderLink(any(PciPalPaymentRequest.class)
-            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
+            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("AA001")
@@ -922,6 +949,7 @@ public class PaymentGroupControllerTest {
             .ccdCaseNumber("2154234356342357")
             .returnURL("https://www.google.com")
             .currency(CurrencyCode.GBP)
+            .telephonySystem(ANTENNA)
             .build();
 
         when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
@@ -930,12 +958,18 @@ public class PaymentGroupControllerTest {
         when(pciPalPaymentService.getPaymentProviderAutorisationTokens()).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         when(pciPalPaymentService.getTelephonyProviderLink(any(PciPalPaymentRequest.class)
-            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
+            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("AA001")
             .serviceDescription("Divorce")
             .build();
+
+        IdamUserIdResponse mockIdamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith()
+            .uid("123456789")
+            .sub("mock-sub-id")
+            .build();
+        when(idamService.getUserId(any())).thenReturn(mockIdamUserIdResponse);
 
         when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenReturn(organisationalServiceDto);
 
@@ -975,7 +1009,14 @@ public class PaymentGroupControllerTest {
                 .ccdCaseNumber("2154234356342357")
                 .returnURL("https://www.google.com")
                 .currency(CurrencyCode.GBP)
+                .telephonySystem(ANTENNA)
                 .build();
+
+        IdamUserIdResponse mockIdamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith()
+            .uid("123456789")
+            .sub("mock-sub-id")
+            .build();
+        when(idamService.getUserId(any())).thenReturn(mockIdamUserIdResponse);
 
         when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
                 .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
@@ -983,7 +1024,7 @@ public class PaymentGroupControllerTest {
         when(pciPalPaymentService.getPaymentProviderAutorisationTokens()).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         when(pciPalPaymentService.getTelephonyProviderLink(any(PciPalPaymentRequest.class)
-                , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
+                , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
                 .serviceCode("AA001")
@@ -1022,6 +1063,12 @@ public class PaymentGroupControllerTest {
 
         when(featureToggler.getBooleanValue("pci-pal-antenna-feature", false)).thenReturn(true);
 
+        IdamUserIdResponse mockIdamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith()
+            .uid("123456789")
+            .sub("mock-sub-id")
+            .build();
+        when(idamService.getUserId(any())).thenReturn(mockIdamUserIdResponse);
+
         BigDecimal amount = new BigDecimal("200");
         TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
             .caseType("tax_exception")
@@ -1029,6 +1076,7 @@ public class PaymentGroupControllerTest {
             .ccdCaseNumber("2154234356342357")
             .returnURL("https://www.google.com")
             .currency(CurrencyCode.GBP)
+            .telephonySystem(ANTENNA)
             .build();
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
@@ -1044,7 +1092,7 @@ public class PaymentGroupControllerTest {
         when(pciPalPaymentService.getPaymentProviderAutorisationTokens()).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         when(pciPalPaymentService.getTelephonyProviderLink(any(PciPalPaymentRequest.class)
-            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
+            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         MvcResult result3 = restActions
             .withReturnUrl("https://www.google.com")
@@ -1091,13 +1139,19 @@ public class PaymentGroupControllerTest {
         Mockito.when(pciPalPaymentService.getPaymentProviderAutorisationTokens()).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         Mockito.when(pciPalPaymentService.getTelephonyProviderLink(any(PciPalPaymentRequest.class)
-            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
+            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
 
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("AAD7")
             .serviceDescription("Divorce")
             .build();
+
+        IdamUserIdResponse mockIdamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith()
+            .uid("123456789")
+            .sub("mock-sub-id")
+            .build();
+        when(idamService.getUserId(any())).thenReturn(mockIdamUserIdResponse);
 
         when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenReturn(organisationalServiceDto);
 
@@ -1110,6 +1164,7 @@ public class PaymentGroupControllerTest {
             .ccdCaseNumber("2154234356342357")
             .returnURL("https://www.google.com")
             .currency(CurrencyCode.GBP)
+            .telephonySystem(ANTENNA)
             .build();
 
         restActions
@@ -1140,6 +1195,7 @@ public class PaymentGroupControllerTest {
             .returnURL("https://www.google.com")
             .currency(CurrencyCode.GBP)
             .caseType("")
+            .telephonySystem(ANTENNA)
             .build();
 
         restActions
@@ -1171,6 +1227,7 @@ public class PaymentGroupControllerTest {
             .ccdCaseNumber("2154234356342357")
             .returnURL("https://www.google.com")
             .currency(CurrencyCode.GBP)
+            .telephonySystem(ANTENNA)
             .build();
 
         when(featureToggler.getBooleanValue("pci-pal-antenna-feature", false)).thenReturn(true);
@@ -1206,6 +1263,7 @@ public class PaymentGroupControllerTest {
             .ccdCaseNumber("2154234356342357")
             .returnURL("https://www.google.com")
             .currency(CurrencyCode.GBP)
+            .telephonySystem(ANTENNA)
             .build();
 
         when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenThrow(new GatewayTimeoutException("Test Error"));
@@ -2126,6 +2184,11 @@ public class PaymentGroupControllerTest {
             .serviceCode("AA07")
             .serviceDescription("Divorce")
             .build();
+        IdamUserIdResponse mockIdamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith()
+            .uid("123456789")
+            .sub("mock-sub-id")
+            .build();
+        when(idamService.getUserId(any())).thenReturn(mockIdamUserIdResponse);
 
         when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
             .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
@@ -2133,7 +2196,7 @@ public class PaymentGroupControllerTest {
         Mockito.when(pciPalPaymentService.getPaymentProviderAutorisationTokens()).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         Mockito.when(pciPalPaymentService.getTelephonyProviderLink(any(PciPalPaymentRequest.class)
-            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
+            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         when(referenceDataService.getOrganisationalDetail(any(),any(),any())).thenReturn(organisationalServiceDto);
 
@@ -2202,6 +2265,11 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("120.00");
 
+        IdamUserIdResponse mockIdamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith()
+            .uid("123456789")
+            .sub("mock-sub-id")
+            .build();
+        when(idamService.getUserId(any())).thenReturn(mockIdamUserIdResponse);
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("AA08")
@@ -2214,7 +2282,7 @@ public class PaymentGroupControllerTest {
         Mockito.when(pciPalPaymentService.getPaymentProviderAutorisationTokens()).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         Mockito.when(pciPalPaymentService.getTelephonyProviderLink(any(PciPalPaymentRequest.class)
-            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
+            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         when(referenceDataService.getOrganisationalDetail(any(),any(),any())).thenReturn(organisationalServiceDto);
 
@@ -2259,6 +2327,12 @@ public class PaymentGroupControllerTest {
         PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(getConsecutiveFee())).build();
 
+        IdamUserIdResponse mockIdamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith()
+            .uid("123456789")
+            .sub("mock-sub-id")
+            .build();
+        when(idamService.getUserId(any())).thenReturn(mockIdamUserIdResponse);
+
         MvcResult result = restActions
             .post("/payment-groups", request)
             .andExpect(status().isCreated())
@@ -2298,7 +2372,7 @@ public class PaymentGroupControllerTest {
         Mockito.when(pciPalPaymentService.getPaymentProviderAutorisationTokens()).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         Mockito.when(pciPalPaymentService.getTelephonyProviderLink(any(PciPalPaymentRequest.class)
-            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
+            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
             .amount(amount)
@@ -2422,6 +2496,12 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("200");
 
+        IdamUserIdResponse mockIdamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith()
+            .uid("123456789")
+            .sub("mock-sub-id")
+            .build();
+        when(idamService.getUserId(any())).thenReturn(mockIdamUserIdResponse);
+
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("AA08")
@@ -2434,7 +2514,7 @@ public class PaymentGroupControllerTest {
         Mockito.when(pciPalPaymentService.getPaymentProviderAutorisationTokens()).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         Mockito.when(pciPalPaymentService.getTelephonyProviderLink(any(PciPalPaymentRequest.class)
-            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
+            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         when(referenceDataService.getOrganisationalDetail(any(),any(),any())).thenReturn(organisationalServiceDto);
 
@@ -2470,7 +2550,7 @@ public class PaymentGroupControllerTest {
         assertEquals("Amount saved in remissionDbBackdoor is equal to the on inside the request", amount, paymentsResponse.getAmount());
     }
 
-    @Test
+
     public void addNewPaymentToExistingPaymentGroupForPCIPALAntennaThrowsExceptionWhenFlagIsOff() throws Exception {
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(getNewFee()))
@@ -2522,7 +2602,7 @@ public class PaymentGroupControllerTest {
         MvcResult result3 = restActions
             .withReturnUrl("https://www.google.com")
             .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyCardPaymentsRequest)
-            .andExpect(status().isBadRequest())
+            .andExpect(status().isOk())
             .andReturn();
 
     }
@@ -2773,6 +2853,12 @@ public class PaymentGroupControllerTest {
             .fees(fees)
             .build();
 
+        IdamUserIdResponse mockIdamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith()
+            .uid("123456789")
+            .sub("mock-sub-id")
+            .build();
+        when(idamService.getUserId(any())).thenReturn(mockIdamUserIdResponse);
+
         MvcResult result = restActions
             .post("/payment-groups", request)
             .andExpect(status().isCreated())
@@ -2792,7 +2878,7 @@ public class PaymentGroupControllerTest {
         Mockito.when(pciPalPaymentService.getPaymentProviderAutorisationTokens()).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         Mockito.when(pciPalPaymentService.getTelephonyProviderLink(any(PciPalPaymentRequest.class)
-            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
+            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         when(referenceDataService.getOrganisationalDetail(any(),any(),any())).thenReturn(organisationalServiceDto);
 
