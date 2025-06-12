@@ -22,6 +22,7 @@ locals {
   thumbprints_in_quotes     = formatlist("&quot;%s&quot;", var.telephony_api_gateway_certificate_thumbprints)
   thumbprints_in_quotes_str = join(",", local.thumbprints_in_quotes)
   api_base_path             = "telephony-api"
+  db_server_name            = join("-", [var.product, "postgres-db-v15"])
   # endregion
 
   sendgrid_subscription = {
@@ -55,7 +56,7 @@ module "payment-database-v15" {
   product              = var.product
   component            = var.component
   business_area        = "cft"
-  name                 = join("-", [var.product, "postgres-db-v15"])
+  name                 = local.db_server_name
   location             = var.location
   env                  = var.env
   pgsql_admin_username = var.postgresql_user
@@ -78,6 +79,10 @@ module "payment-database-v15" {
   admin_user_object_id = var.jenkins_AAD_objectId
   common_tags          = var.common_tags
   pgsql_version        = var.postgresql_flexible_sql_version
+
+  action_group_name           = join("-", [var.db_monitor_action_group_name, local.db_server_name, var.env])
+  email_address_key           = var.db_alert_email_address_key
+  email_address_key_vault_id  = data.azurerm_key_vault.payment_key_vault.id
 }
 
 # Populate Vault with DB info
@@ -140,4 +145,3 @@ data "azurerm_key_vault_secret" "s2s_client_id" {
   name         = "gateway-s2s-client-id"
   key_vault_id = data.azurerm_key_vault.payment_key_vault.id
 }
-
