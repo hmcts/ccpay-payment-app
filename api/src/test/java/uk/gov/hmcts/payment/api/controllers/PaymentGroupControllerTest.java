@@ -1307,6 +1307,8 @@ public class PaymentGroupControllerTest {
             .fees(Arrays.asList(getNewFee()))
             .build();
 
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
+
         MvcResult result = restActions
             .post("/payment-groups", request)
             .andExpect(status().isCreated())
