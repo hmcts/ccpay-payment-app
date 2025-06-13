@@ -70,8 +70,6 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
     private String kervTenantName;
     @Value("${pci-pal.antenna.user.name}")
     private String userName;
-    @Value("${pci-pal.kerv.user.name}")
-    private String kervUserName;
     @Value("${pci-pal.antenna.client.id}")
     private String clientId;
     @Value("${pci-pal.kerv.client.id}")
@@ -124,10 +122,8 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
     public TelephonyProviderAuthorisationResponse getTelephonyProviderLink(PciPalPaymentRequest pciPalPaymentRequest, TelephonyProviderAuthorisationResponse telephonyProviderAuthorisationResponse, String serviceType, String returnURL, String telephonyProvider) {
         return withIOExceptionHandling(() -> {
 
-
             String flowId = getFlowId(serviceType, telephonyProvider);
-            LOG.info("flowId: {}   serviceType: {}    launchURL: {}   viewIdURL: {}   callbackUrl: {}   returnURL: {}  telephonyProvider: {}", flowId, serviceType, telephonyProvider.equalsIgnoreCase(KERV) ? launchKervURL : launchURL,
-                telephonyProvider.equalsIgnoreCase(KERV) ? viewKervIdURL : viewIdURL, callbackUrl, returnURL, telephonyProvider);
+
             HttpPost httpPost = new HttpPost(telephonyProvider.equalsIgnoreCase(KERV) ? launchKervURL : launchURL);
             httpPost.addHeader(CONTENT_TYPE, APPLICATION_JSON.toString());
             httpPost.addHeader(authorizationHeader(telephonyProviderAuthorisationResponse.getAccessToken()));
