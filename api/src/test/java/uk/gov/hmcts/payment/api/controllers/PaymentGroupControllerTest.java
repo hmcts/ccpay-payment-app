@@ -1300,6 +1300,35 @@ public class PaymentGroupControllerTest {
             .andReturn();
     }
 
+
+    @Test
+    public void addValidBulkScanPayment() throws Exception {
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(getNewFee()))
+            .build();
+
+        MvcResult result = restActions
+            .post("/payment-groups", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
+            .amount(new BigDecimal(100.00))
+            .service("DIGITAL_BAR")
+            .siteId("AA07")
+            .paymentStatus(PaymentStatus.SUCCESS)
+            .build();
+
+        MvcResult result2 = restActions
+            .post("/payment-groups/{payment-group-reference}/bulk-scan-payments", bulkScanPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+    }
+
+
+
     @Test
     public void addInvalidDateBulkScanPayment() throws Exception {
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
