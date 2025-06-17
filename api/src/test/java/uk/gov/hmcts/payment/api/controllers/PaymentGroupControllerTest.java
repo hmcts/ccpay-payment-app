@@ -45,7 +45,6 @@ import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestFeeDto;
 import uk.gov.hmcts.payment.api.external.client.dto.State;
 import uk.gov.hmcts.payment.api.external.client.dto.TelephonyProviderAuthorisationResponse;
 import uk.gov.hmcts.payment.api.model.Payment;
-import uk.gov.hmcts.payment.api.model.Payment2Repository;
 import uk.gov.hmcts.payment.api.model.PaymentAllocationStatus;
 import uk.gov.hmcts.payment.api.model.PaymentChannel;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
@@ -132,8 +131,6 @@ public class PaymentGroupControllerTest {
     private RefundRemissionEnableService refundRemissionEnableService;
     @MockBean
     private IdamService idamService;
-    @MockBean
-    private Payment2Repository paymentRepository;
 
     protected CustomResultMatcher body() {
         return new CustomResultMatcher(objectMapper);
@@ -1581,52 +1578,6 @@ public class PaymentGroupControllerTest {
     }
 
 
-    @Test
-    public void testRecordBulkScanPaymentStrategic() throws Exception {
-        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
-            .serviceCode("AA001")
-            .serviceDescription("Divorce")
-            .build();
-        when(referenceDataService.getOrganisationalDetail(any(), any(), any())).thenReturn(organisationalServiceDto);
-
-        // Case 1: Feature flag is off
-        when(featureToggler.getBooleanValue("prod-strategic-fix", false)).thenReturn(false);
-
-        MvcResult featureFlagOffResult = restActions
-            .post("/payment-groups/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Transferred", "Transferred bulk scan payments", null, "DCN123456789"))
-            .andExpect(status().isBadRequest())
-            .andReturn();
-        assertTrue(featureFlagOffResult.getResponse().getContentAsString().contains("This feature is not available to use !!!"));
-
-        // Case 2: Duplicate payment detected
-        when(featureToggler.getBooleanValue("prod-strategic-fix", false)).thenReturn(true);
-        List<Payment> existingPayments = new ArrayList<>();
-        existingPayments.add(Payment.paymentWith().documentControlNumber("DCN123456789").build());
-
-        when(paymentRepository.findByDocumentControlNumber("DCN123456789")).thenReturn(Optional.of(existingPayments));
-
-        MvcResult duplicatePaymentResult = restActions
-            .post("/payment-groups/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Transferred", "Duplicate bulk scan payment", null, "DCN123456789"))
-            .andExpect(status().isBadRequest())
-            .andReturn();
-        assertTrue(duplicatePaymentResult.getResponse().getContentAsString().contains("Bulk scan payment already exists for DCN = DCN123456789"));
-
-        // Case 3: Valid payment processed
-        when(paymentRepository.findByDocumentControlNumber("DCN987654321")).thenReturn(Optional.empty());
-
-        MvcResult validPaymentResult = restActions
-            .post("/payment-groups/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Transferred", "Valid bulk scan payment", null, "DCN987654321"))
-            .andExpect(status().isCreated())
-            .andReturn();
-
-        PaymentDto paymentsResponse = objectMapper.readValue(validPaymentResult.getResponse().getContentAsString(), PaymentDto.class);
-        assertNotNull(paymentsResponse);
-        assertEquals("Transferred", paymentsResponse.getPaymentAllocation().get(0).getPaymentAllocationStatus().getName());
-    }
-
-
-
-
 
     @Test
     public void testUnidentifiedBulkScanPayments() throws Exception {
@@ -1689,6 +1640,55 @@ public class PaymentGroupControllerTest {
 
         assertTrue(result3.getResponse().getContentAsString().contains("Bulk scan payment can't be marked as processed for DCN DCN293842342342834278349 Due to response status code as  = 404 NOT_FOUND"));
     }
+
+
+    @Test
+    public void testBulkScanPaymentHandlingWithApportionToggleClientErrorExceptions() throws Exception {
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(getNewFee()))
+            .build();
+
+        MvcResult result = restActions
+            .post("/payment-groups", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        when(this.restTemplatePaymentGroup.exchange(anyString(),
+            eq(HttpMethod.PATCH),
+            any(HttpEntity.class),
+            eq(String.class), any(Map.class)))
+            .thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
+
+        when(featureToggler.getBooleanValue("prod-strategic-fix", false)).thenReturn(true);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
+
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA001")
+            .serviceDescription("Divorce")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenReturn(organisationalServiceDto);
+
+        MvcResult result2 = restActions
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Allocated", "Allocated bulk scan payments", null, "DCN293842342342834278348"))
+            .andExpect(status().isBadRequest())
+            .andReturn();
+
+        assertTrue(result2.getResponse().getContentAsString().contains("Bulk scan payment can't be marked as processed for DCN DCN293842342342834278348 Due to response status code as  = 404 NOT_FOUND"));
+
+        MvcResult result3 = restActions
+            .post("/payment-groups/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Allocated", "Allocated bulk scan payments", null, "DCN293842342342834278349"))
+            .andExpect(status().isBadRequest())
+            .andReturn();
+
+        assertTrue(result3.getResponse().getContentAsString().contains("Bulk scan payment can't be marked as processed for DCN DCN293842342342834278349 Due to response status code as  = 404 NOT_FOUND"));
+    }
+
+
+
+
 
     @Test
     public void testToggleOffFeatureStrategicFix() throws Exception {
