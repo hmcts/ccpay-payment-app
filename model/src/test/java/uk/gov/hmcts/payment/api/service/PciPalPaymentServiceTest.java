@@ -46,21 +46,25 @@ public class PciPalPaymentServiceTest {
 
     private ObjectMapper objectMapper;
 
-    public static final String MOCKJSONLINKRESPONSE = "{\n" +
-        "    \"Id\": \"mockId\",\n" +
-        "    \"LinkId\": \"mockLinkId\"\n" + "}";
+    public static final String MOCKJSONLINKRESPONSE = """
+    {
+        "Id": "mockId",
+        "LinkId": "mockLinkId"
+    }""";
 
-    public static final String MOCKJSONRESPONSE = "{\n" +
-        "    \"access_token\": \"mockAccessToken\",\n" +
-        "    \"token_type\": \"Bearer\",\n" +
-        "    \"expires_in\": \"3600\",\n" +
-        "    \"refresh_token\": \"mockRefreshToken\",\n" +
-        "    \"client_id\": \"mockClientId\",\n" +
-        "    \"tenantName\": \"mockTenantName\",\n" +
-        "    \".issued\": \"2023-01-01T00:00:00Z\",\n" +
-        "    \".expires\": \"2023-01-01T01:00:00Z\",\n" +
-        "    \"next_url\": \"http://mockurl.com\"\n" +
-        "}";
+    public static final String MOCKJSONRESPONSE = """
+    {
+        "access_token": "mockAccessToken",
+        "token_type": "Bearer",
+        "expires_in": "3600",
+        "refresh_token": "mockRefreshToken",
+        "client_id": "mockClientId",
+        "tenantName": "mockTenantName",
+        ".issued": "2023-01-01T00:00:00Z",
+        ".expires": "2023-01-01T01:00:00Z",
+        "next_url": "http://mockurl.com"
+    }
+    """;
 
     @BeforeEach
     void setUp() throws Exception {
