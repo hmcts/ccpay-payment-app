@@ -109,7 +109,7 @@ public class PaymentGroupController {
 
     private final TelephonyDtoMapper telephonyDtoMapper;
 
-    private TelephonyProviderAuthorisationResponse telephonyProviderAuthorisationResponse;
+    private IdamService idamService;
 
     @Autowired
     private AuthTokenGenerator authTokenGenerator;
@@ -127,8 +127,6 @@ public class PaymentGroupController {
     @Autowired
     private PaymentReference paymentReference;
 
-    @Autowired
-    private IdamService idamService;
 
     @Autowired
     public PaymentGroupController(PaymentGroupService paymentGroupService, PaymentGroupDtoMapper paymentGroupDtoMapper,
@@ -140,7 +138,8 @@ public class PaymentGroupController {
                                   FeePayApportionService feePayApportionService,
                                   LaunchDarklyFeatureToggler featureToggler,
                                   Payment2Repository payment2Repository,
-                                  TelephonyDtoMapper telephonyDtoMapper) {
+                                  TelephonyDtoMapper telephonyDtoMapper,
+                                  IdamService idamService) {
         this.paymentGroupService = paymentGroupService;
         this.paymentGroupDtoMapper = paymentGroupDtoMapper;
         this.delegatingPaymentService = delegatingPaymentService;
@@ -153,6 +152,7 @@ public class PaymentGroupController {
         this.featureToggler = featureToggler;
         this.payment2Repository = payment2Repository;
         this.telephonyDtoMapper = telephonyDtoMapper;
+        this.idamService = idamService;
     }
 
     @Operation(summary = "Get payments/remissions/fees details by payment group reference", description = "Get payments/remissions/fees details for supplied payment group reference")
@@ -536,6 +536,7 @@ public class PaymentGroupController {
         @PathVariable("payment-group-reference") String paymentGroupReference,
         @Valid @RequestBody TelephonyCardPaymentsRequest telephonyCardPaymentsRequest) throws CheckDigitException, MethodNotSupportedException {
 
+        final TelephonyProviderAuthorisationResponse telephonyProviderAuthorisationResponse;
         PaymentFeeLink paymentLink = paymentGroupService.findByPaymentGroupReference(paymentGroupReference);
         LOG.info("--------Here is the value of getTelephonySystem: {}", telephonyCardPaymentsRequest.getTelephonySystem());
 
