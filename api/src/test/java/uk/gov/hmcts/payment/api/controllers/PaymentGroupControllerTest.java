@@ -7,8 +7,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -2630,7 +2628,6 @@ public class PaymentGroupControllerTest {
         TelephonyCardPaymentsRequest request = mock(TelephonyCardPaymentsRequest.class);
         PciPalPaymentRequest pciPalRequest = mock(PciPalPaymentRequest.class);
         OrganisationalServiceDto serviceDto = mock(OrganisationalServiceDto.class);
-        //TelephonyProviderAuthorisationResponse response = mock(TelephonyProviderAuthorisationResponse.class);
         TelephonyProviderAuthorisationResponse response = getTelephonyProviderAuthorisationResponse();
 
 
@@ -2640,9 +2637,8 @@ public class PaymentGroupControllerTest {
             .thenReturn(response);
 
         // Act
-        TelephonyProviderAuthorisationResponse result = paymentGroupController.handleTelephonyProviderAuthorisation(
-            request, pciPalRequest, serviceDto, "idamUserId"
-        );
+        paymentGroupController.handleTelephonyProviderAuthorisation(
+            request, pciPalRequest, serviceDto, "idamUserId");
 
         // Assert
         verify(pciPalPaymentService).getKervPaymentProviderAutorisationTokens("idamUserId");
