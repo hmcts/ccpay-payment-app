@@ -8,6 +8,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -72,6 +73,7 @@ import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
@@ -109,7 +111,7 @@ public class PaymentGroupControllerTest {
     private PciPalPaymentService pciPalPaymentService;
     @MockBean
     private SiteService<Site, String> siteServiceMock;
-    @InjectMocks
+    @Autowired
     private PaymentGroupController paymentGroupController;
     @MockBean
     @Qualifier("restTemplatePaymentGroup")
@@ -130,6 +132,7 @@ public class PaymentGroupControllerTest {
     private RefundRemissionEnableService refundRemissionEnableService;
     @MockBean
     private IdamService idamService;
+
 
     protected CustomResultMatcher body() {
         return new CustomResultMatcher(objectMapper);
@@ -2620,6 +2623,31 @@ public class PaymentGroupControllerTest {
         assertEquals("Amount saved in remissionDbBackdoor is equal to the on inside the request", amount, paymentsResponse.getAmount());
     }
 
+    @Test
+    public void shouldHandleKervTelephonySystem() {
+        // Arrange
+
+        TelephonyCardPaymentsRequest request = mock(TelephonyCardPaymentsRequest.class);
+        PciPalPaymentRequest pciPalRequest = mock(PciPalPaymentRequest.class);
+        OrganisationalServiceDto serviceDto = mock(OrganisationalServiceDto.class);
+        //TelephonyProviderAuthorisationResponse response = mock(TelephonyProviderAuthorisationResponse.class);
+        TelephonyProviderAuthorisationResponse response = getTelephonyProviderAuthorisationResponse();
+
+
+        when(request.getTelephonySystem()).thenReturn("kerv");
+        when(pciPalPaymentService.getKervPaymentProviderAutorisationTokens("idamUserId")).thenReturn(getTelephonyProviderAuthorisationResponse());
+        when(pciPalPaymentService.getTelephonyProviderLink(eq(pciPalRequest), eq(response), anyString(), anyString(), eq("kerv")))
+            .thenReturn(response);
+
+        // Act
+        TelephonyProviderAuthorisationResponse result = paymentGroupController.handleTelephonyProviderAuthorisation(
+            request, pciPalRequest, serviceDto, "idamUserId"
+        );
+
+        // Assert
+        verify(pciPalPaymentService).getKervPaymentProviderAutorisationTokens("idamUserId");
+        verify(pciPalPaymentService).getTelephonyProviderLink(pciPalRequest, response, null, null, "kerv");
+    }
 
     public void addNewPaymentToExistingPaymentGroupForPCIPALAntennaThrowsExceptionWhenFlagIsOff() throws Exception {
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
@@ -2973,6 +3001,8 @@ public class PaymentGroupControllerTest {
         assertEquals(new BigDecimal(40), savedfees.get(1).getAmountDue());
         assertEquals(new BigDecimal(60), savedfees.get(2).getAmountDue());
     }
+
+
 
     private CardPaymentRequest getCardPaymentRequest() {
         return CardPaymentRequest.createCardPaymentRequestDtoWith()
