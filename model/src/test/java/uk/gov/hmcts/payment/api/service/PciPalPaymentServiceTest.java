@@ -123,6 +123,7 @@ public class PciPalPaymentServiceTest {
         assertEquals("mockAccessToken", result.getAccessToken());
     }
 
+    @SuppressWarnings("deprecation")
     @Test
     void shouldReturnTelephonyProviderAuthorisationResponseWithKerv() throws Exception {
         // Arrange
@@ -207,7 +208,7 @@ public class PciPalPaymentServiceTest {
         assertEquals("message", result.getState().getMessage());
         assertEquals("created", result.getState().getStatus());
     }
-
+    @SuppressWarnings("deprecation")
     @Test
     void shouldReturnTelephonyProviderLinkSuccessfully() throws IOException {
         // Arrange
@@ -244,6 +245,7 @@ public class PciPalPaymentServiceTest {
         assertNotNull(methodUnderTest.getNextUrl());
     }
 
+    @SuppressWarnings("deprecation")
     @Test
     void shouldThrowExceptionForBadRequestResponse() throws IOException {
         // Arrange
@@ -267,6 +269,7 @@ public class PciPalPaymentServiceTest {
         assertEquals("This telephony system does not support telephony calls for the service 'Divorce'.", exception.getMessage());
     }
 
+    @SuppressWarnings("deprecation")
     @Test
     void shouldThrowExceptionForInternalServerErrorResponse() throws IOException {
         // Arrange
