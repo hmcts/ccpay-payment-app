@@ -40,13 +40,13 @@ import uk.gov.hmcts.payment.api.contract.PaymentAllocationDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.TelephonyCardPaymentsRequest;
 import uk.gov.hmcts.payment.api.contract.TelephonyCardPaymentsResponse;
-import uk.gov.hmcts.payment.api.contract.TelephonyPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.BulkScanPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.BulkScanPaymentRequestStrategic;
 import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
 import uk.gov.hmcts.payment.api.dto.PciPalPaymentRequest;
+import uk.gov.hmcts.payment.api.dto.idam.IdamUserIdResponse;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.TelephonyDtoMapper;
@@ -63,6 +63,7 @@ import uk.gov.hmcts.payment.api.model.PaymentProvider;
 import uk.gov.hmcts.payment.api.model.PaymentProviderRepository;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.service.FeePayApportionService;
+import uk.gov.hmcts.payment.api.service.IdamService;
 import uk.gov.hmcts.payment.api.service.PaymentGroupService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.service.PciPalPaymentService;
@@ -82,6 +83,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -91,6 +93,8 @@ public class PaymentGroupController {
 
     private static final Logger LOG = LoggerFactory.getLogger(PaymentGroupController.class);
     private static final String APPORTION_FEATURE = "apportion-feature";
+    private static final String KERV = "kerv";
+    private static final String ANTENNA = "antenna";
     private final PaymentGroupService<PaymentFeeLink, String> paymentGroupService;
     private final PaymentGroupDtoMapper paymentGroupDtoMapper;
     private final DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService;
@@ -104,6 +108,8 @@ public class PaymentGroupController {
     private final Payment2Repository payment2Repository;
 
     private final TelephonyDtoMapper telephonyDtoMapper;
+
+    private IdamService idamService;
 
     @Autowired
     private AuthTokenGenerator authTokenGenerator;
@@ -121,6 +127,7 @@ public class PaymentGroupController {
     @Autowired
     private PaymentReference paymentReference;
 
+
     @Autowired
     public PaymentGroupController(PaymentGroupService paymentGroupService, PaymentGroupDtoMapper paymentGroupDtoMapper,
                                   DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService,
@@ -131,7 +138,8 @@ public class PaymentGroupController {
                                   FeePayApportionService feePayApportionService,
                                   LaunchDarklyFeatureToggler featureToggler,
                                   Payment2Repository payment2Repository,
-                                  TelephonyDtoMapper telephonyDtoMapper) {
+                                  TelephonyDtoMapper telephonyDtoMapper,
+                                  IdamService idamService) {
         this.paymentGroupService = paymentGroupService;
         this.paymentGroupDtoMapper = paymentGroupDtoMapper;
         this.delegatingPaymentService = delegatingPaymentService;
@@ -144,6 +152,7 @@ public class PaymentGroupController {
         this.featureToggler = featureToggler;
         this.payment2Repository = payment2Repository;
         this.telephonyDtoMapper = telephonyDtoMapper;
+        this.idamService = idamService;
     }
 
     @Operation(summary = "Get payments/remissions/fees details by payment group reference", description = "Get payments/remissions/fees details for supplied payment group reference")
@@ -353,7 +362,7 @@ public class PaymentGroupController {
                 }
             }
 
-            OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(Optional.ofNullable(bulkScanPaymentRequestStrategic.getCaseType()),Optional.empty(), headers);
+            OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(Optional.ofNullable(bulkScanPaymentRequestStrategic.getCaseType()), Optional.empty(), headers);
 
             PaymentProvider paymentProvider = bulkScanPaymentRequestStrategic.getExternalProvider() != null ?
                 paymentProviderRepository.findByNameOrThrow(bulkScanPaymentRequestStrategic.getExternalProvider())
@@ -426,7 +435,7 @@ public class PaymentGroupController {
 
             String paymentGroupReference = paymentReference.getNext();
 
-            OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(Optional.ofNullable(bulkScanPaymentRequestStrategic.getCaseType()),Optional.empty(), headers);
+            OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(Optional.ofNullable(bulkScanPaymentRequestStrategic.getCaseType()), Optional.empty(), headers);
 
             PaymentProvider paymentProvider = bulkScanPaymentRequestStrategic.getExternalProvider() != null ?
                 paymentProviderRepository.findByNameOrThrow(bulkScanPaymentRequestStrategic.getExternalProvider())
@@ -527,48 +536,98 @@ public class PaymentGroupController {
         @PathVariable("payment-group-reference") String paymentGroupReference,
         @Valid @RequestBody TelephonyCardPaymentsRequest telephonyCardPaymentsRequest) throws CheckDigitException, MethodNotSupportedException {
 
+        final TelephonyProviderAuthorisationResponse telephonyProviderAuthorisationResponse;
         PaymentFeeLink paymentLink = paymentGroupService.findByPaymentGroupReference(paymentGroupReference);
+        LOG.info("--------Here is the value of getTelephonySystem: {}", telephonyCardPaymentsRequest.getTelephonySystem());
+
+        headers.forEach((key, values) -> {
+            LOG.info("--------Here is the value of key: {}", key);
+            LOG.info("--------Here is the value of headers: {}", values);
+        });
 
         boolean antennaFeature = featureToggler.getBooleanValue("pci-pal-antenna-feature", false);
         LOG.info("Feature Flag Value in CardPaymentController : {}", antennaFeature);
 
-        if (antennaFeature) {
-            LOG.info("Inside Telephony check!!!");
+        OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(Optional.ofNullable(telephonyCardPaymentsRequest.getCaseType()),Optional.empty(), headers);
+        PaymentServiceRequest paymentServiceRequest = PaymentServiceRequest.paymentServiceRequestWith()
+            .paymentGroupReference(paymentGroupReference)
+            .paymentReference(referenceUtil.getNext("RC"))
+            .caseReference(paymentLink.getCaseReference())
+            .ccdCaseNumber(telephonyCardPaymentsRequest.getCcdCaseNumber())
+            .currency(telephonyCardPaymentsRequest.getCurrency().getCode())
+            .siteId(organisationalServiceDto.getServiceCode())
+            .serviceType(organisationalServiceDto.getServiceDescription())
+            .amount(telephonyCardPaymentsRequest.getAmount())
+            .channel(PaymentChannel.TELEPHONY.getName())
+            .provider(PaymentProvider.PCI_PAL.getName())
+            .build();
+        paymentLink = delegatingPaymentService.update(paymentServiceRequest);
+        Payment payment = getPayment(paymentLink, paymentServiceRequest.getPaymentReference());
 
-            OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(Optional.ofNullable(telephonyCardPaymentsRequest.getCaseType()),Optional.empty(), headers);
-            TelephonyProviderAuthorisationResponse telephonyProviderAuthorisationResponse = pciPalPaymentService.getPaymentProviderAutorisationTokens();
-            PaymentServiceRequest paymentServiceRequest = PaymentServiceRequest.paymentServiceRequestWith()
-                .paymentGroupReference(paymentGroupReference)
-                .paymentReference(referenceUtil.getNext("RC"))
-                .caseReference(paymentLink.getCaseReference())
-                .ccdCaseNumber(telephonyCardPaymentsRequest.getCcdCaseNumber())
-                .currency(telephonyCardPaymentsRequest.getCurrency().getCode())
-                .siteId(organisationalServiceDto.getServiceCode())
-                .serviceType(organisationalServiceDto.getServiceDescription())
-                .amount(telephonyCardPaymentsRequest.getAmount())
-                .channel(PaymentChannel.TELEPHONY.getName())
-                .provider(PaymentProvider.PCI_PAL.getName())
-                .build();
-            paymentLink = delegatingPaymentService.update(paymentServiceRequest);
-            Payment payment = getPayment(paymentLink, paymentServiceRequest.getPaymentReference());
+        LOG.info("--------Here is the value of getTelephonySystem ----");
 
-            PciPalPaymentRequest pciPalPaymentRequest = PciPalPaymentRequest.pciPalPaymentRequestWith().orderAmount(telephonyCardPaymentsRequest.getAmount().toString()).orderCurrency(telephonyCardPaymentsRequest.getCurrency().getCode())
-                .orderReference(payment.getReference()).build();
-            telephonyProviderAuthorisationResponse = pciPalPaymentService.getTelephonyProviderLink(pciPalPaymentRequest, telephonyProviderAuthorisationResponse, organisationalServiceDto.getServiceDescription(), telephonyCardPaymentsRequest.getReturnURL());
-            LOG.info("Next URL Value in CardPaymentController : {}", telephonyProviderAuthorisationResponse.getNextUrl());
-            TelephonyCardPaymentsResponse telephonyCardPaymentsResponse = telephonyDtoMapper.toTelephonyCardPaymentsResponse(paymentLink, payment, telephonyProviderAuthorisationResponse);
+        String idamUserId = getIdamUserId(headers);
 
-            // trigger Apportion based on the launch darkly feature flag
-            boolean apportionFeature = featureToggler.getBooleanValue(APPORTION_FEATURE, false);
-            LOG.info("ApportionFeature Flag Value in CardPaymentController : {}", apportionFeature);
-            if (apportionFeature) {
-                feePayApportionService.processApportion(payment);
-            }
-            return new ResponseEntity<>(telephonyCardPaymentsResponse, HttpStatus.CREATED);
-        } else {
-            throw new MethodNotSupportedException("This feature is not available to use or invalid request!!!");
+        LOG.info("--------Here is the value of idamUserId: {}",idamUserId);
+
+        PciPalPaymentRequest pciPalPaymentRequest = PciPalPaymentRequest.pciPalPaymentRequestWith().orderAmount(telephonyCardPaymentsRequest.getAmount().toString()).orderCurrency(telephonyCardPaymentsRequest.getCurrency().getCode())
+            .orderReference(payment.getReference()).build();
+
+        telephonyProviderAuthorisationResponse = handleTelephonyProviderAuthorisation(telephonyCardPaymentsRequest, pciPalPaymentRequest, organisationalServiceDto, idamUserId);
+
+        TelephonyCardPaymentsResponse telephonyCardPaymentsResponse = telephonyDtoMapper.toTelephonyCardPaymentsResponse(paymentLink, payment, telephonyProviderAuthorisationResponse);
+
+        // trigger Apportion based on the launch darkly feature flag
+        boolean apportionFeature = featureToggler.getBooleanValue(APPORTION_FEATURE, false);
+        LOG.info("ApportionFeature Flag Value in CardPaymentController : {}", apportionFeature);
+        if (apportionFeature) {
+            feePayApportionService.processApportion(payment);
         }
+        return new ResponseEntity<>(telephonyCardPaymentsResponse, HttpStatus.CREATED);
     }
+
+
+    public TelephonyProviderAuthorisationResponse handleTelephonyProviderAuthorisation(
+        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest,
+        PciPalPaymentRequest pciPalPaymentRequest,
+        OrganisationalServiceDto organisationalServiceDto, String idamUserId) {
+
+        if (telephonyCardPaymentsRequest.getTelephonySystem() != null
+            && telephonyCardPaymentsRequest.getTelephonySystem().equalsIgnoreCase(KERV)) {
+            TelephonyProviderAuthorisationResponse response = pciPalPaymentService.getKervPaymentProviderAutorisationTokens(idamUserId);
+            return pciPalPaymentService.getTelephonyProviderLink(
+                pciPalPaymentRequest, response, organisationalServiceDto.getServiceDescription(),
+                telephonyCardPaymentsRequest.getReturnURL(), KERV);
+        } else if ((telephonyCardPaymentsRequest.getTelephonySystem() == null
+            || telephonyCardPaymentsRequest.getTelephonySystem().isEmpty())
+            || telephonyCardPaymentsRequest.getTelephonySystem().equalsIgnoreCase(ANTENNA)) {
+            TelephonyProviderAuthorisationResponse response = pciPalPaymentService.getPaymentProviderAutorisationTokens();
+            return pciPalPaymentService.getTelephonyProviderLink(
+                pciPalPaymentRequest, response, organisationalServiceDto.getServiceDescription(),
+                telephonyCardPaymentsRequest.getReturnURL(), ANTENNA);
+        }
+        return (TelephonyProviderAuthorisationResponse) Optional.empty().orElseThrow(() -> new PaymentException("Invalid Telephony System"));
+    }
+
+
+    public String getIdamUserId(MultiValueMap<String, String> headers) {
+
+        if (!headers.isEmpty()) {
+            IdamUserIdResponse uid = idamService.getUserId(headers);
+            String idamUserId = uid.getSub();
+            String obfuscatedIdamUserId = String.valueOf(Objects.hash(idamUserId));
+
+            if (obfuscatedIdamUserId == null) {
+                throw new PaymentException("Obfuscated IDAM User ID is null");
+            }
+            return obfuscatedIdamUserId;
+        }
+        throw new PaymentException("Headers are empty");
+    }
+
+
+
+
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(value = {NoServiceFoundException.class})
@@ -618,4 +677,5 @@ public class PaymentGroupController {
     public String return400DuplicatePaymentException(DuplicatePaymentException ex) {
         return ex.getMessage();
     }
+
 }
