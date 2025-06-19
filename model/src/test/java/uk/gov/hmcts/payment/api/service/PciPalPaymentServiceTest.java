@@ -101,6 +101,7 @@ public class PciPalPaymentServiceTest {
         return field.get(target);
     }
 
+    @SuppressWarnings("deprecation")
     @Test
     void shouldReturnTelephonyProviderAuthorisationResponse() throws Exception {
         // Arrange
