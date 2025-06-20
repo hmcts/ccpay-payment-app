@@ -1,11 +1,3 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
-    <suppress>
-        <notes>
-            Description
-            Improper Access Control vulnerability in Apache Commons. A special BeanIntrospector class was added in version 1.9.2.
-            This can be used to stop attackers from using the declared class property of Java enum objects to get access to the classloader.
-        </notes>
-        <cve>CVE-2025-48734</cve>
-    </suppress>
 </suppressions>
