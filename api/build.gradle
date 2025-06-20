@@ -95,10 +95,10 @@ dependencies {
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security'
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa'
-    implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.14.0'
+    implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.17.0'
     implementation group: 'net.logstash.logback', name: 'logstash-logback-encoder', version: '8.0'
-    implementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.5.16'
-    implementation group: 'ch.qos.logback', name: 'logback-core', version: '1.5.16'
+    implementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.5.18'
+    implementation group: 'ch.qos.logback', name: 'logback-core', version: '1.5.18'
     implementation group: 'xerces', name: 'xercesImpl', version: '2.12.2'
     implementation group: 'org.apache.httpcomponents.client5', name: 'httpclient5', version: '5.2'
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.17.0'
@@ -122,7 +122,7 @@ dependencies {
     implementation group: 'org.ff4j', name: 'ff4j-spring-boot-starter-webmvc', version: '2.1'
     implementation group: 'commons-fileupload', name: 'commons-fileupload', version: '1.5'
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-thymeleaf'
-    implementation(group: 'org.postgresql', name: 'postgresql', version: '42.7.5') {
+    implementation(group: 'org.postgresql', name: 'postgresql', version: '42.7.7') {
         exclude(module: 'commons-logging')
         exclude(module: 'slf4j-simple')
     }
