@@ -5,10 +5,8 @@ import org.apache.commons.lang3.RandomUtils;
 import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -73,6 +71,7 @@ import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
@@ -110,7 +109,7 @@ public class PaymentGroupControllerTest {
     private PciPalPaymentService pciPalPaymentService;
     @MockBean
     private SiteService<Site, String> siteServiceMock;
-    @InjectMocks
+    @Autowired
     private PaymentGroupController paymentGroupController;
     @MockBean
     @Qualifier("restTemplatePaymentGroup")
@@ -131,6 +130,7 @@ public class PaymentGroupControllerTest {
     private RefundRemissionEnableService refundRemissionEnableService;
     @MockBean
     private IdamService idamService;
+
 
     protected CustomResultMatcher body() {
         return new CustomResultMatcher(objectMapper);
@@ -1300,6 +1300,25 @@ public class PaymentGroupControllerTest {
             .andReturn();
     }
 
+
+    @Test
+    public void addValidPayment() throws Exception {
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(getNewFee()))
+            .build();
+
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
+
+        MvcResult result = restActions
+            .post("/payment-groups", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        assertThat(result.getResponse().getStatus()).isEqualTo(HttpStatus.CREATED.value());
+    }
+
+
+
     @Test
     public void addInvalidDateBulkScanPayment() throws Exception {
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
@@ -1521,6 +1540,7 @@ public class PaymentGroupControllerTest {
         assertTrue(duplicateRequest.getResponse().getContentAsString().contains("Bulk scan payment already exists for DCN = DCN293842342342834278348"));
     }
 
+
     @Test
     public void testValidAndDuplicateTransferredBulkScanPayments() throws Exception {
         when(featureToggler.getBooleanValue("prod-strategic-fix", false)).thenReturn(true);
@@ -1545,6 +1565,8 @@ public class PaymentGroupControllerTest {
 
         assertTrue(duplicateRequest.getResponse().getContentAsString().contains("Bulk scan payment already exists for DCN = DCN293842342342834278348"));
     }
+
+
 
     @Test
     public void testUnidentifiedBulkScanPayments() throws Exception {
@@ -1607,6 +1629,55 @@ public class PaymentGroupControllerTest {
 
         assertTrue(result3.getResponse().getContentAsString().contains("Bulk scan payment can't be marked as processed for DCN DCN293842342342834278349 Due to response status code as  = 404 NOT_FOUND"));
     }
+
+
+    @Test
+    public void testBulkScanPaymentHandlingWithApportionToggleClientErrorExceptions() throws Exception {
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(getNewFee()))
+            .build();
+
+        MvcResult result = restActions
+            .post("/payment-groups", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        when(this.restTemplatePaymentGroup.exchange(anyString(),
+            eq(HttpMethod.PATCH),
+            any(HttpEntity.class),
+            eq(String.class), any(Map.class)))
+            .thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
+
+        when(featureToggler.getBooleanValue("prod-strategic-fix", false)).thenReturn(true);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
+
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA001")
+            .serviceDescription("Divorce")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenReturn(organisationalServiceDto);
+
+        MvcResult result2 = restActions
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Allocated", "Allocated bulk scan payments", null, "DCN293842342342834278348"))
+            .andExpect(status().isBadRequest())
+            .andReturn();
+
+        assertTrue(result2.getResponse().getContentAsString().contains("Bulk scan payment can't be marked as processed for DCN DCN293842342342834278348 Due to response status code as  = 404 NOT_FOUND"));
+
+        MvcResult result3 = restActions
+            .post("/payment-groups/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Allocated", "Allocated bulk scan payments", null, "DCN293842342342834278349"))
+            .andExpect(status().isBadRequest())
+            .andReturn();
+
+        assertTrue(result3.getResponse().getContentAsString().contains("Bulk scan payment can't be marked as processed for DCN DCN293842342342834278349 Due to response status code as  = 404 NOT_FOUND"));
+    }
+
+
+
+
 
     @Test
     public void testToggleOffFeatureStrategicFix() throws Exception {
@@ -2550,6 +2621,29 @@ public class PaymentGroupControllerTest {
         assertEquals("Amount saved in remissionDbBackdoor is equal to the on inside the request", amount, paymentsResponse.getAmount());
     }
 
+    @Test
+    public void shouldHandleKervTelephonySystem() {
+        // Arrange
+
+        TelephonyCardPaymentsRequest request = mock(TelephonyCardPaymentsRequest.class);
+        PciPalPaymentRequest pciPalRequest = mock(PciPalPaymentRequest.class);
+        OrganisationalServiceDto serviceDto = mock(OrganisationalServiceDto.class);
+        TelephonyProviderAuthorisationResponse response = getTelephonyProviderAuthorisationResponse();
+
+
+        when(request.getTelephonySystem()).thenReturn("kerv");
+        when(pciPalPaymentService.getKervPaymentProviderAutorisationTokens("idamUserId")).thenReturn(getTelephonyProviderAuthorisationResponse());
+        when(pciPalPaymentService.getTelephonyProviderLink(eq(pciPalRequest), eq(response), anyString(), anyString(), eq("kerv")))
+            .thenReturn(response);
+
+        // Act
+        paymentGroupController.handleTelephonyProviderAuthorisation(
+            request, pciPalRequest, serviceDto, "idamUserId");
+
+        // Assert
+        verify(pciPalPaymentService).getKervPaymentProviderAutorisationTokens("idamUserId");
+        verify(pciPalPaymentService).getTelephonyProviderLink(pciPalRequest, response, null, null, "kerv");
+    }
 
     public void addNewPaymentToExistingPaymentGroupForPCIPALAntennaThrowsExceptionWhenFlagIsOff() throws Exception {
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
@@ -2903,6 +2997,8 @@ public class PaymentGroupControllerTest {
         assertEquals(new BigDecimal(40), savedfees.get(1).getAmountDue());
         assertEquals(new BigDecimal(60), savedfees.get(2).getAmountDue());
     }
+
+
 
     private CardPaymentRequest getCardPaymentRequest() {
         return CardPaymentRequest.createCardPaymentRequestDtoWith()
