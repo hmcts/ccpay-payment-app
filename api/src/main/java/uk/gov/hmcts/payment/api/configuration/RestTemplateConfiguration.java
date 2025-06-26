@@ -10,6 +10,7 @@ import org.apache.hc.core5.util.Timeout;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 
@@ -28,7 +29,8 @@ public class RestTemplateConfiguration {
     @Value("${liberata.read.timeout:10000}")
     private int liberataReadTimeout;
 
-    @Bean(name = {"serviceTokenParserHttpClient", "userTokenParserHttpClient"})
+    @Primary
+    @Bean
     public CloseableHttpClient paymentsHttpClient() {
         return HttpClients.custom()
             .useSystemProperties()
