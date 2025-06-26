@@ -59,6 +59,8 @@ import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.GatewayTimeoutException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.NoServiceFoundException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PciPalConfigurationException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.TelephonyServiceException;
 import uk.gov.hmcts.payment.referencedata.dto.SiteDTO;
 import uk.gov.hmcts.payment.referencedata.model.Site;
 import uk.gov.hmcts.payment.referencedata.service.SiteService;
@@ -2645,6 +2647,27 @@ public class PaymentGroupControllerTest {
         verify(pciPalPaymentService).getTelephonyProviderLink(pciPalRequest, response, null, null, "kerv");
     }
 
+
+
+    @Test
+    public void shouldHandleIncorrectTelephonySystem() {
+        // Arrange
+
+        TelephonyCardPaymentsRequest request = mock(TelephonyCardPaymentsRequest.class);
+        PciPalPaymentRequest pciPalRequest = mock(PciPalPaymentRequest.class);
+        OrganisationalServiceDto serviceDto = mock(OrganisationalServiceDto.class);
+        TelephonyProviderAuthorisationResponse response = getTelephonyProviderAuthorisationResponse();
+
+        when(request.getTelephonySystem()).thenReturn("NOT_KERV_OR_ANTENNA");
+
+        // Act
+        TelephonyServiceException exception = assertThrows(TelephonyServiceException.class, () -> {
+            paymentGroupController.handleTelephonyProviderAuthorisation(
+                request, pciPalRequest, serviceDto, "idamUserId");
+        });
+        assertEquals("Invalid or missing attributes", exception.getMessage());
+    }
+
     public void addNewPaymentToExistingPaymentGroupForPCIPALAntennaThrowsExceptionWhenFlagIsOff() throws Exception {
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(getNewFee()))
@@ -2996,6 +3019,26 @@ public class PaymentGroupControllerTest {
         assertEquals(new BigDecimal(10), savedfees.get(0).getAmountDue());
         assertEquals(new BigDecimal(40), savedfees.get(1).getAmountDue());
         assertEquals(new BigDecimal(60), savedfees.get(2).getAmountDue());
+    }
+
+    @Test
+    public void shouldReturn422ForTelephonyServiceException() {
+        TelephonyServiceException exception = new TelephonyServiceException("Telephony service error");
+        ResponseEntity<String> response = ResponseEntity
+            .status(HttpStatus.UNPROCESSABLE_ENTITY)
+            .body(exception.getMessage());
+        assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, response.getStatusCode());
+        assertEquals("Telephony service error", response.getBody());
+    }
+
+    @Test
+    public void shouldReturn412ForPciPalConfigurationException() {
+        PciPalConfigurationException exception = new PciPalConfigurationException("PCI Pal configuration error");
+        ResponseEntity<String> response = ResponseEntity
+            .status(HttpStatus.PRECONDITION_FAILED)
+            .body(exception.getMessage());
+        assertEquals(HttpStatus.PRECONDITION_FAILED, response.getStatusCode());
+        assertEquals("PCI Pal configuration error", response.getBody());
     }
 
 
