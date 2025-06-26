@@ -23,7 +23,7 @@ dependencies {
     implementation group: 'com.querydsl', name: 'querydsl-jpa', version:'5.1.0'
     api group: 'commons-validator', name: 'commons-validator', version:'1.9.0'
     implementation group: 'com.github.hmcts.java-logging', name: 'logging-appinsights', version: '6.1.7'
-    implementation (group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '5.3.0') {
+    implementation (group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '5.3.2') {
         exclude group: 'org.apache.httpcomponents', module: 'httpclient'
     }
     implementation group: 'io.github.resilience4j', name: 'resilience4j-spring-boot3', version: '2.2.0'
