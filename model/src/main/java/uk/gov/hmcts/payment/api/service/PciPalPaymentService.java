@@ -26,6 +26,8 @@ import uk.gov.hmcts.payment.api.external.client.dto.*;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PciPalConfigurationException;
+
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URISyntaxException;
@@ -151,7 +153,7 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
                 LOG.info("ResponseCode: {} ResponseBody: {} flowId: {}   serviceType: {}    launchURL: {}   viewIdURL: {}   callbackUrl: {}   returnURL: {}  telephonyProvider: {}",
                     response.getCode(), responseBody, flowId, serviceType, telephonyProvider.equalsIgnoreCase(KERV) ? launchKervURL : launchURL,
                     telephonyProvider.equalsIgnoreCase(KERV) ? viewKervIdURL : viewIdURL, callbackUrl, returnURL, telephonyProvider);
-                throw new PaymentException("This telephony system does not support telephony calls for the service '"+ serviceType +"'.");
+                throw new PciPalConfigurationException("This telephony system does not support telephony calls for the service '"+ serviceType +"'.");
             } else {
                 String responseBody = response.getEntity() != null ? new String(response.getEntity().getContent().readAllBytes()) : "No response body";
                 LOG.info("ResponseCode: {} ResponseBody: {} flowId: {}   serviceType: {}    launchURL: {}   viewIdURL: {}   callbackUrl: {}   returnURL: {}  telephonyProvider: {}",

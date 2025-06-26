@@ -18,6 +18,7 @@ import uk.gov.hmcts.payment.api.dto.PciPalPayment;
 import uk.gov.hmcts.payment.api.dto.PciPalPaymentRequest;
 import uk.gov.hmcts.payment.api.external.client.dto.TelephonyProviderAuthorisationResponse;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PciPalConfigurationException;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -261,7 +262,7 @@ public class PciPalPaymentServiceTest {
         when(httpClient.execute(any(HttpPost.class))).thenReturn(mockResponse);
 
         // Act & Assert
-        PaymentException exception = assertThrows(PaymentException.class, () -> {
+        PciPalConfigurationException exception = assertThrows(PciPalConfigurationException.class, () -> {
             pciPalPaymentService.getTelephonyProviderLink(mockRequest, mockAuthResponse, "Divorce", "http://mock-return-url", "kerv");
         });
         assertEquals("This telephony system does not support telephony calls for the service 'Divorce'.", exception.getMessage());

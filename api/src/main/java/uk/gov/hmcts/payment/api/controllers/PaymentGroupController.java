@@ -75,6 +75,8 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidPaymentGroupReference
 import uk.gov.hmcts.payment.api.v1.model.exceptions.NoServiceFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PciPalConfigurationException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.TelephonyServiceException;
 import uk.gov.hmcts.payment.referencedata.dto.SiteDTO;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
@@ -606,6 +608,13 @@ public class PaymentGroupController {
                 pciPalPaymentRequest, response, organisationalServiceDto.getServiceDescription(),
                 telephonyCardPaymentsRequest.getReturnURL(), ANTENNA);
         }
+
+        if (telephonyCardPaymentsRequest.getTelephonySystem() != null
+            && !telephonyCardPaymentsRequest.getTelephonySystem().equalsIgnoreCase(KERV)
+            && !telephonyCardPaymentsRequest.getTelephonySystem().equalsIgnoreCase(ANTENNA)) {
+            throw new TelephonyServiceException("Invalid or missing attributes");
+        }
+
         return (TelephonyProviderAuthorisationResponse) Optional.empty().orElseThrow(() -> new PaymentException("Invalid Telephony System"));
     }
 
@@ -624,8 +633,6 @@ public class PaymentGroupController {
         }
         throw new PaymentException("Headers are empty");
     }
-
-
 
 
 
@@ -677,5 +684,18 @@ public class PaymentGroupController {
     public String return400DuplicatePaymentException(DuplicatePaymentException ex) {
         return ex.getMessage();
     }
+
+    @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
+    @ExceptionHandler(TelephonyServiceException.class)
+    public String return422TelephonyServiceException(TelephonyServiceException ex) {
+        return ex.getMessage();
+    }
+
+    @ResponseStatus(HttpStatus.PRECONDITION_FAILED)
+    @ExceptionHandler(PciPalConfigurationException.class)
+    public String return412PciPalConfigurationException(PciPalConfigurationException ex) {
+        return ex.getMessage();
+    }
+
 
 }
