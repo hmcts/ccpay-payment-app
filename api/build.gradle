@@ -131,7 +131,7 @@ dependencies {
     implementation group: 'org.springframework.retry', name: 'spring-retry'
     implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign'
 
-    implementation (group: 'com.github.hmcts.ccfr-fees-register-app', name: 'fees-register-api-contract', version: '2.4.0') {
+    implementation (group: 'com.github.hmcts.ccfr-fees-register-app', name: 'fees-register-api-contract', version: '2.4.1') {
         exclude group: 'javax.xml.stream', module: 'stax-api'
         exclude group: 'javax.xml.bind', module: 'jaxb-api'
         exclude group: 'org.springdoc', module: 'springdoc-openapi-webmvc-core'
