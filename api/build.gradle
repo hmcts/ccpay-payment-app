@@ -138,7 +138,7 @@ dependencies {
         exclude group: 'org.springdoc', module: 'springdoc-openapi-ui'
     }
 
-    contractTestImplementation(group: 'com.github.hmcts.ccfr-fees-register-app', name: 'fees-register-model', version: '2.4.0'){
+    contractTestImplementation(group: 'com.github.hmcts.ccfr-fees-register-app', name: 'fees-register-model', version: '2.4.1'){
         exclude group: 'uk.gov.hmcts.fees2.register.data.service.impl.IdamServiceImpl.class'
     }
     //Added this for spring boot upgrade as swagger was not working with the latest version.
