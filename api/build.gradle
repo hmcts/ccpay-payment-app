@@ -76,7 +76,7 @@ def versions = [
         serenityCucumber: '4.2.16',
 ]
 
-def javaLoggingVersion = '6.1.7'
+def javaLoggingVersion = '6.1.9'
 
 dependencies {
     implementation project(':payment-gov-pay-client')
@@ -86,7 +86,7 @@ dependencies {
     implementation project(':case-payment-orders-client')
     implementation group: 'com.github.hmcts.java-logging', name: 'logging', version: javaLoggingVersion
     implementation group: 'com.github.hmcts.java-logging', name: 'logging-appinsights', version: javaLoggingVersion
-    implementation group: 'com.github.hmcts', name: 'auth-checker-lib', version: '3.0.0'
+    implementation group: 'com.github.hmcts', name: 'auth-checker-lib', version: '3.1.1'
     implementation (group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: versions.reformS2sClient) {
         exclude group: 'org.apache.httpcomponents', module: 'httpclient'
     }
@@ -131,14 +131,14 @@ dependencies {
     implementation group: 'org.springframework.retry', name: 'spring-retry'
     implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign'
 
-    implementation (group: 'com.github.hmcts.ccfr-fees-register-app', name: 'fees-register-api-contract', version: '2.4.0') {
+    implementation (group: 'com.github.hmcts.fees-register', name: 'fees-register-api-contract', version: '2.4.1') {
         exclude group: 'javax.xml.stream', module: 'stax-api'
         exclude group: 'javax.xml.bind', module: 'jaxb-api'
         exclude group: 'org.springdoc', module: 'springdoc-openapi-webmvc-core'
         exclude group: 'org.springdoc', module: 'springdoc-openapi-ui'
     }
 
-    contractTestImplementation(group: 'com.github.hmcts.ccfr-fees-register-app', name: 'fees-register-model', version: '2.4.1'){
+    contractTestImplementation(group: 'com.github.hmcts.fees-register', name: 'fees-register-model', version: '2.4.1'){
         exclude group: 'uk.gov.hmcts.fees2.register.data.service.impl.IdamServiceImpl.class'
     }
     //Added this for spring boot upgrade as swagger was not working with the latest version.
