@@ -562,6 +562,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
                 topicClientCPO.close();
             }
         } catch (Exception e) {
+            LOG.error("Error sending message to topic for case {} : {}", serviceRequestDto.getCcdCaseNumber(), e.getMessage());
             Thread.currentThread().interrupt();
         }
     }
