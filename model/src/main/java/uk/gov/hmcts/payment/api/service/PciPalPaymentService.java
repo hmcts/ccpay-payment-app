@@ -68,10 +68,29 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
     public TelephonyProviderAuthorisationResponse getTelephonyProviderLink(PciPalPaymentRequest pciPalPaymentRequest, TelephonyProviderAuthorisationResponse telephonyProviderAuthorisationResponse, String serviceType, String returnURL, TelephonySystem telephonySystem) {
         return withIOExceptionHandling(() -> {
 
-            LOG.info("JSON pciPalPaymentRequest: {}", objectMapper.writeValueAsString(pciPalPaymentRequest));
-            LOG.info("JSON telephonySystem: {}", objectMapper.writeValueAsString(telephonySystem));
-            LOG.info("JSON serviceType: {}", objectMapper.writeValueAsString(serviceType));
-            LOG.info("JSON telephonyProviderAuthorisationResponse: {}", objectMapper.writeValueAsString(telephonyProviderAuthorisationResponse));
+            try {
+                LOG.info("PciPalPaymentRequest: {}", objectMapper.writeValueAsString(pciPalPaymentRequest));
+            } catch (IOException e) {
+                LOG.error("Error serializing PciPalPaymentRequest to JSON", e);
+            }
+
+            try {
+                LOG.info("TelephonyProviderAuthorisationResponse: {}", objectMapper.writeValueAsString(telephonyProviderAuthorisationResponse));
+            } catch (IOException e) {
+                LOG.error("Error serializing TelephonyProviderAuthorisationResponse to JSON", e);
+            }
+
+            try {
+                LOG.info("Service Type: {}", serviceType);
+            } catch (Exception e) {
+                LOG.error("Error logging service type", e);
+            }
+
+            try {
+                LOG.info("JSON telephonySystem: {}", objectMapper.writeValueAsString(telephonySystem));
+            } catch (Exception e) {
+                LOG.error("Error logging telephonySystem", e);
+            }
 
             String flowId = telephonySystem.getFlowId(serviceType);
             LOG.info("Found flow id {} for service type {} using system {}", flowId, serviceType, telephonySystem.getSystemName());
