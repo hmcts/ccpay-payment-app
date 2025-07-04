@@ -48,10 +48,7 @@ import uk.gov.hmcts.payment.api.model.PaymentChannel;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
-import uk.gov.hmcts.payment.api.service.IdamService;
-import uk.gov.hmcts.payment.api.service.PciPalPaymentService;
-import uk.gov.hmcts.payment.api.service.ReferenceDataService;
-import uk.gov.hmcts.payment.api.service.RefundRemissionEnableService;
+import uk.gov.hmcts.payment.api.service.*;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
@@ -712,10 +709,10 @@ public class PaymentGroupControllerTest {
         when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
             .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
 
-        when(pciPalPaymentService.getPaymentProviderAutorisationTokens()).thenReturn(getTelephonyProviderAuthorisationResponse());
+        when(pciPalPaymentService.getPaymentProviderAuthorisationTokens(any(TelephonySystem.class), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         when(pciPalPaymentService.getTelephonyProviderLink(any(PciPalPaymentRequest.class)
-            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
+            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString(), any(TelephonySystem.class))).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         BigDecimal amount = new BigDecimal("200");
         TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
@@ -807,10 +804,10 @@ public class PaymentGroupControllerTest {
         when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
             .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
 
-        when(pciPalPaymentService.getPaymentProviderAutorisationTokens()).thenReturn(getTelephonyProviderAuthorisationResponse());
+        when(pciPalPaymentService.getPaymentProviderAuthorisationTokens(any(TelephonySystem.class), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         when(pciPalPaymentService.getTelephonyProviderLink(any(PciPalPaymentRequest.class)
-            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
+            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString(), any(TelephonySystem.class))).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         BigDecimal amount = new BigDecimal("200");
         TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
@@ -871,10 +868,10 @@ public class PaymentGroupControllerTest {
         when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
             .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
 
-        when(pciPalPaymentService.getPaymentProviderAutorisationTokens()).thenReturn(getTelephonyProviderAuthorisationResponse());
+        when(pciPalPaymentService.getPaymentProviderAuthorisationTokens(any(TelephonySystem.class), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         when(pciPalPaymentService.getTelephonyProviderLink(any(PciPalPaymentRequest.class)
-            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
+            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString(), any(TelephonySystem.class))).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("AA001")
@@ -957,10 +954,10 @@ public class PaymentGroupControllerTest {
         when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
             .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
 
-        when(pciPalPaymentService.getPaymentProviderAutorisationTokens()).thenReturn(getTelephonyProviderAuthorisationResponse());
+        when(pciPalPaymentService.getPaymentProviderAuthorisationTokens(any(TelephonySystem.class), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         when(pciPalPaymentService.getTelephonyProviderLink(any(PciPalPaymentRequest.class)
-            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
+            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString(), any(TelephonySystem.class))).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("AA001")
@@ -1023,10 +1020,10 @@ public class PaymentGroupControllerTest {
         when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
                 .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
 
-        when(pciPalPaymentService.getPaymentProviderAutorisationTokens()).thenReturn(getTelephonyProviderAuthorisationResponse());
+        when(pciPalPaymentService.getPaymentProviderAuthorisationTokens(any(TelephonySystem.class), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         when(pciPalPaymentService.getTelephonyProviderLink(any(PciPalPaymentRequest.class)
-                , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
+                , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString(), any(TelephonySystem.class))).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
                 .serviceCode("AA001")
@@ -1091,10 +1088,10 @@ public class PaymentGroupControllerTest {
         when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
             .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
 
-        when(pciPalPaymentService.getPaymentProviderAutorisationTokens()).thenReturn(getTelephonyProviderAuthorisationResponse());
+        when(pciPalPaymentService.getPaymentProviderAuthorisationTokens(any(TelephonySystem.class), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         when(pciPalPaymentService.getTelephonyProviderLink(any(PciPalPaymentRequest.class)
-            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
+            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString(), any(TelephonySystem.class))).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         MvcResult result3 = restActions
             .withReturnUrl("https://www.google.com")
@@ -1138,10 +1135,10 @@ public class PaymentGroupControllerTest {
         when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
             .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
 
-        Mockito.when(pciPalPaymentService.getPaymentProviderAutorisationTokens()).thenReturn(getTelephonyProviderAuthorisationResponse());
+        Mockito.when(pciPalPaymentService.getPaymentProviderAuthorisationTokens(any(TelephonySystem.class), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         Mockito.when(pciPalPaymentService.getTelephonyProviderLink(any(PciPalPaymentRequest.class)
-            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
+            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString(), any(TelephonySystem.class))).thenReturn(getTelephonyProviderAuthorisationResponse());
 
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
@@ -2266,10 +2263,10 @@ public class PaymentGroupControllerTest {
         when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
             .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
 
-        Mockito.when(pciPalPaymentService.getPaymentProviderAutorisationTokens()).thenReturn(getTelephonyProviderAuthorisationResponse());
+        Mockito.when(pciPalPaymentService.getPaymentProviderAuthorisationTokens(any(TelephonySystem.class), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         Mockito.when(pciPalPaymentService.getTelephonyProviderLink(any(PciPalPaymentRequest.class)
-            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
+            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString(), any(TelephonySystem.class))).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         when(referenceDataService.getOrganisationalDetail(any(),any(),any())).thenReturn(organisationalServiceDto);
 
@@ -2352,10 +2349,10 @@ public class PaymentGroupControllerTest {
         when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
             .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
 
-        Mockito.when(pciPalPaymentService.getPaymentProviderAutorisationTokens()).thenReturn(getTelephonyProviderAuthorisationResponse());
+        Mockito.when(pciPalPaymentService.getPaymentProviderAuthorisationTokens(any(TelephonySystem.class), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         Mockito.when(pciPalPaymentService.getTelephonyProviderLink(any(PciPalPaymentRequest.class)
-            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
+            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString(), any(TelephonySystem.class))).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         when(referenceDataService.getOrganisationalDetail(any(),any(),any())).thenReturn(organisationalServiceDto);
 
@@ -2442,10 +2439,10 @@ public class PaymentGroupControllerTest {
         when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
             .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
 
-        Mockito.when(pciPalPaymentService.getPaymentProviderAutorisationTokens()).thenReturn(getTelephonyProviderAuthorisationResponse());
+        Mockito.when(pciPalPaymentService.getPaymentProviderAuthorisationTokens(any(TelephonySystem.class), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         Mockito.when(pciPalPaymentService.getTelephonyProviderLink(any(PciPalPaymentRequest.class)
-            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
+            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString(), any(TelephonySystem.class))).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
             .amount(amount)
@@ -2584,10 +2581,10 @@ public class PaymentGroupControllerTest {
         when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
             .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
 
-        Mockito.when(pciPalPaymentService.getPaymentProviderAutorisationTokens()).thenReturn(getTelephonyProviderAuthorisationResponse());
+        Mockito.when(pciPalPaymentService.getPaymentProviderAuthorisationTokens(any(TelephonySystem.class), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         Mockito.when(pciPalPaymentService.getTelephonyProviderLink(any(PciPalPaymentRequest.class)
-            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
+            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString(), any(TelephonySystem.class))).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         when(referenceDataService.getOrganisationalDetail(any(),any(),any())).thenReturn(organisationalServiceDto);
 
@@ -2626,44 +2623,50 @@ public class PaymentGroupControllerTest {
     @Test
     public void shouldHandleKervTelephonySystem() {
         // Arrange
-
-        TelephonyCardPaymentsRequest request = mock(TelephonyCardPaymentsRequest.class);
         PciPalPaymentRequest pciPalRequest = mock(PciPalPaymentRequest.class);
         OrganisationalServiceDto serviceDto = mock(OrganisationalServiceDto.class);
         TelephonyProviderAuthorisationResponse response = getTelephonyProviderAuthorisationResponse();
+        TelephonyCardPaymentsRequest request = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
+            .amount(new BigDecimal("100.00"))
+            .currency(CurrencyCode.GBP)
+            .caseType("divorce")
+            .ccdCaseNumber("1234567890")
+            .returnURL("http://localhost")
+            .build();
+        TelephonySystem telephonySystem = KervTelephonySystem.builder()
+            .systemName("kerv")
+            .build();
 
+        //when(request.getTelephonySystem()).thenReturn(telephonySystem.getSystemName()); // Ensure this is completed
+        when(pciPalPaymentService.getPaymentProviderAuthorisationTokens(telephonySystem, "idamUserId"))
+            .thenReturn(response); // Complete stubbing
+        when(pciPalPaymentService.getTelephonyProviderLink(eq(pciPalRequest), eq(response), anyString(), anyString(), eq(telephonySystem)))
+            .thenReturn(response); // Complete stubbing
 
-        when(request.getTelephonySystem()).thenReturn("kerv");
-        when(pciPalPaymentService.getKervPaymentProviderAutorisationTokens("idamUserId")).thenReturn(getTelephonyProviderAuthorisationResponse());
-        when(pciPalPaymentService.getTelephonyProviderLink(eq(pciPalRequest), eq(response), anyString(), anyString(), eq("kerv")))
+        //when(request.getTelephonySystem()).thenReturn("kerv");
+        when(pciPalPaymentService.getPaymentProviderAuthorisationTokens(telephonySystem,"idamUserId")).thenReturn(getTelephonyProviderAuthorisationResponse());
+        when(pciPalPaymentService.getTelephonyProviderLink(eq(pciPalRequest), eq(response), anyString(), anyString(), eq(telephonySystem)))
             .thenReturn(response);
 
         // Act
         paymentGroupController.handleTelephonyProviderAuthorisation(
-            request, pciPalRequest, serviceDto, "idamUserId");
+            request, pciPalRequest, telephonySystem, serviceDto, "idamUserId");
 
         // Assert
-        verify(pciPalPaymentService).getKervPaymentProviderAutorisationTokens("idamUserId");
-        verify(pciPalPaymentService).getTelephonyProviderLink(pciPalRequest, response, null, null, "kerv");
+        verify(pciPalPaymentService).getPaymentProviderAuthorisationTokens(telephonySystem, "idamUserId");
+        verify(pciPalPaymentService).getTelephonyProviderLink(pciPalRequest, response, null, "http://localhost", telephonySystem);
     }
-
-
 
     @Test
     public void shouldHandleIncorrectTelephonySystem() {
         // Arrange
-
         TelephonyCardPaymentsRequest request = mock(TelephonyCardPaymentsRequest.class);
-        PciPalPaymentRequest pciPalRequest = mock(PciPalPaymentRequest.class);
-        OrganisationalServiceDto serviceDto = mock(OrganisationalServiceDto.class);
-        TelephonyProviderAuthorisationResponse response = getTelephonyProviderAuthorisationResponse();
-
+        TelephonySystem telephonySystem = mock(KervTelephonySystem.class);
         when(request.getTelephonySystem()).thenReturn("NOT_KERV_OR_ANTENNA");
 
         // Act
         TelephonyServiceException exception = assertThrows(TelephonyServiceException.class, () -> {
-            paymentGroupController.handleTelephonyProviderAuthorisation(
-                request, pciPalRequest, serviceDto, "idamUserId");
+            paymentGroupController.getTelephonySystem(request);
         });
         assertEquals("Invalid or missing attributes", exception.getMessage());
     }
@@ -2992,10 +2995,10 @@ public class PaymentGroupControllerTest {
         when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
             .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
 
-        Mockito.when(pciPalPaymentService.getPaymentProviderAutorisationTokens()).thenReturn(getTelephonyProviderAuthorisationResponse());
+        Mockito.when(pciPalPaymentService.getPaymentProviderAuthorisationTokens(any(TelephonySystem.class), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         Mockito.when(pciPalPaymentService.getTelephonyProviderLink(any(PciPalPaymentRequest.class)
-            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
+            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString(), any(TelephonySystem.class))).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         when(referenceDataService.getOrganisationalDetail(any(),any(),any())).thenReturn(organisationalServiceDto);
 
