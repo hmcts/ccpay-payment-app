@@ -68,6 +68,46 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
     public TelephonyProviderAuthorisationResponse getTelephonyProviderLink(PciPalPaymentRequest pciPalPaymentRequest, TelephonyProviderAuthorisationResponse telephonyProviderAuthorisationResponse, String serviceType, String returnURL, TelephonySystem telephonySystem) {
         return withIOExceptionHandling(() -> {
 
+            LOG.info("JSON pciPalPaymentRequest: {}", objectMapper.writeValueAsString(pciPalPaymentRequest));
+            LOG.info("JSON telephonySystem: {}", objectMapper.writeValueAsString(telephonySystem));
+            LOG.info("JSON serviceType: {}", objectMapper.writeValueAsString(serviceType));
+            LOG.info("JSON telephonyProviderAuthorisationResponse: {}", objectMapper.writeValueAsString(telephonyProviderAuthorisationResponse));
+            if (telephonySystem == null) {
+                throw new PciPalConfigurationException("Telephony system is not configured for service type: " + serviceType);
+            }
+            if (telephonyProviderAuthorisationResponse == null || telephonyProviderAuthorisationResponse.getAccessToken() == null) {
+                throw new PciPalConfigurationException("Telephony provider authorisation response is not configured for service type: " + serviceType);
+            }
+            if (pciPalPaymentRequest == null || pciPalPaymentRequest.getOrderAmount() == null || pciPalPaymentRequest.getOrderReference() == null) {
+                throw new PciPalConfigurationException("PCI Pal payment request is not configured correctly for service type: " + serviceType);
+            }
+            if (returnURL == null || returnURL.isEmpty()) {
+                throw new PciPalConfigurationException("Return URL is not configured for service type: " + serviceType);
+            }
+            if (telephonySystem.getSystemName() == null || telephonySystem.getSystemName().isEmpty()) {
+                throw new PciPalConfigurationException("Telephony system name is not configured for service type: " + serviceType);
+            }
+            if (telephonySystem.getLaunchURL() == null || telephonySystem.getLaunchURL().isEmpty()) {
+                throw new PciPalConfigurationException("Launch URL is not configured for service type: " + serviceType);
+            }
+            if (telephonySystem.getViewIdURL() == null || telephonySystem.getViewIdURL().isEmpty()) {
+                throw new PciPalConfigurationException("View ID URL is not configured for service type: " + serviceType);
+            }
+            if (telephonySystem.getTokensURL() == null || telephonySystem.getTokensURL().isEmpty()) {
+                throw new PciPalConfigurationException("Tokens URL is not configured for service type: " + serviceType);
+            }
+            if (telephonySystem.getTenantName() == null || telephonySystem.getTenantName().isEmpty()) {
+                throw new PciPalConfigurationException("Tenant name is not configured for service type: " + serviceType);
+            }
+            if (telephonySystem.getGrantType() == null || telephonySystem.getGrantType().isEmpty()) {
+                throw new PciPalConfigurationException("Grant type is not configured for service type: " + serviceType);
+            }
+            if (telephonySystem.getClientId() == null || telephonySystem.getClientId().isEmpty()) {
+                throw new PciPalConfigurationException("Client ID is not configured for service type: " + serviceType);
+            }
+
+
+
             String flowId = telephonySystem.getFlowId(serviceType);
             LOG.info("Found flow id {} for service type {} using system {}", flowId, serviceType, telephonySystem.getSystemName());
 
