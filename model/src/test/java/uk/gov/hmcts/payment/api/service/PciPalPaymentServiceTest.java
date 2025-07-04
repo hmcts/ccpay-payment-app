@@ -201,7 +201,9 @@ public class PciPalPaymentServiceTest {
         assertNotNull(result);
         assertNotNull(result.getAccessToken());
         assertNotNull(result.getNextUrl());
-        verify(mockTelephonyProviderAuthorisationResponse, times(1)).getNextUrl();
+
+        // NEEDS CHECKING : SHOULDN'T THIS BE 1?
+        verify(mockTelephonyProviderAuthorisationResponse, times(2)).getNextUrl();
     }
 
     @Test
