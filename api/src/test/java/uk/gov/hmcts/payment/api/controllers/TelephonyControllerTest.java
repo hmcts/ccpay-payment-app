@@ -36,9 +36,7 @@ import uk.gov.hmcts.payment.api.model.PaymentProvider;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.model.TelephonyCallback;
 import uk.gov.hmcts.payment.api.model.TelephonyRepository;
-import uk.gov.hmcts.payment.api.service.PciPalPaymentService;
-import uk.gov.hmcts.payment.api.service.ReferenceDataService;
-import uk.gov.hmcts.payment.api.service.RefundRemissionEnableService;
+import uk.gov.hmcts.payment.api.service.*;
 import uk.gov.hmcts.payment.api.servicebus.CallbackServiceImpl;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
@@ -317,6 +315,8 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
             .andExpect(status().isCreated())
             .andReturn();
 
+        TelephonySystem telephonySystem = KervTelephonySystem.builder().probateFlowId("mockProbateKervFlowId").divorceFlowId("mockDivorceKervFlowId").strategicFlowId("mockStrategicKervFlowId").iacFlowId("mockIacKervFlowId").prlFlowId("mockPrlKervFlowId").build();
+
         PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
@@ -329,10 +329,10 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
         when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
             .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
 
-        when(pciPalPaymentService.getPaymentProviderAutorisationTokens()).thenReturn(getTelephonyProviderAuthorisationResponse());
+        when(pciPalPaymentService.getPaymentProviderAuthorisationTokens(telephonySystem, "user")).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         when(pciPalPaymentService.getTelephonyProviderLink(any(PciPalPaymentRequest.class)
-            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString(), anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
+            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString(), any(TelephonySystem.class))).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
             .caseType("DIVORCE")
@@ -394,6 +394,8 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
 
         PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
+        TelephonySystem telephonySystem = KervTelephonySystem.builder().probateFlowId("mockProbateKervFlowId").divorceFlowId("mockDivorceKervFlowId").strategicFlowId("mockStrategicKervFlowId").iacFlowId("mockIacKervFlowId").prlFlowId("mockPrlKervFlowId").build();
+
         TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
             .caseType("tax_exception")
             .amount(new BigDecimal("101.99"))
@@ -412,10 +414,10 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
         when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
             .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
 
-        when(pciPalPaymentService.getPaymentProviderAutorisationTokens()).thenReturn(getTelephonyProviderAuthorisationResponse());
+        when(pciPalPaymentService.getPaymentProviderAuthorisationTokens(telephonySystem, "userId")).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         when(pciPalPaymentService.getTelephonyProviderLink(any(PciPalPaymentRequest.class)
-            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString(),anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
+            , any(TelephonyProviderAuthorisationResponse.class), anyString(), anyString(),any(TelephonySystem.class))).thenReturn(getTelephonyProviderAuthorisationResponse());
 
 
         MvcResult result2 = restActions
