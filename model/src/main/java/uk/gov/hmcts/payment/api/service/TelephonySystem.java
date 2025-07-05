@@ -33,12 +33,12 @@ public abstract class TelephonySystem {
 
     public String getFlowId(String serviceType) {
         Map<String, String> flowIdMap = new HashMap<>();
-        flowIdMap.put("Probate", this.probateFlowId);
-        flowIdMap.put("Divorce", this.divorceFlowId);
-        flowIdMap.put("Specified Money Claims", this.strategicFlowId);
-        flowIdMap.put("Financial Remedy", this.strategicFlowId);
-        flowIdMap.put("Family Private Law", this.prlFlowId);
-        flowIdMap.put("Immigration and Asylum Appeals", this.iacFlowId);
+        flowIdMap.put("Probate", this.getProbateFlowId());
+        flowIdMap.put("Divorce", this.getDivorceFlowId());
+        flowIdMap.put("Specified Money Claims", this.getStrategicFlowId());
+        flowIdMap.put("Financial Remedy", this.getStrategicFlowId());
+        flowIdMap.put("Family Private Law", this.getPrlFlowId());
+        flowIdMap.put("Immigration and Asylum Appeals", this.getIacFlowId());
 
         if (!flowIdMap.containsKey(serviceType)) {
             throw new PaymentException("This telephony system does not support telephony calls for the service '" + serviceType + "'.");
