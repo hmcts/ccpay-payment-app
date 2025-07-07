@@ -71,12 +71,12 @@ def versions = [
         sonarPitest     : '0.5',
         lombok          : '1.18.36',
         pact_version    : '4.1.7',
-        reformS2sClient : '5.3.2',
+        reformS2sClient : '5.3.3',
         serenity        : '4.2.16',
-        serenityCucumber: '4.2.16',
+        serenityCucumber: '4.2.34',
 ]
 
-def javaLoggingVersion = '6.1.7'
+def javaLoggingVersion = '6.1.9'
 
 dependencies {
     implementation project(':payment-gov-pay-client')
@@ -86,7 +86,7 @@ dependencies {
     implementation project(':case-payment-orders-client')
     implementation group: 'com.github.hmcts.java-logging', name: 'logging', version: javaLoggingVersion
     implementation group: 'com.github.hmcts.java-logging', name: 'logging-appinsights', version: javaLoggingVersion
-    implementation group: 'com.github.hmcts', name: 'auth-checker-lib', version: '3.0.0'
+    implementation group: 'com.github.hmcts', name: 'auth-checker-lib', version: '3.1.1'
     implementation (group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: versions.reformS2sClient) {
         exclude group: 'org.apache.httpcomponents', module: 'httpclient'
     }
@@ -95,10 +95,10 @@ dependencies {
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security'
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa'
-    implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.14.0'
+    implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.17.0'
     implementation group: 'net.logstash.logback', name: 'logstash-logback-encoder', version: '8.0'
-    implementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.5.16'
-    implementation group: 'ch.qos.logback', name: 'logback-core', version: '1.5.16'
+    implementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.5.18'
+    implementation group: 'ch.qos.logback', name: 'logback-core', version: '1.5.18'
     implementation group: 'xerces', name: 'xercesImpl', version: '2.12.2'
     implementation group: 'org.apache.httpcomponents.client5', name: 'httpclient5', version: '5.2'
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.17.0'
@@ -122,7 +122,7 @@ dependencies {
     implementation group: 'org.ff4j', name: 'ff4j-spring-boot-starter-webmvc', version: '2.1'
     implementation group: 'commons-fileupload', name: 'commons-fileupload', version: '1.5'
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-thymeleaf'
-    implementation(group: 'org.postgresql', name: 'postgresql', version: '42.7.5') {
+    implementation(group: 'org.postgresql', name: 'postgresql', version: '42.7.7') {
         exclude(module: 'commons-logging')
         exclude(module: 'slf4j-simple')
     }
@@ -131,14 +131,14 @@ dependencies {
     implementation group: 'org.springframework.retry', name: 'spring-retry'
     implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign'
 
-    implementation (group: 'com.github.hmcts.ccfr-fees-register-app', name: 'fees-register-api-contract', version: '2.4.0') {
+    implementation (group: 'com.github.hmcts.fees-register', name: 'fees-register-api-contract', version: '2.4.1') {
         exclude group: 'javax.xml.stream', module: 'stax-api'
         exclude group: 'javax.xml.bind', module: 'jaxb-api'
         exclude group: 'org.springdoc', module: 'springdoc-openapi-webmvc-core'
         exclude group: 'org.springdoc', module: 'springdoc-openapi-ui'
     }
 
-    contractTestImplementation(group: 'com.github.hmcts.ccfr-fees-register-app', name: 'fees-register-model', version: '2.4.0'){
+    contractTestImplementation(group: 'com.github.hmcts.fees-register', name: 'fees-register-model', version: '2.4.1'){
         exclude group: 'uk.gov.hmcts.fees2.register.data.service.impl.IdamServiceImpl.class'
     }
     //Added this for spring boot upgrade as swagger was not working with the latest version.
