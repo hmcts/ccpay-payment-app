@@ -22,4 +22,10 @@ public class PaymentsResponse {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonProperty("supplementary_info")
     private List<LiberataSupplementaryInfo> supplementaryInfo;
+
+    // Constructor for just payments
+    public PaymentsResponse(List<PaymentDto> payments) {
+        this.payments = payments;
+    }
+
 }
