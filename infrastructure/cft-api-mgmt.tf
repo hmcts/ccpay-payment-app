@@ -11,7 +11,6 @@ data "template_file" "cft_policy_template" {
 
   vars = {
     allowed_certificate_thumbprints = local.thumbprints_in_quotes_str
-    s2s_client_id                   = data.azurerm_key_vault_secret.s2s_client_id.value
     s2s_base_url                    = local.s2sUrl
   }
 }

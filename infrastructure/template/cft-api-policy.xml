@@ -24,8 +24,8 @@
 <!--              </return-response>-->
 <!--          </when>-->
         </choose>
-        <!-- generate totp -->
-        <set-variable name="client_id" value="${s2s_client_id}" />
+        <!-- generate totp using mgmt named values -->
+        <set-variable name="client_id" value="{{ccpay-s2s-client-id}}" />
         <set-variable name="client_secret" value="{{ccpay-s2s-client-secret}}" />
         <set-variable name="one_time_password" value="@{
                 const string Base32AllowedCharacters = &quot;ABCDEFGHIJKLMNOPQRSTUVWXYZ234567&quot;;

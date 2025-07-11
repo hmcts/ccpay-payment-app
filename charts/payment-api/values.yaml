@@ -42,7 +42,7 @@ java:
     GOV_PAY_OPERATIONAL_SERVICES: "ccd_gw,api_gw,xui_webapp"
     PCI_PAL_CALLBACK_URL: https://cft-mtls-api-mgmt-appgw.{{ .Values.global.environment }}.platform.hmcts.net/telephony-api/telephony/callback
 
-    TRUSTED_S2S_SERVICE_NAMES: "refunds_api,iac,cmc,cmc_claim_store,probate_frontend,divorce_frontend,ccd_gw,api_gw,finrem_payment_service,ccpay_bubble,jui_webapp,xui_webapp,fpl_case_service,civil_service,paymentoutcome_web,adoption_web,prl_cos_api,notifications_service"
+    TRUSTED_S2S_SERVICE_NAMES: "refunds_api,iac,cmc,cmc_claim_store,probate_frontend,divorce_frontend,ccd_gw,api_gw,finrem_payment_service,ccpay_bubble,jui_webapp,xui_webapp,fpl_case_service,civil_service,paymentoutcome_web,adoption_web,prl_cos_api,notifications_service,ccpay_gw"
     CARD_PAYMENTS_REPORT_SCHEDULER_ENABLED: "true"
     CARD_PAYMENTS_EMAIL_FROM: "no-reply@mail-payment-nonprod.platform.hmcts.net"
     CARD_PAYMENTS_EMAIL_MESSAGE: "Hi, <br/><br/>Please find attached Payment by Account reconciliation report. <br/><br/>Regards, <br/>Fees & Payments Team <br/><br/>"
