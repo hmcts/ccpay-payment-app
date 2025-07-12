@@ -22,17 +22,21 @@ import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
 import uk.gov.hmcts.payment.api.dto.PciPalPayment;
 import uk.gov.hmcts.payment.api.dto.PciPalPaymentRequest;
 import uk.gov.hmcts.payment.api.exceptions.PciPalClientException;
-import uk.gov.hmcts.payment.api.external.client.dto.*;
+import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
+import uk.gov.hmcts.payment.api.external.client.dto.State;
+import uk.gov.hmcts.payment.api.external.client.dto.TelephonyProviderAuthorisationResponse;
+import uk.gov.hmcts.payment.api.external.client.dto.TelephonyProviderLinkIdRequest;
+import uk.gov.hmcts.payment.api.external.client.dto.TelephonyProviderLinkIdResponse;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PciPalConfigurationException;
+
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static org.apache.hc.core5.http.ContentType.APPLICATION_JSON;
 import static org.apache.hc.core5.http.HttpHeaders.CONTENT_TYPE;
@@ -47,43 +51,12 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
     private static final String SERVICE_TYPE_FINREM = "Financial Remedy";
     private static final String SERVICE_TYPE_IAC = "Immigration and Asylum Appeals";
     private static final String SERVICE_TYPE_PRL = "Family Private Law";
+    private static final String KERV = "kerv";
 
     private final String callbackUrl;
     private final String url;
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
-    @Value("${pci-pal.account.id.strategic}")
-    private String ppAccountIDStrategic;
-    @Value("${pci-pal.account.id.probate}")
-    private String ppAccountIDProbate;
-    @Value("${pci-pal.account.id.divorce}")
-    private String ppAccountIDDivorce;
-    @Value("${pci-pal.antenna.grant.type}")
-    private String grantType;
-    @Value("${pci-pal.antenna.tenant.name}")
-    private String tenantName;
-    @Value("${pci-pal.antenna.user.name}")
-    private String userName;
-    @Value("${pci-pal.antenna.client.id}")
-    private String clientId;
-    @Value("${pci-pal.antenna.client.secret}")
-    private String clientSecret;
-    @Value("${pci-pal.antenna.get.tokens.url}")
-    private String tokensURL;
-    @Value("${pci-pal.antenna.launch.url}")
-    private String launchURL;
-    @Value("${pci-pal.antenna.view.id.url}")
-    private String viewIdURL;
-    @Value("${pci-pal.antenna.strategic.flow.id}")
-    private String strategicFlowId;
-    @Value("${pci-pal.antenna.probate.flow.id}")
-    private String probateFlowId;
-    @Value("${pci-pal.antenna.divorce.flow.id}")
-    private String divorceFlowId;
-    @Value("${pci-pal.antenna.prl.flow.id}")
-    private String prlFlowId;
-    @Value("${pci-pal.antenna.iac.flow.id}")
-    private String iacFlowId;
 
     @Autowired
     public PciPalPaymentService(@Value("${pci-pal.api.url}") String url,
@@ -94,12 +67,12 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
         this.objectMapper = objectMapper;
     }
 
-    public TelephonyProviderAuthorisationResponse getTelephonyProviderLink(PciPalPaymentRequest pciPalPaymentRequest, TelephonyProviderAuthorisationResponse telephonyProviderAuthorisationResponse, String serviceType, String returnURL) {
+    public TelephonyProviderAuthorisationResponse getTelephonyProviderLink(PciPalPaymentRequest pciPalPaymentRequest, TelephonyProviderAuthorisationResponse telephonyProviderAuthorisationResponse, String serviceType, String returnURL, TelephonySystem telephonySystem) {
         return withIOExceptionHandling(() -> {
+            String flowId = telephonySystem.getFlowId(serviceType);
+            LOG.info("Found flow id {} for service type {} using system {}", flowId, serviceType, telephonySystem.getSystemName());
 
-            String flowId = getFlowId(serviceType);
-            LOG.info("flowId: {}   serviceType: {}    launchURL: {}   viewIdURL: {}   callbackUrl: {}   returnURL: {} ", flowId, serviceType, launchURL, viewIdURL, callbackUrl, returnURL);
-            HttpPost httpPost = new HttpPost(launchURL);
+            HttpPost httpPost = new HttpPost(telephonySystem.getLaunchURL());
             httpPost.addHeader(CONTENT_TYPE, APPLICATION_JSON.toString());
             httpPost.addHeader(authorizationHeader(telephonyProviderAuthorisationResponse.getAccessToken()));
             TelephonyProviderLinkIdRequest telephonyProviderLinkIdRequest = TelephonyProviderLinkIdRequest.telephonyProviderLinkIdRequestWith().flowId(flowId)
@@ -113,57 +86,51 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
                 .build();
 
             StringEntity entity = new StringEntity(objectMapper.writeValueAsString(telephonyProviderLinkIdRequest));
+            String viewIdURL = telephonySystem.getViewIdURL();
+            String launchURL = telephonySystem.getLaunchURL();
+
             httpPost.setEntity(entity);
             ClassicHttpResponse response = (ClassicHttpResponse) httpClient.execute(httpPost);
             if (response.getCode() == HttpStatus.SC_OK) {
                 LOG.info("Success Response from PCI PAL!!!");
                 TelephonyProviderLinkIdResponse telephonyProviderLinkIdResponse = objectMapper.readValue(response.getEntity().getContent(), TelephonyProviderLinkIdResponse.class);
                 telephonyProviderAuthorisationResponse.setNextUrl(viewIdURL + telephonyProviderLinkIdResponse.getId() + "/framed");
+
+            } else if (response.getCode() == HttpStatus.SC_BAD_REQUEST) {
+                String responseBody = response.getEntity() != null ? new String(response.getEntity().getContent().readAllBytes()) : "No response body";
+                LOG.info("ResponseCode: {} ResponseBody: {} flowId: {}   serviceType: {}    launchURL: {}   viewIdURL: {}   callbackUrl: {}   returnURL: {}  telephonyProvider: {}",
+                    response.getCode(), responseBody, flowId, serviceType, launchURL,
+                    viewIdURL, callbackUrl, returnURL, telephonySystem.getSystemName());
+                throw new PciPalConfigurationException("This telephony system does not support telephony calls for the service '"+ serviceType +"'.");
             } else {
+                String responseBody = response.getEntity() != null ? new String(response.getEntity().getContent().readAllBytes()) : "No response body";
+                LOG.info("ResponseCode: {} ResponseBody: {} flowId: {}   serviceType: {}    launchURL: {}   viewIdURL: {}   callbackUrl: {}   returnURL: {}  telephonyProvider: {}",
+                    response.getCode(), responseBody, flowId, serviceType, launchURL,
+                    viewIdURL, callbackUrl, returnURL, telephonySystem.getSystemName());
                 throw new PaymentException("Received error from PCI PAL!!!");
             }
             return telephonyProviderAuthorisationResponse;
         });
     }
 
-
-    public String getFlowId(String serviceType) {
-        String flowId;
-
-        Map<String, String> flowIdHashMap = new HashMap<>();
-        flowIdHashMap.put(SERVICE_TYPE_DIVORCE, divorceFlowId);
-        flowIdHashMap.put(SERVICE_TYPE_PROBATE, probateFlowId);
-        flowIdHashMap.put(SERVICE_TYPE_CMC, strategicFlowId);
-        flowIdHashMap.put(SERVICE_TYPE_FINREM, strategicFlowId);
-        flowIdHashMap.put(SERVICE_TYPE_PRL, prlFlowId);
-        flowIdHashMap.put(SERVICE_TYPE_IAC, iacFlowId);
-
-        if (flowIdHashMap.containsKey(serviceType)) {
-            LOG.info("Found flow id {} for service type {}", flowIdHashMap.get(serviceType), serviceType);
-            flowId = flowIdHashMap.get(serviceType);
-        } else {
-            throw new PaymentException("This service type is not supported for Telephony Payments!!!: " + serviceType);
-        }
-        return flowId;
-    }
-
-    public TelephonyProviderAuthorisationResponse getPaymentProviderAutorisationTokens() {
+    public TelephonyProviderAuthorisationResponse getPaymentProviderAuthorisationTokens(TelephonySystem telephonySystem, String userName) {
         return withIOExceptionHandling(() -> {
-            LOG.info("tokensURL: {}", tokensURL);
+            LOG.info("tokensURL: {} with tenant name{}", telephonySystem.getTokensURL(), telephonySystem.getTenantName());
             List<NameValuePair> params = new ArrayList<>();
-            params.add(new BasicNameValuePair("grant_type", grantType));
-            params.add(new BasicNameValuePair("tenantname", tenantName));
+            params.add(new BasicNameValuePair("grant_type", telephonySystem.getGrantType()));
+            params.add(new BasicNameValuePair("tenantname", telephonySystem.getTenantName()));
             params.add(new BasicNameValuePair("username", userName));
-            params.add(new BasicNameValuePair("client_id", clientId));
-            params.add(new BasicNameValuePair("client_secret", clientSecret));
+            params.add(new BasicNameValuePair("client_id", telephonySystem.getClientId()));
+            params.add(new BasicNameValuePair("client_secret", telephonySystem.getClientSecret()));
 
-            HttpPost httpPost = new HttpPost(tokensURL);
+            HttpPost httpPost = new HttpPost(telephonySystem.getTokensURL());
             httpPost.setEntity(new UrlEncodedFormEntity(params));
             ClassicHttpResponse response1 = (ClassicHttpResponse) httpClient.execute(httpPost);
             LOG.info("After 1st PCI PAL call!!!");
             return objectMapper.readValue(response1.getEntity().getContent(), TelephonyProviderAuthorisationResponse.class);
         });
     }
+
     private Header authorizationHeader(String authorizationKey) {
         return new BasicHeader(HttpHeaders.AUTHORIZATION, "Bearer " + authorizationKey);
 
