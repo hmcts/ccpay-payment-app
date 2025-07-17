@@ -13,7 +13,7 @@ def springBootVersion = '3.3.13'
 def springCloudVersion = '2023.0.5'
 
 def versions = [
-        lombok: '1.18.36',
+        lombok: '1.18.38',
         javaVersion: '21',
         jacocoVersion: '0.8.12'
 ]
