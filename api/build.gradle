@@ -72,7 +72,7 @@ def versions = [
         lombok          : '1.18.38',
         pact_version    : '4.1.7',
         reformS2sClient : '5.3.3',
-        serenity        : '4.2.16',
+        serenity        : '4.2.34',
         serenityCucumber: '4.2.34',
 ]
 
