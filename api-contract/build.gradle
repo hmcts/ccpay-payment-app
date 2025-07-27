@@ -7,6 +7,6 @@ dependencies {
     implementation group: 'org.hibernate', name: 'hibernate-validator', version:'8.0.2.Final'
     implementation group: 'jakarta.annotation', name: 'jakarta.annotation-api', version: '3.0.0'
     implementation group: 'jakarta.el', name: 'jakarta.el-api', version: '6.0.1'
-    api group: 'com.opencsv', name: 'opencsv', version: '5.10'
+    api group: 'com.opencsv', name: 'opencsv', version: '5.12.0'
     implementation project(':payment-model')
 }
