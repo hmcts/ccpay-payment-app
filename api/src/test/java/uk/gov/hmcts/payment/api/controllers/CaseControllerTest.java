@@ -32,6 +32,9 @@ import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.domain.service.ServiceRequestDomainService;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupResponse;
+import uk.gov.hmcts.payment.api.dto.RefundDto;
+import uk.gov.hmcts.payment.api.dto.RefundListDtoResponse;
+import uk.gov.hmcts.payment.api.dto.RefundStatus;
 import uk.gov.hmcts.payment.api.dto.RemissionDto;
 import uk.gov.hmcts.payment.api.dto.RemissionRequest;
 import uk.gov.hmcts.payment.api.model.FeePayApportion;
@@ -62,6 +65,8 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
@@ -657,6 +662,66 @@ public class CaseControllerTest extends PaymentsDataUtil {
 
     }
 
+
+    @Test
+    @Transactional
+    public void getAllPaymentGroupsHavingOneFeeOneRefundAndPaymentsWithCcdCaseNumberShouldReturnRequiredFields() throws Exception {
+        /// TOBIAS
+
+        populateCardPaymentToDb("1");
+
+        wireMockServer.stubFor(get(urlPathMatching("/fees-register/fees"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody(contentsOf("fees-register-responses/allfees.json"))));
+
+        // Invoke fees-register service
+        feesService.getFeesDtoMap();
+
+        addRefunds(2);
+
+        MvcResult resultA = restActions
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
+            .get("/cases/ccdCaseNumber1/paymentgroups")
+            .andExpect(status().isOk())
+            .andReturn();
+
+        assertThat(resultA.getResponse().getStatus()).isEqualTo(200);
+
+    }
+
+    @Test
+    @Transactional
+    public void getAllPaymentGroupsHavingPayments() throws Exception {
+        populateCardPaymentToDb("1");
+        populateCardPaymentToDb("2");
+
+        wireMockServer.stubFor(get(urlPathMatching("/fees-register/fees"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody(contentsOf("fees-register-responses/allfees.json"))));
+
+        // Invoke fees-register service
+        feesService.getFeesDtoMap();
+
+
+        addRefunds(2);
+
+        MvcResult resultA = restActions
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
+            .get("/cases/ccdCaseNumber1/paymentgroups")
+            .andExpect(status().isOk())
+            .andReturn();
+
+        assertThat(resultA.getResponse().getStatus()).isEqualTo(200);
+
+    }
+
+
     @Test
     @Transactional
     public void validateNewlyAddedFieldsInPaymentGroupResponse() throws Exception {
@@ -716,6 +781,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .andReturn();
 
         commonMock(paymentGroupDto, 1);
+
 
         MvcResult result = restActions
             .withAuthorizedUser(USER_ID)
@@ -848,5 +914,26 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .thenReturn(paymentGroupResponse);
     }
 
+
+    private void addRefunds(int number) {
+
+
+        List<RefundDto> refundDtoList = IntStream.range(1, number)
+            .mapToObj(i -> RefundDto.buildRefundListDtoWith()
+                .refundReference("RF-1111-2222-3333-4444")
+                .paymentReference("RC-1519-9028-2432-000" + i)
+                .feeIds("50")
+                .refundStatus(RefundStatus.buildRefundStatusWith().name("Accepted").build())
+                .reason("Retrospective remission")
+                .ccdCaseNumber("1111222233334444")
+                .amount(BigDecimal.valueOf(50))
+                .build())
+            .collect(Collectors.toList());
+
+
+        RefundListDtoResponse refundListDtoResponse = RefundListDtoResponse.buildRefundListWith().refundList(refundDtoList).build();
+        when(paymentRefundsService.getRefundsApprovedFromRefundService(anyString(), any())).thenReturn(refundListDtoResponse);
+
+    }
 
 }
