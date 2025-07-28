@@ -666,8 +666,6 @@ public class CaseControllerTest extends PaymentsDataUtil {
     @Test
     @Transactional
     public void getAllPaymentGroupsHavingOneFeeOneRefundAndPaymentsWithCcdCaseNumberShouldReturnRequiredFields() throws Exception {
-        /// TOBIAS
-
         populateCardPaymentToDb("1");
 
         wireMockServer.stubFor(get(urlPathMatching("/fees-register/fees"))
