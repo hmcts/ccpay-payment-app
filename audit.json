@@ -24,5 +24,6 @@
   "90022_Application Error Disclosure_http://payment-api-aat.service.core-compute-aat.internal/_GET":"ignore",
   "90022_Application Error Disclosure_http://payment-api-aat.service.core-compute-aat.internal/v2/api-docs_GET":"ignore",
   "90022_Application Error Disclosure_http://payment-api-aat.service.core-compute-aat.internal/v2/api-docs_GET":"ignore",
-  "10049_Non-Storable Content_http://payment-api-aat.service.core-compute-aat.internal/v2/api-docs_GET": "ignore"
+  "10049_Non-Storable Content_http://payment-api-aat.service.core-compute-aat.internal/v2/api-docs_GET": "ignore",
+  "10116_ZAP is Out of Date_http://payment-api-aat.service.core-compute-aat.internal/v2/api-docs_GET": "ignore"
 }
