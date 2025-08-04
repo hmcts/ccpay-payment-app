@@ -35,6 +35,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentGroupNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -120,12 +121,36 @@ public class CaseController {
 
         paymentGroupResponse = paymentRefundsService.checkRefundAgainstRemissionV2(headers, paymentGroupResponse, ccdCaseNumber);
 
-
         RefundListDtoResponse refundListDtoResponse = paymentRefundsService.getRefundsApprovedFromRefundService(ccdCaseNumber,headers);
-        if (refundListDtoResponse != null) {
-            paymentGroups.stream().forEach(paymentGroup -> paymentGroup.setRefunds(refundListDtoResponse.getRefundList()));
-        }
+        addRefunds(refundListDtoResponse, paymentGroups);
+
         return ResponseEntity.ok(paymentGroupResponse);
+    }
+
+    private void addRefunds(RefundListDtoResponse refundListDtoResponse, List<PaymentGroupDto> paymentGroups){
+        if (refundListDtoResponse != null) {
+            refundListDtoResponse.getRefundList().stream().forEach(refund -> {
+
+                    String paymentReference = refund.getPaymentReference();
+                    paymentGroups.stream().forEach(paymentGroup -> {
+                        if (isThereAnyPaymentReferenceInCurrentServiceRequest(paymentGroup.getPayments(),paymentReference ) ) {
+                            if (paymentGroup.getRefunds()==null){
+                                paymentGroup.setRefunds(new ArrayList<>());
+                            }
+                            paymentGroup.getRefunds().add(refund);
+                        }
+                    });
+                }
+            );
+        }
+
+    }
+    private boolean isThereAnyPaymentReferenceInCurrentServiceRequest(List<PaymentDto> payments, String paymentReference){
+        if (paymentReference == null) {
+            return false;
+        }
+        return payments.stream()
+            .anyMatch(payment -> payment.getReference().equals(paymentReference));
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
