@@ -215,7 +215,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                 return remission.getHwfAmount();
             } else {
                 LOG.info("The payment has more than one fee, The refund value to used is payApportion {}", payApportion.get().getApportionAmount());
-                return payApportion.get().getApportionAmount();
+                return getRefundAmountForMultipleFees(payment, remission, payApportion);
             }
         }
 
@@ -236,7 +236,26 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         return remission.getHwfAmount();
     }
 
-  @Override
+    private BigDecimal getRefundAmountForMultipleFees( Payment payment, Remission remission, Optional<FeePayApportion> payApportion) {
+        BigDecimal totalFees = getTotalFees(payment);
+        BigDecimal refundAmount = payment.getAmount().subtract((totalFees.subtract(remission.getHwfAmount())));
+        if (refundAmount.equals(payApportion.get().getApportionAmount())) {
+            return payApportion.get().getApportionAmount();
+        }
+        return refundAmount;
+    }
+
+    private BigDecimal getTotalFees(Payment payment) {
+
+        Optional<List<FeePayApportion>> apportionmentsOpt = feePayApportionRepository.findByPaymentId(payment.getId());
+        return apportionmentsOpt
+            .map(apportionments -> apportionments.stream()
+                .map(FeePayApportion::getFeeAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add))
+            .orElse(BigDecimal.ZERO);
+    }
+
+    @Override
     public ResponseEntity updateTheRemissionAmount(String paymentReference, ResubmitRefundRemissionRequest request) {
         //Payment not found exception
         Payment payment = paymentRepository.findByReference(paymentReference).orElseThrow(PaymentNotFoundException::new);
