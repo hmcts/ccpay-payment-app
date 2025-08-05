@@ -37,6 +37,7 @@ import uk.gov.hmcts.payment.api.dto.RefundListDtoResponse;
 import uk.gov.hmcts.payment.api.dto.RefundStatus;
 import uk.gov.hmcts.payment.api.dto.RemissionDto;
 import uk.gov.hmcts.payment.api.dto.RemissionRequest;
+import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
 import uk.gov.hmcts.payment.api.model.FeePayApportion;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentChannel;
@@ -49,6 +50,7 @@ import uk.gov.hmcts.payment.api.model.PaymentProvider;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.model.StatusHistory;
 import uk.gov.hmcts.payment.api.reports.FeesService;
+import uk.gov.hmcts.payment.api.service.PaymentGroupService;
 import uk.gov.hmcts.payment.api.service.PaymentRefundsService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataServiceImpl;
 import uk.gov.hmcts.payment.api.service.RefundRemissionEnableService;
@@ -132,6 +134,10 @@ public class CaseControllerTest extends PaymentsDataUtil {
     private RefundRemissionEnableService refundRemissionEnableService;
     @MockBean
     private PaymentRefundsService paymentRefundsService;
+    @MockBean
+    private PaymentGroupService paymentGroupService;
+    @MockBean
+    private PaymentGroupDtoMapper paymentGroupDtoMapper;
     @MockBean
     @Autowired()
     @Qualifier("restTemplateRefundsGroup")
@@ -851,6 +857,42 @@ public class CaseControllerTest extends PaymentsDataUtil {
 
     }
 
+    @Test
+    @Transactional
+    public void retrieveCasePaymentGroups_shouldCallIsThereAnyPaymentReferenceInCurrentServiceRequestWithNullPayments() throws Exception {
+        PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith()
+            .ccdCaseNumber("ccdCaseNumber1")
+            .build();
+
+        PaymentGroupDto groupWithNoPayments = PaymentGroupDto.paymentGroupDtoWith()
+            .payments(null)
+            .build();
+
+        when(paymentGroupService.search("ccdCaseNumber1")).thenReturn(List.of(paymentFeeLink));
+        when(paymentGroupDtoMapper.toPaymentGroupDto(paymentFeeLink)).thenReturn(groupWithNoPayments);
+        when(paymentGroupDtoMapper.calculateOverallBalance(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        RefundDto refundDto = RefundDto.buildRefundListDtoWith()
+            .paymentReference("RC-1234-5678-9012-3456")
+            .build();
+        RefundListDtoResponse refundListDtoResponse = RefundListDtoResponse.buildRefundListWith()
+            .refundList(List.of(refundDto))
+            .build();
+
+        when(paymentRefundsService.checkRefundAgainstRemissionV2(any(), any(), anyString()))
+            .thenAnswer(invocation -> invocation.getArgument(1));
+        when(paymentRefundsService.getRefundsApprovedFromRefundService(anyString(), any()))
+            .thenReturn(refundListDtoResponse);
+
+        MvcResult result = restActions
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
+            .get("/cases/ccdCaseNumber1/paymentgroups")
+            .andExpect(status().isOk())
+            .andReturn();
+
+        assertThat(result.getResponse().getStatus()).isEqualTo(200);
+    }
 
     private List<PaymentFailures> getPaymentFailuresList(){
 

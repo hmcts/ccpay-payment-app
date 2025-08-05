@@ -145,12 +145,12 @@ public class CaseController {
         }
 
     }
-    private boolean isThereAnyPaymentReferenceInCurrentServiceRequest(List<PaymentDto> payments, String paymentReference){
-        if (paymentReference == null) {
+    private boolean isThereAnyPaymentReferenceInCurrentServiceRequest(List<PaymentDto> payments, String paymentReference) {
+        if (paymentReference == null || payments == null) {
             return false;
         }
         return payments.stream()
-            .anyMatch(payment -> payment.getReference().equals(paymentReference));
+            .anyMatch(payment -> paymentReference.equals(payment.getReference()));
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
