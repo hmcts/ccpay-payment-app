@@ -150,7 +150,7 @@ public class CaseController {
             return false;
         }
         return payments.stream()
-            .anyMatch(payment -> paymentReference.equals(payment.getReference()));
+            .anyMatch(payment -> payment.getReference().equals(paymentReference));
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
