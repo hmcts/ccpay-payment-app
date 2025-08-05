@@ -134,10 +134,10 @@ public class CaseControllerTest extends PaymentsDataUtil {
     private RefundRemissionEnableService refundRemissionEnableService;
     @MockBean
     private PaymentRefundsService paymentRefundsService;
-    @MockBean
-    private PaymentGroupService paymentGroupService;
-    @MockBean
-    private PaymentGroupDtoMapper paymentGroupDtoMapper;
+//    @MockBean
+//    private PaymentGroupService paymentGroupService;
+//    @MockBean
+//    private PaymentGroupDtoMapper paymentGroupDtoMapper;
     @MockBean
     @Autowired()
     @Qualifier("restTemplateRefundsGroup")
@@ -815,11 +815,11 @@ public class CaseControllerTest extends PaymentsDataUtil {
     public void returnDisputedWhenPaymentHaveDispoutePingOneWhenPaymentSuccess() throws Exception {
 
         populateCardPaymentToDb("1");
-       List<String> paymentRef = new ArrayList<>();
+        List<String> paymentRef = new ArrayList<>();
         paymentRef.add("RC-1519-9028-2432-0001");
         PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
             .serviceRequestStatus("Disputed").build();
-       when(paymentFailureRepository.findByPaymentReferenceIn(paymentRef)).thenReturn(Optional.of(getPaymentFailuresList()));
+        when(paymentFailureRepository.findByPaymentReferenceIn(paymentRef)).thenReturn(Optional.of(getPaymentFailuresList()));
         commonMock(paymentGroupDto, 1);
         MvcResult result = restActions
             .withAuthorizedUser(USER_ID)
@@ -859,22 +859,30 @@ public class CaseControllerTest extends PaymentsDataUtil {
 
     @Test
     @Transactional
-    public void retrieveCasePaymentGroups_shouldCallIsThereAnyPaymentReferenceInCurrentServiceRequestWithNullPayments() throws Exception {
-        PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith()
+    public void retrieveCasePaymentGroupsShouldCallIsThereAnyPaymentReferenceInCurrentServiceRequestWithNullPayments() throws Exception {
+        FeeDto feeRequest = FeeDto.feeDtoWith()
+            .calculatedAmount(new BigDecimal("92.19"))
+            .code("FEE0383")
+            .version("1")
+            .volume(2)
+            .reference("BXsd1123")
             .ccdCaseNumber("ccdCaseNumber1")
+            .description("Application for a charging order")
             .build();
 
-        PaymentGroupDto groupWithNoPayments = PaymentGroupDto.paymentGroupDtoWith()
+        PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
             .payments(null)
+            .fees(List.of(feeRequest))
             .build();
 
-        when(paymentGroupService.search("ccdCaseNumber1")).thenReturn(List.of(paymentFeeLink));
-        when(paymentGroupDtoMapper.toPaymentGroupDto(paymentFeeLink)).thenReturn(groupWithNoPayments);
-        when(paymentGroupDtoMapper.calculateOverallBalance(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        restActions.post("/payment-groups", paymentGroupDto).andReturn();
+
+        commonMock(paymentGroupDto, 1);
 
         RefundDto refundDto = RefundDto.buildRefundListDtoWith()
             .paymentReference("RC-1234-5678-9012-3456")
             .build();
+
         RefundListDtoResponse refundListDtoResponse = RefundListDtoResponse.buildRefundListWith()
             .refundList(List.of(refundDto))
             .build();

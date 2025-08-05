@@ -143,9 +143,9 @@ public class CaseController {
                 }
             );
         }
-
     }
-    private boolean isThereAnyPaymentReferenceInCurrentServiceRequest(List<PaymentDto> payments, String paymentReference) {
+
+    private boolean isThereAnyPaymentReferenceInCurrentServiceRequest(List<PaymentDto> payments, String paymentReference){
         if (paymentReference == null || payments == null) {
             return false;
         }
