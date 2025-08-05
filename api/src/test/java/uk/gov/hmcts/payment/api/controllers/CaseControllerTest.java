@@ -134,10 +134,6 @@ public class CaseControllerTest extends PaymentsDataUtil {
     private RefundRemissionEnableService refundRemissionEnableService;
     @MockBean
     private PaymentRefundsService paymentRefundsService;
-//    @MockBean
-//    private PaymentGroupService paymentGroupService;
-//    @MockBean
-//    private PaymentGroupDtoMapper paymentGroupDtoMapper;
     @MockBean
     @Autowired()
     @Qualifier("restTemplateRefundsGroup")
