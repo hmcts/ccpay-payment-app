@@ -72,7 +72,7 @@ def versions = [
         lombok          : '1.18.38',
         pact_version    : '4.1.7',
         reformS2sClient : '5.3.3',
-        serenity        : '4.2.16',
+        serenity        : '4.2.34',
         serenityCucumber: '4.2.34',
 ]
 
@@ -115,18 +115,18 @@ dependencies {
         exclude(module: 'azure-core')
     }
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-cache'
-    implementation group: 'com.github.ben-manes.caffeine', name: 'caffeine', version: '3.2.1'
+    implementation group: 'com.github.ben-manes.caffeine', name: 'caffeine', version: '3.2.2'
     implementation group: 'io.github.openfeign', name: 'feign-core', version: '13.2.1'
     implementation group: 'io.github.resilience4j', name:'resilience4j-spring-boot3', version:'2.0.2'
     implementation group: 'org.springframework.cloud', name: 'spring-cloud-openfeign-core'
     implementation group: 'org.ff4j', name: 'ff4j-spring-boot-starter-webmvc', version: '2.1'
-    implementation group: 'commons-fileupload', name: 'commons-fileupload', version: '1.5'
+    implementation group: 'commons-fileupload', name: 'commons-fileupload', version: '1.6.0'
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-thymeleaf'
     implementation(group: 'org.postgresql', name: 'postgresql', version: '42.7.7') {
         exclude(module: 'commons-logging')
         exclude(module: 'slf4j-simple')
     }
-    implementation group: 'commons-io', name: 'commons-io', version: '2.18.0'
+    implementation group: 'commons-io', name: 'commons-io', version: '2.20.0'
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-mail'
     implementation group: 'org.springframework.retry', name: 'spring-retry'
     implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign'
