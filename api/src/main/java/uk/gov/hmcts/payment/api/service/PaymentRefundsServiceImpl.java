@@ -214,7 +214,6 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                 LOG.info("The payment has more than one fee, The refund value to used is getHwfAmount {}", remission.getHwfAmount());
                 return remission.getHwfAmount();
             } else {
-                LOG.info("The payment has more than one fee, The refund value to used is payApportion {}", payApportion.get().getApportionAmount());
                 return getRefundAmountForMultipleFees(payment, remission, payApportion);
             }
         }
