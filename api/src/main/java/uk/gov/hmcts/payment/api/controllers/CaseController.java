@@ -145,8 +145,9 @@ public class CaseController {
         }
 
     }
+
     private boolean isThereAnyPaymentReferenceInCurrentServiceRequest(List<PaymentDto> payments, String paymentReference){
-        if (paymentReference == null) {
+        if (paymentReference == null || payments == null) {
             return false;
         }
         return payments.stream()

@@ -37,6 +37,7 @@ import uk.gov.hmcts.payment.api.dto.RefundListDtoResponse;
 import uk.gov.hmcts.payment.api.dto.RefundStatus;
 import uk.gov.hmcts.payment.api.dto.RemissionDto;
 import uk.gov.hmcts.payment.api.dto.RemissionRequest;
+import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
 import uk.gov.hmcts.payment.api.model.FeePayApportion;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentChannel;
@@ -49,6 +50,7 @@ import uk.gov.hmcts.payment.api.model.PaymentProvider;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.model.StatusHistory;
 import uk.gov.hmcts.payment.api.reports.FeesService;
+import uk.gov.hmcts.payment.api.service.PaymentGroupService;
 import uk.gov.hmcts.payment.api.service.PaymentRefundsService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataServiceImpl;
 import uk.gov.hmcts.payment.api.service.RefundRemissionEnableService;
@@ -809,11 +811,11 @@ public class CaseControllerTest extends PaymentsDataUtil {
     public void returnDisputedWhenPaymentHaveDispoutePingOneWhenPaymentSuccess() throws Exception {
 
         populateCardPaymentToDb("1");
-       List<String> paymentRef = new ArrayList<>();
+        List<String> paymentRef = new ArrayList<>();
         paymentRef.add("RC-1519-9028-2432-0001");
         PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
             .serviceRequestStatus("Disputed").build();
-       when(paymentFailureRepository.findByPaymentReferenceIn(paymentRef)).thenReturn(Optional.of(getPaymentFailuresList()));
+        when(paymentFailureRepository.findByPaymentReferenceIn(paymentRef)).thenReturn(Optional.of(getPaymentFailuresList()));
         commonMock(paymentGroupDto, 1);
         MvcResult result = restActions
             .withAuthorizedUser(USER_ID)
@@ -851,6 +853,50 @@ public class CaseControllerTest extends PaymentsDataUtil {
 
     }
 
+    @Test
+    @Transactional
+    public void retrieveCasePaymentGroupsShouldCallIsThereAnyPaymentReferenceInCurrentServiceRequestWithNullPayments() throws Exception {
+        FeeDto feeRequest = FeeDto.feeDtoWith()
+            .calculatedAmount(new BigDecimal("92.19"))
+            .code("FEE0383")
+            .version("1")
+            .volume(2)
+            .reference("BXsd1123")
+            .ccdCaseNumber("ccdCaseNumber1")
+            .description("Application for a charging order")
+            .build();
+
+        PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
+            .payments(null)
+            .fees(List.of(feeRequest))
+            .build();
+
+        restActions.post("/payment-groups", paymentGroupDto).andReturn();
+
+        commonMock(paymentGroupDto, 1);
+
+        RefundDto refundDto = RefundDto.buildRefundListDtoWith()
+            .paymentReference("RC-1234-5678-9012-3456")
+            .build();
+
+        RefundListDtoResponse refundListDtoResponse = RefundListDtoResponse.buildRefundListWith()
+            .refundList(List.of(refundDto))
+            .build();
+
+        when(paymentRefundsService.checkRefundAgainstRemissionV2(any(), any(), anyString()))
+            .thenAnswer(invocation -> invocation.getArgument(1));
+        when(paymentRefundsService.getRefundsApprovedFromRefundService(anyString(), any()))
+            .thenReturn(refundListDtoResponse);
+
+        MvcResult result = restActions
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
+            .get("/cases/ccdCaseNumber1/paymentgroups")
+            .andExpect(status().isOk())
+            .andReturn();
+
+        assertThat(result.getResponse().getStatus()).isEqualTo(200);
+    }
 
     private List<PaymentFailures> getPaymentFailuresList(){
 
