@@ -59,6 +59,28 @@ java:
           alias: pci-pal.antenna.iac.flow.id
         - name: pci-pal-antenna-strategic-flow-id
           alias: pci-pal.antenna.strategic.flow.id
+        - name: pci-pal-kerv-tenant-name
+          alias: pci-pal.kerv.tenant.name
+        - name: pci-pal-kerv-client-id
+          alias: pci-pal.kerv.client.id
+        - name: pci-pal-kerv-client-secret
+          alias: pci-pal.kerv.client.secret
+        - name: pci-pal-kerv-get-tokens-url
+          alias: pci-pal.kerv.get.tokens.url
+        - name: pci-pal-kerv-launch-url
+          alias: pci-pal.kerv.launch.url
+        - name: pci-pal-kerv-view-id-url
+          alias: pci-pal.kerv.view.id.url
+        - name: pci-pal-kerv-probate-flow-id
+          alias: PCI_PAL_KERV_PROBATE_FLOW_ID
+        - name: pci-pal-kerv-divorce-flow-id
+          alias: pci-pal.kerv.divorce.flow.id
+        - name: pci-pal-kerv-prl-flow-id
+          alias: pci-pal.kerv.prl.flow.id
+        - name: pci-pal-kerv-iac-flow-id
+          alias: pci-pal.kerv.iac.flow.id
+        - name: pci-pal-kerv-strategic-flow-id
+          alias: pci-pal.kerv.strategic.flow.id
         - name: spring-mail-password
           alias: spring.mail.password
         - name: gov-pay-keys-cmc-claim-store
