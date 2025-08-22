@@ -41,24 +41,29 @@ public class TopicClientProxy {
     }
 
     public synchronized void send(IMessage message) throws InterruptedException, ServiceBusException {
-
-        if (!keepClientAlive) { /* One use client */
-            LOG.info("Connection String Alive: ", connectionString);
-            TopicClient client = newTopicClient();
-            send(client, message);
-            client.close();
-            return;
+        LOG.info("About to send message to topic: {}", topic);
+        try {
+            if (!keepClientAlive) {
+                LOG.info("Connection String Alive: {}", connectionString);
+                TopicClient client = newTopicClient();
+                LOG.info("Created new TopicClient");
+                send(client, message);
+                LOG.info("Message sent, closing client");
+                client.close();
+                LOG.info("Client closed");
+                return;
+            }
+            if (topicClient == null) {
+                LOG.info("Connection String Not Alive: {}", connectionString);
+                topicClient = newTopicClient();
+                LOG.info("Created persistent TopicClient");
+            }
+            send(topicClient, message);
+            LOG.info("Message sent using persistent client");
+        } catch (Exception e) {
+            LOG.error("Error sending message to topic", e);
+            throw e;
         }
-
-        /* Batch mode */
-
-        if (topicClient == null) {
-            LOG.info("Connection String Not Alive: ", connectionString);
-            topicClient = newTopicClient();
-        }
-
-        send(topicClient, message);
-
     }
 
     public void close() {
