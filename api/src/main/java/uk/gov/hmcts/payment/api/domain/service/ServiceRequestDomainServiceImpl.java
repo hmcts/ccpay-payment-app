@@ -76,7 +76,6 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNo
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -92,6 +91,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     private static final Logger LOG = LoggerFactory.getLogger(ServiceRequestDomainServiceImpl.class);
     private static final String PAYMENT_PROVIDER_GOV_PAY= "gov pay";
     private static final String MSGCONTENTTYPE = "application/json";
+
     @Value("${case-payment-orders.api.url}")
     private  String callBackUrl;
 
