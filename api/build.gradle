@@ -162,7 +162,6 @@ dependencies {
     testImplementation group: 'org.powermock', name: 'powermock-module-junit4', version: '2.0.9'
     testImplementation group: 'org.powermock', name: 'powermock-api-mockito2', version: '2.0.9'
     testRuntimeOnly group: 'org.junit.vintage', name: 'junit-vintage-engine', version: '5.10.0'
-    testImplementation group:'net.bytebuddy', name: 'byte-buddy-agent', version: '1.17.7'
 
     // smoke
     smokeTestImplementation sourceSets.test.runtimeClasspath
