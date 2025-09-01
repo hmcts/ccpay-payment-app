@@ -14,6 +14,8 @@ public class TopicClientProxy {
 
     private static final Logger LOG = LoggerFactory.getLogger(TopicClientProxy.class);
 
+    private static final int MESSAGE_SEND_MAX_RETRY_COUNT = 3;
+
     private final String connectionString;
 
     private final String topic;
@@ -32,7 +34,21 @@ public class TopicClientProxy {
 
 
     private void send(TopicClient client, IMessage message) throws InterruptedException, ServiceBusException {
-        client.send(message);
+        int attempt = 0;
+        while (attempt < MESSAGE_SEND_MAX_RETRY_COUNT) {
+            try {
+                client.send(message);
+                break; // Success
+            } catch (ServiceBusException | InterruptedException e) {
+                attempt++;
+                LOG.warn("Send attempt {} failed: {}", attempt, e.getMessage());
+                if (attempt >= MESSAGE_SEND_MAX_RETRY_COUNT) {
+                    LOG.error("All send attempts failed", e);
+                    throw e;
+                }
+                Thread.sleep(1000L * attempt); // Exponential backoff
+            }
+        }
     }
 
     private TopicClient newTopicClient() throws ServiceBusException, InterruptedException {
