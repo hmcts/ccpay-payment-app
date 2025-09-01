@@ -1,11 +1,13 @@
 package uk.gov.hmcts.payment.api.mapper;
 
+import nl.altindag.log.LogCaptor;
+import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.model.Payment;
@@ -13,13 +15,13 @@ import uk.gov.hmcts.payment.api.util.AccountStatus;
 
 import java.math.BigDecimal;
 
-import static org.mockito.Mockito.*;
+import static nl.altindag.log.LogCaptor.forClass;
+import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.hmcts.payment.api.util.AccountStatus.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PBAStatusErrorMapperTest {
     private static CreditAccountPaymentRequest creditAccountPaymentRequest;
-
     private static Payment payment;
 
     private static AccountDto activeAccountDetails;
@@ -27,14 +29,11 @@ public class PBAStatusErrorMapperTest {
     private static AccountDto onHoldAccountDetails;
     private static AccountDto deletedAccountDetails;
 
-    private static Logger mockLOG;
-
+    private static LogCaptor mockLOG;
 
     @BeforeClass
     public static void initiate(){
-        mockStatic(LoggerFactory.class);
-        mockLOG = mock(Logger.class);
-        when(LoggerFactory.getLogger(any(Class.class))).thenReturn(mockLOG);
+        mockLOG = forClass(PBAStatusErrorMapper.class);
         creditAccountPaymentRequest = CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
                                         .amount(new BigDecimal("10.00"))
                                         .build();
@@ -55,16 +54,26 @@ public class PBAStatusErrorMapperTest {
             .accountName("account-name")
             .availableBalance(new BigDecimal("100.00"))
             .status(AccountStatus.DELETED).build();
-
     }
 
+    @AfterClass
+    public static void closeDown() {
+        if (mockLOG != null) {
+            mockLOG = null;
+        }
+    }
+
+    @After
+    public void afterTest() {
+        mockLOG.clearLogs();
+    }
 
     @Test
     public void testSetPaymentStatusWithOnHold() {
         PBAStatusErrorMapper pbaStatusErrorMapper = new PBAStatusErrorMapper();
         String expected = "CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {} PaymentStatus : {} - Account is on hold!";
         pbaStatusErrorMapper.setPaymentStatus(creditAccountPaymentRequest, payment, onHoldAccountDetails);
-        verify(mockLOG).info(expected,"ccd-number",ON_HOLD,"failed");
+        assertThat(mockLOG.getInfoLogs().get(0)).isEqualTo("CreditAccountPayment received for ccdCaseNumber : ccd-number Liberata AccountStatus : ON_HOLD PaymentStatus : failed - Account is on hold!");
     }
 
     @Test
@@ -72,7 +81,7 @@ public class PBAStatusErrorMapperTest {
         PBAStatusErrorMapper pbaStatusErrorMapper = new PBAStatusErrorMapper();
         String expected = "CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {} PaymentStatus : {} - Account Balance Sufficient!!!";
         pbaStatusErrorMapper.setPaymentStatus(creditAccountPaymentRequest,payment,activeAccountDetails);
-        verify(mockLOG).info(expected,"ccd-number",ACTIVE,"success");
+        assertThat(mockLOG.getInfoLogs().get(0)).isEqualTo("CreditAccountPayment received for ccdCaseNumber : ccd-number Liberata AccountStatus : ACTIVE PaymentStatus : success - Account Balance Sufficient!!!");
     }
 
     @Test
@@ -80,8 +89,6 @@ public class PBAStatusErrorMapperTest {
         PBAStatusErrorMapper pbaStatusErrorMapper = new PBAStatusErrorMapper();
         String expected = "CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {} PaymentStatus : {} - Account is deleted!";
         pbaStatusErrorMapper.setPaymentStatus(creditAccountPaymentRequest,payment,deletedAccountDetails);
-        verify(mockLOG).info(expected,"ccd-number",DELETED,"failed");
+        assertThat(mockLOG.getInfoLogs().get(0)).isEqualTo("CreditAccountPayment received for ccdCaseNumber : ccd-number Liberata AccountStatus : DELETED PaymentStatus : failed - Account is deleted!");
     }
-
-
 }

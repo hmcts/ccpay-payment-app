@@ -160,6 +160,8 @@ dependencies {
 
     // JUnit 4 dependencies
     testImplementation group: 'org.mockito', name: 'mockito-core', version: '5.19.0'
+    testImplementation group: 'io.github.hakky54', name: 'logcaptor', version: '2.12.0'
+    testImplementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.5.18'
     testRuntimeOnly group: 'org.junit.vintage', name: 'junit-vintage-engine', version: '5.10.0'
 
     // smoke
