@@ -4,6 +4,7 @@ import com.microsoft.azure.servicebus.IMessage;
 import com.microsoft.azure.servicebus.TopicClient;
 import com.microsoft.azure.servicebus.primitives.ServiceBusException;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.mockito.Spy;
 
 import static org.mockito.Mockito.*;
@@ -16,11 +17,11 @@ public class TopicClientProxyTest {
     @Spy
     private IMessage message = mock(IMessage.class);
 
-    @Spy
-    TopicClientProxy proxy = new TopicClientProxy("conn", "topic");
-
     @Test
     public void shouldSendMessageSuccessfullyOnFirstAttempt() throws Exception {
+        TopicClientProxy proxy = Mockito.spy(new TopicClientProxy("conn", "topic"));
+
+        // Use reflection to call private method
         var method = TopicClientProxy.class.getDeclaredMethod("send", TopicClient.class, IMessage.class);
         method.setAccessible(true);
 
@@ -31,6 +32,8 @@ public class TopicClientProxyTest {
 
     @Test
     public void shouldRetryAndSucceedOnSecondAttempt() throws Exception {
+        TopicClientProxy proxy = Mockito.spy(new TopicClientProxy("conn", "topic"));
+
         doThrow(new ServiceBusException(false, "fail"))
             .doNothing()
             .when(client).send(message);
@@ -45,6 +48,8 @@ public class TopicClientProxyTest {
 
     @Test
     public void shouldThrowAfterMaxRetries() throws Exception {
+        TopicClientProxy proxy = Mockito.spy(new TopicClientProxy("conn", "topic"));
+
         doThrow(new ServiceBusException(false, "fail"))
             .when(client).send(message);
 
