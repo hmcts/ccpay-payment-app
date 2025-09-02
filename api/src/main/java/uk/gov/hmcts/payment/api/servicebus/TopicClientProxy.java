@@ -51,7 +51,7 @@ public class TopicClientProxy {
         }
     }
 
-    private TopicClient newTopicClient() throws ServiceBusException, InterruptedException {
+    TopicClient newTopicClient() throws ServiceBusException, InterruptedException {
         ConnectionStringBuilder connectionStringBuilder = new ConnectionStringBuilder(connectionString, topic);
         return new TopicClient(connectionStringBuilder);
     }
