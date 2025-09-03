@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1810000000000-3
+      author: DaveJ
+      changes:
+        - sql:
+            splitStatements: true
+            sql: >
+              UPDATE fee SET volume = 1 WHERE volume IS NULL;
