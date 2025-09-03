@@ -5,5 +5,4 @@ dependencies {
     implementation group: 'io.github.resilience4j', name: 'resilience4j-spring-boot3', version: '2.2.0'
     implementation group: 'org.apache.httpcomponents.client5', name: 'httpclient5', version: '5.2'
     testImplementation group: 'com.github.tomakehurst', name: 'wiremock-jre8', version: '3.0.1'
-    testImplementation 'org.powermock:powermock-api-mockito2:2.0.9'
 }

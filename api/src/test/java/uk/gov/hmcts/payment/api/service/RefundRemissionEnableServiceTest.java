@@ -62,7 +62,7 @@ public class RefundRemissionEnableServiceTest {
     @Mock
     private FeePayApportionRepository feePayApportionRepository;
     @Mock
-    private PaymentService paymentService;
+    private PaymentService<PaymentFeeLink, String> paymentService;
     @Mock
     private RemissionRepository remissionRepository;
 

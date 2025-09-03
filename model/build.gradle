@@ -35,4 +35,5 @@ dependencies {
     testImplementation(group: 'com.mmnaseri.utils', name: 'spring-data-mock', version:'2.2.0') {
       exclude(module: 'commons-logging')
     }
+    testImplementation group: 'org.mockito', name: 'mockito-core', version: '5.19.0'
 }

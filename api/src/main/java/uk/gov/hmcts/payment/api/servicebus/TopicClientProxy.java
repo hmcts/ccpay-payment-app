@@ -14,6 +14,8 @@ public class TopicClientProxy {
 
     private static final Logger LOG = LoggerFactory.getLogger(TopicClientProxy.class);
 
+    private static final int MESSAGE_SEND_MAX_RETRY_COUNT = 3;
+
     private final String connectionString;
 
     private final String topic;
@@ -32,33 +34,52 @@ public class TopicClientProxy {
 
 
     private void send(TopicClient client, IMessage message) throws InterruptedException, ServiceBusException {
-        client.send(message);
+        int attempt = 0;
+        while (attempt < MESSAGE_SEND_MAX_RETRY_COUNT) {
+            try {
+                client.send(message);
+                break; // Success
+            } catch (ServiceBusException | InterruptedException e) {
+                attempt++;
+                LOG.warn("Send attempt {} failed: {}", attempt, e.getMessage());
+                if (attempt >= MESSAGE_SEND_MAX_RETRY_COUNT) {
+                    LOG.error("All send attempts failed", e);
+                    throw e;
+                }
+                Thread.sleep(1000L * attempt); // Exponential backoff
+            }
+        }
     }
 
-    private TopicClient newTopicClient() throws ServiceBusException, InterruptedException {
+    TopicClient newTopicClient() throws ServiceBusException, InterruptedException {
         ConnectionStringBuilder connectionStringBuilder = new ConnectionStringBuilder(connectionString, topic);
         return new TopicClient(connectionStringBuilder);
     }
 
     public synchronized void send(IMessage message) throws InterruptedException, ServiceBusException {
-
-        if (!keepClientAlive) { /* One use client */
-            LOG.info("Connection String Alive: ", connectionString);
-            TopicClient client = newTopicClient();
-            send(client, message);
-            client.close();
-            return;
+        LOG.info("About to send message to topic: {}", topic);
+        try {
+            if (!keepClientAlive) {
+                LOG.info("Connection String Alive: {}", connectionString);
+                TopicClient client = newTopicClient();
+                LOG.info("Created new TopicClient");
+                send(client, message);
+                LOG.info("Message sent, closing client");
+                client.close();
+                LOG.info("Client closed");
+                return;
+            }
+            if (topicClient == null) {
+                LOG.info("Connection String Not Alive: {}", connectionString);
+                topicClient = newTopicClient();
+                LOG.info("Created persistent TopicClient");
+            }
+            send(topicClient, message);
+            LOG.info("Message sent using persistent client");
+        } catch (Exception e) {
+            LOG.error("Error sending message to topic", e);
+            throw e;
         }
-
-        /* Batch mode */
-
-        if (topicClient == null) {
-            LOG.info("Connection String Not Alive: ", connectionString);
-            topicClient = newTopicClient();
-        }
-
-        send(topicClient, message);
-
     }
 
     public void close() {

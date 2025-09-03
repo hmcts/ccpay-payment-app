@@ -4,7 +4,7 @@ import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import uk.gov.hmcts.payment.api.util.CheckDigitUtil;
 
 import java.util.Arrays;
