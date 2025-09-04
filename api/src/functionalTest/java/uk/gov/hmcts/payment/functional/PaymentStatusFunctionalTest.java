@@ -2144,10 +2144,10 @@ public class PaymentStatusFunctionalTest {
         assertEquals("ABA6", paymentFailureReportDto.getOrgId());
         assertEquals(accountPaymentRequest.getCcdCaseNumber(), paymentFailureReportDto.getCcdReference());
         assertEquals("Probate", paymentFailureReportDto.getServiceName());
-        assertThat(joinedRefundAmount.contains(paymentFailureReportDto.getRefundAmount()));
+        assertThat(joinedRefundAmount).contains(paymentFailureReportDto.getRefundAmount());
         assertEquals(expectedDate, eventDate);
         assertEquals(expectedDate, representmentReportDate);
-        assertThat(joinedRefundReference.contains(paymentFailureReportDto.getRefundReference()));
+        assertThat(joinedRefundReference).contains(paymentFailureReportDto.getRefundReference());
         assertEquals("RR001", paymentFailureReportDto.getFailureReason());
 
 
