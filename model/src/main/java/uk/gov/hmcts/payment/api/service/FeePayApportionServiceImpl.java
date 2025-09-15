@@ -53,6 +53,7 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
     }
 
     @Override
+    @SuppressWarnings("java:S3776")
     public void updateFeeAmountDue(Payment payment) {
         try {
             List<FeePayApportion> apportions = getFeePayApportion(payment);
