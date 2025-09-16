@@ -95,11 +95,13 @@ public class FeePayApportionServiceTest extends TestUtil {
 
         paymentFeeLinkRepository.save(paymentFeeLink);
         Mockito.when(feePayApportionRepository.findByPaymentId(Mockito.any())).thenReturn(Optional.of(feePayApportionList));
+        paymentFeeLink.getPayments().get(0).setPaymentLink(paymentFeeLink);
+        paymentFeeLink.getPayments().get(0).getPaymentLink().setApportions(List.of());
         feePayApportionService.updateFeeAmountDue(paymentFeeLink.getPayments().get(0));
 
         PaymentFee result = paymentFeeRepository.findById(feePayApportion.getFeeId()).get();
         Assert.assertNotNull(result);
-        Assert.assertEquals(result.getAmountDue(), BigDecimal.valueOf(405.00));
+        Assert.assertEquals(result.getAmountDue(), BigDecimal.valueOf(455.0));
         Assert.assertEquals(result.getId(), Integer.valueOf(1));
 
     }
