@@ -42,13 +42,14 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
 
 
     private List<FeePayApportion> getFeePayApportion(Payment payment) {
-        Optional<List<FeePayApportion>> apportions = feePayApportionRepository.findByPaymentId(payment.getId());
-        if (apportions.isPresent()) {
-            LOG.info("-----------FeePayApportion from the DB.");
-            return apportions.get();
-        } else {
+        List<FeePayApportion>  apportions = payment.getPaymentLink().getApportions();
+        if (apportions!=null) {
             LOG.info("-----------FeePayApportion from Memory and not persisted yet.");
-            return payment.getPaymentLink().getApportions();
+            return apportions;
+        } else {
+            Optional<List<FeePayApportion>> apportionsFromTheDB = feePayApportionRepository.findByPaymentId(payment.getId());
+            LOG.info("-----------FeePayApportion from the DB.");
+            return apportionsFromTheDB.orElse(Collections.emptyList());
         }
     }
 
