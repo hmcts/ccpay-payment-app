@@ -95,7 +95,7 @@ dependencies {
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security'
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa'
-    implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.17.0'
+    implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.18.0'
     implementation group: 'net.logstash.logback', name: 'logstash-logback-encoder', version: '8.0'
     implementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.5.18'
     implementation group: 'ch.qos.logback', name: 'logback-core', version: '1.5.18'
@@ -159,8 +159,9 @@ dependencies {
     testImplementation group: 'org.testcontainers', name: 'postgresql', version: '1.20.4'
 
     // JUnit 4 dependencies
-    testImplementation group: 'org.powermock', name: 'powermock-module-junit4', version: '2.0.9'
-    testImplementation group: 'org.powermock', name: 'powermock-api-mockito2', version: '2.0.9'
+    testImplementation group: 'org.mockito', name: 'mockito-core', version: '5.19.0'
+    testImplementation group: 'io.github.hakky54', name: 'logcaptor', version: '2.12.1'
+    testImplementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.5.18'
     testRuntimeOnly group: 'org.junit.vintage', name: 'junit-vintage-engine', version: '5.10.0'
 
     // smoke

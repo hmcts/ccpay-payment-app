@@ -76,7 +76,6 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNo
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -92,6 +91,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     private static final Logger LOG = LoggerFactory.getLogger(ServiceRequestDomainServiceImpl.class);
     private static final String PAYMENT_PROVIDER_GOV_PAY= "gov pay";
     private static final String MSGCONTENTTYPE = "application/json";
+
     @Value("${case-payment-orders.api.url}")
     private  String callBackUrl;
 
@@ -261,37 +261,40 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         Payment payment = serviceRequestPaymentDomainDataEntityMapper.toEntity(serviceRequestPaymentBo, serviceRequest);
         payment.setPaymentLink(serviceRequest);
 
-        //2. Account check for PBA-Payment
+        // Account check for PBA-Payment
         payment = accountCheckForPBAPayment(serviceRequest, serviceRequestPaymentDto, payment);
 
-        List <Payment> paymentList = new ArrayList<Payment>();
-        paymentList.add(payment);
+        // Update payments list
+        serviceRequest.setPayments(Collections.singletonList(payment));
+        String serviceRequestStatus = paymentGroup.toPaymentGroupDto(serviceRequest).getServiceRequestStatus();
 
-        PaymentFeeLink serviceRequestWithUpdatedPaymentStatus = serviceRequest;
-        serviceRequestWithUpdatedPaymentStatus.setPayments(paymentList);
-        String serviceRequestStatus = paymentGroup.toPaymentGroupDto(serviceRequestWithUpdatedPaymentStatus).getServiceRequestStatus();
-
-        PaymentStatusDto paymentStatusDto = paymentDtoMapper.toPaymentStatusDto(serviceRequestReference,
-            serviceRequestPaymentBo.getAccountNumber(), payment, serviceRequestStatus);
+        PaymentStatusDto paymentStatusDto = paymentDtoMapper.toPaymentStatusDto(
+            serviceRequestReference,
+            serviceRequestPaymentBo.getAccountNumber(),
+            payment,
+            serviceRequestStatus
+        );
 
         PaymentFeeLink serviceRequestCallbackURL = paymentFeeLinkRepository.findByPaymentReference(serviceRequestReference)
             .orElseThrow(() -> new ServiceRequestReferenceNotFoundException("Order reference doesn't exist"));
-        sendMessageToTopic(paymentStatusDto, serviceRequestCallbackURL.getCallBackUrl());
-        LOG.info("Send PBA payment status to topic completed ");
 
-        if (payment.getPaymentStatus().getName().equals(PaymentStatus.FAILED.getName())) {
-            LOG.info("CreditAccountPayment Response 402(FORBIDDEN) for ccdCaseNumber : {} PaymentStatus : {}", payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
-            serviceRequestPaymentBo = serviceRequestPaymentDomainDataEntityMapper.toDomain(payment);
-            return serviceRequestPaymentBo;
+        if (PaymentStatus.FAILED.getName().equals(payment.getPaymentStatus().getName())) {
+            sendMessageToTopic(paymentStatusDto, serviceRequestCallbackURL.getCallBackUrl());
+            LOG.info("Send PBA payment status to topic completed");
+            LOG.info("CreditAccountPayment Response 402(FORBIDDEN) for ccdCaseNumber : {} PaymentStatus : {}",
+                payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
+            return serviceRequestPaymentDomainDataEntityMapper.toDomain(payment);
         }
 
-        // 3. Auto-Apportionment of Payment against serviceRequest Fees
+        // Auto-Apportionment of Payment against serviceRequest Fees
         extractApportionmentForPBA(serviceRequest);
 
+        // Send message to Topic for PBA Payment status
+        sendMessageToTopic(paymentStatusDto, serviceRequestCallbackURL.getCallBackUrl());
+        LOG.info("Send PBA payment status to topic completed");
         LOG.info("PBA add payment completed");
 
-        serviceRequestPaymentBo = serviceRequestPaymentDomainDataEntityMapper.toDomain(payment);
-        return serviceRequestPaymentBo;
+        return serviceRequestPaymentDomainDataEntityMapper.toDomain(payment);
     }
 
     private void extractApportionmentForPBA(PaymentFeeLink serviceRequest) {
@@ -577,7 +580,6 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
             LOG.info("Callback URL: {}", callBackUrl);
 
             if(payment!=null){
-
                 msg = new Message(objectMapper.writeValueAsString(payment));
                 topicClientCPO = new TopicClientProxy(connectionString, topicCardPBA);
 
@@ -598,6 +600,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
                 topicClientCPO.close();
             }
         } catch (Exception e) {
+            LOG.error("Error sending message to topic: {}", e.getMessage(), e);
             Thread.currentThread().interrupt();
         }
     }

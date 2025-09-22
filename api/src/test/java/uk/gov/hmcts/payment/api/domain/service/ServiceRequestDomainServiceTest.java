@@ -8,9 +8,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Spy;
+import org.mockito.*;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -37,9 +36,22 @@ import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
 import uk.gov.hmcts.payment.api.external.client.dto.State;
 import uk.gov.hmcts.payment.api.mapper.PBAStatusErrorMapper;
+import uk.gov.hmcts.payment.api.model.IdempotencyKeys;
+import uk.gov.hmcts.payment.api.model.IdempotencyKeysRepository;
+import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.Payment2Repository;
+import uk.gov.hmcts.payment.api.model.PaymentChannel;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
+import uk.gov.hmcts.payment.api.model.PaymentMethod;
+import uk.gov.hmcts.payment.api.model.PaymentProvider;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
-import uk.gov.hmcts.payment.api.model.*;
-import uk.gov.hmcts.payment.api.service.*;
+import uk.gov.hmcts.payment.api.service.AccountService;
+import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
+import uk.gov.hmcts.payment.api.service.FeePayApportionService;
+import uk.gov.hmcts.payment.api.service.PaymentGroupService;
+import uk.gov.hmcts.payment.api.service.ReferenceDataServiceImpl;
 import uk.gov.hmcts.payment.api.servicebus.TopicClientService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentGroupNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoAmountDue;
@@ -70,9 +82,6 @@ import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 @RunWith(SpringRunner.class)
 public class ServiceRequestDomainServiceTest {
-
-    @InjectMocks
-    private ServiceRequestDomainServiceImpl serviceRequestDomainService;
 
     @Mock
     private ReferenceDataServiceImpl referenceDataService;
@@ -117,7 +126,7 @@ public class ServiceRequestDomainServiceTest {
     FeePayApportionService feePayApportionService;
 
     @Mock
-    AccountService accountService;
+    AccountService<AccountDto, String> accountService;
 
     @Mock
     PaymentGroupDtoMapper paymentGroupDtoMapper;
@@ -134,9 +143,11 @@ public class ServiceRequestDomainServiceTest {
     @Mock
     private TopicClientService topicClientService;
 
+    @InjectMocks
+    private ServiceRequestDomainServiceImpl serviceRequestDomainService;
+
     @Before
     public void setup() {
-
     }
 
     @Test
@@ -185,7 +196,7 @@ public class ServiceRequestDomainServiceTest {
         assertNotNull(paymentFeeLink);
     }
 
-     @Test
+    @Test
     public void businessValidationForServiceRequestsServiceRequestExceptionForNoMatchingAmount() throws Exception {
 
         ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto.paymentDtoWith()
@@ -357,7 +368,7 @@ public class ServiceRequestDomainServiceTest {
              .accountNumber("1234")
                  .build();
 
-        when(accountService.retrieve(any())).thenReturn(accountDto);
+        when(accountService.retrieve("1234")).thenReturn(accountDto);
 
         PaymentGroupDto paymentGroupDto = new PaymentGroupDto();
         paymentGroupDto.setServiceRequestStatus("Paid");
@@ -553,10 +564,6 @@ public class ServiceRequestDomainServiceTest {
         when(serviceRequestPaymentDtoDomainMapper.toDomain(any())).thenReturn(serviceRequestPaymentBo);
 
         when(serviceRequestPaymentDomainDataEntityMapper.toEntity(any(),any())).thenReturn(payment,paymentFailed);
-
-        when(paymentFeeLinkRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(getPaymentFeeLink()));
-
-        when(paymentDtoMapper.toPaymentStatusDto(any(),any(),any(), any())).thenReturn(paymentStatusDto);
 
         when(accountService.retrieve(serviceRequestPaymentDto.getAccountNumber())).thenThrow(
             HttpClientErrorException.create(HttpStatus.NOT_FOUND, "not found", null, null, null));
@@ -967,6 +974,7 @@ public class ServiceRequestDomainServiceTest {
             .enterpriseServiceName("enterprise-service-name")
             .paymentReference("payment-ref")
             .ccdCaseNumber("1607065108455502")
+            .callBackUrl("http://sercvice.com/callback")
             .fees(Arrays.asList(PaymentFee.feeWith().
                 amountDue(new BigDecimal(10)).
                 calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE0001").volume(1).build()))
