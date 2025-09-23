@@ -40,12 +40,26 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
         this.paymentFeeRepository = paymentFeeRepository;
     }
 
+
+    private List<FeePayApportion> getFeePayApportion(Payment payment) {
+        List<FeePayApportion>  apportions = payment.getPaymentLink().getApportions();
+        if (apportions!=null) {
+            LOG.info("-----------FeePayApportion from Memory and not persisted yet.");
+            return apportions;
+        } else {
+            Optional<List<FeePayApportion>> apportionsFromTheDB = feePayApportionRepository.findByPaymentId(payment.getId());
+            LOG.info("-----------FeePayApportion from the DB.");
+            return apportionsFromTheDB.orElse(Collections.emptyList());
+        }
+    }
+
     @Override
+    @SuppressWarnings("java:S3776")
     public void updateFeeAmountDue(Payment payment) {
         try {
-            Optional<List<FeePayApportion>> apportions = feePayApportionRepository.findByPaymentId(payment.getId());
-            if (apportions.isPresent()) {
-                apportions.get().stream()
+            List<FeePayApportion> apportions = getFeePayApportion(payment);
+            if (apportions != null && !apportions.isEmpty()) {
+                apportions.stream()
                     .forEach(feePayApportion -> {
                         PaymentFee fee = paymentFeeRepository.findById(feePayApportion.getFeeId()).get();
                         if (feePayApportion.getCallSurplusAmount() == null) {
