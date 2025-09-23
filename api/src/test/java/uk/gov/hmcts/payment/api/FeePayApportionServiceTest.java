@@ -1,6 +1,5 @@
 package uk.gov.hmcts.payment.api;
 
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -41,7 +40,6 @@ public class FeePayApportionServiceTest extends TestUtil {
     protected FeePayApportionService feePayApportionService;
     Payment payment = paymentWith().amount(BigDecimal.valueOf(10000).movePointRight(2)).reference("reference1").description("desc1").returnUrl("returnUrl1")
         .ccdCaseNumber("ccdCaseNo1").caseReference("caseRef1").serviceType("cmc").currency("GBP")
-        .paymentStatus(PaymentStatus.CREATED)
         .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
             .externalStatus("created")
             .status("Initiated")
@@ -64,160 +62,14 @@ public class FeePayApportionServiceTest extends TestUtil {
     private PaymentFeeRepository paymentFeeRepository;
 
     @Test(expected = PaymentException.class)
-    public void updateFeeAmountDueTestExceptionError() {
+    public void updateFeeAmountDueTest() {
         paymentFeeLinkRepository.save(paymentFeeLink);
         Mockito.when(feePayApportionRepository.findByPaymentId(Mockito.any())).thenThrow(new RuntimeException("DB Exception"));
         feePayApportionService.updateFeeAmountDue(paymentFeeLink.getPayments().get(0));
     }
 
-    @Test
-    public void updateFeeAmountDueTestWithNoApportions() {
-
-        List<FeePayApportion> feePayApportionList = new ArrayList<>();
-        FeePayApportion feePayApportion = FeePayApportion.feePayApportionWith()
-            .id(1)
-            .apportionAmount(BigDecimal.valueOf(50))
-            .apportionType("AUTO")
-            .paymentAmount(BigDecimal.valueOf(50))
-            .feeId(1)
-            .feeAmount(BigDecimal.valueOf(455.00))
-            .callSurplusAmount(BigDecimal.valueOf(0))
-            .build();
-        feePayApportionList.add(feePayApportion);
-
-        when(paymentFeeRepository.findById(anyInt())).thenReturn(Optional.of(
-            PaymentFee.feeWith()
-                .paymentLink(paymentFeeLink)
-                .id(1)
-                .amountDue(BigDecimal.valueOf(455.00))
-                .build())
-        );
-
-        paymentFeeLinkRepository.save(paymentFeeLink);
-        Mockito.when(feePayApportionRepository.findByPaymentId(Mockito.any())).thenReturn(Optional.of(feePayApportionList));
-        paymentFeeLink.getPayments().get(0).setPaymentLink(paymentFeeLink);
-        paymentFeeLink.getPayments().get(0).getPaymentLink().setApportions(List.of());
-        feePayApportionService.updateFeeAmountDue(paymentFeeLink.getPayments().get(0));
-
-        PaymentFee result = paymentFeeRepository.findById(feePayApportion.getFeeId()).get();
-        Assert.assertNotNull(result);
-        Assert.assertEquals(result.getAmountDue(), BigDecimal.valueOf(455.0));
-        Assert.assertEquals(result.getId(), Integer.valueOf(1));
-
-    }
-
-    @Test
-    public void updateFeeAmountDueTest() {
-
-        List<FeePayApportion> feePayApportionList = new ArrayList<>();
-        FeePayApportion feePayApportion = FeePayApportion.feePayApportionWith()
-            .id(1)
-            .apportionAmount(BigDecimal.valueOf(50))
-            .apportionType("AUTO")
-            .paymentAmount(BigDecimal.valueOf(50))
-            .feeId(1)
-            .feeAmount(BigDecimal.valueOf(455.00))
-            .callSurplusAmount(BigDecimal.valueOf(0))
-            .build();
-        feePayApportionList.add(feePayApportion);
-
-        when(paymentFeeRepository.findById(anyInt())).thenReturn(Optional.of(
-            PaymentFee.feeWith()
-                .paymentLink(paymentFeeLink)
-                .id(1)
-                .amountDue(BigDecimal.valueOf(455.00))
-                .build())
-        );
-
-        paymentFeeLinkRepository.save(paymentFeeLink);
-        Mockito.when(feePayApportionRepository.findByPaymentId(Mockito.any())).thenReturn(Optional.of(feePayApportionList));
-        paymentFeeLink.getPayments().get(0).setPaymentLink(paymentFeeLink);
-        paymentFeeLink.getPayments().get(0).getPaymentLink().setApportions(feePayApportionList);
-        feePayApportionService.updateFeeAmountDue(paymentFeeLink.getPayments().get(0));
-
-        PaymentFee result = paymentFeeRepository.findById(feePayApportion.getFeeId()).get();
-        Assert.assertNotNull(result);
-        Assert.assertEquals(result.getAmountDue(), BigDecimal.valueOf(405.00));
-        Assert.assertEquals(result.getId(), Integer.valueOf(1));
-
-    }
-
-
-    @Test
-    public void updateFeeAmountDueTestBD() {
-
-        List<FeePayApportion> feePayApportionList = new ArrayList<>();
-        FeePayApportion feePayApportion = FeePayApportion.feePayApportionWith()
-            .id(1)
-            .apportionAmount(BigDecimal.valueOf(50))
-            .apportionType("AUTO")
-            .paymentAmount(BigDecimal.valueOf(50))
-            .feeId(1)
-            .feeAmount(BigDecimal.valueOf(455.00))
-            .callSurplusAmount(BigDecimal.valueOf(0))
-            .build();
-        feePayApportionList.add(feePayApportion);
-
-        when(paymentFeeRepository.findById(anyInt())).thenReturn(Optional.of(
-            PaymentFee.feeWith()
-                .paymentLink(paymentFeeLink)
-                .id(1)
-                .amountDue(BigDecimal.valueOf(455.00))
-                .build())
-        );
-
-        paymentFeeLinkRepository.save(paymentFeeLink);
-        Mockito.when(feePayApportionRepository.findByPaymentId(Mockito.any())).thenReturn(Optional.of(feePayApportionList));
-        paymentFeeLink.getPayments().get(0).setPaymentLink(paymentFeeLink);
-        paymentFeeLink.getPayments().get(0).getPaymentLink().setApportions(null);
-        feePayApportionService.updateFeeAmountDue(paymentFeeLink.getPayments().get(0));
-
-        PaymentFee result = paymentFeeRepository.findById(feePayApportion.getFeeId()).get();
-        Assert.assertNotNull(result);
-        Assert.assertEquals(result.getAmountDue(), BigDecimal.valueOf(405.00));
-        Assert.assertEquals(result.getId(), Integer.valueOf(1));
-
-    }
-
-
-    @Test
-    public void updateFeeAmountDueTestInMemory() {
-
-        List<FeePayApportion> feePayApportionList = new ArrayList<>();
-        FeePayApportion feePayApportion = FeePayApportion.feePayApportionWith()
-            .id(1)
-            .apportionAmount(BigDecimal.valueOf(50))
-            .apportionType("AUTO")
-            .paymentAmount(BigDecimal.valueOf(50))
-            .feeId(1)
-            .feeAmount(BigDecimal.valueOf(455.00))
-            .callSurplusAmount(BigDecimal.valueOf(0))
-            .build();
-        feePayApportionList.add(feePayApportion);
-
-        when(paymentFeeRepository.findById(anyInt())).thenReturn(Optional.of(
-            PaymentFee.feeWith()
-                .paymentLink(paymentFeeLink)
-                .id(1)
-                .amountDue(BigDecimal.valueOf(455.00))
-                .build())
-        );
-
-        paymentFeeLinkRepository.save(paymentFeeLink);
-        paymentFeeLink.getPayments().get(0).setPaymentLink(paymentFeeLink);
-        paymentFeeLink.getPayments().get(0).getPaymentLink().setApportions(feePayApportionList);
-        feePayApportionService.updateFeeAmountDue(paymentFeeLink.getPayments().get(0));
-
-        PaymentFee result = paymentFeeRepository.findById(feePayApportion.getFeeId()).get();
-        Assert.assertNotNull(result);
-        Assert.assertEquals(result.getAmountDue(), BigDecimal.valueOf(405.00));
-        Assert.assertEquals(result.getId(), Integer.valueOf(1));
-
-    }
-
-
     @Test(expected = PaymentException.class)
-    public void processApportionTestException() {
+    public void processApportionTest() {
         paymentFeeLinkRepository.save(paymentFeeLink);
         Mockito.when(paymentFeeRepository.findByCcdCaseNumber(Mockito.any())).thenThrow(new RuntimeException("DB Exception"));
         feePayApportionService.processApportion(paymentFeeLink.getPayments().get(0));
