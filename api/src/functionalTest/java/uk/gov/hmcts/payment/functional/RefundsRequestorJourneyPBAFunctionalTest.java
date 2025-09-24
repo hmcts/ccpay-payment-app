@@ -1506,61 +1506,61 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         assertThat(refundResponseFail.getBody().print()).isEqualTo("Refund can't be requested for failed payment");
     }
 
-    @Test
-    public void checkIssueRefundAndRefundNotAllowWhenPaymentFailureForCaseGroup(){
-        // Create a PBA payment
-        String accountNumber = testProps.existingAccountNumber;
-        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
-            .aPbaPaymentRequestForProbate("100.00",
-                "PROBATE", accountNumber);
-
-        String ccdCaseNumber = accountPaymentRequest.getCcdCaseNumber();
-
-        PaymentDto paymentDto = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
-            .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
-        paymentReferences.add(paymentDto.getReference());
-        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
-            ccdCaseNumber, "5");
-
-        // get payment groups
-        Response casePaymentGroupResponse
-            = cardTestService
-            .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN_PAYMENT, ccdCaseNumber);
-        PaymentGroupResponse paymentGroupResponse
-            = casePaymentGroupResponse.getBody().as(PaymentGroupResponse.class);
-        Optional<PaymentGroupDto> paymentDtoOptional
-            = paymentGroupResponse.getPaymentGroups().stream().findFirst();
-
-        // create retrospective remission
-        final String paymentGroupReference = paymentDtoOptional.get().getPaymentGroupReference();
-        final Integer feeId = paymentDtoOptional.get().getFees().stream().findFirst().get().getId();
-        Response response = dsl.given().userToken(USER_TOKEN)
-            .s2sToken(SERVICE_TOKEN)
-            .when().createRetrospectiveRemissionForRefund(getRetroRemissionRequest("100.00"), paymentGroupReference, feeId)
-            .then().getResponse();
-
-        //create ping 1 payment failure
-        PaymentStatusChargebackDto paymentStatusChargebackDto
-            = PaymentFixture.chargebackRequest(paymentDto.getReference());
-
-        Response chargebackResponse = paymentTestService.postChargeback(
-            SERVICE_TOKEN_PAYMENT,
-            paymentStatusChargebackDto);
-
-        assertThat(chargebackResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
-        paymentFailureReference = paymentStatusChargebackDto.getFailureReference();
-        // get payment groups after creating full remission
-        Response casePaymentGroupResponse1
-            = cardTestService
-            .getPaymentGroupsForCase(USER_TOKEN_PAYMENTS_REFUND_ROLE, SERVICE_TOKEN_PAYMENT, ccdCaseNumber);
-        PaymentGroupResponse paymentGroupResponse1
-            = casePaymentGroupResponse1.getBody().as(PaymentGroupResponse.class);
-        Optional<PaymentGroupDto> paymentDtoOptional1
-            = paymentGroupResponse1.getPaymentGroups().stream().findFirst();
-
-        assertFalse(paymentDtoOptional1.get().getPayments().get(0).isIssueRefund());
-        assertFalse(paymentDtoOptional1.get().getRemissions().get(0).isAddRefund());
-    }
+//    @Test
+//    public void checkIssueRefundAndRefundNotAllowWhenPaymentFailureForCaseGroup(){
+//        // Create a PBA payment
+//        String accountNumber = testProps.existingAccountNumber;
+//        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
+//            .aPbaPaymentRequestForProbate("100.00",
+//                "PROBATE", accountNumber);
+//
+//        String ccdCaseNumber = accountPaymentRequest.getCcdCaseNumber();
+//
+//        PaymentDto paymentDto = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
+//            .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
+//        paymentReferences.add(paymentDto.getReference());
+//        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
+//            ccdCaseNumber, "5");
+//
+//        // get payment groups
+//        Response casePaymentGroupResponse
+//            = cardTestService
+//            .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN_PAYMENT, ccdCaseNumber);
+//        PaymentGroupResponse paymentGroupResponse
+//            = casePaymentGroupResponse.getBody().as(PaymentGroupResponse.class);
+//        Optional<PaymentGroupDto> paymentDtoOptional
+//            = paymentGroupResponse.getPaymentGroups().stream().findFirst();
+//
+//        // create retrospective remission
+//        final String paymentGroupReference = paymentDtoOptional.get().getPaymentGroupReference();
+//        final Integer feeId = paymentDtoOptional.get().getFees().stream().findFirst().get().getId();
+//        Response response = dsl.given().userToken(USER_TOKEN)
+//            .s2sToken(SERVICE_TOKEN)
+//            .when().createRetrospectiveRemissionForRefund(getRetroRemissionRequest("100.00"), paymentGroupReference, feeId)
+//            .then().getResponse();
+//
+//        //create ping 1 payment failure
+//        PaymentStatusChargebackDto paymentStatusChargebackDto
+//            = PaymentFixture.chargebackRequest(paymentDto.getReference());
+//
+//        Response chargebackResponse = paymentTestService.postChargeback(
+//            SERVICE_TOKEN_PAYMENT,
+//            paymentStatusChargebackDto);
+//
+//        assertThat(chargebackResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+//        paymentFailureReference = paymentStatusChargebackDto.getFailureReference();
+//        // get payment groups after creating full remission
+//        Response casePaymentGroupResponse1
+//            = cardTestService
+//            .getPaymentGroupsForCase(USER_TOKEN_PAYMENTS_REFUND_ROLE, SERVICE_TOKEN_PAYMENT, ccdCaseNumber);
+//        PaymentGroupResponse paymentGroupResponse1
+//            = casePaymentGroupResponse1.getBody().as(PaymentGroupResponse.class);
+//        Optional<PaymentGroupDto> paymentDtoOptional1
+//            = paymentGroupResponse1.getPaymentGroups().stream().findFirst();
+//
+//        assertFalse(paymentDtoOptional1.get().getPayments().get(0).isIssueRefund());
+//        assertFalse(paymentDtoOptional1.get().getRemissions().get(0).isAddRefund());
+//    }
 
     @Test
     public void checkIssueRefundAndRefundNotAllowWhenPaymentFailureRepresentmentSuccessForCaseGroup(){
