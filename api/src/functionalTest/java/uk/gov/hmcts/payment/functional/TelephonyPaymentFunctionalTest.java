@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.functional;
 
+import io.restassured.response.Response;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.apache.commons.lang3.RandomUtils;
 import org.assertj.core.api.Java6Assertions;
@@ -11,12 +12,12 @@ import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.TelephonyCallbackDto;
-import uk.gov.hmcts.payment.functional.config.LaunchDarklyFeature;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
 import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
 import uk.gov.hmcts.payment.functional.idam.IdamService;
@@ -28,7 +29,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
@@ -164,6 +164,274 @@ public class TelephonyPaymentFunctionalTest {
                 Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getFees().get(0).getJurisdiction1()).isEqualTo("family");
                 Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getFees().get(0).getJurisdiction2()).isEqualTo("family court");
 
+            });
+    }
+
+    @Test
+    public void telephonyPaymentAntenna() {
+        String ccdCaseNumber = "11116467" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
+
+        FeeDto feeDto = FeeDto.feeDtoWith()
+            .calculatedAmount(new BigDecimal("612.00"))
+            .ccdCaseNumber(ccdCaseNumber)
+            .version("8")
+            .code("FEE0002")
+            .description("Filing an application for a divorce, nullity or civil partnership dissolution")
+            .build();
+
+        TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
+            .amount(new BigDecimal("612"))
+            .ccdCaseNumber(ccdCaseNumber)
+            .currency(CurrencyCode.GBP)
+            .caseType("DIVORCE")
+            .returnURL("https://www.moneyclaims.service.gov.uk")
+            .telephonySystem("Antenna")
+            .build();
+
+        PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(feeDto)).build();
+
+        dsl.given().userToken(USER_TOKEN_PAYMENT)
+            .s2sToken(SERVICE_TOKEN)
+            .when().addNewFeeAndPaymentGroup(groupDto)
+            .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
+                assertThat(paymentGroupFeeDto).isNotNull();
+
+                String paymentGroupReference = paymentGroupFeeDto.getPaymentGroupReference();
+
+                dsl.given().userToken(USER_TOKEN_PAYMENT)
+                    .s2sToken(SERVICE_TOKEN)
+                    .returnUrl("https://www.moneyclaims.service.gov.uk")
+                    .when().createTelephonyPayment(telephonyPaymentRequest, paymentGroupReference)
+                    .then().gotCreated(TelephonyCardPaymentsResponse.class, telephonyCardPaymentsResponse -> {
+                        assertThat(telephonyCardPaymentsResponse).isNotNull();
+                        assertThat(telephonyCardPaymentsResponse.getPaymentReference().matches(PAYMENT_REFERENCE_REGEX)).isTrue();
+                        assertThat(telephonyCardPaymentsResponse.getStatus()).isEqualTo("Initiated");
+                        paymentReference = telephonyCardPaymentsResponse.getPaymentReference();
+                    });
+                // pci-pal callback
+                TelephonyCallbackDto callbackDto = TelephonyCallbackDto.telephonyCallbackWith()
+                    .orderReference(paymentReference)
+                    .orderAmount("612")
+                    .transactionResult("SUCCESS")
+                    .build();
+
+                dsl.given().s2sToken(SERVICE_TOKEN)
+                    .when().telephonyCallback(callbackDto)
+                    .then().noContent();
+
+                // Get pba payments by ccdCaseNumber
+                PaymentsResponse liberataResponseOld = paymentTestService.getPbaPaymentsByCCDCaseNumber(SERVICE_TOKEN, telephonyPaymentRequest.getCcdCaseNumber())
+                    .then()
+                    .statusCode(OK.value()).extract().as(PaymentsResponse.class);
+
+                PaymentsResponse liberataResponseApproach1 = paymentTestService.getPbaPaymentsByCCDCaseNumberApproach1(SERVICE_TOKEN, telephonyPaymentRequest.getCcdCaseNumber())
+                    .then()
+                    .statusCode(OK.value()).extract().as(PaymentsResponse.class);
+
+                //Comparing the response size of old and new approach
+                Java6Assertions.assertThat(liberataResponseOld.getPayments().size()).isGreaterThanOrEqualTo(1);
+                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().size()).isGreaterThanOrEqualTo(1);
+
+                //Comparing the response of old and new approach
+                Boolean compareResult = new HashSet<>(liberataResponseOld.getPayments()).equals(new HashSet<>(liberataResponseApproach1.getPayments()));
+                Java6Assertions.assertThat(compareResult).isEqualTo(true);
+                LOG.info("Comparison of old and new api end point response of telephony payment is same");
+
+                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getPaymentReference()).isNotNull();
+                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getAmount()).isEqualTo(new BigDecimal("612.00"));
+                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getDateCreated()).isNotNull();
+                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getDateUpdated()).isNotNull();
+                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getCurrency()).isNotNull();
+                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getCcdCaseNumber()).isEqualTo(ccdCaseNumber);
+                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getChannel()).isEqualTo("telephony");
+                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getMethod()).isEqualTo("card");
+                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getExternalProvider()).isEqualTo("pci pal");
+                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getStatus()).isEqualTo("success");
+                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getSiteId()).isEqualTo("ABA1");
+                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getServiceName()).isEqualTo("Divorce");
+                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getFees().get(0).getApportionedPayment()).isEqualTo("612.00");
+                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getFees().get(0).getCalculatedAmount()).isEqualTo("612.00");
+                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getFees().get(0).getMemoLine()).isEqualTo("RECEIPT OF FEES - Family issue divorce");
+                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getFees().get(0).getNaturalAccountCode()).isEqualTo("4481102159");
+                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getFees().get(0).getJurisdiction1()).isEqualTo("family");
+                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getFees().get(0).getJurisdiction2()).isEqualTo("family court");
+
+            });
+    }
+
+    @Test
+    public void telephonyPaymentKerv() {
+        String ccdCaseNumber = "11116467" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
+
+        FeeDto feeDto = FeeDto.feeDtoWith()
+            .calculatedAmount(new BigDecimal("612.00"))
+            .ccdCaseNumber(ccdCaseNumber)
+            .version("8")
+            .code("FEE0002")
+            .description("Filing an application for a divorce, nullity or civil partnership dissolution")
+            .build();
+
+        TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
+            .amount(new BigDecimal("612"))
+            .ccdCaseNumber(ccdCaseNumber)
+            .currency(CurrencyCode.GBP)
+            .caseType("DIVORCE")
+            .returnURL("https://www.moneyclaims.service.gov.uk")
+            .telephonySystem("Kerv")
+            .build();
+
+        PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(feeDto)).build();
+
+        dsl.given().userToken(USER_TOKEN_PAYMENT)
+            .s2sToken(SERVICE_TOKEN)
+            .when().addNewFeeAndPaymentGroup(groupDto)
+            .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
+                assertThat(paymentGroupFeeDto).isNotNull();
+
+                String paymentGroupReference = paymentGroupFeeDto.getPaymentGroupReference();
+
+                dsl.given().userToken(USER_TOKEN_PAYMENT)
+                    .s2sToken(SERVICE_TOKEN)
+                    .returnUrl("https://www.moneyclaims.service.gov.uk")
+                    .when().createTelephonyPayment(telephonyPaymentRequest, paymentGroupReference)
+                    .then().gotCreated(TelephonyCardPaymentsResponse.class, telephonyCardPaymentsResponse -> {
+                        assertThat(telephonyCardPaymentsResponse).isNotNull();
+                        assertThat(telephonyCardPaymentsResponse.getPaymentReference().matches(PAYMENT_REFERENCE_REGEX)).isTrue();
+                        assertThat(telephonyCardPaymentsResponse.getStatus()).isEqualTo("Initiated");
+                        paymentReference = telephonyCardPaymentsResponse.getPaymentReference();
+                    });
+                // pci-pal callback
+                TelephonyCallbackDto callbackDto = TelephonyCallbackDto.telephonyCallbackWith()
+                    .orderReference(paymentReference)
+                    .orderAmount("612")
+                    .transactionResult("SUCCESS")
+                    .build();
+
+                dsl.given().s2sToken(SERVICE_TOKEN)
+                    .when().telephonyCallback(callbackDto)
+                    .then().noContent();
+
+                // Get pba payments by ccdCaseNumber
+                PaymentsResponse liberataResponseOld = paymentTestService.getPbaPaymentsByCCDCaseNumber(SERVICE_TOKEN, telephonyPaymentRequest.getCcdCaseNumber())
+                    .then()
+                    .statusCode(OK.value()).extract().as(PaymentsResponse.class);
+
+                PaymentsResponse liberataResponseApproach1 = paymentTestService.getPbaPaymentsByCCDCaseNumberApproach1(SERVICE_TOKEN, telephonyPaymentRequest.getCcdCaseNumber())
+                    .then()
+                    .statusCode(OK.value()).extract().as(PaymentsResponse.class);
+
+                //Comparing the response size of old and new approach
+                Java6Assertions.assertThat(liberataResponseOld.getPayments().size()).isGreaterThanOrEqualTo(1);
+                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().size()).isGreaterThanOrEqualTo(1);
+
+                //Comparing the response of old and new approach
+                Boolean compareResult = new HashSet<>(liberataResponseOld.getPayments()).equals(new HashSet<>(liberataResponseApproach1.getPayments()));
+                Java6Assertions.assertThat(compareResult).isEqualTo(true);
+                LOG.info("Comparison of old and new api end point response of telephony payment is same");
+
+                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getPaymentReference()).isNotNull();
+                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getAmount()).isEqualTo(new BigDecimal("612.00"));
+                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getDateCreated()).isNotNull();
+                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getDateUpdated()).isNotNull();
+                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getCurrency()).isNotNull();
+                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getCcdCaseNumber()).isEqualTo(ccdCaseNumber);
+                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getChannel()).isEqualTo("telephony");
+                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getMethod()).isEqualTo("card");
+                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getExternalProvider()).isEqualTo("pci pal");
+                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getStatus()).isEqualTo("success");
+                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getSiteId()).isEqualTo("ABA1");
+                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getServiceName()).isEqualTo("Divorce");
+                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getFees().get(0).getApportionedPayment()).isEqualTo("612.00");
+                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getFees().get(0).getCalculatedAmount()).isEqualTo("612.00");
+                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getFees().get(0).getMemoLine()).isEqualTo("RECEIPT OF FEES - Family issue divorce");
+                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getFees().get(0).getNaturalAccountCode()).isEqualTo("4481102159");
+                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getFees().get(0).getJurisdiction1()).isEqualTo("family");
+                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getFees().get(0).getJurisdiction2()).isEqualTo("family court");
+
+            });
+    }
+
+    @Test
+    public void telephonyPaymentUnsupportedTelephonySystemConfiguration() {
+        String ccdCaseNumber = "11116467" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
+
+        FeeDto feeDto = FeeDto.feeDtoWith()
+            .calculatedAmount(new BigDecimal("612.00"))
+            .ccdCaseNumber(ccdCaseNumber)
+            .version("8")
+            .code("FEE0002")
+            .description("Filing an application for a divorce, nullity or civil partnership dissolution")
+            .build();
+
+        TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
+            .amount(new BigDecimal("612"))
+            .ccdCaseNumber(ccdCaseNumber)
+            .currency(CurrencyCode.GBP)
+            .caseType("DIVORCE")
+            .returnURL("https://www.moneyclaims.service.gov.uk")
+            .telephonySystem("JohnDoe")
+            .build();
+
+        PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(feeDto)).build();
+
+        dsl.given().userToken(USER_TOKEN_PAYMENT)
+            .s2sToken(SERVICE_TOKEN)
+            .when().addNewFeeAndPaymentGroup(groupDto)
+            .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
+                assertThat(paymentGroupFeeDto).isNotNull();
+
+                String paymentGroupReference = paymentGroupFeeDto.getPaymentGroupReference();
+
+                Response response = dsl.given().userToken(USER_TOKEN_PAYMENT)
+                    .s2sToken(SERVICE_TOKEN)
+                    .returnUrl("https://www.moneyclaims.service.gov.uk")
+                    .when().createTelephonyPayment(telephonyPaymentRequest, paymentGroupReference).then().getResponse();
+                assertThat(response.statusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY.value());
+                assertThat(response.getBody().print()).isEqualTo("Invalid or missing attributes");
+            });
+    }
+
+    @Test
+    public void telephonyPaymentUnsupportedServiceByFeePay() {
+        String ccdCaseNumber = "11116467" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
+
+        FeeDto feeDto = FeeDto.feeDtoWith()
+            .calculatedAmount(new BigDecimal("612.00"))
+            .ccdCaseNumber(ccdCaseNumber)
+            .version("8")
+            .code("FEE0002")
+            .description("Filing an application for a divorce, nullity or civil partnership dissolution")
+            .build();
+
+        TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
+            .amount(new BigDecimal("612"))
+            .ccdCaseNumber(ccdCaseNumber)
+            .currency(CurrencyCode.GBP)
+            .caseType("Test")
+            .returnURL("https://www.moneyclaims.service.gov.uk")
+            .telephonySystem("Kerv")
+            .build();
+
+        PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(feeDto)).build();
+
+        dsl.given().userToken(USER_TOKEN_PAYMENT)
+            .s2sToken(SERVICE_TOKEN)
+            .when().addNewFeeAndPaymentGroup(groupDto)
+            .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
+                assertThat(paymentGroupFeeDto).isNotNull();
+
+                String paymentGroupReference = paymentGroupFeeDto.getPaymentGroupReference();
+
+                Response response = dsl.given().userToken(USER_TOKEN_PAYMENT)
+                    .s2sToken(SERVICE_TOKEN)
+                    .returnUrl("https://www.moneyclaims.service.gov.uk")
+                    .when().createTelephonyPayment(telephonyPaymentRequest, paymentGroupReference).then().getResponse();
+                assertThat(response.statusCode()).isEqualTo(HttpStatus.NOT_FOUND.value());
+                assertThat(response.getBody().print()).isEqualTo("No Service found for given CaseType or HMCTS Org Id");
             });
     }
 
