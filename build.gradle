@@ -137,7 +137,7 @@ subprojects {
     }
 
     dependencies {
-        implementation ('com.sun.xml.bind:jaxb-osgi:4.0.5')
+        implementation ('com.sun.xml.bind:jaxb-osgi:4.0.6')
         testImplementation 'io.github.openfeign:feign-jackson:13.2.1'
         testImplementation 'io.github.openfeign:feign-micrometer:13.5'
         implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version:'2.17.1'
