@@ -2127,11 +2127,16 @@ public class PaymentStatusFunctionalTest {
         Response responseReport = paymentTestService.paymentFailureReport(USER_TOKEN_PAYMENT, SERVICE_TOKEN_PAYMENT, params);
 
         PaymentFailureReportResponse paymentFailureReportResponse = responseReport.getBody().as(PaymentFailureReportResponse.class);
-        String joinedRefundReference = String.join(",", refundResponseFromPost.getRefundReference(), refundResponseFromPost1.getRefundReference());
 
-        String firstRefundAmount = String.valueOf(refundResponseFromPost.getRefundAmount().toString());
-        String secondRefundAmount = String.valueOf(refundResponseFromPost1.getRefundAmount().toString());
-        String joinedRefundAmount = String.join(",", firstRefundAmount, secondRefundAmount);
+        // Ensure order is consistent before asserting
+        List<String> refundReferences = Arrays.asList(refundResponseFromPost.getRefundReference(), refundResponseFromPost1.getRefundReference());
+        Collections.sort(refundReferences);
+        String joinedRefundReference = String.join(",", refundReferences);
+
+        List<String> refundAmounts = Arrays.asList(refundResponseFromPost.getRefundAmount().toString(), refundResponseFromPost1.getRefundAmount().toString());
+        Collections.sort(refundAmounts);
+        String joinedRefundAmount = String.join(",", refundAmounts);
+
         PaymentFailureReportDto paymentFailureReportDto = paymentFailureReportResponse.getPaymentFailureReportList().stream().filter(s -> s.getFailureReference().equalsIgnoreCase(paymentsFailureResponse.getPaymentFailureList().get(0).getPaymentFailureInitiated().getFailureReference())).findFirst().get();
         String eventDate = paymentTestService.getReportDate(paymentFailureReportDto.getEventDate());
         String representmentReportDate = paymentTestService.getReportDate(paymentFailureReportDto.getRepresentmentDate());
@@ -2144,10 +2149,22 @@ public class PaymentStatusFunctionalTest {
         assertEquals("ABA6", paymentFailureReportDto.getOrgId());
         assertEquals(accountPaymentRequest.getCcdCaseNumber(), paymentFailureReportDto.getCcdReference());
         assertEquals("Probate", paymentFailureReportDto.getServiceName());
-        assertThat(joinedRefundAmount).contains(paymentFailureReportDto.getRefundAmount());
+
+        // Ensure order is consistent before asserting
+        List<String> failureReportRefundsAmount = Arrays.asList(paymentFailureReportDto.getRefundAmount().split(","));
+        Collections.sort(failureReportRefundsAmount);
+        String failureReportRefundsAmountJoined = String.join(",", failureReportRefundsAmount);
+        assertThat(joinedRefundAmount).contains(failureReportRefundsAmountJoined);
+
         assertEquals(expectedDate, eventDate);
         assertEquals(expectedDate, representmentReportDate);
-        assertThat(joinedRefundReference).contains(paymentFailureReportDto.getRefundReference());
+
+        // Ensure order is consistent before asserting
+        List<String> failureReportRefundReference = Arrays.asList(paymentFailureReportDto.getRefundReference().split(","));
+        Collections.sort(failureReportRefundReference);
+        String failureReportRefundReferenceJoined = String.join(",", failureReportRefundReference);
+        assertThat(joinedRefundReference).contains(failureReportRefundReferenceJoined);
+
         assertEquals("RR001", paymentFailureReportDto.getFailureReason());
 
 
