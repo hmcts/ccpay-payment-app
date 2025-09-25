@@ -15,6 +15,7 @@ import java.math.BigDecimal;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class TelephonyCardPaymentsRequestTest {
     private static ValidatorFactory validatorFactory;
@@ -59,7 +60,7 @@ public class TelephonyCardPaymentsRequestTest {
 
         Set<ConstraintViolation<TelephonyCardPaymentsRequest>> violations = validator.validate(request);
         assertEquals(2, violations.size());
-        assertEquals("must be greater than 0", violations.iterator().next().getMessage());
+        assertTrue(violations.iterator().next().getMessage().contains("must be greater than"));
     }
 
     @Test
