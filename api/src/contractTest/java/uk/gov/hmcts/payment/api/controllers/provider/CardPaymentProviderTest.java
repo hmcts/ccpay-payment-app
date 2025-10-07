@@ -199,6 +199,17 @@ class CardPaymentProviderTest {
 
     }
 
+    @State({"The appeal payment amount and fee amount should be equal"})
+    public void toPostAppealPaymentWithSuccess() {
+
+        when(govPayKeyRepositoryMock.getKey(null)).thenReturn("govePayKey");
+        when(govPayClientMock.createPayment(anyString(), any(CreatePaymentRequest.class))).thenReturn(buildGovPaymentDto());
+
+        PaymentFeeLink paymentLink = populateCardPaymentToDb("1", "e2kkddts5215h9qqoeuth5c0v", "iac").getPaymentLink();
+        when(paymentFeeLinkRepositoryMock.save(null)).thenReturn(paymentLink);
+
+    }
+
     private GovPayPayment buildGovPaymentDto() {
         return GovPayPayment.govPaymentWith()
             .amount(10000)
