@@ -251,6 +251,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
             .build(), HttpStatus.CREATED);
     }
 
+    @Transactional
     @Override
     public ServiceRequestPaymentBo addPayments(PaymentFeeLink serviceRequest, String serviceRequestReference,
                                                ServiceRequestPaymentDto serviceRequestPaymentDto) throws CheckDigitException {

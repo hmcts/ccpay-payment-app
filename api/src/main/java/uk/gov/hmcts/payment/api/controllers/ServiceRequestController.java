@@ -199,7 +199,7 @@ public class ServiceRequestController {
         return createPbaPaymentForServiceRequest(serviceRequestReference, serviceRequestPaymentDto);
     }
 
-    @Transactional
+
     private ResponseEntity createPbaPaymentForServiceRequest(String serviceRequestReference,
                                                             ServiceRequestPaymentDto serviceRequestPaymentDto) throws CheckDigitException, JsonProcessingException {
         // PBA Payment

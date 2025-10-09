@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.api.domain.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.payment.api.model.IdempotencyKeys;
 import uk.gov.hmcts.payment.api.model.IdempotencyKeysRepository;
@@ -22,7 +23,7 @@ public class IdempotencyServiceImpl implements IdempotencyService {
     public Optional<IdempotencyKeys> findTheRecordByIdempotencyKey(String idempotencyKeyToCheck) {
         return idempotencyKeysRepository.findByIdempotencyKey(idempotencyKeyToCheck);
     }
-
+    @Transactional(readOnly = true)
     @Override
     public List<IdempotencyKeys> findTheRecordByRequestHashcode(Integer requestHashcode) {
         return idempotencyKeysRepository.findByRequestHashcode(requestHashcode);
