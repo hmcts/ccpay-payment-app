@@ -154,6 +154,11 @@ class CardPaymentProviderTest {
     @BeforeEach
     void before(PactVerificationContext context) {
         System.getProperties().setProperty("pact.verifier.publishResults", "true");
+        // Set provider version for publishing verification results
+        String gitCommit = System.getenv().getOrDefault("GIT_COMMIT", getGitCommitHash());
+        System.getProperties().setProperty("pact.provider.version", gitCommit);
+        System.getProperties().setProperty("pact.provider.branch", branchName != null ? branchName : "master");
+
         MockMvcTestTarget testTarget = new MockMvcTestTarget();
         when(paymentReferenceMock.getNext()).thenReturn("123");
         CardPaymentController cardPaymentController =
@@ -169,6 +174,19 @@ class CardPaymentProviderTest {
             context.setTarget(testTarget);
         }
 
+    }
+
+    private String getGitCommitHash() {
+        try {
+            Process process = Runtime.getRuntime().exec("git rev-parse --verify --short HEAD");
+            java.io.BufferedReader reader = new java.io.BufferedReader(
+                new java.io.InputStreamReader(process.getInputStream()));
+            String hash = reader.readLine();
+            reader.close();
+            return hash != null ? hash.trim() : "unknown";
+        } catch (Exception e) {
+            return "unknown";
+        }
     }
 
     @State({"A payment reference exists"})
@@ -207,6 +225,18 @@ class CardPaymentProviderTest {
 
         PaymentFeeLink paymentLink = populateCardPaymentToDb("1", "e2kkddts5215h9qqoeuth5c0v", "iac").getPaymentLink();
         when(paymentFeeLinkRepositoryMock.save(null)).thenReturn(paymentLink);
+
+    }
+
+    @State({"A request for card payment"})
+    public void toPostCardPaymentRequest() {
+
+        when(govPayKeyRepositoryMock.getKey(null)).thenReturn("govePayKey");
+        when(govPayClientMock.createPayment(anyString(), any(CreatePaymentRequest.class))).thenReturn(buildGovPaymentDto());
+
+        PaymentFeeLink paymentLink = populateCardPaymentToDb("1", "e2kkddts5215h9qqoeuth5c0v", "iac").getPaymentLink();
+        when(paymentFeeLinkRepositoryMock.save(any())).thenReturn(paymentLink);
+        when(paymentReferenceMock.getNext()).thenReturn("2018-00000000001");
 
     }
 

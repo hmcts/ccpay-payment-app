@@ -13,6 +13,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
@@ -113,6 +114,9 @@ class CreditAccountPaymentProviderTest {
     @Autowired
     ServiceRequestCaseUtil serviceRequestCaseUtil;
 
+    @Value("${PACT_BRANCH_NAME:master}")
+    String branchName;
+
     private final static String PAYMENT_CHANNEL_ONLINE = "online";
 
     private final static String PAYMENT_METHOD = "payment by account";
@@ -127,8 +131,12 @@ class CreditAccountPaymentProviderTest {
 
     @BeforeEach
     void before(PactVerificationContext context) {
-        // Uncomment the line below in order to pubish verification to pact broker (not for PR pipeline!!!)
         System.getProperties().setProperty("pact.verifier.publishResults", "true");
+        // Set provider version for publishing verification results
+        String gitCommit = System.getenv().getOrDefault("GIT_COMMIT", getGitCommitHash());
+        System.getProperties().setProperty("pact.provider.version", gitCommit);
+        System.getProperties().setProperty("pact.provider.branch", branchName != null ? branchName : "master");
+
         MockMvcTestTarget testTarget = new MockMvcTestTarget();
         testTarget.setControllers(
             new CreditAccountPaymentController(creditAccountPaymentService, creditAccountDtoMapper, accountServiceMock, paymentValidator,
@@ -136,6 +144,19 @@ class CreditAccountPaymentProviderTest {
                 referenceDataService, authTokenGenerator, paymentReferenceMock));
         if (context != null) {
             context.setTarget(testTarget);
+        }
+    }
+
+    private String getGitCommitHash() {
+        try {
+            Process process = Runtime.getRuntime().exec("git rev-parse --verify --short HEAD");
+            java.io.BufferedReader reader = new java.io.BufferedReader(
+                new java.io.InputStreamReader(process.getInputStream()));
+            String hash = reader.readLine();
+            reader.close();
+            return hash != null ? hash.trim() : "unknown";
+        } catch (Exception e) {
+            return "unknown";
         }
     }
 
