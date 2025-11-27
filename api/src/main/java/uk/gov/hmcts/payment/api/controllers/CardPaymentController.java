@@ -116,7 +116,7 @@ public class CardPaymentController implements ApplicationContextAware {
     @ResponseBody
     @Transactional
     public ResponseEntity<PaymentDto> createCardPayment(
-        @RequestHeader(value = "return-url") String returnURL,
+        @RequestHeader(value = "return-url", required = false) String returnURL,
         @RequestHeader(value = "service-callback-url", required = false) String serviceCallbackUrl,
         @RequestHeader(required = false) MultiValueMap<String, String> headers,
         @Valid @RequestBody CardPaymentRequest request) throws CheckDigitException {
