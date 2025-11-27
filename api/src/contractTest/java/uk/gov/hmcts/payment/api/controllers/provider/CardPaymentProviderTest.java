@@ -66,10 +66,23 @@ import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.payment.api.model.PaymentFee.feeWith;
 import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 
+// Explicit consumer list included to handle DIAC-267, can be removed once DIAC-267 is done.
+// Failing consumers ia_caseDocumentsApi and ia_casePaymentsApi.
+// https://tools.hmcts.net/jira/browse/DIAC-267
 @ExtendWith(SpringExtension.class)
 @Provider("payment_cardPayment")
 @PactBroker(scheme = "${PACT_BROKER_SCHEME:http}", host = "${PACT_BROKER_URL:localhost}", port = "${PACT_BROKER_PORT:80}", consumerVersionSelectors = {
-    @VersionSelector(tag = "master")})
+    @VersionSelector(consumer = "civil_service", tag = "master"),
+    @VersionSelector(consumer = "divorce_caseOrchestratorService", tag = "master"),
+    @VersionSelector(consumer = "fpl_ccdConfiguration", tag = "master"),
+    @VersionSelector(consumer = "fr_caseOrchestratorService", tag = "master"),
+    @VersionSelector(consumer = "payment_App", tag = "master"),
+    @VersionSelector(consumer = "pcs_api", tag = "master"),
+    @VersionSelector(consumer = "prl_cos", tag = "master"),
+    @VersionSelector(consumer = "probate_backOffice", tag = "master"),
+    @VersionSelector(consumer = "probate_caveatsFrontEnd", tag = "master"),
+    @VersionSelector(consumer = "xui_manageOrg", tag = "master")
+})
 @Import(CardPaymentProviderTestConfiguration.class)
 @IgnoreNoPactsToVerify
 class CardPaymentProviderTest {
@@ -237,7 +250,6 @@ class CardPaymentProviderTest {
         PaymentFeeLink paymentLink = populateCardPaymentToDb("1", "e2kkddts5215h9qqoeuth5c0v", "iac").getPaymentLink();
         when(paymentFeeLinkRepositoryMock.save(any())).thenReturn(paymentLink);
         when(paymentReferenceMock.getNext()).thenReturn("2018-00000000001");
-
     }
 
     private GovPayPayment buildGovPaymentDto() {
