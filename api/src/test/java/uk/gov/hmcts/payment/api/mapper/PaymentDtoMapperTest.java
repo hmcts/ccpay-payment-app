@@ -7,7 +7,12 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import uk.gov.hmcts.fees2.register.api.contract.Fee2Dto;
+import uk.gov.hmcts.fees2.register.api.contract.FeeVersionDto;
+import uk.gov.hmcts.fees2.register.api.contract.Jurisdiction1Dto;
+import uk.gov.hmcts.fees2.register.api.contract.Jurisdiction2Dto;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
+import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentAllocationDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
@@ -16,13 +21,11 @@ import uk.gov.hmcts.payment.api.reports.FeesService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -47,6 +50,8 @@ public class PaymentDtoMapperTest {
     List<PaymentFee> paymentFees;
 
     PaymentAllocation allocation1;
+
+    Optional<FeeVersionDto> feeVersionDto;
 
     @Before
     public void initiate(){
@@ -149,6 +154,11 @@ public class PaymentDtoMapperTest {
         payment1.setPaymentLink(paymentFeeLink);
         multiplePayment1.setPaymentLink(paymentFeeLinkMultiplePayments);
         multiplePayment2.setPaymentLink(paymentFeeLinkMultiplePayments);
+        feeVersionDto = Optional.of(FeeVersionDto.feeVersionDtoWith()
+            .version(Integer.valueOf("1"))
+            .memoLine(" memo line")
+            .naturalAccountCode(" 1234567")
+            .build());
     }
 
     @Test
@@ -269,15 +279,6 @@ public class PaymentDtoMapperTest {
     public void testToReconciliationResponseDto(){
         PaymentDto paymentDto = paymentDtoMapper.toReconciliationResponseDto(paymentFeeLink);
         assertEquals("group-reference",paymentDto.getPaymentGroupReference());
-
-
-    }
-
-    @Test
-    public void testToReconciliationResponseDtoForLibereta(){
-        when(ff4j.check(any(String.class))).thenReturn(true);
-        PaymentDto paymentDto = paymentDtoMapper.toReconciliationResponseDtoForLibereta(payment1,"group-reference",paymentFees,ff4j,true);
-        assertEquals("group-reference",paymentDto.getPaymentGroupReference());
     }
 
     @Test
@@ -333,4 +334,24 @@ public class PaymentDtoMapperTest {
         assertEquals(paymentDto.getCaseReference(), payment.getCaseReference());
     }
 
+    @Test
+    public void testMemoLineAndNaturalAccountCodeValidation() {
+        when(feesService.getFeeVersion(eq("FEE123"), eq("1"))).thenReturn(feeVersionDto);
+        when(ff4j.check(any(String.class))).thenReturn(true);
+
+        // Mock the fee map so enrichment works
+        Map<String, uk.gov.hmcts.fees2.register.api.contract.Fee2Dto> feeMap = new HashMap<>();
+        Fee2Dto fee2Dto = Fee2Dto.fee2DtoWith()
+            .jurisdiction1Dto(Jurisdiction1Dto.jurisdiction1TypeDtoWith().name("J1").build())
+            .jurisdiction2Dto(Jurisdiction2Dto.jurisdiction2TypeDtoWith().name("J1").build())
+            .build();
+        feeMap.put("FEE123", fee2Dto);
+        when(feesService.getFeesDtoMap()).thenReturn(feeMap);
+
+        PaymentDto paymentDto = paymentDtoMapper.toReconciliationResponseDtoForLibereta(payment1, "group-reference", paymentFees, ff4j, true);
+        FeeDto feeDto = paymentDto.getFees().get(0);
+        // Assert: values are trimmed
+        assertEquals("memo line", feeDto.getMemoLine());
+        assertEquals("1234567", feeDto.getNaturalAccountCode());
+    }
 }
