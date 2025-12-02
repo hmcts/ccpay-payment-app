@@ -42,7 +42,7 @@ java:
     GOV_PAY_OPERATIONAL_SERVICES: "ccd_gw,api_gw,xui_webapp,ccpay_gw"
     PCI_PAL_CALLBACK_URL: https://cft-mtls-api-mgmt-appgw.{{ .Values.global.environment }}.platform.hmcts.net/telephony-api/telephony/callback
 
-    TRUSTED_S2S_SERVICE_NAMES: "refunds_api,iac,cmc,cmc_claim_store,probate_frontend,divorce_frontend,ccd_gw,api_gw,finrem_payment_service,ccpay_bubble,jui_webapp,xui_webapp,fpl_case_service,civil_service,paymentoutcome_web,adoption_web,prl_cos_api,notifications_service,ccpay_gw"
+    TRUSTED_S2S_SERVICE_NAMES: "refunds_api,iac,cmc,cmc_claim_store,probate_frontend,divorce_frontend,ccd_gw,api_gw,finrem_payment_service,ccpay_bubble,jui_webapp,xui_webapp,fpl_case_service,civil_service,paymentoutcome_web,adoption_web,prl_cos_api,notifications_service,ccpay_gw,pcs_api"
     CARD_PAYMENTS_REPORT_SCHEDULER_ENABLED: "true"
     CARD_PAYMENTS_EMAIL_FROM: "no-reply@mail-payment-nonprod.platform.hmcts.net"
     CARD_PAYMENTS_EMAIL_MESSAGE: "Hi, <br/><br/>Please find attached Payment by Account reconciliation report. <br/><br/>Regards, <br/>Fees & Payments Team <br/><br/>"
@@ -216,6 +216,28 @@ java:
           alias: pci-pal.antenna.iac.flow.id
         - name: pci-pal-antenna-strategic-flow-id
           alias: pci-pal.antenna.strategic.flow.id
+        - name: pci-pal-kerv-tenant-name
+          alias: pci-pal.kerv.tenant.name
+        - name: pci-pal-kerv-client-id
+          alias: pci-pal.kerv.client.id
+        - name: pci-pal-kerv-client-secret
+          alias: pci-pal.kerv.client.secret
+        - name: pci-pal-kerv-get-tokens-url
+          alias: pci-pal.kerv.get.tokens.url
+        - name: pci-pal-kerv-launch-url
+          alias: pci-pal.kerv.launch.url
+        - name: pci-pal-kerv-view-id-url
+          alias: pci-pal.kerv.view.id.url
+        - name: pci-pal-kerv-probate-flow-id
+          alias: pci-pal.kerv.probate.flow.id
+        - name: pci-pal-kerv-divorce-flow-id
+          alias: pci-pal.kerv.divorce.flow.id
+        - name: pci-pal-kerv-prl-flow-id
+          alias: pci-pal.kerv.prl.flow.id
+        - name: pci-pal-kerv-iac-flow-id
+          alias: pci-pal.kerv.iac.flow.id
+        - name: pci-pal-kerv-strategic-flow-id
+          alias: pci-pal.kerv.strategic.flow.id
         - name: spring-mail-password
           alias: spring.mail.password
         - name: ccpay-payment-status-connection-string
