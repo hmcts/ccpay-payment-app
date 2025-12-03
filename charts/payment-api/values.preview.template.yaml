@@ -141,8 +141,7 @@ ccpay-refunds-api:
       "ccpay":
         resourceGroup: ccpay
         secrets:
-          - name: AppInsightsInstrumentationKey
-            alias: azure.application-insights.instrumentation-key
+          - name: app-insights-connection-string
           - name: refunds-s2s-secret
             alias: OIDC_S2S_SECRET
           - name: paybubble-idam-client-secret
@@ -200,7 +199,6 @@ ccpay-bulkscanning-api:
       "ccpay":
         resourceGroup: ccpay
         secrets:
-          - AppInsightsInstrumentationKey
           - paybubble-s2s-secret
           - paybubble-idam-client-secret
           - app-insights-connection-string
@@ -247,8 +245,6 @@ ccpay-notifications-service:
             alias: POSTGRES_PASSWORD
           - name: app-insights-connection-string
             alias: app-insights-connection-string
-          - name: AppInsightsInstrumentationKey
-            alias: azure.application-insights.instrumentation-key
           - name: notifications-s2s-secret
             alias: OIDC_S2S_SECRET
           - name: notifications-email-apikey

@@ -78,9 +78,3 @@ Liquibase is used to update the database changes. Perform following steps to cre
 3. this will generate a new yaml file e.g. api/src/main/resources/db/changelog/db.changelog-0.0.5.yaml
 5. Add this file to pom.xml in diffChangeLogFile section under configuration
 6. Add this file to db.changelog-master.xml's diff files list
-
-#### Environment variables
-
-The following environment variables are required:
-
-- `APPINSIGHTS_INSTRUMENTATIONKEY`, app insights key to send telemetry events.
