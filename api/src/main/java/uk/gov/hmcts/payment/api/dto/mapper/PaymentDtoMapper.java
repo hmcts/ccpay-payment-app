@@ -387,8 +387,16 @@ public class PaymentDtoMapper {
 
                     Optional<FeeVersionDto> optionalFeeVersionDto = feesService.getFeeVersion(fee.getCode(), fee.getVersion());
                     if (optionalFeeVersionDto.isPresent()) {
-                        fee.setMemoLine(optionalFeeVersionDto.get().getMemoLine());
-                        fee.setNaturalAccountCode(optionalFeeVersionDto.get().getNaturalAccountCode());
+                        fee.setMemoLine(
+                            optionalFeeVersionDto.get().getMemoLine() != null
+                                ? optionalFeeVersionDto.get().getMemoLine().trim()
+                                : null
+                        );
+                        fee.setNaturalAccountCode(
+                            optionalFeeVersionDto.get().getNaturalAccountCode() != null
+                                ? optionalFeeVersionDto.get().getNaturalAccountCode().trim()
+                                : null
+                        );
                     }
                 } else {
                     LOG.info("No fee found with the code: {}", fee.getCode());
