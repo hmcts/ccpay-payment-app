@@ -178,7 +178,7 @@ dependencies {
     smokeTestCompileOnly group: 'org.projectlombok', name: 'lombok', version: versions.lombok
     smokeTestAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: versions.lombok
     implementation group: 'org.pitest', name: 'pitest', version: versions.pitest
-    implementation 'info.solidsoft.gradle.pitest:gradle-pitest-plugin:1.9.0'
+    implementation 'info.solidsoft.gradle.pitest:gradle-pitest-plugin:1.15.0'
     implementation 'org.codehaus.sonar-plugins:sonar-pitest-plugin:0.5'
 
     contractTestImplementation group: 'au.com.dius.pact.provider', name: 'junit5', version: versions.pact_version
