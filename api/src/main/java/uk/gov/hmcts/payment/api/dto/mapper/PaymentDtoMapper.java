@@ -338,9 +338,7 @@ public class PaymentDtoMapper {
         boolean bulkScanCheck = ff4j.check("bulk-scan-check");
         boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
         boolean apportionCheck = apportionFeature && isPaymentAfterApportionment;
-        LOG.info("bulkScanCheck value in PaymentDtoMapper: {}",bulkScanCheck);
         LOG.info("isBulkScanPayment value in PaymentDtoMapper: {}",isBulkScanPayment);
-        LOG.info("apportionFeature value in PaymentDtoMapper: {}",apportionFeature);
         LOG.info("apportionCheck value in PaymentDtoMapper: {}",apportionCheck);
         PaymentDto paymentDto = PaymentDto.payment2DtoWith()
             .paymentReference(payment.getReference())
@@ -471,7 +469,6 @@ public class PaymentDtoMapper {
     }
 
     private FeeDto toFeeLiberataDto(PaymentFee fee,boolean apportionCheck) {
-        LOG.info("Inside toFeeLiberataDto");
         BigDecimal netAmount = fee.getNetAmount() != null ? fee.getNetAmount() : fee.getCalculatedAmount();
         BigDecimal calculatedAmount =  netAmount.equals(fee.getCalculatedAmount()) ? fee.getCalculatedAmount() : netAmount;
         return FeeDto.feeDtoWith()
