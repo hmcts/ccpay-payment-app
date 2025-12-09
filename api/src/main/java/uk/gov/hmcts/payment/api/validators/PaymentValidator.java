@@ -28,7 +28,6 @@ public class PaymentValidator {
     }
 
     public void validate(Optional<String> paymentMethodType, Optional<String> startDateString, Optional<String> endDateString) {
-        LOG.info("Inside validate");
         ValidationErrorDTO dto = new ValidationErrorDTO();
 
         if (paymentMethodType.isPresent() && !EnumUtils.isValidEnum(PaymentMethodType.class, paymentMethodType.get().toUpperCase())) {
@@ -46,11 +45,9 @@ public class PaymentValidator {
             LOG.info("Validation error exists: {}", dto);
             throw new ValidationErrorException("Error occurred in the payment params", dto);
         }
-        LOG.info("Validation is successful");
     }
 
     public void validateToFromDates(Optional<String> startDateString, Optional<String> endDateString) {
-        LOG.info("Inside validate");
         ValidationErrorDTO dto = new ValidationErrorDTO();
 
         Optional<LocalDateTime> startDate = parseAndValidateDate(startDateString, "start_date", dto);
@@ -64,7 +61,6 @@ public class PaymentValidator {
             LOG.info("Validation error exists: {}", dto);
             throw new ValidationErrorException("Error occurred in the payment params", dto);
         }
-        LOG.info("Validation is successful");
     }
 
     private Optional<LocalDateTime> parseAndValidateDate(Optional<String> dateTimeString, String fieldName, ValidationErrorDTO dto) {
