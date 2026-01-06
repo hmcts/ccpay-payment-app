@@ -13,7 +13,7 @@ public class KervTelephonySystem extends TelephonySystem {
 
     public static final String TELEPHONY_SYSTEM_NAME = "kerv";
 
-    private final String systemName = TELEPHONY_SYSTEM_NAME;
+    private static final String systemName = TELEPHONY_SYSTEM_NAME;
 
     @Value("${pci-pal.kerv.grant.type}")
     private String kervGrantType;

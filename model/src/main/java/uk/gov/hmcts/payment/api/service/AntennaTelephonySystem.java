@@ -13,7 +13,7 @@ public class AntennaTelephonySystem extends TelephonySystem {
 
     public static final String TELEPHONY_SYSTEM_NAME = "antenna";
 
-    private final String systemName = TELEPHONY_SYSTEM_NAME;
+    private static final String systemName = TELEPHONY_SYSTEM_NAME;
 
     @Value("${pci-pal.antenna.grant.type}")
     private String antennaGrantType;
