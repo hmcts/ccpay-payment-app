@@ -13,7 +13,7 @@ public class KervTelephonySystem extends TelephonySystem {
 
     public static final String TELEPHONY_SYSTEM_NAME = "kerv";
 
-    private String systemName = TELEPHONY_SYSTEM_NAME;
+    private static final String SYSTEM_NAME = TELEPHONY_SYSTEM_NAME;
 
     @Value("${pci-pal.kerv.grant.type}")
     private String kervGrantType;
@@ -53,7 +53,7 @@ public class KervTelephonySystem extends TelephonySystem {
 
     @Override
     public String getSystemName() {
-        return systemName;
+        return SYSTEM_NAME;
     }
     @Override
     public String getGrantType() {
