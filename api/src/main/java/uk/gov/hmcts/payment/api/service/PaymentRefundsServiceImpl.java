@@ -286,12 +286,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(refundApiUrl + REFUND_ENDPOINT).queryParam("ccdCaseNumber",ccdCaseNumber);
 
-        LOG.info("builder.toUriString() : {}", builder.toUriString());
-
         try {
-
-            LOG.info("restTemplateRefundsGroup : {}", restTemplateRefundsGroup);
-
             // call refund app
             ResponseEntity<RefundListDtoResponse> refundListDtoResponseEntity  = restTemplateRefundsGroup
                 .exchange(builder.toUriString(), HttpMethod.GET, createEntity(headers), RefundListDtoResponse.class);
@@ -325,12 +320,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(refundApiUrl + REFUND_ENDPOINT).queryParam("ccdCaseNumber",ccdCaseNumber);
 
-        LOG.info("builder.toUriString() : {}", builder.toUriString());
-
         try {
-
-            LOG.info("restTemplateRefundsGroup : {}", restTemplateRefundsGroup);
-
             // call refund app
             ResponseEntity<RefundListDtoResponse> refundListDtoResponseEntity  = restTemplateRefundsGroup
                 .exchange(builder.toUriString(), HttpMethod.GET, createEntity(headers), RefundListDtoResponse.class);
@@ -411,8 +401,6 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         }
 
         boolean refundLagTimefeature = featureToggler.getBooleanValue("refund-remission-lagtime-feature",false);
-
-        LOG.info("RefundEnableFeature Flag Value in PaymentRefundsServiceImpl : {}", refundLagTimefeature);
 
         if(refundLagTimefeature){
 
@@ -853,7 +841,6 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
     public PaymentGroupResponse checkRefundAgainstRemissionV2(MultiValueMap<String, String> headers,
                                                               PaymentGroupResponse paymentGroupResponse, String ccdCaseNumber) {
-        LOG.info("inside checkRefundAgainstRemissionV2 method");
         //check roles
         if(isContainsPaymentsRefundRole()) {
 
