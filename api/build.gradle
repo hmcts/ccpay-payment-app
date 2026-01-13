@@ -197,7 +197,7 @@ dependencies {
     functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-screenplay', version: versions.serenity
     functionalTestImplementation group: 'io.rest-assured', name: 'xml-path'
     functionalTestImplementation group: 'io.rest-assured', name: 'json-path'
-    functionalTestImplementation group: 'org.awaitility', name: 'awaitility', version: '4.2.2'
+    functionalTestImplementation group: 'org.awaitility', name: 'awaitility', version: '4.3.0'
 }
 
 test {
