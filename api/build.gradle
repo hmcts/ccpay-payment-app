@@ -198,9 +198,11 @@ dependencies {
     functionalTestImplementation group: 'io.rest-assured', name: 'xml-path'
     functionalTestImplementation group: 'io.rest-assured', name: 'json-path'
     functionalTestImplementation group: 'org.awaitility', name: 'awaitility', version: '4.3.0'
+    pitest 'org.pitest:pitest-junit5-plugin:1.2.1'
 }
 
 test {
+    useJUnitPlatform()
     // Base test class for other tests - has no runnable test methods
     exclude 'uk/gov/hmcts/payment/api/v1/**'
 }
@@ -325,6 +327,8 @@ pitest {
     timestampedReports = false
     failWhenNoMutations = false
     detectInlinedCode = true
+    pitestVersion = versions.pitest
+    testPlugin = 'junit5'
 }
 
 tasks.named("processContractTestResources") {
