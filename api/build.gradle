@@ -124,7 +124,7 @@ dependencies {
     implementation group: 'org.ff4j', name: 'ff4j-spring-boot-starter-webmvc', version: '2.1'
     implementation group: 'commons-fileupload', name: 'commons-fileupload', version: '1.6.0'
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-thymeleaf'
-    implementation(group: 'org.postgresql', name: 'postgresql', version: '42.7.8') {
+    implementation(group: 'org.postgresql', name: 'postgresql', version: '42.7.9') {
         exclude(module: 'commons-logging')
         exclude(module: 'slf4j-simple')
     }
