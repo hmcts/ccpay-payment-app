@@ -550,7 +550,9 @@ public class PaymentGroupController {
         @Valid @RequestBody TelephonyCardPaymentsRequest telephonyCardPaymentsRequest) throws CheckDigitException, MethodNotSupportedException {
 
         // This validation is used to ensure that the request is suing the default telephony system Kerv.
-        if (!telephonyCardPaymentsRequest.getTelephonySystem().equals(KervTelephonySystem.TELEPHONY_SYSTEM_NAME)) {
+        if ( telephonyCardPaymentsRequest.getTelephonySystem()==null ||
+            !telephonyCardPaymentsRequest.getTelephonySystem().equals(KervTelephonySystem.TELEPHONY_SYSTEM_NAME)) {
+
             throw new TelephonyServiceException("Invalid telephony system name");
         }
 
