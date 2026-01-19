@@ -549,6 +549,11 @@ public class PaymentGroupController {
         @PathVariable("payment-group-reference") String paymentGroupReference,
         @Valid @RequestBody TelephonyCardPaymentsRequest telephonyCardPaymentsRequest) throws CheckDigitException, MethodNotSupportedException {
 
+        // This validation is used to ensure that the request is suing the default telephony system Kerv.
+        if (!telephonyCardPaymentsRequest.getTelephonySystem().equals(KervTelephonySystem.TELEPHONY_SYSTEM_NAME)) {
+            throw new TelephonyServiceException("Invalid telephony system name");
+        }
+
         final TelephonyProviderAuthorisationResponse telephonyProviderAuthorisationResponse;
         PaymentFeeLink paymentLink = paymentGroupService.findByPaymentGroupReference(paymentGroupReference);
         LOG.info("--------Here is the value of getTelephonySystem: {}", telephonyCardPaymentsRequest.getTelephonySystem());
