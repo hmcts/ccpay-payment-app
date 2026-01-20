@@ -61,6 +61,8 @@ public class RefundRemissionEnableServiceImpl implements RefundRemissionEnableSe
 
         if(refundLagTimeFeature){
             refundEligibleDate = calculateLagDate(payment);
+            LOG.debug("refundEligibleDate--->  {}",refundEligibleDate);
+            LOG.debug("isRoles--->  {}",isRoles);
 
             return payment.getPaymentStatus().getName().equalsIgnoreCase(STATUS) && refundEligibleDate
                 && validateRefundRoleWithServiceName(payment.getPaymentLink().getEnterpriseServiceName());
@@ -88,6 +90,7 @@ public class RefundRemissionEnableServiceImpl implements RefundRemissionEnableSe
         }
 
         boolean remissionLagTimeFeature = featureToggler.getBooleanValue("refund-remission-lagtime-feature",false);
+        LOG.debug("RefundEnableFeature Flag Value in RefundRemissionEnableServiceImpl : {}", remissionLagTimeFeature);
 
         if(remissionLagTimeFeature){
             Optional<List<FeePayApportion>> feePayApportion = FeePayApportionRepository.findByFeeId(

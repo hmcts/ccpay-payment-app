@@ -173,6 +173,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
         CriteriaBuilder cb,
         PaymentSearchCriteria searchCriteria, CriteriaQuery<?> query) {
         List<Predicate> predicates = new ArrayList<>();
+        LOG.debug("PaymentSearchCriteria: {}", searchCriteria);
         Join<PaymentFeeLink, Payment> paymentJoin = root.join("payments", JoinType.LEFT);
 
         if (searchCriteria.getPaymentMethod() != null) {
@@ -375,6 +376,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
                 boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature", false);
                 LOG.info("ApportionFeature Flag Value in UserAwareDelegatingPaymentService : {}", apportionFeature);
                 if (apportionFeature) {
+                    LOG.debug("Inside Apportion feature");
                     if (govPayPayment.getState().getStatus().equalsIgnoreCase("success")) {
                         LOG.info("Update Fee Amount Due as Payment Status received from GovPAY as SUCCESS!!!");
                         feePayApportionService.updateFeeAmountDue(payment);
