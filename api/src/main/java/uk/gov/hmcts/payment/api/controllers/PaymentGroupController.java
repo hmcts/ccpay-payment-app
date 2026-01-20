@@ -549,11 +549,7 @@ public class PaymentGroupController {
         @PathVariable("payment-group-reference") String paymentGroupReference,
         @Valid @RequestBody TelephonyCardPaymentsRequest telephonyCardPaymentsRequest) throws CheckDigitException, MethodNotSupportedException {
 
-        // This validation is used to ensure that the request is suing the default telephony system Kerv.
-        if ( telephonyCardPaymentsRequest.getTelephonySystem()==null ||
-            !telephonyCardPaymentsRequest.getTelephonySystem().equals(KervTelephonySystem.TELEPHONY_SYSTEM_NAME)) {
-            throw new TelephonyServiceException("Invalid telephony system name");
-        }
+        validateDefaultTelephonySystem(telephonyCardPaymentsRequest);
 
         final TelephonyProviderAuthorisationResponse telephonyProviderAuthorisationResponse;
         PaymentFeeLink paymentLink = paymentGroupService.findByPaymentGroupReference(paymentGroupReference);
@@ -603,6 +599,27 @@ public class PaymentGroupController {
             feePayApportionService.processApportion(payment);
         }
         return new ResponseEntity<>(telephonyCardPaymentsResponse, HttpStatus.CREATED);
+    }
+    /**
+     * Validate that the supplied {@link TelephonyCardPaymentsRequest} is using the default telephony system (Kerv).
+     *
+     * <p>This method ensures the request's {@code telephonySystem} exactly equals
+     * {@code KervTelephonySystem.TELEPHONY_SYSTEM_NAME}. If the value is {@code null} or does not match,
+     * a {@link TelephonyServiceException} is thrown.</p>
+     *
+     * @param telephonyCardPaymentsRequest the telephony card payments request to validate; passing {@code null}
+     *                                     will result in a {@link NullPointerException} when the method attempts
+     *                                     to access its properties.
+     * @throws TelephonyServiceException if the telephony system is {@code null} or not equal to
+     *                                   {@code KervTelephonySystem.TELEPHONY_SYSTEM_NAME}
+     * @see KervTelephonySystem#TELEPHONY_SYSTEM_NAME
+     */
+    public void validateDefaultTelephonySystem(TelephonyCardPaymentsRequest telephonyCardPaymentsRequest) {
+        // This validation is used to ensure that the request is suing the default telephony system Kerv.
+        if ( telephonyCardPaymentsRequest.getTelephonySystem()==null ||
+            !telephonyCardPaymentsRequest.getTelephonySystem().equals(KervTelephonySystem.TELEPHONY_SYSTEM_NAME)) {
+            throw new TelephonyServiceException("Invalid telephony system name");
+        }
     }
 
     public TelephonySystem getTelephonySystem(TelephonyCardPaymentsRequest telephonyCardPaymentsRequest) {

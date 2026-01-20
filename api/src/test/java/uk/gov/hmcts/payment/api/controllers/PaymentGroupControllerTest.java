@@ -3339,4 +3339,49 @@ public class PaymentGroupControllerTest {
             ))
             .build();
     }
+
+    @Test
+    public void validateDefaultTelephonySystem_AllowsKerv() {
+        TelephonyCardPaymentsRequest req = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
+            .telephonySystem(KervTelephonySystem.TELEPHONY_SYSTEM_NAME)
+            .build();
+
+        // should not throw
+        paymentGroupController.validateDefaultTelephonySystem(req);
+    }
+
+    @Test
+    public void validateDefaultTelephonySystem_RejectsNull() {
+        TelephonyCardPaymentsRequest req = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
+            .telephonySystem(null)
+            .build();
+
+        TelephonyServiceException ex = assertThrows(TelephonyServiceException.class, () ->
+            paymentGroupController.validateDefaultTelephonySystem(req)
+        );
+        assertEquals("Invalid telephony system name", ex.getMessage());
+    }
+
+    @Test
+    public void validateDefaultTelephonySystem_RejectsAntenna() {
+        TelephonyCardPaymentsRequest req = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
+            .telephonySystem(ANTENNA)
+            .build();
+
+        TelephonyServiceException ex = assertThrows(TelephonyServiceException.class, () ->
+            paymentGroupController.validateDefaultTelephonySystem(req)
+        );
+        assertEquals("Invalid telephony system name", ex.getMessage());
+    }
+
+    @Test
+    public void validateDefaultTelephonySystem_IsCaseSensitive() {
+        TelephonyCardPaymentsRequest req = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
+            .telephonySystem(KervTelephonySystem.TELEPHONY_SYSTEM_NAME.toUpperCase())
+            .build();
+
+        assertThrows(TelephonyServiceException.class, () ->
+            paymentGroupController.validateDefaultTelephonySystem(req)
+        );
+    }
 }
