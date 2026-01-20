@@ -3061,7 +3061,7 @@ public class PaymentGroupControllerTest {
             .currency(CurrencyCode.GBP)
             .caseType("finrem")
             .ccdCaseNumber("2154234356342357")
-            .telephonySystem("INVALID_SYSTEM")
+            .telephonySystem(null)
             .build();
 
         MvcResult result3 = restActions
@@ -3126,7 +3126,7 @@ public class PaymentGroupControllerTest {
             .caseType("finrem")
             .ccdCaseNumber(ccdCaseNumber)
             .returnURL("http://localhost")
-            .telephonySystem(null)
+            .telephonySystem(TelephonySystem.DEFAULT_SYSTEM_NAME)
             .build();
 
         MvcResult result2 = restActions
