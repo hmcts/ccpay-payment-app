@@ -131,7 +131,7 @@ public class RefundRemissionEnableServiceImpl implements RefundRemissionEnableSe
                     || role.toLowerCase().contains(serviceNameRefundApprovalRole.toLowerCase()))
             .collect(Collectors.toList());
 
-        LOG.info("Validate Refund Role With Service Name ---> roles {}, serviceName {}", roles, serviceName);
+        LOG.info("Validate Refund Role With Service Name ---> roles {}, serviceName {}, refundServiceRoles {}", roles, serviceName, refundServiceRoles);
         if (refundServiceRoles == null || refundServiceRoles.isEmpty()) {
             isRefundRoleForService = false;
         }
