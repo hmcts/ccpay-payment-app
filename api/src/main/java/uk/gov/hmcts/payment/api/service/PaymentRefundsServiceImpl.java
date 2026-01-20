@@ -286,7 +286,12 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(refundApiUrl + REFUND_ENDPOINT).queryParam("ccdCaseNumber",ccdCaseNumber);
 
+        LOG.debug("builder.toUriString() : {}", builder.toUriString());
+
         try {
+
+            LOG.debug("restTemplateRefundsGroup : {}", restTemplateRefundsGroup);
+
             // call refund app
             ResponseEntity<RefundListDtoResponse> refundListDtoResponseEntity  = restTemplateRefundsGroup
                 .exchange(builder.toUriString(), HttpMethod.GET, createEntity(headers), RefundListDtoResponse.class);
@@ -320,7 +325,12 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(refundApiUrl + REFUND_ENDPOINT).queryParam("ccdCaseNumber",ccdCaseNumber);
 
+        LOG.debug("builder.toUriString() : {}", builder.toUriString());
+
         try {
+
+            LOG.debug("restTemplateRefundsGroup : {}", restTemplateRefundsGroup);
+
             // call refund app
             ResponseEntity<RefundListDtoResponse> refundListDtoResponseEntity  = restTemplateRefundsGroup
                 .exchange(builder.toUriString(), HttpMethod.GET, createEntity(headers), RefundListDtoResponse.class);
@@ -401,6 +411,8 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         }
 
         boolean refundLagTimefeature = featureToggler.getBooleanValue("refund-remission-lagtime-feature",false);
+
+        LOG.debug("RefundEnableFeature Flag Value in PaymentRefundsServiceImpl : {}", refundLagTimefeature);
 
         if(refundLagTimefeature){
 
@@ -841,6 +853,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
     public PaymentGroupResponse checkRefundAgainstRemissionV2(MultiValueMap<String, String> headers,
                                                               PaymentGroupResponse paymentGroupResponse, String ccdCaseNumber) {
+        LOG.debug("inside checkRefundAgainstRemissionV2 method");
         //check roles
         if(isContainsPaymentsRefundRole()) {
 

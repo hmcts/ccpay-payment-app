@@ -57,6 +57,7 @@ public class RefundRemissionEnableServiceImpl implements RefundRemissionEnableSe
 
         boolean refundEligibleDate;
         boolean refundLagTimeFeature = featureToggler.getBooleanValue("refund-remission-lagtime-feature",false);
+        LOG.debug("RefundEnableFeature Flag Value in RefundRemissionEnableServiceImpl : {}", refundLagTimeFeature);
 
         if(refundLagTimeFeature){
             refundEligibleDate = calculateLagDate(payment);

@@ -94,6 +94,7 @@ public class IdamServiceImpl implements IdamService {
 
     private ResponseEntity<IdamUserIdResponse> getResponseEntity(MultiValueMap<String, String> headers) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(idamBaseURL + USERID_ENDPOINT);
+        LOG.debug("builder.toUriString() : {}", builder.toUriString());
         return restTemplateIdam
             .exchange(
                 builder.toUriString(),
@@ -104,6 +105,7 @@ public class IdamServiceImpl implements IdamService {
 
     private ResponseEntity<IdamUserIdDetailsResponse> getUserDetailsResponseEntity(MultiValueMap<String, String> headers) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(idamBaseURL + USERDETAILS_ENDPOINT);
+        LOG.debug("builder.toUriString() : {}", builder.toUriString());
         return restTemplateIdam
             .exchange(
                 builder.toUriString(),
