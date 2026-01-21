@@ -3340,48 +3340,66 @@ public class PaymentGroupControllerTest {
             .build();
     }
 
+    // java
     @Test
-    public void validateDefaultTelephonySystem_AllowsKerv() {
+    public void validateDefaultTelephonySystem_setsDefaultWhenNull() {
         TelephonyCardPaymentsRequest req = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
-            .telephonySystem(KervTelephonySystem.TELEPHONY_SYSTEM_NAME)
-            .build();
-
-        // should not throw
-        paymentGroupController.validateDefaultTelephonySystem(req);
-    }
-
-    @Test
-    public void validateDefaultTelephonySystem_RejectsNull() {
-        TelephonyCardPaymentsRequest req = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
+            .amount(new BigDecimal("10.00"))
+            .currency(CurrencyCode.GBP)
+            .caseType("divorce")
+            .ccdCaseNumber("123")
+            .returnURL("http://localhost")
             .telephonySystem(null)
             .build();
 
-        TelephonyServiceException ex = assertThrows(TelephonyServiceException.class, () ->
-            paymentGroupController.validateDefaultTelephonySystem(req)
-        );
-        assertEquals("Invalid telephony system name", ex.getMessage());
+        paymentGroupController.validateDefaultTelephonySystem(req);
+
+        assertEquals(TelephonySystem.DEFAULT_SYSTEM_NAME, req.getTelephonySystem());
     }
 
     @Test
-    public void validateDefaultTelephonySystem_RejectsAntenna() {
+    public void validateDefaultTelephonySystem_setsDefaultWhenBlank() {
         TelephonyCardPaymentsRequest req = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
-            .telephonySystem(ANTENNA)
+            .amount(new BigDecimal("10.00"))
+            .currency(CurrencyCode.GBP)
+            .caseType("divorce")
+            .ccdCaseNumber("123")
+            .returnURL("http://localhost")
+            .telephonySystem("")
             .build();
 
-        TelephonyServiceException ex = assertThrows(TelephonyServiceException.class, () ->
-            paymentGroupController.validateDefaultTelephonySystem(req)
-        );
-        assertEquals("Invalid telephony system name", ex.getMessage());
+        paymentGroupController.validateDefaultTelephonySystem(req);
+
+        assertEquals(TelephonySystem.DEFAULT_SYSTEM_NAME, req.getTelephonySystem());
     }
 
     @Test
-    public void validateDefaultTelephonySystem_IsCaseSensitive() {
+    public void validateDefaultTelephonySystem_keepsProvidedSystem() {
+        String provided = KervTelephonySystem.TELEPHONY_SYSTEM_NAME;
         TelephonyCardPaymentsRequest req = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
-            .telephonySystem(KervTelephonySystem.TELEPHONY_SYSTEM_NAME.toUpperCase())
+            .amount(new BigDecimal("10.00"))
+            .currency(CurrencyCode.GBP)
+            .caseType("divorce")
+            .ccdCaseNumber("123")
+            .returnURL("http://localhost")
+            .telephonySystem(provided)
             .build();
 
-        assertThrows(TelephonyServiceException.class, () ->
-            paymentGroupController.validateDefaultTelephonySystem(req)
-        );
+        paymentGroupController.validateDefaultTelephonySystem(req);
+
+        assertEquals(provided, req.getTelephonySystem());
+    }
+
+    // java
+    @Test
+    public void validateDefaultTelephonySystem_throwsForInvalidSystem() {
+        TelephonyCardPaymentsRequest req = mock(TelephonyCardPaymentsRequest.class);
+        when(req.getTelephonySystem()).thenReturn("NOT_A_VALID_SYSTEM");
+
+        TelephonyServiceException exception = assertThrows(TelephonyServiceException.class, () -> {
+            paymentGroupController.validateDefaultTelephonySystem(req);
+        });
+
+        assertEquals("Invalid or missing attributes", exception.getMessage());
     }
 }
