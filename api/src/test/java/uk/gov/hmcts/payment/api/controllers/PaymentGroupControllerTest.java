@@ -3400,6 +3400,6 @@ public class PaymentGroupControllerTest {
             paymentGroupController.validateDefaultTelephonySystem(req);
         });
 
-        assertEquals("Invalid or missing attributes", exception.getMessage());
+        assertEquals("Invalid telephony system name", exception.getMessage());
     }
 }

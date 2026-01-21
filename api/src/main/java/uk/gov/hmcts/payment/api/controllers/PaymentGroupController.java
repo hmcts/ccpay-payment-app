@@ -619,7 +619,7 @@ public class PaymentGroupController {
     public void validateDefaultTelephonySystem(TelephonyCardPaymentsRequest telephonyCardPaymentsRequest) {
 
         // If telephony system is null, set to default Kerv telephony system
-        if (telephonyCardPaymentsRequest.getTelephonySystem() == null) {
+        if (telephonyCardPaymentsRequest.getTelephonySystem() == null || telephonyCardPaymentsRequest.getTelephonySystem().isEmpty()) {
             telephonyCardPaymentsRequest.setTelephonySystem(KervTelephonySystem.TELEPHONY_SYSTEM_NAME);
         }
         // This validation is used to ensure that the request is suing the default telephony system Kerv.
