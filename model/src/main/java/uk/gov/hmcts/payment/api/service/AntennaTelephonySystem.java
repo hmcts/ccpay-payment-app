@@ -18,7 +18,7 @@ public class AntennaTelephonySystem extends TelephonySystem {
     @Value("${pci-pal.antenna.grant.type}")
     private String antennaGrantType;
 
-    @Value("${pci-pal.antenna.tenant.name}")
+   // @Value("${pci-pal.antenna.tenant.name}")
     private String antennaTenantName;
 
     @Value("${pci-pal.antenna.client.id}")

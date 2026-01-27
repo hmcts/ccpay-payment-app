@@ -84,4 +84,11 @@
         <notes>Suppress CVE-2025-67735 for io.netty:netty-transport-native-unix-common:4.1.127.Final</notes>
         <cve>CVE-2025-67735</cve>
     </suppress>
+
+    <suppress>
+        <notes>
+            Nu Html Checker (validator.nu) contains a restriction bypass that allows remote attackers to make the server perform arbitrary HTTP/HTTPS requests to internal resources, including localhost services.
+        </notes>
+        <cve>CVE-2025-15104</cve>
+    </suppress>
 </suppressions>
