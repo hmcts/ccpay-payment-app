@@ -190,8 +190,6 @@ java:
           alias: launch.darkly.sdk.key
         - name: payment-s2s-secret
           alias: PAYMENT_S2S_SECRET
-        - name: pci-pal-antenna-tenant-name
-          alias: pci-pal.antenna.tenant.name
         - name: pci-pal-antenna-user-name
           alias: pci-pal.antenna.user.name
         - name: pci-pal-antenna-client-id
