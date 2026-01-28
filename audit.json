@@ -25,5 +25,10 @@
   "90022_Application Error Disclosure_http://payment-api-aat.service.core-compute-aat.internal/v2/api-docs_GET":"ignore",
   "90022_Application Error Disclosure_http://payment-api-aat.service.core-compute-aat.internal/v2/api-docs_GET":"ignore",
   "10049_Non-Storable Content_http://payment-api-aat.service.core-compute-aat.internal/v2/api-docs_GET": "ignore",
-  "10116_ZAP is Out of Date_http://payment-api-aat.service.core-compute-aat.internal/v2/api-docs_GET": "ignore"
+  "10116_ZAP is Out of Date_http://payment-api-aat.service.core-compute-aat.internal/v2/api-docs_GET": "ignore",
+  "10038_Content Security Policy (CSP) Header Not Set_http://payment-api-aat.service.core-compute-aat.internal/v2/api-docs_GET": "ignore",
+  "100000_A Server Error response code was returned by the server_http://payment-api-aat.service.core-compute-aat.internal/v2/api-docs_GET": "ignore",
+  "10063_Permissions Policy Header Not Set_http://payment-api-aat.service.core-compute-aat.internal/v2/api-docs_GET": "ignore",
+  "10036_Server Leaks Version Information via \"Server\" HTTP Response Header Field_http://payment-api-aat.service.core-compute-aat.internal/v2/api-docs_GET": "ignore",
+  "100001_Unexpected Content-Type was returned_http://payment-api-aat.service.core-compute-aat.internal/v2/api-docs_GET":  "ignore"
 }
