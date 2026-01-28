@@ -1,10 +1,8 @@
 package uk.gov.hmcts.payment.api.contract;
 
 
-import com.sun.tools.xjc.model.CDefaultValue;
 import org.joda.time.DateTime;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 

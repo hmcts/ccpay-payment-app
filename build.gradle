@@ -88,10 +88,7 @@ allprojects {
                 entry 'logback-classic'
             }
 
-            // Keep Jakarta JAXB API compatible with JAXB 2.3.x (Serenity uses javax.xml.bind)
-            dependencySet(group: 'jakarta.xml.bind', version: '2.3.3') {
-                entry 'jakarta.xml.bind-api'
-            }
+            // Remove the JAXB 2.3 pin; Spring Boot 3/Hibernate require Jakarta JAXB 4.x
         }
     }
 

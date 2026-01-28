@@ -332,11 +332,10 @@ pitest {
 }
 
 // Ensure consistent javax.xml.bind JAXB runtime across test source sets (Serenity's FailureRerunnerXml uses javax.xml.bind)
-// NOTE: On Java 21, Gradle is selecting JAXB 4.x (jakarta-based) for Serenity transitive deps.
-// The below block forced a mixed javax/jakarta set and caused JAXB provider lookups to fail.
-// Remove the forcing and instead ensure a complete JAXB runtime is present.
+// NOTE: On Java 21, Gradle was selecting JAXB 4.x (jakarta-based) previously; we've addressed this in the root build.
+// The following runtimeOnly dependencies now live in the main dependencies{} block above.
 //
-// (Removed) configurations.matching { ... }.all { resolutionStrategy { force ... } }
+// (Removed) duplicate trailing `dependencies { ... }` block.
 
 // Provide a JAXB runtime implementation explicitly for the Serenity functional test runner
 dependencies {
@@ -352,8 +351,4 @@ dependencies {
     contractTestRuntimeOnly group: 'com.sun.xml.bind', name: 'jaxb-impl', version: '2.3.3'
     contractTestRuntimeOnly group: 'com.sun.xml.bind', name: 'jaxb-core', version: '2.3.0.1'
     contractTestRuntimeOnly group: 'javax.activation', name: 'activation', version: '1.1.1'
-}
-
-tasks.named("processContractTestResources") {
-    duplicatesStrategy = 'include'
 }
