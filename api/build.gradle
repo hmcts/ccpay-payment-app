@@ -220,6 +220,12 @@ task functionalTest(type: Test, description: 'Runs the functional tests', group:
     scanForTestClasses = true
 }
 
+// Contract test resources sometimes include an application.yml that also exists in main/test resources.
+// Gradle 8+ fails the build unless we set an explicit duplicate handling strategy.
+tasks.named('processContractTestResources') {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
 // Serenity Reporting
 functionalTest.finalizedBy(aggregate)
 
@@ -329,26 +335,4 @@ pitest {
     detectInlinedCode = true
     pitestVersion = versions.pitest
     testPlugin = 'junit5'
-}
-
-// Ensure consistent javax.xml.bind JAXB runtime across test source sets (Serenity's FailureRerunnerXml uses javax.xml.bind)
-// NOTE: On Java 21, Gradle was selecting JAXB 4.x (jakarta-based) previously; we've addressed this in the root build.
-// The following runtimeOnly dependencies now live in the main dependencies{} block above.
-//
-// (Removed) duplicate trailing `dependencies { ... }` block.
-
-// Provide a JAXB runtime implementation explicitly for the Serenity functional test runner
-dependencies {
-    // Serenity (FailureRerunnerXml) uses javax.xml.bind.* so we must provide a JAXB 2.3.x implementation on Java 11+
-    functionalTestRuntimeOnly group: 'com.sun.xml.bind', name: 'jaxb-impl', version: '2.3.3'
-    functionalTestRuntimeOnly group: 'com.sun.xml.bind', name: 'jaxb-core', version: '2.3.0.1'
-    functionalTestRuntimeOnly group: 'javax.activation', name: 'activation', version: '1.1.1'
-
-    smokeTestRuntimeOnly group: 'com.sun.xml.bind', name: 'jaxb-impl', version: '2.3.3'
-    smokeTestRuntimeOnly group: 'com.sun.xml.bind', name: 'jaxb-core', version: '2.3.0.1'
-    smokeTestRuntimeOnly group: 'javax.activation', name: 'activation', version: '1.1.1'
-
-    contractTestRuntimeOnly group: 'com.sun.xml.bind', name: 'jaxb-impl', version: '2.3.3'
-    contractTestRuntimeOnly group: 'com.sun.xml.bind', name: 'jaxb-core', version: '2.3.0.1'
-    contractTestRuntimeOnly group: 'javax.activation', name: 'activation', version: '1.1.1'
 }
