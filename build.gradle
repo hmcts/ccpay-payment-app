@@ -87,6 +87,11 @@ allprojects {
                 entry 'logback-core'
                 entry 'logback-classic'
             }
+
+            // Keep Jakarta JAXB API compatible with JAXB 2.3.x (Serenity uses javax.xml.bind)
+            dependencySet(group: 'jakarta.xml.bind', version: '2.3.3') {
+                entry 'jakarta.xml.bind-api'
+            }
         }
     }
 
@@ -145,7 +150,6 @@ subprojects {
     }
 
     dependencies {
-        implementation ('com.sun.xml.bind:jaxb-osgi:4.0.6')
         testImplementation 'io.github.openfeign:feign-jackson:13.2.1'
         testImplementation 'io.github.openfeign:feign-micrometer:13.5'
         implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version:'2.17.1'
