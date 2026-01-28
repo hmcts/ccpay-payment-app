@@ -220,6 +220,12 @@ task functionalTest(type: Test, description: 'Runs the functional tests', group:
     scanForTestClasses = true
 }
 
+// Contract test resources sometimes include an application.yml that also exists in main/test resources.
+// Gradle 8+ fails the build unless we set an explicit duplicate handling strategy.
+tasks.named('processContractTestResources') {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
 // Serenity Reporting
 functionalTest.finalizedBy(aggregate)
 
@@ -329,8 +335,4 @@ pitest {
     detectInlinedCode = true
     pitestVersion = versions.pitest
     testPlugin = 'junit5'
-}
-
-tasks.named("processContractTestResources") {
-    duplicatesStrategy = 'include'
 }
