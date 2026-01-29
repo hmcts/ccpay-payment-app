@@ -3,6 +3,6 @@ description = ''
 dependencies {
     implementation group: 'org.springframework', name: 'spring-context'
     implementation group: 'io.github.resilience4j', name: 'resilience4j-spring-boot3', version: '2.2.0'
-    implementation group: 'org.apache.httpcomponents.client5', name: 'httpclient5', version: '5.2'
+    implementation group: 'org.apache.httpcomponents.client5', name: 'httpclient5', version: '5.6'
     testImplementation group: 'com.github.tomakehurst', name: 'wiremock-jre8', version: '3.0.1'
 }
