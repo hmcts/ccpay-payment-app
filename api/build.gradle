@@ -334,3 +334,23 @@ pitest {
 tasks.named("processContractTestResources") {
     duplicatesStrategy = 'include'
 }
+
+// Pin JAXB RI to 2.3.x ONLY for Serenity/JUnit4 functional tests.
+// Do NOT apply globally: Spring Boot 3/Hibernate require Jakarta JAXB (4.x).
+[
+        configurations.functionalTestRuntimeClasspath,
+        configurations.functionalTestCompileClasspath,
+        configurations.smokeTestRuntimeClasspath,
+        configurations.smokeTestCompileClasspath
+].each { cfg ->
+    cfg.resolutionStrategy.eachDependency { details ->
+        if (details.requested.group == 'com.sun.xml.bind' && details.requested.name in ['jaxb-core', 'jaxb-impl']) {
+            details.useVersion(details.requested.name == 'jaxb-core' ? '2.3.0.1' : '2.3.3')
+            details.because 'Serenity uses javax.xml.bind; keep JAXB RI on 2.3.x for functional/smoke tests'
+        }
+        if (details.requested.group == 'jakarta.xml.bind' && details.requested.name == 'jakarta.xml.bind-api') {
+            details.useVersion '2.3.3'
+            details.because 'Keep functional/smoke tests on pre-jakarta namespace JAXB API to match Serenity/JUnit4 expectations'
+        }
+    }
+}
