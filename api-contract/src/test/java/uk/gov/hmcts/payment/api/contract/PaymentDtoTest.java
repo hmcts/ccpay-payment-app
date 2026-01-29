@@ -1,16 +1,17 @@
 package uk.gov.hmcts.payment.api.contract;
 
-
-import com.sun.tools.xjc.model.CDefaultValue;
 import org.joda.time.DateTime;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.StringJoiner;
+import java.util.TimeZone;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

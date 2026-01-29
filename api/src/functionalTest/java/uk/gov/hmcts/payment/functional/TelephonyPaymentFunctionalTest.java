@@ -92,6 +92,7 @@ public class TelephonyPaymentFunctionalTest {
             .ccdCaseNumber(ccdCaseNumber)
             .currency(CurrencyCode.GBP)
             .caseType("DIVORCE")
+            .telephonySystem("Kerv")
             .returnURL("https://www.moneyclaims.service.gov.uk")
             .build();
 
@@ -185,7 +186,7 @@ public class TelephonyPaymentFunctionalTest {
             .currency(CurrencyCode.GBP)
             .caseType("DIVORCE")
             .returnURL("https://www.moneyclaims.service.gov.uk")
-            .telephonySystem("Antenna")
+            .telephonySystem("Kerv")
             .build();
 
         PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
