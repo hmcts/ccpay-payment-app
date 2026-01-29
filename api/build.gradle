@@ -205,6 +205,11 @@ test {
     useJUnitPlatform()
     // Base test class for other tests - has no runnable test methods
     exclude 'uk/gov/hmcts/payment/api/v1/**'
+
+    // Component tests are SpringBoot/integration-style and shouldn't run as part of unit tests.
+    // They have their own tasks/source sets.
+    exclude 'uk/gov/hmcts/payment/api/componenttests/**'
+    exclude 'uk/gov/hmcts/payment/api/v1/componenttests/**'
 }
 
 task smokeTest(type: Test, description: 'Runs the smoke tests', group: 'Verification') {
@@ -219,8 +224,8 @@ task functionalTest(type: Test, description: 'Runs the functional tests', group:
     enableAssertions = true
     scanForTestClasses = true
 
-    // Force JAXB provider (Java 9+ no longer includes com.sun.xml.internal.bind)
-    systemProperty 'javax.xml.bind.context.factory', 'com.sun.xml.bind.v2.ContextFactory'
+    // Do not force a JAXB context factory here; doing so can break provider discovery.
+    // Serenity will use the JAXB RI provider present on the functionalTestRuntimeClasspath.
 }
 
 // Contract test resources sometimes include an application.yml that also exists in main/test resources.
@@ -231,6 +236,13 @@ tasks.named('processContractTestResources') {
 
 // Serenity Reporting
 functionalTest.finalizedBy(aggregate)
+
+// Don't run Serenity report aggregation after plain unit tests
+// (Serenity Gradle plugin can wire aggregate into the test lifecycle)
+tasks.named('test') {
+    // Clear any finalizedBy tasks (e.g. Serenity aggregate)
+    setFinalizedBy([])
+}
 
 project.ext {
     pactVersion = getCheckedOutGitCommitHash()
@@ -250,6 +262,11 @@ task consumerContractTest(type: Test) {
     classpath = sourceSets.contractTest.runtimeClasspath
     systemProperty 'pact.rootDir', "pacts"
     systemProperty 'pact.provider.version', project.pactVersion
+
+    // Ensure stale pact files don't cause 'Cannot merge pacts' conflicts
+    doFirst {
+        delete fileTree(dir: "${project.projectDir}/pacts", include: "*.json")
+    }
 
 }
 
@@ -338,4 +355,38 @@ pitest {
     detectInlinedCode = true
     pitestVersion = versions.pitest
     testPlugin = 'junit5'
+}
+
+tasks.withType(Test).configureEach {
+    // No-op here for now (kept for future per-Test configuration)
+}
+
+// Pin JAXB RI to 2.3.x ONLY for Serenity/JUnit4 functional tests.
+// Do NOT apply globally: Spring Boot 3/Hibernate require Jakarta JAXB (4.x).
+[
+    configurations.functionalTestRuntimeClasspath,
+    configurations.functionalTestCompileClasspath,
+    configurations.smokeTestRuntimeClasspath,
+    configurations.smokeTestCompileClasspath
+].each { cfg ->
+    cfg.resolutionStrategy.eachDependency { details ->
+        if (details.requested.group == 'com.sun.xml.bind' && details.requested.name in ['jaxb-core', 'jaxb-impl']) {
+            details.useVersion(details.requested.name == 'jaxb-core' ? '2.3.0.1' : '2.3.3')
+            details.because 'Serenity uses javax.xml.bind; keep JAXB RI on 2.3.x for functional/smoke tests'
+        }
+        if (details.requested.group == 'jakarta.xml.bind' && details.requested.name == 'jakarta.xml.bind-api') {
+            details.useVersion '2.3.3'
+            details.because 'Keep functional/smoke tests on pre-jakarta namespace JAXB API to match Serenity/JUnit4 expectations'
+        }
+    }
+}
+
+dependencies {
+    // ...existing code...
+
+    // Needed for Spring Boot 3 + Hibernate (JPA bootstrap uses Jakarta JAXB APIs)
+    testRuntimeOnly group: 'jakarta.xml.bind', name: 'jakarta.xml.bind-api'
+    testRuntimeOnly group: 'org.glassfish.jaxb', name: 'jaxb-runtime'
+
+    // ...existing code...
 }

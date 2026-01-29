@@ -12,6 +12,7 @@ import com.google.common.collect.ImmutableMap;
 import org.ff4j.FF4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestTemplate;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -71,6 +72,7 @@ import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 // https://tools.hmcts.net/jira/browse/DIAC-267
 @ExtendWith(SpringExtension.class)
 @Provider("payment_cardPayment")
+@EnabledIfEnvironmentVariable(named = "PACT_BROKER_URL", matches = ".+")
 @PactBroker(scheme = "${PACT_BROKER_SCHEME:http}", host = "${PACT_BROKER_URL:localhost}", port = "${PACT_BROKER_PORT:80}", consumerVersionSelectors = {
     @VersionSelector(consumer = "civil_service", tag = "master"),
     @VersionSelector(consumer = "divorce_caseOrchestratorService", tag = "master"),

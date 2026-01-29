@@ -2,11 +2,9 @@ package uk.gov.hmcts.payment.api.controllers.consumer;
 
 import au.com.dius.pact.consumer.dsl.DslPart;
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
-import au.com.dius.pact.consumer.junit5.PactConsumerTestExt;
-import au.com.dius.pact.consumer.junit5.PactTestFor;
-import au.com.dius.pact.core.model.RequestResponsePact;
+import au.com.dius.pact.core.model.V4Pact;
 import au.com.dius.pact.core.model.annotations.Pact;
-import au.com.dius.pact.core.model.annotations.PactFolder;
+import au.com.dius.pact.core.model.annotations.PactDirectory;
 import org.json.JSONException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -33,12 +31,14 @@ import static au.com.dius.pact.consumer.dsl.LambdaDsl.newJsonArray;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.BDDMockito.given;
+import au.com.dius.pact.consumer.junit5.PactConsumerTestExt;
+import au.com.dius.pact.consumer.junit5.PactTestFor;
 
 
 @ExtendWith(PactConsumerTestExt.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @PactTestFor(providerName = "referenceData_location", port = "8891")
-@PactFolder("pacts")
+@PactDirectory("pacts")
 @SpringBootTest({
     "rd.location.url : http://localhost:8891"
 })
@@ -60,22 +60,23 @@ public class ReferenceDataLocationConsumerTest {
     AuthTokenGenerator authTokenGenerator;
 
     @Pact(provider = "referenceData_location", consumer = "payment_App")
-    RequestResponsePact retrieveOrganisationDetails(PactDslWithProvider builder) {
+    public V4Pact retrieveOrganisationDetails(PactDslWithProvider builder) {
         // @formatter:off
         return builder
             .given("Organisational Service details exist")
             .uponReceiving("A request for Organisational Service Details")
-            .path("/refdata/location/orgServices")
-            .method("GET")
-            .query("ccdCaseType=Divorce")
-            .headers(HttpHeaders.AUTHORIZATION, SOME_AUTHORIZATION_TOKEN, SERVICE_AUTHORIZATION,
-                SOME_SERVICE_AUTHORIZATION_TOKEN)
-            .matchHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .path("/refdata/location/orgServices")
+                .method("GET")
+                .query("ccdCaseType=Divorce")
+                .headers(HttpHeaders.AUTHORIZATION, SOME_AUTHORIZATION_TOKEN, SERVICE_AUTHORIZATION,
+                    SOME_SERVICE_AUTHORIZATION_TOKEN)
+                .matchHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .willRespondWith()
-            .matchHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-            .status(200)
-            .body(buildOrganisationalResponsePactDsl())
-            .toPact();
+                .matchHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .status(200)
+                .body(buildOrganisationalResponsePactDsl())
+            // Pact v4 builder
+            .toPact(V4Pact.class);
     }
 
 
