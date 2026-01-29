@@ -118,6 +118,7 @@ public class RefundsRequestorJourneyTelephonyPaymentFunctionalTest {
                         .ccdCaseNumber(ccdCaseNumber)
                         .currency(CurrencyCode.GBP)
                         .caseType("DIVORCE")
+                        .telephonySystem("Kerv")
                         .returnURL("https://www.moneyclaims.service.gov.uk")
                         .build();
 
@@ -197,6 +198,7 @@ public class RefundsRequestorJourneyTelephonyPaymentFunctionalTest {
                         .ccdCaseNumber(ccdCaseNumber)
                         .currency(CurrencyCode.GBP)
                         .caseType("DIVORCE")
+                        .telephonySystem("Kerv")
                         .returnURL("https://www.moneyclaims.service.gov.uk")
                         .build();
 
