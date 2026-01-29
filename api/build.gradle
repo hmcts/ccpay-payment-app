@@ -348,9 +348,5 @@ tasks.named("processContractTestResources") {
             details.useVersion(details.requested.name == 'jaxb-core' ? '2.3.0.1' : '2.3.3')
             details.because 'Serenity uses javax.xml.bind; keep JAXB RI on 2.3.x for functional/smoke tests'
         }
-        if (details.requested.group == 'jakarta.xml.bind' && details.requested.name == 'jakarta.xml.bind-api') {
-            details.useVersion '2.3.3'
-            details.because 'Keep functional/smoke tests on pre-jakarta namespace JAXB API to match Serenity/JUnit4 expectations'
-        }
     }
 }
