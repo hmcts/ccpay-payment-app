@@ -218,6 +218,9 @@ task functionalTest(type: Test, description: 'Runs the functional tests', group:
     classpath = sourceSets.functionalTest.runtimeClasspath
     enableAssertions = true
     scanForTestClasses = true
+
+    // Force JAXB provider (Java 9+ no longer includes com.sun.xml.internal.bind)
+    systemProperty 'javax.xml.bind.context.factory', 'com.sun.xml.bind.v2.ContextFactory'
 }
 
 // Contract test resources sometimes include an application.yml that also exists in main/test resources.
