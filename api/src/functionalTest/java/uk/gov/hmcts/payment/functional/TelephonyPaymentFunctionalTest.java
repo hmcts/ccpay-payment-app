@@ -92,6 +92,7 @@ public class TelephonyPaymentFunctionalTest {
             .ccdCaseNumber(ccdCaseNumber)
             .currency(CurrencyCode.GBP)
             .caseType("DIVORCE")
+            .telephonySystem("Kerv")
             .returnURL("https://www.moneyclaims.service.gov.uk")
             .build();
 
@@ -185,6 +186,7 @@ public class TelephonyPaymentFunctionalTest {
             .currency(CurrencyCode.GBP)
             .caseType("DIVORCE")
             .returnURL("https://www.moneyclaims.service.gov.uk")
+            .telephonySystem("Kerv")
             .build();
 
         PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
@@ -277,7 +279,7 @@ public class TelephonyPaymentFunctionalTest {
             .currency(CurrencyCode.GBP)
             .caseType("DIVORCE")
             .returnURL("https://www.moneyclaims.service.gov.uk")
-            .telephonySystem("kerv")
+            .telephonySystem("Kerv")
             .build();
 
         PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
@@ -389,7 +391,7 @@ public class TelephonyPaymentFunctionalTest {
                     .returnUrl("https://www.moneyclaims.service.gov.uk")
                     .when().createTelephonyPayment(telephonyPaymentRequest, paymentGroupReference).then().getResponse();
                 assertThat(response.statusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY.value());
-                assertThat(response.getBody().print()).isEqualTo("Invalid telephony system name");
+                assertThat(response.getBody().print()).isEqualTo("Invalid or missing attributes");
             });
     }
 
@@ -411,7 +413,7 @@ public class TelephonyPaymentFunctionalTest {
             .currency(CurrencyCode.GBP)
             .caseType("Test")
             .returnURL("https://www.moneyclaims.service.gov.uk")
-            .telephonySystem("kerv")
+            .telephonySystem("Kerv")
             .build();
 
         PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()

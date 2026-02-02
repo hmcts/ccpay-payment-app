@@ -122,6 +122,7 @@ public class PaymentGroupFunctionalTest {
             .ccdCaseNumber(ccdCaseNumber)
             .currency(CurrencyCode.GBP)
             .caseType("FinancialRemedyContested")
+            .telephonySystem("Kerv")
             .returnURL("https://www.moneyclaims.service.gov.uk")
             .build();
 
@@ -601,6 +602,7 @@ public class PaymentGroupFunctionalTest {
             .currency(CurrencyCode.GBP)
             .caseType("FinancialRemedyContested")
             .returnURL("https://www.moneyclaims.service.gov.uk")
+            .telephonySystem("Kerv")
             .build();
 
         PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
@@ -687,6 +689,7 @@ public class PaymentGroupFunctionalTest {
             .ccdCaseNumber(ccdCaseNumber)
             .currency(CurrencyCode.GBP)
             .caseType("DIVORCE")
+            .telephonySystem("Kerv")
             .returnURL("https://www.moneyclaims.service.gov.uk")
             .build();
 
@@ -750,6 +753,7 @@ public class PaymentGroupFunctionalTest {
             .ccdCaseNumber(ccdCaseNumber)
             .currency(CurrencyCode.GBP)
             .caseType("DIVORCE")
+            .telephonySystem("Kerv")
             .returnURL("https://google.co.uk")
             .build();
 
@@ -764,6 +768,8 @@ public class PaymentGroupFunctionalTest {
 
                 String paymentGroupReference = paymentGroupFeeDto.getPaymentGroupReference();
 
+                System.out.println("**** DEBUG:  Payment Group Reference: " + paymentGroupReference);
+
                 dsl.given().userToken(USER_TOKEN)
                     .s2sToken(SERVICE_TOKEN)
                     .returnUrl("https://google.co.uk")
@@ -773,7 +779,6 @@ public class PaymentGroupFunctionalTest {
                         assertThat(telephonyCardPaymentsResponse).isNotNull();
                         assertThat(telephonyCardPaymentsResponse.getPaymentReference().matches(PAYMENT_REFERENCE_REGEX)).isTrue();
                         assertThat(telephonyCardPaymentsResponse.getStatus()).isEqualTo("Initiated");
-
                     });
             });
 

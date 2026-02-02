@@ -774,6 +774,7 @@ public class ServiceRequestFunctionalTests {
             .ccdCaseNumber(ccdCaseNumber)
             .currency(CurrencyCode.GBP)
             .caseType("DIVORCE")
+            .telephonySystem("Kerv")
             .returnURL("https://www.moneyclaims.service.gov.uk")
             .build();
 
@@ -861,6 +862,7 @@ public class ServiceRequestFunctionalTests {
             .ccdCaseNumber(ccdCaseNumber)
             .currency(CurrencyCode.GBP)
             .caseType("DIVORCE")
+            .telephonySystem("Kerv")
             .returnURL("https://www.moneyclaims.service.gov.uk")
             .build();
 
@@ -968,6 +970,7 @@ public class ServiceRequestFunctionalTests {
             .ccdCaseNumber(ccdCaseNumber)
             .currency(CurrencyCode.GBP)
             .caseType("DIVORCE")
+            .telephonySystem("Kerv")
             .returnURL("https://www.moneyclaims.service.gov.uk")
             .build();
 
@@ -1403,6 +1406,7 @@ public class ServiceRequestFunctionalTests {
             .ccdCaseNumber(ccdCaseNumber)
             .currency(CurrencyCode.GBP)
             .caseType("DIVORCE")
+            .telephonySystem("Kerv")
             .returnURL("https://www.moneyclaims.service.gov.uk")
             .build();
 
@@ -1511,6 +1515,7 @@ public class ServiceRequestFunctionalTests {
             .ccdCaseNumber(ccdCaseNumber)
             .currency(CurrencyCode.GBP)
             .caseType("DIVORCE")
+            .telephonySystem("Kerv")
             .returnURL("https://www.moneyclaims.service.gov.uk")
             .build();
 
@@ -1642,6 +1647,7 @@ public class ServiceRequestFunctionalTests {
             .ccdCaseNumber(ccdCaseNumber)
             .currency(CurrencyCode.GBP)
             .caseType("DIVORCE")
+            .telephonySystem("Kerv")
             .returnURL("https://www.moneyclaims.service.gov.uk")
             .build();
 

@@ -136,6 +136,7 @@ public class PciPalCallbackTest {
             .ccdCaseNumber(ccdCaseNumber)
             .currency(CurrencyCode.GBP)
             .caseType("DIVORCE")
+            .telephonySystem("Kerv")
             .returnURL("https://google.co.uk")
             .build();
 
@@ -241,6 +242,7 @@ public class PciPalCallbackTest {
             .ccdCaseNumber(ccdCaseNumber)
             .currency(CurrencyCode.GBP)
             .caseType("DIVORCE")
+            .telephonySystem("Kerv")
             .returnURL("https://www.moneyclaims.service.gov.uk")
             .build();
 
