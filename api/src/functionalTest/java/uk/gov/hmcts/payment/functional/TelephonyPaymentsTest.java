@@ -25,6 +25,7 @@ import uk.gov.hmcts.payment.api.dto.TelephonyCallbackDto;
 import uk.gov.hmcts.payment.api.dto.TelephonyPaymentsReportDto;
 import uk.gov.hmcts.payment.api.dto.TelephonyPaymentsReportResponse;
 import uk.gov.hmcts.payment.api.model.PaymentChannel;
+import uk.gov.hmcts.payment.api.service.TelephonySystem;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
 import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
@@ -330,7 +331,7 @@ public class TelephonyPaymentsTest {
             .ccdCaseNumber(ccdCaseNumber)
             .currency(CurrencyCode.GBP)
             .caseType("DIVORCE")
-            .telephonySystem("Kerv")
+             .telephonySystem(TelephonySystem.DEFAULT_SYSTEM_NAME)
             .returnURL("https://www.moneyclaims.service.gov.uk")
             .build();
 

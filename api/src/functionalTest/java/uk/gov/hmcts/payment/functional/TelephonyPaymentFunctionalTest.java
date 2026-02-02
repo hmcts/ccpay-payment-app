@@ -18,6 +18,7 @@ import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.TelephonyCallbackDto;
+import uk.gov.hmcts.payment.api.service.TelephonySystem;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
 import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
 import uk.gov.hmcts.payment.functional.idam.IdamService;
@@ -92,7 +93,7 @@ public class TelephonyPaymentFunctionalTest {
             .ccdCaseNumber(ccdCaseNumber)
             .currency(CurrencyCode.GBP)
             .caseType("DIVORCE")
-            .telephonySystem("Kerv")
+             .telephonySystem(TelephonySystem.DEFAULT_SYSTEM_NAME)
             .returnURL("https://www.moneyclaims.service.gov.uk")
             .build();
 
@@ -186,7 +187,7 @@ public class TelephonyPaymentFunctionalTest {
             .currency(CurrencyCode.GBP)
             .caseType("DIVORCE")
             .returnURL("https://www.moneyclaims.service.gov.uk")
-            .telephonySystem("Kerv")
+             .telephonySystem(TelephonySystem.DEFAULT_SYSTEM_NAME)
             .build();
 
         PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
@@ -279,7 +280,7 @@ public class TelephonyPaymentFunctionalTest {
             .currency(CurrencyCode.GBP)
             .caseType("DIVORCE")
             .returnURL("https://www.moneyclaims.service.gov.uk")
-            .telephonySystem("Kerv")
+             .telephonySystem(TelephonySystem.DEFAULT_SYSTEM_NAME)
             .build();
 
         PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
@@ -413,7 +414,7 @@ public class TelephonyPaymentFunctionalTest {
             .currency(CurrencyCode.GBP)
             .caseType("Test")
             .returnURL("https://www.moneyclaims.service.gov.uk")
-            .telephonySystem("Kerv")
+             .telephonySystem(TelephonySystem.DEFAULT_SYSTEM_NAME)
             .build();
 
         PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
