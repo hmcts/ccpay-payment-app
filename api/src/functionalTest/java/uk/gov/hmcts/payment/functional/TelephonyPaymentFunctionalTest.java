@@ -392,7 +392,7 @@ public class TelephonyPaymentFunctionalTest {
                     .returnUrl("https://www.moneyclaims.service.gov.uk")
                     .when().createTelephonyPayment(telephonyPaymentRequest, paymentGroupReference).then().getResponse();
                 assertThat(response.statusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY.value());
-                assertThat(response.getBody().print()).isEqualTo("Invalid or missing attributes");
+                assertThat(response.getBody().print()).isEqualTo("Invalid telephony system name");
             });
     }
 
