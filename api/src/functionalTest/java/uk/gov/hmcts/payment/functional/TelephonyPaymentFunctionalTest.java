@@ -116,6 +116,7 @@ public class TelephonyPaymentFunctionalTest {
                         assertThat(telephonyCardPaymentsResponse).isNotNull();
                         assertThat(telephonyCardPaymentsResponse.getPaymentReference().matches(PAYMENT_REFERENCE_REGEX)).isTrue();
                         assertThat(telephonyCardPaymentsResponse.getStatus()).isEqualTo("Initiated");
+                        assertThat(telephonyCardPaymentsResponse.getLinks().getNextUrl().getHref().contains("https://euwest1.pcipalstaging.cloud/session/1288/view")).isTrue();
                         paymentReference = telephonyCardPaymentsResponse.getPaymentReference();
                     });
                 // pci-pal callback
@@ -170,7 +171,7 @@ public class TelephonyPaymentFunctionalTest {
     }
 
     @Test
-    public void telephonyPaymentAntenna() {
+    public void telephonyPaymentDefaultKervWhenTelephonySystemPropertyIsEmpty() {
         String ccdCaseNumber = "11116467" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
 
         FeeDto feeDto = FeeDto.feeDtoWith()
@@ -209,6 +210,7 @@ public class TelephonyPaymentFunctionalTest {
                         assertThat(telephonyCardPaymentsResponse).isNotNull();
                         assertThat(telephonyCardPaymentsResponse.getPaymentReference().matches(PAYMENT_REFERENCE_REGEX)).isTrue();
                         assertThat(telephonyCardPaymentsResponse.getStatus()).isEqualTo("Initiated");
+                        assertThat(telephonyCardPaymentsResponse.getLinks().getNextUrl().getHref().contains("https://euwest1.pcipalstaging.cloud/session/1288/view")).isTrue();
                         paymentReference = telephonyCardPaymentsResponse.getPaymentReference();
                     });
                 // pci-pal callback
@@ -302,6 +304,7 @@ public class TelephonyPaymentFunctionalTest {
                         assertThat(telephonyCardPaymentsResponse).isNotNull();
                         assertThat(telephonyCardPaymentsResponse.getPaymentReference().matches(PAYMENT_REFERENCE_REGEX)).isTrue();
                         assertThat(telephonyCardPaymentsResponse.getStatus()).isEqualTo("Initiated");
+                        assertThat(telephonyCardPaymentsResponse.getLinks().getNextUrl().getHref().contains("https://euwest1.pcipalstaging.cloud/session/1288/view")).isTrue();
                         paymentReference = telephonyCardPaymentsResponse.getPaymentReference();
                     });
                 // pci-pal callback

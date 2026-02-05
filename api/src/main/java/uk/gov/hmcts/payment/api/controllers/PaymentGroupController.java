@@ -137,7 +137,7 @@ public class PaymentGroupController {
     @Autowired
     AntennaTelephonySystem antennaTelephonySystem;
 
-    @Value("${pci-pal.antenna.user.name}")
+    //@Value("${pci-pal.antenna.user.name}")
     private String antennaUserName;
 
     @Autowired

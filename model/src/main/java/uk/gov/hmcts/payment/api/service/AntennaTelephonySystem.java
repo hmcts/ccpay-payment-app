@@ -18,37 +18,37 @@ public class AntennaTelephonySystem extends TelephonySystem {
     @Value("${pci-pal.antenna.grant.type}")
     private String antennaGrantType;
 
-    @Value("${pci-pal.antenna.tenant.name}")
+   // @Value("${pci-pal.antenna.tenant.name}")
     private String antennaTenantName;
 
-    @Value("${pci-pal.antenna.client.id}")
+    //@Value("${pci-pal.antenna.client.id}")
     private String antennaClientId;
 
-    @Value("${pci-pal.antenna.client.secret}")
+    //@Value("${pci-pal.antenna.client.secret}")
     private String antennaClientSecret;
 
-    @Value("${pci-pal.antenna.get.tokens.url}")
+    //@Value("${pci-pal.antenna.get.tokens.url}")
     private String antennaTokensURL;
 
-    @Value("${pci-pal.antenna.launch.url}")
+    //@Value("${pci-pal.antenna.launch.url}")
     private String antennaLaunchURL;
 
-    @Value("${pci-pal.antenna.view.id.url}")
+    //@Value("${pci-pal.antenna.view.id.url}")
     private String antennaViewIdURL;
 
-    @Value("${pci-pal.antenna.strategic.flow.id}")
+    //@Value("${pci-pal.antenna.strategic.flow.id}")
     private String antennaStrategicFlowId;
 
-    @Value("${pci-pal.antenna.probate.flow.id}")
+    //@Value("${pci-pal.antenna.probate.flow.id}")
     private String antennaProbateFlowId;
 
-    @Value("${pci-pal.antenna.divorce.flow.id}")
+    //@Value("${pci-pal.antenna.divorce.flow.id}")
     private String antennaDivorceFlowId;
 
-    @Value("${pci-pal.antenna.prl.flow.id}")
+    //@Value("${pci-pal.antenna.prl.flow.id}")
     private String antennaPrlFlowId;
 
-    @Value("${pci-pal.antenna.iac.flow.id}")
+    //@Value("${pci-pal.antenna.iac.flow.id}")
     private String antennaIacFlowId;
 
     @Override
