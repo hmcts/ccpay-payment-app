@@ -86,6 +86,11 @@
     </suppress>
 
     <suppress>
+        <notes>Suppress CVE-2020-29582 for org.jetbrains.kotlin:kotlin-reflect:1.9.25 and org.jetbrains.kotlin:kotlin-stdlib:1.9.25</notes>
+        <cve>CVE-2025-67735</cve>
+    </suppress>
+
+    <suppress>
         <notes>
             Nu Html Checker (validator.nu) contains a restriction bypass that allows remote attackers to make the server perform arbitrary HTTP/HTTPS requests to internal resources, including localhost services.
         </notes>
