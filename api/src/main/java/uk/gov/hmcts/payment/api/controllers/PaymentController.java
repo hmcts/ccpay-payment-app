@@ -364,10 +364,10 @@ public class PaymentController {
         List<PaymentFee> fees = paymentFeeLink.getFees();
         boolean isPaymentAfterApportionment = false;
         if (apportionCheck && apportionFeature) {
-            LOG.info("Apportion check and feature passed");
+            LOG.debug("Apportion check and feature passed");
             final List<FeePayApportion> feePayApportionList = paymentService.findByPaymentId(payment.getId());
             if (feePayApportionList != null && !feePayApportionList.isEmpty()) {
-                LOG.info("Apportion details available in PaymentController");
+                LOG.debug("Apportion details available in PaymentController");
                 fees = new ArrayList<>();
                 getApportionedDetails(fees, feePayApportionList);
                 isPaymentAfterApportionment = true;
@@ -381,14 +381,14 @@ public class PaymentController {
 
 
     private void getApportionedDetails(List<PaymentFee> fees, List<FeePayApportion> feePayApportionList) {
-        LOG.info("Getting Apportionment Details!!!");
+        LOG.debug("Getting Apportionment Details!!!");
         for (FeePayApportion feePayApportion : feePayApportionList) {
             Optional<PaymentFee> apportionedFee = paymentFeeRepository.findById(feePayApportion.getFeeId());
             if (apportionedFee.isPresent()) {
-                LOG.info("Apportioned fee is present");
+                LOG.debug("Apportioned fee is present");
                 PaymentFee fee = apportionedFee.get();
                 if (feePayApportion.getApportionAmount() != null) {
-                    LOG.info("Apportioned Amount is available!!!");
+                    LOG.debug("Apportioned Amount is available!!!");
                     BigDecimal allocatedAmount = feePayApportion.getApportionAmount()
                         .add(feePayApportion.getCallSurplusAmount() != null
                             ? feePayApportion.getCallSurplusAmount()
@@ -457,7 +457,7 @@ public class PaymentController {
                 Iterator< FeeDto > feeDtoIterator = feeDTOL.iterator();
                 while(feeDtoIterator.hasNext()) {
                     feeDto  = feeDtoIterator.next();
-                    LOG.info("NaturalAccountCode: FeeCode: {} ",feeDto.getNaturalAccountCode()+ feeDto.getCode());
+                    LOG.debug("NaturalAccountCode: FeeCode: {} ",feeDto.getNaturalAccountCode()+ feeDto.getCode());
                     if(feeDto.getCalculatedAmount()!=null)
                         calculatedAmount = calculatedAmount.add(feeDto.getCalculatedAmount());
                     if(feeDto.getApportionedPayment()!=null)
@@ -468,7 +468,7 @@ public class PaymentController {
                     feeDto.setApportionedPayment(apportionedPayment);
                     feeDto.setCalculatedAmount(calculatedAmount);
                 }
-                LOG.info("feeDto: {}" ,feeDto);
+                LOG.debug("feeDto: {}" ,feeDto);
                 feeDTOList.add(feeDto);
             }
             paymentDto.setFees(feeDTOList);

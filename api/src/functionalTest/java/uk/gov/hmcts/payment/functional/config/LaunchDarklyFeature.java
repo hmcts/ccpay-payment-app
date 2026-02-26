@@ -23,7 +23,7 @@ public class LaunchDarklyFeature implements FeatureToggler {
 
     public boolean getBooleanValue(String key, Boolean defaultValue) {
 
-        LOG.info("userName in LaunchDarklyFeatureToggler: {}", userName);
+        LOG.debug("userName in LaunchDarklyFeatureToggler: {}", userName);
         LDUser user = new LDUser(userName);
 
         return ldClient.boolVariation(
