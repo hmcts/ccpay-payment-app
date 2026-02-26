@@ -27,7 +27,7 @@ dependencies {
         exclude group: 'org.apache.httpcomponents', module: 'httpclient'
     }
     implementation group: 'io.github.resilience4j', name: 'resilience4j-spring-boot3', version: '2.2.0'
-    api group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '5.10.9'
+    api group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '7.12.0'
 
     testImplementation(group: 'org.springframework.boot', name: 'spring-boot-starter-test') {
       exclude(module: 'commons-logging')
