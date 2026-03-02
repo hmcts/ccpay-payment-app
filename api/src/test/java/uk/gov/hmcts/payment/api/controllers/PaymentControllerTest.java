@@ -28,6 +28,7 @@ import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
+import uk.gov.hmcts.payment.api.contract.ReconciliationPaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.UpdatePaymentRequest;
 import uk.gov.hmcts.payment.api.contract.exception.ValidationErrorDTO;
 import uk.gov.hmcts.payment.api.model.FeePayApportion;
@@ -1670,7 +1671,14 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
+        String responseBody = result.getResponse().getContentAsString();
+        assertThat(responseBody).doesNotContain("issue_refund_add_refund_add_remission");
+        assertThat(responseBody).doesNotContain("net_amount");
+        assertThat(responseBody).doesNotContain("banked_date");
+        assertThat(responseBody).doesNotContain("allocation_status");
+        assertThat(responseBody).doesNotContain("allocation_reason");
+
+        ReconciliationPaymentsResponse paymentsResponse = objectMapper.readValue(responseBody, ReconciliationPaymentsResponse.class);
         assertThat(paymentsResponse.getPayments().size()).isEqualTo(2);
 
     }

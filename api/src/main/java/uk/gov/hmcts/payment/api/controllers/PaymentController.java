@@ -27,8 +27,10 @@ import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
+import uk.gov.hmcts.payment.api.contract.ReconciliationPaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.UpdatePaymentRequest;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
+import uk.gov.hmcts.payment.api.dto.SupplementaryPaymentDto;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.model.FeePayApportion;
 import uk.gov.hmcts.payment.api.model.Payment;
@@ -183,7 +185,7 @@ public class PaymentController {
     })
     @GetMapping(value = "/reconciliation-payments")
     @PaymentExternalAPI
-    public ResponseEntity retrievePaymentsWithApportion(@RequestParam(name = "start_date", required = false) Optional<String> startDateTimeString,
+    public ResponseEntity<ReconciliationPaymentsResponse> retrievePaymentsWithApportion(@RequestParam(name = "start_date", required = false) Optional<String> startDateTimeString,
                                                           @RequestParam(name = "end_date", required = false) Optional<String> endDateTimeString,
                                                           @RequestParam(name = "payment_method", required = false) Optional<String> paymentMethodType,
                                                           @RequestParam(name = "service_name", required = false) Optional<String> serviceType,
@@ -214,9 +216,26 @@ public class PaymentController {
         LOG.info("Is any IAC payment present: {}", iacPaymentAny.isPresent());
 
         if(iacPaymentAny.isPresent() && iacSupplementaryDetailsFeature){
-            return iacService.getIacSupplementaryInfo(paymentDtos,iacServiceName);
+            ResponseEntity<SupplementaryPaymentDto> iacResponse = iacService.getIacSupplementaryInfo(paymentDtos, iacServiceName);
+            SupplementaryPaymentDto iacResponseBody = iacResponse.getBody();
+
+            List<PaymentDto> iacPayments = iacResponseBody != null && iacResponseBody.getPayments() != null
+                ? iacResponseBody.getPayments()
+                : paymentDtos;
+
+            return new ResponseEntity<>(
+                new ReconciliationPaymentsResponse(
+                    paymentDtoMapper.toReconciliationPaymentDtos(iacPayments),
+                    iacResponseBody != null ? iacResponseBody.getSupplementaryInfo() : null
+                ),
+                iacResponse.getStatusCode()
+            );
         }
-        return new ResponseEntity(new PaymentsResponse(paymentDtos),HttpStatus.OK);
+
+        return new ResponseEntity<>(
+            new ReconciliationPaymentsResponse(paymentDtoMapper.toReconciliationPaymentDtos(paymentDtos)),
+            HttpStatus.OK
+        );
 
     }
 
