@@ -122,7 +122,7 @@ public class PaymentGroupFunctionalTest {
             .ccdCaseNumber(ccdCaseNumber)
             .currency(CurrencyCode.GBP)
             .caseType("FinancialRemedyContested")
-             .telephonySystem(TelephonySystem.DEFAULT_SYSTEM_NAME)
+            .telephonySystem(TelephonySystem.DEFAULT_SYSTEM_NAME)
             .returnURL("https://www.moneyclaims.service.gov.uk")
             .build();
 
@@ -460,7 +460,7 @@ public class PaymentGroupFunctionalTest {
             .currency(CurrencyCode.GBP)
             .caseType("FinancialRemedyContested")
             .returnURL("https://www.moneyclaims.service.gov.uk")
-             .telephonySystem(TelephonySystem.DEFAULT_SYSTEM_NAME)
+            .telephonySystem(TelephonySystem.DEFAULT_SYSTEM_NAME)
             .build();
 
         PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
@@ -547,7 +547,7 @@ public class PaymentGroupFunctionalTest {
             .ccdCaseNumber(ccdCaseNumber)
             .currency(CurrencyCode.GBP)
             .caseType("DIVORCE")
-             .telephonySystem(TelephonySystem.DEFAULT_SYSTEM_NAME)
+            .telephonySystem(TelephonySystem.DEFAULT_SYSTEM_NAME)
             .returnURL("https://www.moneyclaims.service.gov.uk")
             .build();
 
@@ -611,7 +611,7 @@ public class PaymentGroupFunctionalTest {
             .ccdCaseNumber(ccdCaseNumber)
             .currency(CurrencyCode.GBP)
             .caseType("DIVORCE")
-             .telephonySystem(TelephonySystem.DEFAULT_SYSTEM_NAME)
+            .telephonySystem(TelephonySystem.DEFAULT_SYSTEM_NAME)
             .returnURL("https://google.co.uk")
             .build();
 
