@@ -617,6 +617,9 @@ public class PaymentDtoMapper {
         }
 
         return ReconciliationPaymentDto.reconciliationPaymentDtoWith()
+            .id(paymentDto.getId())
+            .description(paymentDto.getDescription())
+            .reference(paymentDto.getReference())
             .paymentReference(paymentDto.getPaymentReference())
             .paymentGroupReference(paymentDto.getPaymentGroupReference())
             .serviceName(paymentDto.getServiceName())
@@ -637,8 +640,15 @@ public class PaymentDtoMapper {
             .externalProvider(paymentDto.getExternalProvider())
             .externalReference(paymentDto.getExternalReference())
             .reportedDateOffline(paymentDto.getReportedDateOffline())
+            .documentControlNumber(paymentDto.getDocumentControlNumber())
+            .payerName(paymentDto.getPayerName())
+            .refundEnable(paymentDto.getRefundEnable())
             .fees(toReconciliationFeeDtos(paymentDto.getFees()))
-            .paymentAllocation(toReconciliationPaymentAllocationDtos(paymentDto.getPaymentAllocation()))
+            .statusHistories(paymentDto.getStatusHistories())
+            .internalReference(paymentDto.getInternalReference())
+            .disputes(paymentDto.getDisputes())
+            .overPayment(paymentDto.getOverPayment())
+            .links(paymentDto.getLinks())
             .build();
     }
 
@@ -671,45 +681,26 @@ public class PaymentDtoMapper {
             .version(fee.getVersion())
             .volume(fee.getVolume())
             .calculatedAmount(fee.getCalculatedAmount())
+            .feeAmount(fee.getFeeAmount())
             .memoLine(fee.getMemoLine())
             .naturalAccountCode(fee.getNaturalAccountCode())
             .ccdCaseNumber(fee.getCcdCaseNumber())
+            .description(fee.getDescription())
             .caseReference(fee.getCaseReference())
             .reference(fee.getReference())
             .jurisdiction1(fee.getJurisdiction1())
             .jurisdiction2(fee.getJurisdiction2())
+            .apportionAmount(fee.getApportionAmount())
+            .allocatedAmount(fee.getAllocatedAmount())
+            .dateApportioned(fee.getDateApportioned())
+            .dateCreated(fee.getDateCreated())
+            .dateUpdated(fee.getDateUpdated())
+            .amountDue(fee.getAmountDue())
             .paymentGroupReference(fee.getPaymentGroupReference())
             .apportionedPayment(fee.getApportionedPayment())
             .dateReceiptProcessed(fee.getDateReceiptProcessed())
-            .build();
-    }
-
-    private List<ReconciliationPaymentAllocationDto> toReconciliationPaymentAllocationDtos(List<PaymentAllocationDto> paymentAllocations) {
-        if (paymentAllocations == null) {
-            return null;
-        }
-        return paymentAllocations.stream()
-            .map(this::toReconciliationPaymentAllocationDto)
-            .collect(Collectors.toList());
-    }
-
-    private ReconciliationPaymentAllocationDto toReconciliationPaymentAllocationDto(PaymentAllocationDto paymentAllocation) {
-        if (paymentAllocation == null) {
-            return null;
-        }
-
-        return ReconciliationPaymentAllocationDto.reconciliationPaymentAllocationDtoWith()
-            .id(paymentAllocation.getId())
-            .paymentReference(paymentAllocation.getPaymentReference())
-            .paymentGroupReference(paymentAllocation.getPaymentGroupReference())
-            .paymentAllocationStatus(paymentAllocation.getPaymentAllocationStatus())
-            .unidentifiedReason(paymentAllocation.getUnidentifiedReason())
-            .receivingOffice(paymentAllocation.getReceivingOffice())
-            .reason(paymentAllocation.getReason())
-            .explanation(paymentAllocation.getExplanation())
-            .userId(paymentAllocation.getUserId())
-            .userName(paymentAllocation.getUserName())
-            .dateCreated(paymentAllocation.getDateCreated())
+            .remissionEnable(fee.getRemissionEnable())
+            .overPayment(fee.getOverPayment())
             .build();
     }
 }

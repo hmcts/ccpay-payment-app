@@ -1687,6 +1687,9 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         assertThat(responseBody).doesNotContain("banked_date");
         assertThat(responseBody).doesNotContain("allocation_status");
         assertThat(responseBody).doesNotContain("allocation_reason");
+        assertThat(responseBody).doesNotContain("add_remission");
+        assertThat(responseBody).doesNotContain("issue_refund");
+        assertThat(responseBody).doesNotContain("payment_allocation");
 
         ReconciliationPaymentsResponse paymentsResponse = objectMapper.readValue(responseBody, ReconciliationPaymentsResponse.class);
         assertThat(paymentsResponse.getPayments().size()).isEqualTo(2);
