@@ -77,7 +77,7 @@ public class PaymentRecordFunctionalTest {
 
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
-            .when().createTelephonyPayment(getPaymentRecordRequest())
+            .when().createPaymentRecord(getPaymentRecordRequest())
             .then().created(paymentDto -> {
                 paymentReference = paymentDto.getReference();
                 assertNotNull(paymentDto.getReference());
