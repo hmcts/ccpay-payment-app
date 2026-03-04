@@ -27,7 +27,6 @@ import uk.gov.hmcts.payment.functional.service.PaymentTestService;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
@@ -84,6 +83,7 @@ public class TelephonyPaymentFunctionalTest {
             .ccdCaseNumber(ccdCaseNumber)
             .version("4")
             .code("FEE0002")
+            .volume(1)
             .description("Application for a third party debt order")
             .build();
 
@@ -129,42 +129,39 @@ public class TelephonyPaymentFunctionalTest {
                     .then().noContent();
 
                 // Get pba payments by ccdCaseNumber
-                PaymentsResponse liberataResponseOld = paymentTestService.getPbaPaymentsByCCDCaseNumber(SERVICE_TOKEN, telephonyPaymentRequest.getCcdCaseNumber())
+                PaymentsResponse liberataResponse = paymentTestService.getReconciliationDataByCCDCaseNumber(SERVICE_TOKEN, telephonyPaymentRequest.getCcdCaseNumber())
                     .then()
                     .statusCode(OK.value()).extract().as(PaymentsResponse.class);
 
-                PaymentsResponse liberataResponseApproach1 = paymentTestService.getPbaPaymentsByCCDCaseNumberApproach1(SERVICE_TOKEN, telephonyPaymentRequest.getCcdCaseNumber())
-                    .then()
-                    .statusCode(OK.value()).extract().as(PaymentsResponse.class);
+                assertThat(liberataResponse.getPayments().size()).isGreaterThanOrEqualTo(1);
 
-                //Comparing the response size of old and new approach
-                Java6Assertions.assertThat(liberataResponseOld.getPayments().size()).isGreaterThanOrEqualTo(1);
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().size()).isGreaterThanOrEqualTo(1);
+                assertThat(liberataResponse.getPayments().get(0).getAmount()).isEqualTo(new BigDecimal("550.00"));
+                assertThat(liberataResponse.getPayments().get(0).getDateCreated()).isNotNull();
+                assertThat(liberataResponse.getPayments().get(0).getDateUpdated()).isNotNull();
+                assertThat(liberataResponse.getPayments().get(0).getCurrency().toString()).isEqualTo("GBP");
+                assertThat(liberataResponse.getPayments().get(0).getCcdCaseNumber()).isEqualTo(ccdCaseNumber);
+                assertThat(liberataResponse.getPayments().get(0).getPaymentReference()).isEqualTo(paymentReference);
+                assertThat(liberataResponse.getPayments().get(0).getChannel()).isEqualTo("telephony");
+                assertThat(liberataResponse.getPayments().get(0).getMethod()).isEqualTo("card");
+                assertThat(liberataResponse.getPayments().get(0).getExternalProvider()).isEqualTo("pci pal");
+                assertThat(liberataResponse.getPayments().get(0).getStatus()).isEqualTo("success");
+                assertThat(liberataResponse.getPayments().get(0).getSiteId()).isEqualTo("ABA1");
+                assertThat(liberataResponse.getPayments().get(0).getServiceName()).isEqualTo("Divorce");
+                assertThat(liberataResponse.getPayments().get(0).getPaymentGroupReference()).isEqualTo(paymentGroupReference);
 
-                //Comparing the response of old and new approach
-                Boolean compareResult = new HashSet<>(liberataResponseOld.getPayments()).equals(new HashSet<>(liberataResponseApproach1.getPayments()));
-                Java6Assertions.assertThat(compareResult).isEqualTo(true);
-                LOG.info("Comparison of old and new api end point response of telephony payment is same");
-
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getPaymentReference()).isNotNull();
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getAmount()).isEqualTo(new BigDecimal("550.00"));
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getDateCreated()).isNotNull();
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getDateUpdated()).isNotNull();
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getCurrency()).isNotNull();
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getCcdCaseNumber()).isEqualTo(ccdCaseNumber);
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getChannel()).isEqualTo("telephony");
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getMethod()).isEqualTo("card");
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getExternalProvider()).isEqualTo("pci pal");
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getStatus()).isEqualTo("success");
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getSiteId()).isEqualTo("ABA1");
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getServiceName()).isEqualTo("Divorce");
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getFees().get(0).getApportionedPayment()).isEqualTo("550.00");
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getFees().get(0).getCalculatedAmount()).isEqualTo("550.00");
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getFees().get(0).getMemoLine()).isEqualTo("GOV - App for divorce/nullity of marriage or CP");
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getFees().get(0).getNaturalAccountCode()).isEqualTo("4481102159");
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getFees().get(0).getJurisdiction1()).isEqualTo("family");
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getFees().get(0).getJurisdiction2()).isEqualTo("family court");
-
+                assertThat(liberataResponse.getPayments().get(0).getFees().get(0).getId()).isEqualTo(paymentGroupFeeDto.getFees().get(0).getId());
+                assertThat(liberataResponse.getPayments().get(0).getFees().get(0).getCode()).isEqualTo(paymentGroupFeeDto.getFees().get(0).getCode());
+                assertThat(liberataResponse.getPayments().get(0).getFees().get(0).getVersion()).isEqualTo(paymentGroupFeeDto.getFees().get(0).getVersion());
+                assertThat(liberataResponse.getPayments().get(0).getFees().get(0).getVolume()).isEqualTo(paymentGroupFeeDto.getFees().get(0).getVolume());
+                assertThat(liberataResponse.getPayments().get(0).getFees().get(0).getCalculatedAmount()).isEqualTo("550.00");
+                assertThat(liberataResponse.getPayments().get(0).getFees().get(0).getMemoLine()).isEqualTo("GOV - App for divorce/nullity of marriage or CP");
+                assertThat(liberataResponse.getPayments().get(0).getFees().get(0).getNaturalAccountCode()).isEqualTo("4481102159");
+                assertThat(liberataResponse.getPayments().get(0).getFees().get(0).getCcdCaseNumber()).isEqualTo(paymentGroupFeeDto.getFees().get(0).getCcdCaseNumber());
+                assertThat(liberataResponse.getPayments().get(0).getFees().get(0).getJurisdiction1()).isEqualTo("family");
+                assertThat(liberataResponse.getPayments().get(0).getFees().get(0).getJurisdiction2()).isEqualTo("family court");
+                assertThat(liberataResponse.getPayments().get(0).getFees().get(0).getPaymentGroupReference()).isEqualTo(paymentGroupReference);
+                assertThat(liberataResponse.getPayments().get(0).getFees().get(0).getApportionedPayment()).isEqualTo("550.00");
+                assertThat(liberataResponse.getPayments().get(0).getFees().get(0).getDateReceiptProcessed()).isNotNull();
             });
     }
 
@@ -177,6 +174,7 @@ public class TelephonyPaymentFunctionalTest {
             .ccdCaseNumber(ccdCaseNumber)
             .version("8")
             .code("FEE0002")
+            .volume(1)
             .description("Filing an application for a divorce, nullity or civil partnership dissolution")
             .build();
 
@@ -222,41 +220,32 @@ public class TelephonyPaymentFunctionalTest {
                     .then().noContent();
 
                 // Get pba payments by ccdCaseNumber
-                PaymentsResponse liberataResponseOld = paymentTestService.getPbaPaymentsByCCDCaseNumber(SERVICE_TOKEN, telephonyPaymentRequest.getCcdCaseNumber())
-                    .then()
-                    .statusCode(OK.value()).extract().as(PaymentsResponse.class);
-
-                PaymentsResponse liberataResponseApproach1 = paymentTestService.getPbaPaymentsByCCDCaseNumberApproach1(SERVICE_TOKEN, telephonyPaymentRequest.getCcdCaseNumber())
+                PaymentsResponse liberataResponse = paymentTestService.getReconciliationDataByCCDCaseNumber(SERVICE_TOKEN, telephonyPaymentRequest.getCcdCaseNumber())
                     .then()
                     .statusCode(OK.value()).extract().as(PaymentsResponse.class);
 
                 //Comparing the response size of old and new approach
-                Java6Assertions.assertThat(liberataResponseOld.getPayments().size()).isGreaterThanOrEqualTo(1);
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().size()).isGreaterThanOrEqualTo(1);
+                assertThat(liberataResponse.getPayments().size()).isGreaterThanOrEqualTo(1);
 
-                //Comparing the response of old and new approach
-                Boolean compareResult = new HashSet<>(liberataResponseOld.getPayments()).equals(new HashSet<>(liberataResponseApproach1.getPayments()));
-                Java6Assertions.assertThat(compareResult).isEqualTo(true);
-                LOG.info("Comparison of old and new api end point response of telephony payment is same");
-
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getPaymentReference()).isNotNull();
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getAmount()).isEqualTo(new BigDecimal("612.00"));
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getDateCreated()).isNotNull();
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getDateUpdated()).isNotNull();
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getCurrency()).isNotNull();
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getCcdCaseNumber()).isEqualTo(ccdCaseNumber);
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getChannel()).isEqualTo("telephony");
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getMethod()).isEqualTo("card");
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getExternalProvider()).isEqualTo("pci pal");
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getStatus()).isEqualTo("success");
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getSiteId()).isEqualTo("ABA1");
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getServiceName()).isEqualTo("Divorce");
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getFees().get(0).getApportionedPayment()).isEqualTo("612.00");
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getFees().get(0).getCalculatedAmount()).isEqualTo("612.00");
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getFees().get(0).getMemoLine()).isEqualTo("RECEIPT OF FEES - Family issue divorce");
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getFees().get(0).getNaturalAccountCode()).isEqualTo("4481102159");
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getFees().get(0).getJurisdiction1()).isEqualTo("family");
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getFees().get(0).getJurisdiction2()).isEqualTo("family court");
+                assertThat(liberataResponse.getPayments().get(0).getPaymentReference()).isEqualTo(paymentReference);
+                assertThat(liberataResponse.getPayments().get(0).getAmount()).isEqualTo(new BigDecimal("612.00"));
+                assertThat(liberataResponse.getPayments().get(0).getDateCreated()).isNotNull();
+                assertThat(liberataResponse.getPayments().get(0).getDateUpdated()).isNotNull();
+                assertThat(liberataResponse.getPayments().get(0).getCurrency().toString()).isEqualTo("GBP");
+                assertThat(liberataResponse.getPayments().get(0).getCcdCaseNumber()).isEqualTo(ccdCaseNumber);
+                assertThat(liberataResponse.getPayments().get(0).getChannel()).isEqualTo("telephony");
+                assertThat(liberataResponse.getPayments().get(0).getMethod()).isEqualTo("card");
+                assertThat(liberataResponse.getPayments().get(0).getExternalProvider()).isEqualTo("pci pal");
+                assertThat(liberataResponse.getPayments().get(0).getStatus()).isEqualTo("success");
+                assertThat(liberataResponse.getPayments().get(0).getSiteId()).isEqualTo("ABA1");
+                assertThat(liberataResponse.getPayments().get(0).getServiceName()).isEqualTo("Divorce");
+                assertThat(liberataResponse.getPayments().get(0).getPaymentGroupReference()).isEqualTo(paymentGroupReference);
+                assertThat(liberataResponse.getPayments().get(0).getFees().get(0).getApportionedPayment()).isEqualTo("612.00");
+                assertThat(liberataResponse.getPayments().get(0).getFees().get(0).getCalculatedAmount()).isEqualTo("612.00");
+                assertThat(liberataResponse.getPayments().get(0).getFees().get(0).getMemoLine()).isEqualTo("RECEIPT OF FEES - Family issue divorce");
+                assertThat(liberataResponse.getPayments().get(0).getFees().get(0).getNaturalAccountCode()).isEqualTo("4481102159");
+                assertThat(liberataResponse.getPayments().get(0).getFees().get(0).getJurisdiction1()).isEqualTo("family");
+                assertThat(liberataResponse.getPayments().get(0).getFees().get(0).getJurisdiction2()).isEqualTo("family court");
 
             });
     }
@@ -270,6 +259,7 @@ public class TelephonyPaymentFunctionalTest {
             .ccdCaseNumber(ccdCaseNumber)
             .version("8")
             .code("FEE0002")
+            .volume(1)
             .description("Filing an application for a divorce, nullity or civil partnership dissolution")
             .build();
 
@@ -315,41 +305,31 @@ public class TelephonyPaymentFunctionalTest {
                     .then().noContent();
 
                 // Get pba payments by ccdCaseNumber
-                PaymentsResponse liberataResponseOld = paymentTestService.getPbaPaymentsByCCDCaseNumber(SERVICE_TOKEN, telephonyPaymentRequest.getCcdCaseNumber())
+                PaymentsResponse liberataResponse = paymentTestService.getReconciliationDataByCCDCaseNumber(SERVICE_TOKEN, telephonyPaymentRequest.getCcdCaseNumber())
                     .then()
                     .statusCode(OK.value()).extract().as(PaymentsResponse.class);
 
-                PaymentsResponse liberataResponseApproach1 = paymentTestService.getPbaPaymentsByCCDCaseNumberApproach1(SERVICE_TOKEN, telephonyPaymentRequest.getCcdCaseNumber())
-                    .then()
-                    .statusCode(OK.value()).extract().as(PaymentsResponse.class);
+                assertThat(liberataResponse.getPayments().size()).isGreaterThanOrEqualTo(1);
 
-                //Comparing the response size of old and new approach
-                Java6Assertions.assertThat(liberataResponseOld.getPayments().size()).isGreaterThanOrEqualTo(1);
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().size()).isGreaterThanOrEqualTo(1);
-
-                //Comparing the response of old and new approach
-                Boolean compareResult = new HashSet<>(liberataResponseOld.getPayments()).equals(new HashSet<>(liberataResponseApproach1.getPayments()));
-                Java6Assertions.assertThat(compareResult).isEqualTo(true);
-                LOG.info("Comparison of old and new api end point response of telephony payment is same");
-
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getPaymentReference()).isNotNull();
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getAmount()).isEqualTo(new BigDecimal("612.00"));
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getDateCreated()).isNotNull();
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getDateUpdated()).isNotNull();
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getCurrency()).isNotNull();
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getCcdCaseNumber()).isEqualTo(ccdCaseNumber);
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getChannel()).isEqualTo("telephony");
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getMethod()).isEqualTo("card");
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getExternalProvider()).isEqualTo("pci pal");
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getStatus()).isEqualTo("success");
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getSiteId()).isEqualTo("ABA1");
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getServiceName()).isEqualTo("Divorce");
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getFees().get(0).getApportionedPayment()).isEqualTo("612.00");
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getFees().get(0).getCalculatedAmount()).isEqualTo("612.00");
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getFees().get(0).getMemoLine()).isEqualTo("RECEIPT OF FEES - Family issue divorce");
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getFees().get(0).getNaturalAccountCode()).isEqualTo("4481102159");
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getFees().get(0).getJurisdiction1()).isEqualTo("family");
-                Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getFees().get(0).getJurisdiction2()).isEqualTo("family court");
+                assertThat(liberataResponse.getPayments().get(0).getPaymentReference()).isEqualTo(paymentReference);
+                assertThat(liberataResponse.getPayments().get(0).getAmount()).isEqualTo(new BigDecimal("612.00"));
+                assertThat(liberataResponse.getPayments().get(0).getDateCreated()).isNotNull();
+                assertThat(liberataResponse.getPayments().get(0).getDateUpdated()).isNotNull();
+                assertThat(liberataResponse.getPayments().get(0).getCurrency().toString()).isEqualTo("GBP");
+                assertThat(liberataResponse.getPayments().get(0).getCcdCaseNumber()).isEqualTo(ccdCaseNumber);
+                assertThat(liberataResponse.getPayments().get(0).getChannel()).isEqualTo("telephony");
+                assertThat(liberataResponse.getPayments().get(0).getMethod()).isEqualTo("card");
+                assertThat(liberataResponse.getPayments().get(0).getExternalProvider()).isEqualTo("pci pal");
+                assertThat(liberataResponse.getPayments().get(0).getStatus()).isEqualTo("success");
+                assertThat(liberataResponse.getPayments().get(0).getSiteId()).isEqualTo("ABA1");
+                assertThat(liberataResponse.getPayments().get(0).getServiceName()).isEqualTo("Divorce");
+                assertThat(liberataResponse.getPayments().get(0).getPaymentGroupReference()).isEqualTo(paymentGroupReference);
+                assertThat(liberataResponse.getPayments().get(0).getFees().get(0).getApportionedPayment()).isEqualTo("612.00");
+                assertThat(liberataResponse.getPayments().get(0).getFees().get(0).getCalculatedAmount()).isEqualTo("612.00");
+                assertThat(liberataResponse.getPayments().get(0).getFees().get(0).getMemoLine()).isEqualTo("RECEIPT OF FEES - Family issue divorce");
+                assertThat(liberataResponse.getPayments().get(0).getFees().get(0).getNaturalAccountCode()).isEqualTo("4481102159");
+                assertThat(liberataResponse.getPayments().get(0).getFees().get(0).getJurisdiction1()).isEqualTo("family");
+                assertThat(liberataResponse.getPayments().get(0).getFees().get(0).getJurisdiction2()).isEqualTo("family court");
 
             });
     }
@@ -363,6 +343,7 @@ public class TelephonyPaymentFunctionalTest {
             .ccdCaseNumber(ccdCaseNumber)
             .version("8")
             .code("FEE0002")
+            .volume(1)
             .description("Filing an application for a divorce, nullity or civil partnership dissolution")
             .build();
 
@@ -404,6 +385,7 @@ public class TelephonyPaymentFunctionalTest {
             .ccdCaseNumber(ccdCaseNumber)
             .version("8")
             .code("FEE0002")
+            .volume(1)
             .description("Filing an application for a divorce, nullity or civil partnership dissolution")
             .build();
 
