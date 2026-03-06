@@ -66,8 +66,7 @@ import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.payment.api.model.PaymentFee.feeWith;
 import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 
-// Explicit consumer list included to handle DIAC-267, can be removed once DIAC-267 is done.
-// Failing consumers ia_caseDocumentsApi and ia_casePaymentsApi.
+// As a result of DIAC-267 ia_caseDocumentsApi  has been removed from the list and ia_casePaymentsApi restored.
 // https://tools.hmcts.net/jira/browse/DIAC-267
 @ExtendWith(SpringExtension.class)
 @Provider("payment_cardPayment")
@@ -76,6 +75,7 @@ import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
     @VersionSelector(consumer = "divorce_caseOrchestratorService", tag = "master"),
     @VersionSelector(consumer = "fpl_ccdConfiguration", tag = "master"),
     @VersionSelector(consumer = "fr_caseOrchestratorService", tag = "master"),
+    @VersionSelector(consumer = "ia_casePaymentsApi", tag = "master"),
     @VersionSelector(consumer = "payment_App", tag = "master"),
     @VersionSelector(consumer = "pcs_api", tag = "master"),
     @VersionSelector(consumer = "prl_cos", tag = "master"),
