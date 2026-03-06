@@ -191,18 +191,18 @@ public class PaymentTestService {
                 .delete("/refund/{reference}", refundReference);
     }
 
-    public Response postBounceCheque(String serviceToken,
+    public Response postBounceCheque(String authToken, String serviceToken,
                                        PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto) {
-        return givenWithServiceHeaders(serviceToken)
+        return givenWithAuthHeaders(authToken, serviceToken)
             .contentType(ContentType.JSON)
             .body(paymentStatusBouncedChequeDto)
             .when()
             .post("/payment-failures/bounced-cheque");
     }
 
-    public Response postChargeback(String serviceToken,
+    public Response postChargeback(String authToken, String serviceToken,
                                      PaymentStatusChargebackDto paymentStatusChargebackDto) {
-        return givenWithServiceHeaders(serviceToken)
+        return givenWithAuthHeaders(authToken, serviceToken)
             .contentType(ContentType.JSON)
             .body(paymentStatusChargebackDto)
             .when()
@@ -221,18 +221,18 @@ public class PaymentTestService {
             .delete("/payment-status-delete/{failureReference}", failureReference);
     }
 
-    public Response paymentStatusSecond(String serviceToken, String failureReference,
+    public Response paymentStatusSecond(String authString, String serviceToken, String failureReference,
                                         PaymentStatusUpdateSecond paymentStatusUpdateSecond) {
-        return givenWithServiceHeaders(serviceToken)
+        return givenWithAuthHeaders(authString, serviceToken)
                 .contentType(ContentType.JSON)
                 .body(paymentStatusUpdateSecond)
                 .when()
                 .patch("/payment-failures/{failureReference}", failureReference);
     }
 
-    public Response postUnprocessedPayment(String serviceToken,
+    public Response postUnprocessedPayment(String authString, String serviceToken,
                                            UnprocessedPayment unprocessedPayment) {
-        return givenWithServiceHeaders(serviceToken)
+        return givenWithAuthHeaders(authString, serviceToken)
                 .contentType(ContentType.JSON)
                 .body(unprocessedPayment)
                 .when()
