@@ -148,6 +148,7 @@ public class PaymentStatusFunctionalTest {
             = PaymentFixture.chargebackRequest(paymentDto.getReference());
         paymentFailureReference = paymentStatusChargebackDto.getFailureReference();
         Response chargebackResponse = paymentTestService.postChargeback(
+            USER_TOKEN_PAYMENT,
             SERVICE_TOKEN_PAYMENT,
             paymentStatusChargebackDto);
 
@@ -176,6 +177,7 @@ public class PaymentStatusFunctionalTest {
             = PaymentFixture.chargebackRequest(paymentReference);
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
         Response chargebackResponse = paymentTestService.postChargeback(
+            USER_TOKEN,
             SERVICE_TOKEN_PAYMENT,
             paymentStatusChargebackDto);
 
@@ -218,12 +220,14 @@ public class PaymentStatusFunctionalTest {
             = PaymentFixture.chargebackRequest(paymentDto.getReference());
 
         Response chargebackResponse = paymentTestService.postChargeback(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentStatusChargebackDto);
         assertThat(chargebackResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         PaymentStatusChargebackDto paymentStatusChargebackDtoNext
             = PaymentFixture.chargebackRequestForFailureRef(paymentDto.getReference(), paymentStatusChargebackDto.getFailureReference());
         Response chargebackResponseNext = paymentTestService.postChargeback(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentStatusChargebackDtoNext);
         assertThat(chargebackResponseNext.getStatusCode()).isEqualTo(HttpStatus.TOO_MANY_REQUESTS.value());
@@ -265,6 +269,7 @@ public class PaymentStatusFunctionalTest {
             = PaymentFixture.chargebackRequest(paymentDto.getReference());
 
         Response chargebackResponse = paymentTestService.postChargeback(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentStatusChargebackDto);
 
@@ -346,6 +351,7 @@ public class PaymentStatusFunctionalTest {
             = PaymentFixture.chargebackRequest(paymentDto.getReference());
 
         Response chargebackResponse = paymentTestService.postChargeback(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentStatusChargebackDto);
 
@@ -365,7 +371,9 @@ public class PaymentStatusFunctionalTest {
             .representmentDate(actualDateTime.plusMinutes(15).toString())
             .build();
         Response ping2Response = paymentTestService.paymentStatusSecond(
-            SERVICE_TOKEN_PAYMENT, paymentStatusChargebackDto.getFailureReference(),
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            SERVICE_TOKEN_PAYMENT,
+            paymentStatusChargebackDto.getFailureReference(),
             paymentStatusUpdateSecond);
 
         assertEquals(ping2Response.getStatusCode(), OK.value());
@@ -440,6 +448,7 @@ public class PaymentStatusFunctionalTest {
             = PaymentFixture.bouncedChequeRequest(paymentReference.get());
 
         Response bounceChequeResponse = paymentTestService.postBounceCheque(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentStatusBouncedChequeDto);
 
@@ -457,7 +466,9 @@ public class PaymentStatusFunctionalTest {
             .representmentDate(actualDateTime.plusMinutes(15).toString())
             .build();
         Response ping2Response = paymentTestService.paymentStatusSecond(
-            SERVICE_TOKEN_PAYMENT, paymentStatusBouncedChequeDto.getFailureReference(),
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            SERVICE_TOKEN_PAYMENT,
+            paymentStatusBouncedChequeDto.getFailureReference(),
             paymentStatusUpdateSecond);
 
         assertEquals(ping2Response.getStatusCode(), OK.value());
@@ -490,6 +501,7 @@ public class PaymentStatusFunctionalTest {
             = PaymentFixture.chargebackRequest(paymentReference.get());
 
         Response chargebackResponse = paymentTestService.postChargeback(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentStatusChargebackDto);
 
@@ -508,7 +520,9 @@ public class PaymentStatusFunctionalTest {
             .representmentDate(actualDateTime.plusMinutes(15).toString())
             .build();
         Response ping2Response = paymentTestService.paymentStatusSecond(
-            SERVICE_TOKEN_PAYMENT, paymentStatusChargebackDto.getFailureReference(),
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            SERVICE_TOKEN_PAYMENT,
+            paymentStatusChargebackDto.getFailureReference(),
             paymentStatusUpdateSecond);
 
         assertEquals(ping2Response.getStatusCode(), OK.value());
@@ -584,6 +598,7 @@ public class PaymentStatusFunctionalTest {
             = PaymentFixture.chargebackRequest(paymentReference.get());
 
         Response chargebackResponse = paymentTestService.postChargeback(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentStatusChargebackDto);
 
@@ -602,7 +617,9 @@ public class PaymentStatusFunctionalTest {
             .representmentDate(actualDateTime.plusMinutes(15).toString())
             .build();
         Response ping2Response = paymentTestService.paymentStatusSecond(
-            SERVICE_TOKEN_PAYMENT, paymentStatusChargebackDto.getFailureReference(),
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            SERVICE_TOKEN_PAYMENT,
+            paymentStatusChargebackDto.getFailureReference(),
             paymentStatusUpdateSecond);
 
         assertEquals(ping2Response.getStatusCode(), OK.value());
@@ -678,6 +695,7 @@ public class PaymentStatusFunctionalTest {
             = PaymentFixture.chargebackRequest(paymentReference.get());
 
         Response chargebackResponse = paymentTestService.postChargeback(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentStatusChargebackDto);
 
@@ -696,7 +714,9 @@ public class PaymentStatusFunctionalTest {
             .representmentDate(actualDateTime.plusMinutes(15).toString())
             .build();
         Response ping2Response = paymentTestService.paymentStatusSecond(
-            SERVICE_TOKEN_PAYMENT, paymentStatusChargebackDto.getFailureReference(),
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            SERVICE_TOKEN_PAYMENT,
+            paymentStatusChargebackDto.getFailureReference(),
             paymentStatusUpdateSecond);
 
         assertEquals(ping2Response.getStatusCode(), OK.value());
@@ -707,6 +727,7 @@ public class PaymentStatusFunctionalTest {
             = PaymentFixture.chargebackRequestService(paymentReference.get(), paymentStatusChargebackDto.getCcdCaseNumber());
 
         Response chargebackResponse1 = paymentTestService.postChargeback(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentStatusChargebackDto1);
         assertThat(chargebackResponse1.getStatusCode()).isEqualTo(HttpStatus.OK.value());
@@ -736,7 +757,9 @@ public class PaymentStatusFunctionalTest {
             .representmentDate("2022-10-10T10:10:10")
             .build();
         Response ping2Response = paymentTestService.paymentStatusSecond(
-            SERVICE_TOKEN_PAYMENT, "abcdefgh",
+            USER_TOKEN,
+            SERVICE_TOKEN_PAYMENT,
+            "abcdefgh",
             paymentStatusUpdateSecond);
 
         assertEquals(ping2Response.getStatusCode(), NOT_FOUND.value());
@@ -752,7 +775,9 @@ public class PaymentStatusFunctionalTest {
             .representmentDate(null)
             .build();
         Response ping2Response = paymentTestService.paymentStatusSecond(
-            SERVICE_TOKEN_PAYMENT, "string",
+            USER_TOKEN,
+            SERVICE_TOKEN_PAYMENT,
+            "string",
             paymentStatusUpdateSecond);
 
         assertEquals(BAD_REQUEST.value(), ping2Response.getStatusCode());
@@ -773,6 +798,7 @@ public class PaymentStatusFunctionalTest {
             = PaymentFixture.chargebackRequest(paymentDto.getReference());
 
         Response chargebackResponse = paymentTestService.postChargeback(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentStatusChargebackDto);
         assertThat(chargebackResponse.getStatusCode()).isEqualTo(BAD_REQUEST.value());
@@ -839,6 +865,7 @@ public class PaymentStatusFunctionalTest {
         PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto
             = PaymentFixture.bouncedChequeRequest(paymentReference.get());
         Response bounceChequeResponse = paymentTestService.postBounceCheque(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentStatusBouncedChequeDto);
 
@@ -867,6 +894,7 @@ public class PaymentStatusFunctionalTest {
             = PaymentFixture.chargebackRequest(paymentReference.get());
 
         Response chargebackResponse = paymentTestService.postChargeback(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentStatusChargebackDto);
 
@@ -947,6 +975,7 @@ public class PaymentStatusFunctionalTest {
             = PaymentFixture.bouncedChequeRequest(paymentReference.get());
 
         Response bounceChequeResponse = paymentTestService.postBounceCheque(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentStatusBouncedChequeDto);
 
@@ -1024,6 +1053,7 @@ public class PaymentStatusFunctionalTest {
             = PaymentFixture.chargebackRequest(paymentReference.get());
 
         Response chargebackResponse = paymentTestService.postChargeback(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentStatusChargebackDto);
 
@@ -1103,6 +1133,7 @@ public class PaymentStatusFunctionalTest {
             = PaymentFixture.bouncedChequeRequest(paymentReference.get());
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentReference.get()).then().statusCode(NO_CONTENT.value());
         Response bounceChequeResponse = paymentTestService.postBounceCheque(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentStatusBouncedChequeDto);
 
@@ -1172,12 +1203,14 @@ public class PaymentStatusFunctionalTest {
             = PaymentFixture.bouncedChequeRequest(paymentReference.get());
 
         Response bounceChequeResponse = paymentTestService.postBounceCheque(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentStatusBouncedChequeDto);
         assertThat(bounceChequeResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDtoNext
             = PaymentFixture.bouncedChequeRequestForFailureRef(paymentReference.get(), paymentStatusBouncedChequeDto.getFailureReference());
         Response bounceChequeResponseNext = paymentTestService.postBounceCheque(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentStatusBouncedChequeDtoNext);
         assertThat(bounceChequeResponseNext.getStatusCode()).isEqualTo(HttpStatus.TOO_MANY_REQUESTS.value());
@@ -1205,6 +1238,7 @@ public class PaymentStatusFunctionalTest {
             = PaymentFixture.chargebackRequest(paymentReference.get());
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentReference.get()).then().statusCode(NO_CONTENT.value());
         Response chargebackResponse = paymentTestService.postChargeback(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentStatusChargebackDto);
 
@@ -1231,12 +1265,14 @@ public class PaymentStatusFunctionalTest {
             = PaymentFixture.chargebackRequest(paymentReference.get());
 
         Response chargebackResponse = paymentTestService.postChargeback(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentStatusChargebackDto);
         assertThat(chargebackResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         PaymentStatusChargebackDto paymentStatusChargebackDtoNext
             = PaymentFixture.chargebackRequestForFailureRef(paymentReference.get(), paymentStatusChargebackDto.getFailureReference());
         Response chargebackResponseNext = paymentTestService.postChargeback(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentStatusChargebackDtoNext);
         assertThat(chargebackResponseNext.getStatusCode()).isEqualTo(HttpStatus.TOO_MANY_REQUESTS.value());
@@ -1305,6 +1341,7 @@ public class PaymentStatusFunctionalTest {
             = PaymentFixture.chargebackRequest(paymentReference.get());
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentReference.get()).then().statusCode(NO_CONTENT.value());
         Response chargebackResponse = paymentTestService.postChargeback(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentStatusChargebackDto);
 
@@ -1373,12 +1410,14 @@ public class PaymentStatusFunctionalTest {
             = PaymentFixture.chargebackRequest(paymentReference.get());
 
         Response chargebackResponse = paymentTestService.postChargeback(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentStatusChargebackDto);
         assertThat(chargebackResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         PaymentStatusChargebackDto paymentStatusChargebackDtoNext
             = PaymentFixture.chargebackRequestForFailureRef(paymentReference.get(), paymentStatusChargebackDto.getFailureReference());
         Response chargebackResponseNext = paymentTestService.postChargeback(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentStatusChargebackDtoNext);
         assertThat(chargebackResponseNext.getStatusCode()).isEqualTo(HttpStatus.TOO_MANY_REQUESTS.value());
@@ -1431,6 +1470,7 @@ public class PaymentStatusFunctionalTest {
             .build();
 
         Response bounceChequeResponse = paymentTestService.postUnprocessedPayment(
+            USER_TOKEN_PAYMENT,
             SERVICE_TOKEN_PAYMENT,
             unprocessedPayment);
         assertThat(bounceChequeResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
@@ -1441,7 +1481,9 @@ public class PaymentStatusFunctionalTest {
             .representmentDate(actualDateTime.plusMinutes(20).toString())
             .build();
         Response ping2Response = paymentTestService.paymentStatusSecond(
-            SERVICE_TOKEN_PAYMENT, unprocessedPayment.getFailureReference(),
+            USER_TOKEN,
+            SERVICE_TOKEN_PAYMENT,
+            unprocessedPayment.getFailureReference(),
             paymentStatusUpdateSecond);
 
         assertEquals(ping2Response.getStatusCode(), OK.value());
@@ -1502,6 +1544,7 @@ public class PaymentStatusFunctionalTest {
             .build();
 
         Response bounceChequeResponse = paymentTestService.postUnprocessedPayment(
+            USER_TOKEN_PAYMENT,
             SERVICE_TOKEN_PAYMENT,
             unprocessedPayment);
         assertThat(bounceChequeResponse.getStatusCode()).isEqualTo(NOT_FOUND.value());
@@ -1553,12 +1596,14 @@ public class PaymentStatusFunctionalTest {
             .build();
 
         Response bounceChequeResponse = paymentTestService.postUnprocessedPayment(
+            USER_TOKEN_PAYMENT,
             SERVICE_TOKEN_PAYMENT,
             unprocessedPayment);
         assertThat(bounceChequeResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
 
         // Ping 1 for Unprocessed Payment event again
         Response bounceChequeResponse1 = paymentTestService.postUnprocessedPayment(
+            USER_TOKEN_PAYMENT,
             SERVICE_TOKEN_PAYMENT,
             unprocessedPayment);
         assertThat(bounceChequeResponse1.getStatusCode()).isEqualTo(HttpStatus.TOO_MANY_REQUESTS.value());
@@ -1617,6 +1662,7 @@ public class PaymentStatusFunctionalTest {
             .build();
 
         Response bounceChequeResponse = paymentTestService.postUnprocessedPayment(
+            USER_TOKEN_PAYMENT,
             SERVICE_TOKEN_PAYMENT,
             unprocessedPayment);
         assertThat(bounceChequeResponse.getStatusCode()).isEqualTo(BAD_REQUEST.value());
@@ -1668,6 +1714,7 @@ public class PaymentStatusFunctionalTest {
             .build();
 
         Response bounceChequeResponse = paymentTestService.postUnprocessedPayment(
+            USER_TOKEN_PAYMENT,
             SERVICE_TOKEN_PAYMENT,
             unprocessedPayment);
         assertThat(bounceChequeResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
@@ -1787,6 +1834,7 @@ public class PaymentStatusFunctionalTest {
             .build();
 
         Response bounceChequeResponse = paymentTestService.postUnprocessedPayment(
+            USER_TOKEN_PAYMENT,
             SERVICE_TOKEN_PAYMENT,
             unprocessedPayment);
         assertThat(bounceChequeResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
@@ -1846,7 +1894,9 @@ public class PaymentStatusFunctionalTest {
             .representmentDate(actualDateTime.plusMinutes(40).toString())
             .build();
         Response ping2Response = paymentTestService.paymentStatusSecond(
-            SERVICE_TOKEN_PAYMENT, unprocessedPayment.getFailureReference(),
+            USER_TOKEN,
+            SERVICE_TOKEN_PAYMENT,
+            unprocessedPayment.getFailureReference(),
             paymentStatusUpdateSecond);
 
         assertEquals(ping2Response.getStatusCode(), OK.value());
@@ -1909,6 +1959,7 @@ public class PaymentStatusFunctionalTest {
             = PaymentFixture.chargebackRequest(paymentDto.getReference());
 
         Response chargebackResponse = paymentTestService.postChargeback(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentStatusChargebackDto);
 
@@ -1930,7 +1981,9 @@ public class PaymentStatusFunctionalTest {
             .representmentDate(representmentDate)
             .build();
         Response ping2Response = paymentTestService.paymentStatusSecond(
-            SERVICE_TOKEN_PAYMENT, paymentStatusChargebackDto.getFailureReference(),
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            SERVICE_TOKEN_PAYMENT,
+            paymentStatusChargebackDto.getFailureReference(),
             paymentStatusUpdateSecond);
 
         assertEquals(ping2Response.getStatusCode(), OK.value());
@@ -1983,6 +2036,7 @@ public class PaymentStatusFunctionalTest {
             = PaymentFixture.chargebackRequest(paymentDto.getReference());
 
         Response chargebackResponse = paymentTestService.postChargeback(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentStatusChargebackDto);
 
@@ -2098,6 +2152,7 @@ public class PaymentStatusFunctionalTest {
             = PaymentFixture.chargebackRequest(paymentDto.getReference());
 
         Response chargebackResponse = paymentTestService.postChargeback(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentStatusChargebackDto);
 
@@ -2120,7 +2175,9 @@ public class PaymentStatusFunctionalTest {
             .representmentDate(representmentDate)
             .build();
         Response ping2Response = paymentTestService.paymentStatusSecond(
-            SERVICE_TOKEN_PAYMENT, paymentStatusChargebackDto.getFailureReference(),
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            SERVICE_TOKEN_PAYMENT,
+            paymentStatusChargebackDto.getFailureReference(),
             paymentStatusUpdateSecond);
 
         assertEquals(ping2Response.getStatusCode(), OK.value());
@@ -2246,6 +2303,7 @@ public class PaymentStatusFunctionalTest {
         LOG.info("Payment Reference {}", paymentStatusBouncedChequeDto.getPaymentReference());
         LOG.info("Failure reference {}", paymentStatusBouncedChequeDto.getFailureReference());
         Response bounceChequeResponse = paymentTestService.postBounceCheque(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentStatusBouncedChequeDto);
         LOG.info("Bounce cheque Payment Reference {}", bounceChequeResponse.getBody());
@@ -2320,6 +2378,7 @@ public class PaymentStatusFunctionalTest {
             = PaymentFixture.bouncedChequeRequestForLessEventTime(paymentReference.get());
 
         Response bounceChequeResponse = paymentTestService.postBounceCheque(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentStatusBouncedChequeDto);
 
@@ -2352,6 +2411,7 @@ public class PaymentStatusFunctionalTest {
             = PaymentFixture.chargebackRequest(paymentReference.get());
 
         Response chargebackResponse = paymentTestService.postChargeback(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentStatusChargebackDto);
 
@@ -2370,7 +2430,9 @@ public class PaymentStatusFunctionalTest {
             .representmentDate(actualDateTime.plusMinutes(15).toString())
             .build();
         Response ping2Response = paymentTestService.paymentStatusSecond(
-            SERVICE_TOKEN_PAYMENT, paymentStatusChargebackDto.getFailureReference(),
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            SERVICE_TOKEN_PAYMENT,
+            paymentStatusChargebackDto.getFailureReference(),
             paymentStatusUpdateSecond);
         PaymentFailureResponse paymentsFailureResponse1 =
             paymentTestService.getFailurePayment(USER_TOKEN_PAYMENT, SERVICE_TOKEN, paymentStatusChargebackDto.getPaymentReference()).then()
@@ -2446,6 +2508,7 @@ public class PaymentStatusFunctionalTest {
             = PaymentFixture.chargebackRequestForLessEventTime(paymentReference.get());
 
         Response chargebackResponse = paymentTestService.postChargeback(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentStatusChargebackDto);
 
@@ -2502,6 +2565,7 @@ public class PaymentStatusFunctionalTest {
             .build();
 
         Response unprocessedPaymentResponse = paymentTestService.postUnprocessedPayment(
+            USER_TOKEN_PAYMENT,
             SERVICE_TOKEN_PAYMENT,
             unprocessedPayment);
         assertThat(unprocessedPaymentResponse.getBody().prettyPrint()).isEqualTo(
@@ -2560,6 +2624,7 @@ public class PaymentStatusFunctionalTest {
             .build();
 
         Response unprocessedPaymentResponse = paymentTestService.postUnprocessedPayment(
+            USER_TOKEN_PAYMENT,
             SERVICE_TOKEN_PAYMENT,
             unprocessedPayment);
         assertThat(unprocessedPaymentResponse.getBody().prettyPrint()).isEqualTo(
@@ -2591,6 +2656,7 @@ public class PaymentStatusFunctionalTest {
             = PaymentFixture.chargebackRequest(paymentReference.get());
 
         Response chargebackResponse = paymentTestService.postChargeback(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentStatusChargebackDto);
 
@@ -2609,7 +2675,9 @@ public class PaymentStatusFunctionalTest {
             .representmentDate(actualDateTime.minusHours(1).toString())
             .build();
         Response ping2Response = paymentTestService.paymentStatusSecond(
-            SERVICE_TOKEN_PAYMENT, paymentStatusChargebackDto.getFailureReference(),
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            SERVICE_TOKEN_PAYMENT,
+            paymentStatusChargebackDto.getFailureReference(),
             paymentStatusUpdateSecond);
         assertThat(ping2Response.getBody().prettyPrint()).isEqualTo(
             "Representment date can not be prior to failure event date");
