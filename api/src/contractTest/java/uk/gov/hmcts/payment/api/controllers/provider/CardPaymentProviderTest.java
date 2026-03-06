@@ -204,12 +204,20 @@ class CardPaymentProviderTest {
 
     @State({"A payment reference exists"})
     public void toGetCardPaymentDetailsWithSuccess() {
-        when(payment2RepositoryMock.findByReference("654321ABC"))
-            .thenReturn(Optional.of(populateCardPaymentToDb("1", "e2kkddts5215h9qqoeuth5c0v", "ccd_gw")));
+        Payment payment = populateCardPaymentToDb("1", "e2kkddts5215h9qqoeuth5c0v", "ccd_gw", "654321ABC");
+
+        when(payment2RepositoryMock.findByReference(anyString())).thenAnswer(invocation -> {
+            String reference = invocation.getArgument(0);
+            if ("654321ABC".equals(reference)) {
+                return Optional.of(payment);
+            }
+            return Optional.empty();
+        });
         when(govPayAuthUtil.getServiceName(null, "ccd_gw")).thenReturn("ccd_gw");
         when(govPayAuthUtil.getServiceToken("ccd_gw")).thenReturn("s2sAuthKey");
         when(govPayClientMock.retrievePayment(anyString(), anyString())).thenReturn(buildGovPaymentDto());
     }
+
 
     @State({"Payments exist for a case"})
     public void toPaymentsForACasesWithSuccess() {
@@ -267,6 +275,11 @@ class CardPaymentProviderTest {
     }
 
     private Payment populateCardPaymentToDb(String number, String externalReference, String s2sServiceName) {
+        return populateCardPaymentToDb(number, externalReference, s2sServiceName, "654321ABC");
+    }
+
+    private Payment populateCardPaymentToDb(String number, String externalReference, String s2sServiceName,
+                                            String paymentReferenceValue) {
         //Create a payment in remissionDbBackdoor
         Date now = new Date();
         StatusHistory statusHistory = StatusHistory.statusHistoryWith().status("Initiated").externalStatus("created").build();
@@ -285,7 +298,7 @@ class CardPaymentProviderTest {
             .paymentProvider(PaymentProvider.paymentProviderWith().name("gov pay").build())
             .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
             .externalReference(externalReference)
-            .reference("654321ABC")
+            .reference(paymentReferenceValue)
             .status("submitted")
             .statusHistories(Arrays.asList(statusHistory))
             .dateUpdated(now)
