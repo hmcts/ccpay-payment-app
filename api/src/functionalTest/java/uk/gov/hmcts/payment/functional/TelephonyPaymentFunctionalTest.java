@@ -18,6 +18,7 @@ import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.TelephonyCallbackDto;
+import uk.gov.hmcts.payment.api.service.TelephonySystem;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
 import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
 import uk.gov.hmcts.payment.functional.idam.IdamService;
@@ -280,7 +281,7 @@ public class TelephonyPaymentFunctionalTest {
             .currency(CurrencyCode.GBP)
             .caseType("DIVORCE")
             .returnURL("https://www.moneyclaims.service.gov.uk")
-            .telephonySystem("kerv")
+             .telephonySystem(TelephonySystem.DEFAULT_SYSTEM_NAME)
             .build();
 
         PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
@@ -415,7 +416,7 @@ public class TelephonyPaymentFunctionalTest {
             .currency(CurrencyCode.GBP)
             .caseType("Test")
             .returnURL("https://www.moneyclaims.service.gov.uk")
-            .telephonySystem("kerv")
+             .telephonySystem(TelephonySystem.DEFAULT_SYSTEM_NAME)
             .build();
 
         PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()

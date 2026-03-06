@@ -1008,8 +1008,8 @@ public class PaymentGroupControllerTest {
                 .ccdCaseNumber("2154234356342357")
                 .returnURL("https://www.google.com")
                 .currency(CurrencyCode.GBP)
-                .telephonySystem(TelephonySystem.DEFAULT_SYSTEM_NAME)
-                .build();
+            .telephonySystem(TelephonySystem.DEFAULT_SYSTEM_NAME)
+            .build();
 
         IdamUserIdResponse mockIdamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith()
             .uid("123456789")
@@ -2276,7 +2276,6 @@ public class PaymentGroupControllerTest {
             .caseType("divorce")
             .ccdCaseNumber("2154234356342357")
             .returnURL("http://localhost")
-            .telephonySystem(TelephonySystem.DEFAULT_SYSTEM_NAME)
             .build();
 
         MvcResult result3 = restActions
@@ -2364,7 +2363,6 @@ public class PaymentGroupControllerTest {
             .caseType("cmc_exception")
             .ccdCaseNumber("2154234356342357")
             .returnURL("http://localhost")
-            .telephonySystem(TelephonySystem.DEFAULT_SYSTEM_NAME)
             .build();
 
         MvcResult result3 = restActions
@@ -2452,7 +2450,6 @@ public class PaymentGroupControllerTest {
             .caseType("probate")
             .ccdCaseNumber("2154234356342357")
             .returnURL("http://localhost")
-            .telephonySystem(TelephonySystem.DEFAULT_SYSTEM_NAME)
             .build();
 
         MvcResult result3 = restActions
@@ -2526,7 +2523,6 @@ public class PaymentGroupControllerTest {
             .caseType("DigitalBar")
             .ccdCaseNumber("2154234356342357")
             .returnURL("http://localhost")
-            .telephonySystem(TelephonySystem.DEFAULT_SYSTEM_NAME)
             .build();
 
         MvcResult result3 = restActions
@@ -2599,7 +2595,6 @@ public class PaymentGroupControllerTest {
             .caseType("finrem")
             .ccdCaseNumber("2154234356342357")
             .returnURL("http://localhost")
-            .telephonySystem(TelephonySystem.DEFAULT_SYSTEM_NAME)
             .build();
 
         MvcResult result3 = restActions
@@ -3126,7 +3121,6 @@ public class PaymentGroupControllerTest {
             .caseType("finrem")
             .ccdCaseNumber(ccdCaseNumber)
             .returnURL("http://localhost")
-            .telephonySystem(TelephonySystem.DEFAULT_SYSTEM_NAME)
             .build();
 
         MvcResult result2 = restActions
