@@ -37,7 +37,7 @@
 
                 HMACSHA256 hmac = new HMACSHA256(secretKeyBytes);
                 byte[] hash = hmac.ComputeHash(challenge);
-                int offset = hash[19] &amp; 0xf;
+                int offset = hash[hash.Length - 1] &amp; 0xf;
                 int truncatedHash = hash[offset] &amp; 0x7f;
                 for (int i = 1; i &lt; 4; i++)
                 {
