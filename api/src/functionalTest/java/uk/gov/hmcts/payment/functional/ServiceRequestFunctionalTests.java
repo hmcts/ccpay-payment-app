@@ -826,6 +826,7 @@ public class ServiceRequestFunctionalTests {
         paymentFailureReference = paymentStatusChargebackDto.getFailureReference();
         Response chargebackResponse = paymentTestService.postChargeback(
             USER_TOKEN_PAYMENT,
+            SERVICE_TOKEN,
             paymentStatusChargebackDto);
 
         PaymentFailureResponse paymentsFailureResponse =
@@ -911,6 +912,7 @@ public class ServiceRequestFunctionalTests {
         paymentFailureReference = paymentStatusChargebackDto.getFailureReference();
         Response chargebackResponse = paymentTestService.postChargeback(
             USER_TOKEN_PAYMENT,
+            SERVICE_TOKEN,
             paymentStatusChargebackDto);
 
         PaymentFailureResponse paymentsFailureResponse =
@@ -937,7 +939,9 @@ public class ServiceRequestFunctionalTests {
             .representmentDate(actualDateTime.plusMinutes(15).toString())
             .build();
         Response ping2Response = paymentTestService.paymentStatusSecond(
-            SERVICE_TOKEN, paymentStatusChargebackDto.getFailureReference(),
+            USER_TOKEN_PAYMENT,
+            SERVICE_TOKEN,
+            paymentStatusChargebackDto.getFailureReference(),
             paymentStatusUpdateSecond);
 
         assertEquals(ping2Response.getStatusCode(), OK.value());
@@ -1019,6 +1023,7 @@ public class ServiceRequestFunctionalTests {
         paymentFailureReference = paymentStatusChargebackDto.getFailureReference();
         Response chargebackResponse = paymentTestService.postChargeback(
             USER_TOKEN_PAYMENT,
+            SERVICE_TOKEN,
             paymentStatusChargebackDto);
 
         PaymentFailureResponse paymentsFailureResponse =
@@ -1045,7 +1050,9 @@ public class ServiceRequestFunctionalTests {
             .representmentDate(actualDateTime.plusMinutes(15).toString())
             .build();
         Response ping2Response = paymentTestService.paymentStatusSecond(
-            SERVICE_TOKEN, paymentStatusChargebackDto.getFailureReference(),
+            USER_TOKEN_PAYMENT,
+            SERVICE_TOKEN,
+            paymentStatusChargebackDto.getFailureReference(),
             paymentStatusUpdateSecond);
 
         assertEquals(ping2Response.getStatusCode(), OK.value());
@@ -1139,6 +1146,7 @@ public class ServiceRequestFunctionalTests {
             = PaymentFixture.bouncedChequeRequestService(paymentReference.get(),ccdCaseNumber);
 
         Response bounceChequeResponse = paymentTestService.postBounceCheque(
+            USER_TOKEN_PAYMENT,
             SERVICE_TOKEN,
             paymentStatusBouncedChequeDto);
 
@@ -1160,7 +1168,9 @@ public class ServiceRequestFunctionalTests {
             .representmentDate(actualDateTime.plusMinutes(15).toString())
             .build();
         Response ping2Response = paymentTestService.paymentStatusSecond(
-            SERVICE_TOKEN, paymentStatusBouncedChequeDto.getFailureReference(),
+            USER_TOKEN_PAYMENT,
+            SERVICE_TOKEN,
+            paymentStatusBouncedChequeDto.getFailureReference(),
             paymentStatusUpdateSecond);
 
         assertEquals(ping2Response.getStatusCode(), OK.value());
@@ -1258,6 +1268,7 @@ public class ServiceRequestFunctionalTests {
             = PaymentFixture.bouncedChequeRequestService(paymentReference,ccdCaseNumber);
         paymentFailureReference = paymentStatusBouncedChequeDto.getFailureReference();
         Response bounceChequeResponse = paymentTestService.postBounceCheque(
+            USER_TOKEN_PAYMENT,
             SERVICE_TOKEN,
             paymentStatusBouncedChequeDto);
 
@@ -1341,6 +1352,7 @@ public class ServiceRequestFunctionalTests {
             = PaymentFixture.bouncedChequeRequestService(paymentReference,ccdCaseNumber);
         paymentFailureReference = paymentStatusBouncedChequeDto.getFailureReference();
         Response bounceChequeResponse = paymentTestService.postBounceCheque(
+            USER_TOKEN_PAYMENT,
             SERVICE_TOKEN,
             paymentStatusBouncedChequeDto);
 
@@ -1362,7 +1374,9 @@ public class ServiceRequestFunctionalTests {
             .representmentDate(actualDateTime.plusMinutes(15).toString())
             .build();
         Response ping2Response = paymentTestService.paymentStatusSecond(
-            SERVICE_TOKEN, paymentStatusBouncedChequeDto.getFailureReference(),
+            USER_TOKEN_PAYMENT,
+            SERVICE_TOKEN,
+            paymentStatusBouncedChequeDto.getFailureReference(),
             paymentStatusUpdateSecond);
 
         assertEquals(ping2Response.getStatusCode(), OK.value());
@@ -1475,6 +1489,7 @@ public class ServiceRequestFunctionalTests {
         paymentFailureReference = paymentStatusChargebackDto.getFailureReference();
         Response chargebackResponse = paymentTestService.postChargeback(
             USER_TOKEN_CMC_SOLICITOR,
+            SERVICE_TOKEN,
             paymentStatusChargebackDto);
 
         PaymentFailureResponse paymentsFailureResponse =
@@ -1584,6 +1599,7 @@ public class ServiceRequestFunctionalTests {
         paymentFailureReference = paymentStatusChargebackDto.getFailureReference();
         Response chargebackResponse = paymentTestService.postChargeback(
             USER_TOKEN_CMC_SOLICITOR,
+            SERVICE_TOKEN,
             paymentStatusChargebackDto);
 
         PaymentFailureResponse paymentsFailureResponse =
@@ -1611,7 +1627,9 @@ public class ServiceRequestFunctionalTests {
             .representmentDate(actualDateTime.plusMinutes(15).toString())
             .build();
         Response ping2Response = paymentTestService.paymentStatusSecond(
-            SERVICE_TOKEN, paymentStatusChargebackDto.getFailureReference(),
+            USER_TOKEN_PAYMENT,
+            SERVICE_TOKEN,
+            paymentStatusChargebackDto.getFailureReference(),
             paymentStatusUpdateSecond);
 
         assertEquals(ping2Response.getStatusCode(), OK.value());
@@ -1716,6 +1734,7 @@ public class ServiceRequestFunctionalTests {
         paymentFailureReference = paymentStatusChargebackDto.getFailureReference();
         Response chargebackResponse = paymentTestService.postChargeback(
             USER_TOKEN_CMC_SOLICITOR,
+            SERVICE_TOKEN,
             paymentStatusChargebackDto);
 
         PaymentFailureResponse paymentsFailureResponse =
@@ -1743,7 +1762,9 @@ public class ServiceRequestFunctionalTests {
             .representmentDate(actualDateTime.plusMinutes(15).toString())
             .build();
         Response ping2Response = paymentTestService.paymentStatusSecond(
-            SERVICE_TOKEN, paymentStatusChargebackDto.getFailureReference(),
+            USER_TOKEN_PAYMENT,
+            SERVICE_TOKEN,
+            paymentStatusChargebackDto.getFailureReference(),
             paymentStatusUpdateSecond);
 
         assertEquals(ping2Response.getStatusCode(), OK.value());
