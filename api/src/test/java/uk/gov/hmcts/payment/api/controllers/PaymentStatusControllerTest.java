@@ -1,8 +1,8 @@
 package uk.gov.hmcts.payment.api.controllers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.Tuple;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
@@ -10,8 +10,8 @@ import org.joda.time.format.DateTimeFormatter;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.jupiter.api.Assertions;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpEntity;
@@ -70,15 +71,19 @@ import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackd
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
-
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
-import jakarta.persistence.Tuple;
 import java.math.BigDecimal;
-
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -90,6 +95,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -134,7 +140,7 @@ public class PaymentStatusControllerTest {
     @Mock
     private PaymentStatusDtoMapper paymentStatusDtoMapper;
 
-    @Mock
+    @SpyBean
     private PaymentStatusUpdateService paymentStatusUpdateService;
 
     @Mock
@@ -257,7 +263,7 @@ public class PaymentStatusControllerTest {
         when(paymentService.findByPaymentId(anyInt())).thenReturn(Arrays.asList(FeePayApportion.feePayApportionWith()
             .feeId(1)
             .build()));
-        when(paymentStatusUpdateService.cancelFailurePaymentRefund(any())).thenReturn(true);
+        doReturn(true).when(paymentStatusUpdateService).cancelFailurePaymentRefund(anyString(), any(MultiValueMap.class));
         when(authTokenGenerator.generate()).thenReturn("service auth token");
         when(this.restTemplateRefundCancel.exchange(anyString(),
             eq(HttpMethod.PATCH),
@@ -337,7 +343,7 @@ public class PaymentStatusControllerTest {
         when(paymentFailureRepository.save(any())).thenReturn(paymentFailures);
         when(paymentRepository.findByReference(any())).thenReturn(Optional.of(payment));
         when(delegatingPaymentService.retrieve(any(PaymentFeeLink.class) ,anyString())).thenReturn(paymentFeeLink);
-        when(paymentStatusUpdateService.cancelFailurePaymentRefund(any())).thenReturn(true);
+        doReturn(true).when(paymentStatusUpdateService).cancelFailurePaymentRefund(anyString(), any(MultiValueMap.class));
         when(authTokenGenerator.generate()).thenReturn("service auth token");
         when(this.restTemplateRefundCancel.exchange(anyString(),
             eq(HttpMethod.PATCH),
@@ -351,6 +357,58 @@ public class PaymentStatusControllerTest {
 
         assertEquals(200, result.getResponse().getStatus());
 
+    }
+
+    @Test
+    public void bounceChequeSuccessPassesRequestHeadersIncludingAuthorizationToCancelRefund() throws Exception {
+
+        PaymentFailures paymentFailures = getPaymentFailures();
+        PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto = getPaymentStatusBouncedChequeDto();
+
+        doReturn(paymentFailures).when(paymentStatusUpdateService)
+            .insertBounceChequePaymentFailure(any(PaymentStatusBouncedChequeDto.class));
+        doReturn(true).when(paymentStatusUpdateService)
+            .cancelFailurePaymentRefund(anyString(), any(MultiValueMap.class));
+
+        restActions
+            .withAuthorizedUser(USER_ID)
+            .withHeaderIfPresent("Authorization", "Bearer test-user-token")
+            .post("/payment-failures/bounced-cheque", paymentStatusBouncedChequeDto)
+            .andExpect(status().isOk())
+            .andReturn();
+
+        ArgumentCaptor<MultiValueMap<String, String>> headersCaptor = ArgumentCaptor.forClass(MultiValueMap.class);
+        verify(paymentStatusUpdateService).cancelFailurePaymentRefund(
+            eq(paymentStatusBouncedChequeDto.getPaymentReference()), headersCaptor.capture());
+
+        MultiValueMap<String, String> capturedHeaders = headersCaptor.getValue();
+        assertThat(capturedHeaders.getFirst("Authorization")).isEqualTo("Bearer test-user-token");
+    }
+
+    @Test
+    public void chargebackSuccessPassesRequestHeadersIncludingAuthorizationToCancelRefund() throws Exception {
+
+        PaymentFailures paymentFailures = getPaymentFailures();
+        PaymentStatusChargebackDto paymentStatusChargebackDto = getPaymentStatusChargebackDto();
+
+        doReturn(paymentFailures).when(paymentStatusUpdateService)
+            .insertChargebackPaymentFailure(any(PaymentStatusChargebackDto.class));
+        doReturn(true).when(paymentStatusUpdateService)
+            .cancelFailurePaymentRefund(anyString(), any(MultiValueMap.class));
+
+        restActions
+            .withAuthorizedUser(USER_ID)
+            .withHeaderIfPresent("Authorization", "Bearer test-user-token")
+            .post("/payment-failures/chargeback", paymentStatusChargebackDto)
+            .andExpect(status().isOk())
+            .andReturn();
+
+        ArgumentCaptor<MultiValueMap<String, String>> headersCaptor = ArgumentCaptor.forClass(MultiValueMap.class);
+        verify(paymentStatusUpdateService).cancelFailurePaymentRefund(
+            eq(paymentStatusChargebackDto.getPaymentReference()), headersCaptor.capture());
+
+        MultiValueMap<String, String> capturedHeaders = headersCaptor.getValue();
+        assertThat(capturedHeaders.getFirst("Authorization")).isEqualTo("Bearer test-user-token");
     }
 
     @Test
@@ -674,7 +732,7 @@ public class PaymentStatusControllerTest {
     @Test
     public void returnSuccessTelephonyPaymentsReport() throws Exception{
 
-        when(paymentStatusUpdateService.telephonyPaymentsReport(any(),any(),any())).thenReturn(getTelephonyPaymentsDtoList());
+        doReturn(getTelephonyPaymentsDtoList()).when(paymentStatusUpdateService).telephonyPaymentsReport(any(),any(),any());
         when(paymentRepository.findAllByDateCreatedBetweenAndPaymentChannel(any(),any(),any())).thenReturn(getTelephonyPaymentsObjectList());
         MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
         headers.add("Authorization", "auth");
