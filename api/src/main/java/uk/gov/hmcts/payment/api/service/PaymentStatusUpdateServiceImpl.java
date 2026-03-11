@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.api.service;
 
+import jakarta.persistence.Tuple;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
@@ -9,7 +10,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
@@ -19,22 +24,41 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.payment.api.contract.exception.ValidationErrorDTO;
+import uk.gov.hmcts.payment.api.dto.PaymentFailureReportDto;
+import uk.gov.hmcts.payment.api.dto.PaymentMetadataDto;
 import uk.gov.hmcts.payment.api.dto.PaymentStatus;
-import uk.gov.hmcts.payment.api.dto.*;
+import uk.gov.hmcts.payment.api.dto.PaymentStatusBouncedChequeDto;
+import uk.gov.hmcts.payment.api.dto.PaymentStatusChargebackDto;
+import uk.gov.hmcts.payment.api.dto.PaymentStatusUpdateSecond;
+import uk.gov.hmcts.payment.api.dto.RefundDto;
+import uk.gov.hmcts.payment.api.dto.RefundPaymentFailureReportDtoResponse;
+import uk.gov.hmcts.payment.api.dto.RepresentmentStatus;
+import uk.gov.hmcts.payment.api.dto.SearchResponse;
+import uk.gov.hmcts.payment.api.dto.TelephonyPaymentsReportDto;
+import uk.gov.hmcts.payment.api.dto.UnprocessedPayment;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentFailureReportMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentStatusDtoMapper;
 import uk.gov.hmcts.payment.api.exception.FailureReferenceNotFoundException;
 import uk.gov.hmcts.payment.api.exception.InvalidPaymentFailureRequestException;
 import uk.gov.hmcts.payment.api.exception.InvalidRefundRequestException;
 import uk.gov.hmcts.payment.api.exception.ValidationErrorException;
-import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.Payment2Repository;
+import uk.gov.hmcts.payment.api.model.PaymentChannel;
+import uk.gov.hmcts.payment.api.model.PaymentFailureRepository;
+import uk.gov.hmcts.payment.api.model.PaymentFailures;
+import uk.gov.hmcts.payment.api.model.PaymentMethod;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
-import jakarta.persistence.Tuple;
-
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -108,11 +132,12 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         }
     }
 
-    public boolean cancelFailurePaymentRefund(String paymentReference) {
+    public boolean cancelFailurePaymentRefund(String paymentReference,
+                                              MultiValueMap<String, String> headers) {
 
         try {
             LOG.info("Enter cancelFailurePaymentRefund method:: {}", paymentReference);
-            ResponseEntity<String> updateRefundStatus = cancelRefund(paymentReference);
+            ResponseEntity<String> updateRefundStatus = cancelRefund(paymentReference, headers);
 
             if (updateRefundStatus.getStatusCode().is2xxSuccessful()) {
                 LOG.info("Refund cancelled successfully:: {}", paymentReference);
@@ -131,7 +156,8 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         return true;
     }
 
-    private ResponseEntity<String> cancelRefund(String paymentReference) throws RestClientException {
+    private ResponseEntity<String> cancelRefund(String paymentReference,
+                                                MultiValueMap<String, String> requestHeaders) throws RestClientException {
 
         List<String> serviceAuthTokenPaymentList = new ArrayList<>();
         serviceAuthTokenPaymentList.add(authTokenGenerator.generate());
@@ -139,6 +165,13 @@ public class PaymentStatusUpdateServiceImpl implements PaymentStatusUpdateServic
         MultiValueMap<String, String> headerMultiValueMapForRefund = new LinkedMultiValueMap<>();
         //Service token
         headerMultiValueMapForRefund.put("ServiceAuthorization", serviceAuthTokenPaymentList);
+        String userAuthorization = requestHeaders.get("authorization") == null
+            ? requestHeaders.get("Authorization").get(0)
+            : requestHeaders.get("authorization").get(0);
+        headerMultiValueMapForRefund.put(
+            "Authorization", Collections.singletonList(userAuthorization.startsWith("Bearer ")
+                ? userAuthorization : "Bearer ".concat(userAuthorization))
+        );
 
         HttpHeaders headers = new HttpHeaders(headerMultiValueMapForRefund);
         final HttpEntity<String> entity = new HttpEntity<>(headers);

@@ -1,8 +1,8 @@
 package uk.gov.hmcts.payment.api.controllers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.Tuple;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
@@ -10,8 +10,8 @@ import org.joda.time.format.DateTimeFormatter;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.jupiter.api.Assertions;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -70,15 +70,19 @@ import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackd
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
-
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
-import jakarta.persistence.Tuple;
 import java.math.BigDecimal;
-
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -257,7 +261,7 @@ public class PaymentStatusControllerTest {
         when(paymentService.findByPaymentId(anyInt())).thenReturn(Arrays.asList(FeePayApportion.feePayApportionWith()
             .feeId(1)
             .build()));
-        when(paymentStatusUpdateService.cancelFailurePaymentRefund(any())).thenReturn(true);
+        when(paymentStatusUpdateService.cancelFailurePaymentRefund(anyString(), any(MultiValueMap.class))).thenReturn(true);
         when(authTokenGenerator.generate()).thenReturn("service auth token");
         when(this.restTemplateRefundCancel.exchange(anyString(),
             eq(HttpMethod.PATCH),
@@ -337,7 +341,7 @@ public class PaymentStatusControllerTest {
         when(paymentFailureRepository.save(any())).thenReturn(paymentFailures);
         when(paymentRepository.findByReference(any())).thenReturn(Optional.of(payment));
         when(delegatingPaymentService.retrieve(any(PaymentFeeLink.class) ,anyString())).thenReturn(paymentFeeLink);
-        when(paymentStatusUpdateService.cancelFailurePaymentRefund(any())).thenReturn(true);
+        when(paymentStatusUpdateService.cancelFailurePaymentRefund(anyString(), any(MultiValueMap.class))).thenReturn(true);
         when(authTokenGenerator.generate()).thenReturn("service auth token");
         when(this.restTemplateRefundCancel.exchange(anyString(),
             eq(HttpMethod.PATCH),
