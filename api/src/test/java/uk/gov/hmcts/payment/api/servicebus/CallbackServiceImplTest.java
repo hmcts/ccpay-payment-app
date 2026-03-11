@@ -54,6 +54,7 @@ public class CallbackServiceImplTest {
         callbackService.callback(paymentFeeLink, paymentFeeLink.getPayments().get(0));
         Mockito.verify(topicClient).send(any());
     }
+    
 
 
     @Before
