@@ -46,13 +46,7 @@ public class ReplayCreditAccountPaymentUtils {
     }
 
     public String setCreditAccountPaymentLiberataCheckFeature(boolean enabled) throws Exception {
-        String url = "/api/ff4j/store/features/credit-account-payment-liberata-check/";
-        if (enabled) {
-            url += "enable";
-        } else {
-            url += "disable";
-        }
-        return url;
+        return "";
     }
 
     public void createCSV(Map<String, CreditAccountPaymentRequest> csvParseMap, String fileName) throws IOException {

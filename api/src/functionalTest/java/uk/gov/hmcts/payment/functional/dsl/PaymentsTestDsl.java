@@ -73,13 +73,6 @@ public class PaymentsTestDsl {
             return this;
         }
 
-        public PaymentGivenDsl setFF4Jfeature(String featureName, boolean value) {
-            String path = "/api/ff4j/store/features/" + featureName + (value ? "enable" : "disable");
-            SerenityRest.given().relaxedHTTPSValidation().baseUri(baseURL).contentType(ContentType.JSON).headers(headers)
-                .post(path);
-            return this;
-        }
-
         public PaymentWhenDsl when() {
             return new PaymentWhenDsl();
         }
@@ -219,11 +212,6 @@ public class PaymentsTestDsl {
         public PaymentWhenDsl telephonyCallback(TelephonyCallbackDto callbackDto) {
             Map formData = new ObjectMapper().convertValue(callbackDto, Map.class);
             response = newRequest().contentType(ContentType.URLENC.withCharset("UTF-8")).formParams(formData).post("/telephony/callback");
-            return this;
-        }
-
-        public PaymentWhenDsl enableSearch() {
-            response = newRequest().contentType(ContentType.JSON).post("/api/ff4j/store/features/payment-search/enable");
             return this;
         }
 
