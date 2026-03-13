@@ -3,7 +3,6 @@ package uk.gov.hmcts.payment.api.componenttests.jobs;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
 import com.microsoft.azure.servicebus.IMessage;
-import org.ff4j.FF4j;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -27,7 +26,6 @@ import uk.gov.hmcts.payment.api.componenttests.PaymentDbBackdoor;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.controllers.MaintenanceJobsController;
-import uk.gov.hmcts.payment.api.service.CallbackService;
 import uk.gov.hmcts.payment.api.servicebus.TopicClientProxy;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
@@ -75,8 +73,6 @@ public class MaintenanceJobsControllerTest extends PaymentsDataUtil {
     private RestActions restActions;
     @MockBean
     private TopicClientProxy topicClientProxy;
-    @MockBean
-    private FF4j ff4j;
     @InjectMocks
     private MaintenanceJobsController controller;
     @Autowired
@@ -87,8 +83,6 @@ public class MaintenanceJobsControllerTest extends PaymentsDataUtil {
 
         mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
         this.restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
-
-        when(ff4j.check(CallbackService.FEATURE)).thenReturn(true);
 
         restActions
             .withAuthorizedService("divorce")

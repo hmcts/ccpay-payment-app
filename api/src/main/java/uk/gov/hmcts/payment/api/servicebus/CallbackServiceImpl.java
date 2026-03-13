@@ -2,7 +2,6 @@ package uk.gov.hmcts.payment.api.servicebus;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.servicebus.Message;
-import org.ff4j.FF4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,29 +26,20 @@ public class CallbackServiceImpl implements CallbackService {
 
     private final TopicClientProxy topicClient;
 
-    private final FF4j ff4j;
-
     private final PaymentGroupDtoMapper paymentGroupDtoMapper;
 
     @Autowired
     public CallbackServiceImpl(PaymentDtoMapper paymentDtoMapper, ObjectMapper objectMapper,
-                               TopicClientProxy topicClient, FF4j ff4j, @Lazy  PaymentGroupDtoMapper paymentGroupDtoMapper) {
+                               TopicClientProxy topicClient, @Lazy  PaymentGroupDtoMapper paymentGroupDtoMapper) {
         this.paymentDtoMapper = paymentDtoMapper;
         this.objectMapper = objectMapper;
         this.topicClient = topicClient;
-        this.ff4j = ff4j;
         this.paymentGroupDtoMapper = paymentGroupDtoMapper;
     }
 
     private static final Logger LOG = LoggerFactory.getLogger(CallbackServiceImpl.class);
 
     public synchronized void callback(PaymentFeeLink paymentFeeLink, Payment payment) {
-
-        if (!ff4j.check(CallbackService.FEATURE)) {
-            LOG.warn("Service callback feature is disabled");
-            return;
-        }
-
         if (null != payment.getServiceCallbackUrl()) {
             try {
                 PaymentDto dto = paymentDtoMapper.toResponseDto(paymentFeeLink, payment);

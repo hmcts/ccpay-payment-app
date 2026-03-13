@@ -8,7 +8,6 @@ import au.com.dius.pact.provider.junitsupport.State;
 import au.com.dius.pact.provider.junitsupport.loader.PactBroker;
 import au.com.dius.pact.provider.junitsupport.loader.VersionSelector;
 import au.com.dius.pact.provider.spring.junit5.MockMvcTestTarget;
-import org.ff4j.FF4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -73,8 +72,6 @@ class CreditAccountPaymentProviderTest {
     PaymentFeeRepository paymentFeeRepository;
     @Autowired
     PaymentReference paymentReferenceMock;
-    @Autowired
-    FF4j ff4j;
     @Autowired
     FeePayApportionService feePayApportionService;
     @Autowired

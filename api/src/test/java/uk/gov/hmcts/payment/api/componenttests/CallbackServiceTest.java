@@ -3,9 +3,6 @@ package uk.gov.hmcts.payment.api.componenttests;
 
 import com.microsoft.azure.servicebus.IMessage;
 import com.microsoft.azure.servicebus.primitives.ServiceBusException;
-import org.ff4j.FF4j;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -20,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.service.CallbackService;
 import uk.gov.hmcts.payment.api.servicebus.CallbackServiceImpl;
 import uk.gov.hmcts.payment.api.servicebus.TopicClientProxy;
 
@@ -43,21 +39,8 @@ public class CallbackServiceTest {
     @Autowired
     private CallbackServiceImpl callbackService;
 
-    @Autowired
-    private FF4j ff4j;
-
     @MockBean
     private TopicClientProxy topicClient;
-
-    @Before
-    public void init() {
-        ff4j.enable(CallbackService.FEATURE);
-    }
-
-    @After
-    public void clean() {
-        ff4j.disable(CallbackService.FEATURE);
-    }
 
     @Test
     //Enable and config on application-componenttest.properties for end to end testing
@@ -73,8 +56,6 @@ public class CallbackServiceTest {
 
         callbackService.callback(paymentFeeLink, paymentFeeLink.getPayments().get(0));
         Mockito.verify(topicClient).send(any());
-        ff4j.disable(CallbackService.FEATURE);
-
     }
 
     @Test

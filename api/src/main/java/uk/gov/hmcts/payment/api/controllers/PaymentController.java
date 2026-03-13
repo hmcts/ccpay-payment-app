@@ -5,7 +5,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.commons.lang3.tuple.Pair;
-import org.ff4j.FF4j;
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
@@ -47,12 +46,10 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.api.validators.PaymentValidator;
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -68,7 +65,6 @@ public class PaymentController {
     private final PaymentStatusRepository paymentStatusRepository;
     private final PaymentDtoMapper paymentDtoMapper;
     private final PaymentValidator validator;
-    private final FF4j ff4j;
     private final DateTimeFormatter formatter;
     private final PaymentFeeRepository paymentFeeRepository;
     private final LaunchDarklyFeatureToggler featureToggler;
@@ -82,7 +78,7 @@ public class PaymentController {
     @Autowired
     public PaymentController(PaymentService<PaymentFeeLink, String> paymentService,
                              PaymentStatusRepository paymentStatusRepository, CallbackService callbackService,
-                             PaymentDtoMapper paymentDtoMapper, PaymentValidator paymentValidator, FF4j ff4j,
+                             PaymentDtoMapper paymentDtoMapper, PaymentValidator paymentValidator,
                              DateUtil dateUtil, PaymentFeeRepository paymentFeeRepository,
                              LaunchDarklyFeatureToggler featureToggler) {
         this.paymentService = paymentService;
@@ -90,7 +86,6 @@ public class PaymentController {
         this.paymentStatusRepository = paymentStatusRepository;
         this.paymentDtoMapper = paymentDtoMapper;
         this.validator = paymentValidator;
-        this.ff4j = ff4j;
         this.formatter = dateUtil.getIsoDateTimeFormatter();
         this.paymentFeeRepository = paymentFeeRepository;
         this.featureToggler = featureToggler;
@@ -296,10 +291,6 @@ public class PaymentController {
     }
 
     private void validatePullRequest(@RequestParam(name = "start_date", required = false) Optional<String> startDateTimeString, @RequestParam(name = "end_date", required = false) Optional<String> endDateTimeString, @RequestParam(name = "payment_method", required = false) Optional<String> paymentMethodType, @RequestParam(name = "service_name", required = false) Optional<String> serviceType) {
-        if (!ff4j.check("payment-search")) {
-            throw new PaymentException("Payment search feature is not available for usage.");
-        }
-
         validator.validate(paymentMethodType, startDateTimeString, endDateTimeString);
     }
 
@@ -317,7 +308,7 @@ public class PaymentController {
 
     private void populatePaymentDtos(final List<PaymentDto> paymentDtos, final PaymentFeeLink paymentFeeLink, Date fromDateTime, Date toDateTime) {
         //Adding this filter to exclude Exela payments if the bulk scan toggle feature is disabled.
-        List<Payment> payments = getFilteredListBasedOnBulkScanToggleFeature(paymentFeeLink);
+        List<Payment> payments = paymentFeeLink.getPayments();
 
         //Additional filter to retrieve payments within specified Date Range for Liberata Pull
         if (null != fromDateTime && null != toDateTime) {
@@ -344,13 +335,11 @@ public class PaymentController {
     }
 
     private void populatePaymentDtos(final List<PaymentDto> paymentDtos, final List<Payment> payments) {
-        //Adding this filter to exclude Exela payments if the bulk scan toggle feature is disabled.
-        List<Payment> filteredPayments = getFilteredListBasedOnBulkScanToggleFeature(payments);
         boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature", false);
 
         LOG.info("BSP Feature ON : No of Payments retrieved for Liberata Pull : {}", payments.size());
         LOG.info("Apportion feature flag in liberata API: {}", apportionFeature);
-        for (final Payment payment : filteredPayments) {
+        for (final Payment payment : payments) {
             final String paymentReference = payment.getPaymentLink() != null ? payment.getPaymentLink().getPaymentReference() : null;
             //Apportion logic added for pulling allocation amount
             populateApportionedFees(paymentDtos, payment.getPaymentLink(), apportionFeature, payment, paymentReference);
@@ -374,7 +363,8 @@ public class PaymentController {
             }
         }
         //End of Apportion logic
-        PaymentDto paymentDto = paymentDtoMapper.toReconciliationResponseDtoForLibereta(payment, paymentReference, fees, ff4j, isPaymentAfterApportionment);
+        PaymentDto paymentDto =
+            paymentDtoMapper.toReconciliationResponseDtoForLibereta(payment, paymentReference, fees, isPaymentAfterApportionment);
         paymentDto = filterFeeCode(paymentDto);
         paymentDtos.add(paymentDto);
     }
@@ -400,33 +390,6 @@ public class PaymentController {
                 fees.add(fee);
             }
         }
-    }
-
-    private List<Payment> getFilteredListBasedOnBulkScanToggleFeature(PaymentFeeLink paymentFeeLink) {
-        List<Payment> payments = paymentFeeLink.getPayments();
-        payments = getPayments(payments);
-        return payments;
-    }
-
-    private List<Payment> getFilteredListBasedOnBulkScanToggleFeature(List<Payment> payments) {
-        payments = getPayments(payments);
-        return payments;
-    }
-
-    private List<Payment> getPayments(List<Payment> payments) {
-        boolean bulkScanCheck = ff4j.check("bulk-scan-check");
-        LOG.info("bulkScanCheck value: {}", bulkScanCheck);
-        if (!bulkScanCheck) {
-            LOG.info("BSP Feature OFF : No of Payments retrieved for Liberata Pull : {}", payments.size());
-            payments = Optional.ofNullable(payments)
-                .orElseGet(Collections::emptyList)
-                .stream()
-                .filter(payment -> Objects.nonNull(payment.getPaymentChannel()))
-                .filter(payment -> Objects.nonNull(payment.getPaymentChannel().getName()))
-                .filter(payment -> !payment.getPaymentChannel().getName().equalsIgnoreCase("bulk scan"))
-                .collect(Collectors.toList());
-        }
-        return payments;
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
