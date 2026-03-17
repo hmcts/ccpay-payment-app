@@ -293,3 +293,16 @@ run {
         jvmArgs = ['-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005']
     }
 }
+
+// Prevent duplicate lib entries from failing distribution archive/copy tasks.
+tasks.named('distTar') {
+    duplicatesStrategy = org.gradle.api.file.DuplicatesStrategy.EXCLUDE
+}
+
+tasks.named('distZip') {
+    duplicatesStrategy = org.gradle.api.file.DuplicatesStrategy.EXCLUDE
+}
+
+tasks.named('installDist') {
+    duplicatesStrategy = org.gradle.api.file.DuplicatesStrategy.EXCLUDE
+}
