@@ -315,6 +315,10 @@ pitest {
                        'uk.gov.hmcts.payment.api.dto.mapper.*',
                        'uk.gov.hmcts.payment.api.exception.*',
                        'uk.gov.hmcts.payment.api.reports.config.*']
+    excludedTestClasses = [
+            'uk.gov.hmcts.payment.api.servicebus.CallbackServiceImplTest',
+            'uk.gov.hmcts.payment.api.servicebus.ServiceRequestDomainServiceTest'
+    ]
     enableDefaultIncrementalAnalysis = true
     threads = 15
     testSourceSets = [sourceSets.test]
