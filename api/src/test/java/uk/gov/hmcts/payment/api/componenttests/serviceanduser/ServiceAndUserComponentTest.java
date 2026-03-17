@@ -28,8 +28,8 @@ import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.OK;
 
 @RunWith(SpringRunner.class)
-@ActiveProfiles({"local", "componenttest"})
-@SpringBootTest(webEnvironment = RANDOM_PORT)
+@ActiveProfiles({"local", "componenttest", "service-and-user-test"})
+@SpringBootTest(classes = ServiceAndUserTestApplication.class, webEnvironment = RANDOM_PORT)
 public class ServiceAndUserComponentTest {
     @Autowired
     private TestRestTemplate restTemplate;
