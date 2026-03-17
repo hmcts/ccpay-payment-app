@@ -197,6 +197,7 @@ jar {
 
 bootJar {
     archiveFileName.set('payment-app.jar')
+    duplicatesStrategy = org.gradle.api.file.DuplicatesStrategy.EXCLUDE
     manifest {
         attributes 'Implementation-Title': project.name, 'Implementation-Version': project.version
     }
