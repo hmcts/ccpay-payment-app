@@ -49,17 +49,9 @@ public class SpringSecurityConfiguration {
     }
 
     @Bean
-    @Order(2)
+    @Order(3)
     protected SecurityFilterChain configureExternal(HttpSecurity http) throws Exception {
         http
-            .securityMatcher(
-                "/payments",
-                "/payments1",
-                "/payments/**",
-                "/card-payments/*/status",
-                "/telephony/callback",
-                "/jobs/**"
-            )
             .addFilter(authCheckerServiceOnlyFilter)
             .csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(authorize -> authorize
@@ -75,7 +67,7 @@ public class SpringSecurityConfiguration {
     }
 
     @Bean
-    @Order(3)
+    @Order(2)
     protected SecurityFilterChain configureInternal(HttpSecurity http) throws Exception {
         http.exceptionHandling(exceptionHandling -> exceptionHandling.accessDeniedHandler(accessDeniedHandler()))
             .addFilter(authCheckerUserOnlyFilter)
@@ -145,4 +137,3 @@ public class SpringSecurityConfiguration {
         };
     }
 }
-

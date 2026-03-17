@@ -6,7 +6,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Profile;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -35,7 +34,6 @@ import java.util.Optional;
 import java.util.function.Function;
 
 @SpringBootApplication
-@Profile("service-and-user-test")
 @Import(PaymentAuthCheckerConfiguration.class)
 public class ServiceAndUserTestApplication {
     public static void main(String[] args) {
