@@ -17,6 +17,7 @@ public class ServiceToTokenMap {
         servicesMap.put("specified money claims", "cmc");
         servicesMap.put("family private law", "prl_cos_api");
         servicesMap.put("immigration and asylum appeals", "iac");
+        servicesMap.put("mortgage and landlord possession claims", "pcs_api");
         servicesMap.put("damages", "cmc");
     }
 
