@@ -6,7 +6,7 @@ ccpay-notifications-service:
   enabled: false
 
 java:
-  image: hmctspublic.azurecr.io/payment/api:latest
+  image: hmctsprod.azurecr.io/payment/api:latest
   applicationPort: 8080
   ingressHost: payment-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal
   aadIdentityName: ccpay
@@ -148,6 +148,8 @@ java:
           alias: gov.pay.auth.key.iac
         - name: gov-pay-keys-adoption
           alias: gov.pay.auth.key.adoption_web
+        - name: gov-pay-keys-pcs
+          alias: gov.pay.auth.key.pcs_api
         - name: gov-pay-keys-prl
           alias: gov.pay.auth.key.prl_cos_api
         - name: liberata-keys-oauth2-client-id
