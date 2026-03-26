@@ -58,6 +58,7 @@ import uk.gov.hmcts.payment.api.validators.PaymentValidator;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -75,7 +76,7 @@ import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
     @VersionSelector(consumer = "divorce_caseOrchestratorService", tag = "master"),
     @VersionSelector(consumer = "fpl_ccdConfiguration", tag = "master"),
     @VersionSelector(consumer = "fr_caseOrchestratorService", tag = "master"),
-    @VersionSelector(consumer = "ia_casePaymentsApi", tag = "master"),
+    @VersionSelector(consumer = "ia_casePaymentsApi", tag = "master}"),
     @VersionSelector(consumer = "payment_App", tag = "master"),
     @VersionSelector(consumer = "pcs_api", tag = "master"),
     @VersionSelector(consumer = "prl_cos", tag = "master"),
@@ -203,13 +204,19 @@ class CardPaymentProviderTest {
     }
 
     @State({"A payment reference exists"})
-    public void toGetCardPaymentDetailsWithSuccess() {
-        Payment payment = populateCardPaymentToDb("1", "e2kkddts5215h9qqoeuth5c0v", "ccd_gw", "654321ABC");
+    public void toGetCardPaymentDetailsWithSuccess(Map<String, Object> stateParams) {
+        String stateReference = "654321ABC";
+        if (stateParams != null && stateParams.get("paymentReference") != null) {
+            stateReference = stateParams.get("paymentReference").toString();
+        }
+        final String expectedReference = stateReference;
+
+        Payment payment = populateCardPaymentToDb("1", "e2kkddts5215h9qqoeuth5c0v", "ccd_gw", expectedReference);
 
         when(payment2RepositoryMock.findByReference(anyString())).thenAnswer(invocation -> {
             String reference = invocation.getArgument(0);
-            if ("654321ABC".equals(reference)) {
-                return Optional.of(payment);
+            if ("654321ABC".equals(reference) || reference.startsWith("RC-") || expectedReference.equals(reference)) {
+                return Optional.of(populateCardPaymentToDb("1", "e2kkddts5215h9qqoeuth5c0v", "ccd_gw", reference));
             }
             return Optional.empty();
         });
