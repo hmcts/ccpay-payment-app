@@ -9,7 +9,7 @@ services:
         - http_proxy
         - https_proxy
         - no_proxy
-    image: hmctspublic.azurecr.io/payment/api
+    image: hmctsprod.azurecr.io/payment/api
     environment:
       - auth.provider.service.client.baseUrl=http://service-auth-provider-api:8489
       - auth.idam.client.baseUrl=http://idam-api:5000
@@ -102,7 +102,7 @@ services:
 
   # service-auth-provider
   service-auth-provider-api:
-    image: hmctspublic.azurecr.io/rpe/service-auth-provider
+    image: hmctsprod.azurecr.io/rpe/service-auth-provider
     environment:
       - microserviceKeys_divorce=${S2S_DIVORCE}
       - microserviceKeys_payment_app=${S2S_PAYMENT}
@@ -110,7 +110,7 @@ services:
       - 8085:8489
 
   ccfr-fees-api:
-    image: hmctspublic.azurecr.io/fees-register/api
+    image: hmctsprod.azurecr.io/fees-register/api
     container_name: ccfr-fees-api
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://ccfr-fees-database:5432/fees_register
@@ -132,7 +132,7 @@ services:
     ports:
     - 5182:5432
   fr-am:
-    image: hmctsprivate.azurecr.io/idam/idam-fr-am:latest
+    image: hmctsprod.azurecr.io/idam/idam-fr-am:latest
     hostname: localam
     depends_on:
       - shared-db
@@ -140,7 +140,7 @@ services:
       - 8080:8080
       - 1389:1389
   fr-idm:
-    image: hmctsprivate.azurecr.io/idam/idam-fr-idm:latest
+    image: hmctsprod.azurecr.io/idam/idam-fr-idm:latest
     hostname: localidm
     depends_on:
       - fr-am
@@ -149,7 +149,7 @@ services:
       - 18080:18080
       - 9010:9010
   shared-db:
-    image: hmctsprivate.azurecr.io/idam/shared-db:latest
+    image: hmctsprod.azurecr.io/idam/shared-db:latest
     ports:
       - 5432:5432
   smtp-server:
@@ -158,7 +158,7 @@ services:
       - 1025:1025
       - 8025:8025
   idam-api:
-    image: hmctspublic.azurecr.io/idam/api:stable
+    image: hmctsprod.azurecr.io/idam/api:stable
     depends_on:
       - fr-am
       - shared-db
@@ -189,7 +189,7 @@ services:
       - IDAM_SPI_FORGEROCK_IDM_PIN_DEFAULTPASSWORD=${PASSWORD}
       - APPSETTING_NODE_PATH=/opt/app
   idam-web-public:
-    image: hmctspublic.azurecr.io/idam/web-public:stable
+    image: hmctsprod.azurecr.io/idam/web-public:stable
     depends_on:
       - idam-api
     ports:
@@ -198,7 +198,7 @@ services:
       - JAVA_OPTS=-Xms128m -Xms512m
       - STRATEGIC_SERVICE_URL=http://idam-api:5000
   idam-web-admin:
-    image: hmctspublic.azurecr.io/idam/web-admin:stable
+    image: hmctsprod.azurecr.io/idam/web-admin:stable
     depends_on:
       - idam-api
     ports:

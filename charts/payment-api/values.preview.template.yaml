@@ -97,6 +97,8 @@ java:
           alias: gov.pay.auth.key.prl_cos_api
         - name: service-request-email-to
           alias: service.request.email.to
+        - name: gov-pay-keys-pcs
+          alias: gov.pay.auth.key.pcs_api
   postgresql:
     enabled: true
     primary:
@@ -110,7 +112,7 @@ java:
 ccpay-refunds-api:
   enabled: true
   java:
-    image: hmctspublic.azurecr.io/ccpay/refunds-api:latest
+    image: hmctsprod.azurecr.io/ccpay/refunds-api:latest
     releaseNameOverride: ${SERVICE_NAME}-ccpay-refunds-api
     ingressHost: ccpay-refunds-api-${SERVICE_NAME}.preview.platform.hmcts.net
     environment:
@@ -182,7 +184,7 @@ ccpay-refunds-api:
 ccpay-bulkscanning-api:
   enabled: true
   java:
-    image: hmctspublic.azurecr.io/ccpay/bulkscanning-api:latest
+    image: hmctsprod.azurecr.io/ccpay/bulkscanning-api:latest
     releaseNameOverride: ${SERVICE_NAME}-ccpay-bulkscanning-api
     ingressHost: ccpay-bulkscanning-api-${SERVICE_NAME}.preview.platform.hmcts.net
     environment:
@@ -211,7 +213,7 @@ ccpay-bulkscanning-api:
 ccpay-notifications-service:
   enabled: true
   java:
-    image: hmctspublic.azurecr.io/ccpay/notifications-service:latest
+    image: hmctsprod.azurecr.io/ccpay/notifications-service:latest
     releaseNameOverride: ${SERVICE_NAME}-ccpay-notifications-service
     ingressHost: ccpay-notifications-service-${SERVICE_NAME}.preview.platform.hmcts.net
     environment:
