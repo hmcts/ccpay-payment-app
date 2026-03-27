@@ -57,13 +57,12 @@ public class RefundRemissionEnableServiceImpl implements RefundRemissionEnableSe
 
         boolean refundEligibleDate;
         boolean refundLagTimeFeature = featureToggler.getBooleanValue("refund-remission-lagtime-feature",false);
-
-        LOG.info("RefundEnableFeature Flag Value in RefundRemissionEnableServiceImpl : {}", refundLagTimeFeature);
+        LOG.debug("RefundEnableFeature Flag Value in RefundRemissionEnableServiceImpl : {}", refundLagTimeFeature);
 
         if(refundLagTimeFeature){
             refundEligibleDate = calculateLagDate(payment);
-            LOG.info("refundEligibleDate--->  {}",refundEligibleDate);
-            LOG.info("isRoles--->  {}",isRoles);
+            LOG.debug("refundEligibleDate--->  {}",refundEligibleDate);
+            LOG.debug("isRoles--->  {}",isRoles);
 
             return payment.getPaymentStatus().getName().equalsIgnoreCase(STATUS) && refundEligibleDate
                 && validateRefundRoleWithServiceName(payment.getPaymentLink().getEnterpriseServiceName());
@@ -91,8 +90,7 @@ public class RefundRemissionEnableServiceImpl implements RefundRemissionEnableSe
         }
 
         boolean remissionLagTimeFeature = featureToggler.getBooleanValue("refund-remission-lagtime-feature",false);
-
-        LOG.info("RefundEnableFeature Flag Value in RefundRemissionEnableServiceImpl : {}", remissionLagTimeFeature);
+        LOG.debug("RefundEnableFeature Flag Value in RefundRemissionEnableServiceImpl : {}", remissionLagTimeFeature);
 
         if(remissionLagTimeFeature){
             Optional<List<FeePayApportion>> feePayApportion = FeePayApportionRepository.findByFeeId(
@@ -128,22 +126,16 @@ public class RefundRemissionEnableServiceImpl implements RefundRemissionEnableSe
     private boolean validateRefundRoleWithServiceName(String serviceName) {
 
         boolean isRefundRoleForService = true;
-        LOG.info("Validate Refund Role With Service Name ---> roles {}", roles.toString());
-        LOG.info("Validate Refund Role With Service Name ---> serviceName {}", serviceName);
         String serviceNameRefundRole = AUTHORISED_REFUNDS_ROLE + "-" + serviceName.replace(" ","-")
             .toLowerCase();
         String serviceNameRefundApprovalRole = AUTHORISED_REFUNDS_APPROVER_ROLE + "-" + serviceName.replace(" ","-")
             .toLowerCase();
-        LOG.info("Validate Refund Role With Service Name ---> roles {}", roles.toString());
-        LOG.info("Validate Refund Role With Service Name ---> serviceName {}", serviceName);
         List<String> refundServiceRoles = roles.stream().filter(role ->
                 role.toLowerCase().contains(serviceNameRefundRole.toLowerCase())
                     || role.toLowerCase().contains(serviceNameRefundApprovalRole.toLowerCase()))
             .collect(Collectors.toList());
 
-        LOG.info("Validate Refund Role With Service Name ---> roles {}", roles.toString());
-        LOG.info("Validate Refund Role With Service Name ---> serviceName {}", serviceName);
-        LOG.info("Validate Refund Role With Service Name ---> refundServiceRoles {}", refundServiceRoles.toString());
+        LOG.info("Validate Refund Role With Service Name ---> roles {}, serviceName {}, refundServiceRoles {}", roles, serviceName, refundServiceRoles);
         if (refundServiceRoles == null || refundServiceRoles.isEmpty()) {
             isRefundRoleForService = false;
         }
