@@ -721,7 +721,7 @@ public class PaymentGroupControllerTest {
             .ccdCaseNumber("2154234356342357")
             .returnURL("https://www.moneyclaims.service.gov.uk")
             .currency(CurrencyCode.GBP)
-            .telephonySystem(ANTENNA)
+            .telephonySystem(TelephonySystem.DEFAULT_SYSTEM_NAME)
             .build();
 
         MvcResult result3 = restActions
@@ -816,7 +816,7 @@ public class PaymentGroupControllerTest {
             .ccdCaseNumber("2154234356342357")
             .returnURL("https://www.divorce.service.gov.uk")
             .currency(CurrencyCode.GBP)
-            .telephonySystem(ANTENNA)
+            .telephonySystem(TelephonySystem.DEFAULT_SYSTEM_NAME)
             .build();
 
         MvcResult result2 = restActions
@@ -856,7 +856,7 @@ public class PaymentGroupControllerTest {
             .ccdCaseNumber("2154234356342357")
             .returnURL("https://www.google.com")
             .currency(CurrencyCode.GBP)
-            .telephonySystem(ANTENNA)
+            .telephonySystem(TelephonySystem.DEFAULT_SYSTEM_NAME)
             .build();
 
         IdamUserIdResponse mockIdamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith()
@@ -948,7 +948,7 @@ public class PaymentGroupControllerTest {
             .ccdCaseNumber("2154234356342357")
             .returnURL("https://www.google.com")
             .currency(CurrencyCode.GBP)
-            .telephonySystem(ANTENNA)
+            .telephonySystem(TelephonySystem.DEFAULT_SYSTEM_NAME)
             .build();
 
         when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
@@ -1008,8 +1008,8 @@ public class PaymentGroupControllerTest {
                 .ccdCaseNumber("2154234356342357")
                 .returnURL("https://www.google.com")
                 .currency(CurrencyCode.GBP)
-                .telephonySystem(ANTENNA)
-                .build();
+            .telephonySystem(TelephonySystem.DEFAULT_SYSTEM_NAME)
+            .build();
 
         IdamUserIdResponse mockIdamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith()
             .uid("123456789")
@@ -1075,7 +1075,7 @@ public class PaymentGroupControllerTest {
             .ccdCaseNumber("2154234356342357")
             .returnURL("https://www.google.com")
             .currency(CurrencyCode.GBP)
-            .telephonySystem(ANTENNA)
+            .telephonySystem(TelephonySystem.DEFAULT_SYSTEM_NAME)
             .build();
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
@@ -1163,7 +1163,7 @@ public class PaymentGroupControllerTest {
             .ccdCaseNumber("2154234356342357")
             .returnURL("https://www.google.com")
             .currency(CurrencyCode.GBP)
-            .telephonySystem(ANTENNA)
+            .telephonySystem(TelephonySystem.DEFAULT_SYSTEM_NAME)
             .build();
 
         restActions
@@ -1194,7 +1194,7 @@ public class PaymentGroupControllerTest {
             .returnURL("https://www.google.com")
             .currency(CurrencyCode.GBP)
             .caseType("")
-            .telephonySystem(ANTENNA)
+            .telephonySystem(TelephonySystem.DEFAULT_SYSTEM_NAME)
             .build();
 
         restActions
@@ -1226,7 +1226,7 @@ public class PaymentGroupControllerTest {
             .ccdCaseNumber("2154234356342357")
             .returnURL("https://www.google.com")
             .currency(CurrencyCode.GBP)
-            .telephonySystem(ANTENNA)
+            .telephonySystem(TelephonySystem.DEFAULT_SYSTEM_NAME)
             .build();
 
         when(featureToggler.getBooleanValue("pci-pal-antenna-feature", false)).thenReturn(true);
@@ -1262,7 +1262,7 @@ public class PaymentGroupControllerTest {
             .ccdCaseNumber("2154234356342357")
             .returnURL("https://www.google.com")
             .currency(CurrencyCode.GBP)
-            .telephonySystem(ANTENNA)
+            .telephonySystem(TelephonySystem.DEFAULT_SYSTEM_NAME)
             .build();
 
         when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenThrow(new GatewayTimeoutException("Test Error"));
@@ -2954,6 +2954,119 @@ public class PaymentGroupControllerTest {
 
     }
 
+
+    public void throwExceptionWhenReturnForIncorrectSystem() throws Exception {
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(getNewFee()))
+            .build();
+        when(featureToggler.getBooleanValue("pci-pal-antenna-feature", false)).thenReturn(false);
+        PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(getConsecutiveFee())).build();
+
+        MvcResult result = restActions
+            .post("/payment-groups", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        assertThat(paymentGroupDto).isNotNull();
+        assertThat(paymentGroupDto.getFees().size()).isNotZero();
+        assertThat(paymentGroupDto.getFees().size()).isEqualTo(1);
+
+        MvcResult result2 = restActions
+            .put("/payment-groups/" + paymentGroupDto.getPaymentGroupReference(), consecutiveRequest)
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupFeeDto = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        assertThat(paymentGroupFeeDto).isNotNull();
+        assertThat(paymentGroupFeeDto.getFees().size()).isNotZero();
+        assertThat(paymentGroupFeeDto.getFees().size()).isEqualTo(2);
+
+
+        BigDecimal amount = new BigDecimal("200");
+
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA08")
+            .serviceDescription("Financial Remedy")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any(),any())).thenReturn(organisationalServiceDto);
+
+        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
+            .amount(amount)
+            .currency(CurrencyCode.GBP)
+            .caseType("finrem")
+            .ccdCaseNumber("2154234356342357")
+            .telephonySystem("INVALID_SYSTEM")
+            .build();
+
+        MvcResult result3 = restActions
+            .withReturnUrl("https://www.google.com")
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyCardPaymentsRequest)
+            .andExpect(status().isUnprocessableEntity())
+            .andReturn();
+
+    }
+
+    public void throwExceptionWhenReturnForNullSystem() throws Exception {
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(getNewFee()))
+            .build();
+        when(featureToggler.getBooleanValue("pci-pal-antenna-feature", false)).thenReturn(false);
+        PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(getConsecutiveFee())).build();
+
+        MvcResult result = restActions
+            .post("/payment-groups", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        assertThat(paymentGroupDto).isNotNull();
+        assertThat(paymentGroupDto.getFees().size()).isNotZero();
+        assertThat(paymentGroupDto.getFees().size()).isEqualTo(1);
+
+        MvcResult result2 = restActions
+            .put("/payment-groups/" + paymentGroupDto.getPaymentGroupReference(), consecutiveRequest)
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupFeeDto = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        assertThat(paymentGroupFeeDto).isNotNull();
+        assertThat(paymentGroupFeeDto.getFees().size()).isNotZero();
+        assertThat(paymentGroupFeeDto.getFees().size()).isEqualTo(2);
+
+
+        BigDecimal amount = new BigDecimal("200");
+
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA08")
+            .serviceDescription("Financial Remedy")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any(),any())).thenReturn(organisationalServiceDto);
+
+        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
+            .amount(amount)
+            .currency(CurrencyCode.GBP)
+            .caseType("finrem")
+            .ccdCaseNumber("2154234356342357")
+            .telephonySystem(null)
+            .build();
+
+        MvcResult result3 = restActions
+            .withReturnUrl("https://www.google.com")
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyCardPaymentsRequest)
+            .andExpect(status().isUnprocessableEntity())
+            .andReturn();
+
+    }
+
     @Test
     public void createCardPaymentPaymentWithMultipleFee_SurplusPayment_ForPCIPALAntenna() throws Exception {
 
@@ -3219,5 +3332,68 @@ public class PaymentGroupControllerTest {
                     .build()
             ))
             .build();
+    }
+
+    // java
+    @Test
+    public void validateDefaultTelephonySystem_setsDefaultWhenNull() {
+        TelephonyCardPaymentsRequest req = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
+            .amount(new BigDecimal("10.00"))
+            .currency(CurrencyCode.GBP)
+            .caseType("divorce")
+            .ccdCaseNumber("123")
+            .returnURL("http://localhost")
+            .telephonySystem(null)
+            .build();
+
+        paymentGroupController.validateDefaultTelephonySystem(req);
+
+        assertEquals(TelephonySystem.DEFAULT_SYSTEM_NAME, req.getTelephonySystem());
+    }
+
+    @Test
+    public void validateDefaultTelephonySystem_setsDefaultWhenBlank() {
+        TelephonyCardPaymentsRequest req = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
+            .amount(new BigDecimal("10.00"))
+            .currency(CurrencyCode.GBP)
+            .caseType("divorce")
+            .ccdCaseNumber("123")
+            .returnURL("http://localhost")
+            .telephonySystem("")
+            .build();
+
+        paymentGroupController.validateDefaultTelephonySystem(req);
+
+        assertEquals(TelephonySystem.DEFAULT_SYSTEM_NAME, req.getTelephonySystem());
+    }
+
+    @Test
+    public void validateDefaultTelephonySystem_keepsProvidedSystem() {
+        String provided = KervTelephonySystem.TELEPHONY_SYSTEM_NAME;
+        TelephonyCardPaymentsRequest req = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
+            .amount(new BigDecimal("10.00"))
+            .currency(CurrencyCode.GBP)
+            .caseType("divorce")
+            .ccdCaseNumber("123")
+            .returnURL("http://localhost")
+            .telephonySystem(provided)
+            .build();
+
+        paymentGroupController.validateDefaultTelephonySystem(req);
+
+        assertEquals(provided, req.getTelephonySystem());
+    }
+
+    // java
+    @Test
+    public void validateDefaultTelephonySystem_throwsForInvalidSystem() {
+        TelephonyCardPaymentsRequest req = mock(TelephonyCardPaymentsRequest.class);
+        when(req.getTelephonySystem()).thenReturn("NOT_A_VALID_SYSTEM");
+
+        TelephonyServiceException exception = assertThrows(TelephonyServiceException.class, () -> {
+            paymentGroupController.validateDefaultTelephonySystem(req);
+        });
+
+        assertEquals("Invalid telephony system name", exception.getMessage());
     }
 }

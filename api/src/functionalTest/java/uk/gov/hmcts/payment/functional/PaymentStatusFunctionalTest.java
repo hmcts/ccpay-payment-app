@@ -27,6 +27,7 @@ import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.model.ContactDetails;
 import uk.gov.hmcts.payment.api.model.PaymentChannel;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
+import uk.gov.hmcts.payment.api.service.TelephonySystem;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
 import uk.gov.hmcts.payment.functional.config.ValidUser;
@@ -540,7 +541,7 @@ public class PaymentStatusFunctionalTest {
             .ccdCaseNumber(ccdCaseNumber)
             .currency(CurrencyCode.GBP)
             .caseType("DIVORCE")
-            .telephonySystem("Kerv")
+             .telephonySystem(TelephonySystem.DEFAULT_SYSTEM_NAME)
             .returnURL("https://www.moneyclaims.service.gov.uk")
             .build();
 
@@ -634,7 +635,7 @@ public class PaymentStatusFunctionalTest {
             .ccdCaseNumber(ccdCaseNumber)
             .currency(CurrencyCode.GBP)
             .caseType("DIVORCE")
-            .telephonySystem("Kerv")
+             .telephonySystem(TelephonySystem.DEFAULT_SYSTEM_NAME)
             .returnURL("https://www.moneyclaims.service.gov.uk")
             .build();
 
@@ -982,7 +983,7 @@ public class PaymentStatusFunctionalTest {
             .ccdCaseNumber(ccdCaseNumber)
             .currency(CurrencyCode.GBP)
             .caseType("DIVORCE")
-            .telephonySystem("Kerv")
+             .telephonySystem(TelephonySystem.DEFAULT_SYSTEM_NAME)
             .returnURL("https://www.moneyclaims.service.gov.uk")
             .build();
 
@@ -1263,7 +1264,7 @@ public class PaymentStatusFunctionalTest {
             .ccdCaseNumber(ccdCaseNumber)
             .currency(CurrencyCode.GBP)
             .caseType("DIVORCE")
-            .telephonySystem("Kerv")
+             .telephonySystem(TelephonySystem.DEFAULT_SYSTEM_NAME)
             .returnURL("https://www.moneyclaims.service.gov.uk")
             .build();
 
@@ -1331,7 +1332,7 @@ public class PaymentStatusFunctionalTest {
             .ccdCaseNumber(ccdCaseNumber)
             .currency(CurrencyCode.GBP)
             .caseType("DIVORCE")
-            .telephonySystem("Kerv")
+             .telephonySystem(TelephonySystem.DEFAULT_SYSTEM_NAME)
             .returnURL("https://www.moneyclaims.service.gov.uk")
             .build();
 
@@ -2404,7 +2405,7 @@ public class PaymentStatusFunctionalTest {
             .ccdCaseNumber(ccdCaseNumber)
             .currency(CurrencyCode.GBP)
             .caseType("DIVORCE")
-            .telephonySystem("Kerv")
+             .telephonySystem(TelephonySystem.DEFAULT_SYSTEM_NAME)
             .returnURL("https://www.moneyclaims.service.gov.uk")
             .build();
 
