@@ -4,12 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.client.AutoConfigureWebClient;
-import org.springframework.boot.test.autoconfigure.web.client.RestClientTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.test.web.client.response.MockRestResponseCreators;
 import org.springframework.web.client.RestTemplate;
@@ -29,9 +25,6 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static uk.gov.hmcts.payment.casepaymentorders.client.CpoServiceClient.GET_CPO;
 
-@RestClientTest(CpoServiceClientTest.class)
-@AutoConfigureWebClient(registerRestTemplate = true)
-@ContextConfiguration(classes = TestContextConfiguration.class)
 class CpoServiceClientTest {
 
     private static final String HOST_URL = "http://localhost:4457";
@@ -42,19 +35,18 @@ class CpoServiceClientTest {
     private static final String RESPONDENT = "respondent";
     private static final String ORDER_REFERENCE = "orderRef123";
 
-    @Autowired
     private RestTemplate restTemplate;
 
     private ObjectMapper objectMapper;
 
-    @Autowired
     private MockRestServiceServer mockRestServiceServer;
 
     private CpoServiceClient client;
 
     @BeforeEach
     public void setUp() {
-        this.mockRestServiceServer.reset();
+        restTemplate = new RestTemplate();
+        mockRestServiceServer = MockRestServiceServer.bindTo(restTemplate).build();
 
         client = new CpoServiceClient(HOST_URL, restTemplate);
         objectMapper = client.cpoObjectMapper();
