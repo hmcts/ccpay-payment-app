@@ -64,7 +64,7 @@ allprojects {
         imports {
             mavenBom "org.springframework.boot:spring-boot-dependencies:${springBootVersion}"
             mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
-            mavenBom 'org.apache.logging.log4j:log4j-bom:2.25.3'
+            mavenBom 'org.apache.logging.log4j:log4j-bom:2.25.4'
             mavenBom 'io.netty:netty-all:4.2.12.Final'
             mavenBom 'org.testcontainers:testcontainers-bom:2.0.2'
         }
