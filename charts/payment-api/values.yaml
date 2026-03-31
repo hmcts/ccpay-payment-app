@@ -6,7 +6,7 @@ ccpay-notifications-service:
   enabled: false
 
 java:
-  image: hmctspublic.azurecr.io/payment/api:latest
+  image: hmctsprod.azurecr.io/payment/api:latest
   applicationPort: 8080
   ingressHost: payment-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal
   aadIdentityName: ccpay

@@ -10,16 +10,16 @@ maintainers:
 dependencies:
   - name: java
     version: 5.3.0
-    repository: 'oci://hmctspublic.azurecr.io/helm'
+    repository: 'oci://hmctsprod.azurecr.io/helm'
   - name: ccpay-refunds-api
     version: 1.0.40
-    repository: 'oci://hmctspublic.azurecr.io/helm'
+    repository: 'oci://hmctsprod.azurecr.io/helm'
     condition: ccpay-refunds-api.enabled
   - name: ccpay-bulkscanning-api
     version: 1.0.30
-    repository: 'oci://hmctspublic.azurecr.io/helm'
+    repository: 'oci://hmctsprod.azurecr.io/helm'
     condition: ccpay-bulkscanning-api.enabled
   - name: ccpay-notifications-service
     version: 1.0.19
-    repository: 'oci://hmctspublic.azurecr.io/helm'
+    repository: 'oci://hmctsprod.azurecr.io/helm'
     condition: ccpay-notifications-service.enabled
