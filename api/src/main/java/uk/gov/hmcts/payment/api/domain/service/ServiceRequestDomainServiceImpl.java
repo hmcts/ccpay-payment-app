@@ -98,6 +98,9 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     @Value("${azure.servicebus.connection-string}")
     private String connectionString;
 
+    @Value("${ccpay.message.signing.key}")
+    private String hmacSecret;
+
     private static final String topic = "ccpay-service-request-cpo-update-topic";
 
     private String topicCardPBA = "ccpay-service-callback-topic";
@@ -549,7 +552,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
 
             msg = new Message(objectMapper.writeValueAsString(serviceRequestCpoDto));
 
-            topicClientCPO = new TopicClientProxy(connectionString, topic);
+            topicClientCPO = new TopicClientProxy(connectionString, topic, hmacSecret);
             LOG.info("sending message started..");
             LOG.info("Message sent: {}", msg);
             LOG.info("message content Action: {}",serviceRequestCpoDto.getAction() );
@@ -582,7 +585,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
 
             if(payment!=null){
                 msg = new Message(objectMapper.writeValueAsString(payment));
-                topicClientCPO = new TopicClientProxy(connectionString, topicCardPBA);
+                topicClientCPO = new TopicClientProxy(connectionString, topicCardPBA, hmacSecret);
 
                 msg.setCorrelationId(UUID.randomUUID().toString());
 

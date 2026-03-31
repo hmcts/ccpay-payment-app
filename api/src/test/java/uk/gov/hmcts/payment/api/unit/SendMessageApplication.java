@@ -18,7 +18,11 @@ public class SendMessageApplication {
 
     public static void main(String[] args) throws Exception{
 
-        TopicClientProxy client = new TopicClientProxy("<Service-bus Connection String>", "serviceCallbackTopic");
+        TopicClientProxy client = new TopicClientProxy(
+            "<Service-bus Connection String>",
+            "serviceCallbackTopic",
+            "<Base64 Encoded HMAC Secret>"
+        );
 
         String paymentReference = "00000005";
 
