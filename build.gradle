@@ -61,12 +61,12 @@ allprojects {
 
             mavenBom "org.springframework:spring-framework-bom:6.1.21"
             mavenBom 'org.apache.logging.log4j:log4j-bom:2.25.3'
-            mavenBom 'io.netty:netty-all:4.2.9.Final'
+            mavenBom 'io.netty:netty-all:4.2.12.Final'
         }
         dependencies {
             dependencySet(
                     group: 'org.apache.tomcat.embed',
-                    version: '11.0.15'
+                    version: '10.1.52'
             ) {
                 entry 'tomcat-embed-core'
                 entry 'tomcat-embed-websocket'
