@@ -610,4 +610,97 @@ public class PaymentDtoMapper {
         }
         throw new PaymentNotFoundException("No Payment found");
     }
+
+    public ReconciliationPaymentDto toReconciliationPaymentDto(PaymentDto paymentDto) {
+        if (paymentDto == null) {
+            return null;
+        }
+
+        return ReconciliationPaymentDto.reconciliationPaymentDtoWith()
+            .id(paymentDto.getId())
+            .description(paymentDto.getDescription())
+            .reference(paymentDto.getReference())
+            .paymentReference(paymentDto.getPaymentReference())
+            .paymentGroupReference(paymentDto.getPaymentGroupReference())
+            .serviceName(paymentDto.getServiceName())
+            .siteId(paymentDto.getSiteId())
+            .amount(paymentDto.getAmount())
+            .caseReference(paymentDto.getCaseReference())
+            .ccdCaseNumber(paymentDto.getCcdCaseNumber())
+            .accountNumber(paymentDto.getAccountNumber())
+            .organisationName(paymentDto.getOrganisationName())
+            .customerReference(paymentDto.getCustomerReference())
+            .channel(paymentDto.getChannel())
+            .currency(paymentDto.getCurrency())
+            .status(paymentDto.getStatus())
+            .dateCreated(paymentDto.getDateCreated())
+            .dateUpdated(paymentDto.getDateUpdated())
+            .method(paymentDto.getMethod())
+            .giroSlipNo(paymentDto.getGiroSlipNo())
+            .externalProvider(paymentDto.getExternalProvider())
+            .externalReference(paymentDto.getExternalReference())
+            .reportedDateOffline(paymentDto.getReportedDateOffline())
+            .documentControlNumber(paymentDto.getDocumentControlNumber())
+            .payerName(paymentDto.getPayerName())
+            .refundEnable(paymentDto.getRefundEnable())
+            .fees(toReconciliationFeeDtos(paymentDto.getFees()))
+            .statusHistories(paymentDto.getStatusHistories())
+            .internalReference(paymentDto.getInternalReference())
+            .disputes(paymentDto.getDisputes())
+            .overPayment(paymentDto.getOverPayment())
+            .links(paymentDto.getLinks())
+            .build();
+    }
+
+    public List<ReconciliationPaymentDto> toReconciliationPaymentDtos(List<PaymentDto> paymentDtos) {
+        if (paymentDtos == null) {
+            return null;
+        }
+        return paymentDtos.stream()
+            .map(this::toReconciliationPaymentDto)
+            .collect(Collectors.toList());
+    }
+
+    private List<ReconciliationFeeDto> toReconciliationFeeDtos(List<FeeDto> fees) {
+        if (fees == null) {
+            return null;
+        }
+        return fees.stream()
+            .map(this::toReconciliationFeeDto)
+            .collect(Collectors.toList());
+    }
+
+    private ReconciliationFeeDto toReconciliationFeeDto(FeeDto fee) {
+        if (fee == null) {
+            return null;
+        }
+
+        return ReconciliationFeeDto.reconciliationFeeDtoWith()
+            .id(fee.getId())
+            .code(fee.getCode())
+            .version(fee.getVersion())
+            .volume(fee.getVolume())
+            .calculatedAmount(fee.getCalculatedAmount())
+            .feeAmount(fee.getFeeAmount())
+            .memoLine(fee.getMemoLine())
+            .naturalAccountCode(fee.getNaturalAccountCode())
+            .ccdCaseNumber(fee.getCcdCaseNumber())
+            .description(fee.getDescription())
+            .caseReference(fee.getCaseReference())
+            .reference(fee.getReference())
+            .jurisdiction1(fee.getJurisdiction1())
+            .jurisdiction2(fee.getJurisdiction2())
+            .apportionAmount(fee.getApportionAmount())
+            .allocatedAmount(fee.getAllocatedAmount())
+            .dateApportioned(fee.getDateApportioned())
+            .dateCreated(fee.getDateCreated())
+            .dateUpdated(fee.getDateUpdated())
+            .amountDue(fee.getAmountDue())
+            .paymentGroupReference(fee.getPaymentGroupReference())
+            .apportionedPayment(fee.getApportionedPayment())
+            .dateReceiptProcessed(fee.getDateReceiptProcessed())
+            .remissionEnable(fee.getRemissionEnable())
+            .overPayment(fee.getOverPayment())
+            .build();
+    }
 }

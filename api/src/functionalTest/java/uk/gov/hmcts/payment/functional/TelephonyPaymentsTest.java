@@ -95,7 +95,7 @@ public class TelephonyPaymentsTest {
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .returnUrl("https://www.moneyclaims.service.gov.uk")
-            .when().createTelephonyPayment(paymentRecordRequest)
+            .when().createPaymentRecord(paymentRecordRequest)
             .then().created(paymentDto -> {
                 paymentReference = paymentDto.getReference();
                 assertEquals("payment status is properly set", "Success", paymentDto.getStatus());
@@ -113,7 +113,7 @@ public class TelephonyPaymentsTest {
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .returnUrl("https://www.moneyclaims.service.gov.uk")
-            .when().createTelephonyPayment(paymentRecordRequest)
+            .when().createPaymentRecord(paymentRecordRequest)
             .then().created(paymentDto -> {
                 paymentReference = paymentDto.getReference();
                 assertEquals("payment status is properly set", "Success", paymentDto.getStatus());
@@ -159,7 +159,7 @@ public class TelephonyPaymentsTest {
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .returnUrl("https://www.moneyclaims.service.gov.uk")
-            .when().createTelephonyPayment(paymentRecordRequest)
+            .when().createPaymentRecord(paymentRecordRequest)
             .then().created(paymentDto -> {
                 paymentReference = paymentDto.getReference();
                 assertEquals("payment status is properly set", "Success", paymentDto.getStatus());
@@ -206,7 +206,7 @@ public class TelephonyPaymentsTest {
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .returnUrl("https://www.moneyclaims.service.gov.uk")
-            .when().createTelephonyPayment(paymentRecordRequest)
+            .when().createPaymentRecord(paymentRecordRequest)
             .then().created(paymentDto -> {
                 paymentReference = paymentDto.getReference();
                 assertEquals("payment status is properly set", "Success", paymentDto.getStatus());

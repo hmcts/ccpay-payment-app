@@ -15,6 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -28,6 +30,7 @@ import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
+import uk.gov.hmcts.payment.api.contract.ReconciliationPaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.UpdatePaymentRequest;
 import uk.gov.hmcts.payment.api.contract.exception.ValidationErrorDTO;
 import uk.gov.hmcts.payment.api.model.FeePayApportion;
@@ -40,6 +43,10 @@ import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentMethod;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.servicebus.CallbackServiceImpl;
+import uk.gov.hmcts.payment.api.dto.LiberataSupplementaryDetails;
+import uk.gov.hmcts.payment.api.dto.LiberataSupplementaryInfo;
+import uk.gov.hmcts.payment.api.dto.SupplementaryPaymentDto;
+import uk.gov.hmcts.payment.api.service.IacService;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
@@ -59,6 +66,8 @@ import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -97,6 +106,8 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     private ObjectMapper objectMapper;
     @MockBean
     private LaunchDarklyFeatureToggler featureToggler;
+    @MockBean
+    private IacService iacService;
     @Autowired
     private FF4j ff4j;
 
@@ -1670,9 +1681,86 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
+        String responseBody = result.getResponse().getContentAsString();
+        assertThat(responseBody).doesNotContain("issue_refund_add_refund_add_remission");
+        assertThat(responseBody).doesNotContain("net_amount");
+        assertThat(responseBody).doesNotContain("banked_date");
+        assertThat(responseBody).doesNotContain("allocation_status");
+        assertThat(responseBody).doesNotContain("allocation_reason");
+        assertThat(responseBody).doesNotContain("add_remission");
+        assertThat(responseBody).doesNotContain("issue_refund");
+        assertThat(responseBody).doesNotContain("payment_allocation");
+
+        ReconciliationPaymentsResponse paymentsResponse = objectMapper.readValue(responseBody, ReconciliationPaymentsResponse.class);
         assertThat(paymentsResponse.getPayments().size()).isEqualTo(2);
 
+    }
+
+    @Test
+    @Transactional
+    public void searchPaymentsByApportion_withIacFeatureEnabledAndNullIacResponseBody_shouldFallbackToBasePayments() throws Exception {
+        populateIACCardPaymentToDb("9");
+
+        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
+        String endDate = LocalDate.now().toString(DATE_FORMAT);
+
+        when(featureToggler.getBooleanValue("iac-supplementary-details-feature", false)).thenReturn(true);
+        when(iacService.getIacSupplementaryInfo(anyList(), anyString()))
+            .thenReturn(new ResponseEntity<>(null, HttpStatus.ACCEPTED));
+
+        MvcResult result = restActions
+            .get("/reconciliation-payments?start_date=" + startDate + "&end_date=" + endDate)
+            .andExpect(status().isAccepted())
+            .andReturn();
+
+        ReconciliationPaymentsResponse paymentsResponse = objectMapper.readValue(
+            result.getResponse().getContentAsString(),
+            ReconciliationPaymentsResponse.class
+        );
+
+        assertThat(paymentsResponse.getPayments().size()).isEqualTo(1);
+        assertThat(paymentsResponse.getSupplementaryInfo()).isNull();
+        verify(iacService, times(1)).getIacSupplementaryInfo(anyList(), anyString());
+    }
+
+    @Test
+    @Transactional
+    public void searchPaymentsByApportion_withIacFeatureEnabledAndNullIacPayments_shouldFallbackToBasePaymentsAndReturnSupplementaryInfo() throws Exception {
+        populateIACCardPaymentToDb("8");
+
+        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
+        String endDate = LocalDate.now().toString(DATE_FORMAT);
+
+        LiberataSupplementaryInfo supplementaryInfo = LiberataSupplementaryInfo.liberataSupplementaryInfoWith()
+            .ccdCaseNumber("ccdCaseNumber8")
+            .supplementaryDetails(LiberataSupplementaryDetails.supplementaryDetailsWith().surname("Alex").build())
+            .build();
+
+        SupplementaryPaymentDto supplementaryPaymentDto = SupplementaryPaymentDto.supplementaryPaymentDtoWith()
+            .payments(null)
+            .supplementaryInfo(Arrays.asList(supplementaryInfo))
+            .build();
+
+        when(featureToggler.getBooleanValue("iac-supplementary-details-feature", false)).thenReturn(true);
+        when(iacService.getIacSupplementaryInfo(anyList(), anyString()))
+            .thenReturn(new ResponseEntity<>(supplementaryPaymentDto, HttpStatus.PARTIAL_CONTENT));
+
+        MvcResult result = restActions
+            .get("/reconciliation-payments?start_date=" + startDate + "&end_date=" + endDate)
+            .andExpect(status().isPartialContent())
+            .andReturn();
+
+        ReconciliationPaymentsResponse paymentsResponse = objectMapper.readValue(
+            result.getResponse().getContentAsString(),
+            ReconciliationPaymentsResponse.class
+        );
+
+        assertThat(paymentsResponse.getPayments().size()).isEqualTo(1);
+        assertThat(paymentsResponse.getSupplementaryInfo()).isNotNull();
+        assertThat(paymentsResponse.getSupplementaryInfo().size()).isEqualTo(1);
+        assertThat(paymentsResponse.getSupplementaryInfo().get(0).getSupplementaryDetails().getSurname())
+            .isEqualTo("Alex");
+        verify(iacService, times(1)).getIacSupplementaryInfo(anyList(), anyString());
     }
 
     @Test
