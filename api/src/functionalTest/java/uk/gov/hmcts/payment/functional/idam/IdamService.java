@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.functional.idam;
 
 import feign.Feign;
+import feign.FeignException;
 import feign.jackson.JacksonDecoder;
 import feign.jackson.JacksonEncoder;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -25,6 +26,8 @@ import static uk.gov.hmcts.payment.functional.idam.IdamApi.CreateUserRequest.*;
 @Service
 public class IdamService {
     private static final Logger LOG = LoggerFactory.getLogger(IdamService.class);
+    private static final int AUTH_RETRY_COUNT = 3;
+    private static final long AUTH_RETRY_DELAY_MS = 1000L;
 
     public static final String CMC_CITIZEN_GROUP = "cmc-private-beta";
     public static final String CMC_CASE_WORKER_GROUP = "caseworker";
@@ -56,7 +59,7 @@ public class IdamService {
         CreateUserRequest userRequest = userRequest(email, roles);
         idamApi.createUser(userRequest);
 
-        String accessToken = authenticateUser(email, testConfig.getTestUserPassword());
+        String accessToken = authenticateUserWithRetry(email, testConfig.getTestUserPassword());
 
         return User.userWith()
             .authorisationToken(accessToken)
@@ -75,7 +78,7 @@ public class IdamService {
             LOG.info(ex.getMessage());
         }
 
-        String accessToken = authenticateUserWithSearchScope(email, testConfig.getTestUserPassword());
+        String accessToken = authenticateUserWithSearchScopeWithRetry(email, testConfig.getTestUserPassword());
 
         return new ValidUser(email, accessToken);
     }
@@ -91,7 +94,7 @@ public class IdamService {
             LOG.info(ex.getMessage());
         }
 
-        String accessToken = authenticateUserWithSearchScope(email, testConfig.getTestUserPassword());
+        String accessToken = authenticateUserWithSearchScopeWithRetry(email, testConfig.getTestUserPassword());
 
         return new ValidUser(email, accessToken);
     }
@@ -107,7 +110,7 @@ public class IdamService {
             LOG.info(ex.getMessage());
         }
 
-        String accessToken = authenticateUserWithCreateAndSearchScope(email, testConfig.getTestUserPassword());
+        String accessToken = authenticateUserWithCreateAndSearchScopeWithRetry(email, testConfig.getTestUserPassword());
 
         return new ValidUser(email, accessToken);
     }
@@ -123,7 +126,7 @@ public class IdamService {
             LOG.info(ex.getMessage());
         }
 
-        String accessToken = authenticateUserWithSearchScope(email, testConfig.getTestUserPassword());
+        String accessToken = authenticateUserWithSearchScopeWithRetry(email, testConfig.getTestUserPassword());
 
         return new ValidUser(email, accessToken);
     }
@@ -253,4 +256,64 @@ public class IdamService {
         idamApi.deleteUser(emailAddress);
     }
 
+    private String authenticateUserWithRetry(String username, String password) {
+        for (int attempt = 1; attempt <= AUTH_RETRY_COUNT; attempt++) {
+            try {
+                return authenticateUser(username, password);
+            } catch (FeignException ex) {
+                boolean isRetryable = isInvalidGrant(ex) || ex.status() == 429 || ex.status() >= 500;
+                if (!isRetryable || attempt == AUTH_RETRY_COUNT) {
+                    throw ex;
+                }
+                LOG.warn("Retrying IDAM authentication for {} after transient error (attempt {}/{}): status={} body={}",
+                    username, attempt, AUTH_RETRY_COUNT, ex.status(), ex.contentUTF8());
+                sleepBeforeRetry();
+            }
+        }
+        throw new IllegalStateException("Unexpected IDAM authentication retry flow fallthrough");
+    }
+
+    private boolean isInvalidGrant(FeignException ex) {
+        String body = ex.contentUTF8();
+        return body != null && body.contains("invalid_grant");
+    }
+
+    private void sleepBeforeRetry() {
+        try {
+            Thread.sleep(AUTH_RETRY_DELAY_MS);
+        } catch (InterruptedException ie) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("Interrupted while retrying IDAM authentication", ie);
+        }
+    }
+
+    private String authenticateUserWithSearchScopeWithRetry(String username, String password) {
+        for (int attempt = 1; attempt <= AUTH_RETRY_COUNT; attempt++) {
+            String accessToken = authenticateUserWithSearchScope(username, password);
+            if (accessToken != null) {
+                return accessToken;
+            }
+            if (attempt < AUTH_RETRY_COUNT) {
+                LOG.warn("Retrying IDAM search-scope authentication for {} (attempt {}/{})",
+                    username, attempt, AUTH_RETRY_COUNT);
+                sleepBeforeRetry();
+            }
+        }
+        throw new IllegalStateException("Unable to authenticate IDAM user with search scope after retries for " + username);
+    }
+
+    private String authenticateUserWithCreateAndSearchScopeWithRetry(String username, String password) {
+        for (int attempt = 1; attempt <= AUTH_RETRY_COUNT; attempt++) {
+            String accessToken = authenticateUserWithCreateAndSearchScope(username, password);
+            if (accessToken != null) {
+                return accessToken;
+            }
+            if (attempt < AUTH_RETRY_COUNT) {
+                LOG.warn("Retrying IDAM create/search-scope authentication for {} (attempt {}/{})",
+                    username, attempt, AUTH_RETRY_COUNT);
+                sleepBeforeRetry();
+            }
+        }
+        throw new IllegalStateException("Unable to authenticate IDAM user with create/search scope after retries for " + username);
+    }
 }
