@@ -19,6 +19,7 @@ import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
 import uk.gov.hmcts.payment.api.dto.RefundResponse;
 import uk.gov.hmcts.payment.api.dto.TelephonyCallbackDto;
+import uk.gov.hmcts.payment.api.service.TelephonySystem;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
 import uk.gov.hmcts.payment.functional.config.ValidUser;
 import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
@@ -118,7 +119,7 @@ public class RefundsRequestorJourneyTelephonyPaymentFunctionalTest {
                         .ccdCaseNumber(ccdCaseNumber)
                         .currency(CurrencyCode.GBP)
                         .caseType("DIVORCE")
-                        .telephonySystem("Kerv")
+                         .telephonySystem(TelephonySystem.DEFAULT_SYSTEM_NAME)
                         .returnURL("https://www.moneyclaims.service.gov.uk")
                         .build();
 
@@ -198,7 +199,7 @@ public class RefundsRequestorJourneyTelephonyPaymentFunctionalTest {
                         .ccdCaseNumber(ccdCaseNumber)
                         .currency(CurrencyCode.GBP)
                         .caseType("DIVORCE")
-                        .telephonySystem("Kerv")
+                         .telephonySystem(TelephonySystem.DEFAULT_SYSTEM_NAME)
                         .returnURL("https://www.moneyclaims.service.gov.uk")
                         .build();
 

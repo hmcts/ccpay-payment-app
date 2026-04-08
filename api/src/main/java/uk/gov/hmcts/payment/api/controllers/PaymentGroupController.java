@@ -549,6 +549,8 @@ public class PaymentGroupController {
         @PathVariable("payment-group-reference") String paymentGroupReference,
         @Valid @RequestBody TelephonyCardPaymentsRequest telephonyCardPaymentsRequest) throws CheckDigitException, MethodNotSupportedException {
 
+        validateDefaultTelephonySystem(telephonyCardPaymentsRequest);
+
         final TelephonyProviderAuthorisationResponse telephonyProviderAuthorisationResponse;
         PaymentFeeLink paymentLink = paymentGroupService.findByPaymentGroupReference(paymentGroupReference);
         LOG.info("--------Here is the value of getTelephonySystem: {}", telephonyCardPaymentsRequest.getTelephonySystem());
@@ -597,6 +599,33 @@ public class PaymentGroupController {
             feePayApportionService.processApportion(payment);
         }
         return new ResponseEntity<>(telephonyCardPaymentsResponse, HttpStatus.CREATED);
+    }
+
+    /**
+     * Validate and normalise the telephony system on the supplied {@link TelephonyCardPaymentsRequest}.
+     *
+     * <p>If the request's {@code telephonySystem} is {@code null} this method will set it to the default value
+     * {@link KervTelephonySystem#TELEPHONY_SYSTEM_NAME}. After normalisation the telephony system must exactly
+     * equal (case-sensitive) {@code KervTelephonySystem.TELEPHONY_SYSTEM_NAME}; otherwise a
+     * {@link TelephonyServiceException} is thrown.</p>
+     *
+     * @param telephonyCardPaymentsRequest the telephony card payments request to validate and possibly mutate;
+     *                                     passing {@code null} will result in a {@link NullPointerException}
+     *                                     when the method attempts to access its properties
+     * @throws TelephonyServiceException if the telephony system is not equal to
+     *                                   {@code KervTelephonySystem.TELEPHONY_SYSTEM_NAME}
+     * @see KervTelephonySystem#TELEPHONY_SYSTEM_NAME
+     */
+    public void validateDefaultTelephonySystem(TelephonyCardPaymentsRequest telephonyCardPaymentsRequest) {
+
+        // If telephony system is null, set to default Kerv telephony system
+        if (telephonyCardPaymentsRequest.getTelephonySystem() == null || telephonyCardPaymentsRequest.getTelephonySystem().isEmpty()) {
+            telephonyCardPaymentsRequest.setTelephonySystem(KervTelephonySystem.TELEPHONY_SYSTEM_NAME);
+        }
+        // This validation is used to ensure that the request is suing the default telephony system Kerv.
+        if (!telephonyCardPaymentsRequest.getTelephonySystem().equals(KervTelephonySystem.TELEPHONY_SYSTEM_NAME)) {
+            throw new TelephonyServiceException("Invalid telephony system name");
+        }
     }
 
     public TelephonySystem getTelephonySystem(TelephonyCardPaymentsRequest telephonyCardPaymentsRequest) {
