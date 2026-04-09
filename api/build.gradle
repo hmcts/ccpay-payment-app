@@ -164,7 +164,7 @@ dependencies {
     testImplementation group: 'org.mockito', name: 'mockito-core', version: '5.23.0'
     testImplementation group: 'io.github.hakky54', name: 'logcaptor', version: '2.12.6'
     testImplementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.5.32'
-    testRuntimeOnly group: 'org.junit.vintage', name: 'junit-vintage-engine', version: '5.10.0'
+    testRuntimeOnly group: 'org.junit.vintage', name: 'junit-vintage-engine', version: '5.14.3'
 
     // smoke
     smokeTestImplementation sourceSets.test.runtimeClasspath
@@ -186,8 +186,8 @@ dependencies {
     contractTestImplementation group: 'au.com.dius.pact.provider', name: 'junit5spring', version: versions.pact_version
     contractTestImplementation group: 'au.com.dius.pact.consumer', name: 'junit5', version: versions.pact_version
     contractTestImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test'
-    contractTestImplementation("org.junit.jupiter:junit-jupiter-api:5.10.2")
-    contractTestImplementation("org.junit.jupiter:junit-jupiter-engine:5.10.2")
+    contractTestImplementation("org.junit.jupiter:junit-jupiter-api:5.14.3")
+    contractTestImplementation("org.junit.jupiter:junit-jupiter-engine:5.14.3")
 
     functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-core', version: versions.serenity
     functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-cucumber', version: versions.serenityCucumber
