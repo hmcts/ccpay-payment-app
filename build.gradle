@@ -278,6 +278,10 @@ task functional(type: GradleBuild, description: 'Runs Functional tests', group: 
     tasks = ['functionalTest']
 }
 
+task pitest(description: 'Runs PIT mutation tests for payment-api', group: 'Verification') {
+    dependsOn ':payment-api:pitest'
+}
+
 task migratePostgresDatabase(type: GradleBuild, description: 'Migrates Postgres Database', group: 'liquibase') {
     //forward projectProperties
     startParameter.projectProperties = project.gradle.startParameter.projectProperties
