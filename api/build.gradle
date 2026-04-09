@@ -319,7 +319,7 @@ pitest {
             'uk.gov.hmcts.payment.api.servicebus.CallbackServiceImplTest',
             'uk.gov.hmcts.payment.api.servicebus.ServiceRequestDomainServiceTest'
     ]
-    enableDefaultIncrementalAnalysis = true
+    enableDefaultIncrementalAnalysis = false
     threads = 15
     testSourceSets = [sourceSets.test]
     mainSourceSets = [sourceSets.main]
