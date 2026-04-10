@@ -354,9 +354,6 @@ public class ReplayCreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
     private void createCreditAccountPayments(Map<String, CreditAccountPaymentRequest> csvParseMap, int noOfPayments) throws Exception {
         for (int i = 0; i < noOfPayments; i++) {
-            //create PBA payment
-            setCreditAccountPaymentLiberataCheckFeature(true);
-
             when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
 
             Double calculatedAmount = Double.parseDouble(Integer.toString(ThreadLocalRandom.current().nextInt(99) + 1));
@@ -408,16 +405,4 @@ public class ReplayCreditAccountPaymentControllerTest extends PaymentsDataUtil {
         return fees;
     }
 
-    private void setCreditAccountPaymentLiberataCheckFeature(boolean enabled) throws Exception {
-        String url = "/api/ff4j/store/features/credit-account-payment-liberata-check/";
-        if (enabled) {
-            url += "enable";
-        } else {
-            url += "disable";
-        }
-
-        restActions
-            .post(url)
-            .andExpect(status().isAccepted());
-    }
 }

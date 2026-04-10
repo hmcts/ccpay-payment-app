@@ -9,7 +9,6 @@ import au.com.dius.pact.provider.junitsupport.loader.PactBroker;
 import au.com.dius.pact.provider.junitsupport.loader.VersionSelector;
 import au.com.dius.pact.provider.spring.junit5.MockMvcTestTarget;
 import com.google.common.collect.ImmutableMap;
-import org.ff4j.FF4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -100,8 +99,6 @@ class CardPaymentProviderTest {
     @Autowired
     PciPalPaymentService pciPalPaymentService;
     @Autowired
-    FF4j ff4j;
-    @Autowired
     FeePayApportionService feePayApportionService;
 
     @Autowired
@@ -176,13 +173,13 @@ class CardPaymentProviderTest {
         MockMvcTestTarget testTarget = new MockMvcTestTarget();
         when(paymentReferenceMock.getNext()).thenReturn("123");
         CardPaymentController cardPaymentController =
-            new CardPaymentController(cardDelegatingPaymentService, paymentDtoMapper, cardDetailsService, pciPalPaymentService, ff4j,
+            new CardPaymentController(cardDelegatingPaymentService, paymentDtoMapper, cardDetailsService, pciPalPaymentService,
                 feePayApportionService, featureToggler, referenceDataService, paymentReferenceMock);
         cardPaymentController.setApplicationContext(applicationContext);
         testTarget.setControllers(
             cardPaymentController,
             new PaymentController(paymentService, paymentStatusRepositoryMock, callbackServiceMock,
-                paymentDtoMapper, paymentValidator, ff4j,
+                paymentDtoMapper, paymentValidator,
                 dateUtil, paymentFeeRepositoryMock, featureToggler));
         if (context != null) {
             context.setTarget(testTarget);
@@ -228,7 +225,6 @@ class CardPaymentProviderTest {
 
     @State({"Payments exist for a case"})
     public void toPaymentsForACasesWithSuccess() {
-        when(ff4j.check("payment-search")).thenReturn(Boolean.TRUE);
         PaymentFeeLink paymentLink = populateCardPaymentToDb("1", "e2kkddts5215h9qqoeuth5c0v", "ccd_gw").getPaymentLink();
         when(paymentFeeLinkRepositoryMock.findAll(any(Specification.class))).thenReturn(Arrays.asList(paymentLink));
 

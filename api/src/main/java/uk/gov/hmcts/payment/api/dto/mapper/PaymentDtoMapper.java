@@ -1,7 +1,6 @@
 package uk.gov.hmcts.payment.api.dto.mapper;
 
 import lombok.SneakyThrows;
-import org.ff4j.FF4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -333,9 +332,10 @@ public class PaymentDtoMapper {
     }
 
 
-    public PaymentDto toReconciliationResponseDtoForLibereta(final Payment payment, final String paymentReference, final List<PaymentFee> fees, final FF4j ff4j,boolean isPaymentAfterApportionment) {
+    public PaymentDto toReconciliationResponseDtoForLibereta(final Payment payment, final String paymentReference,
+                                                             final List<PaymentFee> fees, boolean isPaymentAfterApportionment) {
         boolean isBulkScanPayment = payment.getPaymentChannel() !=null && payment.getPaymentChannel().getName().equals("bulk scan");
-        boolean bulkScanCheck = ff4j.check("bulk-scan-check");
+        boolean bulkScanCheck = true;
         boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
         boolean apportionCheck = apportionFeature && isPaymentAfterApportionment;
         LOG.debug("bulkScanCheck value in PaymentDtoMapper: {}",bulkScanCheck);
