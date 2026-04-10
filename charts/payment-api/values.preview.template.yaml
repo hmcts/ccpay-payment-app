@@ -33,6 +33,8 @@ java:
           alias: launch.darkly.sdk.key
         - name: payment-s2s-secret
           alias: PAYMENT_S2S_SECRET
+        - name: ccpay-message-signing-key
+          alias: ccpay.message.signing.key
         - name: pci-pal-antenna-tenant-name
           alias: pci-pal.antenna.tenant.name
         - name: pci-pal-antenna-user-name
