@@ -84,7 +84,7 @@ allprojects {
                 entry 'jackson-databind'
             }
             // CVE-2020-8908
-            dependencySet(group: 'com.google.guava', version: '33.5.0-jre') {
+            dependencySet(group: 'com.google.guava', version: '33.6.0-jre') {
                 entry 'guava'
             }
 
