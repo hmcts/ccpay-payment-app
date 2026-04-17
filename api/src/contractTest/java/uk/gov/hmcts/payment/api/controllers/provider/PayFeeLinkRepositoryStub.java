@@ -4,9 +4,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.repository.query.Param;
 import uk.gov.hmcts.payment.api.model.DuplicateServiceRequestDto;
-import org.springframework.data.repository.query.FluentQuery;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
 
@@ -126,6 +126,13 @@ public class PayFeeLinkRepositoryStub implements PaymentFeeLinkRepository {
     }
 
     @Override
+    public Page<PaymentFeeLink> findAll(Specification<PaymentFeeLink> spec,
+                                        Specification<PaymentFeeLink> countSpec,
+                                        Pageable pageable) {
+        return null;
+    }
+
+    @Override
     public List<PaymentFeeLink> findAll(Specification<PaymentFeeLink> spec, Sort sort) {
         return null;
     }
@@ -147,7 +154,7 @@ public class PayFeeLinkRepositoryStub implements PaymentFeeLinkRepository {
 
     @Override
     public <S extends PaymentFeeLink, R> R findBy(Specification<PaymentFeeLink> spec,
-                                                  Function<FluentQuery.FetchableFluentQuery<S>, R> queryFunction) {
+                                                  Function<? super JpaSpecificationExecutor.SpecificationFluentQuery<S>, R> queryFunction) {
         return null;
     }
 
