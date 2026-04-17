@@ -36,4 +36,5 @@ dependencies {
       exclude(module: 'commons-logging')
     }
     testImplementation group: 'org.mockito', name: 'mockito-core', version: '5.23.0'
+    testRuntimeOnly group: 'org.junit.platform', name: 'junit-platform-launcher'
 }
