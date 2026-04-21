@@ -164,7 +164,8 @@ dependencies {
     testImplementation group: 'org.mockito', name: 'mockito-core', version: '5.23.0'
     testImplementation group: 'io.github.hakky54', name: 'logcaptor', version: '2.12.6'
     testImplementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.5.32'
-    testRuntimeOnly group: 'org.junit.vintage', name: 'junit-vintage-engine', version: '5.10.0'
+    testRuntimeOnly group: 'org.junit.vintage', name: 'junit-vintage-engine'
+    testRuntimeOnly group: 'org.junit.platform', name: 'junit-platform-launcher'
 
     // smoke
     smokeTestImplementation sourceSets.test.runtimeClasspath
@@ -186,8 +187,8 @@ dependencies {
     contractTestImplementation group: 'au.com.dius.pact.provider', name: 'junit5spring', version: versions.pact_version
     contractTestImplementation group: 'au.com.dius.pact.consumer', name: 'junit5', version: versions.pact_version
     contractTestImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test'
-    contractTestImplementation("org.junit.jupiter:junit-jupiter-api:5.10.2")
-    contractTestImplementation("org.junit.jupiter:junit-jupiter-engine:5.10.2")
+    contractTestImplementation("org.junit.jupiter:junit-jupiter-api")
+    contractTestImplementation("org.junit.jupiter:junit-jupiter-engine")
 
     functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-core', version: versions.serenity
     functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-cucumber', version: versions.serenityCucumber
@@ -222,6 +223,17 @@ task functionalTest(type: Test, description: 'Runs the functional tests', group:
 
 // Serenity Reporting
 functionalTest.finalizedBy(aggregate)
+tasks.named('aggregate') {
+    onlyIf {
+        def requestedTasks = gradle.startParameter.taskNames
+        requestedTasks.any { name ->
+            name == 'functionalTest' || name.endsWith(':functionalTest')
+                || name == 'aggregate' || name.endsWith(':aggregate')
+                || name == 'reports' || name.endsWith(':reports')
+                || name == 'checkOutcomes' || name.endsWith(':checkOutcomes')
+        }
+    }
+}
 
 project.ext {
     pactVersion = getCheckedOutGitCommitHash()
