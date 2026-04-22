@@ -30,6 +30,7 @@ public abstract class TelephonySystem {
     private String divorceFlowId;
     private String prlFlowId;
     private String iacFlowId;
+    public static final String DEFAULT_SYSTEM_NAME = "kerv";
 
     public String getFlowId(String serviceType) {
         Map<String, String> flowIdMap = new HashMap<>();

@@ -18,6 +18,7 @@ import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.TelephonyCallbackDto;
+import uk.gov.hmcts.payment.api.service.TelephonySystem;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
 import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
 import uk.gov.hmcts.payment.functional.idam.IdamService;
@@ -92,7 +93,6 @@ public class TelephonyPaymentFunctionalTest {
             .ccdCaseNumber(ccdCaseNumber)
             .currency(CurrencyCode.GBP)
             .caseType("DIVORCE")
-            .telephonySystem("Kerv")
             .returnURL("https://www.moneyclaims.service.gov.uk")
             .build();
 
@@ -115,6 +115,7 @@ public class TelephonyPaymentFunctionalTest {
                         assertThat(telephonyCardPaymentsResponse).isNotNull();
                         assertThat(telephonyCardPaymentsResponse.getPaymentReference().matches(PAYMENT_REFERENCE_REGEX)).isTrue();
                         assertThat(telephonyCardPaymentsResponse.getStatus()).isEqualTo("Initiated");
+                        assertThat(telephonyCardPaymentsResponse.getLinks().getNextUrl().getHref().contains("https://euwest1.pcipalstaging.cloud/session/1288/view")).isTrue();
                         paymentReference = telephonyCardPaymentsResponse.getPaymentReference();
                     });
                 // pci-pal callback
@@ -169,7 +170,7 @@ public class TelephonyPaymentFunctionalTest {
     }
 
     @Test
-    public void telephonyPaymentAntenna() {
+    public void telephonyPaymentDefaultKervWhenTelephonySystemPropertyIsEmpty() {
         String ccdCaseNumber = "11116467" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
 
         FeeDto feeDto = FeeDto.feeDtoWith()
@@ -186,7 +187,7 @@ public class TelephonyPaymentFunctionalTest {
             .currency(CurrencyCode.GBP)
             .caseType("DIVORCE")
             .returnURL("https://www.moneyclaims.service.gov.uk")
-            .telephonySystem("Kerv")
+            .telephonySystem("")
             .build();
 
         PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
@@ -208,6 +209,7 @@ public class TelephonyPaymentFunctionalTest {
                         assertThat(telephonyCardPaymentsResponse).isNotNull();
                         assertThat(telephonyCardPaymentsResponse.getPaymentReference().matches(PAYMENT_REFERENCE_REGEX)).isTrue();
                         assertThat(telephonyCardPaymentsResponse.getStatus()).isEqualTo("Initiated");
+                        assertThat(telephonyCardPaymentsResponse.getLinks().getNextUrl().getHref().contains("https://euwest1.pcipalstaging.cloud/session/1288/view")).isTrue();
                         paymentReference = telephonyCardPaymentsResponse.getPaymentReference();
                     });
                 // pci-pal callback
@@ -279,7 +281,7 @@ public class TelephonyPaymentFunctionalTest {
             .currency(CurrencyCode.GBP)
             .caseType("DIVORCE")
             .returnURL("https://www.moneyclaims.service.gov.uk")
-            .telephonySystem("Kerv")
+             .telephonySystem(TelephonySystem.DEFAULT_SYSTEM_NAME)
             .build();
 
         PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
@@ -301,6 +303,7 @@ public class TelephonyPaymentFunctionalTest {
                         assertThat(telephonyCardPaymentsResponse).isNotNull();
                         assertThat(telephonyCardPaymentsResponse.getPaymentReference().matches(PAYMENT_REFERENCE_REGEX)).isTrue();
                         assertThat(telephonyCardPaymentsResponse.getStatus()).isEqualTo("Initiated");
+                        assertThat(telephonyCardPaymentsResponse.getLinks().getNextUrl().getHref().contains("https://euwest1.pcipalstaging.cloud/session/1288/view")).isTrue();
                         paymentReference = telephonyCardPaymentsResponse.getPaymentReference();
                     });
                 // pci-pal callback
@@ -391,7 +394,7 @@ public class TelephonyPaymentFunctionalTest {
                     .returnUrl("https://www.moneyclaims.service.gov.uk")
                     .when().createTelephonyPayment(telephonyPaymentRequest, paymentGroupReference).then().getResponse();
                 assertThat(response.statusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY.value());
-                assertThat(response.getBody().print()).isEqualTo("Invalid or missing attributes");
+                assertThat(response.getBody().print()).isEqualTo("Invalid telephony system name");
             });
     }
 
@@ -413,7 +416,7 @@ public class TelephonyPaymentFunctionalTest {
             .currency(CurrencyCode.GBP)
             .caseType("Test")
             .returnURL("https://www.moneyclaims.service.gov.uk")
-            .telephonySystem("Kerv")
+             .telephonySystem(TelephonySystem.DEFAULT_SYSTEM_NAME)
             .build();
 
         PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
