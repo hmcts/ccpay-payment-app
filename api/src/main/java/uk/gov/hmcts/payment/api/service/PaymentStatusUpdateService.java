@@ -15,7 +15,7 @@ import java.util.List;
 public interface PaymentStatusUpdateService {
 
     PaymentFailures insertBounceChequePaymentFailure(PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto);
-    boolean cancelFailurePaymentRefund(String paymentReference);
+    boolean cancelFailurePaymentRefund(String paymentReference, MultiValueMap<String, String> headers);
     PaymentFailures insertChargebackPaymentFailure(PaymentStatusChargebackDto paymentStatusChargebackDto);
     List<PaymentFailures> searchPaymentFailure(String failureReference);
     void deleteByFailureReference(String failureReference);
