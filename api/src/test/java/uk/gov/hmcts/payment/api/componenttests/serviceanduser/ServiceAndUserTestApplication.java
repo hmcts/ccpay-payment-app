@@ -6,6 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -95,10 +96,12 @@ public class ServiceAndUserTestApplication {
         private AuthCheckerServiceAndAnonymousUserFilter filter;
 
         @Bean
+        @Order(0)
         protected SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
             http
+                .securityMatcher("/test")
                 .addFilter(filter)
-                .authorizeRequests().anyRequest().authenticated();
+                .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated());
             return http.build();
         }
     }
