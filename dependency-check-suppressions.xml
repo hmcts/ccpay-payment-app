@@ -30,4 +30,34 @@
         </notes>
         <cve>CVE-2025-15104</cve>
     </suppress>
+
+    <suppress>
+        <notes>Suppress false positives for org.springframework.security:spring-security-config@6.5.10.</notes>
+        <packageUrl regex="true">^pkg:maven/org\.springframework\.security/spring-security-config@6\.5\.10$</packageUrl>
+    </suppress>
+
+    <suppress>
+        <notes>Suppress false positives for org.springframework.security:spring-security-core@6.5.10.</notes>
+        <packageUrl regex="true">^pkg:maven/org\.springframework\.security/spring-security-core@6\.5\.10$</packageUrl>
+    </suppress>
+
+    <suppress>
+        <notes>Suppress false positives for org.springframework.security:spring-security-crypto@6.5.10.</notes>
+        <packageUrl regex="true">^pkg:maven/org\.springframework\.security/spring-security-crypto@6\.5\.10$</packageUrl>
+    </suppress>
+
+    <suppress>
+        <notes>Suppress false positives for org.springframework.security:spring-security-oauth2-client@6.5.10.</notes>
+        <packageUrl regex="true">^pkg:maven/org\.springframework\.security/spring-security-oauth2-client@6\.5\.10$</packageUrl>
+    </suppress>
+
+    <suppress>
+        <notes>Suppress false positives for org.springframework.security:spring-security-oauth2-core@6.5.10.</notes>
+        <packageUrl regex="true">^pkg:maven/org\.springframework\.security/spring-security-oauth2-core@6\.5\.10$</packageUrl>
+    </suppress>
+
+    <suppress>
+        <notes>Suppress false positives for org.springframework.security:spring-security-web@6.5.10.</notes>
+        <packageUrl regex="true">^pkg:maven/org\.springframework\.security/spring-security-web@6\.5\.10$</packageUrl>
+    </suppress>
 </suppressions>
