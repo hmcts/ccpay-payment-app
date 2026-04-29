@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.api.servicebus;
 
 import com.microsoft.azure.servicebus.IMessage;
+import com.microsoft.azure.servicebus.Message;
 import com.microsoft.azure.servicebus.MessageBody;
 import com.microsoft.azure.servicebus.TopicClient;
 import com.microsoft.azure.servicebus.primitives.ServiceBusException;
@@ -14,6 +15,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
@@ -24,6 +27,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class TopicClientProxyTest {
+
+    //dummy value
+    private static final String HMAC_SECRET = "c2VjcmV0";
 
     @Spy
     private TopicClient client = mock(TopicClient.class);
@@ -43,7 +49,7 @@ public class TopicClientProxyTest {
 
     @Test
     public void shouldSendMessageSuccessfullyOnFirstAttempt() throws Exception {
-        TopicClientProxy proxy = Mockito.spy(new TopicClientProxy("conn", "topic"));
+        TopicClientProxy proxy = Mockito.spy(new TopicClientProxy("conn", "topic", HMAC_SECRET));
 
         var method = TopicClientProxy.class.getDeclaredMethod("send", TopicClient.class, IMessage.class);
         method.setAccessible(true);
@@ -55,7 +61,7 @@ public class TopicClientProxyTest {
 
     @Test
     public void shouldRetryAndSucceedOnSecondAttempt() throws Exception {
-        TopicClientProxy proxy = Mockito.spy(new TopicClientProxy("conn", "topic"));
+        TopicClientProxy proxy = Mockito.spy(new TopicClientProxy("conn", "topic", HMAC_SECRET));
 
         doThrow(new ServiceBusException(false, "fail"))
             .doNothing()
@@ -71,7 +77,7 @@ public class TopicClientProxyTest {
 
     @Test
     public void shouldThrowAfterMaxRetries() throws Exception {
-        TopicClientProxy proxy = Mockito.spy(new TopicClientProxy("conn", "topic"));
+        TopicClientProxy proxy = Mockito.spy(new TopicClientProxy("conn", "topic", HMAC_SECRET));
 
         doThrow(new ServiceBusException(false, "fail"))
             .when(client).send(message);
@@ -90,7 +96,7 @@ public class TopicClientProxyTest {
 
     @Test
     public void testSendWithKeepClientAliveFalse() throws Exception {
-        TopicClientProxy proxy = Mockito.spy(new TopicClientProxy("Endpoint=sb://servicebus-test.servicebus.windows.net/;SharedAccessKey=test", "topic"));
+        TopicClientProxy proxy = Mockito.spy(new TopicClientProxy("Endpoint=sb://servicebus-test.servicebus.windows.net/;SharedAccessKey=test", "topic", HMAC_SECRET));
 
         MessageBody body = MessageBody.fromValueData("Test message body".getBytes());
         when(message.getMessageId()).thenReturn(UUID.randomUUID().toString());
@@ -110,7 +116,7 @@ public class TopicClientProxyTest {
 
     @Test
     public void testSendWithKeepClientAliveTrue() throws Exception {
-        TopicClientProxy proxy = Mockito.spy(new TopicClientProxy("Endpoint=sb://servicebus-test.servicebus.windows.net/;SharedAccessKey=test", "topic"));
+        TopicClientProxy proxy = Mockito.spy(new TopicClientProxy("Endpoint=sb://servicebus-test.servicebus.windows.net/;SharedAccessKey=test", "topic", HMAC_SECRET));
 
         MessageBody body = MessageBody.fromValueData("Test message body".getBytes());
         when(message.getMessageId()).thenReturn(UUID.randomUUID().toString());
@@ -126,5 +132,22 @@ public class TopicClientProxyTest {
 
         verify(client, times(1)).send(any(IMessage.class));
         verify(client, never()).close();
+    }
+
+    @Test
+    public void shouldAddHmacHeadersBeforeSending() throws Exception {
+        TopicClientProxy proxy = Mockito.spy(new TopicClientProxy("Endpoint=sb://servicebus-test.servicebus.windows.net/;SharedAccessKey=test", "topic", HMAC_SECRET));
+        Message serviceBusMessage = new Message("Test message body");
+        serviceBusMessage.setContentType("application/json");
+        serviceBusMessage.setLabel("Service Callback Message");
+        serviceBusMessage.setProperties(new java.util.HashMap<>(Map.of("serviceCallbackUrl", "http://callback")));
+
+        doReturn(client).when(proxy).newTopicClient();
+
+        proxy.send(serviceBusMessage);
+
+        assertEquals("ccpay-payment", serviceBusMessage.getProperties().get("X-Sender-Service"));
+        assertNotNull(serviceBusMessage.getProperties().get("X-Timestamp"));
+        assertNotNull(serviceBusMessage.getProperties().get("X-Message-Signature"));
     }
 }

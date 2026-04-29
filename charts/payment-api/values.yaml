@@ -251,3 +251,5 @@ java:
         - name: service-request-email-to
           alias: service.request.email.to
 
+        - name: ccpay-message-signing-key
+          alias: ccpay.message.signing.key

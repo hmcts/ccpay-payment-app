@@ -21,11 +21,14 @@ public class TopicClientProxyTest {
     @Value("${azure.servicebus.topic-name}")
     private String topic;
 
+    @Value("${ccpay.message.signing.key}")
+    private String hmacSecret;
+
     @Test
     public void testBatchMode() throws Exception{
 
         TopicClientProxy topicClientProxy = new TopicClientProxy(
-            connectionString, topic
+            connectionString, topic, hmacSecret
         );
 
         topicClientProxy.setKeepClientAlive(true);
