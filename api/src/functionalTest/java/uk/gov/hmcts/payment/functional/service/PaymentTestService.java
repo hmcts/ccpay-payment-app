@@ -264,8 +264,8 @@ public class PaymentTestService {
                 .get("/case/{dcn}", dcn);
     }
 
-    public Response deleteBulkScanPayment(String serviceToken, String dcn, final String baseUri) {
-        return givenWithServiceHeaders(serviceToken)
+    public Response deleteBulkScanPayment(String userToken, String serviceToken, String dcn, final String baseUri) {
+        return givenWithAuthHeaders(userToken, serviceToken)
                 .baseUri(baseUri)
                 .when()
                 .delete("/bulk-scan-payment/{dcn}", dcn);
