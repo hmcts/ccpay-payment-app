@@ -269,19 +269,19 @@ tasks.withType(JavaExec).configureEach {
 }
 
 task smoke(type: GradleBuild, description: 'Runs smoke tests', group: 'Verification') {
-    buildFile = './api/build.gradle'
+    dir = file('api')
     tasks = ['smokeTest']
 }
 
 task functional(type: GradleBuild, description: 'Runs Functional tests', group: 'Verification') {
-    buildFile = './api/build.gradle'
+    dir = file('api')
     tasks = ['functionalTest']
 }
 
 task migratePostgresDatabase(type: GradleBuild, description: 'Migrates Postgres Database', group: 'liquibase') {
     //forward projectProperties
     startParameter.projectProperties = project.gradle.startParameter.projectProperties
-    buildFile = './api/build.gradle'
+    dir = file('api')
     tasks = ['migratePostgresDatabase']
 }
 
