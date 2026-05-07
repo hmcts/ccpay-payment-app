@@ -6,7 +6,7 @@ properties(
      pipelineTriggers([[$class: 'GitHubPushTrigger']])]
 )
 
-@Library("Infrastructure")
+@Library("Infrastructure@maven-mirror-auth")
 
 def type = "java"
 
