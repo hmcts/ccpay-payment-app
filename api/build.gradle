@@ -1,6 +1,11 @@
 buildscript {
     repositories {
         mavenLocal()
+        if (System.getenv('JENKINS_URL') || System.getenv('CI') == 'true') {
+            maven {
+                url = 'https://artifactory.platform.hmcts.net/artifactory/maven-remotes'
+            }
+        }
         mavenCentral()
     }
     dependencies {
