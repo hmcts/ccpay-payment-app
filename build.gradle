@@ -212,6 +212,23 @@ springBoot {
     buildInfo()
 }
 
+tasks.named('processResources') {
+    doLast {
+        def buildInfoFile = file("$buildDir/resources/main/META-INF/build-info.properties")
+        if (!buildInfoFile.exists()) {
+            return
+        }
+
+        def props = new Properties()
+        buildInfoFile.withInputStream { props.load(it) }
+
+        if (!props.getProperty('build.version')?.trim()) {
+            props.setProperty('build.version', project.version.toString())
+            buildInfoFile.withOutputStream { props.store(it, null) }
+        }
+    }
+}
+
 dependencyCheck {
     failBuildOnCVSS = 0
     suppressionFile = 'dependency-check-suppressions.xml'
@@ -269,19 +286,19 @@ tasks.withType(JavaExec).configureEach {
 }
 
 task smoke(type: GradleBuild, description: 'Runs smoke tests', group: 'Verification') {
-    buildFile = './api/build.gradle'
+    dir = file('api')
     tasks = ['smokeTest']
 }
 
 task functional(type: GradleBuild, description: 'Runs Functional tests', group: 'Verification') {
-    buildFile = './api/build.gradle'
+    dir = file('api')
     tasks = ['functionalTest']
 }
 
 task migratePostgresDatabase(type: GradleBuild, description: 'Migrates Postgres Database', group: 'liquibase') {
     //forward projectProperties
     startParameter.projectProperties = project.gradle.startParameter.projectProperties
-    buildFile = './api/build.gradle'
+    dir = file('api')
     tasks = ['migratePostgresDatabase']
 }
 

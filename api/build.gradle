@@ -10,7 +10,7 @@ buildscript {
 }
 
 plugins {
-    id "info.solidsoft.pitest" version '1.15.0'
+    id "info.solidsoft.pitest" version '1.19.0'
     id 'au.com.dius.pact' version '4.6.20'
 }
 
@@ -49,12 +49,12 @@ sourceSets {
 apply plugin: 'idea'
 idea {
     module {
-        testSourceDirs += project.sourceSets.smokeTest.java.srcDirs
-        testSourceDirs += project.sourceSets.smokeTest.resources.srcDirs
-        testSourceDirs += project.sourceSets.functionalTest.java.srcDirs
-        testSourceDirs += project.sourceSets.functionalTest.resources.srcDirs
-        testSourceDirs += project.sourceSets.contractTest.java.srcDirs
-        testSourceDirs += project.sourceSets.contractTest.resources.srcDirs
+        testSources.from(project.sourceSets.smokeTest.java.srcDirs)
+        testResources.from(project.sourceSets.smokeTest.resources.srcDirs)
+        testSources.from(project.sourceSets.functionalTest.java.srcDirs)
+        testResources.from(project.sourceSets.functionalTest.resources.srcDirs)
+        testSources.from(project.sourceSets.contractTest.java.srcDirs)
+        testResources.from(project.sourceSets.contractTest.resources.srcDirs)
     }
 }
 
@@ -270,16 +270,12 @@ task providerContractTest(type: Test) {
 
 }
 
-task runProviderPactVerification(type: Test) {
+task runProviderPactVerification(description: 'Runs pact provider Tests', group: 'Verification') {
     logger.lifecycle("Runs pact provider Tests")
-    testClassesDirs = sourceSets.contractTest.output.classesDirs
-    classpath = sourceSets.contractTest.runtimeClasspath
 }
 
-task runAndPublishConsumerPactTests(type: Test, description: 'Publish pact test to broker.', group: 'Verification') {
+task runAndPublishConsumerPactTests(description: 'Publish pact test to broker.', group: 'Verification') {
     logger.lifecycle("Runs pact consumer Tests")
-    testClassesDirs = sourceSets.contractTest.output.classesDirs
-    classpath = sourceSets.contractTest.runtimeClasspath
 }
 
 runAndPublishConsumerPactTests.dependsOn consumerContractTest
