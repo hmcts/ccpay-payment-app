@@ -212,6 +212,23 @@ springBoot {
     buildInfo()
 }
 
+tasks.named('processResources') {
+    doLast {
+        def buildInfoFile = file("$buildDir/resources/main/META-INF/build-info.properties")
+        if (!buildInfoFile.exists()) {
+            return
+        }
+
+        def props = new Properties()
+        buildInfoFile.withInputStream { props.load(it) }
+
+        if (!props.getProperty('build.version')?.trim()) {
+            props.setProperty('build.version', project.version.toString())
+            buildInfoFile.withOutputStream { props.store(it, null) }
+        }
+    }
+}
+
 dependencyCheck {
     failBuildOnCVSS = 0
     suppressionFile = 'dependency-check-suppressions.xml'
