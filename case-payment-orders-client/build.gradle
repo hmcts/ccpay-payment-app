@@ -24,4 +24,5 @@ dependencies {
         exclude group: 'junit', module: 'junit'
         exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
     }
+    testRuntimeOnly group: 'org.junit.platform', name: 'junit-platform-launcher'
 }

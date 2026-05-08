@@ -11,7 +11,7 @@ dependencies {
     implementation project(':payment-gov-pay-client')
     implementation project(':payment-reference-data')
     implementation project(':case-payment-orders-client')
-    implementation group: 'com.google.guava', name: 'guava', version: '33.5.0-jre'
+    implementation group: 'com.google.guava', name: 'guava', version: '33.6.0-jre'
     implementation group: 'com.microsoft.azure', name: 'applicationinsights-core', version: '3.7.8'
     implementation group: 'org.apache.httpcomponents.client5', name: 'httpclient5'
     implementation group: 'net.logstash.logback', name: 'logstash-logback-encoder', version:'7.4'
@@ -20,7 +20,7 @@ dependencies {
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-webflux'
     implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign'
 
-    api group: 'org.springframework.security', name: 'spring-security-oauth2-client', version: '6.5.9'
+    api group: 'org.springframework.security', name: 'spring-security-oauth2-client', version: '6.5.10'
     implementation group: 'com.querydsl', name: 'querydsl-jpa', version:'5.1.0'
     api group: 'commons-validator', name: 'commons-validator', version:'1.10.1'
     implementation (group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '5.3.3') {
@@ -36,4 +36,5 @@ dependencies {
       exclude(module: 'commons-logging')
     }
     testImplementation group: 'org.mockito', name: 'mockito-core', version: '5.23.0'
+    testRuntimeOnly group: 'org.junit.platform', name: 'junit-platform-launcher'
 }

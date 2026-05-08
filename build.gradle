@@ -1,19 +1,19 @@
 plugins {
     id 'application'
-    id "org.sonarqube" version "6.3.1.5724"
-    id 'org.springframework.boot' version '3.4.13'
+    id "org.sonarqube" version "6.2.0.5505"
+    id 'org.springframework.boot' version '3.5.14'
     id 'io.spring.dependency-management' version '1.1.7'
-    id 'org.owasp.dependencycheck' version '12.2.0'
+    id 'org.owasp.dependencycheck' version '12.2.1'
     id "uk.gov.hmcts.java" version '0.12.68'
     id "com.gorylenko.gradle-git-properties" version "2.5.7"
     id 'jacoco'
 }
 
-def springBootVersion = '3.4.13'
-def springCloudVersion = '2024.0.3'
+def springBootVersion = '3.5.14'
+def springCloudVersion = '2025.0.0'
 
 def versions = [
-        lombok: '1.18.44',
+        lombok: '1.18.46',
         javaVersion: '21',
         jacocoVersion: '0.8.12'
 ]
@@ -66,7 +66,7 @@ allprojects {
             mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
             mavenBom 'org.apache.logging.log4j:log4j-bom:2.25.4'
             mavenBom 'io.netty:netty-all:4.2.12.Final'
-            mavenBom 'org.testcontainers:testcontainers-bom:2.0.4'
+            mavenBom 'org.testcontainers:testcontainers-bom:2.0.5'
         }
         dependencies {
             dependencySet(
@@ -84,7 +84,7 @@ allprojects {
                 entry 'jackson-databind'
             }
             // CVE-2020-8908
-            dependencySet(group: 'com.google.guava', version: '33.5.0-jre') {
+            dependencySet(group: 'com.google.guava', version: '33.6.0-jre') {
                 entry 'guava'
             }
 
@@ -212,6 +212,23 @@ springBoot {
     buildInfo()
 }
 
+tasks.named('processResources') {
+    doLast {
+        def buildInfoFile = file("$buildDir/resources/main/META-INF/build-info.properties")
+        if (!buildInfoFile.exists()) {
+            return
+        }
+
+        def props = new Properties()
+        buildInfoFile.withInputStream { props.load(it) }
+
+        if (!props.getProperty('build.version')?.trim()) {
+            props.setProperty('build.version', project.version.toString())
+            buildInfoFile.withOutputStream { props.store(it, null) }
+        }
+    }
+}
+
 dependencyCheck {
     failBuildOnCVSS = 0
     suppressionFile = 'dependency-check-suppressions.xml'
@@ -269,19 +286,19 @@ tasks.withType(JavaExec).configureEach {
 }
 
 task smoke(type: GradleBuild, description: 'Runs smoke tests', group: 'Verification') {
-    buildFile = './api/build.gradle'
+    dir = file('api')
     tasks = ['smokeTest']
 }
 
 task functional(type: GradleBuild, description: 'Runs Functional tests', group: 'Verification') {
-    buildFile = './api/build.gradle'
+    dir = file('api')
     tasks = ['functionalTest']
 }
 
 task migratePostgresDatabase(type: GradleBuild, description: 'Migrates Postgres Database', group: 'liquibase') {
     //forward projectProperties
     startParameter.projectProperties = project.gradle.startParameter.projectProperties
-    buildFile = './api/build.gradle'
+    dir = file('api')
     tasks = ['migratePostgresDatabase']
 }
 

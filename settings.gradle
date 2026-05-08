@@ -1,3 +1,19 @@
+pluginManagement {
+    repositories {
+        maven {
+            url = uri("https://pkgs.dev.azure.com/hmcts/Artifacts/_packaging/hmcts-lib/maven/v1")
+            content {
+                includeGroupByRegex("com\\.github\\.hmcts(\\..*)?")
+            }
+        }
+        gradlePluginPortal() {
+            content {
+                excludeGroupByRegex("com\\.github\\.hmcts(\\..*)?")
+            }
+        }
+    }
+}
+
 rootProject.name = 'payment-app'
 include ':payment-reference-data'
 include ':payment-gov-pay-client'
