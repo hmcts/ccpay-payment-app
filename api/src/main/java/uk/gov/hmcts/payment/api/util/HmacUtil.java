@@ -24,13 +24,5 @@ public class HmacUtil {
         }
         return hex.toString();
     }
-
-    public static void main(String[] args) throws Exception {
-        String key = "my-secret-key";
-        String message = "AAAAA";
-
-        String hash = hmacSha256(key, message);
-        System.out.println(hash);
-    }
 }
 
