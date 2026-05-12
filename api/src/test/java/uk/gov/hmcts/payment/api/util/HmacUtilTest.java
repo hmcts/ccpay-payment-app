@@ -45,6 +45,16 @@ class HmacUtilTest {
     }
 
     @Test
+    void hmacWithRcInputProducesExpectedHashForRC() throws Exception {
+        String key = "toto1234!";
+        String message = "RC-1763-0558-0473-0637";
+
+        String expected = computeExpected(key, message);
+        String actual = HmacUtil.hmacSha256(key, message);
+        assertEquals(expected, actual);
+    }
+
+    @Test
     void emptyMessageProducesValidHash() throws Exception {
         String key = "secret";
         String message = "";
@@ -71,6 +81,17 @@ class HmacUtilTest {
         String hash = HmacUtil.hmacSha256("k", "m");
         assertEquals(64, hash.length());
         assertTrue(hash.matches("^[0-9a-f]{64}$"));
+    }
+
+    @Test
+    void hmacWithRcInputProducesExpectedHash() throws Exception {
+        String key = "my-secret-key";
+        String message = "RC-1763-0558-0473-0637";
+
+        String expected = computeExpected(key, message);
+        String actual = HmacUtil.hmacSha256(key, message);
+
+        assertEquals(expected, actual);
     }
 
     @Test
