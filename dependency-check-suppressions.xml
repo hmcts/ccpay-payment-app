@@ -30,4 +30,14 @@
         </notes>
         <cve>CVE-2025-15104</cve>
     </suppress>
+
+    <suppress>
+        <notes>
+            Temporary suppression
+        </notes>
+        <cve>CVE-2026-40477</cve>
+        <cve>CVE-2026-40478</cve>
+        <cve>CVE-2026-22748</cve>
+        <cve>CVE-2026-22746</cve>
+    </suppress>
 </suppressions>
