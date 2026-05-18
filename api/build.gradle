@@ -114,6 +114,8 @@ dependencies {
         exclude(module: 'azure-identity')
         exclude(module: 'nanohttpd')
         exclude(module: 'reactor-netty-http-brave')
+        exclude(module: 'azure_sdk_for_java')
+        exclude(module: 'azure-security-keyvault-secrets')
         exclude(module: 'azure-core')
     }
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-cache'
