@@ -87,6 +87,7 @@ dependencies {
     implementation project(':case-payment-orders-client')
     implementation group: 'com.github.hmcts.java-logging', name: 'logging', version: javaLoggingVersion
     implementation group: 'com.github.hmcts.java-logging', name: 'logging-appinsights', version: javaLoggingVersion
+
     implementation group: 'com.github.hmcts', name: 'auth-checker-lib', version: '3.1.2'
     implementation (group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: versions.reformS2sClient) {
         exclude group: 'org.apache.httpcomponents', module: 'httpclient'
@@ -114,6 +115,8 @@ dependencies {
         exclude(module: 'azure-identity')
         exclude(module: 'nanohttpd')
         exclude(module: 'reactor-netty-http-brave')
+        exclude(module: 'applicationinsights-web')
+        exclude(module: 'azure-security-keyvault-secrets')
         exclude(module: 'azure-core')
     }
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-cache'
