@@ -343,12 +343,6 @@ public class CaseControllerTest extends PaymentsDataUtil {
         populateCardPaymentToDb("1");
         populateCreditAccountPaymentToDb("1");
 
-        restActions
-            .withAuthorizedUser(UserResolverBackdoor.CITIZEN_ID)
-            .withUserId(UserResolverBackdoor.CITIZEN_ID)
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
-
         MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
         RestActions restActions_Citizen = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
 
@@ -367,13 +361,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
         populateCardPaymentToDb("1");
         populateCreditAccountPaymentToDb("1");
 
-        restActions
-            .withAuthorizedUser(USER_ID)
-            .withUserId(USER_ID)
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
-
-        assertThat(restActions
+         assertThat(restActions
             .withAuthorizedUser(USER_ID)
             .withUserId(USER_ID)
             .get("/cases/ccdCaseNumber2/payments")
