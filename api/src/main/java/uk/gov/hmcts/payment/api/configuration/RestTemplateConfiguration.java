@@ -29,6 +29,12 @@ public class RestTemplateConfiguration {
     @Value("${liberata.read.timeout:10000}")
     private int liberataReadTimeout;
 
+    @Value("${laravel.connect.timeout:10000}")
+    private int laravelConnectTimeout;
+
+    @Value("${laravel.read.timeout:10000}")
+    private int laravelReadTimeout;
+
     @Primary
     @Bean
     public CloseableHttpClient paymentsHttpClient() {
@@ -45,6 +51,11 @@ public class RestTemplateConfiguration {
     @Bean (value = "restTemplateLiberata")
     public RestTemplate restTemplateLiberata() {
         return createRestTemplate(liberataReadTimeout, liberataConnectTimeout);
+    }
+
+    @Bean (value = "restTemplateLaravel")
+    public RestTemplate restTemplateLaravel() {
+        return createRestTemplate(laravelReadTimeout, laravelConnectTimeout);
     }
 
     @Bean (value = "restTemplateRefundsGroup")
