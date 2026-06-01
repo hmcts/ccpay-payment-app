@@ -8,9 +8,9 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.payment.api.domain.service.ServiceRequestDomainService;
@@ -31,13 +31,13 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
 public class ServiceRequestDomainServiceTest  {
 
-    @MockBean
+    @MockitoBean
     private TopicClientService topicClientService;
 
     @Autowired
     ServiceRequestDomainService serviceRequestDomainService;
 
-    @MockBean
+    @MockitoBean
     private TopicClientProxy topicClientProxy;
 
     @Test
