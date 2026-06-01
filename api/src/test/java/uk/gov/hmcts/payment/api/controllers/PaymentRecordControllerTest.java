@@ -524,10 +524,6 @@ public class PaymentRecordControllerTest {
         assertThat(response.getReference().matches(PAYMENT_REFERENCE_REFEX)).isEqualTo(true);
         assertThat(response.getStatus()).isEqualTo("Success");
 
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
-
         String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
         String endDate = LocalDate.now().toString(DATE_FORMAT);
 
@@ -557,11 +553,6 @@ public class PaymentRecordControllerTest {
         PaymentDto response = objectMapper.readValue(createResult.getResponse().getContentAsByteArray(), PaymentDto.class);
         assertThat(response).isNotNull();
         assertThat(response.getPaymentGroupReference()).isNotNull();
-
-
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
 
         String endDate = DateTime.now().toString("yyyy-MM-dd HH:mm:ss");
         MvcResult result = restActions

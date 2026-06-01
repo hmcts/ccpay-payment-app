@@ -749,28 +749,8 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
-    public void cancelPayment_withFeatureFlagDisabled_shouldReturnValidMessage() throws Exception {
-        restActions
-            .post("/api/ff4j/store/features/payment-cancel/disable")
-            .andExpect(status().isAccepted());
-
-        MvcResult result = createMockPayment();
-
-        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
-
-        result = restActions.post("/card-payments/" + paymentDto.getReference() + "/cancel")
-            .andExpect(status().isBadRequest())
-            .andReturn();
-
-        assertThat(result.getResponse().getContentAsString()).isEqualTo("Payment cancel feature is not available for usage.");
-    }
-
-    @Test
     @Transactional
     public void cancelPaymentSuccess_shouldReturn204Test() throws Exception {
-        restActions
-            .post("/api/ff4j/store/features/payment-cancel/enable")
-            .andExpect(status().isAccepted());
         MvcResult result = createMockPayment();
 
         PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
@@ -788,9 +768,6 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
     @Test
     @Transactional
     public void cancelPaymentBadRequest_shouldReturn400Test() throws Exception {
-        restActions
-            .post("/api/ff4j/store/features/payment-cancel/enable")
-            .andExpect(status().isAccepted());
         MvcResult result = createMockPayment();
 
         PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
@@ -819,9 +796,6 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
     @Test
     @Transactional
     public void cancelPaymentIncorrectPaymentRef_shouldReturn404Test() throws Exception {
-        restActions
-            .post("/api/ff4j/store/features/payment-cancel/enable")
-            .andExpect(status().isAccepted());
         MvcResult result = createMockPayment();
 
         PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
@@ -840,9 +814,6 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
     @Test
     @Transactional
     public void cancelPaymentInternalServerError_shouldReturn500Test() throws Exception {
-        restActions
-            .post("/api/ff4j/store/features/payment-cancel/enable")
-            .andExpect(status().isAccepted());
         MvcResult result = createMockPayment();
 
         PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
