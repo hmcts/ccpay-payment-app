@@ -10,7 +10,6 @@ import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.payment.api.exceptions.LiberataServiceException;
 
 import java.time.Instant;
-import java.util.concurrent.atomic.AtomicReference;
 
 @Service
 public class LiberataService {
@@ -33,8 +32,12 @@ public class LiberataService {
     @Qualifier("restTemplateLaravel")
     private RestTemplate restTemplateLaravel;
 
-    private final AtomicReference<TokenState> tokenRef = new AtomicReference<>();
-    private record TokenState(String token, Instant expiresAtUtc) {}
+    private final TokenStore tokenStore;
+
+    @Autowired
+    public LiberataService(TokenStore tokenStore) {
+        this.tokenStore = tokenStore;
+    }
 
     private final Object updateTokenLock = new Object();
 
@@ -48,19 +51,19 @@ public class LiberataService {
      * @return an access token.
      */
     public String getAccessToken() {
-        TokenState tokenState = tokenRef.get();
+        TokenState tokenState = tokenStore.get();
         if (isTokenValid(tokenState)) {
-            return tokenState.token;
+            return tokenState.token();
         }
 
         synchronized (updateTokenLock) {
             // single-threaded double-check for valid token
-            tokenState = tokenRef.get();
+            tokenState = tokenStore.get();
             if (isTokenValid(tokenState)) {
-                return tokenState.token;
+                return tokenState.token();
             }
 
-            if (tokenState == null || tokenState.token == null) {
+            if (tokenState == null || tokenState.token() == null) {
                 return getAccessTokenUsingCreds();
             }
             return refreshAccessToken();
@@ -74,8 +77,8 @@ public class LiberataService {
      */
     private boolean isTokenValid(TokenState tokenState) {
         return tokenState != null
-            && tokenState.token != null
-            && tokenState.expiresAtUtc.isAfter(Instant.now());
+            && tokenState.token() != null
+            && tokenState.expiresAtUtc().isAfter(Instant.now());
     }
 
 
@@ -118,7 +121,7 @@ public class LiberataService {
      */
     private String refreshAccessToken() {
 
-        TokenState tokenState = tokenRef.get();
+        TokenState tokenState = tokenStore.get();
         if (tokenState == null || tokenState.token() == null) {
             return getAccessTokenUsingCreds();
         }
@@ -159,7 +162,7 @@ public class LiberataService {
             if (message.contains("Unauthenticated")) { //expired token
                 return getAccessTokenUsingCreds();
             } else { // current valid token
-                TokenState tokenState = tokenRef.get();
+                TokenState tokenState = tokenStore.get();
                 return tokenState == null ? getAccessTokenUsingCreds() : tokenState.token();
             }
         } else { //was in grace period
@@ -182,7 +185,7 @@ public class LiberataService {
             throw new LiberataServiceException("null access token / expiry found when retaining access token");
         }
         Instant expiresAtUtc = Instant.parse(jsonObject.getAsString(expireKey));
-        tokenRef.set(new TokenState(tokenVal, expiresAtUtc));
+        tokenStore.set(new TokenState(tokenVal, expiresAtUtc));
         return tokenVal;
     }
 

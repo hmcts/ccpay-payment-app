@@ -34,7 +34,7 @@ class LiberataServiceTest {
 
     @BeforeEach
     void setUp() {
-        liberataService = new LiberataService();
+        liberataService = new LiberataService(new TokenStore());
         ReflectionTestUtils.setField(liberataService, "restTemplateLaravel", restTemplateLaravel);
         ReflectionTestUtils.setField(liberataService, "laravelTokenUrl", "http://laravel.com/api/auth/token");
         ReflectionTestUtils.setField(liberataService, "laravelRefreshUrl", "http://laravel.com/api/auth/refresh");
