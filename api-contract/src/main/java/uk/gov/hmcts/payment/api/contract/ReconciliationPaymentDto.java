@@ -80,6 +80,8 @@ public class ReconciliationPaymentDto {
 
     private String documentControlNumber;
 
+    private Date bankedDate;
+
     private String payerName;
 
     private Boolean refundEnable;

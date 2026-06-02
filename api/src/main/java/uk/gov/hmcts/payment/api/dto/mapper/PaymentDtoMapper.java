@@ -641,6 +641,7 @@ public class PaymentDtoMapper {
             .externalReference(paymentDto.getExternalReference())
             .reportedDateOffline(paymentDto.getReportedDateOffline())
             .documentControlNumber(paymentDto.getDocumentControlNumber())
+            .bankedDate(paymentDto.getBankedDate())
             .payerName(paymentDto.getPayerName())
             .refundEnable(paymentDto.getRefundEnable())
             .fees(toReconciliationFeeDtos(paymentDto.getFees()))
