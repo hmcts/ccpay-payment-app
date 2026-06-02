@@ -14,6 +14,7 @@ import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentAllocationDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.contract.ReconciliationPaymentDto;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.reports.FeesService;
@@ -328,6 +329,13 @@ public class PaymentDtoMapperTest {
 
         PaymentDto paymentDto = paymentDtoMapper.toRetrieveCardPaymentResponseDtoWithoutExtReference(paymentFeeLink, "abc");
         assertEquals(paymentDto.getCaseReference(), payment.getCaseReference());
+    }
+
+    @Test
+    public void testToReconciliationPaymentDtoMapsBankedDate() {
+        PaymentDto paymentDto = paymentDtoMapper.toGetPaymentResponseDtos(payment1);
+        ReconciliationPaymentDto reconciliationPaymentDto = paymentDtoMapper.toReconciliationPaymentDto(paymentDto);
+        assertEquals(paymentDto.getBankedDate(), reconciliationPaymentDto.getBankedDate());
     }
 
     @Test
