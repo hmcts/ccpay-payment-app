@@ -4,13 +4,22 @@ import net.minidev.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
@@ -20,26 +29,43 @@ import java.time.format.DateTimeFormatter;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = LiberataServiceTest.TestConfig.class)
+@TestPropertySource(properties = {
+    "laravel.oauth2.token.url=http://laravel.com/api/auth/token",
+    "laravel.oauth2.refresh.url=http://laravel.com/api/auth/refresh",
+    "laravel.oauth2.email.address=user@example.com",
+    "laravel.oauth2.password=password"
+})
 class LiberataServiceTest {
 
-    @Mock
+    @Autowired
+    @Qualifier("restTemplateLaravel")
     private RestTemplate restTemplateLaravel;
 
+    @Autowired
     private LiberataService liberataService;
+
+    @Autowired
+    private TokenStore tokenStore;
+
+    @Autowired
+    private CacheManager cacheManager;
 
     @BeforeEach
     void setUp() {
-        liberataService = new LiberataService(new TokenStore());
-        ReflectionTestUtils.setField(liberataService, "restTemplateLaravel", restTemplateLaravel);
-        ReflectionTestUtils.setField(liberataService, "laravelTokenUrl", "http://laravel.com/api/auth/token");
-        ReflectionTestUtils.setField(liberataService, "laravelRefreshUrl", "http://laravel.com/api/auth/refresh");
-        ReflectionTestUtils.setField(liberataService, "laravelEmailAddress", "user@example.com");
-        ReflectionTestUtils.setField(liberataService, "laravelPassword", "password");
+        tokenStore.set(null);
+        Cache cache = cacheManager.getCache("AuthTokenCache");
+        if (cache != null) {
+            cache.clear();
+        }
+        reset(restTemplateLaravel);
     }
 
     @Test
@@ -48,7 +74,7 @@ class LiberataServiceTest {
         when(restTemplateLaravel.exchange(eq("http://laravel.com/api/auth/token"), eq(HttpMethod.POST), any(HttpEntity.class), eq(JSONObject.class)))
             .thenReturn(new ResponseEntity<>(body, HttpStatus.OK));
 
-        String token = liberataService.getAccessToken();
+        String token = liberataService.getAccessToken().token();
 
         assertEquals("test-token", token);
         verify(restTemplateLaravel, times(1))
@@ -61,8 +87,8 @@ class LiberataServiceTest {
         when(restTemplateLaravel.exchange(eq("http://laravel.com/api/auth/token"), eq(HttpMethod.POST), any(HttpEntity.class), eq(JSONObject.class)))
             .thenReturn(new ResponseEntity<>(body, HttpStatus.OK));
 
-        String firstToken = liberataService.getAccessToken();
-        String secondToken = liberataService.getAccessToken();
+        String firstToken = liberataService.getAccessToken().token();
+        String secondToken = liberataService.getAccessToken().token();
 
         assertEquals("test-token", firstToken);
         assertEquals("test-token", secondToken);
@@ -84,8 +110,8 @@ class LiberataServiceTest {
         when(restTemplateLaravel.exchange(eq("http://laravel.com/api/auth/refresh"), eq(HttpMethod.POST), any(HttpEntity.class), eq(JSONObject.class)))
             .thenReturn(new ResponseEntity<>(refreshedTokenBody, HttpStatus.OK));
 
-        String firstToken = liberataService.getAccessToken(); //get expired token into store
-        String refreshedToken = liberataService.getAccessToken();
+        String firstToken = liberataService.getAccessToken().token(); //get expired token into store
+        String refreshedToken = liberataService.getAccessToken().token();
 
         assertEquals("expired-token", firstToken);
         assertEquals("refreshed-token", refreshedToken);
@@ -112,8 +138,8 @@ class LiberataServiceTest {
         when(restTemplateLaravel.exchange(eq("http://laravel.com/api/auth/refresh"), eq(HttpMethod.POST), any(HttpEntity.class), eq(JSONObject.class)))
             .thenReturn(new ResponseEntity<>(refreshExpiredResponseBody, HttpStatus.OK));
 
-        String firstToken = liberataService.getAccessToken(); //gets expired token into store
-        String requestedNewToken = liberataService.getAccessToken();
+        String firstToken = liberataService.getAccessToken().token(); //gets expired token into store
+        String requestedNewToken = liberataService.getAccessToken().token();
 
         assertEquals("expired-token", firstToken);
         assertEquals("new-token", requestedNewToken);
@@ -139,8 +165,8 @@ class LiberataServiceTest {
         when(restTemplateLaravel.exchange(eq("http://laravel.com/api/auth/refresh"), eq(HttpMethod.POST), any(HttpEntity.class), eq(JSONObject.class)))
             .thenReturn(new ResponseEntity<>(refreshExpiredResponseBody, HttpStatus.OK));
 
-        String firstToken = liberataService.getAccessToken(); //gets expired token into store
-        String requestedNewToken = liberataService.getAccessToken();
+        String firstToken = liberataService.getAccessToken().token(); //gets expired token into store
+        String requestedNewToken = liberataService.getAccessToken().token();
 
         assertEquals("expired-token", firstToken);
         assertEquals("expired-token", requestedNewToken); // refresh insists that the expired token is not expired (impossible scenario?).
@@ -164,5 +190,35 @@ class LiberataServiceTest {
         body.put("expires_at", expiresAt);
         body.put("message", message);
         return body;
+    }
+
+    @Configuration
+    @EnableCaching
+    static class TestConfig {
+
+        @Bean
+        static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
+            return new PropertySourcesPlaceholderConfigurer();
+        }
+
+        @Bean
+        LiberataService liberataService(TokenStore tokenStore) {
+            return new LiberataService(tokenStore);
+        }
+
+        @Bean
+        TokenStore tokenStore() {
+            return new TokenStore();
+        }
+
+        @Bean
+        CacheManager cacheManager() {
+            return new ConcurrentMapCacheManager("AuthTokenCache");
+        }
+
+        @Bean("restTemplateLaravel")
+        RestTemplate restTemplateLaravel() {
+            return mock(RestTemplate.class);
+        }
     }
 }

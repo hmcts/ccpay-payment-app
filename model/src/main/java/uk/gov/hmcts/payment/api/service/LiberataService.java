@@ -4,6 +4,7 @@ import net.minidev.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -39,9 +40,6 @@ public class LiberataService {
         this.tokenStore = tokenStore;
     }
 
-    private final Object updateTokenLock = new Object();
-
-
     /**
      * An access token is sourced in four possible scenarios:
      * - A new valid token retrieved when no prior token available.
@@ -50,44 +48,25 @@ public class LiberataService {
      * - A new valid token is retrieved after token has expired after grace period.
      * @return an access token.
      */
-    public String getAccessToken() {
+    @Cacheable(
+        value = "AuthTokenCache",
+        unless = "#result == null || #result.token() == null || #result.expiresAtUtc() == null "
+            + "|| !#result.expiresAtUtc().isAfter(T(java.time.Instant).now())"
+    )
+    public TokenState getAccessToken() {
         TokenState tokenState = tokenStore.get();
-        if (isTokenValid(tokenState)) {
-            return tokenState.token();
+        if (tokenState == null || tokenState.token() == null) {
+            return getAccessTokenUsingCreds();
         }
-
-        synchronized (updateTokenLock) {
-            // single-threaded double-check for valid token
-            tokenState = tokenStore.get();
-            if (isTokenValid(tokenState)) {
-                return tokenState.token();
-            }
-
-            if (tokenState == null || tokenState.token() == null) {
-                return getAccessTokenUsingCreds();
-            }
-            return refreshAccessToken();
-        }
+        return refreshAccessToken();
     }
-
-    /**
-     * Determines if the provided TokenState contains a current, valid token.
-     * @param tokenState the tokenState to be examined.
-     * @return true if token provided is valid.
-     */
-    private boolean isTokenValid(TokenState tokenState) {
-        return tokenState != null
-            && tokenState.token() != null
-            && tokenState.expiresAtUtc().isAfter(Instant.now());
-    }
-
 
     /**
      * Makes a call to Laravel to request a token using credentials.
      * If successful it retains and returns the received token.
      * @return New access token
      */
-    private String getAccessTokenUsingCreds() {
+    private TokenState getAccessTokenUsingCreds() {
         // Create the request body
         JSONObject bodyJson = new JSONObject();
         bodyJson.put("email", laravelEmailAddress);
@@ -119,7 +98,7 @@ public class LiberataService {
      * The response is then processed by the parseRefreshResponse() method.
      * @return see parseRefreshResponse
      */
-    private String refreshAccessToken() {
+    private TokenState refreshAccessToken() {
 
         TokenState tokenState = tokenStore.get();
         if (tokenState == null || tokenState.token() == null) {
@@ -156,14 +135,14 @@ public class LiberataService {
      * @param jsonObject - to be parsed.
      * @return the extracted token, according to the rules above.
      */
-    private String parseRefreshResponse(JSONObject jsonObject) {
+    private TokenState parseRefreshResponse(JSONObject jsonObject) {
         String message = jsonObject.getAsString("message");
         if (message != null) {
             if (message.contains("Unauthenticated")) { //expired token
                 return getAccessTokenUsingCreds();
             } else { // current valid token
                 TokenState tokenState = tokenStore.get();
-                return tokenState == null ? getAccessTokenUsingCreds() : tokenState.token();
+                return tokenState == null ? getAccessTokenUsingCreds() : tokenState;
             }
         } else { //was in grace period
             return retainAccessToken(jsonObject, "token", "expires_at");
@@ -178,7 +157,7 @@ public class LiberataService {
      * @param expireKey - the key for the expiry date time within the json tree
      * @return the newly stored access token.
      */
-    private String retainAccessToken(JSONObject jsonObject, String tokenKey, String expireKey) {
+    private TokenState retainAccessToken(JSONObject jsonObject, String tokenKey, String expireKey) {
         String tokenVal = jsonObject.getAsString(tokenKey);
         String expireVal = jsonObject.getAsString(expireKey);
         if (tokenVal == null || expireVal == null) {
@@ -186,7 +165,7 @@ public class LiberataService {
         }
         Instant expiresAtUtc = Instant.parse(jsonObject.getAsString(expireKey));
         tokenStore.set(new TokenState(tokenVal, expiresAtUtc));
-        return tokenVal;
+        return tokenStore.get();
     }
 
 }
