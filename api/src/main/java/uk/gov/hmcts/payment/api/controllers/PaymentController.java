@@ -10,6 +10,7 @@ import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -74,6 +75,9 @@ public class PaymentController {
 
     @Autowired
     private IacService iacService;
+
+    @Value("${pba.payment.reconciliation.ignore}")
+    private Boolean pbaPaymentReconciliationIgnore;
 
     @Autowired
     public PaymentController(PaymentService<PaymentFeeLink, String> paymentService,
@@ -200,9 +204,11 @@ public class PaymentController {
 
         final List<PaymentDto> paymentDtos = new ArrayList<>();
         LOG.info("No of paymentFeeLinks retrieved for Liberata Pull : {}", payments.size());
-        populatePaymentDtos(paymentDtos, payments);
 
-        Optional<Payment> iacPaymentAny = payments.stream()
+        List<Payment> filteredPayments = filterOutPbaPayments(payments);
+        populatePaymentDtos(paymentDtos, filteredPayments);
+
+        Optional<Payment> iacPaymentAny = filteredPayments.stream()
             .filter(p -> p.getServiceType().equalsIgnoreCase(iacServiceName)).findAny();
         boolean iacSupplementaryDetailsFeature = featureToggler.getBooleanValue("iac-supplementary-details-feature",false);
         LOG.info("IAC Supplementary Details feature flag in liberata API: {}", iacSupplementaryDetailsFeature);
@@ -344,6 +350,17 @@ public class PaymentController {
             //Apportion logic added for pulling allocation amount
             populateApportionedFees(paymentDtos, payment.getPaymentLink(), apportionFeature, payment, paymentReference);
         }
+    }
+
+    private List<Payment> filterOutPbaPayments(final List<Payment> payments) {
+        if (pbaPaymentReconciliationIgnore) {
+            List<Payment> filteredPayments = payments.stream()
+                .filter(payment -> null == payment.getPbaNumber() || !payment.getPbaNumber().startsWith("pba"))
+                .collect(Collectors.toList());
+            LOG.info("No of paymentFeeLinks remaining after pba filter : {}", filteredPayments.size());
+            return filteredPayments;
+        }
+        return payments;
     }
 
     private void populateApportionedFees(List<PaymentDto> paymentDtos, PaymentFeeLink paymentFeeLink, boolean apportionFeature, Payment payment, String paymentReference) {
