@@ -158,7 +158,7 @@ public class RefundsRequestorJourneyTelephonyPaymentFunctionalTest {
         });
 
         paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
-                ccdCaseNumber, "5");
+                ccdCaseNumber, "6");
 
         // Get pba payment by reference
         PaymentDto paymentsResponse =
