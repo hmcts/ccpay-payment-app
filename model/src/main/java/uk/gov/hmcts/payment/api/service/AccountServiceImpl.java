@@ -69,7 +69,7 @@ public class AccountServiceImpl implements AccountService<AccountDto, String> {
                     .build();
             }
 
-            String accessToken = liberataService.getAccessToken();
+            String accessToken = liberataService.getAccessToken().token();
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(accessToken);
             HttpEntity<Void> entity = new HttpEntity<>(headers);

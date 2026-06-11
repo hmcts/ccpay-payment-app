@@ -160,6 +160,14 @@ java:
           alias: liberata.oauth2.username
         - name: liberata-keys-oauth2-password
           alias: liberata.oauth2.password
+        - name: lavarel-keys-oauth2-token-url
+          alias: lavarel.oauth2.token.url
+        - name: lavarel-keys-oauth2-refresh-url
+          alias: lavarel.oauth2.refresh.url
+        - name: lavarel-keys-oauth2-email-address
+          alias: lavarel.oauth2.email.address
+        - name: lavarel-keys-oauth2-password
+          alias: lavarel.oauth2.password
         - name: api-POSTGRES-PASS
           alias: POSTGRES_PASSWORD
         - name: api-POSTGRES-PORT
