@@ -16,6 +16,7 @@ import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestFeeDto;
 import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
+import uk.gov.hmcts.payment.api.util.HmacUtil;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
@@ -71,19 +72,30 @@ public class ServiceRequestDtoDomainMapper {
 
 
     public ServiceRequestOnlinePaymentBo toDomain(OnlineCardPaymentRequest request, String returnUrl, String serviceCallbackUrl) throws CheckDigitException {
-        String uuid = UUID.randomUUID().toString();
+        final String uuid = UUID.randomUUID().toString();
+        final String rcNumber = referenceUtil.getNext("RC");
+        final String hashRc = getHash(rcNumber);
         return ServiceRequestOnlinePaymentBo.serviceRequestOnlinePaymentBo()
             .internalReference(uuid)
-            .paymentReference(referenceUtil.getNext("RC"))
+            .paymentReference(rcNumber)
             .s2sServiceName(serviceIdSupplier.get())
             .userId(userIdSupplier.get())
             .description("card payment")
-            .returnUrl(returnUrl + "/" + uuid + RETURN_URL_PATH_CONFIRMATION)
+            .returnUrl(returnUrl + "/" + uuid + RETURN_URL_PATH_CONFIRMATION +"/" + hashRc)
             .currency(request.getCurrency().getCode())
             .amount(request.getAmount())
             .serviceCallbackUrl(serviceCallbackUrl)
             .language(request.getLanguage().toLowerCase())//change language to lower case before sending to gov pay
             .build();
+    }
+
+    private String getHash(String reference) {
+        try {
+            return HmacUtil.hmacSha256(reference, "toto1234!");
+        } catch (Exception exception) {
+            LOG.error("Error generating hash for reference {}: {}", reference, exception.getMessage());
+            throw new RuntimeException("Error generating hash for reference: " + reference, exception);
+        }
     }
 
     public CreatePaymentRequest createGovPayRequest(ServiceRequestOnlinePaymentBo requestOnlinePaymentBo) {
