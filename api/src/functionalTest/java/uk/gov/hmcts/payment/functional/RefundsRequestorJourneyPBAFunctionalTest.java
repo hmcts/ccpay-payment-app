@@ -1152,7 +1152,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         assertThat(refundResponseFromPost.getRefundReference()).startsWith("RF-");
 
         PaymentsResponse paymentsResponse = paymentTestService
-            .getPbaPaymentsByCCDCaseNumber(SERVICE_TOKEN, ccdCaseNumber)
+            .getReconciliationDataByCCDCaseNumber(SERVICE_TOKEN, ccdCaseNumber)
             .then()
             .statusCode(OK.value()).extract().as(PaymentsResponse.class);
         Optional<PaymentDto> paymentDtoOptional

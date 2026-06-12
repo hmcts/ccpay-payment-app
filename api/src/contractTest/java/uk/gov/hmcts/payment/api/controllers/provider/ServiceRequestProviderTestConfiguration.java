@@ -1,6 +1,5 @@
 package uk.gov.hmcts.payment.api.controllers.provider;
 
-import org.ff4j.FF4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;

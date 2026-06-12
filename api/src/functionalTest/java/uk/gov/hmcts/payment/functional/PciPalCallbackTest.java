@@ -86,7 +86,7 @@ public class PciPalCallbackTest {
         PaymentDto paymentDto = dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .returnUrl("https://www.moneyclaims.service.gov.uk")
-            .when().createTelephonyPayment(paymentRecordRequest)
+            .when().createPaymentRecord(paymentRecordRequest)
             .then().getByStatusCode(201);
 
         assertNotNull(paymentDto.getReference());
@@ -326,7 +326,7 @@ public class PciPalCallbackTest {
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .returnUrl("https://www.moneyclaims.service.gov.uk")
-            .when().createTelephonyPayment(paymentRecordRequest)
+            .when().createPaymentRecord(paymentRecordRequest)
             .then().created(paymentDto -> {
                 paymentReference = paymentDto.getReference();
                 assertNotNull(paymentDto.getReference());

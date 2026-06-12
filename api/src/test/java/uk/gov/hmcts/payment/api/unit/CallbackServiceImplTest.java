@@ -3,7 +3,6 @@ package uk.gov.hmcts.payment.api.unit;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.servicebus.IMessage;
 import com.microsoft.azure.servicebus.primitives.ServiceBusException;
-import org.ff4j.FF4j;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -37,8 +36,6 @@ public class CallbackServiceImplTest {
         .build();
     @Mock
     private TopicClientProxy topicClient;
-    @Mock
-    private FF4j ff4j;
     private CallbackService callbackService;
     @Mock
     private PaymentDtoMapper paymentDtoMapper;
@@ -49,9 +46,7 @@ public class CallbackServiceImplTest {
 
     @Before
     public void init() {
-        callbackService = new CallbackServiceImpl(paymentDtoMapper, objectMapper, topicClient, ff4j,
-                paymentGroupDtoMapper);
-        when(ff4j.check(CallbackService.FEATURE)).thenReturn(true);
+        callbackService = new CallbackServiceImpl(paymentDtoMapper, objectMapper, topicClient, paymentGroupDtoMapper);
     }
 
     @After
@@ -92,16 +87,6 @@ public class CallbackServiceImplTest {
         callbackService.callback(paymentFeeLink, paymentFeeLink.getPayments().get(0));
 
         verify((topicClient), times(1)).send(any(IMessage.class));
-    }
-
-    @Test
-    public void testThatWhenFeatureIsOffInPaymentFeeLinkBusIsNotCalled() {
-
-        when(ff4j.check(CallbackService.FEATURE)).thenReturn(false);
-
-        callbackService.callback(paymentFeeLink, paymentFeeLink.getPayments().get(0));
-
-        verifyNoInteractions(topicClient);
     }
 
     @Test
