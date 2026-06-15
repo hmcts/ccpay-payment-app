@@ -42,7 +42,8 @@
         <notes>
             The vulnerability is in the dependency-check-core module, which is a transitive dependency of the dependency-check-maven plugin. The vulnerability is not in the plugin itself, but in the core module that it uses. The core module is used to analyze dependencies and generate reports, and the vulnerability could allow an attacker to execute arbitrary code on the system running the plugin.
         </notes>
-        <cve>CVE-2026-41007, CVE-2026-41006</cve>
+        <cve>CVE-2026-41007</cve>
+        <cve>CVE-2026-41006</cve>
     </suppress>
 
 
