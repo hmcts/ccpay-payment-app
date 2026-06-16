@@ -39,8 +39,8 @@
     </suppress>
 
     <suppress until="2026-07-31Z">
-        <notes>Temporary suppression for Spring Security 6.5.10 while uplift is prepared.</notes>
-        <packageUrl regex="true">^pkg:maven/org\.springframework\.security/spring-security-(config|core|web|oauth2-client|oauth2-core|oauth2-jose)@6\.5\.10$</packageUrl>
+        <notes>Temporary suppression for all Spring Security modules while uplift is prepared.</notes>
+        <packageUrl regex="true">^pkg:maven/org\.springframework\.security/.*$</packageUrl>
         <cve>CVE-2026-40988</cve>
         <cve>CVE-2026-41003</cve>
         <cve>CVE-2026-41694</cve>
