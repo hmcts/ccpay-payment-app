@@ -160,14 +160,14 @@ public class RefundsRequestorJourneyTelephonyPaymentFunctionalTest {
         paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
                 ccdCaseNumber, "6");
 
-        // Get pba payment by reference
+        // Get payment by reference
         PaymentDto paymentsResponse =
             paymentTestService.getPayments(USER_TOKEN, SERVICE_TOKEN, paymentReference).then()
                 .statusCode(OK.value()).extract().as(PaymentDto.class);
-        int paymentId = paymentsResponse.getFees().get(0).getId();
+        int feeId = paymentsResponse.getFees().get(0).getId();
         // initiate the refund
         PaymentRefundRequest paymentRefundRequest
-                = PaymentFixture.aRefundRequest(paymentId, "RR001", paymentReference, "550.00", "550");
+                = PaymentFixture.aRefundRequest(feeId, "RR001", paymentReference, "550.00", "550");
         Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
                 SERVICE_TOKEN_PAYMENT,
                 paymentRefundRequest);
@@ -238,16 +238,16 @@ public class RefundsRequestorJourneyTelephonyPaymentFunctionalTest {
 
 
         paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
-            ccdCaseNumber, "4");
+            ccdCaseNumber, "5");
 
-        // Get pba payment by reference
+        // Get payment by reference
         PaymentDto paymentsResponse =
             paymentTestService.getPayments(USER_TOKEN, SERVICE_TOKEN, paymentReference).then()
                 .statusCode(OK.value()).extract().as(PaymentDto.class);
-        int paymentId = paymentsResponse.getFees().get(0).getId();
+        int feeId = paymentsResponse.getFees().get(0).getId();
         // initiate the refund
         PaymentRefundRequest paymentRefundRequest
-            = PaymentFixture.aRefundRequest(paymentId, "RR001", paymentReference, "550", "550");
+            = PaymentFixture.aRefundRequest(feeId, "RR001", paymentReference, "550", "550");
         Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentRefundRequest);
