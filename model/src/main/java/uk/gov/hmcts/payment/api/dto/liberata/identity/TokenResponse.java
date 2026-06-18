@@ -12,7 +12,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 public class TokenResponse {
 
     private String accessToken;
-    private long expiresIn = 120 * 1000; //3 minutes
+    private long expiresIn = 120 * 1000; //2 minutes
     private long createdAt = System.currentTimeMillis();
 
     public String getAccessToken() {
