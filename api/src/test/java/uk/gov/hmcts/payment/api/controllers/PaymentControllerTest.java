@@ -18,6 +18,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
@@ -104,6 +105,8 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     private ObjectMapper objectMapper;
     @MockitoBean
     private LaunchDarklyFeatureToggler featureToggler;
+    @Autowired
+    private PaymentController paymentController;
     @MockitoBean
     private IacService iacService;
 
@@ -1406,6 +1409,34 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         ReconciliationPaymentsResponse paymentsResponse = objectMapper.readValue(responseBody, ReconciliationPaymentsResponse.class);
         assertThat(paymentsResponse.getPayments().size()).isEqualTo(2);
 
+    }
+
+    @Test
+    @Transactional
+    public void searchPaymentsByApportion_withPbaPaymentReconciliationIgnore_shouldExcludePbaPayments() throws Exception {
+        populateCardPaymentToDb("1");
+        Payment creditAccountPayment1 = populateCreditAccountPaymentToDb("2");
+        creditAccountPayment1.setPbaNumber("pba123456");
+        Payment creditAccountPayment2 = populateCreditAccountPaymentToDb("3");
+        creditAccountPayment2.setPbaNumber("123456");
+
+        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
+        String endDate = LocalDate.now().toString(DATE_FORMAT);
+
+        try {
+            ReflectionTestUtils.setField(paymentController, "pbaPaymentReconciliationIgnore", true);
+
+            MvcResult result = restActions
+                .get("/reconciliation-payments?start_date=" + startDate + "&end_date=" + endDate)
+                .andExpect(status().isOk())
+                .andReturn();
+
+            PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
+            assertThat(paymentsResponse.getPayments().size()).isEqualTo(2);
+            assertThat(paymentsResponse.getPayments().getFirst().getPaymentReference()).isEqualTo("RC-1519-9028-2432-0001");
+        } finally {
+            ReflectionTestUtils.setField(paymentController, "pbaPaymentReconciliationIgnore", false);
+        }
     }
 
     @Test
