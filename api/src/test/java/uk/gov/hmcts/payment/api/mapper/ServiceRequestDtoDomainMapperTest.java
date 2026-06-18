@@ -113,7 +113,7 @@ public class ServiceRequestDtoDomainMapperTest {
 
         String returnUrl = serviceRequestOnlinePaymentBo.getReturnUrl();
         String actualHash = returnUrl.substring(returnUrl.lastIndexOf('/') + 1);
-        String expectedHash = HmacUtil.hmacSha256("RC-ref", "toto1234!");
+        String expectedHash = HmacUtil.hmacSha256("toto1234!","RC-ref");
 
         assertEquals(expectedHash, actualHash);
         assertTrue(!returnUrl.contains("RC-ref"));
