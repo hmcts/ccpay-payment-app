@@ -250,4 +250,5 @@ java:
           alias: duplicate.payments.email.to
         - name: service-request-email-to
           alias: service.request.email.to
-
+        - name: paybubble-session-secret
+          alias: PAYBUBBLE_SESSION_SECRET

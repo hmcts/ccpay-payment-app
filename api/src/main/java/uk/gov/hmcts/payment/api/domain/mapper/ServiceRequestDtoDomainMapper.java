@@ -1,10 +1,11 @@
 package uk.gov.hmcts.payment.api.domain.mapper;
 
-import org.apache.commons.lang3.StringUtils;
+
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.payment.api.controllers.PaymentReference;
@@ -21,7 +22,7 @@ import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
 
-import java.net.URL;
+
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -37,6 +38,9 @@ public class ServiceRequestDtoDomainMapper {
     private ServiceIdSupplier serviceIdSupplier;
     @Autowired
     private PaymentReference paymentReference;
+    @Value("${paybubble.session.secret}")
+    private String secretKey;
+
 
     private static final Logger LOG = LoggerFactory.getLogger(ServiceRequestDtoDomainMapper.class);
 
@@ -91,7 +95,8 @@ public class ServiceRequestDtoDomainMapper {
 
     private String getHash(String reference) {
         try {
-            return HmacUtil.hmacSha256("toto1234!",reference);
+            LOG.error("TETETE pepe grillo {}:", secretKey);
+            return HmacUtil.hmacSha256(secretKey,reference);
         } catch (Exception exception) {
             LOG.error("Error generating hash for reference {}: {}", reference, exception.getMessage());
             throw new RuntimeException("Error generating hash for reference: " + reference, exception);
