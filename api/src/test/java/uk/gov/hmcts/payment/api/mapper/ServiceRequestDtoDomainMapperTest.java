@@ -7,6 +7,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.controllers.PaymentReference;
 import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestDtoDomainMapper;
@@ -27,7 +28,7 @@ import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-
+@ActiveProfiles({"local", "componenttest"})
 @RunWith(MockitoJUnitRunner.class)
 public class ServiceRequestDtoDomainMapperTest {
 
@@ -46,6 +47,10 @@ public class ServiceRequestDtoDomainMapperTest {
     @Mock
     PaymentReference paymentReference;
 
+    @org.junit.Before
+    public void setup() {
+        org.springframework.test.util.ReflectionTestUtils.setField(serviceRequestDtoDomainMapper, "secretKey", "toto1234!");
+    }
     @Test
     public void toDomainTest(){
 
