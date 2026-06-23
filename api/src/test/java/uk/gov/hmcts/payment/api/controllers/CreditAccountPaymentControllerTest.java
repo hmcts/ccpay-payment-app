@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.api.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
+import net.minidev.json.JSONObject;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -12,9 +13,12 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -40,9 +44,7 @@ import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentMethod;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.model.StatusHistory;
-import uk.gov.hmcts.payment.api.service.AccountService;
-import uk.gov.hmcts.payment.api.service.ReferenceDataService;
-import uk.gov.hmcts.payment.api.service.RefundRemissionEnableService;
+import uk.gov.hmcts.payment.api.service.*;
 import uk.gov.hmcts.payment.api.util.AccountStatus;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
@@ -62,9 +64,7 @@ import java.util.Date;
 import java.util.List;
 
 import static java.lang.String.format;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -94,10 +94,14 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     protected Payment2Repository paymentRepository;
     @Autowired
     protected AccountService<AccountDto, String> accountService;
-    @MockBean
+    @MockitoBean
     private SiteService<Site, String> siteServiceMock;
-    @MockBean
+    @MockitoBean
     ReferenceDataService referenceDataService;
+    @MockitoBean
+    LiberataService liberataService;
+    @MockitoSpyBean
+    PaymentService<PaymentFeeLink, String> paymentService;
     RestActions restActions;
     MockMvc mvc;
     CreditAccountPaymentRequest request;
@@ -107,9 +111,9 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     private WebApplicationContext webApplicationContext;
     @Autowired
     private ObjectMapper objectMapper;
-    @MockBean
+    @MockitoBean
     private LaunchDarklyFeatureToggler featureToggler;
-    @MockBean
+    @MockitoBean
     private RefundRemissionEnableService refundRemissionEnableService;
 
     protected CustomResultMatcher body() {
@@ -130,6 +134,14 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         Mockito.reset(accountService);
         request = objectMapper.readValue(creditAccountPaymentRequestJsonWithFinRemJson().getBytes(), CreditAccountPaymentRequest.class);
+        ResponseEntity<JSONObject> response = new ResponseEntity<>(new JSONObject(), HttpStatus.OK);
+        Mockito.when(liberataService.payByAccount(any())).thenReturn(response);
+
+        Payment payment = Payment.paymentWith().payerName("test name").build();
+        List<Payment> payments = Arrays.asList(payment);
+        Mockito.doReturn(payments)
+            .when(paymentService)
+            .searchByCriteria(any());
     }
 
     public void setupForPaymentRoleUser() {
@@ -247,7 +259,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isCreated());
 
         // different fee code for the 2nd request
-        FeeDto x0102 = FeeDto.feeDtoWith().code("X0102").version("1").calculatedAmount(BigDecimal.valueOf(101.89)).build();
+        FeeDto x0102 = FeeDto.feeDtoWith().code("X0102").version("1").volume(1).calculatedAmount(BigDecimal.valueOf(101.89)).build();
         request.setFees(Lists.newArrayList(x0102));
         restActions
             .post(format("/credit-account-payments"), request)
@@ -265,7 +277,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isCreated());
 
         // different fee version for the 2nd request
-        FeeDto x0101_v4 = FeeDto.feeDtoWith().code("X0101").version("4").calculatedAmount(BigDecimal.valueOf(101.89)).build();
+        FeeDto x0101_v4 = FeeDto.feeDtoWith().code("X0101").version("4").volume(1).calculatedAmount(BigDecimal.valueOf(101.89)).build();
         request.setFees(Lists.newArrayList(x0101_v4));
         restActions
             .post(format("/credit-account-payments"), request)
@@ -469,6 +481,11 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
             new BigDecimal(100), new BigDecimal(100), AccountStatus.ACTIVE, new Date());
         Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
+        JSONObject responseBody = new JSONObject();
+        responseBody.put("error_code", "1");
+        responseBody.put("description", "Exceeded credit limit.");
+        ResponseEntity<JSONObject> response = new ResponseEntity<>(responseBody, HttpStatus.FORBIDDEN);
+        Mockito.when(liberataService.payByAccount(any())).thenReturn(response);
 
         MvcResult result = restActions
             .post(format("/credit-account-payments"), request)
@@ -478,7 +495,30 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         assertEquals("Failed", paymentDto.getStatus());
         assertEquals("CA-E0001", paymentDto.getStatusHistories().get(0).getErrorCode());
-        assertEquals("Payment request failed. PBA account accountName have insufficient funds available", paymentDto.getStatusHistories().get(0).getErrorMessage());
+        assertEquals("Exceeded credit limit.", paymentDto.getStatusHistories().get(0).getErrorMessage());
+    }
+
+
+    @Test
+    public void failCreditAccountPaymentAndLiberataRespondsWithValidationErrorsShouldReturnPaymentFailed() throws Exception {
+        AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
+            new BigDecimal(100), new BigDecimal(100), AccountStatus.ACTIVE, new Date());
+        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
+        JSONObject responseBody = new JSONObject();
+        responseBody.put("error_code", "3");
+        responseBody.put("description", "Missing one of the fields test message.");
+        ResponseEntity<JSONObject> response = new ResponseEntity<>(responseBody, HttpStatus.BAD_REQUEST);
+        Mockito.when(liberataService.payByAccount(any())).thenReturn(response);
+
+        MvcResult result = restActions
+            .post("/credit-account-payments", request)
+            .andExpect(status().isForbidden()).andReturn();
+
+        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+
+        assertEquals("Failed", paymentDto.getStatus());
+        assertNull(paymentDto.getStatusHistories().getFirst().getErrorCode());
+        assertEquals("Missing one of the fields test message.", paymentDto.getStatusHistories().getFirst().getErrorMessage());
     }
 
     @Test
@@ -486,6 +526,11 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         AccountDto accountOnHoldDto = new AccountDto(request.getAccountNumber(), "accountName",
             new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ON_HOLD, new Date());
         Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountOnHoldDto);
+        JSONObject responseBody = new JSONObject();
+        responseBody.put("error_code", "4");
+        responseBody.put("description", "Account is not active.");
+        ResponseEntity<JSONObject> response = new ResponseEntity<>(responseBody, HttpStatus.FORBIDDEN);
+        Mockito.when(liberataService.payByAccount(any())).thenReturn(response);
 
         MvcResult result = restActions
             .post(format("/credit-account-payments"), request)
@@ -495,7 +540,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         assertEquals("Failed", paymentDto.getStatus());
         assertEquals("CA-E0003", paymentDto.getStatusHistories().get(0).getErrorCode());
-        assertEquals("Your account is on hold", paymentDto.getStatusHistories().get(0).getErrorMessage());
+        assertEquals("Account is not active.", paymentDto.getStatusHistories().get(0).getErrorMessage());
     }
 
     @Test
@@ -503,6 +548,11 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         AccountDto accountDeletedDto = new AccountDto(request.getAccountNumber(), "accountName",
             new BigDecimal(100), new BigDecimal(100), AccountStatus.DELETED, new Date());
         Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountDeletedDto);
+        JSONObject responseBody = new JSONObject();
+        responseBody.put("error_code", "2");
+        responseBody.put("description", "Account not found.");
+        ResponseEntity<JSONObject> response = new ResponseEntity<>(responseBody, HttpStatus.FORBIDDEN);
+        Mockito.when(liberataService.payByAccount(any())).thenReturn(response);
 
         MvcResult result = restActions
             .post(format("/credit-account-payments"), request)
@@ -512,7 +562,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         assertEquals("Failed", paymentDto.getStatus());
         assertEquals("CA-E0004", paymentDto.getStatusHistories().get(0).getErrorCode());
-        assertEquals("Your account is deleted", paymentDto.getStatusHistories().get(0).getErrorMessage());
+        assertEquals("Account not found.", paymentDto.getStatusHistories().get(0).getErrorMessage());
     }
 
     @Test
@@ -583,6 +633,11 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             new BigDecimal(100), new BigDecimal("100.99"), AccountStatus.ACTIVE, new Date());
 
         Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
+        JSONObject responseBody = new JSONObject();
+        responseBody.put("error_code", "1");
+        responseBody.put("description", "Exceeded credit limit.");
+        ResponseEntity<JSONObject> response = new ResponseEntity<>(responseBody, HttpStatus.FORBIDDEN);
+        Mockito.when(liberataService.payByAccount(any())).thenReturn(response);
 
         MvcResult result = restActions
             .post(format("/credit-account-payments"), request)
@@ -592,7 +647,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         assertEquals("Failed", paymentDto.getStatus());
         assertEquals("CA-E0001", paymentDto.getStatusHistories().get(0).getErrorCode());
-        assertEquals("Payment request failed. PBA account accountName have insufficient funds available", paymentDto.getStatusHistories().get(0).getErrorMessage());
+        assertEquals("Exceeded credit limit.", paymentDto.getStatusHistories().get(0).getErrorMessage());
     }
 
     @Test
@@ -1196,6 +1251,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "    {\n" +
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
+            "      \"volume\": \"1\",\n" +
             "      \"version\": \"1\"\n" +
             "    }\n" +
             "  ]\n" +
@@ -1217,6 +1273,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "    {\n" +
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
+            "      \"volume\": \"1\",\n" +
             "      \"version\": \"1\"\n" +
             "    }\n" +
             "  ]\n" +
@@ -1239,7 +1296,8 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "    {\n" +
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
-            "      \"version\": \"1\"\n" +
+            "      \"version\": \"1\",\n" +
+            "      \"volume\": \"1\"\n" +
             "    }\n" +
             "  ]\n" +
             "}";
@@ -1260,6 +1318,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "    {\n" +
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
+            "      \"volume\": \"1\",\n" +
             "      \"version\": \"1\"\n" +
             "    }\n" +
             "  ]\n" +
@@ -1282,6 +1341,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "    {\n" +
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
+            "      \"volume\": \"1\",\n" +
             "      \"version\": \"1\"\n" +
             "    }\n" +
             "  ]\n" +
@@ -1304,6 +1364,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "    {\n" +
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
+            "      \"volume\": \"1\",\n" +
             "      \"version\": \"1\"\n" +
             "    }\n" +
             "  ]\n" +
@@ -1326,6 +1387,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "    {\n" +
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
+            "      \"volume\": \"1\",\n" +
             "      \"version\": \"1\"\n" +
             "    }\n" +
             "  ]\n" +
@@ -1348,6 +1410,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "    {\n" +
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
+            "      \"volume\": \"1\",\n" +
             "      \"version\": \"1\"\n" +
             "    }\n" +
             "  ]\n" +
@@ -1369,6 +1432,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "    {\n" +
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
+            "      \"volume\": \"1\",\n" +
             "      \"version\": \"1\"\n" +
             "    }\n" +
             "  ]\n" +
@@ -1409,6 +1473,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "    {\n" +
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
+            "      \"volume\": \"1\",\n" +
             "      \"version\": \"1\"\n" +
             "    }\n" +
             "  ]\n" +
@@ -1431,6 +1496,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "    {\n" +
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
+            "      \"volume\": \"1\",\n" +
             "      \"version\": \"1\"\n" +
             "    }\n" +
             "  ]\n" +
@@ -1453,6 +1519,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "    {\n" +
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
+            "      \"volume\": \"1\",\n" +
             "      \"version\": \"1\"\n" +
             "    }\n" +
             "  ]\n" +
@@ -1475,6 +1542,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "    {\n" +
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
+            "      \"volume\": \"1\",\n" +
             "      \"version\": \"1\"\n" +
             "    }\n" +
             "  ]\n" +
@@ -1497,6 +1565,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "    {\n" +
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
+            "      \"volume\": \"1\",\n" +
             "      \"version\": \"1\"\n" +
             "    }\n" +
             "  ]\n" +
@@ -1520,6 +1589,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "    {\n" +
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
+            "      \"volume\": \"1\",\n" +
             "      \"version\": \"1\"\n" +
             "    }\n" +
             "  ]\n" +
@@ -1542,6 +1612,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "    {\n" +
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
+            "      \"volume\": \"1\",\n" +
             "      \"version\": \"1\"\n" +
             "    }\n" +
             "  ]\n" +
@@ -1564,6 +1635,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "    {\n" +
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
+            "      \"volume\": \"1\",\n" +
             "      \"version\": \"1\"\n" +
             "    }\n" +
             "  ]\n" +
@@ -1585,6 +1657,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "    {\n" +
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
+            "      \"volume\": \"1\",\n" +
             "      \"version\": \"1\"\n" +
             "    }\n" +
             "  ]\n" +
@@ -1607,6 +1680,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "    {\n" +
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
+            "      \"volume\": \"1\",\n" +
             "      \"version\": \"1\"\n" +
             "    }\n" +
             "  ]\n" +
