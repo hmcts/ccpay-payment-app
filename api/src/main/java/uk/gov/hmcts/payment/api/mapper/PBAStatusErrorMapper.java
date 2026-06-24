@@ -30,7 +30,9 @@ public class PBAStatusErrorMapper {
 
 
 
-    public void setLiberataPaymentStatus(CreditAccountPaymentRequest creditAccountPaymentRequest, Payment payment, AccountDto accountDetails, ResponseEntity<JSONObject> response) {
+    public void setLiberataPaymentStatus(CreditAccountPaymentRequest creditAccountPaymentRequest,
+                                         Payment payment, AccountDto accountDetails,
+                                         ResponseEntity<JSONObject> response) {
         HttpStatusCode statusCode = response.getStatusCode();
         String liberataErrorCode = extractValue("error_code", response);
         String description = extractValue("description", response);
@@ -38,7 +40,8 @@ public class PBAStatusErrorMapper {
 
         if (statusCode == HttpStatus.OK) {
             payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("success").build());
-            LOG.info("CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {} PaymentStatus : {} - Account Balance Sufficient!!!", payment.getCcdCaseNumber(), accountDetails.getStatus(), payment.getPaymentStatus().getName());
+            LOG.info("CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {} PaymentStatus : {} - Account Balance Sufficient!!!",
+                payment.getCcdCaseNumber(), accountDetails.getStatus(), payment.getPaymentStatus().getName());
         } else if (statusCode == HttpStatus.FORBIDDEN) {
             switch (liberataErrorCode) {
                 case EXCEEDED_CREDIT_LIMIT -> {

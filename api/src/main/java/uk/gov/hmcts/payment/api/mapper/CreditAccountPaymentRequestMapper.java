@@ -3,7 +3,6 @@ package uk.gov.hmcts.payment.api.mapper;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.validation.annotation.Validated;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.PaymentByAccountFee;
 import uk.gov.hmcts.payment.api.dto.PaymentByAccountPayment;
@@ -17,7 +16,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
-@Validated
 public class CreditAccountPaymentRequestMapper {
 
     private final static String PAYMENT_CHANNEL_ONLINE = "online";
