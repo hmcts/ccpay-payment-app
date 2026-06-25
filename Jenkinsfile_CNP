@@ -168,7 +168,7 @@ withPipeline(type, product, app) {
     }
     onPR() {
         enablePactAs([
-                AppPipelineDsl.PactRoles.PROVIDER
+            AppPipelineDsl.PactRoles.PROVIDER
         ])
 
         env.REFUND_API_URL = "https://ccpay-refunds-api-payment-api-pr-${CHANGE_ID}.preview.platform.hmcts.net"
