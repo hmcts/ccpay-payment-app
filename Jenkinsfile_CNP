@@ -6,7 +6,7 @@ properties(
      pipelineTriggers([[$class: 'GitHubPushTrigger']])]
 )
 
-@Library("Infrastructure")
+@Library("Infrastructure@2.0.0")
 
 def type = "java"
 
@@ -167,9 +167,6 @@ withPipeline(type, product, app) {
         ])
     }
     onPR() {
-        enablePactAs([
-                AppPipelineDsl.PactRoles.PROVIDER
-        ])
 
         env.REFUND_API_URL = "https://ccpay-refunds-api-payment-api-pr-${CHANGE_ID}.preview.platform.hmcts.net"
         env.CCPAY_BULK_SCANNING_API_URL = "https://ccpay-bulkscanning-api-payment-api-pr-${CHANGE_ID}.preview.platform.hmcts.net"
