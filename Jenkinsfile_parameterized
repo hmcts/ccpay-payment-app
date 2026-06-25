@@ -1,5 +1,5 @@
 #!groovy
-@Library(value="Infrastructure@2.0.0", changelog=false) _
+@Library(value="Infrastructure", changelog=false) _
 
 properties([
     parameters([

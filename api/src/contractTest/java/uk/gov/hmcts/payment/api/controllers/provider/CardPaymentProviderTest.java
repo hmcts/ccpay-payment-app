@@ -164,7 +164,7 @@ class CardPaymentProviderTest {
 
     @BeforeEach
     void before(PactVerificationContext context) {
-        System.getProperties().setProperty("pact.verifier.publishResults", "true");
+        System.getProperties().setProperty("pact.verifier.publishResults", Boolean.toString(isMasterBranch()));
         // Set provider version for publishing verification results
         String gitCommit = System.getenv().getOrDefault("GIT_COMMIT", getGitCommitHash());
         System.getProperties().setProperty("pact.provider.version", gitCommit);
@@ -185,6 +185,10 @@ class CardPaymentProviderTest {
             context.setTarget(testTarget);
         }
 
+    }
+
+    private boolean isMasterBranch() {
+        return "master".equalsIgnoreCase(branchName != null ? branchName.trim() : "");
     }
 
     private String getGitCommitHash() {

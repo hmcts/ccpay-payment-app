@@ -167,16 +167,12 @@ withPipeline(type, product, app) {
         ])
     }
     onPR() {
+        enablePactAs([
+            AppPipelineDsl.PactRoles.PROVIDER
+        ])
 
         env.REFUND_API_URL = "https://ccpay-refunds-api-payment-api-pr-${CHANGE_ID}.preview.platform.hmcts.net"
         env.CCPAY_BULK_SCANNING_API_URL = "https://ccpay-bulkscanning-api-payment-api-pr-${CHANGE_ID}.preview.platform.hmcts.net"
-    }
-
-    // PRs still verify provider pacts, but do not publish verification results.
-    before('test') {
-        if (env.CHANGE_ID) {
-            sh './gradlew :payment-api:providerContractTest -Ppact.verifier.publishResults=false --no-daemon'
-        }
     }
 
     //Sync demo,ithc and perftest with master branch
