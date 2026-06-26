@@ -17,7 +17,7 @@ public class IdempotencyServiceImpl implements IdempotencyService {
     @Autowired
     private IdempotencyKeysRepository idempotencyKeysRepository;
 
-    private static final int HTTP_CODE_ALLOWABLE_RETRIES[] = { 504, 500, 412, 402 };
+    private static final int HTTP_CODE_ALLOWABLE_RETRIES[] = { 504, 500, 412, 402, 410 };
 
     @Override
     public Optional<IdempotencyKeys> findTheRecordByIdempotencyKey(String idempotencyKeyToCheck) {

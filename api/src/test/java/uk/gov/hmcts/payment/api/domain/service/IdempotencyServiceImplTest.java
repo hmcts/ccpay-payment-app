@@ -132,4 +132,18 @@ public class IdempotencyServiceImplTest {
         assertEquals("idempKey02", response.get(0).getIdempotencyKey());
         assertEquals("idempKey04", response.get(1).getIdempotencyKey());
     }
+
+    @Test
+    public void filterRecordsWithAcceptableLiberataDeletedAccountHttpResponseTest() {
+
+        IdempotencyKeys completedGoneIdempotencyKeys = IdempotencyKeys.idempotencyKeysWith().responseCode(HttpStatus.GONE.value())
+            .requestHashcode(-1316086963).idempotencyKey("idam-key-0-0616666535632896").requestBody("")
+            .responseStatus(IdempotencyKeys.ResponseStatusType.completed).build();
+
+        List<IdempotencyKeys> idempotencyKeysList = List.of(completedGoneIdempotencyKeys);
+
+        List<IdempotencyKeys> response = idempotencyServiceImpl.filterRecordsWithAcceptableLiberataHttpResponse(idempotencyKeysList);
+        assertNotNull(response);
+        assertEquals(0, response.size());
+    }
 }
