@@ -135,4 +135,27 @@ public class PBAStatusErrorMapperTest {
         assertThat(mockLOG.getInfoLogs().getFirst()).isEqualTo("CreditAccountPayment received for ccdCaseNumber : ccd-number Liberata AccountStatus : ACTIVE PaymentStatus : failed - Test message describing validation failures.");
     }
 
+    @Test
+    public void testSetServiceRequestPaymentStatusWithValidationFailures() {
+        PBAStatusErrorMapper pbaStatusErrorMapper = new PBAStatusErrorMapper();
+        Payment serviceRequestPayment = Payment.paymentWith().ccdCaseNumber("service-request-case").build();
+        JSONObject responseBody = new JSONObject();
+        responseBody.put("error_code", "3");
+        responseBody.put("description", "Service request validation failure.");
+        ResponseEntity<JSONObject> response = new ResponseEntity<>(responseBody, HttpStatus.BAD_REQUEST);
+
+        pbaStatusErrorMapper.setServiceRequestPaymentStatus(
+            new BigDecimal("25.00"),
+            serviceRequestPayment,
+            activeAccountDetails,
+            response
+        );
+
+        assertThat(serviceRequestPayment.getPaymentStatus().getName()).isEqualTo("failed");
+        assertThat(serviceRequestPayment.getStatusHistories()).hasSize(1);
+        assertThat(serviceRequestPayment.getStatusHistories().getFirst().getStatus()).isEqualTo("failed");
+        assertThat(serviceRequestPayment.getStatusHistories().getFirst().getMessage()).isEqualTo("Service request validation failure.");
+        assertThat(mockLOG.getInfoLogs().getFirst()).isEqualTo("CreditAccountPayment received for ccdCaseNumber : service-request-case Liberata AccountStatus : ACTIVE PaymentStatus : failed - Service request validation failure.");
+    }
+
 }
