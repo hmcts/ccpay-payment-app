@@ -95,7 +95,6 @@ public class ServiceRequestDtoDomainMapper {
 
     private String getHash(String reference) {
         try {
-            LOG.error("TETETE pepe grillo {}:", secretKey);
             return HmacUtil.hmacSha256(secretKey,reference);
         } catch (Exception exception) {
             LOG.error("Error generating hash for reference {}: {}", reference, exception.getMessage());
