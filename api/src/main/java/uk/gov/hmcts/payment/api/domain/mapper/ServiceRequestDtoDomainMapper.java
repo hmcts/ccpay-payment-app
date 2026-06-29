@@ -38,7 +38,7 @@ public class ServiceRequestDtoDomainMapper {
     private ServiceIdSupplier serviceIdSupplier;
     @Autowired
     private PaymentReference paymentReference;
-    @Value("${paybubble.session.secret}")
+    @Value("${paymentoutcome.secret}")
     private String secretKey;
 
 
