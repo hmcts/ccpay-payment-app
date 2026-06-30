@@ -205,25 +205,11 @@ public class CreditAccountPaymentController {
     private void sendPaymentToLiberata(CreditAccountPaymentRequest creditAccountPaymentRequest, String paymentGroupReference,
                                        Payment payment, AccountDto accountDetails) {
 
-
-        //Do we need to query for payments, just to get the name???
-        //Name cannot be populated directly from the CreditAccountPaymentRequest Object.
-        //Name is optional in the Liberata call, anyway....
-        List<Payment> payments = paymentService.searchByCriteria(
-            PaymentSearchCriteria.searchCriteriaWith()
-                .ccdCaseNumber(creditAccountPaymentRequest.getCcdCaseNumber())
-                .paymentMethod(PaymentMethodType.PBA.name())
-                .pbaNumber(creditAccountPaymentRequest.getAccountNumber())
-                .serviceType(creditAccountPaymentRequest.getService())
-                .build()
-        );
-
         final PaymentByAccountRequest paymentByAccountRequest = requestMapper.mapPaymentByAccountRequest(creditAccountPaymentRequest);
         paymentByAccountRequest.getPayment().setGroupReference(paymentGroupReference);
         paymentByAccountRequest.getPayment().setPaymentReference(payment.getInternalReference());
         paymentByAccountRequest.getPayment().setDateCreated(LocalDateTime.now(ZoneOffset.UTC)
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-        paymentByAccountRequest.getPayment().setSurname(payments.getFirst().getPayerName());
         paymentByAccountRequest.getPayment().setSurname(payment.getPayerName());
 
         ResponseEntity<JSONObject> response = liberataService.payByAccount(paymentByAccountRequest);

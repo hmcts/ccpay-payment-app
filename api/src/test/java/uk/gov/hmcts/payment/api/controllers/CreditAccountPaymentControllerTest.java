@@ -136,12 +136,6 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         request = objectMapper.readValue(creditAccountPaymentRequestJsonWithFinRemJson().getBytes(), CreditAccountPaymentRequest.class);
         ResponseEntity<JSONObject> response = new ResponseEntity<>(new JSONObject(), HttpStatus.OK);
         Mockito.when(liberataService.payByAccount(any())).thenReturn(response);
-
-        Payment payment = Payment.paymentWith().payerName("test name").build();
-        List<Payment> payments = Arrays.asList(payment);
-        Mockito.doReturn(payments)
-            .when(paymentService)
-            .searchByCriteria(any());
     }
 
     public void setupForPaymentRoleUser() {
