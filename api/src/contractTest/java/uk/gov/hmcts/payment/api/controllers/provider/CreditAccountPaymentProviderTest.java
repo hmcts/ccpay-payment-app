@@ -19,7 +19,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
-import uk.gov.hmcts.payment.api.controllers.AccountController;
 import uk.gov.hmcts.payment.api.controllers.CreditAccountPaymentController;
 import uk.gov.hmcts.payment.api.controllers.PaymentReference;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
@@ -124,9 +123,6 @@ class CreditAccountPaymentProviderTest {
 
     private final static String PAYMENT_METHOD = "payment by account";
 
-    private static final String DEFAULT_ACCOUNT_NUMBER = "PBA1234567";
-    private static final String DEFAULT_ACCOUNT_NAME = "Test account";
-    private static final String DEFAULT_AVAILABLE_BALANCE = "28879.00";
 
     @TestTemplate
     @ExtendWith(PactVerificationInvocationContextProvider.class)
@@ -148,9 +144,7 @@ class CreditAccountPaymentProviderTest {
         testTarget.setControllers(
             new CreditAccountPaymentController(creditAccountPaymentService, creditAccountDtoMapper, accountServiceMock, paymentValidator,
                 feePayApportionService, featureToggler, pbaStatusErrorMapper, requestMapper, Arrays.asList("CMC"), paymentService,
-                referenceDataService, authTokenGenerator, paymentReferenceMock, liberataServiceMock),
-            new AccountController(accountServiceMock));
-        setUpMockInteractions(Collections.emptyMap(), "Payment Status success", "success", AccountStatus.ACTIVE);
+                referenceDataService, authTokenGenerator, paymentReferenceMock, liberataServiceMock));
         if (context != null) {
             context.setTarget(testTarget);
         }
@@ -179,15 +173,6 @@ class CreditAccountPaymentProviderTest {
         setUpMockInteractions(paymentMap, "Payment Status success", "success", AccountStatus.ACTIVE);
     }
 
-    @State({"An account exists with identifier PBA1234"})
-    public void toReturnAccountDetails() {
-        setUpMockInteractions(Map.of(
-            ACCOUNT_NUMBER_KEY, "PBA1234",
-            ACCOUNT_NAME_KEY, "accountName",
-            AVAILABLE_BALANCE_KEY, "100"
-        ), "Payment Status success", "success", AccountStatus.ACTIVE);
-    }
-
 
     @State({"An active account has insufficient funds for a payment"})
     public void toRefuseCreditAccountPaymentInusfficientFunds(Map<String, Object> paymentMap) {
@@ -207,9 +192,9 @@ class CreditAccountPaymentProviderTest {
 
 
     private void setUpMockInteractions(Map<String, Object> paymentMap, String s, String success, AccountStatus accountStatus) {
-        String accountNumber = getStateValue(paymentMap, ACCOUNT_NUMBER_KEY, DEFAULT_ACCOUNT_NUMBER);
-        String availableBalance = getStateValue(paymentMap, AVAILABLE_BALANCE_KEY, DEFAULT_AVAILABLE_BALANCE);
-        String accountName = getStateValue(paymentMap, ACCOUNT_NAME_KEY, DEFAULT_ACCOUNT_NAME);
+        String accountNumber = (String) paymentMap.get(ACCOUNT_NUMBER_KEY);
+        String availableBalance = (String) paymentMap.get(AVAILABLE_BALANCE_KEY);
+        String accountName = (String) paymentMap.get(ACCOUNT_NAME_KEY);
 
         when(userIdSupplierMock.get()).thenReturn("userId");
         when(serviceIdSupplierMock.get()).thenReturn("ccd_gw");
@@ -242,12 +227,6 @@ class CreditAccountPaymentProviderTest {
 
     }
 
-    private String getStateValue(Map<String, Object> paymentMap, String key, String defaultValue) {
-        if (paymentMap == null || paymentMap.get(key) == null) {
-            return defaultValue;
-        }
-        return paymentMap.get(key).toString();
-    }
 
     private ResponseEntity<JSONObject> liberataResponseFor(String paymentStatus, AccountStatus accountStatus) {
         if ("success".equals(paymentStatus)) {
