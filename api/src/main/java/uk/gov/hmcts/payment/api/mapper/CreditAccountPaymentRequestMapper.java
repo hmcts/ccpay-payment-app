@@ -77,8 +77,8 @@ public class CreditAccountPaymentRequestMapper {
                 .nac(feeDto.getNaturalAccountCode())
                 .jurisdiction1(feeDto.getJurisdiction1())
                 .jurisdiction2(feeDto.getJurisdiction2())
-                .volume(feeDto.getVolume().toString())
-                .calculatedAmount(feeDto.getCalculatedAmount().toString())
+                .volume(toStringOrNull(feeDto.getVolume()))
+                .calculatedAmount(toStringOrNull(feeDto.getCalculatedAmount()))
                 .build();
         }).toList();
 
@@ -157,9 +157,13 @@ public class CreditAccountPaymentRequestMapper {
             .nac(fee.getNaturalAccountCode())
             .jurisdiction1(fee.getJurisdiction1())
             .jurisdiction2(fee.getJurisdiction2())
-            .volume(fee.getVolume().toString())
-            .calculatedAmount(fee.getCalculatedAmount().toString())
+            .volume(toStringOrNull(fee.getVolume()))
+            .calculatedAmount(toStringOrNull(fee.getCalculatedAmount()))
             .build()).toList();
         }
+
+    private String toStringOrNull(Object value) {
+        return value == null ? null : value.toString();
+    }
 
 }

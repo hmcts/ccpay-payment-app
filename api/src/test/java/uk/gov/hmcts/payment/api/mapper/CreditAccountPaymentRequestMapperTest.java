@@ -120,6 +120,17 @@ public class CreditAccountPaymentRequestMapperTest {
     }
 
     @Test
+    public void testMapPaymentByAccountRequestAllowsMissingOptionalFeeVolume() {
+        CreditAccountPaymentRequest request = createPaymentByAccountRequest();
+        request.getFees().getFirst().setVolume(null);
+
+        PaymentByAccountRequest paymentByAccountRequest = creditAccountPaymentRequestMapper.mapPaymentByAccountRequest(request);
+
+        assertEquals(null, paymentByAccountRequest.getPayment().getPaymentByAccountFees().getFirst().getVolume());
+        assertEquals("100.00", paymentByAccountRequest.getPayment().getPaymentByAccountFees().getFirst().getCalculatedAmount());
+    }
+
+    @Test
     public void testMapPaymentByAccountRequestMapsPaymentDtoPaymentAndFeeDetails() {
         Date dateCreated = new Date(1704067200000L);
         PaymentDto paymentDto = createPaymentDto(dateCreated);
