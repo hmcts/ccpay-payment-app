@@ -123,6 +123,10 @@ class CreditAccountPaymentProviderTest {
 
     private final static String PAYMENT_METHOD = "payment by account";
 
+    private static final String DEFAULT_ACCOUNT_NUMBER = "PBA1234567";
+    private static final String DEFAULT_ACCOUNT_NAME = "Test account";
+    private static final String DEFAULT_AVAILABLE_BALANCE = "28879.00";
+
     @TestTemplate
     @ExtendWith(PactVerificationInvocationContextProvider.class)
     void pactVerificationTestTemplate(PactVerificationContext context) {
@@ -144,6 +148,7 @@ class CreditAccountPaymentProviderTest {
             new CreditAccountPaymentController(creditAccountPaymentService, creditAccountDtoMapper, accountServiceMock, paymentValidator,
                 feePayApportionService, featureToggler, pbaStatusErrorMapper, requestMapper, Arrays.asList("CMC"), paymentService,
                 referenceDataService, authTokenGenerator, paymentReferenceMock, liberataServiceMock));
+        setUpMockInteractions(Collections.emptyMap(), "Payment Status success", "success", AccountStatus.ACTIVE);
         if (context != null) {
             context.setTarget(testTarget);
         }
@@ -191,9 +196,9 @@ class CreditAccountPaymentProviderTest {
 
 
     private void setUpMockInteractions(Map<String, Object> paymentMap, String s, String success, AccountStatus accountStatus) {
-        String accountNumber = (String) paymentMap.get(ACCOUNT_NUMBER_KEY);
-        String availableBalance = (String) paymentMap.get(AVAILABLE_BALANCE_KEY);
-        String accountName = (String) paymentMap.get(ACCOUNT_NAME_KEY);
+        String accountNumber = getStateValue(paymentMap, ACCOUNT_NUMBER_KEY, DEFAULT_ACCOUNT_NUMBER);
+        String availableBalance = getStateValue(paymentMap, AVAILABLE_BALANCE_KEY, DEFAULT_AVAILABLE_BALANCE);
+        String accountName = getStateValue(paymentMap, ACCOUNT_NAME_KEY, DEFAULT_ACCOUNT_NAME);
 
         when(userIdSupplierMock.get()).thenReturn("userId");
         when(serviceIdSupplierMock.get()).thenReturn("ccd_gw");
@@ -203,7 +208,7 @@ class CreditAccountPaymentProviderTest {
             .thenReturn(PaymentMethod.paymentMethodWith().description("Payment by account").name("Payment by account").build());
         when(paymentStatusRepositoryMock.findByNameOrThrow(anyString()))
             .thenReturn(PaymentStatus.paymentStatusWith().description(s).name(success).build());
-        when(accountServiceMock.retrieve(accountNumber)).thenReturn(AccountDto.accountDtoWith()
+        when(accountServiceMock.retrieve(any())).thenReturn(AccountDto.accountDtoWith()
             .accountNumber(accountNumber)
             .accountName(accountName)
             .creditLimit(BigDecimal.valueOf(28879))
@@ -226,6 +231,12 @@ class CreditAccountPaymentProviderTest {
 
     }
 
+    private String getStateValue(Map<String, Object> paymentMap, String key, String defaultValue) {
+        if (paymentMap == null || paymentMap.get(key) == null) {
+            return defaultValue;
+        }
+        return paymentMap.get(key).toString();
+    }
 
     private ResponseEntity<JSONObject> liberataResponseFor(String paymentStatus, AccountStatus accountStatus) {
         if ("success".equals(paymentStatus)) {
