@@ -41,6 +41,7 @@ package uk.gov.hmcts.payment.api.controllers;
     import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentResponse;
     import uk.gov.hmcts.payment.api.dto.PaymentStatusDto;
     import uk.gov.hmcts.payment.api.dto.ServiceRequestResponseDto;
+    import uk.gov.hmcts.payment.api.dto.liberata.identity.TokenResponse;
     import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
     import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
     import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
@@ -55,6 +56,7 @@ package uk.gov.hmcts.payment.api.controllers;
     import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
     import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
     import uk.gov.hmcts.payment.api.service.FeePayApportionService;
+    import uk.gov.hmcts.payment.api.service.LiberataIdentity;
     import uk.gov.hmcts.payment.api.service.PaymentService;
     import uk.gov.hmcts.payment.api.service.FeesService;
     import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotSuccessException;
@@ -100,6 +102,10 @@ public class ServiceRequestController {
 
     @Autowired
     private FeesService feeService;
+
+    @Autowired
+    private LiberataIdentity liberataIdentity;
+
 
     private String serviceRequestReference;
 
@@ -365,6 +371,20 @@ public class ServiceRequestController {
     @ExceptionHandler(PaymentServiceNotFoundException.class)
     public String paymentNotSuccess(PaymentServiceNotFoundException ex) {
         return ex.getMessage();
+    }
+
+
+    @Operation(summary = "Get card payment status by Internal Reference", description = "Get payment status for supplied Internal Reference")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Payment status retrieved"),
+        @ApiResponse(responseCode = "404", description = "Internal reference not found"),
+    })
+    @PaymentExternalAPI
+    @GetMapping(value = "/token-test")
+    public TokenResponse retrieveStatusByInternalReference() {
+
+        TokenResponse tokenResponse = liberataIdentity.getValidToken();
+        return tokenResponse;
     }
 
 }
