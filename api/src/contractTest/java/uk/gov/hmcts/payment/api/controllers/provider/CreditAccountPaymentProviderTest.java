@@ -177,7 +177,7 @@ class CreditAccountPaymentProviderTest {
         setUpMockInteractions(paymentMap, "Payment Status success", "success", AccountStatus.ACTIVE);
     }
 
-    @State({"An account exists with (default) identifier PBA1234"})
+    @State({"An account exists with identifier PBA1234"})
     public void toReturnAccountDetails() {
         setUpMockInteractions(Map.of(
             ACCOUNT_NUMBER_KEY, "PBA1234",
