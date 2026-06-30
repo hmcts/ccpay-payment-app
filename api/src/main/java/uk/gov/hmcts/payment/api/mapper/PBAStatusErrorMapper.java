@@ -37,24 +37,25 @@ public class PBAStatusErrorMapper {
         String description = extractValue("description", response);
 
 
-        if (statusCode == HttpStatus.OK) {
-            payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("success").build());
-            LOG.info("CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {} PaymentStatus : {} - Account Balance Sufficient!!!",
-                payment.getCcdCaseNumber(), accountDetails.getStatus(), payment.getPaymentStatus().getName());
-        } else if (statusCode == HttpStatus.FORBIDDEN) {
-            switch (liberataErrorCode) {
-                case EXCEEDED_CREDIT_LIMIT -> {
-                    recordForbiddenFailure(payment, accountDetails, "CA-E0001", description);
-                LOG.info("Payment request failed. PBA account {} has insufficient funds available. Requested payment was {} ",
-                    accountDetails.getAccountName(), creditAccountPaymentRequest.getAmount());
-                }
-                case ACCOUNT_NOT_FOUND ->
-                    recordForbiddenFailure(payment, accountDetails, "CA-E0004", description);
-                case ACCOUNT_NOT_ACTIVE ->
-                    recordForbiddenFailure(payment, accountDetails, "CA-E0003", description);
+        switch (statusCode) {
+            case HttpStatus.OK -> {
+                payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("success").build());
+                LOG.info("CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {} PaymentStatus : {} - Account Balance Sufficient!!!",
+                    payment.getCcdCaseNumber(), accountDetails.getStatus(), payment.getPaymentStatus().getName());
             }
-        } else if (statusCode == HttpStatus.BAD_REQUEST) {
-            recordValidationFailure(payment, accountDetails, description);
+            case HttpStatus.FORBIDDEN -> {
+                switch (liberataErrorCode) {
+                    case EXCEEDED_CREDIT_LIMIT -> {
+                        recordForbiddenFailure(payment, accountDetails, "CA-E0001", description);
+                        LOG.info("Payment request failed. PBA account {} has insufficient funds available. Requested payment was {} ",
+                            accountDetails.getAccountName(), creditAccountPaymentRequest.getAmount());
+                    }
+                    case ACCOUNT_NOT_FOUND -> recordForbiddenFailure(payment, accountDetails, "CA-E0004", description);
+                    case ACCOUNT_NOT_ACTIVE -> recordForbiddenFailure(payment, accountDetails, "CA-E0003", description);
+                }
+            }
+            case HttpStatus.BAD_REQUEST -> recordValidationFailure(payment, accountDetails, description);
+            default -> throw new IllegalStateException("Unexpected status code value: " + statusCode);
         }
     }
 

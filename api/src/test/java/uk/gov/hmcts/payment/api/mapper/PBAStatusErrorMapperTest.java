@@ -20,6 +20,7 @@ import java.math.BigDecimal;
 
 import static nl.altindag.log.LogCaptor.forClass;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static uk.gov.hmcts.payment.api.util.AccountStatus.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -156,6 +157,28 @@ public class PBAStatusErrorMapperTest {
         assertThat(serviceRequestPayment.getStatusHistories().getFirst().getStatus()).isEqualTo("failed");
         assertThat(serviceRequestPayment.getStatusHistories().getFirst().getMessage()).isEqualTo("Service request validation failure.");
         assertThat(mockLOG.getInfoLogs().getFirst()).isEqualTo("CreditAccountPayment received for ccdCaseNumber : service-request-case Liberata AccountStatus : ACTIVE PaymentStatus : failed - Service request validation failure.");
+    }
+
+    @Test
+    public void testSetPaymentStatusWithUnexpectedStatusCode() {
+        PBAStatusErrorMapper pbaStatusErrorMapper = new PBAStatusErrorMapper();
+        Payment unexpectedStatusPayment = Payment.paymentWith().ccdCaseNumber("unexpected-status-case").build();
+        JSONObject responseBody = new JSONObject();
+        responseBody.put("description", "Unexpected Liberata response.");
+        ResponseEntity<JSONObject> response = new ResponseEntity<>(responseBody, HttpStatus.INTERNAL_SERVER_ERROR);
+
+        assertThatThrownBy(() -> pbaStatusErrorMapper.setLiberataPaymentStatus(
+                creditAccountPaymentRequest,
+                unexpectedStatusPayment,
+                activeAccountDetails,
+                response
+            ))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessage("Unexpected status code value: 500 INTERNAL_SERVER_ERROR");
+
+        assertThat(unexpectedStatusPayment.getPaymentStatus()).isNull();
+        assertThat(unexpectedStatusPayment.getStatusHistories()).isNull();
+        assertThat(mockLOG.getInfoLogs()).isEmpty();
     }
 
 }

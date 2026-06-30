@@ -9,6 +9,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
+import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.PaymentByAccountRequest;
 import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
@@ -17,6 +18,7 @@ import uk.gov.hmcts.payment.api.model.PaymentFee;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -117,6 +119,46 @@ public class CreditAccountPaymentRequestMapperTest {
         assertEquals("100.00", paymentByAccountRequest.getPayment().getPaymentByAccountFees().getFirst().getCalculatedAmount());
     }
 
+    @Test
+    public void testMapPaymentByAccountRequestMapsPaymentDtoPaymentAndFeeDetails() {
+        Date dateCreated = new Date(1704067200000L);
+        PaymentDto paymentDto = createPaymentDto(dateCreated);
+
+        PaymentByAccountRequest paymentByAccountRequest = creditAccountPaymentRequestMapper.mapPaymentByAccountRequest(paymentDto);
+
+        assertEquals("pba654321", paymentByAccountRequest.getPbaNumber());
+        assertEquals("Divorce", paymentByAccountRequest.getPayment().getServiceName());
+        assertEquals("group-reference", paymentByAccountRequest.getPayment().getGroupReference());
+        assertEquals("payment-reference", paymentByAccountRequest.getPayment().getPaymentReference());
+        assertEquals(dateCreated.toString(), paymentByAccountRequest.getPayment().getDateCreated());
+        assertEquals("300.00", paymentByAccountRequest.getPayment().getAmount());
+        assertEquals("GBP", paymentByAccountRequest.getPayment().getCurrency());
+        assertEquals("BFA1", paymentByAccountRequest.getPayment().getSiteId());
+        assertEquals("case-reference", paymentByAccountRequest.getPayment().getCaseReference());
+        assertEquals("ccd-case-number", paymentByAccountRequest.getPayment().getCcdCaseNumber());
+        assertEquals("customer-reference", paymentByAccountRequest.getPayment().getCustomerReference());
+
+        assertEquals("fee345", paymentByAccountRequest.getPayment().getPaymentByAccountFees().getFirst().getCode());
+        assertEquals(Integer.valueOf(345), paymentByAccountRequest.getPayment().getPaymentByAccountFees().getFirst().getId());
+        assertEquals("3", paymentByAccountRequest.getPayment().getPaymentByAccountFees().getFirst().getVersion());
+        assertEquals("memo-line-3", paymentByAccountRequest.getPayment().getPaymentByAccountFees().getFirst().getMemosline());
+        assertEquals("nac3", paymentByAccountRequest.getPayment().getPaymentByAccountFees().getFirst().getNac());
+        assertEquals("jurisdiction-5", paymentByAccountRequest.getPayment().getPaymentByAccountFees().getFirst().getJurisdiction1());
+        assertEquals("jurisdiction-6", paymentByAccountRequest.getPayment().getPaymentByAccountFees().getFirst().getJurisdiction2());
+        assertEquals("3", paymentByAccountRequest.getPayment().getPaymentByAccountFees().getFirst().getVolume());
+        assertEquals("300.00", paymentByAccountRequest.getPayment().getPaymentByAccountFees().getFirst().getCalculatedAmount());
+
+        assertEquals("fee456", paymentByAccountRequest.getPayment().getPaymentByAccountFees().get(1).getCode());
+        assertEquals(Integer.valueOf(456), paymentByAccountRequest.getPayment().getPaymentByAccountFees().get(1).getId());
+        assertEquals("4", paymentByAccountRequest.getPayment().getPaymentByAccountFees().get(1).getVersion());
+        assertEquals("memo-line-4", paymentByAccountRequest.getPayment().getPaymentByAccountFees().get(1).getMemosline());
+        assertEquals("nac4", paymentByAccountRequest.getPayment().getPaymentByAccountFees().get(1).getNac());
+        assertEquals("jurisdiction-7", paymentByAccountRequest.getPayment().getPaymentByAccountFees().get(1).getJurisdiction1());
+        assertEquals("jurisdiction-8", paymentByAccountRequest.getPayment().getPaymentByAccountFees().get(1).getJurisdiction2());
+        assertEquals("4", paymentByAccountRequest.getPayment().getPaymentByAccountFees().get(1).getVolume());
+        assertEquals("400.00", paymentByAccountRequest.getPayment().getPaymentByAccountFees().get(1).getCalculatedAmount());
+    }
+
     private CreditAccountPaymentRequest createPaymentByAccountRequest() {
         FeeDto fee1 = FeeDto.feeDtoWith()
             .id(123)
@@ -158,6 +200,51 @@ public class CreditAccountPaymentRequestMapperTest {
             .organisationName("org-name")
             .accountNumber("pba123456")
             .siteId("site-id")
+            .build();
+    }
+
+    private PaymentDto createPaymentDto(Date dateCreated) {
+        FeeDto fee1 = FeeDto.feeDtoWith()
+            .id(345)
+            .code("fee345")
+            .version("3")
+            .memoLine("memo-line-3")
+            .naturalAccountCode("nac3")
+            .jurisdiction1("jurisdiction-5")
+            .jurisdiction2("jurisdiction-6")
+            .volume(3)
+            .calculatedAmount(new BigDecimal("300.00"))
+            .build();
+
+        FeeDto fee2 = FeeDto.feeDtoWith()
+            .id(456)
+            .code("fee456")
+            .version("4")
+            .memoLine("memo-line-4")
+            .naturalAccountCode("nac4")
+            .jurisdiction1("jurisdiction-7")
+            .jurisdiction2("jurisdiction-8")
+            .volume(4)
+            .calculatedAmount(new BigDecimal("400.00"))
+            .build();
+
+        List<FeeDto> fees = new ArrayList<>();
+        fees.add(fee1);
+        fees.add(fee2);
+
+        return PaymentDto.payment2DtoWith()
+            .amount(new BigDecimal("300.00"))
+            .reference("group-reference")
+            .paymentReference("payment-reference")
+            .dateCreated(dateCreated)
+            .currency(CurrencyCode.GBP)
+            .serviceName("Divorce")
+            .caseReference("case-reference")
+            .ccdCaseNumber("ccd-case-number")
+            .customerReference("customer-reference")
+            .accountNumber("pba654321")
+            .siteId("BFA1")
+            .fees(fees)
             .build();
     }
 }
