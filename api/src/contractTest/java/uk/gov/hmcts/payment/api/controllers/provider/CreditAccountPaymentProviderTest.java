@@ -177,6 +177,15 @@ class CreditAccountPaymentProviderTest {
         setUpMockInteractions(paymentMap, "Payment Status success", "success", AccountStatus.ACTIVE);
     }
 
+    @State({"An account exists with (default) identifier PBA1234"})
+    public void toReturnAccountDetails() {
+        setUpMockInteractions(Map.of(
+            ACCOUNT_NUMBER_KEY, "PBA1234",
+            ACCOUNT_NAME_KEY, "accountName",
+            AVAILABLE_BALANCE_KEY, "100"
+        ), "Payment Status success", "success", AccountStatus.ACTIVE);
+    }
+
 
     @State({"An active account has insufficient funds for a payment"})
     public void toRefuseCreditAccountPaymentInusfficientFunds(Map<String, Object> paymentMap) {
