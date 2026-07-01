@@ -15,6 +15,11 @@ public interface PaymentRefundsService {
 
     PaymentGroupResponse checkRefundAgainstRemissionV2(MultiValueMap<String, String> headers, PaymentGroupResponse paymentGroupResponse, String ccdCaseNumber);
 
+    PaymentGroupResponse checkRefundAgainstRemissionV2(MultiValueMap<String, String> headers,
+                                                       PaymentGroupResponse paymentGroupResponse,
+                                                       String ccdCaseNumber,
+                                                       RefundListDtoResponse refundListDtoResponse);
+
     PaymentGroupDto checkRefundAgainstRemissionFeeApportionV2(MultiValueMap<String, String> headers, PaymentGroupDto paymentGroupDto, String paymentRef);
 
 

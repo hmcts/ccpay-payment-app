@@ -851,8 +851,18 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         return refundDto.getRefundStatus().getName().equals("Accepted");
     }
 
+    @Override
     public PaymentGroupResponse checkRefundAgainstRemissionV2(MultiValueMap<String, String> headers,
                                                               PaymentGroupResponse paymentGroupResponse, String ccdCaseNumber) {
+        return checkRefundAgainstRemissionV2(headers, paymentGroupResponse, ccdCaseNumber,
+            getRefundsFromRefundService(ccdCaseNumber, headers));
+    }
+
+    @Override
+    public PaymentGroupResponse checkRefundAgainstRemissionV2(MultiValueMap<String, String> headers,
+                                                              PaymentGroupResponse paymentGroupResponse,
+                                                              String ccdCaseNumber,
+                                                              RefundListDtoResponse refundListDtoResponse) {
         LOG.debug("inside checkRefundAgainstRemissionV2 method");
         //check roles
         if(isContainsPaymentsRefundRole()) {
@@ -874,8 +884,6 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
             Optional<List<PaymentFailures>> paymentFailuresList = paymentFailureRepository.findFailedPayments(paymentList);
 
-            //get the RefundListDtoResponse by calling refunds app
-            RefundListDtoResponse refundListDtoResponse = getRefundsFromRefundService(ccdCaseNumber, headers);
             LOG.info("refundListDtoResponse : {}", refundListDtoResponse);
 
             //gets a list of all the refunded fee ids for this case

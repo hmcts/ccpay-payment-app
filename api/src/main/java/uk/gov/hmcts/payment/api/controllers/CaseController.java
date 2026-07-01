@@ -23,6 +23,7 @@ import uk.gov.hmcts.payment.api.domain.service.ServiceRequestDomainService;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupResponse;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
+import uk.gov.hmcts.payment.api.dto.RefundDto;
 import uk.gov.hmcts.payment.api.dto.RefundListDtoResponse;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
@@ -36,7 +37,9 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentGroupNotFoundExceptio
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
@@ -119,39 +122,53 @@ public class CaseController {
         }
         PaymentGroupResponse paymentGroupResponse = new PaymentGroupResponse(paymentGroups);
 
-        paymentGroupResponse = paymentRefundsService.checkRefundAgainstRemissionV2(headers, paymentGroupResponse, ccdCaseNumber);
-
         RefundListDtoResponse refundListDtoResponse = paymentRefundsService.getRefundsApprovedFromRefundService(ccdCaseNumber,headers);
+        PaymentGroupResponse paymentGroupResponseWithRefundEligibility = paymentRefundsService
+            .checkRefundAgainstRemissionV2(headers, paymentGroupResponse, ccdCaseNumber, refundListDtoResponse);
+        if (paymentGroupResponseWithRefundEligibility != null) {
+            paymentGroupResponse = paymentGroupResponseWithRefundEligibility;
+        }
         addRefunds(refundListDtoResponse, paymentGroups);
 
         return ResponseEntity.ok(paymentGroupResponse);
     }
 
     private void addRefunds(RefundListDtoResponse refundListDtoResponse, List<PaymentGroupDto> paymentGroups){
-        if (refundListDtoResponse != null) {
-            refundListDtoResponse.getRefundList().stream().forEach(refund -> {
+        if (refundListDtoResponse == null || refundListDtoResponse.getRefundList() == null
+            || refundListDtoResponse.getRefundList().isEmpty() || paymentGroups == null || paymentGroups.isEmpty()) {
+            return;
+        }
 
-                    String paymentReference = refund.getPaymentReference();
-                    paymentGroups.stream().forEach(paymentGroup -> {
-                        if (isThereAnyPaymentReferenceInCurrentServiceRequest(paymentGroup.getPayments(),paymentReference ) ) {
-                            if (paymentGroup.getRefunds()==null){
-                                paymentGroup.setRefunds(new ArrayList<>());
-                            }
-                            paymentGroup.getRefunds().add(refund);
-                        }
-                    });
+        Map<String, List<PaymentGroupDto>> paymentGroupsByReference = new HashMap<>();
+        for (PaymentGroupDto paymentGroup : paymentGroups) {
+            if (paymentGroup.getPayments() == null) {
+                continue;
+            }
+            for (PaymentDto payment : paymentGroup.getPayments()) {
+                if (payment == null || payment.getReference() == null) {
+                    continue;
                 }
-            );
+                paymentGroupsByReference
+                    .computeIfAbsent(payment.getReference(), key -> new ArrayList<>())
+                    .add(paymentGroup);
+            }
         }
 
-    }
-
-    private boolean isThereAnyPaymentReferenceInCurrentServiceRequest(List<PaymentDto> payments, String paymentReference){
-        if (paymentReference == null || payments == null) {
-            return false;
+        for (RefundDto refund : refundListDtoResponse.getRefundList()) {
+            if (refund == null || refund.getPaymentReference() == null) {
+                continue;
+            }
+            List<PaymentGroupDto> matchingPaymentGroups = paymentGroupsByReference.get(refund.getPaymentReference());
+            if (matchingPaymentGroups == null) {
+                continue;
+            }
+            for (PaymentGroupDto paymentGroup : matchingPaymentGroups) {
+                if (paymentGroup.getRefunds() == null) {
+                    paymentGroup.setRefunds(new ArrayList<>());
+                }
+                paymentGroup.getRefunds().add(refund);
+            }
         }
-        return payments.stream()
-            .anyMatch(payment -> payment.getReference().equals(paymentReference));
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
