@@ -250,4 +250,5 @@ java:
           alias: duplicate.payments.email.to
         - name: service-request-email-to
           alias: service.request.email.to
-
+        - name:  paymentoutcome-s2s-web
+          alias: PAYMENTOUTCOME_S2S_OTP_SECRET
