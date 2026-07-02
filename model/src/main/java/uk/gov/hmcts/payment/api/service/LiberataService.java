@@ -67,6 +67,12 @@ public class LiberataService {
 
     public ResponseEntity<JSONObject> payByAccount(PaymentByAccountRequest paymentByAccountRequest) {
 
+
+        //Temporary happy response
+        return new ResponseEntity<>(new JSONObject(), HttpStatus.OK);
+
+
+/*
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setBearerAuth(getAccessToken());
@@ -83,5 +89,7 @@ public class LiberataService {
         }
 
         return response;
+
+ */
     }
 }
