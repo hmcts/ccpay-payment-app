@@ -137,7 +137,7 @@ public class ServiceRequestDtoDomainMapperTest {
         Mockito.when(userIdSupplier.get()).thenReturn("userID");
         Mockito.when(serviceIdSupplier.get()).thenReturn("s2sServiceName");
 
-        ServiceRequestOnlinePaymentBo serviceRequestOnlinePaymentBo = serviceRequestDtoDomainMapper.toDomain(onlineCardPaymentRequest,"http://returnUrl/","");
+        ServiceRequestOnlinePaymentBo serviceRequestOnlinePaymentBo = serviceRequestDtoDomainMapper.toDomain(onlineCardPaymentRequest,"https://paymentoutcome-web.demo.platform.hmcts.net/","");
 
         String returnUrl = serviceRequestOnlinePaymentBo.getReturnUrl();
         String actualHash = returnUrl.substring(returnUrl.lastIndexOf('/') + 1);
