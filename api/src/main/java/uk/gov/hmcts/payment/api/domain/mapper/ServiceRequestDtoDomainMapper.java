@@ -75,7 +75,7 @@ public class ServiceRequestDtoDomainMapper {
     }
 
 
-    public ServiceRequestOnlinePaymentBo toDomain(OnlineCardPaymentRequest request, String returnUrl, String serviceCallbackUrl) throws CheckDigitException {
+    private ServiceRequestOnlinePaymentBo toDomainPaymentOutcome(OnlineCardPaymentRequest request, String returnUrl, String serviceCallbackUrl) throws CheckDigitException {
         final String uuid = UUID.randomUUID().toString();
         final String rcNumber = referenceUtil.getNext("RC");
         final String hashRc = getHash(rcNumber);
@@ -86,6 +86,32 @@ public class ServiceRequestDtoDomainMapper {
             .userId(userIdSupplier.get())
             .description("card payment")
             .returnUrl(returnUrl + "/" + uuid + RETURN_URL_PATH_CONFIRMATION +"/" + hashRc)
+            .currency(request.getCurrency().getCode())
+            .amount(request.getAmount())
+            .serviceCallbackUrl(serviceCallbackUrl)
+            .language(request.getLanguage().toLowerCase())//change language to lower case before sending to gov pay
+            .build();
+    }
+
+    public ServiceRequestOnlinePaymentBo toDomain(OnlineCardPaymentRequest request, String returnUrl, String serviceCallbackUrl) throws CheckDigitException {
+        // Check if the returnUrl contains "paymentoutcome" to determine which mapping method to use
+        // hash mechanism is only required for payment outcome flow, so we will use the toDomainPaymentOutcome method for that case.
+        if (returnUrl.contains("paymentoutcome")) {
+            return toDomainPaymentOutcome(request, returnUrl, serviceCallbackUrl);
+        } else {
+            return toDomainOtherClients(request, returnUrl, serviceCallbackUrl);
+        }
+    }
+
+    private ServiceRequestOnlinePaymentBo toDomainOtherClients(OnlineCardPaymentRequest request, String returnUrl, String serviceCallbackUrl) throws CheckDigitException {
+        String uuid = UUID.randomUUID().toString();
+        return ServiceRequestOnlinePaymentBo.serviceRequestOnlinePaymentBo()
+            .internalReference(uuid)
+            .paymentReference(referenceUtil.getNext("RC"))
+            .s2sServiceName(serviceIdSupplier.get())
+            .userId(userIdSupplier.get())
+            .description("card payment")
+            .returnUrl(returnUrl + "/" + uuid + RETURN_URL_PATH_CONFIRMATION)
             .currency(request.getCurrency().getCode())
             .amount(request.getAmount())
             .serviceCallbackUrl(serviceCallbackUrl)

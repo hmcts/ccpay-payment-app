@@ -102,6 +102,29 @@ public class ServiceRequestDtoDomainMapperTest {
     }
 
     @Test
+    public void toDomainTest3() throws CheckDigitException {
+
+        OnlineCardPaymentRequest onlineCardPaymentRequest = OnlineCardPaymentRequest.onlineCardPaymentRequestWith()
+            .language("Eng")
+            .currency(CurrencyCode.GBP)
+            .amount(new BigDecimal(99.99).setScale(2, RoundingMode.HALF_EVEN))
+            .build();
+
+        Mockito.when(referenceUtil.getNext("RC")).thenReturn("RC-ref");
+
+        Mockito.when(userIdSupplier.get()).thenReturn("userID");
+
+        Mockito.when(serviceIdSupplier.get()).thenReturn("s2sServiceName");
+
+        ServiceRequestOnlinePaymentBo serviceRequestOnlinePaymentBo = serviceRequestDtoDomainMapper.toDomain(onlineCardPaymentRequest,"https://paymentoutcome-web.demo.platform.hmcts.net","");
+
+        assertTrue(serviceRequestOnlinePaymentBo.getUserId().equals("userID"));
+        assertTrue(serviceRequestOnlinePaymentBo.getS2sServiceName().equals("s2sServiceName"));
+        assertTrue(serviceRequestOnlinePaymentBo.getLanguage().equals("eng"));
+        assertEquals(serviceRequestOnlinePaymentBo.getAmount(), BigDecimal.valueOf(99.99));
+    }
+
+    @Test
     public void toDomainReturnUrlHashingTest() throws Exception {
 
         OnlineCardPaymentRequest onlineCardPaymentRequest = OnlineCardPaymentRequest.onlineCardPaymentRequestWith()
