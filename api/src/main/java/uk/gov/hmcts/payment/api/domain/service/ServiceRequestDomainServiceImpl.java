@@ -10,6 +10,7 @@ import com.microsoft.azure.servicebus.Message;
 import com.microsoft.azure.servicebus.ReceiveMode;
 import com.microsoft.azure.servicebus.primitives.ConnectionStringBuilder;
 import com.microsoft.azure.servicebus.primitives.ServiceBusException;
+import net.minidev.json.JSONObject;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +26,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.ResourceAccessException;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
+import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestDomainDataEntityMapper;
 import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestDtoDomainMapper;
 import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestPaymentDomainDataEntityMapper;
@@ -32,12 +34,7 @@ import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestPaymentDtoDomainMapp
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestBo;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestOnlinePaymentBo;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
-import uk.gov.hmcts.payment.api.dto.AccountDto;
-import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentRequest;
-import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentResponse;
-import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
-import uk.gov.hmcts.payment.api.dto.PaymentStatusDto;
-import uk.gov.hmcts.payment.api.dto.ServiceRequestResponseDto;
+import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
 import uk.gov.hmcts.payment.api.dto.servicerequest.DeadLetterDto;
@@ -50,6 +47,7 @@ import uk.gov.hmcts.payment.api.exception.LiberataServiceTimeoutException;
 import uk.gov.hmcts.payment.api.exceptions.ServiceRequestReferenceNotFoundException;
 import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
+import uk.gov.hmcts.payment.api.mapper.CreditAccountPaymentRequestMapper;
 import uk.gov.hmcts.payment.api.mapper.PBAStatusErrorMapper;
 import uk.gov.hmcts.payment.api.model.IdempotencyKeys;
 import uk.gov.hmcts.payment.api.model.IdempotencyKeysPK;
@@ -60,13 +58,7 @@ import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.model.StatusHistory;
-import uk.gov.hmcts.payment.api.service.AccountService;
-import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
-import uk.gov.hmcts.payment.api.service.FeePayApportionService;
-import uk.gov.hmcts.payment.api.service.FeesService;
-import uk.gov.hmcts.payment.api.service.PaymentGroupService;
-import uk.gov.hmcts.payment.api.service.PaymentService;
-import uk.gov.hmcts.payment.api.service.ReferenceDataService;
+import uk.gov.hmcts.payment.api.service.*;
 import uk.gov.hmcts.payment.api.servicebus.TopicClientProxy;
 import uk.gov.hmcts.payment.api.servicebus.TopicClientService;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
@@ -167,6 +159,12 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
 
     @Autowired
     private PaymentService<PaymentFeeLink, String> paymentService;
+
+    @Autowired
+    private LiberataService liberataService;
+
+    @Autowired
+    private CreditAccountPaymentRequestMapper requestMapper;
 
     private Function<PaymentFeeLink, Payment> getFirstSuccessPayment = serviceRequest -> serviceRequest.getPayments().stream().
         filter(payment -> payment.getPaymentStatus().getName().equalsIgnoreCase(PaymentStatus.SUCCESS.getName())).collect(Collectors.toList()).get(0);
@@ -337,7 +335,18 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
                 throw new AccountServiceUnavailableException("Unable to retrieve account information, please try again later");
             }
 
-            pbaStatusErrorMapper.setServiceRequestPaymentStatus(serviceRequestPaymentDto.getAmount(), payment, accountDetails);
+            ResponseEntity<JSONObject> liberataResponse;
+            try {
+                liberataResponse = sendPaymentToLiberata(serviceRequest, payment);
+            } catch (HttpClientErrorException ex) {
+                LOG.error("Payment could not be submitted, exception: {}", ex.getMessage());
+                throw new AccountNotFoundException("PBA Payment could not be submitted");
+            } catch (Exception ex) {
+                LOG.error("Unable to make PBA payment, exception: {}", ex.getMessage());
+                throw new AccountServiceUnavailableException("Unable make PBA payment, please try again later");
+            }
+
+            pbaStatusErrorMapper.setServiceRequestPaymentStatus(serviceRequestPaymentDto.getAmount(), payment, accountDetails, liberataResponse);
         } else {
             LOG.info("Setting status to pending");
             payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("pending").build());
@@ -358,6 +367,13 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         //Last Payment added in serviceRequest
         return serviceRequest.getPayments().get(serviceRequest.getPayments().size() - 1);
     }
+
+    private ResponseEntity<JSONObject> sendPaymentToLiberata(PaymentFeeLink serviceRequest, Payment payment) {
+        PaymentDto paymentDto =  paymentDtoMapper.toPaymentDto(payment, serviceRequest);
+        PaymentByAccountRequest paymentByAccountRequest = requestMapper.mapPaymentByAccountRequest(paymentDto);
+        return liberataService.payByAccount(paymentByAccountRequest);
+    }
+
 
     public PaymentFeeLink businessValidationForServiceRequests(PaymentFeeLink serviceRequest, ServiceRequestPaymentDto serviceRequestPaymentDto) {
         //Business validation for amount

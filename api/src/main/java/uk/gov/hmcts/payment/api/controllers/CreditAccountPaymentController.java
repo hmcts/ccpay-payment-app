@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import net.minidev.json.JSONObject;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
@@ -22,8 +23,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.dto.AccountDto;
-import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
+import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
@@ -34,11 +34,16 @@ import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.service.*;
+import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.*;
 import uk.gov.hmcts.payment.api.validators.DuplicatePaymentValidator;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import jakarta.validation.Valid;
+
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
@@ -65,6 +70,7 @@ public class CreditAccountPaymentController {
     private final PaymentService<PaymentFeeLink, String> paymentService;
     private final ReferenceDataService referenceDataService;
     private final AuthTokenGenerator authTokenGenerator;
+    private final LiberataService liberataService;
 
     @Autowired
     PaymentReference paymentReference;
@@ -79,7 +85,8 @@ public class CreditAccountPaymentController {
         CreditAccountPaymentRequestMapper requestMapper, @Value("#{'${pba.config1.service.names}'.split(',')}") List<String> pbaConfig1ServiceNames,
         PaymentService<PaymentFeeLink, String> paymentService, ReferenceDataService referenceDataService,
         AuthTokenGenerator authTokenGenerator,
-        PaymentReference paymentReference) {
+        PaymentReference paymentReference,
+        LiberataService liberataService) {
         this.creditAccountPaymentService = creditAccountPaymentService;
         this.creditAccountDtoMapper = creditAccountDtoMapper;
         this.accountService = accountService;
@@ -93,6 +100,7 @@ public class CreditAccountPaymentController {
         this.referenceDataService = referenceDataService;
         this.authTokenGenerator = authTokenGenerator;
         this.paymentReference = paymentReference;
+        this.liberataService = liberataService;
     }
 
     @Operation(summary = "Create credit account payment", description = "Create credit account payment")
@@ -151,7 +159,15 @@ public class CreditAccountPaymentController {
                 throw new AccountServiceUnavailableException("Unable to retrieve account information, please try again later");
             }
 
-            pbaStatusErrorMapper.setPaymentStatus(creditAccountPaymentRequest, payment, accountDetails);
+            try {
+                sendPaymentToLiberata(creditAccountPaymentRequest, paymentGroupReference, payment, accountDetails);
+            } catch (HttpClientErrorException ex) {
+                LOG.error("Payment could not be submitted, exception: {}", ex.getMessage());
+                throw new AccountNotFoundException("PBA Payment could not be submitted");
+            } catch (Exception ex) {
+                LOG.error("Unable to make PBA payment, exception: {}", ex.getMessage());
+                throw new AccountServiceUnavailableException("Unable make PBA payment, please try again later");
+            }
         } else {
             LOG.info("Setting status to pending");
             payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("pending").build());
@@ -184,6 +200,20 @@ public class CreditAccountPaymentController {
 
         LOG.info("CreditAccountPayment Response 201(CREATED) for ccdCaseNumber : {} PaymentStatus : {}", payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
         return new ResponseEntity<>(creditAccountDtoMapper.toCreateCreditAccountPaymentResponse(paymentFeeLink), HttpStatus.CREATED);
+    }
+
+    private void sendPaymentToLiberata(CreditAccountPaymentRequest creditAccountPaymentRequest, String paymentGroupReference,
+                                       Payment payment, AccountDto accountDetails) {
+
+        final PaymentByAccountRequest paymentByAccountRequest = requestMapper.mapPaymentByAccountRequest(creditAccountPaymentRequest);
+        paymentByAccountRequest.getPayment().setGroupReference(paymentGroupReference);
+        paymentByAccountRequest.getPayment().setPaymentReference(payment.getInternalReference());
+        paymentByAccountRequest.getPayment().setDateCreated(LocalDateTime.now(ZoneOffset.UTC)
+            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        paymentByAccountRequest.getPayment().setSurname(payment.getPayerName());
+
+        ResponseEntity<JSONObject> response = liberataService.payByAccount(paymentByAccountRequest);
+        pbaStatusErrorMapper.setLiberataPaymentStatus(creditAccountPaymentRequest, payment, accountDetails, response);
     }
 
     @Operation(summary = "Get credit account payment details by payment reference", description = "Get payment details for supplied payment reference")

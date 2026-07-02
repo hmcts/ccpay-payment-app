@@ -8,12 +8,15 @@ import au.com.dius.pact.provider.junitsupport.State;
 import au.com.dius.pact.provider.junitsupport.loader.PactBroker;
 import au.com.dius.pact.provider.junitsupport.loader.VersionSelector;
 import au.com.dius.pact.provider.spring.junit5.MockMvcTestTarget;
+import net.minidev.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.controllers.CreditAccountPaymentController;
@@ -73,6 +76,8 @@ class CreditAccountPaymentProviderTest {
     @Autowired
     PaymentReference paymentReferenceMock;
     @Autowired
+    LiberataService liberataServiceMock;
+    @Autowired
     FeePayApportionService feePayApportionService;
     @Autowired
     LaunchDarklyFeatureToggler featureToggler;
@@ -118,6 +123,7 @@ class CreditAccountPaymentProviderTest {
 
     private final static String PAYMENT_METHOD = "payment by account";
 
+
     @TestTemplate
     @ExtendWith(PactVerificationInvocationContextProvider.class)
     void pactVerificationTestTemplate(PactVerificationContext context) {
@@ -138,7 +144,7 @@ class CreditAccountPaymentProviderTest {
         testTarget.setControllers(
             new CreditAccountPaymentController(creditAccountPaymentService, creditAccountDtoMapper, accountServiceMock, paymentValidator,
                 feePayApportionService, featureToggler, pbaStatusErrorMapper, requestMapper, Arrays.asList("CMC"), paymentService,
-                referenceDataService, authTokenGenerator, paymentReferenceMock));
+                referenceDataService, authTokenGenerator, paymentReferenceMock, liberataServiceMock));
         if (context != null) {
             context.setTarget(testTarget);
         }
@@ -198,7 +204,7 @@ class CreditAccountPaymentProviderTest {
             .thenReturn(PaymentMethod.paymentMethodWith().description("Payment by account").name("Payment by account").build());
         when(paymentStatusRepositoryMock.findByNameOrThrow(anyString()))
             .thenReturn(PaymentStatus.paymentStatusWith().description(s).name(success).build());
-        when(accountServiceMock.retrieve(accountNumber)).thenReturn(AccountDto.accountDtoWith()
+        when(accountServiceMock.retrieve(any())).thenReturn(AccountDto.accountDtoWith()
             .accountNumber(accountNumber)
             .accountName(accountName)
             .creditLimit(BigDecimal.valueOf(28879))
@@ -213,10 +219,31 @@ class CreditAccountPaymentProviderTest {
             .build();
 
         when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenReturn(organisationalServiceDto);
+        when(liberataServiceMock.payByAccount(any()))
+            .thenReturn(liberataResponseFor(success, accountStatus));
 
         PaymentFeeLink paymentLink = populateCreditPaymentToDb("1", "e2kkddts5215h9qqoeuth5c0v", "ccd_gw", success, s, accountStatus).getPaymentLink();
         when(serviceRequestCaseUtil.enhanceWithServiceRequestCaseDetails(any(), (Payment) any())).thenReturn(paymentLink);
 
+    }
+
+
+    private ResponseEntity<JSONObject> liberataResponseFor(String paymentStatus, AccountStatus accountStatus) {
+        if ("success".equals(paymentStatus)) {
+            return new ResponseEntity<>(new JSONObject(), HttpStatus.OK);
+        }
+
+        JSONObject response = new JSONObject();
+        response.put("description", "PBA payment failed");
+        if (AccountStatus.ON_HOLD.equals(accountStatus)) {
+            response.put("error_code", "4");
+        } else if (AccountStatus.DELETED.equals(accountStatus)) {
+            response.put("error_code", "2");
+        } else {
+            response.put("error_code", "1");
+        }
+
+        return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
     }
 
     private Payment populateCreditPaymentToDb(String number, String externalReference, String s2sServiceName, String success, String desc, AccountStatus accountStatus) {
