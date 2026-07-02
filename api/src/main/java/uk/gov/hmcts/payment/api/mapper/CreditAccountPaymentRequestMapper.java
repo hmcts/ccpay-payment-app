@@ -67,35 +67,18 @@ public class CreditAccountPaymentRequestMapper {
 
     private List<PaymentByAccountFee> mapPaymentAccountFee(CreditAccountPaymentRequest creditAccountPaymentRequest) {
 
-
-        return creditAccountPaymentRequest.getFees().stream().map( feeDto -> {
-            return PaymentByAccountFee.paymentByAccountFeeWith()
-                .code(feeDto.getCode())
-                .id(feeDto.getId())
-                .version(feeDto.getVersion())
-                .memosline(feeDto.getMemoLine())
-                .nac(feeDto.getNaturalAccountCode())
-                .jurisdiction1(feeDto.getJurisdiction1())
-                .jurisdiction2(feeDto.getJurisdiction2())
-                .volume(toStringOrNull(feeDto.getVolume()))
-                .calculatedAmount(toStringOrNull(feeDto.getCalculatedAmount()))
-                .build();
-        }).toList();
-
-        //Keeping this for now, in case it needs to be tested against API without multiple Fees
-//      List<PaymentByAccountFee> paymentByAccountFee = new ArrayList<>();
-//        paymentByAccountFee.add(PaymentByAccountFee.paymentByAccountFeeWith()
-//            .code(creditAccountPaymentRequest.getFees().getFirst().getCode())
-//            .id(creditAccountPaymentRequest.getFees().getFirst().getId())
-//            .version(creditAccountPaymentRequest.getFees().getFirst().getVersion())
-//            .memosline(creditAccountPaymentRequest.getFees().getFirst().getMemoLine())
-//            .nac(creditAccountPaymentRequest.getFees().getFirst().getNaturalAccountCode())
-//            .jurisdiction1(creditAccountPaymentRequest.getFees().getFirst().getJurisdiction1())
-//            .jurisdiction2(creditAccountPaymentRequest.getFees().getFirst().getJurisdiction2())
-//            .volume(creditAccountPaymentRequest.getFees().getFirst().getVolume().toString())
-//            .calculatedAmount(creditAccountPaymentRequest.getFees().getFirst().getCalculatedAmount().toString())
-//            .build());
-//        return paymentByAccountFee;
+        return creditAccountPaymentRequest.getFees().stream().map( feeDto ->
+            PaymentByAccountFee.paymentByAccountFeeWith()
+            .code(feeDto.getCode())
+            .id(feeDto.getId())
+            .version(feeDto.getVersion())
+            .memosline(feeDto.getMemoLine())
+            .nac(feeDto.getNaturalAccountCode())
+            .jurisdiction1(feeDto.getJurisdiction1())
+            .jurisdiction2(feeDto.getJurisdiction2())
+            .volume(toStringOrNull(feeDto.getVolume()))
+            .calculatedAmount(toStringOrNull(feeDto.getCalculatedAmount()))
+            .build()).toList();
     }
 
 
