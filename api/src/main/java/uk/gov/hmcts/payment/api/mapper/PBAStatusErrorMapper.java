@@ -29,6 +29,11 @@ public class PBAStatusErrorMapper {
 
 
 
+    /*
+    Temporary Note:
+    This method implements the response code table in "New Liberata PBA Real Time Payment" section from:
+    https://tools.hmcts.net/confluence/spaces/DTSFP/pages/1973292244/Real+Time+PBA+Payments+LLD
+     */
     public void setLiberataPaymentStatus(CreditAccountPaymentRequest creditAccountPaymentRequest,
                                          Payment payment, AccountDto accountDetails,
                                          ResponseEntity<JSONObject> response) {
