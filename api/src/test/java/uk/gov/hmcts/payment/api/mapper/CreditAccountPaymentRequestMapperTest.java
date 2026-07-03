@@ -135,7 +135,7 @@ public class CreditAccountPaymentRequestMapperTest {
         Date dateCreated = new Date(1704067200000L);
         PaymentDto paymentDto = createPaymentDto(dateCreated);
 
-        PaymentByAccountRequest paymentByAccountRequest = creditAccountPaymentRequestMapper.mapPaymentByAccountRequest(paymentDto);
+        PaymentByAccountRequest paymentByAccountRequest = creditAccountPaymentRequestMapper.mapPaymentByPaymentDto(paymentDto);
 
         assertEquals("pba654321", paymentByAccountRequest.getPbaNumber());
         assertEquals("Divorce", paymentByAccountRequest.getPayment().getServiceName());

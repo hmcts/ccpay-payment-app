@@ -370,7 +370,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
 
     private ResponseEntity<JSONObject> sendPaymentToLiberata(PaymentFeeLink serviceRequest, Payment payment) {
         PaymentDto paymentDto =  paymentDtoMapper.toPaymentDto(payment, serviceRequest);
-        PaymentByAccountRequest paymentByAccountRequest = requestMapper.mapPaymentByAccountRequest(paymentDto);
+        PaymentByAccountRequest paymentByAccountRequest = requestMapper.mapPaymentByPaymentDto(paymentDto);
         return liberataService.payByAccount(paymentByAccountRequest);
     }
 

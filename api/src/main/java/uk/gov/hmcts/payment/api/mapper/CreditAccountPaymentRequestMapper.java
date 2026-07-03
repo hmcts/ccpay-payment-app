@@ -1,6 +1,5 @@
 package uk.gov.hmcts.payment.api.mapper;
 
-import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
@@ -55,7 +54,7 @@ public class CreditAccountPaymentRequestMapper {
         return fees;
     }
 
-    @Valid
+
     public PaymentByAccountRequest mapPaymentByAccountRequest(CreditAccountPaymentRequest creditAccountPaymentRequest)
     {
         PaymentByAccountPayment paymentByAccountPayment = mapPaymentAccountPayment(creditAccountPaymentRequest);
@@ -98,7 +97,7 @@ public class CreditAccountPaymentRequestMapper {
     }
 
 
-    public PaymentByAccountRequest mapPaymentByAccountRequest(PaymentDto paymentDto)
+    public PaymentByAccountRequest mapPaymentByPaymentDto(PaymentDto paymentDto)
     {
         PaymentByAccountPayment paymentByAccountPayment = mapPaymentAccountPayment(paymentDto);
         return PaymentByAccountRequest.paymentByAccountRequestWith()
