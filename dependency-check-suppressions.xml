@@ -38,4 +38,17 @@
         <cve>CVE-2026-33117</cve>
     </suppress>
 
+    <suppress>
+        <notes>
+            jackson-databind contains the general-purpose data-binding functionality and tree-model for Jackson Data Processor. From 2.8.0 until 2.18.9, 2.21.5, and 3.1.4,
+            version 2.22.0 was published on Jun 02, 2026, but still contains the vulnerability. The issue is fixed in 2.22.1, 2.23.0, and 3.2.0.
+            version "tools.jackson.core:jackson-core:3.2.0" will implay code changes and may not be compatible with the current code base.
+            Therefore, we will suppress this CVE for now.
+        </notes>
+        <cve>CVE-2026-54515</cve>
+        <cve>CVE-2026-54513</cve>
+        <cve>CVE-2026-54514</cve>
+        <cve>CVE-2026-54512</cve>
+    </suppress>
+
 </suppressions>
