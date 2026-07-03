@@ -46,6 +46,9 @@
             Therefore, we will suppress this CVE for now.
         </notes>
         <cve>CVE-2026-54515</cve>
+        <cve>CVE-2026-54513</cve>
+        <cve>CVE-2026-54514</cve>
+        <cve>CVE-2026-54512</cve>
     </suppress>
 
 </suppressions>
