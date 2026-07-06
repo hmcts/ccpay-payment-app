@@ -297,6 +297,7 @@ public class PaymentDtoMapper {
             .externalReference(payment.getExternalReference())
             .reportedDateOffline(payment.getReportedDateOffline())
             .fees(toFeeDtos(paymentFeeLink.getFees()))
+            .paymentAllocation(payment.getPaymentAllocation() != null ? toPaymentAllocationDtos(payment.getPaymentAllocation()) : null)
             .build();
         return enrichWithFeeData(paymentDto);
     }
