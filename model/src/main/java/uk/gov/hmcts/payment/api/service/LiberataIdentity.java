@@ -70,12 +70,12 @@ public class LiberataIdentity {
 
             System.out.println("Error fetching token from Liberata: " + response);
             System.out.println("Error fetching token from Liberata: " + response.getBody());
-            return response != null ? response.getBody() : null;
+            return new TokenResponse();
 
         } catch (Exception exception) {
             System.out.println("Error fetching token from Liberata: " + exception.getMessage());
             exception.printStackTrace();
-            return null;
+            return new TokenResponse();
         }
     }
 }
