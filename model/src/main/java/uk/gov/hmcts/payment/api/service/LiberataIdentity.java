@@ -52,11 +52,11 @@ public class LiberataIdentity {
         // https://lascustomerportaluat.liberata.com/pba_api_uat/api/auth/token
         //https://lascustomerportal.liberata.com/pba_api/api/auth/token
         //https://lascustomerportaluat.liberata.com/pba_api_test/api/auth/token
-        
+
         //already tried
         // https://lascustomerportaluat.liberata.com/pba_api_uat/api/auth/token
         //https://lascustomerportaluat.liberata.com/api/auth/token
-        String url = "https://lascustomerportaluat.liberata.com/api/auth/token";
+        String url = "https://lascustomerportaluat.liberata.com/pba_api_test/api/auth/token";
 
 
         LiberataDto payload = new LiberataDto();
