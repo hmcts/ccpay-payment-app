@@ -11,7 +11,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.MediaType;
-import uk.gov.hmcts.payment.api.dto.LiberataDto;
+import uk.gov.hmcts.payment.api.dto.liberata.identity.LiberataDto;
 import java.util.Collections;
 
 @Service
