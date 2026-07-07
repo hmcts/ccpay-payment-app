@@ -60,6 +60,11 @@
         <cve>CVE-2026-42198</cve>
         <cve>CVE-2026-41006</cve>
         <cve>CVE-2026-41007</cve>
+
+        <cve>CVE-2026-54399</cve>
+        <cve>CVE-2026-54428</cve>
+
+
     </suppress>
 
 </suppressions>
