@@ -45,6 +45,7 @@
             version "tools.jackson.core:jackson-core:3.2.0" will implay code changes and may not be compatible with the current code base.
             Therefore, we will suppress this CVE for now.
         </notes>
+        
         <cve>CVE-2026-54515</cve>
         <cve>CVE-2026-54513</cve>
         <cve>CVE-2026-54514</cve>
