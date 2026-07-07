@@ -57,7 +57,6 @@ public class LiberataIdentity {
         //already tried
         String url = "https://lascustomerportaluat.liberata.com/pba_api_uat/api/auth/token";
 
-
         LiberataDto payload = new LiberataDto();
         payload.setEmail("joe@bloggs.com");
         payload.setPassword("Password123");
