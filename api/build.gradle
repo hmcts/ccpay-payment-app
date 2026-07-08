@@ -72,7 +72,7 @@ def versions = [
         sonarPitest     : '0.5',
         lombok          : '1.18.46',
         pact_version    : '4.6.20',
-        reformS2sClient : '5.3.3',
+        reformS2sClient : '5.3.4',
         serenity        : '3.9.8',
         serenityCucumber: '3.9.8',
 ]
