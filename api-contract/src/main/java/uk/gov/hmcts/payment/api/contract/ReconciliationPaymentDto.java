@@ -91,6 +91,8 @@ public class ReconciliationPaymentDto {
 
     private List<StatusHistoryDto> statusHistories;
 
+    private List<PaymentAllocationDto> paymentAllocation;
+
     private String giroSlipNo;
 
     private String internalReference;

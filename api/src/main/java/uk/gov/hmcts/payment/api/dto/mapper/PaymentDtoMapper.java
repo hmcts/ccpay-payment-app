@@ -646,6 +646,7 @@ public class PaymentDtoMapper {
             .refundEnable(paymentDto.getRefundEnable())
             .fees(toReconciliationFeeDtos(paymentDto.getFees()))
             .statusHistories(paymentDto.getStatusHistories())
+            .paymentAllocation(paymentDto.getPaymentAllocation())
             .internalReference(paymentDto.getInternalReference())
             .disputes(paymentDto.getDisputes())
             .overPayment(paymentDto.getOverPayment())

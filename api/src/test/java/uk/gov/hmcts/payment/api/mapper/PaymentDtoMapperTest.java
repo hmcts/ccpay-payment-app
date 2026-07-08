@@ -21,9 +21,11 @@ import uk.gov.hmcts.payment.api.reports.FeesService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
@@ -336,6 +338,39 @@ public class PaymentDtoMapperTest {
         PaymentDto paymentDto = paymentDtoMapper.toGetPaymentResponseDtos(payment1);
         ReconciliationPaymentDto reconciliationPaymentDto = paymentDtoMapper.toReconciliationPaymentDto(paymentDto);
         assertEquals(paymentDto.getBankedDate(), reconciliationPaymentDto.getBankedDate());
+        assertEquals(1, reconciliationPaymentDto.getPaymentAllocation().size());
+        assertEquals("Transferred", reconciliationPaymentDto.getPaymentAllocation().getFirst().getAllocationStatus());
+    }
+
+    @Test
+    public void testToReconciliationPaymentDtosMapsUnidentifiedPaymentAllocationWithoutPaymentReference() throws Exception {
+        Date allocationCreatedDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
+            .parse("2026-02-03T09:06:43.544+0000");
+        PaymentAllocationDto paymentAllocationDto = PaymentAllocationDto.paymentAllocationDtoWith()
+            .allocationStatus("unidentified")
+            .allocationReason("contested application")
+            .dateCreated(allocationCreatedDate)
+            .build();
+        FeeDto feeDto = FeeDto.feeDtoWith()
+            .code("FEE123")
+            .version("1")
+            .calculatedAmount(new BigDecimal("100.00"))
+            .build();
+        PaymentDto paymentDto = PaymentDto.payment2DtoWith()
+            .fees(Collections.singletonList(feeDto))
+            .paymentAllocation(Collections.singletonList(paymentAllocationDto))
+            .build();
+
+        List<ReconciliationPaymentDto> reconciliationPaymentDtos =
+            paymentDtoMapper.toReconciliationPaymentDtos(Collections.singletonList(paymentDto));
+
+        assertEquals(1, reconciliationPaymentDtos.size());
+        assertNull(reconciliationPaymentDtos.getFirst().getPaymentReference());
+        assertEquals(1, reconciliationPaymentDtos.getFirst().getFees().size());
+        assertEquals(1, reconciliationPaymentDtos.getFirst().getPaymentAllocation().size());
+        assertEquals("unidentified", reconciliationPaymentDtos.getFirst().getPaymentAllocation().getFirst().getAllocationStatus());
+        assertEquals("contested application", reconciliationPaymentDtos.getFirst().getPaymentAllocation().getFirst().getAllocationReason());
+        assertEquals(allocationCreatedDate, reconciliationPaymentDtos.getFirst().getPaymentAllocation().getFirst().getDateCreated());
     }
 
     @Test
