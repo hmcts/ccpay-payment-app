@@ -49,6 +49,7 @@
         <cve>CVE-2026-54513</cve>
         <cve>CVE-2026-54514</cve>
         <cve>CVE-2026-54512</cve>
+        <cve>CVE-2025-21199</cve>
     </suppress>
 
 </suppressions>
