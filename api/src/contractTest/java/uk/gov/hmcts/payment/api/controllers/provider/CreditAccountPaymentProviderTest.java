@@ -47,7 +47,15 @@ import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 @ExtendWith(SpringExtension.class)
 @Provider("payment_creditAccountPayment")
 @PactBroker(scheme = "${PACT_BROKER_SCHEME:http}", host = "${PACT_BROKER_URL:localhost}", port = "${PACT_BROKER_PORT:80}", consumerVersionSelectors = {
-    @VersionSelector(tag = "master")})
+    @VersionSelector(consumer = "civil_service", tag = "master"),
+    @VersionSelector(consumer = "divorce_caseOrchestratorService", tag = "master"),
+    @VersionSelector(consumer = "fpl_ccdConfiguration", tag = "master"),
+    @VersionSelector(consumer = "fr_caseOrchestratorService", tag = "master"),
+    @VersionSelector(consumer = "ia_caseDocumentsApi", tag = "master"),
+    @VersionSelector(consumer = "ia_casePaymentsApi", tag = "master"),
+    @VersionSelector(consumer = "probate_backOffice", tag = "master")
+})
+
 @Import(CreditAccountPaymentProviderTestConfiguration.class)
 @IgnoreNoPactsToVerify
 class CreditAccountPaymentProviderTest {

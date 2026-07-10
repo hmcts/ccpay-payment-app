@@ -361,6 +361,7 @@ public class PaymentDtoMapper {
             .method(payment.getPaymentMethod().getName())
             .bankedDate(payment.getBankedDate())
             .giroSlipNo(payment.getGiroSlipNo())
+            .paymentAllocation(payment.getPaymentAllocation() != null ? toPaymentAllocationDtos(payment.getPaymentAllocation()) : null)
             .externalProvider(payment.getPaymentProvider() != null ? payment.getPaymentProvider().getName() : null)
             .externalReference(isBulkScanPayment ? payment.getDocumentControlNumber() : payment.getExternalReference())
             .reportedDateOffline(payment.getPaymentChannel() != null && payment.getPaymentChannel().getName().equals("digital bar") ? payment.getReportedDateOffline() : null)
