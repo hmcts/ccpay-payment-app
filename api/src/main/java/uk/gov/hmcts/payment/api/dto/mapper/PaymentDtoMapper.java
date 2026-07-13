@@ -289,6 +289,7 @@ public class PaymentDtoMapper {
             .currency(CurrencyCode.valueOf(payment.getCurrency()))
             .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus())
             .statusHistories(payment.getStatusHistories() != null ? toStatusHistoryDtos(payment.getStatusHistories()) : null)
+            .paymentAllocation(payment.getPaymentAllocation() != null ? toPaymentAllocationDtoForLibereta(payment.getPaymentAllocation()) : null)
             .dateCreated(payment.getDateCreated())
             .dateUpdated(payment.getDateUpdated())
             .method(payment.getPaymentMethod().getName())
@@ -300,8 +301,6 @@ public class PaymentDtoMapper {
             .build();
         return enrichWithFeeData(paymentDto);
     }
-
-
 
     public PaymentDto toPaymentDto(Payment payment, PaymentFeeLink paymentFeeLink){
         PaymentDto paymentDto = PaymentDto.payment2DtoWith()
@@ -319,6 +318,7 @@ public class PaymentDtoMapper {
             .currency(CurrencyCode.valueOf(payment.getCurrency()))
             .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus())
             .statusHistories(payment.getStatusHistories() != null ? toStatusHistoryDtos(payment.getStatusHistories()) : null)
+            .paymentAllocation(payment.getPaymentAllocation() != null ? toPaymentAllocationDtos(payment.getPaymentAllocation()) : null)
             .dateCreated(payment.getDateCreated())
             .dateUpdated(payment.getDateUpdated())
             .method(payment.getPaymentMethod().getName())
@@ -361,7 +361,7 @@ public class PaymentDtoMapper {
             .method(payment.getPaymentMethod().getName())
             .bankedDate(payment.getBankedDate())
             .giroSlipNo(payment.getGiroSlipNo())
-            .paymentAllocation(payment.getPaymentAllocation() != null ? toPaymentAllocationDtos(payment.getPaymentAllocation()) : null)
+            .paymentAllocation(payment.getPaymentAllocation() != null ? toPaymentAllocationDtoForLibereta(payment.getPaymentAllocation()) : null)
             .externalProvider(payment.getPaymentProvider() != null ? payment.getPaymentProvider().getName() : null)
             .externalReference(isBulkScanPayment ? payment.getDocumentControlNumber() : payment.getExternalReference())
             .reportedDateOffline(payment.getPaymentChannel() != null && payment.getPaymentChannel().getName().equals("digital bar") ? payment.getReportedDateOffline() : null)
