@@ -38,7 +38,7 @@ public class AccountServiceTest {
     @Before
     public void setUp() {
         // Setup mock behavior
-        when(liberataService.getAccessToken()).thenReturn("mockAccessToken");
+        when(liberataService.getAccessToken()).thenReturn(new TokenState("mockAccessToken", null));
     }
 
     @Test
