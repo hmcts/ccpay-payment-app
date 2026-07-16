@@ -71,7 +71,7 @@ allprojects {
         dependencies {
             dependencySet(
                     group: 'org.apache.tomcat.embed',
-                    version: '10.1.55'
+                    version: '10.1.57'
             ) {
                 entry 'tomcat-embed-core'
                 entry 'tomcat-embed-websocket'
