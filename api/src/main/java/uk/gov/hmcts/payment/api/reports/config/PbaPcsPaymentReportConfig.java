@@ -19,7 +19,7 @@ public class PbaPcsPaymentReportConfig implements PaymentReportConfig<PaymentDto
         "Payment status updated date,Payment status,Payment channel,Payment method,Payment amount,Site id,Fee code," +
         "Version,Calculated amount,Memo line,NAC,Fee volume";
 
-    private static final String CREDIT_ACCOUNT_PAYMENTS_CSV_FILE_PREFIX = "hmcts_credit_account_payments_smc_";
+    private static final String CREDIT_ACCOUNT_PAYMENTS_CSV_FILE_PREFIX = "hmcts_credit_account_payments_pcs_";
 
     @Value("${pba.pcs.payments.email.from:dummy}")
     private String from;
