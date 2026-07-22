@@ -75,6 +75,7 @@ java:
     PBA_IAC_PAYMENTS_EMAIL_FROM: "no-reply@mail-payment-nonprod.platform.hmcts.net"
     PBA_IAC_PAYMENTS_EMAIL_MESSAGE: "Hi, <br/><br/>Please find attached Payment by Account reconciliation report. <br/><br/>Regards, <br/>Fees & Payments Team <br/><br/>"
     PBA_IAC_PAYMENTS_EMAIL_SUBJECT: "CNP:PBA IAC Reconciliation Report"
+
     DUPLICATE_PAYMENTS_REPORT_SCHEDULER_ENABLED: "true"
     DUPLICATE_PAYMENTS_EMAIL_FROM: "no-reply@mail-payment-nonprod.platform.hmcts.net"
     DUPLICATE_PAYMENTS_EMAIL_MESSAGE: "Hi, <br/><br/>Please find attached Potential Duplicate Payments report. <br/><br/>Regards, <br/>Fees & Payments Team <br/><br/>"
@@ -83,6 +84,10 @@ java:
     PBA_SMC_PAYMENTS_EMAIL_FROM: "no-reply@mail-payment-nonprod.platform.hmcts.net"
     PBA_SMC_PAYMENTS_EMAIL_MESSAGE: "Hi, <br/><br/>Please find attached Payment by Account reconciliation report. <br/><br/>Regards, <br/>Fees & Payments Team <br/><br/>"
     PBA_SMC_PAYMENTS_EMAIL_SUBJECT: "CNP:PBA Specified Money Claims Reconciliation Report"
+    PBA_PCS_PAYMENTS_REPORT_SCHEDULER_ENABLED: "true"
+    PBA_PCS_PAYMENTS_EMAIL_FROM: "no-reply@mail-payment-nonprod.platform.hmcts.net"
+    PBA_PCS_PAYMENTS_EMAIL_MESSAGE: "Hi, <br/><br/>Please find attached Payment by Account reconciliation report. <br/><br/>Regards, <br/>Fees & Payments Team <br/><br/>"
+    PBA_PCS_PAYMENTS_EMAIL_SUBJECT: "CNP:PBA Mortgage and Landlord Possession Claims Reconciliation Report"
     DUPLICATE_SERVICE_REQUEST_REPORT_SCHEDULER_ENABLED: "true"
     DUPLICATE_SERVICE_REQUEST_EMAIL_FROM: "no-reply@mail-payment-nonprod.platform.hmcts.net"
     DUPLICATE_SERVICE_REQUEST_EMAIL_SUBJECT: "CNP:Service Request Report"
@@ -188,6 +193,8 @@ java:
           alias: pba.prl.payments.email.to
         - name: pba-iac-payments-email-to
           alias: pba.iac.payments.email.to
+        - name: pba-pcs-payments-email-to
+          alias: pba.pcs.payments.email.to
         - name: launch-darkly-sdk-key
           alias: launch.darkly.sdk.key
         - name: payment-s2s-secret

@@ -2,7 +2,7 @@
 package uk.gov.hmcts.payment.api.reports;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -12,15 +12,12 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.test.annotation.DirtiesContext;
-import uk.gov.hmcts.payment.api.reports.config.*;
-import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 
 import java.util.Date;
 import java.util.Map;
 
 
-import uk.gov.hmcts.payment.api.reports.config.PaymentReportConfig;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.DuplicatePaymentException;
+import uk.gov.hmcts.payment.api.reports.config.*;
 
 import static org.mockito.Mockito.*;
 
@@ -55,6 +52,7 @@ public class PaymentsReportFacadeTest {
     private PbaProbatePaymentReportConfig pbaProbatePaymentReportConfig = new PbaProbatePaymentReportConfig("from", null, "subject", "message", true);
     private PbaFinremPaymentReportConfig pbaFinremPaymentReportConfig = new PbaFinremPaymentReportConfig("from", null, "subject", "message", true);
     private PbaSmcPaymentReportConfig pbaSmcPaymentReportConfig = new PbaSmcPaymentReportConfig("from", null, "subject", "message", true);
+    private PbaPcsPaymentReportConfig pbaPcsPaymentReportConfig = new PbaPcsPaymentReportConfig("from", null, "subject", "message", true);
     private DuplicatePaymentReportConfig duplicatePaymentReportConfig = new DuplicatePaymentReportConfig("from", null, "subject", "message", true);
 
 
@@ -67,6 +65,7 @@ public class PaymentsReportFacadeTest {
         .put(PaymentReportType.PBA_PROBATE, pbaProbatePaymentReportConfig)
         .put(PaymentReportType.PBA_FINREM, pbaFinremPaymentReportConfig)
         .put(PaymentReportType.PBA_SMC, pbaSmcPaymentReportConfig)
+        .put(PaymentReportType.PBA_PCS, pbaPcsPaymentReportConfig)
         .put(PaymentReportType.DUPLICATE_PAYMENT, duplicatePaymentReportConfig).build();
 
     @Before
@@ -184,6 +183,20 @@ public class PaymentsReportFacadeTest {
     }
 
     @Test
+    public void PbaPossessionsConfigurationService() {
+        // given
+        Date fromDate = new Date();
+        Date toDate = new Date();
+
+        // when
+        facade.generateCsvAndSendEmail(fromDate, toDate, PBA, "Mortgage and Landlord Possession Claims");
+
+        // then
+        verify(reportService).generateCsvAndSendEmail(fromDate, toDate, PBA, "Mortgage and Landlord Possession Claims", pbaPcsPaymentReportConfig);
+
+    }
+
+    @Test
     public void PbaFinremConfigurationService() {
         // given
         Date fromDate = new Date();
@@ -231,8 +244,6 @@ public class PaymentsReportFacadeTest {
         // Arrange
         Date startDate = new Date();
         Date endDate = new Date();
-
-
 
         // Act
         facade.generateDuplicatePaymentCsvAndSendEmail(startDate, endDate);
