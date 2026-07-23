@@ -74,7 +74,7 @@ module "payment-database-v15" {
     {
       name : var.database_name
       report_privilege_schema : "public"
-      report_privilege_tables : ["payment", "fee", "payment_fee_link","remission"]
+      report_privilege_tables : ["payment", "fee", "payment_fee_link", "remission"]
     }
   ]
   pgsql_server_configuration = [
