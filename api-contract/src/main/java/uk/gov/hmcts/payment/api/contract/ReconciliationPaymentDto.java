@@ -91,6 +91,9 @@ public class ReconciliationPaymentDto {
 
     private List<StatusHistoryDto> statusHistories;
 
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private List<PaymentAllocationDto> paymentAllocation;
+
     private String giroSlipNo;
 
     private String internalReference;

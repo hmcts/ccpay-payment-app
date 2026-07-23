@@ -64,14 +64,14 @@ allprojects {
         imports {
             mavenBom "org.springframework.boot:spring-boot-dependencies:${springBootVersion}"
             mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
-            mavenBom 'org.apache.logging.log4j:log4j-bom:2.26.0'
-            mavenBom 'io.netty:netty-all:4.2.13.Final'
+            mavenBom 'org.apache.logging.log4j:log4j-bom:2.26.1'
+            mavenBom 'io.netty:netty-all:4.2.16.Final'
             mavenBom 'org.testcontainers:testcontainers-bom:2.0.5'
         }
         dependencies {
             dependencySet(
                     group: 'org.apache.tomcat.embed',
-                    version: '10.1.55'
+                    version: '10.1.57'
             ) {
                 entry 'tomcat-embed-core'
                 entry 'tomcat-embed-websocket'

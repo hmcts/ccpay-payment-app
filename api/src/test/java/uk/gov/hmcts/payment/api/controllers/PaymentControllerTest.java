@@ -1410,6 +1410,58 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
     @Test
     @Transactional
+    public void searchPaymentsByApportion_withEmptyPaymentAllocation_shouldNotReturnPaymentAllocation() throws Exception {
+
+        Payment payment = populateCardPaymentToDb("1");
+        payment.setPaymentAllocation(new ArrayList<>());
+
+        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
+        String endDate = LocalDate.now().toString(DATE_FORMAT);
+
+        MvcResult result = restActions
+            .get("/reconciliation-payments?start_date=" + startDate + "&end_date=" + endDate)
+            .andExpect(status().isOk())
+            .andReturn();
+
+        String responseBody = result.getResponse().getContentAsString();
+        assertThat(responseBody).doesNotContain("payment_allocation");
+
+        ReconciliationPaymentsResponse paymentsResponse = objectMapper.readValue(responseBody, ReconciliationPaymentsResponse.class);
+        assertThat(paymentsResponse.getPayments().size()).isEqualTo(1);
+
+    }
+
+    @Test
+    @Transactional
+    public void searchPaymentsByApportion_withPaymentAllocation_shouldReturnPaymentAllocation() throws Exception {
+
+        Payment payment = populateCardPaymentToDb("1");
+        PaymentAllocation paymentAllocation = PaymentAllocation.paymentAllocationWith()
+            .paymentGroupReference("2018-00000000001")
+            .paymentReference("RC-1519-9028-2432-0001")
+            .paymentAllocationStatus(PaymentAllocationStatus.paymentAllocationStatusWith().name("Transferred").build())
+            .receivingOffice("Home office")
+            .build();
+        payment.setPaymentAllocation(Arrays.asList(paymentAllocation));
+
+        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
+        String endDate = LocalDate.now().toString(DATE_FORMAT);
+
+        MvcResult result = restActions
+            .get("/reconciliation-payments?start_date=" + startDate + "&end_date=" + endDate)
+            .andExpect(status().isOk())
+            .andReturn();
+
+        String responseBody = result.getResponse().getContentAsString();
+        assertThat(responseBody).contains("payment_allocation");
+
+        ReconciliationPaymentsResponse paymentsResponse = objectMapper.readValue(responseBody, ReconciliationPaymentsResponse.class);
+        assertThat(paymentsResponse.getPayments().size()).isEqualTo(1);
+
+    }
+
+    @Test
+    @Transactional
     public void searchPaymentsByApportion_withIacFeatureEnabledAndNullIacResponseBody_shouldFallbackToBasePayments() throws Exception {
         populateIACCardPaymentToDb("9");
 

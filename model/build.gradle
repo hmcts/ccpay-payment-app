@@ -12,7 +12,7 @@ dependencies {
     implementation project(':payment-reference-data')
     implementation project(':case-payment-orders-client')
     implementation group: 'com.google.guava', name: 'guava', version: '33.6.0-jre'
-    implementation group: 'com.microsoft.azure', name: 'applicationinsights-core', version: '3.7.8'
+    implementation group: 'com.microsoft.azure', name: 'applicationinsights-core', version: '3.7.9'
     implementation group: 'org.apache.httpcomponents.client5', name: 'httpclient5'
     implementation group: 'net.logstash.logback', name: 'logstash-logback-encoder', version:'7.4'
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web'
@@ -23,7 +23,7 @@ dependencies {
     api group: 'org.springframework.security', name: 'spring-security-oauth2-client', version: '6.5.10'
     implementation group: 'com.querydsl', name: 'querydsl-jpa', version:'5.1.0'
     api group: 'commons-validator', name: 'commons-validator', version:'1.10.1'
-    implementation (group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '5.3.3') {
+    implementation (group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '5.3.4') {
         exclude group: 'org.apache.httpcomponents', module: 'httpclient'
     }
     implementation group: 'io.github.resilience4j', name: 'resilience4j-spring-boot3', version: '2.2.0'

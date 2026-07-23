@@ -15,7 +15,8 @@ public enum PaymentReportType {
     PBA_CIVIL,
     PBA_PRL,
     PBA_IAC,
-    PBA_SMC;
+    PBA_SMC,
+    PBA_PCS;
 
     public static PaymentReportType from(PaymentMethodType paymentMethodType, String serviceType) {
         String value = "";
@@ -52,7 +53,7 @@ public enum PaymentReportType {
         serviceTypeHashMap.put("Family Private Law","PRL");
         serviceTypeHashMap.put("Immigration and Asylum Appeals", "IAC");
         serviceTypeHashMap.put("Specified Money Claims", "SMC");
-
+        serviceTypeHashMap.put("Mortgage and Landlord Possession Claims", "PCS");
 
         return serviceTypeHashMap.getOrDefault(serviceType, serviceType);
     }
