@@ -5,30 +5,96 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @JsonInclude(NON_NULL)
 public class TokenResponse {
 
-    private String accessToken;
-    private long expiresIn = 120 * 1000; //2 minutes
-    private long createdAt = System.currentTimeMillis();
+    private String name;
+    private List<String> abilities;
 
-    public String getAccessToken() {
-        return accessToken;
+
+    @JsonProperty("expires_at")
+    private String expiresAt;
+
+    @JsonProperty("tokenable_id")
+    private Long tokenableId;
+
+    @JsonProperty("tokenable_type")
+    private String tokenableType;
+
+    @JsonProperty("updated_at")
+    private String updatedAt;
+
+    @JsonProperty("created_at")
+    private String createdAt;
+
+    private Long id;
+
+    public String getName() {
+        return name;
     }
 
-    public long getExpiresIn() {
-        return expiresIn;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public long getCreatedAt() {
+    public List<String> getAbilities() {
+        return abilities;
+    }
+
+    public void setAbilities(List<String> abilities) {
+        this.abilities = abilities;
+    }
+
+    public String getExpiresAt() {
+        return expiresAt;
+    }
+
+    public void setExpiresAt(String expiresAt) {
+        this.expiresAt = expiresAt;
+    }
+
+    public Long getTokenableId() {
+        return tokenableId;
+    }
+
+    public void setTokenableId(Long tokenableId) {
+        this.tokenableId = tokenableId;
+    }
+
+    public String getTokenableType() {
+        return tokenableType;
+    }
+
+    public void setTokenableType(String tokenableType) {
+        this.tokenableType = tokenableType;
+    }
+
+    public String getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(String updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public String getCreatedAt() {
         return createdAt;
     }
 
-    public boolean isExpired() {
-        return System.currentTimeMillis() >= (createdAt + expiresIn);
+    public void setCreatedAt(String createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 }
-

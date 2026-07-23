@@ -12,7 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.payment.api.dto.liberata.identity.LiberataDto;
-import java.util.Collections;
 
 @Service
 public class LiberataIdentity {
@@ -24,9 +23,9 @@ public class LiberataIdentity {
     private RestTemplate liberataRestTemplate;
 
     private TokenResponse getToken() {
-        if (cachedToken != null && !cachedToken.isExpired()) {
-            return cachedToken;
-        }
+//        if (cachedToken != null && !cachedToken.isExpired()) {
+//            return cachedToken;
+//        }
         cachedToken = fetchNewToken();
         return cachedToken;
     }
@@ -35,9 +34,9 @@ public class LiberataIdentity {
     public TokenResponse getValidToken() {
         TokenResponse token = getToken();
 
-        if (token.isExpired()) {
-            token = refreshToken();
-        }
+//        if (token.isExpired()) {
+//            token = refreshToken();
+//        }
 
         return token;
     }
@@ -49,21 +48,17 @@ public class LiberataIdentity {
 
 
     private TokenResponse fetchNewToken() {
-        // from confluence https://lascustomerportaluat.liberata.com/pba_api_uat/api/auth/token
 
-        //from the document https://lascustomerportal.liberata.com/pba_api/api/auth/token
-        //from the document https://lascustomerportaluat.liberata.com/pba_api_test/api/auth/token
-
-        //already tried
         String url = "https://lascustomerportaluat.liberata.com/pba_api_uat/api/auth/token";
 
         LiberataDto payload = new LiberataDto();
-        payload.setEmail("joe@bloggs.com");
-        payload.setPassword("Password123");
+        payload.setEmail("PBA_UAT@liberata.com");
+        payload.setPassword("GoNVHA>qSZh2(y\\,ABC;");
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(java.util.Collections.singletonList(MediaType.APPLICATION_JSON));
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
 
         HttpEntity<LiberataDto> request =
             new HttpEntity<>(payload, headers);
