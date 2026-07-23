@@ -63,11 +63,11 @@ module "payment-database-v15" {
 
   # Setup Access for reporting and JiT perms.
   force_user_permissions_trigger     = "2"
-  enable_db_report_privileges          = true
-  kv_subscription                               = var.kv_subscription
-  kv_name                                           = data.azurerm_key_vault.payment_key_vault.name
-  user_secret_name                           = azurerm_key_vault_secret.POSTGRES-USER.name
-  pass_secret_name                           = azurerm_key_vault_secret.POSTGRES-PASS.name
+  enable_db_report_privileges        = true
+  kv_subscription                    = var.kv_subscription
+  kv_name                            = data.azurerm_key_vault.payment_key_vault.name
+  user_secret_name                   = azurerm_key_vault_secret.POSTGRES-USER.name
+  pass_secret_name                   = azurerm_key_vault_secret.POSTGRES-PASS.name
   force_db_report_privileges_trigger = "2"
 
   pgsql_databases = [
