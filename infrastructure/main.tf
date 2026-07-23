@@ -61,12 +61,20 @@ module "payment-database-v15" {
   env                  = var.env
   pgsql_admin_username = var.postgresql_user
 
-  # Setup Access Reader db user
-  force_user_permissions_trigger = "1"
+  # Setup Access for reporting and JiT perms.
+  force_user_permissions_trigger     = "2"
+  enable_db_report_privileges          = true
+  kv_subscription                               = var.kv_subscription
+  kv_name                                           = data.azurerm_key_vault.payment_key_vault.name
+  user_secret_name                           = azurerm_key_vault_secret.POSTGRES-USER.name
+  pass_secret_name                           = azurerm_key_vault_secret.POSTGRES-PASS.name
+  force_db_report_privileges_trigger = "2"
 
   pgsql_databases = [
     {
       name : var.database_name
+      report_privilege_schema : "public"
+      report_privilege_tables : ["payment", "fee", "payment_fee_link","remission"]
     }
   ]
   pgsql_server_configuration = [
