@@ -95,3 +95,9 @@ variable "db_alert_email_address_key" {
   type        = string
   default     = "db-alert-monitoring-email-address"
 }
+
+variable "kv_subscription" {
+  default     = "DCD-CNP-DEV"
+  type        = string
+  description = "Update this with the name of the subscription where the single server key vault is. Defaults to DCD-CNP-DEV."
+}

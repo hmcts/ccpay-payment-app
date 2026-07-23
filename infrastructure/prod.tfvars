@@ -3,4 +3,4 @@ telephony_api_gateway_certificate_thumbprints = ["68EDF481C5394D65962E9810913455
 sku_name                                      = "GP_Gen5_4"
 flexible_sku_name                             = "GP_Standard_D4s_v3"
 sku_capacity                                  = "4"
-
+kv_subscription                               = "DCD-CNP-Prod"
