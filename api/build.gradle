@@ -100,8 +100,8 @@ dependencies {
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa'
     implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.20.0'
     implementation group: 'net.logstash.logback', name: 'logstash-logback-encoder', version: '8.1'
-    implementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.5.32'
-    implementation group: 'ch.qos.logback', name: 'logback-core', version: '1.5.32'
+    implementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.5.38'
+    implementation group: 'ch.qos.logback', name: 'logback-core', version: '1.5.38'
     implementation group: 'xerces', name: 'xercesImpl', version: '2.12.2'
     implementation group: 'org.apache.httpcomponents.client5', name: 'httpclient5'
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.17.0'
@@ -165,7 +165,7 @@ dependencies {
     // JUnit 4 dependencies
     testImplementation group: 'org.mockito', name: 'mockito-core', version: '5.23.0'
     testImplementation group: 'io.github.hakky54', name: 'logcaptor', version: '2.12.6'
-    testImplementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.5.32'
+    testImplementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.5.38'
     testRuntimeOnly group: 'org.junit.vintage', name: 'junit-vintage-engine'
     testRuntimeOnly group: 'org.junit.platform', name: 'junit-platform-launcher'
 
