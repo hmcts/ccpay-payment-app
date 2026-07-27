@@ -20,7 +20,7 @@ public final class AccessTokenDtoToTokenResponseMapper {
             ) {
                 final Long createdAtMillis = Instant.parse(liberataIdentityResponse.getToken().getAccessToken().getCreatedAt()).toEpochMilli();
                 final Long expiresAtMillis = Instant.parse(liberataIdentityResponse.getToken().getAccessToken().getExpiresAt()).toEpochMilli();
-                return new TokenResponse(liberataIdentityResponse.getToken().getPlainTextToken(), createdAtMillis, expiresAtMillis);
+                return new TokenResponse(liberataIdentityResponse.getToken().getPlainTextToken(), expiresAtMillis, createdAtMillis);
             } else {
                 throw new LiberataIdentityException("Failed to parse createdAt or expiresAt from LiberataIdentityResponse: " + liberataIdentityResponse);
             }
