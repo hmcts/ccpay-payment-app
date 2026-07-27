@@ -59,7 +59,7 @@ public class PaymentApiApplication {
                 .expireAfterWrite(1440, TimeUnit.MINUTES)
                 .build()),
             new CaffeineCache("liberataToken", Caffeine.newBuilder()
-                .expireAfterWrite(20, TimeUnit.SECONDS)
+                .expireAfterWrite(20, TimeUnit.MINUTES)
                 .build()),
             new CaffeineCache("sites", Caffeine.newBuilder()
                 .expireAfterWrite(48, TimeUnit.HOURS)
