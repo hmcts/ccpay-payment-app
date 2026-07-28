@@ -125,4 +125,38 @@ public class LiberataIdentityTest {
 
         verify(accessTokenDtoToTokenResponseMapper).toTokenResponse(any(LiberataIdentityResponse.class));
     }
+
+    @Test
+    public void shouldReturnValidTokenWhenRefreshTokenCalledAndLiberataRespondsSuccessfully() {
+        ResponseEntity<LiberataIdentityResponse> responseEntity = ResponseEntity.ok(liberataIdentityResponse);
+        when(liberataRestTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(LiberataIdentityResponse.class)))
+            .thenReturn(responseEntity);
+
+        TokenResponse tokenResponse = new TokenResponse("plain-text-token", 1000000L, System.currentTimeMillis());
+        when(accessTokenDtoToTokenResponseMapper.toTokenResponse(liberataIdentityResponse)).thenReturn(tokenResponse);
+
+        TokenResponse result = liberataIdentity.refreshToken();
+
+        assertEquals("plain-text-token", result.getAccessToken());
+        assertFalse(result.isExpired());
+
+        verify(liberataRestTemplate).postForEntity(anyString(), any(HttpEntity.class), eq(LiberataIdentityResponse.class));
+    }
+
+    @Test
+    public void shouldThrowLiberataIdentityExceptionWhenRefreshTokenRestTemplateFails() {
+        when(liberataRestTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(LiberataIdentityResponse.class)))
+            .thenThrow(new RuntimeException("rest failure"));
+
+        try {
+            liberataIdentity.refreshToken();
+            fail("Expected LiberataIdentityException");
+        } catch (LiberataIdentityException e) {
+            assertTrue(e.getMessage().contains("rest failure"));
+            assertTrue(e.getCause() instanceof RuntimeException);
+            assertEquals("rest failure", e.getCause().getMessage());
+        }
+
+        verify(liberataRestTemplate).postForEntity(anyString(), any(HttpEntity.class), eq(LiberataIdentityResponse.class));
+    }
 }
