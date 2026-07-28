@@ -6,11 +6,16 @@ import uk.gov.hmcts.payment.api.dto.liberata.identity.AccessTokenDto;
 import uk.gov.hmcts.payment.api.dto.liberata.identity.LiberataIdentityResponse;
 import uk.gov.hmcts.payment.api.dto.liberata.identity.TokenDto;
 import uk.gov.hmcts.payment.api.dto.liberata.identity.TokenResponse;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.LiberataIdentityException;
 
 import java.time.Instant;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class AccessTokenDtoToTokenResponseMapperTest {
 
@@ -45,5 +50,46 @@ public class AccessTokenDtoToTokenResponseMapperTest {
         assertEquals(expectedExpiresMillis, response.getExpiresIn());
         assertEquals(expectedCreatedMillis, response.getCreatedAt());
     }
-}
 
+    @Test
+    public void testToTokenResponse_throwsLiberataIdentityException_whenAccessTokenIsNull() {
+        // accessToken is null -> should trigger the explicit LiberataIdentityException from the validation branch
+        String plainTextToken = "plain-token";
+        TokenDto tokenDto = new TokenDto(null, plainTextToken);
+        LiberataIdentityResponse liberataIdentityResponse = new LiberataIdentityResponse(tokenDto);
+
+        AccessTokenDtoToTokenResponseMapper mapper = new AccessTokenDtoToTokenResponseMapper();
+
+        assertThrows(LiberataIdentityException.class, () -> mapper.toTokenResponse(liberataIdentityResponse));
+    }
+
+    @Test
+    public void testToTokenResponse_throwsLiberataIdentityException_whenDatesAreMalformed() {
+        // malformed dates should cause Instant.parse to throw and the mapper to rethrow LiberataIdentityException with the cause
+        String createdAt = "not-a-valid-date";
+        String expiresAt = "also-not-valid";
+        String plainTextToken = "plain-token";
+
+        AccessTokenDto accessTokenDto = new AccessTokenDto(
+            "pba-api-token",
+            List.of("*"),
+            expiresAt,
+            1,
+            "App\\Models\\User",
+            "2026-07-24T13:50:18.701000Z",
+            createdAt,
+            15
+        );
+
+        TokenDto tokenDto = new TokenDto(accessTokenDto, plainTextToken);
+        LiberataIdentityResponse liberataIdentityResponse = new LiberataIdentityResponse(tokenDto);
+
+        AccessTokenDtoToTokenResponseMapper mapper = new AccessTokenDtoToTokenResponseMapper();
+
+        LiberataIdentityException ex = assertThrows(LiberataIdentityException.class, () -> mapper.toTokenResponse(liberataIdentityResponse));
+        // ensure the root cause is a DateTimeParseException from Instant.parse
+        assertNotNull(ex.getCause());
+        assertTrue(ex.getCause() instanceof DateTimeParseException);
+    }
+
+}
