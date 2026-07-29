@@ -28,6 +28,7 @@ import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.service.CallbackService;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.service.FeePayApportionService;
+import uk.gov.hmcts.payment.api.service.LiberataService;
 import uk.gov.hmcts.payment.api.service.LoggingCreditAccountPaymentService;
 import uk.gov.hmcts.payment.api.service.PaymentServiceImpl;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
@@ -117,6 +118,8 @@ public class CreditAccountPaymentProviderTestConfiguration {
     AuthTokenGenerator authTokenGenerator;
     @MockBean
     ServiceRequestCaseUtil serviceRequestCaseUtil;
+    @MockBean
+    LiberataService liberataService;
 
     @Bean
     @Primary

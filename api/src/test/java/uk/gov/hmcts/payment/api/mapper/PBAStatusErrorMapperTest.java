@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.api.mapper;
 
+import net.minidev.json.JSONObject;
 import nl.altindag.log.LogCaptor;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -7,6 +8,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
@@ -71,24 +74,65 @@ public class PBAStatusErrorMapperTest {
     @Test
     public void testSetPaymentStatusWithOnHold() {
         PBAStatusErrorMapper pbaStatusErrorMapper = new PBAStatusErrorMapper();
-        String expected = "CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {} PaymentStatus : {} - Account is on hold!";
-        pbaStatusErrorMapper.setPaymentStatus(creditAccountPaymentRequest, payment, onHoldAccountDetails);
-        assertThat(mockLOG.getInfoLogs().get(0)).isEqualTo("CreditAccountPayment received for ccdCaseNumber : ccd-number Liberata AccountStatus : ON_HOLD PaymentStatus : failed - Account is on hold!");
+        JSONObject responseBody = new JSONObject();
+        responseBody.put("error_code", "4");
+        responseBody.put("description", "Account is not active");
+        ResponseEntity<JSONObject> response = new ResponseEntity<>(responseBody, HttpStatus.FORBIDDEN);
+        pbaStatusErrorMapper.setLiberataPaymentStatus(creditAccountPaymentRequest, payment, onHoldAccountDetails, response);
+        assertThat(mockLOG.getInfoLogs().getFirst()).isEqualTo("CreditAccountPayment received for ccdCaseNumber : ccd-number Liberata AccountStatus : ON_HOLD PaymentStatus : failed - Account is not active");
+    }
+
+    @Test
+    public void testSetPaymentStatusWithExceededCreditLimit() {
+        PBAStatusErrorMapper pbaStatusErrorMapper = new PBAStatusErrorMapper();
+        JSONObject responseBody = new JSONObject();
+        responseBody.put("error_code", "1");
+        responseBody.put("description", "Exceeded credit limit.");
+        ResponseEntity<JSONObject> response = new ResponseEntity<>(responseBody, HttpStatus.FORBIDDEN);
+        pbaStatusErrorMapper.setLiberataPaymentStatus(creditAccountPaymentRequest, payment, activeAccountDetails, response);
+        assertThat(mockLOG.getInfoLogs().getFirst()).isEqualTo("CreditAccountPayment received for ccdCaseNumber : ccd-number Liberata AccountStatus : ACTIVE PaymentStatus : failed - Exceeded credit limit.");
     }
 
     @Test
     public void testSetPaymentStatusWithActiveAndSufficientBalance() {
         PBAStatusErrorMapper pbaStatusErrorMapper = new PBAStatusErrorMapper();
         String expected = "CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {} PaymentStatus : {} - Account Balance Sufficient!!!";
-        pbaStatusErrorMapper.setPaymentStatus(creditAccountPaymentRequest,payment,activeAccountDetails);
-        assertThat(mockLOG.getInfoLogs().get(0)).isEqualTo("CreditAccountPayment received for ccdCaseNumber : ccd-number Liberata AccountStatus : ACTIVE PaymentStatus : success - Account Balance Sufficient!!!");
+        JSONObject responseBody = new JSONObject();
+        ResponseEntity<JSONObject> response = new ResponseEntity<>(responseBody, HttpStatus.OK);
+
+        pbaStatusErrorMapper.setLiberataPaymentStatus(creditAccountPaymentRequest, payment, activeAccountDetails, response);
+        assertThat(mockLOG.getInfoLogs().getFirst()).isEqualTo("CreditAccountPayment received for ccdCaseNumber : ccd-number Liberata AccountStatus : ACTIVE PaymentStatus : success - Account Balance Sufficient!!!");
     }
 
     @Test
     public void testSetPaymentStatusWithDeletedStatus() {
         PBAStatusErrorMapper pbaStatusErrorMapper = new PBAStatusErrorMapper();
-        String expected = "CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {} PaymentStatus : {} - Account is deleted!";
-        pbaStatusErrorMapper.setPaymentStatus(creditAccountPaymentRequest,payment,deletedAccountDetails);
-        assertThat(mockLOG.getInfoLogs().get(0)).isEqualTo("CreditAccountPayment received for ccdCaseNumber : ccd-number Liberata AccountStatus : DELETED PaymentStatus : failed - Account is deleted!");
+        JSONObject responseBody = new JSONObject();
+        responseBody.put("error_code", "2");
+        responseBody.put("description", "Account not found.");
+        ResponseEntity<JSONObject> response = new ResponseEntity<>(responseBody, HttpStatus.FORBIDDEN);
+        pbaStatusErrorMapper.setLiberataPaymentStatus(creditAccountPaymentRequest,payment,deletedAccountDetails, response);
+        assertThat(mockLOG.getInfoLogs().getFirst()).isEqualTo("CreditAccountPayment received for ccdCaseNumber : ccd-number Liberata AccountStatus : DELETED PaymentStatus : failed - Account not found.");
     }
+
+    @Test
+    public void testSetPaymentStatusWithNoSpecifiedErrorCodeOrDescription() {
+        PBAStatusErrorMapper pbaStatusErrorMapper = new PBAStatusErrorMapper();
+        JSONObject responseBody = new JSONObject();
+        ResponseEntity<JSONObject> response = new ResponseEntity<>(responseBody, HttpStatus.FORBIDDEN);
+        pbaStatusErrorMapper.setLiberataPaymentStatus(creditAccountPaymentRequest,payment,deletedAccountDetails, response);
+        assertThat(mockLOG.getInfoLogs().isEmpty()).isTrue();
+    }
+
+    @Test
+    public void testSetPaymentStatusWithValidationFailures() {
+        PBAStatusErrorMapper pbaStatusErrorMapper = new PBAStatusErrorMapper();
+        JSONObject responseBody = new JSONObject();
+        responseBody.put("error_code", "3");
+        responseBody.put("description", "Test message describing validation failures.");
+        ResponseEntity<JSONObject> response = new ResponseEntity<>(responseBody, HttpStatus.BAD_REQUEST);
+        pbaStatusErrorMapper.setLiberataPaymentStatus(creditAccountPaymentRequest,payment,activeAccountDetails, response);
+        assertThat(mockLOG.getInfoLogs().getFirst()).isEqualTo("CreditAccountPayment received for ccdCaseNumber : ccd-number Liberata AccountStatus : ACTIVE PaymentStatus : failed - Test message describing validation failures.");
+    }
+
 }
