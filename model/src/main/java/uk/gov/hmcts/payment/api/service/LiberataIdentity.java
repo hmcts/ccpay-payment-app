@@ -35,6 +35,12 @@ public class LiberataIdentity {
     @Value("${liberata.api.realtime.account.url}")
     private String baseUrl;
 
+    @Value("${liberata.api.realtime.account.username}")
+    private String lieberataUsername;
+
+    @Value("${liberata.api.realtime.account.password}")
+    private String liberataPassword;
+
     private TokenResponse getToken() {
         if (cachedToken != null && !cachedToken.isExpired()) {
             return cachedToken;
@@ -65,14 +71,14 @@ public class LiberataIdentity {
         final MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
 
         headers.setAccept(java.util.Collections.singletonList(MediaType.APPLICATION_JSON));
-        formData.add("email", "PBA_UAT@liberata.com");
-        formData.add("password", "GoNVHA>qSZh2(y\\,ABC;");
+        formData.add("email", lieberataUsername);
+        formData.add("password", liberataPassword);
         final HttpEntity<MultiValueMap<String, String>> request =
             new HttpEntity<>(formData, headers);
         try
         {
             ResponseEntity<LiberataIdentityResponse> response =
-                liberataRestTemplate.postForEntity(baseUrl, request, LiberataIdentityResponse.class);
+                liberataRestTemplate.postForEntity(baseUrl+"/pba_api_v2/api/auth/token", request, LiberataIdentityResponse.class);
 
             System.out.println("Error fetching token from Liberata: " + response);
             System.out.println("Error fetching token from Liberata: " + response.getBody());
