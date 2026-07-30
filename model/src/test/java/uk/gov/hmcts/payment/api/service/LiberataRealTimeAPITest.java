@@ -35,7 +35,7 @@ import static org.mockito.Mockito.when;
 
 @RunWith(SpringRunner.class)
 @TestPropertySource("classpath:application-test.properties")
-public class LiberataIdentityTest {
+public class LiberataRealTimeAPITest {
 
     @Mock
     private RestTemplate liberataRestTemplate;
@@ -44,7 +44,7 @@ public class LiberataIdentityTest {
     private AccessTokenDtoToTokenResponseMapper accessTokenDtoToTokenResponseMapper;
 
     @InjectMocks
-    private LiberataIdentity liberataIdentity;
+    private LiberataRealTimeAPI liberataIdentity;
 
     private LiberataIdentityResponse liberataIdentityResponse;
 

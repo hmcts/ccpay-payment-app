@@ -20,7 +20,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.LiberataIdentityException;
 
 
 @Service
-public class LiberataIdentity {
+public class LiberataRealTimeAPI {
 
     private TokenResponse cachedToken;
 
@@ -79,13 +79,9 @@ public class LiberataIdentity {
         {
             ResponseEntity<LiberataIdentityResponse> response =
                 liberataRestTemplate.postForEntity(baseUrl+"/pba_api_v2/api/auth/token", request, LiberataIdentityResponse.class);
-
-            System.out.println("Error fetching token from Liberata: " + response);
-            System.out.println("Error fetching token from Liberata: " + response.getBody());
             return accessTokenDtoToTokenResponseMapper.toTokenResponse(response.getBody());
 
         } catch (Exception exception) {
-            System.out.println("Error fetching token from Liberata: " + exception.getMessage());
             exception.printStackTrace();
             throw new LiberataIdentityException("Error fetching token from Liberata: " + exception.getMessage(), exception);
         }

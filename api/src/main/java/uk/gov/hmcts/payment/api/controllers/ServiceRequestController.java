@@ -56,7 +56,7 @@ package uk.gov.hmcts.payment.api.controllers;
     import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
     import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
     import uk.gov.hmcts.payment.api.service.FeePayApportionService;
-    import uk.gov.hmcts.payment.api.service.LiberataIdentity;
+    import uk.gov.hmcts.payment.api.service.LiberataRealTimeAPI;
     import uk.gov.hmcts.payment.api.service.PaymentService;
     import uk.gov.hmcts.payment.api.service.FeesService;
     import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotSuccessException;
@@ -65,7 +65,6 @@ package uk.gov.hmcts.payment.api.controllers;
     import java.io.IOException;
     import java.util.List;
     import java.util.Optional;
-    import java.util.concurrent.TimeUnit;
     import java.util.function.Function;
     import java.util.stream.Collectors;
 
@@ -104,7 +103,7 @@ public class ServiceRequestController {
     private FeesService feeService;
 
     @Autowired
-    private LiberataIdentity liberataIdentity;
+    private LiberataRealTimeAPI liberataIdentity;
 
 
     private String serviceRequestReference;
