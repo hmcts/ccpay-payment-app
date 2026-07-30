@@ -82,7 +82,6 @@ public class LiberataRealTimeAPI {
             return accessTokenDtoToTokenResponseMapper.toTokenResponse(response.getBody());
 
         } catch (Exception exception) {
-            exception.printStackTrace();
             throw new LiberataIdentityException("Error fetching token from Liberata: " + exception.getMessage(), exception);
         }
     }

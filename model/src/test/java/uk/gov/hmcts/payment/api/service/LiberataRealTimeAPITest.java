@@ -215,4 +215,17 @@ public class LiberataRealTimeAPITest {
 
         verify(liberataRestTemplate).postForEntity(anyString(), any(HttpEntity.class), eq(LiberataIdentityResponse.class));
     }
+
+    @Test
+    public void shouldUseCachedTokenWhenPresentAndNotExpired_onGetValidToken() {
+        TokenResponse cached = new TokenResponse("cached-token-2", 60000L, System.currentTimeMillis());
+        ReflectionTestUtils.setField(liberataIdentity, "cachedToken", cached);
+
+        LiberataRealTimeAPI spyService = org.mockito.Mockito.spy(liberataIdentity);
+
+        TokenResponse result = spyService.getValidToken();
+
+        assertEquals("cached-token-2", result.getAccessToken());
+        verify(liberataRestTemplate, never()).postForEntity(anyString(), any(HttpEntity.class), eq(LiberataIdentityResponse.class));
+    }
 }
