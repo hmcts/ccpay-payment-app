@@ -30,6 +30,7 @@ import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -156,6 +157,61 @@ public class LiberataRealTimeAPITest {
             assertTrue(e.getCause() instanceof RuntimeException);
             assertEquals("rest failure", e.getCause().getMessage());
         }
+
+        verify(liberataRestTemplate).postForEntity(anyString(), any(HttpEntity.class), eq(LiberataIdentityResponse.class));
+    }
+
+    @Test
+    public void shouldThrowLiberataIdentityExceptionWhenRefreshTokenMapperFails() {
+        ResponseEntity<LiberataIdentityResponse> responseEntity = ResponseEntity.ok(liberataIdentityResponse);
+        when(liberataRestTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(LiberataIdentityResponse.class)))
+            .thenReturn(responseEntity);
+
+        when(accessTokenDtoToTokenResponseMapper.toTokenResponse(any(LiberataIdentityResponse.class)))
+            .thenThrow(new RuntimeException("mapper failure"));
+
+        try {
+            liberataIdentity.refreshToken();
+            fail("Expected LiberataIdentityException");
+        } catch (LiberataIdentityException e) {
+            assertTrue(e.getMessage().contains("mapper failure"));
+            assertEquals("mapper failure", e.getCause().getMessage());
+        }
+
+        verify(accessTokenDtoToTokenResponseMapper).toTokenResponse(any(LiberataIdentityResponse.class));
+    }
+
+    @Test
+    public void shouldReturnValidTokenWhenNotExpiredAndNotCallLiberata() {
+        // prepare a cached token that is not expired
+        TokenResponse cached = new TokenResponse("cached-token", 100000L, System.currentTimeMillis());
+        ReflectionTestUtils.setField(liberataIdentity, "cachedToken", cached);
+
+        TokenResponse result = liberataIdentity.getValidToken();
+
+        assertEquals("cached-token", result.getAccessToken());
+        // ensure no REST call was made since cache is valid
+        verify(liberataRestTemplate, never()).postForEntity(anyString(), any(HttpEntity.class), eq(LiberataIdentityResponse.class));
+    }
+
+    @Test
+    public void shouldRefreshWhenCachedTokenIsExpired() {
+        // prepare a cached token that is expired
+        // createdAt 5 seconds ago, expiresIn 1 second -> expired now
+        TokenResponse expired = new TokenResponse("expired-token", 1000L, System.currentTimeMillis() - 5000L);
+        ReflectionTestUtils.setField(liberataIdentity, "cachedToken", expired);
+
+        // set up REST/mapping to return a new token
+        ResponseEntity<LiberataIdentityResponse> responseEntity = ResponseEntity.ok(liberataIdentityResponse);
+        when(liberataRestTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(LiberataIdentityResponse.class)))
+            .thenReturn(responseEntity);
+
+        TokenResponse tokenResponse = new TokenResponse("refreshed-token", 1000000L, System.currentTimeMillis());
+        when(accessTokenDtoToTokenResponseMapper.toTokenResponse(any(LiberataIdentityResponse.class))).thenReturn(tokenResponse);
+        TokenResponse result = liberataIdentity.refreshToken();
+
+        assertEquals("refreshed-token", result.getAccessToken());
+        assertFalse(result.isExpired());
 
         verify(liberataRestTemplate).postForEntity(anyString(), any(HttpEntity.class), eq(LiberataIdentityResponse.class));
     }
