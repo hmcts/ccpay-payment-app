@@ -92,4 +92,52 @@ public class AccessTokenDtoToTokenResponseMapperTest {
         assertTrue(ex.getCause() instanceof DateTimeParseException);
     }
 
+    @Test
+    public void toTokenResponse_throwsLiberataIdentityException_whenCreatedAtIsNull() {
+        String expiresAt = "2026-08-23T13:50:18.699000Z";
+        String plainTextToken = "plain-token-created-null";
+
+        AccessTokenDto accessTokenDto = new AccessTokenDto(
+            "pba-api-token",
+            List.of("*"),
+            expiresAt,
+            1,
+            "App\\Models\\User",
+            "2026-07-24T13:50:18.701000Z",
+            null,
+            15
+        );
+
+        TokenDto tokenDto = new TokenDto(accessTokenDto, plainTextToken);
+        LiberataIdentityResponse liberataIdentityResponse = new LiberataIdentityResponse(tokenDto);
+
+        AccessTokenDtoToTokenResponseMapper mapper = new AccessTokenDtoToTokenResponseMapper();
+
+        assertThrows(LiberataIdentityException.class, () -> mapper.toTokenResponse(liberataIdentityResponse));
+    }
+
+    @Test
+    public void toTokenResponse_throwsLiberataIdentityException_whenExpiresAtIsNull() {
+        String createdAt = "2026-07-24T13:50:18.701000Z";
+        String plainTextToken = "plain-token-expires-null";
+
+        AccessTokenDto accessTokenDto = new AccessTokenDto(
+            "pba-api-token",
+            List.of("*"),
+            null,
+            1,
+            "App\\Models\\User",
+            "2026-07-24T13:50:18.701000Z",
+            createdAt,
+            15
+        );
+
+        TokenDto tokenDto = new TokenDto(accessTokenDto, plainTextToken);
+        LiberataIdentityResponse liberataIdentityResponse = new LiberataIdentityResponse(tokenDto);
+
+        AccessTokenDtoToTokenResponseMapper mapper = new AccessTokenDtoToTokenResponseMapper();
+
+        assertThrows(LiberataIdentityException.class, () -> mapper.toTokenResponse(liberataIdentityResponse));
+    }
+
 }
