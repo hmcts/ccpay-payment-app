@@ -14,13 +14,13 @@ def springCloudVersion = '2025.0.0'
 
 def versions = [
         lombok: '1.18.46',
-        javaVersion: '21',
+        javaVersion: '25',
         jacocoVersion: '0.8.12'
 ]
 
 java {
   toolchain {
-    languageVersion = JavaLanguageVersion.of(21)
+    languageVersion = JavaLanguageVersion.of(versions.javaVersion)
   }
 }
 
