@@ -1,6 +1,6 @@
 package uk.gov.hmcts.payment.api.controllers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.After;
@@ -12,9 +12,9 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -94,9 +94,9 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     protected Payment2Repository paymentRepository;
     @Autowired
     protected AccountService<AccountDto, String> accountService;
-    @MockBean
+    @MockitoBean
     private SiteService<Site, String> siteServiceMock;
-    @MockBean
+    @MockitoBean
     ReferenceDataService referenceDataService;
     RestActions restActions;
     MockMvc mvc;
@@ -107,9 +107,9 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     private WebApplicationContext webApplicationContext;
     @Autowired
     private ObjectMapper objectMapper;
-    @MockBean
+    @MockitoBean
     private LaunchDarklyFeatureToggler featureToggler;
-    @MockBean
+    @MockitoBean
     private RefundRemissionEnableService refundRemissionEnableService;
 
     protected CustomResultMatcher body() {

@@ -4,6 +4,8 @@ plugins {
 
 description = ''
 dependencies {
+    implementation 'tools.jackson.core:jackson-databind'
+    implementation 'com.fasterxml.jackson.core:jackson-annotations'
     implementation group: 'org.hibernate', name: 'hibernate-validator', version:'8.0.4.Final'
     implementation group: 'jakarta.annotation', name: 'jakarta.annotation-api', version: '3.0.0'
     implementation group: 'jakarta.el', name: 'jakarta.el-api', version: '6.0.1'

@@ -3,7 +3,9 @@ package uk.gov.hmcts.payment.api.controllers.provider;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.DeleteSpecification;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.domain.UpdateSpecification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.repository.query.Param;
 import uk.gov.hmcts.payment.api.model.DuplicateServiceRequestDto;
@@ -148,7 +150,12 @@ public class PayFeeLinkRepositoryStub implements PaymentFeeLinkRepository {
     }
 
     @Override
-    public long delete(Specification<PaymentFeeLink> spec) {
+    public long update(UpdateSpecification<PaymentFeeLink> spec) {
+        return 0;
+    }
+
+    @Override
+    public long delete(DeleteSpecification<PaymentFeeLink> spec) {
         return 0;
     }
 

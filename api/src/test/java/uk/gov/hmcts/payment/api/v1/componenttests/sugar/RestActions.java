@@ -1,6 +1,6 @@
 package uk.gov.hmcts.payment.api.v1.componenttests.sugar;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.apache.commons.collections.map.MultiValueMap;
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.web.MockMultipartFile;

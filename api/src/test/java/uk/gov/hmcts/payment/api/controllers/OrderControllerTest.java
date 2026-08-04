@@ -1,7 +1,7 @@
 package uk.gov.hmcts.payment.api.controllers;
 /*
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.netflix.hystrix.HystrixCommand;
 import com.netflix.hystrix.exception.HystrixRuntimeException;
 import org.junit.After;
@@ -11,7 +11,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
@@ -87,9 +86,9 @@ public class OrderControllerTest {
         .build();
     @Autowired
     private WebApplicationContext webApplicationContext;
-    @MockBean
+    @MockitoBean
     private ReferenceDataService referenceDataService;
-    @MockBean
+    @MockitoBean
     private AuthTokenGenerator authTokenGenerator;
     @Autowired
     private OrderDomainService orderDomainService;
@@ -105,7 +104,7 @@ public class OrderControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @MockBean
+    @MockitoBean
     private LaunchDarklyFeatureToggler launchDarklyFeatureToggler;
 
     @Before

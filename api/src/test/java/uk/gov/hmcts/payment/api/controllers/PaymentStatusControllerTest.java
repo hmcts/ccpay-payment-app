@@ -1,8 +1,7 @@
 package uk.gov.hmcts.payment.api.controllers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
@@ -20,7 +19,6 @@ import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpEntity;
@@ -29,6 +27,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -128,7 +127,7 @@ public class PaymentStatusControllerTest {
         return new CustomResultMatcher(objectMapper);
     }
 
-    @MockBean
+    @MockitoBean
     private PaymentFailureRepository paymentFailureRepository;
 
     @Mock
@@ -140,33 +139,33 @@ public class PaymentStatusControllerTest {
     @Mock
     private Logger logger;
 
-    @MockBean
+    @MockitoBean
     @Qualifier("restTemplateRefundCancel")
     private RestTemplate restTemplateRefundCancel;
 
-    @MockBean
+    @MockitoBean
     @Qualifier("restTemplatePaymentGroup")
     private RestTemplate restTemplatePaymentGroup;
 
-    @MockBean
+    @MockitoBean
     private AuthTokenGenerator authTokenGenerator;
 
     @Mock
     private PaymentFailures paymentFailures;
-    @MockBean
+    @MockitoBean
     private Payment2Repository paymentRepository;
 
-    @MockBean
+    @MockitoBean
     private PaymentService<PaymentFeeLink, String> paymentService;
 
-    @MockBean
+    @MockitoBean
     private DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService;
 
-    @MockBean
+    @MockitoBean
     private LaunchDarklyFeatureToggler featureToggler;
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormat.forPattern("MM/dd/yyyy");
 
-    @MockBean
+    @MockitoBean
     @Qualifier("restTemplateGetRefund")
     private RestTemplate restTemplateGetRefund;
 

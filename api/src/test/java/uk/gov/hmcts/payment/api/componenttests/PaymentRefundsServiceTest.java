@@ -10,13 +10,13 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -105,26 +105,26 @@ public class PaymentRefundsServiceTest {
             .roles(Arrays.asList("payments-refund-approver", "payments-refund")).sub("ZZ")
             .build();
 
-    @MockBean
+    @MockitoBean
     private Payment2Repository paymentRepository;
 
-    @MockBean
+    @MockitoBean
     private RemissionRepository remissionRepository;
 
-    @MockBean
+    @MockitoBean
     private FeePayApportionRepository feePayApportionRepository;
-    @MockBean
+    @MockitoBean
     private PaymentFailureRepository paymentFailureRepository;
 
-    @MockBean
+    @MockitoBean
     @Autowired()
     @Qualifier("restTemplateRefundsGroup")
     private RestTemplate restTemplate;
-    @MockBean
+    @MockitoBean
     private AuthTokenGenerator authTokenGenerator;
     @Autowired
     private PaymentRefundsService paymentRefundsService;
-    @MockBean
+    @MockitoBean
     private IdamService idamService;
 
     @Before
@@ -322,7 +322,7 @@ public class PaymentRefundsServiceTest {
     public void createRefundWithClientException1() throws Exception {
         when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
         Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentSuccess));
-        ResponseEntity<InternalRefundResponse> refundResponseResponseEntity = new ResponseEntity<>(null, HttpStatus.CREATED);
+        ResponseEntity<InternalRefundResponse> refundResponseResponseEntity = new ResponseEntity<>(HttpStatus.CREATED);
 
         when(authTokenGenerator.generate()).thenReturn("test-token");
 

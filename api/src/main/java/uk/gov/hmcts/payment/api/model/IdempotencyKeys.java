@@ -3,8 +3,8 @@ package uk.gov.hmcts.payment.api.model;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Generated;
-import org.hibernate.annotations.GenerationTime;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.generator.EventType;
 
 import jakarta.persistence.*;
 import java.util.Date;
@@ -22,7 +22,7 @@ public class IdempotencyKeys {
         pending, completed
     }
 
-    @Generated(GenerationTime.INSERT)
+    @Generated(event = EventType.INSERT)
     @Column(name = "id", columnDefinition = "serial", updatable = false)
     private Integer id;
 

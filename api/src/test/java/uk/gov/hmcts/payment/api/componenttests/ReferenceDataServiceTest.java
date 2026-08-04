@@ -4,12 +4,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -17,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -24,7 +22,6 @@ import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
-import uk.gov.hmcts.payment.api.service.ReferenceDataServiceImpl;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.NoServiceFoundException;
 import uk.gov.hmcts.payment.referencedata.model.Site;
 import uk.gov.hmcts.payment.referencedata.service.SiteService;
@@ -39,8 +36,7 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 
 @RunWith(SpringRunner.class)
@@ -50,14 +46,14 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 public class ReferenceDataServiceTest extends PaymentsDataUtil {
 
     static MultiValueMap<String, String> header = new LinkedMultiValueMap<String, String>();
-    @Mock
+
+    @MockitoBean
     SiteService<Site, String> siteService;
-    @InjectMocks
-    ReferenceDataServiceImpl referenceDataService;
-    @MockBean
+
+    @MockitoBean
     @Qualifier("restTemplatePaymentGroup")
     private RestTemplate restTemplate;
-    @MockBean
+    @MockitoBean
     private AuthTokenGenerator authTokenGenerator;
     @Autowired
     private ReferenceDataService referenceDataServiceImp;
@@ -82,10 +78,11 @@ public class ReferenceDataServiceTest extends PaymentsDataUtil {
         Site site1 = Site.siteWith()
             .name("site1")
             .build();
+
         List<Site> siteList = new ArrayList<Site>();
         siteList.add(site1);
         when(siteService.getAllSites()).thenReturn(siteList);
-        referenceDataService.getSiteIDs();
+        referenceDataServiceImp.getSiteIDs();
         verify(siteService).getAllSites();
     }
 
@@ -133,7 +130,7 @@ public class ReferenceDataServiceTest extends PaymentsDataUtil {
     @Test(expected = NoServiceFoundException.class)
     public void getOrganisationalDetailNoServiceFoundWithNull() throws Exception {
 
-        ResponseEntity<List<OrganisationalServiceDto>> responseEntity = new ResponseEntity<>(null, HttpStatus.OK);
+        ResponseEntity<List<OrganisationalServiceDto>> responseEntity = new ResponseEntity<>(HttpStatus.OK);
         MultiValueMap<String, String> header = new LinkedMultiValueMap<String, String>();
         //User token
         header.put("Authorization", Collections.singletonList("Bearer 131313"));

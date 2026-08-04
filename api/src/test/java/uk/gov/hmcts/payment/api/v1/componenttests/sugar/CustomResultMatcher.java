@@ -1,8 +1,8 @@
 package uk.gov.hmcts.payment.api.v1.componenttests.sugar;
 
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.TypeFactory;
+import tools.jackson.databind.JavaType;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.type.TypeFactory;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultMatcher;
 
@@ -37,7 +37,7 @@ public class CustomResultMatcher implements ResultMatcher {
 
     public <T> ResultMatcher asListOf(Class<T> collectionType, Consumer<List<T>> assertions) {
         matchers.add(result -> {
-            JavaType javaType = TypeFactory.defaultInstance().constructCollectionType(List.class, collectionType);
+            JavaType javaType = TypeFactory.createDefaultInstance().constructCollectionType(List.class, collectionType);
             List actual = objectMapper.readValue(result.getResponse().getContentAsByteArray(), javaType);
             assertions.equals(actual);
         });

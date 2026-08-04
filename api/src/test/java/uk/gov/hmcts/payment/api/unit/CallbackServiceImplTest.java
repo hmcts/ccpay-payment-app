@@ -1,6 +1,6 @@
 package uk.gov.hmcts.payment.api.unit;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.microsoft.azure.servicebus.IMessage;
 import com.microsoft.azure.servicebus.primitives.ServiceBusException;
 import org.junit.After;

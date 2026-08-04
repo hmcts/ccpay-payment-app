@@ -1,19 +1,18 @@
 package uk.gov.hmcts.payment.api.controllers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -86,17 +85,24 @@ public class RefundsControllerTest {
     MockMvc mvc;
     @Autowired
     private WebApplicationContext webApplicationContext;
+
     @Autowired
     private ServiceResolverBackdoor serviceRequestAuthorizer;
+
     @Autowired
     private UserResolverBackdoor userRequestAuthorizer;
-    @InjectMocks
+
+    @Autowired
     private RefundsController refundsController;
-    @MockBean
+
+    @MockitoBean
     private PaymentRefundsServiceImpl paymentRefundsService;
-    @MockBean
+
+    @MockitoBean
     private PaymentServiceImpl paymentService;
+
     private RestActions restActions;
+
     @Autowired
     private ObjectMapper objectMapper;
 
@@ -176,7 +182,7 @@ public class RefundsControllerTest {
 
 
         when(paymentRefundsService.updateTheRemissionAmount("RC-1111-2222-5555-2222",resubmitRefundRemissionRequest))
-            .thenReturn(new ResponseEntity(null, HttpStatus.OK));
+            .thenReturn(new ResponseEntity<>(HttpStatus.OK));
 
 
         restActions.

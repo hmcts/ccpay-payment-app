@@ -1,8 +1,8 @@
 package uk.gov.hmcts.payment.api.controllers;
 
-    import com.fasterxml.jackson.core.JsonProcessingException;
-    import com.fasterxml.jackson.databind.ObjectMapper;
-    import com.fasterxml.jackson.databind.ObjectWriter;
+    import tools.jackson.core.JacksonException;
+    import tools.jackson.databind.ObjectMapper;
+    import tools.jackson.databind.ObjectWriter;
     import com.microsoft.azure.servicebus.IMessageReceiver;
     import com.microsoft.azure.servicebus.TopicClient;
     import com.microsoft.azure.servicebus.primitives.ServiceBusException;
@@ -165,7 +165,7 @@ public class ServiceRequestController {
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<ServiceRequestPaymentBo> createCreditAccountPaymentForServiceRequest(@Parameter(name = "idempotency_key", hidden = true)@RequestHeader(required = false) String idempotencyKey,
                                                                                                @PathVariable("service-request-reference") String serviceRequestReference,
-                                                                                               @Valid @RequestBody ServiceRequestPaymentDto serviceRequestPaymentDto) throws CheckDigitException, JsonProcessingException {
+                                                                                               @Valid @RequestBody ServiceRequestPaymentDto serviceRequestPaymentDto) throws CheckDigitException {
 
         idempotencyKey = serviceRequestPaymentDto.getIdempotencyKey();
         LOG.info("PBA-CID={}, PBA payment started", idempotencyKey);
@@ -201,7 +201,7 @@ public class ServiceRequestController {
 
 
     private ResponseEntity createPbaPaymentForServiceRequest(String serviceRequestReference,
-                                                            ServiceRequestPaymentDto serviceRequestPaymentDto) throws CheckDigitException, JsonProcessingException {
+                                                            ServiceRequestPaymentDto serviceRequestPaymentDto) throws CheckDigitException, JacksonException {
         // PBA Payment
         val objectMapper = new ObjectMapper();
         ServiceRequestPaymentBo serviceRequestPaymentBo = null;
@@ -262,7 +262,7 @@ public class ServiceRequestController {
                     return new ResponseEntity<>(idempotencyKeys.getResponseBody(), HttpStatus.valueOf(idempotencyKeys.getResponseCode()));
                 }
                 responseBO = objectMapper.readValue(idempotencyKeys.getResponseBody(), ServiceRequestPaymentBo.class);
-            } catch (JsonProcessingException e) {
+            } catch (JacksonException e) {
                 return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
             }
             return new ResponseEntity<>(responseBO, HttpStatus.valueOf(idempotencyKeys.getResponseCode())); // if hashcode matched
@@ -315,7 +315,7 @@ public class ServiceRequestController {
     public ResponseEntity<OnlineCardPaymentResponse> createCardPayment(@Parameter(name = "return-url", hidden = true) @RequestHeader(required = false) String returnURL,
                                                                        @RequestHeader(value = "service-callback-url", required = false) String serviceCallbackURL,
                                                                        @PathVariable("service-request-reference") String serviceRequestReference,
-                                                                       @Valid @RequestBody OnlineCardPaymentRequest onlineCardPaymentRequest) throws CheckDigitException, JsonProcessingException {
+                                                                       @Valid @RequestBody OnlineCardPaymentRequest onlineCardPaymentRequest) throws CheckDigitException, JacksonException {
         returnURL = onlineCardPaymentRequest.getReturnUrl();
         LOG.info("Entered /service-request/{internal-reference}/card-payments using internalReference: {}", serviceRequestReference);
         return serviceRequestDomainService.create(onlineCardPaymentRequest, serviceRequestReference, returnURL, serviceCallbackURL);
@@ -328,7 +328,7 @@ public class ServiceRequestController {
     })
     @PaymentExternalAPI
     @GetMapping(value = "/card-payments/{internal-reference}/status")
-    public PaymentDto retrieveStatusByInternalReference(@PathVariable("internal-reference") String internalReference) throws JsonProcessingException {
+    public PaymentDto retrieveStatusByInternalReference(@PathVariable("internal-reference") String internalReference) throws JacksonException {
         LOG.info("Entered /card-payments/{internal-reference}/status using internalReference: {}", internalReference);
         Payment payment = paymentService.findPayment(internalReference);
         LOG.info("internalReference: {} - Payment: {}", internalReference, payment);

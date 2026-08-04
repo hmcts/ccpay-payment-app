@@ -1,7 +1,7 @@
 package uk.gov.hmcts.payment.api.domain.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.microsoft.azure.servicebus.ClientFactory;
 import com.microsoft.azure.servicebus.IMessage;
@@ -445,7 +445,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
 
     public ResponseEntity createIdempotencyRecord(ObjectMapper objectMapper, String idempotencyKey, String serviceRequestReference,
                                                   String responseJson, IdempotencyKeys.ResponseStatusType responseStatus, ResponseEntity<?> responseEntity,
-                                                  ServiceRequestPaymentDto serviceRequestPaymentDto) throws JsonProcessingException {
+                                                  ServiceRequestPaymentDto serviceRequestPaymentDto) throws JacksonException {
         String requestJson = objectMapper.writeValueAsString(serviceRequestPaymentDto);
         Integer requestHashCode = serviceRequestPaymentDto.hashCodeWithServiceRequestReference(serviceRequestReference);
 
@@ -455,7 +455,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
             .requestBody(requestJson)
             .requestHashcode(requestHashCode)   //save the hashcode
             .responseBody(responseJson)
-            .responseCode(responseEntity != null?responseEntity.getStatusCodeValue():null)
+            .responseCode(responseEntity != null ? responseEntity.getStatusCode().value() : null)
             .responseStatus(responseStatus)
             .build();
 

@@ -1,7 +1,7 @@
 package uk.gov.hmcts.payment.api.controllers;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormat;
@@ -1470,7 +1470,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
         when(featureToggler.getBooleanValue("iac-supplementary-details-feature", false)).thenReturn(true);
         when(iacService.getIacSupplementaryInfo(anyList(), anyString()))
-            .thenReturn(new ResponseEntity<>(null, HttpStatus.ACCEPTED));
+            .thenReturn(new ResponseEntity<>(HttpStatus.ACCEPTED));
 
         MvcResult result = restActions
             .get("/reconciliation-payments?start_date=" + startDate + "&end_date=" + endDate)

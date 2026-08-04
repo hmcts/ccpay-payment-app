@@ -6,7 +6,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -17,14 +16,12 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
@@ -40,10 +37,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.GatewayTimeoutException;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@RunWith(SpringRunner.class)
-@ActiveProfiles({"local", "componenttest"})
-@SpringBootTest(webEnvironment = MOCK)
-
+@RunWith(MockitoJUnitRunner.class)
 public class IdamServiceImplTest {
 
     @InjectMocks
@@ -99,7 +93,7 @@ public class IdamServiceImplTest {
         MultiValueMap<String, String> header = new LinkedMultiValueMap<String, String>();
         header.put("authorization", Collections.singletonList("Bearer 131313"));
 
-        ResponseEntity<IdamUserIdResponse> responseEntity = new ResponseEntity<>(null, HttpStatus.OK);
+        ResponseEntity<IdamUserIdResponse> responseEntity = new ResponseEntity<>(HttpStatus.OK);
 
         when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
             eq(IdamUserIdResponse.class)
@@ -147,7 +141,7 @@ public class IdamServiceImplTest {
         MultiValueMap<String, String> header = new LinkedMultiValueMap<>();
         header.put("authorization", Collections.singletonList("Bearer 131313"));
 
-        ResponseEntity<IdamFullNameRetrivalResponse[]> responseEntity = new ResponseEntity<>(null, HttpStatus.OK);
+        ResponseEntity<IdamFullNameRetrivalResponse[]> responseEntity = new ResponseEntity<>(HttpStatus.OK);
         when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
             eq(IdamFullNameRetrivalResponse[].class)
         )).thenReturn(responseEntity);

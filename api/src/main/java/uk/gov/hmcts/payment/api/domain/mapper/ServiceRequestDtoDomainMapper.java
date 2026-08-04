@@ -132,7 +132,7 @@ public class ServiceRequestDtoDomainMapper {
         String reqPaymentLanguage = (requestOnlinePaymentBo.getLanguage() != null
             && requestOnlinePaymentBo.getLanguage().equalsIgnoreCase("cy")) ? "cy" : "en";
         String reqPaymentReturnUrl = UriComponentsBuilder
-            .fromHttpUrl(requestOnlinePaymentBo.getReturnUrl())
+            .fromUriString(requestOnlinePaymentBo.getReturnUrl())
             .queryParam("language", reqPaymentLanguage)
             .build()
             .toUriString();

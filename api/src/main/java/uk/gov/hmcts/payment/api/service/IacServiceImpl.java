@@ -1,6 +1,6 @@
 package uk.gov.hmcts.payment.api.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -88,7 +88,7 @@ public class IacServiceImpl implements IacService {
                 lstSupplementaryInfo = supplementaryDetailsResponse.getSupplementaryInfo();
                 MissingSupplementaryInfo lstMissingSupplementaryInfo = supplementaryDetailsResponse.getMissingSupplementaryInfo();
 
-                if (responseEntitySupplementaryInfo.getStatusCodeValue() == HttpStatus.PARTIAL_CONTENT.value() && lstMissingSupplementaryInfo == null) {
+                if (responseEntitySupplementaryInfo.getStatusCode() == HttpStatus.PARTIAL_CONTENT && lstMissingSupplementaryInfo == null) {
                     LOG.info("No missing supplementary info received from IAC for any CCD case numbers, however response is 206");
                 } else if (lstMissingSupplementaryInfo != null && lstMissingSupplementaryInfo.getCcdCaseNumbers() != null) {
                     LOG.info("Missing supplementary info from IAC for CCD case numbers : {}", lstMissingSupplementaryInfo.getCcdCaseNumbers().toString());

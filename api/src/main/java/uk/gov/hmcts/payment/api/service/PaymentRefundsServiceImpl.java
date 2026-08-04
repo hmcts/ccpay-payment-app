@@ -268,7 +268,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                     Integer feeId = Integer.parseInt(request.getFeeId());
                     updateRemissionAmount(feeId, request.getAmount());
             }
-        return new ResponseEntity<>(null, HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     public RefundListDtoResponse getRefundsApprovedFromRefundService (String ccdCaseNumber, MultiValueMap<String, String> headers) {

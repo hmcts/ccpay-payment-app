@@ -2,9 +2,9 @@ package uk.gov.hmcts.payment.api.controllers.provider;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.payment.api.audit.AuditRepository;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
@@ -47,14 +47,14 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 @TestConfiguration
 public class CardPaymentProviderTestConfiguration {
 
-    @MockBean
+    @MockitoBean
     @Qualifier("restTemplatePaymentGroup")
     private RestTemplate restTemplate;
 
-    @MockBean
+    @MockitoBean
     private AuthTokenGenerator authTokenGenerator;
 
-    @MockBean
+    @MockitoBean
     private ReferenceDataService referenceDataServiceImp;
 
     @Bean
@@ -122,45 +122,45 @@ public class CardPaymentProviderTestConfiguration {
         return new DateUtil();
     }
 
-    @MockBean
+    @MockitoBean
     public GovPayKeyRepository govPayKeyRepository;
 
-    @MockBean
+    @MockitoBean
     public GovPayClient govPayClient;
 
-    @MockBean
+    @MockitoBean
     public DelegatingPaymentService<PciPalPayment, String> delegatePciPal;
 
 
-    @MockBean
+    @MockitoBean
     public uk.gov.hmcts.payment.api.reports.FeesService feeService;
 
-    @MockBean
+    @MockitoBean
     public uk.gov.hmcts.fees2.register.data.service.FeeService feeService2;
 
-    @MockBean
+    @MockitoBean
     public LaunchDarklyFeatureToggler launchDarklyFeatureToggler;
-    @MockBean
+    @MockitoBean
     public UserIdSupplier userIdSupplier;
-    @MockBean
+    @MockitoBean
     public PaymentFeeLinkRepository paymentFeeLinkRepository;
-    @MockBean
+    @MockitoBean
     public PaymentFeeRepository paymentFeeRepository;
-    @MockBean
+    @MockitoBean
     public PaymentStatusRepository paymentStatusRepository;
-    @MockBean
+    @MockitoBean
     public PaymentChannelRepository paymentChannelRepository;
-    @MockBean
+    @MockitoBean
     public PaymentProviderRepository paymentProviderRepository;
-    @MockBean
+    @MockitoBean
     public PaymentMethodRepository paymentMethodRepository;
-    @MockBean
+    @MockitoBean
     public Payment2Repository paymentRespository;
-    @MockBean
+    @MockitoBean
     public CardDetailsService<CardDetails, String> cardDetailsService;
-    @MockBean
+    @MockitoBean
     public PciPalPaymentService pciPalPaymentService;
-    @MockBean
+    @MockitoBean
     FeePayApportionService feePayApportionService;
 
     @Bean
@@ -169,7 +169,7 @@ public class CardPaymentProviderTestConfiguration {
         return new ReferenceUtil();
     }
 
-    @MockBean
+    @MockitoBean
     public GovPayAuthUtil govPayAuthUtil;
 
     @Bean
@@ -178,19 +178,19 @@ public class CardPaymentProviderTestConfiguration {
         return new AuthenticatedServiceIdSupplier();
     }
 
-    @MockBean
+    @MockitoBean
     public AuditRepository auditRepository;
-    @MockBean
+    @MockitoBean
     public CallbackService callbackService;
-    @MockBean
+    @MockitoBean
     public FeePayApportionRepository feePayApportionRepository;
-    @MockBean
+    @MockitoBean
     public TelephonyRepository telephonyRepository;
 
-    @MockBean
+    @MockitoBean
     ServiceRequestCaseUtil serviceRequestCaseUtil;
 
-    @MockBean
+    @MockitoBean
     PaymentReference paymentReference;
 
 }

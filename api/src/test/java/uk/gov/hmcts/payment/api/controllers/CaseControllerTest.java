@@ -1,7 +1,7 @@
 package uk.gov.hmcts.payment.api.controllers;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
@@ -15,9 +15,9 @@ import org.mockito.Answers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
@@ -130,11 +130,11 @@ public class CaseControllerTest extends PaymentsDataUtil {
     protected PaymentDbBackdoor paymentDbBackdoor;
     @Autowired
     protected PaymentFeeDbBackdoor paymentFeeDbBackdoor;
-    @MockBean
+    @MockitoBean
     private RefundRemissionEnableService refundRemissionEnableService;
-    @MockBean
+    @MockitoBean
     private PaymentRefundsService paymentRefundsService;
-    @MockBean
+    @MockitoBean
     @Autowired()
     @Qualifier("restTemplateRefundsGroup")
     private RestTemplate restTemplateRefundsGroup;
@@ -158,20 +158,20 @@ public class CaseControllerTest extends PaymentsDataUtil {
     );
     @Autowired
     private WebApplicationContext webApplicationContext;
-    @MockBean
+    @MockitoBean
     private AuthTokenGenerator authTokenGenerator;
     @Autowired
     private SiteService<Site, String> siteServiceMock;
-    @MockBean(answer = Answers.RETURNS_DEEP_STUBS)
+    @MockitoBean(answers = Answers.RETURNS_DEEP_STUBS)
     private ReferenceDataServiceImpl referenceDataService;
     @Autowired
     private FeesService feesService;
     @Autowired
     private ObjectMapper objectMapper;
-    @MockBean
+    @MockitoBean
     private ServiceRequestDomainService orderDomainService;
 
-    @MockBean
+    @MockitoBean
     private PaymentFailureRepository paymentFailureRepository;
 
     @BeforeEach

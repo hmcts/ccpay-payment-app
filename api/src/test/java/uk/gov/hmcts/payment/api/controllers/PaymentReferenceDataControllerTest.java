@@ -6,10 +6,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import uk.gov.hmcts.payment.api.model.LegacySite;
 import uk.gov.hmcts.payment.api.model.LegacySiteRepository;
 import uk.gov.hmcts.payment.api.model.PaymentChannel;
@@ -29,10 +26,7 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
 
-@RunWith(SpringRunner.class)
-@ActiveProfiles({"local", "componenttest"})
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
-@DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
+@RunWith(MockitoJUnitRunner.class)
 public class PaymentReferenceDataControllerTest {
 
     private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;

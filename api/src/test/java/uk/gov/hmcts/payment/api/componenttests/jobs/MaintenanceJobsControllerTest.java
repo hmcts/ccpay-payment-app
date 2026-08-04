@@ -1,6 +1,6 @@
 package uk.gov.hmcts.payment.api.componenttests.jobs;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
 import com.microsoft.azure.servicebus.IMessage;
 import org.junit.After;
@@ -14,9 +14,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -71,7 +71,7 @@ public class MaintenanceJobsControllerTest extends PaymentsDataUtil {
     @Autowired
     private PaymentDbBackdoor db;
     private RestActions restActions;
-    @MockBean
+    @MockitoBean
     private TopicClientProxy topicClientProxy;
     @InjectMocks
     private MaintenanceJobsController controller;

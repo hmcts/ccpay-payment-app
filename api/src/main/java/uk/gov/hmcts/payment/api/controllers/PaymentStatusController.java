@@ -1,7 +1,7 @@
 package uk.gov.hmcts.payment.api.controllers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.*;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -79,7 +79,7 @@ public class PaymentStatusController {
     })
     @PaymentExternalAPI
     @PostMapping(path = "/payment-failures/chargeback")
-    public ResponseEntity<String> paymentStatusChargeBack(@Valid @RequestBody PaymentStatusChargebackDto paymentStatusChargebackDto) throws JsonProcessingException {
+    public ResponseEntity<String> paymentStatusChargeBack(@Valid @RequestBody PaymentStatusChargebackDto paymentStatusChargebackDto) throws JacksonException {
 
         if (featureToggler.getBooleanValue(PAYMENT_STATUS_UPDATE_FLAG,false)) {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();

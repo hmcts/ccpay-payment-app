@@ -1,6 +1,6 @@
 package uk.gov.hmcts.payment.api.componenttests;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.junit.After;
 import org.junit.Before;
@@ -101,7 +101,7 @@ public class GovPayComponentMockTest {
     public void verifyGovPayPostResponseTest() throws Exception {
         DefaultResponseCreator govPayRespnse = withStatus(HttpStatus.CREATED)
             .body(contentsOf("gov-pay-responses/create-payment-response.json").getBytes())
-            .contentType(MediaType.APPLICATION_JSON_UTF8);
+            .contentType(MediaType.APPLICATION_JSON);
 
         mockServer.expect(requestTo("/v1/payments"))
             .andExpect(method(HttpMethod.POST))
@@ -125,7 +125,7 @@ public class GovPayComponentMockTest {
         String reference = "RC-1519-9028-1909-3475";
         DefaultResponseCreator govPayResponse = withStatus(HttpStatus.OK)
             .body(contentsOf("gov-pay-responses/get-payment-response.json").getBytes())
-            .contentType(MediaType.APPLICATION_JSON_UTF8);
+            .contentType(MediaType.APPLICATION_JSON);
 
         mockServer.expect(requestTo("/v1/payments"))
             .andExpect(method(HttpMethod.GET))

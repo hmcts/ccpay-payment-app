@@ -1,10 +1,7 @@
 package uk.gov.hmcts.payment.casepaymentorders.client;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.PropertyNamingStrategies;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +17,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+import tools.jackson.databind.json.JsonMapper;
 import uk.gov.hmcts.payment.casepaymentorders.client.dto.CpoGetResponse;
 import uk.gov.hmcts.payment.casepaymentorders.client.exceptions.CpoBadRequestException;
 import uk.gov.hmcts.payment.casepaymentorders.client.exceptions.CpoClientException;
@@ -48,7 +46,7 @@ public class CpoServiceClient {
     public CpoGetResponse getCasePaymentOrders(String ids, String caseIds, String pageNumber, String pageSize,
                                                String userAuthToken, String s2sToken) {
 
-        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url + GET_CPO);
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url + GET_CPO);
         if (StringUtils.isNotBlank(ids)) {
             builder.queryParam("ids", ids);
         }
@@ -76,13 +74,12 @@ public class CpoServiceClient {
         } catch (Exception e) {
             LOG.warn("Error while retrieving Case Payment Orders: " + e.getMessage(), e);
             if (e instanceof HttpClientErrorException
-                && HttpStatus.valueOf(((HttpClientErrorException) e).getRawStatusCode()).value() == 400) {
+                && (((HttpClientErrorException) e).getStatusCode()) == HttpStatus.valueOf(400)) {
                 throw new CpoBadRequestException(e.getMessage(), e);
             } else if (e instanceof HttpClientErrorException
-                && HttpStatus.valueOf(((HttpClientErrorException) e).getRawStatusCode()).is4xxClientError()) {
+                && (((HttpClientErrorException) e).getStatusCode()).is4xxClientError()) {
                 throw new CpoClientException(e.getMessage(),
-                                             HttpStatus.valueOf(((HttpClientErrorException) e)
-                                                                    .getRawStatusCode()).value(),
+                                             (((HttpClientErrorException) e).getStatusCode()).value(),
                                              e);
             } else {
                 throw new CpoInternalServerErrorException(e.getMessage(), e);
@@ -99,12 +96,8 @@ public class CpoServiceClient {
     }
 
     protected ObjectMapper cpoObjectMapper() {
-        ObjectMapper objectMapper = new ObjectMapper()
-            .registerModule(new Jdk8Module())
-            .registerModule(new JavaTimeModule()).disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-
-        objectMapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
-
-        return objectMapper;
+        return JsonMapper.builder()
+            .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
+            .build();
     }
 }

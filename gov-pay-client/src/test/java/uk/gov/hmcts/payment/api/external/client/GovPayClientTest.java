@@ -1,6 +1,6 @@
 package uk.gov.hmcts.payment.api.external.client;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.github.tomakehurst.wiremock.matching.EqualToJsonPattern;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;

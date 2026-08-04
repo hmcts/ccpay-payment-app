@@ -1,7 +1,7 @@
 package uk.gov.hmcts.payment.api.audit;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.microsoft.applicationinsights.TelemetryClient;
 import lombok.AllArgsConstructor;
@@ -57,7 +57,7 @@ public class AppInsightsAuditRepository implements AuditRepository {
             .collect(Collectors.toList());
         try {
             return mapper.writeValueAsString(feeDtos);
-        } catch (JsonProcessingException ex) {
+        } catch (JacksonException ex) {
             LOG.error("Error Json processing feeDtos:{} with message:{}", feeDtos, ex.getMessage());
             return null;
         }

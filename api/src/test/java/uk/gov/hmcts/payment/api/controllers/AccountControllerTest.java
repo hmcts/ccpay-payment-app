@@ -1,18 +1,13 @@
 package uk.gov.hmcts.payment.api.controllers;
 
-import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
-import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.core.OAuth2AuthorizationException;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.ResourceAccessException;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
@@ -27,20 +22,14 @@ import java.util.Date;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.AdditionalMatchers.not;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpStatus.GONE;
 
-@RunWith(SpringRunner.class)
-@ActiveProfiles({"local", "componenttest"})
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
-@DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
+@RunWith(MockitoJUnitRunner.class)
 public class AccountControllerTest {
 
-    @ClassRule
-    public static WireMockClassRule wireMockRule = new WireMockClassRule(9190);
     AccountDto expectedDto = new AccountDto("PBA4324", "accountName", new BigDecimal(100),
         new BigDecimal(100), AccountStatus.ACTIVE, new Date());
 
@@ -63,11 +52,6 @@ public class AccountControllerTest {
         //When Account Matches
         when(accountServiceMock.retrieve(eq("PBA1234"))).thenReturn(expectedDto);
 
-        //When Not Account Matches
-        when(accountServiceMock.retrieve(not(eq("PBA1234")))).
-            thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND, "UnKnown test pba account number"));
-
-
         AccountDto actualDto = accountController.getAccounts("PBA1234");
 
         assertEquals(expectedDto, actualDto);
@@ -79,8 +63,6 @@ public class AccountControllerTest {
         //For Same account return account not found
         when(accountServiceMock.retrieve(eq("PBA4321"))).thenThrow(RuntimeException.class);
 
-        //For Any other account return account object
-        when(accountServiceMock.retrieve(not(eq("PBA4321")))).thenReturn(expectedDto);
         accountController.getAccounts("PBA4321");
     }
 
@@ -110,8 +92,6 @@ public class AccountControllerTest {
         //For Same account return Auth exception
         when(accountServiceMock.retrieve(eq("PBA4324"))).thenThrow(OAuth2AuthorizationException.class);
 
-        //For Any other account return account object
-        when(accountServiceMock.retrieve(not(eq("PBA4324")))).thenReturn(expectedDto);
         accountController.getAccounts("PBA4324");
     }
 

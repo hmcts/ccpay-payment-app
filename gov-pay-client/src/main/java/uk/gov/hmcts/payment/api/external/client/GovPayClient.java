@@ -1,7 +1,7 @@
 package uk.gov.hmcts.payment.api.external.client;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.apache.hc.client5.http.classic.HttpClient;
@@ -96,12 +96,12 @@ public class GovPayClient {
         });
     }
 
-    private HttpPost postRequestFor(String authorizationKey, String url, Object entity) throws JsonProcessingException {
+    private HttpPost postRequestFor(String authorizationKey, String url, Object entity) throws JacksonException {
         LOG.info("new StringEntity(objectMapper.writeValueAsString(entity) {}", objectMapper.writeValueAsString(entity));
         return postRequestFor(authorizationKey, url, new StringEntity(objectMapper.writeValueAsString(entity), APPLICATION_JSON));
     }
 
-    private HttpPost postRequestFor(String authorizationKey, String url, HttpEntity entity) throws JsonProcessingException {
+    private HttpPost postRequestFor(String authorizationKey, String url, HttpEntity entity) throws JacksonException {
         LOG.info("Inside postRequestFor in GovPayClient");
         LOG.info("authorizationKey {} ", authorizationKey);
         LOG.info("url {} ", url);

@@ -1,6 +1,6 @@
 package uk.gov.hmcts.payment.api.v1.componenttests;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import lombok.SneakyThrows;
 import org.junit.Before;

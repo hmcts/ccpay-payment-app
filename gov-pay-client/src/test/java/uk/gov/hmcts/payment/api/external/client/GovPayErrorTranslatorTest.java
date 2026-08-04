@@ -1,7 +1,6 @@
 package uk.gov.hmcts.payment.api.external.client;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.Test;
 import uk.gov.hmcts.payment.api.external.client.dto.Error;
 import uk.gov.hmcts.payment.api.external.client.exceptions.*;
@@ -14,7 +13,7 @@ public class GovPayErrorTranslatorTest {
     private final GovPayErrorTranslator translator = new GovPayErrorTranslator(objectMapper);
 
     @Test
-    public void translatesAsExpected() throws JsonProcessingException {
+    public void translatesAsExpected() {
         assertThat(exceptionClassForErrorCode("P0198")).isEqualTo(GovPayDownstreamSystemErrorException.class);
         assertThat(exceptionClassForErrorCode("P0199")).isEqualTo(GovPayAccountErrorException.class);
         assertThat(exceptionClassForErrorCode("P0200")).isEqualTo(GovPayPaymentNotFoundException.class);
@@ -33,16 +32,16 @@ public class GovPayErrorTranslatorTest {
     }
 
     @Test
-    public void unmappedErrorCode() throws JsonProcessingException {
+    public void unmappedErrorCode() {
         assertThat(exceptionClassForErrorCode("-1")).isEqualTo(GovPayUnmappedErrorException.class);
     }
 
     @Test(expected = RuntimeException.class)
-    public void invalidResponse() throws JsonProcessingException {
+    public void invalidResponse() {
         translator.toException(objectMapper.writeValueAsBytes(new byte[0]));
     }
 
-    private Class exceptionClassForErrorCode(String errorCode) throws JsonProcessingException {
+    private Class exceptionClassForErrorCode(String errorCode) {
         Error error = new Error(errorCode, "");
         return translator.toException(objectMapper.writeValueAsBytes(error)).getClass();
     }

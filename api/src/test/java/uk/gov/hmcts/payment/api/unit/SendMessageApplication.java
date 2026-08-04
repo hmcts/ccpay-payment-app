@@ -1,6 +1,6 @@
 package uk.gov.hmcts.payment.api.unit;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.microsoft.azure.servicebus.Message;
 import uk.gov.hmcts.payment.api.componenttests.CardPaymentComponentTest;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;

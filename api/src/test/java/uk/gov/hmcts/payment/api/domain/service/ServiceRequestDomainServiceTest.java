@@ -1,6 +1,6 @@
 package uk.gov.hmcts.payment.api.domain.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import org.apache.poi.ss.formula.functions.T;
 import org.assertj.core.api.AssertionsForClassTypes;
@@ -12,7 +12,6 @@ import org.mockito.*;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
@@ -31,7 +30,6 @@ import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestFeeDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
-import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
 import uk.gov.hmcts.payment.api.external.client.dto.State;
@@ -80,7 +78,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
 
-@RunWith(SpringRunner.class)
+@RunWith(MockitoJUnitRunner.class)
 public class ServiceRequestDomainServiceTest {
 
     @Mock
@@ -426,10 +424,6 @@ public class ServiceRequestDomainServiceTest {
 
         when(serviceRequestPaymentDomainDataEntityMapper.toEntity(any(),any())).thenReturn(payment,paymentFailed);
 
-        when(paymentFeeLinkRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(getPaymentFeeLink()));
-
-        when(paymentDtoMapper.toPaymentStatusDto(any(),any(),any(), any())).thenReturn(paymentStatusDto);
-
         when(accountService.retrieve(serviceRequestPaymentDto.getAccountNumber())).thenThrow(
             new ResourceAccessException("Error thrown"));
 
@@ -439,7 +433,6 @@ public class ServiceRequestDomainServiceTest {
 
         PaymentGroupDto paymentGroupDto = new PaymentGroupDto();
         paymentGroupDto.setServiceRequestStatus("Paid");
-        when(paymentGroupDtoMapper.toPaymentGroupDto(any())).thenReturn(paymentGroupDto);
         try{
             ServiceRequestPaymentBo bo =
                 serviceRequestDomainService.addPayments(getPaymentFeeLink(), "123", serviceRequestPaymentDto);
@@ -495,10 +488,6 @@ public class ServiceRequestDomainServiceTest {
 
         when(serviceRequestPaymentDomainDataEntityMapper.toEntity(any(),any())).thenReturn(payment,paymentFailed);
 
-        when(paymentFeeLinkRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(getPaymentFeeLink()));
-
-        when(paymentDtoMapper.toPaymentStatusDto(any(),any(),any(), any())).thenReturn(paymentStatusDto);
-
         when(accountService.retrieve(serviceRequestPaymentDto.getAccountNumber())).thenThrow(
             new RuntimeException("unknown Exception"));
 
@@ -508,7 +497,7 @@ public class ServiceRequestDomainServiceTest {
 
         PaymentGroupDto paymentGroupDto = new PaymentGroupDto();
         paymentGroupDto.setServiceRequestStatus("Paid");
-        when(paymentGroupDtoMapper.toPaymentGroupDto(any())).thenReturn(paymentGroupDto);
+
         try{
             ServiceRequestPaymentBo bo =
                 serviceRequestDomainService.addPayments(getPaymentFeeLink(), "123", serviceRequestPaymentDto);
@@ -574,7 +563,7 @@ public class ServiceRequestDomainServiceTest {
 
         PaymentGroupDto paymentGroupDto = new PaymentGroupDto();
         paymentGroupDto.setServiceRequestStatus("Paid");
-        when(paymentGroupDtoMapper.toPaymentGroupDto(any())).thenReturn(paymentGroupDto);
+
         try{
             ServiceRequestPaymentBo bo =
                 serviceRequestDomainService.addPayments(getPaymentFeeLink(), "123", serviceRequestPaymentDto);
@@ -604,8 +593,6 @@ public class ServiceRequestDomainServiceTest {
         GovPayPayment govPayPayment = GovPayPayment.govPaymentWith()
                 .paymentId("id")
                     .build();
-
-        when(delegateGovPay.create(any(CreatePaymentRequest.class),anyString())).thenReturn(govPayPayment);
 
         Payment payment = Payment.paymentWith()
                 .paymentLink(getPaymentFeeLink())
@@ -811,8 +798,6 @@ public class ServiceRequestDomainServiceTest {
             .paymentId("id")
             .build();
 
-        when(delegateGovPay.create(any(CreatePaymentRequest.class),anyString())).thenReturn(govPayPayment);
-
         Payment payment = Payment.paymentWith()
             .paymentLink(getPaymentFeeLink())
             .currency("GBP")
@@ -824,13 +809,9 @@ public class ServiceRequestDomainServiceTest {
 
         when(paymentRepository.save(any())).thenReturn(payment);
 
-        when(delegatingPaymentService.retrieve(anyString())).thenReturn(paymentFeeLinkMock);
-
         when(delegateGovPay.retrieve(anyString())).thenReturn(getGovPayPayment());
 
         when(featureToggler.getBooleanValue(any(),any())).thenReturn(true);
-
-        when(paymentFeeLinkMock.getPayments()).thenReturn(getPaymentFeeLinkWithPayments().getPayments());
 
         ResponseEntity<OnlineCardPaymentResponse> onlineCardPaymentResponse = serviceRequestDomainService.create(onlineCardPaymentRequest,"","","");
 
