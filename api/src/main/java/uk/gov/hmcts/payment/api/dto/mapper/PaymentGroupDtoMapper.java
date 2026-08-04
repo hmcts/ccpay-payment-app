@@ -311,21 +311,23 @@ public class PaymentGroupDtoMapper {
         return disputeDTOs;
     }
 
+
     public PaymentGroupDto calculateOverallBalance(PaymentGroupDto paymentGroupDto){
 
         if (paymentGroupDto.getRemissions() == null || paymentGroupDto.getPayments() == null || paymentGroupDto.getFees() == null) {
             return paymentGroupDto;
         }
-        final var remissions= paymentGroupDto.getRemissions().iterator();
-        final var payments= paymentGroupDto.getPayments().iterator();
-        final var fees= paymentGroupDto.getFees().iterator();
+        final var remissions = paymentGroupDto.getRemissions().iterator();
+        final var totalPayments = paymentGroupDto.getPayments().stream().map(p -> p.getAmount()).collect(Collectors.reducing(BigDecimal.ZERO, BigDecimal::add));
         final var isACollectionOfFess = isACollectionOfFess(paymentGroupDto.getFees());
 
-        while (remissions.hasNext() && payments.hasNext() && fees.hasNext()) {
+        while (remissions.hasNext() ) {
             final var remission = remissions.next();
+            final var fee = findFeeByCode(paymentGroupDto.getFees(), remission.getFeeCode());
+
             remission.setOverallBalance(
-                payments.next().getAmount().subtract(
-                    fees.next().getCalculatedAmount().subtract(remission.getHwfAmount())
+                totalPayments.subtract(
+                    fee.get().getCalculatedAmount().subtract(remission.getHwfAmount())
                 ));
             remission.setACollectionOfFess(isACollectionOfFess);
         }
@@ -334,5 +336,11 @@ public class PaymentGroupDtoMapper {
 
     private boolean isACollectionOfFess(List<FeeDto> fees){
         return fees.size() > 1;
+    }
+
+    private Optional<FeeDto> findFeeByCode(List<FeeDto> fees, String feeCode) {
+        return fees.stream()
+            .filter(f -> feeCode.equals(f.getCode()))
+            .findFirst();
     }
 }
