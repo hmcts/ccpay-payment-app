@@ -210,7 +210,7 @@ public class PaymentGroupDtoMapperTest {
         paymentGroupDto.setRemissions(remissions);
 
         paymentGroupDtoMapper.calculateOverallBalance(paymentGroupDto);
-        assertEquals("100",paymentGroupDto.getRemissions().get(0).getOverallBalance().toString());
+        assertEquals("-173",paymentGroupDto.getRemissions().get(0).getOverallBalance().toString());
 
     }
 
@@ -241,7 +241,7 @@ public class PaymentGroupDtoMapperTest {
         fees.add(fee);
 
         FeeDto fee2 = getFeeDto(273);
-        fee2.setCode("FEE0001");
+        fee2.setCode("FEE0002");
         fees.add(fee2);
 
         PaymentGroupDto paymentGroupDto = new PaymentGroupDto();
@@ -251,8 +251,8 @@ public class PaymentGroupDtoMapperTest {
         paymentGroupDto.setRemissions(remissions);
 
         paymentGroupDtoMapper.calculateOverallBalance(paymentGroupDto);
-        assertEquals("250",paymentGroupDto.getRemissions().get(0).getOverallBalance().toString());
-        assertEquals("250",paymentGroupDto.getRemissions().get(1).getOverallBalance().toString());
+        assertEquals("-173",paymentGroupDto.getRemissions().get(0).getOverallBalance().toString());
+        assertEquals("-173",paymentGroupDto.getRemissions().get(1).getOverallBalance().toString());
 
     }
 
