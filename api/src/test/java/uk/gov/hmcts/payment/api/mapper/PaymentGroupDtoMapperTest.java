@@ -225,7 +225,7 @@ public class PaymentGroupDtoMapperTest {
         remission.setFeeCode("FEE0001");
 
         RemissionDto remission2 = getRemissionDto(100);
-        remission2.setFeeCode("FEE0001");
+        remission2.setFeeCode("FEE0002");
         remissions.add(remission2);
 
         List<PaymentDto> payments =new ArrayList<>();
