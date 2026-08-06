@@ -120,6 +120,7 @@ public class PaymentGroupDtoMapper {
             .currency(CurrencyCode.valueOf(payment.getCurrency()))
             .caseReference(payment.getCaseReference())
             .ccdCaseNumber(payment.getCcdCaseNumber())
+            .fees( toFeeDtos((payment.getPaymentLink().getFees())))
             .accountNumber(payment.getPbaNumber())
             .organisationName(payment.getOrganisationName())
             .customerReference(payment.getCustomerReference())
@@ -318,12 +319,13 @@ public class PaymentGroupDtoMapper {
             return paymentGroupDto;
         }
         final var remissions = paymentGroupDto.getRemissions().iterator();
-        final var totalPayments = paymentGroupDto.getPayments().stream().map(p -> p.getAmount()).collect(Collectors.reducing(BigDecimal.ZERO, BigDecimal::add));
+        //final var totalPayments = paymentGroupDto.getPayments().stream().map(p -> p.getAmount()).collect(Collectors.reducing(BigDecimal.ZERO, BigDecimal::add));
         final var isACollectionOfFess = isACollectionOfFess(paymentGroupDto.getFees());
 
         while (remissions.hasNext() ) {
             final var remission = remissions.next();
             final var fee = findFeeByCode(paymentGroupDto.getFees(), remission.getFeeCode());
+            final var totalPayments = findPaymentsByCode( paymentGroupDto.getPayments() ,remission.getFeeCode());
 
             remission.setOverallBalance(
                 totalPayments.subtract(
@@ -342,5 +344,13 @@ public class PaymentGroupDtoMapper {
         return fees.stream()
             .filter(f -> feeCode.equals(f.getCode()))
             .findFirst();
+    }
+
+    private BigDecimal findPaymentsByCode(List<PaymentDto> payments, String feeCode) {
+
+        final var filteredPayments = payments.stream() .filter(p -> p.getFees() != null && p.getFees().stream().anyMatch(f -> feeCode.equals(f.getCode())))
+            .collect(Collectors.toList());
+
+        return filteredPayments.stream().map(p -> p.getAmount()).collect(Collectors.reducing(BigDecimal.ZERO, BigDecimal::add));
     }
 }
