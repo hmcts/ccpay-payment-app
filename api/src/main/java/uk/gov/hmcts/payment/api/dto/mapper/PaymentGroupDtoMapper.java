@@ -1,6 +1,5 @@
 package uk.gov.hmcts.payment.api.dto.mapper;
 
-import com.google.common.collect.Streams;
 import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -114,13 +113,18 @@ public class PaymentGroupDtoMapper {
     }
     //added missing pba account details
     private PaymentDto toPaymentDto(Payment payment) {
+
+        final var  fees = (payment.getPaymentLink() != null && payment.getPaymentLink().getFees() != null)
+            ? toFeeDtos(payment.getPaymentLink().getFees())
+            : new ArrayList<FeeDto>();
+
         return PaymentDto.payment2DtoWith()
             .reference(payment.getReference())
             .amount(payment.getAmount())
+            .fees(fees)
             .currency(CurrencyCode.valueOf(payment.getCurrency()))
             .caseReference(payment.getCaseReference())
             .ccdCaseNumber(payment.getCcdCaseNumber())
-            .fees( toFeeDtos((payment.getPaymentLink().getFees())))
             .accountNumber(payment.getPbaNumber())
             .organisationName(payment.getOrganisationName())
             .customerReference(payment.getCustomerReference())
