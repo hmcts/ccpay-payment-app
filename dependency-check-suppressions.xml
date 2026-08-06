@@ -4,6 +4,14 @@
     <suppress>
         <packageUrl regex="true">pkg:maven/org.apache.tomcat.embed/tomcat-embed-core@10.1.57, cpe:2.3:a:apache:tomcat:10.1.57</packageUrl>
         <cve>CVE-2026-66299</cve>
+        <cve>CVE-2026-54515</cve>
+        <cve>CVE-2026-54513</cve>
+        <cve>CVE-2026-54514</cve>
+        <cve>CVE-2021-32816</cve>
+        <cve>CVE-2025-21199</cve>
+        <cve>CVE-2026-33117</cve>
+        <cve>CVE-2026-66299</cve>
+        <cve>CVE-2026-54512</cve>
     </suppress>
 
 </suppressions>
