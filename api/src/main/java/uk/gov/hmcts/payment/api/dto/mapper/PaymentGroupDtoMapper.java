@@ -329,7 +329,7 @@ public class PaymentGroupDtoMapper {
 
             final var remission = remissions.next();
             final var fee = findFeeByCode(paymentGroupDto.getFees(), remission.getFeeCode());
-            final var totalPayments = findPaymentsByCode( paymentGroupDto.getPayments() ,remission.getFeeCode());
+            final var totalPayments = findPaymentTotalAmountByFeeCode( paymentGroupDto.getPayments() ,remission.getFeeCode());
             final var calculatedFeeAmount = fee.get().getCalculatedAmount().subtract(remission.getHwfAmount());
             remission.setOverallBalance(totalPayments.subtract(calculatedFeeAmount));
             remission.setACollectionOfFess(isACollectionOfFess);
@@ -347,7 +347,7 @@ public class PaymentGroupDtoMapper {
             .findFirst();
     }
 
-    private BigDecimal findPaymentsByCode(List<PaymentDto> payments, String feeCode) {
+    private BigDecimal findPaymentTotalAmountByFeeCode(List<PaymentDto> payments, String feeCode) {
 
         final var filteredPayments = payments.stream() .filter(p -> p.getFees() != null && p.getFees().stream().anyMatch(f -> feeCode.equals(f.getCode())))
             .collect(Collectors.toList());
