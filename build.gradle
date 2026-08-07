@@ -9,7 +9,7 @@ plugins {
     id 'jacoco'
 }
 
-def springBootVersion = '4.0.7'
+def springBootVersion = '4.1.0'
 def springCloudVersion = '2025.1.2'
 
 def versions = [

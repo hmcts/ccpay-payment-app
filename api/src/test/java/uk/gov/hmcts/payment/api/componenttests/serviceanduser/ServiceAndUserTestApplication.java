@@ -12,6 +12,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.context.NullSecurityContextRepository;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.payment.api.configuration.security.AuthCheckerServiceAndAnonymousUserFilter;
@@ -98,9 +99,12 @@ public class ServiceAndUserTestApplication {
         @Bean
         @Order(0)
         protected SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+            filter.setSecurityContextRepository(new NullSecurityContextRepository());
             http
                 .securityMatcher("/test")
                 .addFilter(filter)
+                .sessionManagement(session -> session.sessionCreationPolicy(
+                    org.springframework.security.config.http.SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated());
             return http.build();
         }
