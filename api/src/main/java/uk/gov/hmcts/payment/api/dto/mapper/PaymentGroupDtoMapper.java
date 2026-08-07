@@ -323,18 +323,15 @@ public class PaymentGroupDtoMapper {
             return paymentGroupDto;
         }
         final var remissions = paymentGroupDto.getRemissions().iterator();
-        //final var totalPayments = paymentGroupDto.getPayments().stream().map(p -> p.getAmount()).collect(Collectors.reducing(BigDecimal.ZERO, BigDecimal::add));
         final var isACollectionOfFess = isACollectionOfFess(paymentGroupDto.getFees());
 
         while (remissions.hasNext() ) {
+
             final var remission = remissions.next();
             final var fee = findFeeByCode(paymentGroupDto.getFees(), remission.getFeeCode());
             final var totalPayments = findPaymentsByCode( paymentGroupDto.getPayments() ,remission.getFeeCode());
-
-            remission.setOverallBalance(
-                totalPayments.subtract(
-                    fee.get().getCalculatedAmount().subtract(remission.getHwfAmount())
-                ));
+            final var calculatedFeeAmount = fee.get().getCalculatedAmount().subtract(remission.getHwfAmount());
+            remission.setOverallBalance(totalPayments.subtract(calculatedFeeAmount));
             remission.setACollectionOfFess(isACollectionOfFess);
         }
         return paymentGroupDto;

@@ -256,6 +256,93 @@ public class PaymentGroupDtoMapperTest {
 
     }
 
+
+    @Test
+    public void testCalculateOverallBalanceForTwoRemissionOnePayment (){
+        List<RemissionDto> remissions= new ArrayList<>();
+
+        RemissionDto remission = getRemissionDto(100);
+        remissions.add(remission);
+        remission.setFeeCode("FEE0001");
+        RemissionDto remission2 = getRemissionDto(100);
+        remission2.setFeeCode("FEE0002");
+        remissions.add(remission2);
+
+        // the fees are different for the remissions, but the payment is only one, so the overall balance will be negative for both remissions
+        List<FeeDto> fees = new ArrayList<>();
+        FeeDto fee = getFeeDto(250);
+        fee.setCode("FEE0001");
+        fees.add(fee);
+
+        FeeDto fee2 = getFeeDto(150);
+        fee2.setCode("FEE0002");
+        fees.add(fee2);
+        //The payment is only one, so the overall balance will be negative for both remissions
+        List<PaymentDto> payments =new ArrayList<>();
+        PaymentDto paymentDto = getPaymentDto(300);
+        payments.add(paymentDto);
+        paymentDto.setFees(fees);
+
+
+        PaymentGroupDto paymentGroupDto = new PaymentGroupDto();
+        paymentGroupDto.setServiceRequestStatus("test");
+        paymentGroupDto.setPayments(payments);
+        paymentGroupDto.setFees(fees);
+        paymentGroupDto.setRemissions(remissions);
+
+        paymentGroupDtoMapper.calculateOverallBalance(paymentGroupDto);
+        assertEquals("150",paymentGroupDto.getRemissions().get(0).getOverallBalance().toString());
+        assertEquals("250",paymentGroupDto.getRemissions().get(1).getOverallBalance().toString());
+
+    }
+
+    @Test
+    public void testCalculateOverallBalanceForTwoRemissionTwoPayment (){
+        List<RemissionDto> remissions= new ArrayList<>();
+
+        RemissionDto remission = getRemissionDto(100);
+        remissions.add(remission);
+        remission.setFeeCode("FEE0001");
+        RemissionDto remission2 = getRemissionDto(100);
+        remission2.setFeeCode("FEE0002");
+        remissions.add(remission2);
+
+        // the fees are different for the remissions, but the payment is only one, so the overall balance will be negative for both remissions
+        List<FeeDto> fees1 = new ArrayList<>();
+        FeeDto fee = getFeeDto(250);
+        fee.setCode("FEE0001");
+        fees1.add(fee);
+
+        List<FeeDto> fees2 = new ArrayList<>();
+        FeeDto fee2 = getFeeDto(150);
+        fee2.setCode("FEE0002");
+        fees2.add(fee2);
+
+        //The payment is only one, so the overall balance will be negative for both remissions
+        List<PaymentDto> payments =new ArrayList<>();
+
+        PaymentDto paymentDto = getPaymentDto(250);
+        payments.add(paymentDto);
+        paymentDto.setFees(fees1);
+
+        PaymentDto paymentDto2 = getPaymentDto(150);
+        payments.add(paymentDto2);
+        paymentDto2.setFees(fees2);
+
+
+        PaymentGroupDto paymentGroupDto = new PaymentGroupDto();
+        paymentGroupDto.setServiceRequestStatus("test");
+        paymentGroupDto.setPayments(payments);
+        paymentGroupDto.setPayments(payments);
+        paymentGroupDto.setFees(Arrays.asList(java.util.stream.Stream.concat(fees1.stream(), fees2.stream()).toArray(FeeDto[]::new)));
+        paymentGroupDto.setRemissions(remissions);
+
+        paymentGroupDtoMapper.calculateOverallBalance(paymentGroupDto);
+        assertEquals("100",paymentGroupDto.getRemissions().get(0).getOverallBalance().toString());
+        assertEquals("100",paymentGroupDto.getRemissions().get(1).getOverallBalance().toString());
+
+    }
+
     @NotNull
     private static PaymentDto getPaymentDto(int value) {
         PaymentDto paymentDto = new PaymentDto();
