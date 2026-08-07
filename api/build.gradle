@@ -126,7 +126,6 @@ dependencies {
     implementation group: 'io.github.resilience4j', name:'resilience4j-spring-boot3', version:'2.0.2'
     implementation group: 'org.springframework.cloud', name: 'spring-cloud-openfeign-core'
     implementation group: 'commons-fileupload', name: 'commons-fileupload', version: '1.6.0'
-    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-thymeleaf'
     implementation(group: 'org.postgresql', name: 'postgresql', version: '42.7.13') {
         exclude(module: 'commons-logging')
         exclude(module: 'slf4j-simple')
@@ -158,7 +157,6 @@ dependencies {
     testImplementation group: 'org.wiremock', name: 'wiremock-standalone', version: '3.13.2'
     testImplementation group: 'org.projectlombok', name: 'lombok', version: versions.lombok
     testImplementation group: 'io.rest-assured', name: 'rest-assured', version: versions.restAssured
-    testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-thymeleaf'
     testImplementation group: 'org.testcontainers', name: 'testcontainers-postgresql', version: '2.0.5'
 
     // JUnit 4 dependencies
