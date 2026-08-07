@@ -24,8 +24,7 @@ public class PaymentReconciliationComponentTest extends TestUtil {
     private PaymentsDataUtil paymentsDataUtil;
 
     private static Specification findByDatesBetween(Date fromDate, Date toDate) {
-        return Specification
-            .where(isBetween(fromDate, toDate));
+        return isBetween(fromDate, toDate);
     }
 
     private static Specification isBetween(Date startDate, Date endDate) {

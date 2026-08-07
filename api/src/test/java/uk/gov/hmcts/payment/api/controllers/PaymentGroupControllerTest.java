@@ -11,7 +11,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -104,30 +104,30 @@ public class PaymentGroupControllerTest {
     private RestActions restActions;
     @Autowired
     private ObjectMapper objectMapper;
-    @MockBean
+    @MockitoBean
     private PciPalPaymentService pciPalPaymentService;
-    @MockBean
+    @MockitoBean
     private SiteService<Site, String> siteServiceMock;
     @Autowired
     private PaymentGroupController paymentGroupController;
-    @MockBean
+    @MockitoBean
     @Qualifier("restTemplatePaymentGroup")
     private RestTemplate restTemplatePaymentGroup;
-    @MockBean
+    @MockitoBean
     private ReferenceDataService referenceDataService;
     @Autowired
     private PaymentDbBackdoor db;
-    @MockBean
+    @MockitoBean
     private AuthTokenGenerator authTokenGenerator;
-    @MockBean
+    @MockitoBean
     private ServiceAuthorisationApi serviceAuthorisationApi;
-    @MockBean
+    @MockitoBean
     private ServiceAuthorisationHealthApi serviceAuthorisationHealthApi;
-    @MockBean
+    @MockitoBean
     private LaunchDarklyFeatureToggler featureToggler;
-    @MockBean
+    @MockitoBean
     private RefundRemissionEnableService refundRemissionEnableService;
-    @MockBean
+    @MockitoBean
     private IdamService idamService;
 
 
