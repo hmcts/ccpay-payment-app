@@ -10,7 +10,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -105,26 +105,26 @@ public class PaymentRefundsServiceTest {
             .roles(Arrays.asList("payments-refund-approver", "payments-refund")).sub("ZZ")
             .build();
 
-    @MockBean
+    @MockitoBean
     private Payment2Repository paymentRepository;
 
-    @MockBean
+    @MockitoBean
     private RemissionRepository remissionRepository;
 
-    @MockBean
+    @MockitoBean
     private FeePayApportionRepository feePayApportionRepository;
-    @MockBean
+    @MockitoBean
     private PaymentFailureRepository paymentFailureRepository;
 
-    @MockBean
+    @MockitoBean
     @Autowired()
     @Qualifier("restTemplateRefundsGroup")
     private RestTemplate restTemplate;
-    @MockBean
+    @MockitoBean
     private AuthTokenGenerator authTokenGenerator;
     @Autowired
     private PaymentRefundsService paymentRefundsService;
-    @MockBean
+    @MockitoBean
     private IdamService idamService;
 
     @Before
