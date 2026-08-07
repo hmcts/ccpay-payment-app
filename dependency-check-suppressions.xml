@@ -1,41 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
     <suppress>
-        <notes>Suppress CVE-2020-29582 for org.jetbrains.kotlin:kotlin-reflect:1.9.25 only.</notes>
-        <packageUrl regex="true">^pkg:maven/org\.jetbrains\.kotlin/kotlin-reflect@1\.9\.25$</packageUrl>
-        <cve>CVE-2020-29582</cve>
-    </suppress>
-
-    <suppress>
-        <notes>Suppress CVE-2020-29582 for org.jetbrains.kotlin:kotlin-stdlib:1.9.25 only.</notes>
-        <packageUrl regex="true">^pkg:maven/org\.jetbrains\.kotlin/kotlin-stdlib@1\.9\.25$</packageUrl>
-        <cve>CVE-2020-29582</cve>
-    </suppress>
-
-    <suppress>
-        <notes>Suppress CVE-2025-21199 for com.microsoft.azure/applicationinsights-core@3.7.8 only.</notes>
-        <packageUrl regex="true">^pkg:maven/com\.microsoft\.azure/applicationinsights-core@3\.7\.8$</packageUrl>
-        <cve>CVE-2025-21199</cve>
-    </suppress>
-
-    <suppress>
         <notes>Suppress CVE-2021-32816 for com.amdelamar/jotp@1.3.0 only.</notes>
         <packageUrl regex="true">^pkg:maven/com\.amdelamar/jotp@1\.3\.0$</packageUrl>
         <cve>CVE-2021-32816</cve>
-    </suppress>
-
-    <suppress>
-        <notes>
-            Nu Html Checker (validator.nu) contains a restriction bypass that allows remote attackers to make the server perform arbitrary HTTP/HTTPS requests to internal resources, including localhost services.
-        </notes>
-        <cve>CVE-2025-15104</cve>
-    </suppress>
-
-    <suppress>
-        <notes>
-            By selecting these links, you will be leaving NIST webspace. We have provided these links to other web sites because they may have information that would be of interest to you. No inferences should be drawn on account of other sites being referenced,
-        </notes>
-        <cve>CVE-2026-33117</cve>
     </suppress>
 
     <suppress>
@@ -49,7 +17,16 @@
         <cve>CVE-2026-54513</cve>
         <cve>CVE-2026-54514</cve>
         <cve>CVE-2026-54512</cve>
-        <cve>CVE-2025-21199</cve>
+    </suppress>
+
+    <suppress>
+        <notes>
+            CVE-2026-66299 affects the Apache Tomcat WebSocket chat example web application.
+            This Spring Boot application uses embedded Tomcat and does not deploy the Tomcat examples web application.
+            Remove this suppression and upgrade to Tomcat 10.1.58 when that artifact is available.
+        </notes>
+        <packageUrl regex="true">^pkg:maven/org\.apache\.tomcat\.embed/tomcat-embed-(core|websocket)@10\.1\.57$</packageUrl>
+        <cve>CVE-2026-66299</cve>
     </suppress>
 
 </suppressions>
