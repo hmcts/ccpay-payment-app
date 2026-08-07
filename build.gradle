@@ -65,28 +65,28 @@ allprojects {
         imports {
             mavenBom "org.springframework.boot:spring-boot-dependencies:${springBootVersion}"
             mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
-            mavenBom 'org.apache.logging.log4j:log4j-bom:2.26.1'
-            mavenBom 'io.netty:netty-all:4.2.16.Final'
-            mavenBom 'org.testcontainers:testcontainers-bom:2.0.5'
+//            mavenBom 'org.apache.logging.log4j:log4j-bom:2.26.1'
+//            mavenBom 'io.netty:netty-bom:4.2.16.Final'
+//            mavenBom 'org.testcontainers:testcontainers-bom:2.0.5'
         }
-        dependencies {
-            dependencySet(
-                    group: 'org.apache.tomcat.embed',
-                    version: '10.1.57'
-            ) {
-                entry 'tomcat-embed-core'
-                entry 'tomcat-embed-websocket'
-            }
-            // CVE-2020-8908
-            dependencySet(group: 'com.google.guava', version: '33.6.0-jre') {
-                entry 'guava'
-            }
-
-            dependencySet(group: 'ch.qos.logback', version: '1.5.38') {
-                entry 'logback-core'
-                entry 'logback-classic'
-            }
-        }
+//        dependencies {
+//            dependencySet(
+//                    group: 'org.apache.tomcat.embed',
+//                    version: '10.1.57'
+//            ) {
+//                entry 'tomcat-embed-core'
+//                entry 'tomcat-embed-websocket'
+//            }
+//            // CVE-2020-8908
+//            dependencySet(group: 'com.google.guava', version: '33.6.0-jre') {
+//                entry 'guava'
+//            }
+//
+//            dependencySet(group: 'ch.qos.logback', version: '1.5.38') {
+//                entry 'logback-core'
+//                entry 'logback-classic'
+//            }
+//        }
     }
 
     configurations {
