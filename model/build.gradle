@@ -20,10 +20,10 @@ dependencies {
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-webflux'
     implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign'
 
-    api group: 'org.springframework.security', name: 'spring-security-oauth2-client', version: '6.5.10'
+    api group: 'org.springframework.security', name: 'spring-security-oauth2-client', version: '6.5.11'
     implementation group: 'com.querydsl', name: 'querydsl-jpa', version:'5.1.0'
     api group: 'commons-validator', name: 'commons-validator', version:'1.10.1'
-    implementation (group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '5.3.4') {
+    implementation (group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '5.3.5') {
         exclude group: 'org.apache.httpcomponents', module: 'httpclient'
     }
     implementation group: 'io.github.resilience4j', name: 'resilience4j-spring-boot3', version: '2.2.0'
