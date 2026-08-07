@@ -14,7 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -71,7 +71,7 @@ public class MaintenanceJobsControllerTest extends PaymentsDataUtil {
     @Autowired
     private PaymentDbBackdoor db;
     private RestActions restActions;
-    @MockBean
+    @MockitoBean
     private TopicClientProxy topicClientProxy;
     @InjectMocks
     private MaintenanceJobsController controller;

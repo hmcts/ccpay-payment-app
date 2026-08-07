@@ -2,7 +2,7 @@ package uk.gov.hmcts.payment.api.controllers.provider;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.web.client.RestTemplate;
@@ -47,6 +47,6 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 @TestConfiguration
 public class ServiceRequestProviderTestConfiguration {
 
-    @MockBean
+    @MockitoBean
     public ServiceRequestDomainService serviceRequestDomainService;
 }

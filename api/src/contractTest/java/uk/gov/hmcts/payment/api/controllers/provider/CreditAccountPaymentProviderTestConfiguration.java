@@ -1,7 +1,7 @@
 package uk.gov.hmcts.payment.api.controllers.provider;
 
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import uk.gov.hmcts.payment.api.audit.AuditRepository;
@@ -65,16 +65,16 @@ public class CreditAccountPaymentProviderTestConfiguration {
         return new LoggingCreditAccountPaymentService(userIdSupplier, userAwareDelegatingCreditAccountPaymentService());
     }
 
-    @MockBean
+    @MockitoBean
     PaymentProviderRepository paymentProviderRepository;
 
-    @MockBean
+    @MockitoBean
     PaymentStatusRepository paymentStatusRepository;
-    @MockBean
+    @MockitoBean
     PaymentChannelRepository paymentChannelRepository;
-    @MockBean
+    @MockitoBean
     PaymentMethodRepository paymentMethodRepository;
-    @MockBean
+    @MockitoBean
     Payment2Repository payment2Repository;
 
     @Bean
@@ -83,39 +83,39 @@ public class CreditAccountPaymentProviderTestConfiguration {
 
         return new PaymentReference(paymentFeeLinkRepository());
     }
-    @MockBean
+    @MockitoBean
     ServiceIdSupplier serviceIdSupplier;
-    @MockBean
+    @MockitoBean
     UserIdSupplier userIdSupplier;
 
-    @MockBean
+    @MockitoBean
     DuplicatePaymentValidator paymentValidator;
-    @MockBean
+    @MockitoBean
     FeePayApportionService feePayApportionService;
-    @MockBean
+    @MockitoBean
     LaunchDarklyFeatureToggler featureToggler;
-    @MockBean
+    @MockitoBean
     FeePayApportionRepository feePayApportionRepository;
-    @MockBean
+    @MockitoBean
     PaymentFeeRepository paymentFeeRepository;
-    @MockBean
+    @MockitoBean
     FeesService feesService;
 
-    @MockBean
+    @MockitoBean
     AccountService<AccountDto, String> accountService;
-    @MockBean
+    @MockitoBean
     DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService;
-    @MockBean
+    @MockitoBean
     CallbackService callbackService;
-    @MockBean
+    @MockitoBean
     TelephonyRepository telephonyRepository;
-    @MockBean
+    @MockitoBean
     AuditRepository paymentAuditRepository;
-    @MockBean
+    @MockitoBean
     ReferenceDataService referenceDataService;
-    @MockBean
+    @MockitoBean
     AuthTokenGenerator authTokenGenerator;
-    @MockBean
+    @MockitoBean
     ServiceRequestCaseUtil serviceRequestCaseUtil;
 
     @Bean

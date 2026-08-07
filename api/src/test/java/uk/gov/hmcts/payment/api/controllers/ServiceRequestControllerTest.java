@@ -9,7 +9,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
@@ -85,16 +85,16 @@ public class ServiceRequestControllerTest {
     @Autowired
     private WebApplicationContext webApplicationContext;
 
-    @MockBean
+    @MockitoBean
     private ReferenceDataService referenceDataService;
 
-    @MockBean
+    @MockitoBean
     private AuthTokenGenerator authTokenGenerator;
 
-    @MockBean
+    @MockitoBean
     PaymentGroupDtoMapper paymentGroupDtoMapper;
 
-    @MockBean
+    @MockitoBean
     private IdempotencyKeysRepository idempotencyKeysRepository;
 
     @Autowired
@@ -113,25 +113,25 @@ public class ServiceRequestControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @MockBean
+    @MockitoBean
     ServiceRequestDomainService serviceRequestDomainService;
 
-    @MockBean
+    @MockitoBean
     private PaymentService<PaymentFeeLink, String> paymentService;
 
-    @MockBean
+    @MockitoBean
     private DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService;
 
-    @MockBean
+    @MockitoBean
     private GovPayClient govPayClient;
 
-    @MockBean
+    @MockitoBean
     private PaymentFeeRepository paymentFeeRepository;
 
-    @MockBean
+    @MockitoBean
     private TopicClientService topicClientService;
 
-    @MockBean
+    @MockitoBean
     private TopicClientProxy topicClientProxy;
 
 
