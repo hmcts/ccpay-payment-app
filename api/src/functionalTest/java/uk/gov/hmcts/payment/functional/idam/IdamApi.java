@@ -24,7 +24,7 @@ public interface IdamApi {
     @RequestLine("DELETE /testing-support/accounts/{email}")
     void deleteUser(@Param("email") String email);
 
-    @RequestLine("POST /oauth2/authorize")
+    @RequestLine("POST /o/authorize")
     @Headers({"Authorization: {authorization}", "Content-Type: application/x-www-form-urlencoded"})
     @Body("response_type={response_type}&redirect_uri={redirect_uri}&client_id={client_id}")
     AuthenticateUserResponse authenticateUser(@Param("authorization") String authorization,
