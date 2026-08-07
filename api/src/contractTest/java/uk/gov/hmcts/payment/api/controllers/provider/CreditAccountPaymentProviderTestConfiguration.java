@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import uk.gov.hmcts.payment.api.audit.AuditRepository;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
-import uk.gov.hmcts.payment.api.configuration.security.AuthenticatedServiceIdSupplier;
+
 import uk.gov.hmcts.payment.api.controllers.PaymentReference;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
@@ -138,12 +138,6 @@ public class CreditAccountPaymentProviderTestConfiguration {
     public CreditAccountDtoMapper creditAccountDtoMapper() {
         return new CreditAccountDtoMapper();
 
-    }
-
-    @Bean
-    @Primary
-    public ServiceIdSupplier serviceIdSupplier() {
-        return new AuthenticatedServiceIdSupplier();
     }
 
     @Bean
