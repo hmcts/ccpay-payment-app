@@ -1,0 +1,122 @@
+// Manual dependency-version overrides for CVEs not yet fixed in Spring
+// Boot's managed BOM version.
+//
+// Add an entry per CVE fix below, using one of:
+//   - coordinates: ['group:artifact', ...] - explicit list, for a single
+//     artifact or a small/fixed set. Doubles as documentation of exactly
+//     what's affected.
+//   - group: 'group' - every artifact under that group that's currently
+//     BOM-managed (i.e. every key in dependencyManagement.managedVersions
+//     starting with 'group:') gets swept in automatically. Use this for
+//     module families that must move in lockstep (e.g. resilience4j) -
+//     an explicit list here previously missed two sibling artifacts
+//     (resilience4j-annotations, resilience4j-circularbuffer) that weren't
+//     top-of-mind when the list was written, causing a runtime
+//     NoSuchMethodError from a version mismatch between them.
+//
+// On every build, each resolved coordinate's Spring Boot-managed version
+// (if any) is compared against the override:
+//   - managed < override  -> override is applied (the coercion)
+//   - managed >= override -> build fails; Spring has caught up (or
+//     overtaken), the override is redundant/backlevelling and must be
+//     removed from this list
+
+// Compares dotted/hyphenated numeric version segments (e.g. '42.7.11' vs
+// '42.7.12'); non-numeric segments (qualifiers like 'Final') compare
+// lexically. Deliberately self-contained rather than relying on Gradle's
+// org.gradle.util(.internal).VersionNumber, which isn't public API and has
+// already moved packages once (pre-9 -> 9's org.gradle.util.internal).
+def compareVersions(String a, String b) {
+    def partsA = a.split(/[.\-]/)
+    def partsB = b.split(/[.\-]/)
+    def length = Math.max(partsA.length, partsB.length)
+    for (i in 0..<length) {
+        def partA = i < partsA.length ? partsA[i] : '0'
+        def partB = i < partsB.length ? partsB[i] : '0'
+        def cmp = (partA.isInteger() && partB.isInteger())
+                ? (partA.toInteger() <=> partB.toInteger())
+                : (partA <=> partB)
+        if (cmp != 0) {
+            return cmp
+        }
+    }
+    return 0
+}
+
+def cveOverrides = [
+        [
+                reason     : 'CVE fix for postgres JDBC driver',
+                coordinates: ['org.postgresql:postgresql'],
+                version    : '42.7.13',
+        ],
+        [
+                reason     : 'CVE-2026-54399, CVE-2026-54428 - HttpComponents Core HTTP/1.1 parser and HTTP/2 HPACK decoder DoS',
+                coordinates: ['org.apache.httpcomponents.core5:httpcore5', 'org.apache.httpcomponents.core5:httpcore5-h2'],
+                version    : '5.4.3',
+        ],
+        [
+                reason     : 'Kept coherent with the httpcore5 5.4.3 CVE fix above (CVE-2026-54399, CVE-2026-54428); httpclient5 itself is not flagged',
+                coordinates: ['org.apache.httpcomponents.client5:httpclient5'],
+                version    : '5.6.2',
+        ],
+        [
+                reason     : 'CVE-2026-49844 - Log4j2, fixed at 2.25.5',
+                coordinates: ['org.apache.logging.log4j:log4j-api', 'org.apache.logging.log4j:log4j-core', 'org.apache.logging.log4j:log4j-to-slf4j'],
+                version    : '2.25.5',
+        ],
+        [
+                reason     : 'CVE-2026-66257, CVE-2026-66273, CVE-2026-66274, CVE-2026-66275, CVE-2026-66276, ' +
+                             'CVE-2026-66277 - Qpid proton-j, fixed at 0.35.0',
+                coordinates: ['org.apache.qpid:proton-j'],
+                version    : '0.35.0',
+        ],
+        [
+                reason     : 'spring-cloud-dependencies nests spring-cloud-circuitbreaker-dependencies:5.0.2, ' +
+                             'which imports resilience4j-bom:2.3.0 - this keeps forcing resilience4j-core (and ' +
+                             'siblings) back to 2.3.0 even though we declare resilience4j-spring-boot4:2.4.0 ' +
+                             'directly. 2.4.0 also drops resilience4j-core\'s kotlin-stdlib dependency entirely, ' +
+                             'sidestepping the disputed CVE-2026-53914 CPE match on kotlin-stdlib.',
+                group      : 'io.github.resilience4j',
+                version    : '2.4.0',
+        ],
+        [
+                reason     : 'CVE-2026-53434, CVE-2026-55276, CVE-2026-59083, CVE-2026-59084, CVE-2026-53404, ' +
+                             'CVE-2026-55955, CVE-2026-55956, CVE-2026-50229 - Tomcat, fixed at 11.0.24. ' +
+                             'CVE-2026-66299 (examples webapp, not shipped by tomcat-embed-*) needs 11.0.25, ' +
+                             'not yet released - suppressed separately in dependency-check-suppressions.xml.',
+                coordinates: ['org.apache.tomcat.embed:tomcat-embed-core', 'org.apache.tomcat.embed:tomcat-embed-websocket'],
+                version    : '11.0.24',
+        ],
+]
+
+cveOverrides.each { override ->
+    def coordinates = override.group
+            ? dependencyManagement.managedVersions.keySet().findAll { it.startsWith("${override.group}:") }
+            : override.coordinates
+
+    if (coordinates.isEmpty()) {
+        throw new GradleException(
+                "CVE override group '${override.group}' (${override.reason}) in " +
+                "build-version-overrides.gradle matched nothing in dependencyManagement.managedVersions - " +
+                "either it's no longer BOM-managed under that group, or the group name is wrong. Check it."
+        )
+    }
+
+    coordinates.each { coordinate ->
+        def managedVersion = dependencyManagement.managedVersions[coordinate]
+
+        if (managedVersion != null && compareVersions(managedVersion, override.version) >= 0) {
+            throw new GradleException(
+                    "CVE override for ${coordinate} (${override.version}, ${override.reason}) in " +
+                    "build-version-overrides.gradle is redundant: Spring's managed version is " +
+                    "already ${managedVersion}. Remove the override."
+            )
+        }
+
+        dependencyManagement {
+            dependencies {
+                dependency "${coordinate}:${override.version}"
+            }
+        }
+    }
+}

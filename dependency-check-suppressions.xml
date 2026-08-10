@@ -52,4 +52,28 @@
         <cve>CVE-2025-21199</cve>
     </suppress>
 
+    <suppress>
+        <notes>
+            CVE-2026-66299 is an uncontrolled resource consumption issue in Apache Tomcat's bundled WebSocket
+            chat example web application (webapps/examples). tomcat-embed-core/tomcat-embed-websocket, as used
+            via Spring Boot's embedded container, never ship that examples webapp, so this does not apply here.
+            No fixed release exists yet regardless (needs 11.0.25; latest published is 11.0.24, see
+            build-version-overrides.gradle). Revisit once 11.0.25 ships and we bump to it.
+        </notes>
+        <packageUrl regex="true">^pkg:maven/org\.apache\.tomcat\.embed/tomcat-embed-core@11\.0\.24$</packageUrl>
+        <cve>CVE-2026-66299</cve>
+    </suppress>
+
+    <suppress>
+        <notes>
+            CVE-2026-66299 is an uncontrolled resource consumption issue in Apache Tomcat's bundled WebSocket
+            chat example web application (webapps/examples). tomcat-embed-core/tomcat-embed-websocket, as used
+            via Spring Boot's embedded container, never ship that examples webapp, so this does not apply here.
+            No fixed release exists yet regardless (needs 11.0.25; latest published is 11.0.24, see
+            build-version-overrides.gradle). Revisit once 11.0.25 ships and we bump to it.
+        </notes>
+        <packageUrl regex="true">^pkg:maven/org\.apache\.tomcat\.embed/tomcat-embed-websocket@11\.0\.24$</packageUrl>
+        <cve>CVE-2026-66299</cve>
+    </suppress>
+
 </suppressions>

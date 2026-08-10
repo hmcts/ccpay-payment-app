@@ -17,7 +17,6 @@ dependencies {
     implementation group: 'net.logstash.logback', name: 'logstash-logback-encoder', version:'8.1'
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web'
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa'
-    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-webflux'
     implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign'
 
     api group: 'org.springframework.security', name: 'spring-security-oauth2-client', version: '6.5.11'
@@ -26,7 +25,7 @@ dependencies {
     implementation (group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '6.0.1') {
         exclude group: 'org.apache.httpcomponents', module: 'httpclient'
     }
-    implementation group: 'io.github.resilience4j', name: 'resilience4j-spring-boot3', version: '2.2.0'
+    implementation group: 'io.github.resilience4j', name: 'resilience4j-spring-boot4', version: '2.4.0'
     api group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '5.10.9'
 
     testImplementation(group: 'org.springframework.boot', name: 'spring-boot-starter-test') {
