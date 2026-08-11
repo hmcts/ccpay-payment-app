@@ -1,5 +1,7 @@
 package uk.gov.hmcts.payment.api.controllers;
 
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -28,6 +30,7 @@ import static uk.gov.hmcts.payment.api.util.DateUtil.atStartOfDay;
 import static uk.gov.hmcts.payment.api.util.ReportType.PROCESSED_UNALLOCATED;
 import static uk.gov.hmcts.payment.api.util.ReportType.SURPLUS_AND_SHORTFALL;
 
+@RateLimiter(name = "defaultRateLimiter")
 @RestController
 @Tag(name = "BulkScanningReportController", description = "Bulk Scanning report REST API")
 public class BulkScanningReportController {

@@ -1,5 +1,7 @@
 package uk.gov.hmcts.payment.api.controllers;
 
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
+
 
 import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
@@ -32,6 +34,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@RateLimiter(name = "defaultRateLimiter")
 @RestController
 @Tag(name = "Replay Credit Account Payment")
 public class ReplayCreditAccountPaymentController {

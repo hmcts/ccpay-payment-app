@@ -1,5 +1,7 @@
 package uk.gov.hmcts.payment.api.controllers;
 
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.*;
@@ -32,6 +34,7 @@ import static uk.gov.hmcts.payment.api.util.DateUtil.atEndOfDay;
 import static uk.gov.hmcts.payment.api.util.DateUtil.atStartOfDay;
 
 
+@RateLimiter(name = "defaultRateLimiter")
 @RestController
 @Tag(name = "PaymentStatusController", description = "Payment Status REST API")
 public class PaymentStatusController {

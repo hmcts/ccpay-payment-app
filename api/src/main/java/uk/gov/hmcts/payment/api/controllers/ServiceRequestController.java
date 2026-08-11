@@ -1,5 +1,7 @@
 package uk.gov.hmcts.payment.api.controllers;
 
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
+
     import com.fasterxml.jackson.core.JsonProcessingException;
     import com.fasterxml.jackson.databind.ObjectMapper;
     import com.fasterxml.jackson.databind.ObjectWriter;
@@ -67,6 +69,7 @@ package uk.gov.hmcts.payment.api.controllers;
     import java.util.function.Function;
     import java.util.stream.Collectors;
 
+@RateLimiter(name = "defaultRateLimiter")
 @RestController
 @Tag(name = "ServiceRequestController", description = "Service Request REST API")
 @SuppressWarnings("all")

@@ -1,5 +1,7 @@
 package uk.gov.hmcts.payment.api.controllers;
 
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -18,6 +20,7 @@ import uk.gov.hmcts.payment.api.service.FeesService;
 
 import java.util.Optional;
 
+@RateLimiter(name = "defaultRateLimiter")
 @RestController
 @Tag(name = "Fees", description = "Fees REST API")
 @Validated

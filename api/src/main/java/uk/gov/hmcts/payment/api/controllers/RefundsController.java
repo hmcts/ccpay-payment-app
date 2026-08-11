@@ -1,5 +1,7 @@
 package uk.gov.hmcts.payment.api.controllers;
 
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
+
 
 import io.swagger.v3.oas.annotations.*;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -29,6 +31,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.RemissionNotFoundException;
 
 import jakarta.validation.Valid;
 
+@RateLimiter(name = "defaultRateLimiter")
 @RestController
 @Tag(name = "RefundsController", description = "Refunds REST API")
 public class RefundsController {

@@ -1,5 +1,7 @@
 package uk.gov.hmcts.payment.api.controllers.mock;
 
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
+
 import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,6 +13,7 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 
 import java.util.List;
 
+@RateLimiter(name = "defaultRateLimiter")
 @RestController
 @Profile("callbackMock")
 @RequestMapping("/mock-api")

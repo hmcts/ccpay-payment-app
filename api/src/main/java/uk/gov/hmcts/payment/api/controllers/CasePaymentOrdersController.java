@@ -1,5 +1,7 @@
 package uk.gov.hmcts.payment.api.controllers;
 
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
+
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -33,6 +35,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
  * Case payment orders controller
  */
 
+@RateLimiter(name = "defaultRateLimiter")
 @RestController
 @Tag(name = "CasePaymentOrderController", description = "Case Payment Order REST API")
 public class CasePaymentOrdersController {

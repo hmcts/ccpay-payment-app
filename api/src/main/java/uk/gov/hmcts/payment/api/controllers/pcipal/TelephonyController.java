@@ -1,5 +1,7 @@
 package uk.gov.hmcts.payment.api.controllers.pcipal;
 
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -21,6 +23,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import jakarta.validation.Valid;
 
 
+@RateLimiter(name = "defaultRateLimiter")
 @RestController
 @Tag(name = "Telephony", description = "Telephony Payment REST API")
 public class TelephonyController {

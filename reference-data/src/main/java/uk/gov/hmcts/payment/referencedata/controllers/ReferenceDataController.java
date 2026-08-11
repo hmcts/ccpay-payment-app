@@ -1,5 +1,7 @@
 package uk.gov.hmcts.payment.referencedata.controllers;
 
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -16,6 +18,7 @@ import uk.gov.hmcts.payment.referencedata.service.SiteService;
 
 import java.util.List;
 
+@RateLimiter(name = "defaultRateLimiter")
 @RestController
 @Tag(name = "ReferenceDataController", description = "Reference Data REST API")
 public class ReferenceDataController {

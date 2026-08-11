@@ -1,5 +1,7 @@
 package uk.gov.hmcts.payment.api.controllers;
 
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
+
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -26,6 +28,7 @@ import uk.gov.hmcts.payment.api.model.PaymentStatusRepository;
 
 import java.util.List;
 
+@RateLimiter(name = "defaultRateLimiter")
 @RestController
 @Tag(name = "Payment Reference Data")
 @RequestMapping("/refdata")

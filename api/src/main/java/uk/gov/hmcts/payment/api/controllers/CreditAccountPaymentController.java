@@ -1,5 +1,7 @@
 package uk.gov.hmcts.payment.api.controllers;
 
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
+
 
 import com.google.common.collect.Lists;
 import io.swagger.v3.oas.annotations.Operation;
@@ -44,6 +46,7 @@ import java.util.Optional;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
+@RateLimiter(name = "defaultRateLimiter")
 @RestController
 @Tag(name = "Credit Account Payment")
 public class CreditAccountPaymentController {
