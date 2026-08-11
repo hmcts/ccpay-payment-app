@@ -21,9 +21,9 @@ import static org.junit.Assert.assertThrows;
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = RateLimiterConfigurationTest.TestConfig.class)
 @TestPropertySource(properties = {
-    "resilience4j.ratelimiter.instances.defaultRateLimiter.limitForPeriod=1",
-    "resilience4j.ratelimiter.instances.defaultRateLimiter.limitRefreshPeriod=1m",
-    "resilience4j.ratelimiter.instances.defaultRateLimiter.timeoutDuration=0"
+    "resilience4j.ratelimiter.instances.default-rate-limiter.limit-for-period=1",
+    "resilience4j.ratelimiter.instances.default-rate-limiter.limit-refresh-period=1m",
+    "resilience4j.ratelimiter.instances.default-rate-limiter.timeout-duration=0"
 })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class RateLimiterConfigurationTest {
@@ -50,7 +50,7 @@ public class RateLimiterConfigurationTest {
         }
     }
 
-    @RateLimiter(name = "defaultRateLimiter")
+    @RateLimiter(name = "default-rate-limiter")
     static class RateLimitedComponent {
         String call() {
             return "ok";

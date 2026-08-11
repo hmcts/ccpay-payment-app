@@ -65,7 +65,6 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
  * Card payment controller
  */
 
-@RateLimiter(name = "defaultRateLimiter")
 @RestController
 @Tag(name = "CardPaymentController", description = "Card payment REST API")
 public class CardPaymentController implements ApplicationContextAware {
@@ -111,6 +110,7 @@ public class CardPaymentController implements ApplicationContextAware {
         @ApiResponse(responseCode = "404", description = "No Service found for given CaseType"),
         @ApiResponse(responseCode = "504", description = "Unable to retrieve service information. Please try again later")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @PostMapping(value = "/card-payments")
     @ResponseBody
     @Transactional
@@ -193,6 +193,7 @@ public class CardPaymentController implements ApplicationContextAware {
         @ApiResponse(responseCode = "403", description = "Payment info forbidden"),
         @ApiResponse(responseCode = "404", description = "Payment not found")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @GetMapping(value = "/card-payments/{reference}")
     public PaymentDto retrieve(@PathVariable("reference") String paymentReference) {
         return paymentDtoMapper.toRetrieveCardPaymentResponseDto(delegatingPaymentService.retrieve(paymentReference), paymentReference);
@@ -203,6 +204,7 @@ public class CardPaymentController implements ApplicationContextAware {
         @ApiResponse(responseCode = "200", description = "Payment card details retrieved"),
         @ApiResponse(responseCode = "404", description = "Payment card details not found")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @RequestMapping(value = "/card-payments/{reference}/details", method = GET)
     public CardDetails retrieveWithCardDetails(@PathVariable("reference") String paymentReference) {
         return cardDetailsService.retrieve(paymentReference);
@@ -213,6 +215,7 @@ public class CardPaymentController implements ApplicationContextAware {
         @ApiResponse(responseCode = "200", description = "Payment retrieved"),
         @ApiResponse(responseCode = "404", description = "Payment not found")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @GetMapping(value = "/card-payments/{reference}/statuses")
     public PaymentDto retrievePaymentStatus(@PathVariable("reference") String paymentReference) {
         PaymentFeeLink paymentFeeLink = delegatingPaymentService.retrieve(paymentReference);
@@ -234,6 +237,7 @@ public class CardPaymentController implements ApplicationContextAware {
         @ApiResponse(responseCode = "404", description = "Payment Not found"),
         @ApiResponse(responseCode = "500", description = "Downstream system error")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @PostMapping(value = "/card-payments/{reference}/cancel")
     public ResponseEntity cancelPayment(@PathVariable("reference") String paymentReference) {
         delegatingPaymentService.cancel(paymentReference);

@@ -46,7 +46,6 @@ import java.util.Optional;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
-@RateLimiter(name = "defaultRateLimiter")
 @RestController
 @Tag(name = "Credit Account Payment")
 public class CreditAccountPaymentController {
@@ -107,6 +106,7 @@ public class CreditAccountPaymentController {
         @ApiResponse(responseCode = "504", description = "Unable to retrieve account information, please try again later \t\n Unable to retrieve service information. Please try again later"),
         @ApiResponse(responseCode = "422", description = "Invalid or missing attribute")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @PostMapping(value = "/credit-account-payments")
     @ResponseBody
     @Transactional
@@ -194,6 +194,7 @@ public class CreditAccountPaymentController {
         @ApiResponse(responseCode = "200", description = "Payment retrieved"),
         @ApiResponse(responseCode = "404", description = "Payment not found")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @RequestMapping(value = "/credit-account-payments/{paymentReference}", method = GET)
     public ResponseEntity<PaymentDto> retrieve(@PathVariable("paymentReference") String paymentReference) {
         PaymentFeeLink paymentFeeLink = creditAccountPaymentService.retrieveByPaymentReference(paymentReference);
@@ -209,6 +210,7 @@ public class CreditAccountPaymentController {
         @ApiResponse(responseCode = "200", description = "Payment retrieved"),
         @ApiResponse(responseCode = "404", description = "Payment not found")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @RequestMapping(value = "/credit-account-payments/{paymentReference}/statuses", method = GET)
     public ResponseEntity<PaymentDto> retrievePaymentStatus(@PathVariable("paymentReference") String paymentReference) {
         PaymentFeeLink paymentFeeLink = creditAccountPaymentService.retrieveByPaymentReference(paymentReference);
@@ -224,6 +226,7 @@ public class CreditAccountPaymentController {
             @ApiResponse(responseCode = "204", description = "Payment deleted successfully"),
             @ApiResponse(responseCode = "404", description = "Payment not found for the given reference")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @DeleteMapping(value = "/credit-account-payments/{paymentReference}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteByPaymentReference(@PathVariable("paymentReference") String paymentReference) {

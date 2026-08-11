@@ -31,7 +31,6 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.RemissionNotFoundException;
 
 import jakarta.validation.Valid;
 
-@RateLimiter(name = "defaultRateLimiter")
 @RestController
 @Tag(name = "RefundsController", description = "Refunds REST API")
 public class RefundsController {
@@ -49,6 +48,7 @@ public class RefundsController {
         @ApiResponse(responseCode = "504", description = "Unable to process refund information, please try again later"),
         @ApiResponse(responseCode = "422", description = "Invalid or missing attribute")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @PostMapping(value = "/refund-for-payment")
     @ResponseBody
     @Transactional(rollbackFor = Exception.class)
@@ -56,6 +56,7 @@ public class RefundsController {
         return paymentRefundsService.createRefund(paymentRefundRequest, headers);
     }
 
+    @RateLimiter(name = "default-rate-limiter")
     @PostMapping(value = "/refund-retro-remission")
     @Transactional(rollbackFor = Exception.class)
     public ResponseEntity<RefundResponse> createRefundForRetrospective(@Valid @RequestBody RetrospectiveRemissionRequest
@@ -70,6 +71,7 @@ public class RefundsController {
         @ApiResponse(responseCode = "400", description = "Amount should not be more than Payment amount"),
         @ApiResponse(responseCode = "400", description = "Amount should not be more than remission amount")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @PatchMapping("/refund/resubmit/{payment-reference}")
     @Transactional(rollbackFor = Exception.class)
     public ResponseEntity updateRemissionAmountResubmitRefund(
@@ -85,6 +87,7 @@ public class RefundsController {
             @ApiResponse(responseCode = "204", description = "Refund deleted successfully"),
             @ApiResponse(responseCode = "404", description = "Refund not found for the given reference")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @DeleteMapping(value = "/refund/{refundReference}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteByRefundReference(@PathVariable("refundReference") String refundReference,

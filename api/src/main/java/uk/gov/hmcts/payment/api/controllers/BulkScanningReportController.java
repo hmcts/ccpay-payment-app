@@ -30,7 +30,6 @@ import static uk.gov.hmcts.payment.api.util.DateUtil.atStartOfDay;
 import static uk.gov.hmcts.payment.api.util.ReportType.PROCESSED_UNALLOCATED;
 import static uk.gov.hmcts.payment.api.util.ReportType.SURPLUS_AND_SHORTFALL;
 
-@RateLimiter(name = "defaultRateLimiter")
 @RestController
 @Tag(name = "BulkScanningReportController", description = "Bulk Scanning report REST API")
 public class BulkScanningReportController {
@@ -49,6 +48,7 @@ public class BulkScanningReportController {
         @ApiResponse(responseCode = "404", description = "No Data found to generate Report")
     })
 
+    @RateLimiter(name = "default-rate-limiter")
     @GetMapping("/payment/bulkscan-data-report")
     public ResponseEntity<List<?>> getBulkScanReports(
         @RequestParam("date_from") Date fromDate,

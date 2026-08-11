@@ -42,7 +42,6 @@ import java.util.stream.Collectors;
 
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
-@RateLimiter(name = "defaultRateLimiter")
 @RestController
 @Tag(name = "PaymentRecordController", description = "Payment record REST API")
 public class PaymentRecordController {
@@ -79,6 +78,7 @@ public class PaymentRecordController {
         @ApiResponse(responseCode = "400", description = "Payment creation failed"),
         @ApiResponse(responseCode = "422", description = "Invalid or missing attribute")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @RequestMapping(value = "/payment-records", method = POST)
     @ResponseBody
     public ResponseEntity<PaymentDto> recordPayment(@Valid @RequestBody PaymentRecordRequest paymentRecordRequest) throws CheckDigitException {

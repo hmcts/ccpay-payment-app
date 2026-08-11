@@ -18,7 +18,6 @@ import uk.gov.hmcts.payment.referencedata.service.SiteService;
 
 import java.util.List;
 
-@RateLimiter(name = "defaultRateLimiter")
 @RestController
 @Tag(name = "ReferenceDataController", description = "Reference Data REST API")
 public class ReferenceDataController {
@@ -30,6 +29,7 @@ public class ReferenceDataController {
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Sites retrieved successfully")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @GetMapping(value = "/reference-data/sites")
     @ResponseBody
     public ResponseEntity<List<SiteDTO>> getSites() {

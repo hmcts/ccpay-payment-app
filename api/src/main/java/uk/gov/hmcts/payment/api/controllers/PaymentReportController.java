@@ -22,7 +22,6 @@ import java.util.Optional;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
-@RateLimiter(name = "defaultRateLimiter")
 @RestController
 @Tag(name = "PaymentReportController", description = "Payment report REST API")
 public class PaymentReportController {
@@ -45,6 +44,7 @@ public class PaymentReportController {
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Reports sent")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @PostMapping(value = "/jobs/email-pay-reports")
     public void generateAndEmailReport(@RequestParam(name = "payment_method", required = false) Optional<String> paymentMethodType,
                                        @RequestParam(name = "service_name", required = false) Optional<String> serviceType,
@@ -68,6 +68,7 @@ public class PaymentReportController {
         @ApiResponse(responseCode = "200", description = "Report Generated, email only sent if data exists"),
         @ApiResponse(responseCode = "500", description = "Internal Server Error")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @PostMapping(value = "/jobs/duplicate-payment-process")
     public void duplicatePaymentEmailReport(@RequestParam(name = "start_date", required = false) Optional<String> startDateString,
                                             @RequestParam(name = "end_date", required = false) Optional<String> endDateString) {

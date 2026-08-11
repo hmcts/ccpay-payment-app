@@ -20,7 +20,6 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import static org.slf4j.LoggerFactory.getLogger;
 
-@RateLimiter(name = "defaultRateLimiter")
 @RestController
 @Tag(name = "ServiceRequestReportController", description = "Service Request report REST API")
 public class ServiceRequestReportController {
@@ -37,6 +36,7 @@ public class ServiceRequestReportController {
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Report sent")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @PostMapping(value = "/jobs/email-duplicate-sr-report")
     public void generateAndEmailDuplicateSRReport(@RequestParam(name = "date", required = true) String dateString) throws ValidationErrorException {
 

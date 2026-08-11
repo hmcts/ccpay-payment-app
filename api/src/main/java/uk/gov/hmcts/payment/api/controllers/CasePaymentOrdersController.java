@@ -35,7 +35,6 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
  * Case payment orders controller
  */
 
-@RateLimiter(name = "defaultRateLimiter")
 @RestController
 @Tag(name = "CasePaymentOrderController", description = "Case Payment Order REST API")
 public class CasePaymentOrdersController {
@@ -60,6 +59,7 @@ public class CasePaymentOrdersController {
         @ApiResponse(responseCode = "404", description = "Case Payment Order does not exist"),
         @ApiResponse(responseCode = "500", description = "Downstream system error")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @RequestMapping(value = "/case-payment-orders", method = GET)
     public CasePaymentOrdersDto retrieveCasePaymentOrders(
         @Parameter(description = "Coma separated list of case ids.", required = true)

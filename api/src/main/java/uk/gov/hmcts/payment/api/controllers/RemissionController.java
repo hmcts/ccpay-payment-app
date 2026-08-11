@@ -29,7 +29,6 @@ import java.util.Optional;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 
-@RateLimiter(name = "defaultRateLimiter")
 @RestController
 @Tag(name = "RemissionController", description = "Remission REST API")
 public class RemissionController {
@@ -54,6 +53,7 @@ public class RemissionController {
         @ApiResponse(responseCode = "404", description = "Given payment group reference not found"),
         @ApiResponse(responseCode = "422", description = "Invalid or missing attribute")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @PostMapping(value = "/remissions")
     @ResponseBody
     public ResponseEntity<RemissionDto> createRemission(@Valid @RequestBody RemissionRequest remissionRequest,
@@ -77,6 +77,7 @@ public class RemissionController {
         @ApiResponse(responseCode = "404", description = "Given payment group reference not found"),
         @ApiResponse(responseCode = "422", description = "Invalid or missing attribute")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @PostMapping(value = "/payment-groups/{payment-group-reference}/fees/{unique_fee_id}/remissions")
     @ResponseBody
     public ResponseEntity<RemissionDto> createRetrospectiveRemission(
@@ -100,6 +101,7 @@ public class RemissionController {
         @ApiResponse(responseCode = "404", description = "Given payment group reference not found"),
         @ApiResponse(responseCode = "422", description = "Invalid or missing attribute")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @PostMapping(value = "/payment-groups/{payment-group-reference}/fees/{unique_fee_id}/retro-remission")
     @ResponseBody
     public ResponseEntity<RetroRemissionDto> createRetrospectiveRemissionForPayment(

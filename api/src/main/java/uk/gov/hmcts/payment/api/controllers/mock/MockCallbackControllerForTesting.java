@@ -13,7 +13,6 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 
 import java.util.List;
 
-@RateLimiter(name = "defaultRateLimiter")
 @RestController
 @Profile("callbackMock")
 @RequestMapping("/mock-api")
@@ -23,6 +22,7 @@ public class MockCallbackControllerForTesting {
 
     private List<String> callbackList = Lists.newArrayList();
 
+    @RateLimiter(name = "default-rate-limiter")
     @PutMapping("/serviceCallback")
     public ResponseEntity mockCallback(@RequestBody PaymentDto paymentDto) {
         LOG.info("Callback request:{}", paymentDto);
@@ -30,6 +30,7 @@ public class MockCallbackControllerForTesting {
         return ResponseEntity.ok().build();
     }
 
+    @RateLimiter(name = "default-rate-limiter")
     @GetMapping("/serviceCallback/{reference}")
     public ResponseEntity exists(@PathVariable("reference") String reference) {
         if (callbackList.contains(reference)) {

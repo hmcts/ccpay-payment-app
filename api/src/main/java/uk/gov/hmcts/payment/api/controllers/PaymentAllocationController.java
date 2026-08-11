@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-@RateLimiter(name = "defaultRateLimiter")
 @RestController
 @Tag(name = "PaymentAllocationController", description = "Payment Allocation REST API")
 public class PaymentAllocationController {
@@ -48,6 +47,7 @@ public class PaymentAllocationController {
         @ApiResponse(responseCode = "201", description = "Payment Allocation created"),
         @ApiResponse(responseCode = "400", description = "Payment Allocation failed")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @PostMapping(value = "/payment-allocations")
     public ResponseEntity<PaymentAllocationDto> addNewFee(@Valid @RequestBody PaymentAllocationDto paymentAllocationDto) {
 

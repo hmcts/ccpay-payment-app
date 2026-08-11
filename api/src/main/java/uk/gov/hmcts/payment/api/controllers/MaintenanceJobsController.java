@@ -21,7 +21,6 @@ import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 
 import java.util.List;
 
-@RateLimiter(name = "defaultRateLimiter")
 @RestController
 @Tag(name = "MaintenanceJobsController", description = "Maintainance jobs REST API")
 public class MaintenanceJobsController {
@@ -53,6 +52,7 @@ public class MaintenanceJobsController {
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Reports sent")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @PatchMapping(value = "/jobs/card-payments-status-update")
     public void updatePaymentsStatus() {
 

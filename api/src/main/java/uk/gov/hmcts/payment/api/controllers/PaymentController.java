@@ -59,7 +59,6 @@ import java.util.stream.Collectors;
 
 import static org.springframework.web.bind.annotation.RequestMethod.PATCH;
 
-@RateLimiter(name = "defaultRateLimiter")
 @RestController
 @Tag(name = "PaymentController", description = "Payment REST API")
 public class PaymentController {
@@ -101,6 +100,7 @@ public class PaymentController {
         @ApiResponse(responseCode = "200", description = "No content"),
         @ApiResponse(responseCode = "404", description = "Payment not found")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @RequestMapping(value = "/payments/{reference}", method = PATCH)
     @Transactional
     public ResponseEntity updateCaseReference(@PathVariable("reference") String reference,
@@ -130,6 +130,7 @@ public class PaymentController {
      * All the Refunds tests hinge on this requirement.
      * Please do not use this for an Application  feature or build purposes.
      */
+    @RateLimiter(name = "default-rate-limiter")
     @RequestMapping(value = "/payments/ccd_case_reference/{ccd_case_number}/lag_time/{lag_time}", method = PATCH)
     @Transactional
     public ResponseEntity
@@ -145,6 +146,7 @@ public class PaymentController {
         @ApiResponse(responseCode = "200", description = "Payments retrieved"),
         @ApiResponse(responseCode = "400", description = "Bad request")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @GetMapping(value = "/payments")
     @PaymentExternalAPI
     public PaymentsResponse retrievePayments(@RequestParam(name = "start_date", required = false) Optional<String> startDateTimeString,
@@ -181,6 +183,7 @@ public class PaymentController {
         @ApiResponse(responseCode = "400", description = "Bad request"),
         @ApiResponse(responseCode = "206", description = "Supplementary details partially retrieved"),
     })
+    @RateLimiter(name = "default-rate-limiter")
     @GetMapping(value = "/reconciliation-payments")
     @PaymentExternalAPI
     public ResponseEntity<ReconciliationPaymentsResponse> retrievePaymentsWithApportion(@RequestParam(name = "start_date", required = false) Optional<String> startDateTimeString,
@@ -243,6 +246,7 @@ public class PaymentController {
         @ApiResponse(responseCode = "404", description = "Payment not found")
     })
     @PaymentExternalAPI
+    @RateLimiter(name = "default-rate-limiter")
     @PatchMapping("/payments/{reference}/status/{status}")
     @Transactional
     public ResponseEntity updatePaymentStatus(@PathVariable(value = "reference", required = true) String reference,
@@ -266,6 +270,7 @@ public class PaymentController {
         @ApiResponse(responseCode = "403", description = "Payment info forbidden"),
         @ApiResponse(responseCode = "404", description = "Payment not found")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @GetMapping(value = "/payments/{reference}")
     public PaymentDto retrievePayment(@PathVariable("reference") String paymentReference) {
 
@@ -285,6 +290,7 @@ public class PaymentController {
         @ApiResponse(responseCode = "403", description = "Payment info forbidden"),
         @ApiResponse(responseCode = "404", description = "Payment not found")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @GetMapping(value = "/refunds/payments")
     @PaymentExternalAPI
     public List<PaymentDto> retrievePayments(@RequestParam List<String> paymentReferenceList) {

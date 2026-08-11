@@ -27,7 +27,6 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.PRECONDITION_FAILED;
 
 @Slf4j
-@RateLimiter(name = "defaultRateLimiter")
 @RestController
 @Tag(name = "AccountController", description = "Account REST API")
 public class AccountController {
@@ -58,6 +57,7 @@ public class AccountController {
         @ApiResponse(responseCode = "500", description = "Internal Server Error"),
         @ApiResponse(responseCode = "503", description = "Failed to connect with Liberata")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @GetMapping(value = "/accounts/{accountNumber}")
     public AccountDto getAccounts(@PathVariable("accountNumber") String accountNumber) {
         try {

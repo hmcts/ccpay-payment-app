@@ -34,7 +34,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@RateLimiter(name = "defaultRateLimiter")
 @RestController
 @Tag(name = "Replay Credit Account Payment")
 public class ReplayCreditAccountPaymentController {
@@ -67,6 +66,7 @@ public class ReplayCreditAccountPaymentController {
         @ApiResponse(responseCode = "400", description = "BAD Request"),
         @ApiResponse(responseCode = "500", description = "Replay Payment failed")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @PostMapping(value = "/replay-credit-account-payments", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseBody
     @Transactional

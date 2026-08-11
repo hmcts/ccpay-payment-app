@@ -23,7 +23,6 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import jakarta.validation.Valid;
 
 
-@RateLimiter(name = "defaultRateLimiter")
 @RestController
 @Tag(name = "Telephony", description = "Telephony Payment REST API")
 public class TelephonyController {
@@ -47,6 +46,7 @@ public class TelephonyController {
         @ApiResponse(responseCode = "404", description = "Payment not found")
     })
     @PaymentExternalAPI
+    @RateLimiter(name = "default-rate-limiter")
     @PostMapping(path = "/telephony/callback", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public ResponseEntity updateTelephonyPaymentStatus(@Valid @ModelAttribute TelephonyCallbackDto callbackDto) {
         LOG.info("Received callback request from pci-apl : {}", callbackDto);

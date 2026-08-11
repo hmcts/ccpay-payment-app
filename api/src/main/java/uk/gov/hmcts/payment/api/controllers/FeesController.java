@@ -20,7 +20,6 @@ import uk.gov.hmcts.payment.api.service.FeesService;
 
 import java.util.Optional;
 
-@RateLimiter(name = "defaultRateLimiter")
 @RestController
 @Tag(name = "Fees", description = "Fees REST API")
 @Validated
@@ -38,6 +37,7 @@ public class FeesController {
         @ApiResponse(responseCode = "204", description = "Fees Deleted"),
         @ApiResponse(responseCode = "400", description = "Fees not found")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @DeleteMapping(value = "/fees/{feeId}")
     public ResponseEntity<Boolean> deleteFee(@NotNull @PathVariable("feeId") String feeId) throws EmptyResultDataAccessException {
         feesService.deleteFee(Integer.parseInt(feeId));
