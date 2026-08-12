@@ -22,6 +22,7 @@ java:
     PBA_PCS_PAYMENTS_EMAIL_FROM: "no-reply@mail-payment-nonprod.platform.hmcts.net"
     PBA_PCS_PAYMENTS_EMAIL_MESSAGE: "Hi, <br/><br/>Please find attached Payment by Account reconciliation report. <br/><br/>Regards, <br/>Fees & Payments Team <br/><br/>"
     PBA_PCS_PAYMENTS_EMAIL_SUBJECT: "CNP:PBA Mortgage and Landlord Possession Claims Reconciliation Report"
+    API_RATE_LIMIT_FOR_PERIOD: 100000
 
     # For PR pointing amend these - not neccessary anymore for PRs to build.
     # REFUND_API_URL: http://ccpay-refunds-api-pr-367-java
