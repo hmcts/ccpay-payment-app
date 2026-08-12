@@ -1,5 +1,7 @@
 package uk.gov.hmcts.payment.referencedata.controllers;
 
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -27,6 +29,7 @@ public class ReferenceDataController {
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Sites retrieved successfully")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @GetMapping(value = "/reference-data/sites")
     @ResponseBody
     public ResponseEntity<List<SiteDTO>> getSites() {

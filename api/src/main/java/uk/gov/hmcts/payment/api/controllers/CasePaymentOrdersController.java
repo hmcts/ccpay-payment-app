@@ -1,5 +1,7 @@
 package uk.gov.hmcts.payment.api.controllers;
 
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
+
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -57,6 +59,7 @@ public class CasePaymentOrdersController {
         @ApiResponse(responseCode = "404", description = "Case Payment Order does not exist"),
         @ApiResponse(responseCode = "500", description = "Downstream system error")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @RequestMapping(value = "/case-payment-orders", method = GET)
     public CasePaymentOrdersDto retrieveCasePaymentOrders(
         @Parameter(description = "Coma separated list of case ids.", required = true)
