@@ -33,9 +33,6 @@ import java.util.concurrent.TimeUnit;
 public class PaymentApiApplication {
     private static final Logger LOG = LoggerFactory.getLogger(PaymentApiApplication.class);
 
-    @Value("${pci-pal.antenna.prl.flow.id}")
-    private static String prlFlowId;
-
     public static void main(String[] args) {
         try {
             SpringApplication.run(PaymentApiApplication.class, args);

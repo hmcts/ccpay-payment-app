@@ -139,9 +139,6 @@ public class PaymentGroupController {
     @Autowired
     AntennaTelephonySystem antennaTelephonySystem;
 
-    @Value("${pci-pal.antenna.user.name}")
-    private String antennaUserName;
-
     @Autowired
     public PaymentGroupController(PaymentGroupService paymentGroupService, PaymentGroupDtoMapper paymentGroupDtoMapper,
                                   DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService,
@@ -597,7 +594,7 @@ public class PaymentGroupController {
             .orderReference(payment.getReference()).build();
 
         // Set the user based on Kerv or Antenna systems.
-        String userName = telephonySystem.getSystemName().equals(KervTelephonySystem.TELEPHONY_SYSTEM_NAME) ? idamUserId : antennaUserName;
+        String userName = telephonySystem.getSystemName().equals(KervTelephonySystem.TELEPHONY_SYSTEM_NAME) ? idamUserId : "antennaUserName";
 
         telephonyProviderAuthorisationResponse = handleTelephonyProviderAuthorisation(telephonyCardPaymentsRequest, pciPalPaymentRequest, telephonySystem, organisationalServiceDto, userName);
         TelephonyCardPaymentsResponse telephonyCardPaymentsResponse = telephonyDtoMapper.toTelephonyCardPaymentsResponse(paymentLink, payment, telephonyProviderAuthorisationResponse);
