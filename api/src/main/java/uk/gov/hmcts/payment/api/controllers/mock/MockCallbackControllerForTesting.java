@@ -1,5 +1,7 @@
 package uk.gov.hmcts.payment.api.controllers.mock;
 
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
+
 import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +22,7 @@ public class MockCallbackControllerForTesting {
 
     private List<String> callbackList = Lists.newArrayList();
 
+    @RateLimiter(name = "default-rate-limiter")
     @PutMapping("/serviceCallback")
     public ResponseEntity mockCallback(@RequestBody PaymentDto paymentDto) {
         LOG.info("Callback request:{}", paymentDto);
@@ -27,6 +30,7 @@ public class MockCallbackControllerForTesting {
         return ResponseEntity.ok().build();
     }
 
+    @RateLimiter(name = "default-rate-limiter")
     @GetMapping("/serviceCallback/{reference}")
     public ResponseEntity exists(@PathVariable("reference") String reference) {
         if (callbackList.contains(reference)) {

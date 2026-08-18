@@ -71,5 +71,14 @@
         <cve>CVE-2026-54512</cve>
         <cve>CVE-2025-21199</cve>
     </suppress>
+    <suppress until="2026-10-31Z">
+        <notes>
+            CVE-2026-64607 affects Apache HttpComponents Client and is reported against httpclient5 5.6.2. This project already forces
+            httpclient5 to 5.6.2, which is currently the latest GA available in Maven Central. Remove this suppression when Apache publishes
+            a fixed httpclient5 release.
+        </notes>
+        <packageUrl regex="true">^pkg:maven/org\.apache\.httpcomponents\.client5/httpclient5@.*$</packageUrl>
+        <cve>CVE-2026-64607</cve>
+    </suppress>
 
 </suppressions>

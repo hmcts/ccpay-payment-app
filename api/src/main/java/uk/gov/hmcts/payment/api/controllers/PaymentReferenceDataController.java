@@ -1,5 +1,7 @@
 package uk.gov.hmcts.payment.api.controllers;
 
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
+
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -58,6 +60,7 @@ public class PaymentReferenceDataController {
         @ApiResponse(responseCode = "200", description = "Payment channels found"),
         @ApiResponse(responseCode = "404", description = "Payment channels not found")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @GetMapping("/channels")
     @ResponseStatus(HttpStatus.OK)
     public List<PaymentChannel> findAllPaymentChannels() {
@@ -71,6 +74,7 @@ public class PaymentReferenceDataController {
         @ApiResponse(responseCode = "200", description = "Payment methods found"),
         @ApiResponse(responseCode = "404", description = "Payment methods not found")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @GetMapping("/methods")
     public List<PaymentMethod> findAllPaymentMethods() {
         List<PaymentMethod> paymentMethods = paymentMethodRepository.findAll();
@@ -83,6 +87,7 @@ public class PaymentReferenceDataController {
         @ApiResponse(responseCode = "200", description = "Payment providers found"),
         @ApiResponse(responseCode = "404", description = "Payment providers not found")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @GetMapping("/providers")
     @ResponseStatus(HttpStatus.OK)
     public List<PaymentProvider> findAllPaymentProviders() {
@@ -96,6 +101,7 @@ public class PaymentReferenceDataController {
         @ApiResponse(responseCode = "200", description = "Payment status found"),
         @ApiResponse(responseCode = "404", description = "Payment status not found")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @GetMapping("/status")
     public List<PaymentStatus> findAllPaymentStatuses() {
         List<PaymentStatus> paymentStatus = paymentStatusRepository.findAll();
@@ -110,6 +116,7 @@ public class PaymentReferenceDataController {
         @ApiResponse(responseCode = "401", description = "Credentials are required to access this resource")
     })
     @ResponseStatus(HttpStatus.OK)
+    @RateLimiter(name = "default-rate-limiter")
     @GetMapping(value = "/legacy-sites")
     public List<LegacySite> findAllLegacySites() {
         return legacySiteRepository.findAll();
