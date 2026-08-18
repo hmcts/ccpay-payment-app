@@ -365,12 +365,12 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
 
             if (!statusExists) {
 
-                payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
+                payment.getStatusHistories().add(StatusHistory.statusHistoryWith()
                     .externalStatus(govPayPayment.getState().getStatus())
                     .status(PayStatusToPayHubStatus.valueOf(govPayPayment.getState().getStatus().toLowerCase()).getMappedStatus())
                     .errorCode(govPayPayment.getState().getCode())
                     .message(govPayPayment.getState().getMessage())
-                    .build()));
+                    .build());
 
                 //1. Update Fee Amount Due as Payment Status received from GovPAY as SUCCESS
                 boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature", false);
@@ -390,10 +390,10 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
                     }
                 }
 
-                if (shouldCallBack && (null != payment.getServiceCallbackUrl() || null != paymentFeeLink.getCallBackUrl())) {
+                if (govPayPayment.getState().getFinished() && (null != payment.getServiceCallbackUrl() || null != paymentFeeLink.getCallBackUrl())) {
                         callbackService.callback(paymentFeeLink, payment);
                 } else {
-                    LOG.warn("Service callback url is null!");
+                    LOG.warn("Service callback url is null or payment status is not terminal!");
                 }
             }
         } catch (GovPayPaymentNotFoundException | NullPointerException pnfe) {
