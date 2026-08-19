@@ -91,16 +91,24 @@ public class CallbackServiceImplTest {
 
     @Test
     public void testThatWhenThreadInterruptedBusIsNotCalled() {
+        try {
+            Thread.currentThread().interrupt();
 
-        Thread.currentThread().interrupt();
+            paymentFeeLink.getPayments().get(0).setServiceCallbackUrl(null);
+            paymentFeeLink.setCallBackUrl("dummy");
 
-        paymentFeeLink.getPayments().get(0).setServiceCallbackUrl(null);
-        paymentFeeLink.setCallBackUrl("dummy");
+            when(paymentGroupDtoMapper.toPaymentGroupDto(any()))
+                .thenReturn(new PaymentGroupDto());
 
-        when(paymentGroupDtoMapper.toPaymentGroupDto(any())).thenReturn(new PaymentGroupDto());
+            callbackService.callback(
+                paymentFeeLink,
+                paymentFeeLink.getPayments().get(0)
+            );
 
-        callbackService.callback(paymentFeeLink, paymentFeeLink.getPayments().get(0));
-
-        assertTrue(Thread.interrupted());
+            assertTrue(Thread.currentThread().isInterrupted());
+        } finally {
+            // Ensure this test never leaks its deliberately-set interrupt state.
+            Thread.interrupted();
+        }
     }
 }

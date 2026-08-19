@@ -409,11 +409,10 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
         assertNotNull(paymentDto);
         assertEquals(paymentDto.getReference(), savedPayment.getReference());
         assertEquals(paymentDto.getAmount(), new BigDecimal("499.99"));
-        assertEquals(paymentDto.getStatusHistories().size(), 1);
-        paymentDto.getStatusHistories().stream().forEach(h -> {
-            assertEquals(h.getStatus(), "Success");
-            assertEquals(h.getExternalStatus(), "success");
-        });
+        assertEquals(2, paymentDto.getStatusHistories().size());
+        var latestHistory = paymentDto.getStatusHistories().get(paymentDto.getStatusHistories().size() - 1);
+        assertEquals("Success", latestHistory.getStatus());
+        assertEquals("success", latestHistory.getExternalStatus());
     }
 
     @Test
@@ -523,6 +522,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .service("CMC")
             .currency(CurrencyCode.GBP)
             .channel("telephony")
+            .provider("pci pal")
             .siteId("siteId")
             .fees(Collections.singletonList(FeeDto.feeDtoWith()
                 .code("feeCode")
@@ -607,10 +607,8 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
         PaymentFeeLink savedPaymentGroup = db.findByReference("2018-15186162003");
         Payment dbPayment = savedPaymentGroup.getPayments().get(0);
         assertEquals(dbPayment.getReference(), "RC-1518-9429-1432-7825");
-        dbPayment.getStatusHistories().stream().forEach(h -> {
-            assertEquals(h.getErrorCode(), "P0200");
-            assertEquals(h.getMessage(), "Payment not found");
-        });
+        assertTrue(dbPayment.getStatusHistories().stream().anyMatch(h ->
+            "P0200".equals(h.getErrorCode()) && "Payment not found".equals(h.getMessage())));
     }
 
     @Test

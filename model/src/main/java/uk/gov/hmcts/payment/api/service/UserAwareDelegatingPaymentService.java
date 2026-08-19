@@ -365,12 +365,14 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
 
             if (!statusExists) {
 
-                payment.getStatusHistories().add(StatusHistory.statusHistoryWith()
+                List<StatusHistory> updatedHistories = new ArrayList<>(payment.getStatusHistories());
+                updatedHistories.add(StatusHistory.statusHistoryWith()
                     .externalStatus(govPayPayment.getState().getStatus())
                     .status(PayStatusToPayHubStatus.valueOf(govPayPayment.getState().getStatus().toLowerCase()).getMappedStatus())
                     .errorCode(govPayPayment.getState().getCode())
                     .message(govPayPayment.getState().getMessage())
                     .build());
+                payment.setStatusHistories(updatedHistories);
 
                 //1. Update Fee Amount Due as Payment Status received from GovPAY as SUCCESS
                 boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature", false);
