@@ -392,7 +392,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
                     }
                 }
 
-                if (govPayPayment.getState().getFinished() && (null != payment.getServiceCallbackUrl() || null != paymentFeeLink.getCallBackUrl())) {
+                if (shouldCallBack && govPayPayment.getState().getFinished() && (null != payment.getServiceCallbackUrl() || null != paymentFeeLink.getCallBackUrl())) {
                         callbackService.callback(paymentFeeLink, payment);
                 } else {
                     LOG.warn("Service callback url is null or payment status is not terminal!");
