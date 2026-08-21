@@ -14,14 +14,22 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
+import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
+import uk.gov.hmcts.payment.api.controllers.CardPaymentController;
 import uk.gov.hmcts.payment.api.controllers.CreditAccountPaymentController;
 import uk.gov.hmcts.payment.api.controllers.PaymentReference;
+import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
+import uk.gov.hmcts.payment.api.dto.ServiceRequestResponseDto;
 import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
+import uk.gov.hmcts.payment.api.external.client.dto.CardDetails;
 import uk.gov.hmcts.payment.api.mapper.CreditAccountPaymentRequestMapper;
 import uk.gov.hmcts.payment.api.mapper.PBAStatusErrorMapper;
 import uk.gov.hmcts.payment.api.model.*;
@@ -37,7 +45,13 @@ import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.Map;
+
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
@@ -119,6 +133,15 @@ class CreditAccountPaymentProviderTest {
     @Autowired
     ServiceRequestCaseUtil serviceRequestCaseUtil;
 
+    @Autowired
+    DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService;
+
+    @Autowired
+    CardDetailsService<CardDetails, String> cardDetailsService;
+
+    @Autowired
+    PciPalPaymentService pciPalPaymentService;
+
     @Value("${PACT_BRANCH_NAME:master}")
     String branchName;
 
@@ -135,21 +158,79 @@ class CreditAccountPaymentProviderTest {
     }
 
     @BeforeEach
-    void before(PactVerificationContext context) {
+    void before(PactVerificationContext context) throws Exception {
         System.getProperties().setProperty("pact.verifier.publishResults", Boolean.toString(isMasterBranch()));
         // Set provider version for publishing verification results
         String gitCommit = System.getenv().getOrDefault("GIT_COMMIT", getGitCommitHash());
         System.getProperties().setProperty("pact.provider.version", gitCommit);
         System.getProperties().setProperty("pact.provider.branch", branchName != null ? branchName : "master");
 
+        setUpCivilServiceDefaults();
+
         MockMvcTestTarget testTarget = new MockMvcTestTarget();
+        CardPaymentController cardPaymentController =
+            new CardPaymentController(delegatingPaymentService, paymentDtoMapper, cardDetailsService, pciPalPaymentService,
+                feePayApportionService, featureToggler, referenceDataService, paymentReferenceMock);
         testTarget.setControllers(
             new CreditAccountPaymentController(creditAccountPaymentService, creditAccountDtoMapper, accountServiceMock, paymentValidator,
                 feePayApportionService, featureToggler, pbaStatusErrorMapper, requestMapper, Arrays.asList("CMC"), paymentService,
-                referenceDataService, authTokenGenerator, paymentReferenceMock));
+                referenceDataService, authTokenGenerator, paymentReferenceMock),
+            cardPaymentController,
+            new CivilServicePactController());
         if (context != null) {
             context.setTarget(testTarget);
         }
+    }
+
+    private void setUpCivilServiceDefaults() throws Exception {
+        PaymentFeeLink cardPaymentLink = buildCardPaymentLink("RC-1700000000000001");
+
+        PaymentDto createdCardPaymentResponse = PaymentDto.payment2DtoWith()
+            .amount(new BigDecimal("100.0"))
+            .currency(CurrencyCode.GBP)
+            .paymentReference("RC-1700000000000001")
+            .reference("reference")
+            .status("Initiated")
+            .build();
+
+        PaymentDto retrievedCardPaymentResponse = PaymentDto.payment2DtoWith()
+            .amount(new BigDecimal("100.0"))
+            .currency(CurrencyCode.GBP)
+            .paymentReference("RC-1700000000000001")
+            .reference("reference")
+            .status("Success")
+            .build();
+
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("site_id")
+            .serviceDescription("Civil")
+            .ccdCaseTypes(Collections.singletonList("CIVIL"))
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(), any(), any())).thenReturn(organisationalServiceDto);
+        when(delegatingPaymentService.create(any())).thenReturn(cardPaymentLink);
+        when(delegatingPaymentService.retrieve(anyString())).thenReturn(cardPaymentLink);
+        when(paymentDtoMapper.toCardPaymentDto(any(PaymentFeeLink.class))).thenReturn(createdCardPaymentResponse);
+        when(paymentDtoMapper.toRetrieveCardPaymentResponseDto(any(PaymentFeeLink.class), anyString())).thenReturn(retrievedCardPaymentResponse);
+        when(paymentDtoMapper.toPaymentStatusesDto(any(Payment.class))).thenReturn(retrievedCardPaymentResponse);
+    }
+
+    private PaymentFeeLink buildCardPaymentLink(String reference) {
+        Payment payment = Payment.paymentWith()
+            .reference(reference)
+            .amount(new BigDecimal("100.0"))
+            .currency("GBP")
+            .status("created")
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
+            .statusHistories(Collections.singletonList(StatusHistory.statusHistoryWith().status("success").build()))
+            .build();
+        PaymentFeeLink paymentFeeLink = paymentFeeLinkWith()
+            .paymentReference("RC-1700000000000001")
+            .payments(Collections.singletonList(payment))
+            .fees(Collections.emptyList())
+            .build();
+        payment.setPaymentLink(paymentFeeLink);
+        return paymentFeeLink;
     }
 
     private boolean isMasterBranch() {
@@ -260,7 +341,7 @@ class CreditAccountPaymentProviderTest {
                 .paymentProvider(PaymentProvider.paymentProviderWith().name("gov pay").build())
                 .paymentStatus(PaymentStatus.paymentStatusWith().name(success).description(desc).build())
                 .externalReference(externalReference)
-                .reference("RC-1519-9028-2432-000" + number)
+                .reference("RC-1700000000000001")
                 .status("submitted")
                 .statusHistories(Arrays.asList(statusHistory))
                 .dateUpdated(now)
@@ -273,6 +354,46 @@ class CreditAccountPaymentProviderTest {
                 paymentFeeLinkWith().paymentReference("2018-0000000000" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)).build();
         payment.setPaymentLink(paymentFeeLink);
         return payment;
+    }
+
+    @RestController
+    static class CivilServicePactController {
+        @PostMapping(value = "/service-request")
+        public ResponseEntity<ServiceRequestResponseDto> createServiceRequest(@RequestBody(required = false) Object ignoredRequest) {
+            return new ResponseEntity<>(
+                ServiceRequestResponseDto.serviceRequestResponseDtoWith()
+                    .serviceRequestReference("2026-1700000000000001")
+                    .build(),
+                HttpStatus.CREATED
+            );
+        }
+
+        @PostMapping(value = "/service-request/{service-request-reference}/pba-payments")
+        public ResponseEntity<ServiceRequestPaymentBo> createServiceRequestPbaPayment(
+            @PathVariable("service-request-reference") String ignoredReference,
+            @RequestBody(required = false) Object ignoredRequest) {
+            return new ResponseEntity<>(
+                ServiceRequestPaymentBo.serviceRequestPaymentBoWith()
+                    .paymentReference("RC-1700000000000001")
+                    .status("Success")
+                    .dateCreated("2026-08-14T10:15:30.000Z")
+                    .build(),
+                HttpStatus.CREATED
+            );
+        }
+
+        @PostMapping(value = "/service-request/{service-request-reference}/card-payments")
+        public ResponseEntity<Map<String, Object>> createServiceRequestCardPayment(
+            @PathVariable("service-request-reference") String ignoredReference,
+            @RequestBody(required = false) Object ignoredRequest) {
+            Map<String, Object> response = new LinkedHashMap<>();
+            response.put("payment_reference", "RC-1700000000000001");
+            response.put("external_reference", "external-reference");
+            response.put("status", "Initiated");
+            response.put("next_url", "https://payments/next");
+            response.put("date_created", "2026-08-14T10:15:30Z");
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
+        }
     }
 
 }
