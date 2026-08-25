@@ -14,17 +14,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.controllers.CreditAccountPaymentController;
 import uk.gov.hmcts.payment.api.controllers.PaymentReference;
-import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
-import uk.gov.hmcts.payment.api.dto.ServiceRequestResponseDto;
 import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
+import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.mapper.CreditAccountPaymentRequestMapper;
 import uk.gov.hmcts.payment.api.mapper.PBAStatusErrorMapper;
 import uk.gov.hmcts.payment.api.model.*;
@@ -40,12 +37,7 @@ import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
-import java.util.LinkedHashMap;
 import java.util.Map;
-
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
@@ -72,6 +64,8 @@ class CreditAccountPaymentProviderTest {
     private static final String ACCOUNT_NAME_KEY = "accountName";
     private static final String AVAILABLE_BALANCE_KEY = "availableBalance";
 
+    @Autowired
+    PaymentDtoMapper paymentDtoMapper;
     @Autowired
     CreditAccountPaymentService<PaymentFeeLink, String> creditAccountPaymentService;
     @Autowired
@@ -152,8 +146,7 @@ class CreditAccountPaymentProviderTest {
         testTarget.setControllers(
             new CreditAccountPaymentController(creditAccountPaymentService, creditAccountDtoMapper, accountServiceMock, paymentValidator,
                 feePayApportionService, featureToggler, pbaStatusErrorMapper, requestMapper, Arrays.asList("CMC"), paymentService,
-                referenceDataService, authTokenGenerator, paymentReferenceMock),
-            new CivilServicePactController());
+                referenceDataService, authTokenGenerator, paymentReferenceMock));
         if (context != null) {
             context.setTarget(testTarget);
         }
@@ -229,24 +222,12 @@ class CreditAccountPaymentProviderTest {
 
         when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenReturn(organisationalServiceDto);
 
-        String paymentReference = "PBA0077597".equals(accountNumber)
-            ? "RC-1700000000000001"
-            : "RC-1519-9028-2432-0001";
-        PaymentFeeLink paymentLink = populateCreditPaymentToDb(
-            "1",
-            "e2kkddts5215h9qqoeuth5c0v",
-            "ccd_gw",
-            success,
-            s,
-            accountStatus,
-            paymentReference
-        ).getPaymentLink();
+        PaymentFeeLink paymentLink = populateCreditPaymentToDb("1", "e2kkddts5215h9qqoeuth5c0v", "ccd_gw", success, s, accountStatus).getPaymentLink();
         when(serviceRequestCaseUtil.enhanceWithServiceRequestCaseDetails(any(), (Payment) any())).thenReturn(paymentLink);
 
     }
 
-    private Payment populateCreditPaymentToDb(String number, String externalReference, String s2sServiceName, String success,
-                                              String desc, AccountStatus accountStatus, String paymentReference) {
+    private Payment populateCreditPaymentToDb(String number, String externalReference, String s2sServiceName, String success, String desc, AccountStatus accountStatus) {
 
         String errorCode = null;
         String errorMessage = null;
@@ -279,7 +260,7 @@ class CreditAccountPaymentProviderTest {
                 .paymentProvider(PaymentProvider.paymentProviderWith().name("gov pay").build())
                 .paymentStatus(PaymentStatus.paymentStatusWith().name(success).description(desc).build())
                 .externalReference(externalReference)
-                .reference(paymentReference)
+                .reference("RC-1519-9028-2432-000" + number)
                 .status("submitted")
                 .statusHistories(Arrays.asList(statusHistory))
                 .dateUpdated(now)
@@ -292,79 +273,6 @@ class CreditAccountPaymentProviderTest {
                 paymentFeeLinkWith().paymentReference("2018-0000000000" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)).build();
         payment.setPaymentLink(paymentFeeLink);
         return payment;
-    }
-
-    @RestController
-    static class CivilServicePactController {
-        @PostMapping(value = "/service-request")
-        public ResponseEntity<ServiceRequestResponseDto> createServiceRequest() {
-            return new ResponseEntity<>(
-                ServiceRequestResponseDto.serviceRequestResponseDtoWith()
-                    .serviceRequestReference("2026-1700000000000001")
-                    .build(),
-                HttpStatus.CREATED
-            );
-        }
-
-        @PostMapping(value = "/service-request/{service-request-reference}/pba-payments")
-        public ResponseEntity<ServiceRequestPaymentBo> createServiceRequestPbaPayment() {
-            return new ResponseEntity<>(
-                ServiceRequestPaymentBo.serviceRequestPaymentBoWith()
-                    .paymentReference("RC-1700000000000001")
-                    .status("Success")
-                    .dateCreated("2026-08-14T10:15:30.000Z")
-                    .build(),
-                HttpStatus.CREATED
-            );
-        }
-
-        @PostMapping(value = "/card-payments")
-        public ResponseEntity<Map<String, Object>> createCardPayment() {
-            Map<String, Object> response = new LinkedHashMap<>();
-            response.put("amount", 100.0);
-            response.put("currency", "GBP");
-            response.put("payment_reference", "RC-1700000000000001");
-            response.put("reference", "reference");
-            response.put("status", "Initiated");
-            return new ResponseEntity<>(response, HttpStatus.CREATED);
-        }
-
-        @PostMapping(value = "/service-request/{service-request-reference}/card-payments")
-        public ResponseEntity<Map<String, Object>> createServiceRequestCardPayment() {
-            Map<String, Object> response = new LinkedHashMap<>();
-            response.put("payment_reference", "RC-1700000000000001");
-            response.put("external_reference", "external-reference");
-            response.put("status", "Initiated");
-            response.put("next_url", "https://payments/next");
-            response.put("date_created", "2026-08-14T10:15:30Z");
-            return new ResponseEntity<>(response, HttpStatus.CREATED);
-        }
-
-        @GetMapping(value = {
-            "/card-payments/{payment-reference}",
-            "/service-request/{service-request-reference}/card-payments/{payment-reference}"
-        })
-        public ResponseEntity<Map<String, Object>> retrieveCardPayment() {
-            return new ResponseEntity<>(buildCivilServiceCardPaymentResponse(), HttpStatus.OK);
-        }
-
-        @GetMapping(value = {
-            "/card-payments/{payment-reference}/statuses",
-            "/service-request/{service-request-reference}/card-payments/{payment-reference}/statuses"
-        })
-        public ResponseEntity<Map<String, Object>> retrieveCardPaymentStatuses() {
-            return new ResponseEntity<>(buildCivilServiceCardPaymentResponse(), HttpStatus.OK);
-        }
-
-        private Map<String, Object> buildCivilServiceCardPaymentResponse() {
-            Map<String, Object> response = new LinkedHashMap<>();
-            response.put("amount", 100.0);
-            response.put("currency", "GBP");
-            response.put("payment_reference", "RC-1700000000000001");
-            response.put("reference", "reference");
-            response.put("status", "Success");
-            return response;
-        }
     }
 
 }
