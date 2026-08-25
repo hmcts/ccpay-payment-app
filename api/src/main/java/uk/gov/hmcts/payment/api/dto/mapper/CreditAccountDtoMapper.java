@@ -34,7 +34,6 @@ public class CreditAccountDtoMapper {
         return PaymentDto.payment2DtoWith()
             .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus())
             .reference(payment.getReference())
-            .paymentReference(payment.getReference())
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
             .dateCreated(payment.getDateCreated())
             .statusHistories(payment.getStatusHistories()

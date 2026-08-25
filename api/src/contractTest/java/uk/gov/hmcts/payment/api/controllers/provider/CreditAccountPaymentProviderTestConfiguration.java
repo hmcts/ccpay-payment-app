@@ -10,7 +10,6 @@ import uk.gov.hmcts.payment.api.controllers.PaymentReference;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
-import uk.gov.hmcts.payment.api.external.client.dto.CardDetails;
 import uk.gov.hmcts.payment.api.mapper.CreditAccountPaymentRequestMapper;
 import uk.gov.hmcts.payment.api.mapper.PBAStatusErrorMapper;
 import uk.gov.hmcts.payment.api.model.FeePayApportionRepository;
@@ -26,12 +25,10 @@ import uk.gov.hmcts.payment.api.model.TelephonyRepository;
 import uk.gov.hmcts.payment.api.reports.FeesService;
 import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.service.CallbackService;
-import uk.gov.hmcts.payment.api.service.CardDetailsService;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.service.FeePayApportionService;
 import uk.gov.hmcts.payment.api.service.LoggingCreditAccountPaymentService;
 import uk.gov.hmcts.payment.api.service.PaymentServiceImpl;
-import uk.gov.hmcts.payment.api.service.PciPalPaymentService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.service.UserAwareDelegatingCreditAccountPaymentService;
 import uk.gov.hmcts.payment.api.service.govpay.ServiceToTokenMap;
@@ -49,7 +46,7 @@ public class CreditAccountPaymentProviderTestConfiguration {
     @Bean
     @Primary
     public PaymentDtoMapper paymentDtoMapper() {
-        return Mockito.mock(PaymentDtoMapper.class);
+        return new PaymentDtoMapper();
     }
 
     @Bean
@@ -153,16 +150,6 @@ public class CreditAccountPaymentProviderTestConfiguration {
     }
 
     @Bean
-    public CardDetailsService<CardDetails, String> cardDetailsService() {
-        return Mockito.mock(CardDetailsService.class);
-    }
-
-    @Bean
-    public PciPalPaymentService pciPalPaymentService() {
-        return Mockito.mock(PciPalPaymentService.class);
-    }
-
-    @Bean
     public TelephonyRepository telephonyRepository() {
         return Mockito.mock(TelephonyRepository.class);
     }
@@ -173,7 +160,6 @@ public class CreditAccountPaymentProviderTestConfiguration {
     }
 
     @Bean
-    @Primary
     public ReferenceDataService referenceDataService() {
         return Mockito.mock(ReferenceDataService.class);
     }
