@@ -80,5 +80,215 @@
         <packageUrl regex="true">^pkg:maven/org\.apache\.httpcomponents\.client5/httpclient5@.*$</packageUrl>
         <cve>CVE-2026-64607</cve>
     </suppress>
+    <suppress until="2026-10-31Z">
+        <notes>
+            CVE-2026-59313 and CVE-2026-59314 affects Spring framework 6.2.19 which is the latest release.
+        </notes>
+        <packageUrl regex="true">^pkg:maven/org\.springframework/spring-aop@6\.2\.19$</packageUrl>
+        <cve>CVE-2026-59313</cve>
+        <cve>CVE-2026-59314</cve>
+        <cve>CVE-2026-47892</cve>
+        <cve>CVE-2026-59283</cve>
+        <cve>CVE-2026-47893</cve>
+        <cve>CVE-2026-59280</cve>
+    </suppress>
+    <suppress until="2026-10-31Z">
+        <notes>
+            CVE-2026-59313 and CVE-2026-59314 affects Spring framework 6.2.19 which is the latest release.
+        </notes>
+        <packageUrl regex="true">^pkg:maven/org\.springframework/spring-aspects@6\.2\.19$</packageUrl>
+        <cve>CVE-2026-59313</cve>
+        <cve>CVE-2026-59314</cve>
+        <cve>CVE-2026-47892</cve>
+        <cve>CVE-2026-59283</cve>
+        <cve>CVE-2026-47893</cve>
+        <cve>CVE-2026-59280</cve>
+    </suppress>
+    <suppress until="2026-10-31Z">
+        <notes>
+            CVE-2026-59313 and CVE-2026-59314 affects Spring framework 6.2.19 which is the latest release.
+        </notes>
+        <packageUrl regex="true">^pkg:maven/org\.springframework/spring-beans@6\.2\.19$</packageUrl>
+        <cve>CVE-2026-59313</cve>
+        <cve>CVE-2026-59314</cve>
+        <cve>CVE-2026-47892</cve>
+        <cve>CVE-2026-59283</cve>
+        <cve>CVE-2026-47893</cve>
+        <cve>CVE-2026-59280</cve>
+    </suppress>
+    <suppress until="2026-10-31Z">
+        <notes>
+            CVE-2026-59313 and CVE-2026-59314 affects Spring framework 6.2.19 which is the latest release.
+        </notes>
+        <packageUrl regex="true">^pkg:maven/org\.springframework/spring-context@6\.2\.19$</packageUrl>
+        <cve>CVE-2026-59313</cve>
+        <cve>CVE-2026-59314</cve>
+        <cve>CVE-2026-47892</cve>
+        <cve>CVE-2026-59283</cve>
+        <cve>CVE-2026-47893</cve>
+        <cve>CVE-2026-59280</cve>
+    </suppress>
+    <suppress until="2026-10-31Z">
+        <notes>
+            CVE-2026-59313 and CVE-2026-59314 affects Spring framework 6.2.19 which is the latest release.
+        </notes>
+        <packageUrl regex="true">^pkg:maven/org\.springframework/spring-context-support@6\.2\.19$</packageUrl>
+        <cve>CVE-2026-59313</cve>
+        <cve>CVE-2026-59314</cve>
+        <cve>CVE-2026-47892</cve>
+        <cve>CVE-2026-59283</cve>
+        <cve>CVE-2026-47893</cve>
+        <cve>CVE-2026-59280</cve>
+    </suppress>
+    <suppress until="2026-10-31Z">
+        <notes>
+            CVE-2026-59313 and CVE-2026-59314 affects Spring framework 6.2.19 which is the latest release.
+        </notes>
+        <packageUrl regex="true">^pkg:maven/org\.springframework/spring-core@6\.2\.19$</packageUrl>
+        <cve>CVE-2026-59313</cve>
+        <cve>CVE-2026-59314</cve>
+        <cve>CVE-2026-47892</cve>
+        <cve>CVE-2026-59283</cve>
+        <cve>CVE-2026-47893</cve>
+        <cve>CVE-2026-59280</cve>
+    </suppress>
+    <suppress until="2026-10-31Z">
+        <notes>
+            CVE-2026-59313 and CVE-2026-59314 affects Spring framework 6.2.19 which is the latest release.
+        </notes>
+        <packageUrl regex="true">^pkg:maven/org\.springframework/spring-expression@6\.2\.19$</packageUrl>
+        <cve>CVE-2026-59313</cve>
+        <cve>CVE-2026-59314</cve>
+        <cve>CVE-2026-47892</cve>
+        <cve>CVE-2026-59283</cve>
+        <cve>CVE-2026-47893</cve>
+        <cve>CVE-2026-59280</cve>
+    </suppress>
+    <suppress until="2026-10-31Z">
+        <notes>
+            CVE-2026-59313 and CVE-2026-59314 affects Spring framework 6.2.19 which is the latest release.
+        </notes>
+        <packageUrl regex="true">^pkg:maven/org\.springframework/spring-jcl@6\.2\.19$</packageUrl>
+        <cve>CVE-2026-59313</cve>
+        <cve>CVE-2026-59314</cve>
+        <cve>CVE-2026-47892</cve>
+        <cve>CVE-2026-59283</cve>
+        <cve>CVE-2026-47893</cve>
+        <cve>CVE-2026-59280</cve>
+    </suppress>
+    <suppress until="2026-10-31Z">
+        <notes>
+            CVE-2026-59313 and CVE-2026-59314 affects Spring framework 6.2.19 which is the latest release.
+        </notes>
+        <packageUrl regex="true">^pkg:maven/org\.springframework/spring-jdbc@6\.2\.19$</packageUrl>
+        <cve>CVE-2026-59313</cve>
+        <cve>CVE-2026-59314</cve>
+        <cve>CVE-2026-47892</cve>
+        <cve>CVE-2026-59283</cve>
+        <cve>CVE-2026-47893</cve>
+        <cve>CVE-2026-59280</cve>
+    </suppress>
+    <suppress until="2026-10-31Z">
+        <notes>
+            CVE-2026-59313 and CVE-2026-59314 affects Spring framework 6.2.19 which is the latest release.
+        </notes>
+        <packageUrl regex="true">^pkg:maven/org\.springframework/spring-orm@6\.2\.19$</packageUrl>
+        <cve>CVE-2026-59313</cve>
+        <cve>CVE-2026-59314</cve>
+        <cve>CVE-2026-47892</cve>
+        <cve>CVE-2026-59283</cve>
+        <cve>CVE-2026-47893</cve>
+        <cve>CVE-2026-59280</cve>
+    </suppress>
+    <suppress until="2026-10-31Z">
+        <notes>
+            CVE-2026-59313 and CVE-2026-59314 affects Spring framework 6.2.19 which is the latest release.
+        </notes>
+        <packageUrl regex="true">^pkg:maven/org\.springframework/spring-tx@6\.2\.19$</packageUrl>
+        <cve>CVE-2026-59313</cve>
+        <cve>CVE-2026-59314</cve>
+        <cve>CVE-2026-47892</cve>
+        <cve>CVE-2026-59283</cve>
+        <cve>CVE-2026-47893</cve>
+        <cve>CVE-2026-59280</cve>
+    </suppress>
+    <suppress until="2026-10-31Z">
+        <notes>
+            CVE-2026-59313 and CVE-2026-59314 affects Spring framework 6.2.19 which is the latest release.
+        </notes>
+        <packageUrl regex="true">^pkg:maven/org\.springframework/spring-web@6\.2\.19$</packageUrl>
+        <cve>CVE-2026-59313</cve>
+        <cve>CVE-2026-59314</cve>
+        <cve>CVE-2026-47892</cve>
+        <cve>CVE-2026-59283</cve>
+        <cve>CVE-2026-47893</cve>
+        <cve>CVE-2026-59280</cve>
+    </suppress>
+    <suppress until="2026-10-31Z">
+        <notes>
+            CVE-2026-59313 and CVE-2026-59314 affects Spring framework 6.2.19 which is the latest release.
+        </notes>
+        <packageUrl regex="true">^pkg:maven/org\.springframework/spring-webflux@6\.2\.19$</packageUrl>
+        <cve>CVE-2026-59313</cve>
+        <cve>CVE-2026-59314</cve>
+        <cve>CVE-2026-47892</cve>
+        <cve>CVE-2026-59283</cve>
+        <cve>CVE-2026-47893</cve>
+        <cve>CVE-2026-59280</cve>
+    </suppress>
+    <suppress until="2026-10-31Z">
+        <notes>
+            CVE-2026-59313 and CVE-2026-59314 affects Spring framework 6.2.19 which is the latest release.
+        </notes>
+        <packageUrl regex="true">^pkg:maven/org\.springframework/spring-webmvc@6\.2\.19$</packageUrl>
+        <cve>CVE-2026-59313</cve>
+        <cve>CVE-2026-59314</cve>
+        <cve>CVE-2026-47892</cve>
+        <cve>CVE-2026-59283</cve>
+        <cve>CVE-2026-47893</cve>
+        <cve>CVE-2026-59280</cve>
+    </suppress>
+    <suppress until="2026-10-31Z">
+        <notes>
+            CVE-2026-59270 affects Spring framework security 6.5.11 which is the latest release.
+        </notes>
+        <packageUrl regex="true">^pkg:maven/org\.springframework.security/spring-security-crypto@6\.5\.11$</packageUrl>
+        <cve>CVE-2026-59270</cve>
+    </suppress>
+    <suppress until="2026-10-31Z">
+        <notes>
+            CVE-2026-59270 affects Spring framework security 6.5.11 which is the latest release.
+        </notes>
+        <packageUrl regex="true">^pkg:maven/org\.springframework.security/spring-security-config@6\.5\.11$</packageUrl>
+        <cve>CVE-2026-59270</cve>
+    </suppress>
+    <suppress until="2026-10-31Z">
+        <notes>
+            CVE-2026-59270 affects Spring framework security 6.5.11 which is the latest release.
+        </notes>
+        <packageUrl regex="true">^pkg:maven/org\.springframework.security/spring-security-core@6\.5\.11$</packageUrl>
+        <cve>CVE-2026-59270</cve>
+    </suppress>
+    <suppress until="2026-10-31Z">
+        <notes>
+            CVE-2026-59270 affects Spring framework security 6.5.11 which is the latest release.
+        </notes>
+        <packageUrl regex="true">^pkg:maven/org\.springframework.security/spring-security-oauth2-client@6\.5\.11$</packageUrl>
+        <cve>CVE-2026-59270</cve>
+    </suppress>
+    <suppress until="2026-10-31Z">
+        <notes>
+            CVE-2026-59270 affects Spring framework security 6.5.11 which is the latest release.
+        </notes>
+        <packageUrl regex="true">^pkg:maven/org\.springframework.security/spring-security-oauth2-core@6\.5\.11$</packageUrl>
+        <cve>CVE-2026-59270</cve>
+    </suppress>
+    <suppress until="2026-10-31Z">
+        <notes>
+            CVE-2026-59270 affects Spring framework security 6.5.11 which is the latest release.
+        </notes>
+        <packageUrl regex="true">^pkg:maven/org\.springframework.security/spring-security-web@6\.5\.11$</packageUrl>
+        <cve>CVE-2026-59270</cve>
+    </suppress>
 
 </suppressions>

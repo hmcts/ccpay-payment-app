@@ -1,27 +1,25 @@
 package uk.gov.hmcts.payment.api.reports;
 
-import org.slf4j.Logger;
+import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.fees2.register.api.contract.Fee2Dto;
 import uk.gov.hmcts.fees2.register.api.contract.FeeVersionDto;
 
 import java.util.*;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
+@Slf4j
 @Service
 public class FeesService {
-    private static final Logger LOG = getLogger(FeesService.class);
 
     private final FeesRegisterAdapter feesRegisterAdapter;
 
     @Autowired
-    public FeesService(FeesRegisterAdapter feesRegisterAdapter) {
+    public FeesService(@NonNull FeesRegisterAdapter feesRegisterAdapter) {
         this.feesRegisterAdapter = feesRegisterAdapter;
-
     }
-
 
     public Optional<FeeVersionDto> getFeeVersion(String feeCode, String version) {
         try {
@@ -32,7 +30,7 @@ public class FeesService {
             }
             return Optional.ofNullable(matchingFeeDtoVersion);
         } catch (Exception ex) {
-            LOG.error("Error fetching FeeVersion by code:{} and version:{}", feeCode,  version, ex);
+            log.error("Error fetching FeeVersion by code:{} and version:{}", feeCode,  version, ex);
         }
         return Optional.empty();
     }
@@ -40,8 +38,10 @@ public class FeesService {
     public Map<String, Map<String, FeeVersionDto>> getFeesVersionsData() {
 
         Map<String, Map<String, FeeVersionDto>> mapOfFeeVersionsDtoMap = new HashMap<>();
-        if(getFeesDtoMap() != null){
-            Iterator<Map.Entry<String, Fee2Dto>> iterator = getFeesDtoMap().entrySet().iterator();
+
+        Map<String, Fee2Dto> feesDtoMap = getFeesDtoMap();
+        if (feesDtoMap != null) {
+            Iterator<Map.Entry<String, Fee2Dto>> iterator = feesDtoMap.entrySet().iterator();
 
             while (iterator.hasNext()) {
                 Map.Entry<String, Fee2Dto> entry = iterator.next();
@@ -61,6 +61,7 @@ public class FeesService {
         return mapOfFeeVersionsDtoMap;
     }
 
+    @Nullable
     public Map<String, Fee2Dto> getFeesDtoMap() {
         return feesRegisterAdapter.getFeesDtoMap();
     }
