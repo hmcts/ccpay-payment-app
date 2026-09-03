@@ -641,12 +641,6 @@ public class PaymentGroupController {
             && !telephonyCardPaymentsRequest.getTelephonySystem().equalsIgnoreCase(KervTelephonySystem.TELEPHONY_SYSTEM_NAME)) {
             throw new TelephonyServiceException("Invalid or missing attributes");
         }
-
-        // If the telephony provider is Kerv, use the KervTelephonySystem - remove when Antenna is fully migrated to Kerv
-        if (telephonyProvider != null && telephonyProvider.equalsIgnoreCase(KervTelephonySystem.TELEPHONY_SYSTEM_NAME)) {
-            telephonySystem = kervTelephonySystem;
-        }
-
         return telephonySystem;
     }
 
