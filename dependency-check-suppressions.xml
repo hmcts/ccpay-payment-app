@@ -446,4 +446,5 @@
     <packageUrl regex="true">^pkg:maven/org\.springframework\.security/spring-security-web@6\.5\.11$</packageUrl>
     <cve>CVE-2026-59276</cve>
 </suppress>
-<suppressions>
+    
+</suppressions>
