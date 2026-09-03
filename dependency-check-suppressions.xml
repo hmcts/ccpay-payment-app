@@ -291,4 +291,159 @@
         <cve>CVE-2026-59270</cve>
     </suppress>
 
-</suppressions>
+
+
+
+<suppress until="2026-10-31Z">
+    <notes>Suppress CVE-2026-47874 for reactor-netty-core 1.2.18.</notes>
+    <packageUrl regex="true">^pkg:maven/io\.projectreactor\.netty/reactor-netty-core@1\.2\.18$</packageUrl>
+    <cve>CVE-2026-47874</cve>
+</suppress>
+<suppress until="2026-10-31Z">
+    <notes>Suppress CVE-2026-47874 for reactor-netty-http 1.2.18.</notes>
+    <packageUrl regex="true">^pkg:maven/io\.projectreactor\.netty/reactor-netty-http@1\.2\.18$</packageUrl>
+    <cve>CVE-2026-47874</cve>
+</suppress>
+<suppress until="2026-10-31Z">
+    <notes>Suppress CVE-2026-47890, CVE-2026-47891, CVE-2026-59282, CVE-2026-59281 for org.springframework:spring-aop@6.2.19.</notes>
+    <packageUrl regex="true">^pkg:maven/org\.springframework/spring-aop@6\.2\.19$</packageUrl>
+    <cve>CVE-2026-47890</cve>
+    <cve>CVE-2026-47891</cve>
+    <cve>CVE-2026-59282</cve>
+    <cve>CVE-2026-59281</cve>
+</suppress>
+<suppress until="2026-10-31Z">
+    <notes>Suppress CVE-2026-47890, CVE-2026-47891, CVE-2026-59282, CVE-2026-59281 for org.springframework:spring-aspects@6.2.19.</notes>
+    <packageUrl regex="true">^pkg:maven/org\.springframework/spring-aspects@6\.2\.19$</packageUrl>
+    <cve>CVE-2026-47890</cve>
+    <cve>CVE-2026-47891</cve>
+    <cve>CVE-2026-59282</cve>
+    <cve>CVE-2026-59281</cve>
+</suppress>
+<suppress until="2026-10-31Z">
+    <notes>Suppress CVE-2026-47890, CVE-2026-47891, CVE-2026-59282, CVE-2026-59281 for org.springframework:spring-beans@6.2.19.</notes>
+    <packageUrl regex="true">^pkg:maven/org\.springframework/spring-beans@6\.2\.19$</packageUrl>
+    <cve>CVE-2026-47890</cve>
+    <cve>CVE-2026-47891</cve>
+    <cve>CVE-2026-59282</cve>
+    <cve>CVE-2026-59281</cve>
+</suppress>
+<suppress until="2026-10-31Z">
+    <notes>Suppress CVE-2026-47890, CVE-2026-47891, CVE-2026-59282, CVE-2026-59281 for org.springframework:spring-context@6.2.19.</notes>
+    <packageUrl regex="true">^pkg:maven/org\.springframework/spring-context@6\.2\.19$</packageUrl>
+    <cve>CVE-2026-47890</cve>
+    <cve>CVE-2026-47891</cve>
+    <cve>CVE-2026-59282</cve>
+    <cve>CVE-2026-59281</cve>
+</suppress>
+<suppress until="2026-10-31Z">
+    <notes>Suppress CVE-2026-47890, CVE-2026-47891, CVE-2026-59282, CVE-2026-59281 for org.springframework:spring-context-support@6.2.19.</notes>
+    <packageUrl regex="true">^pkg:maven/org\.springframework/spring-context-support@6\.2\.19$</packageUrl>
+    <cve>CVE-2026-47890</cve>
+    <cve>CVE-2026-47891</cve>
+    <cve>CVE-2026-59282</cve>
+    <cve>CVE-2026-59281</cve>
+</suppress>
+<suppress until="2026-10-31Z">
+    <notes>Suppress CVE-2026-47890, CVE-2026-47891, CVE-2026-59282, CVE-2026-59281 for org.springframework:spring-core@6.2.19.</notes>
+    <packageUrl regex="true">^pkg:maven/org\.springframework/spring-core@6\.2\.19$</packageUrl>
+    <cve>CVE-2026-47890</cve>
+    <cve>CVE-2026-47891</cve>
+    <cve>CVE-2026-59282</cve>
+    <cve>CVE-2026-59281</cve>
+</suppress>
+<suppress until="2026-10-31Z">
+    <notes>Suppress CVE-2026-47890, CVE-2026-47891, CVE-2026-59282, CVE-2026-59281 for org.springframework:spring-expression@6.2.19.</notes>
+    <packageUrl regex="true">^pkg:maven/org\.springframework/spring-expression@6\.2\.19$</packageUrl>
+    <cve>CVE-2026-47890</cve>
+    <cve>CVE-2026-47891</cve>
+    <cve>CVE-2026-59282</cve>
+    <cve>CVE-2026-59281</cve>
+</suppress>
+<suppress until="2026-10-31Z">
+    <notes>Suppress CVE-2026-47890, CVE-2026-47891, CVE-2026-59282, CVE-2026-59281 for org.springframework:spring-jcl@6.2.19.</notes>
+    <packageUrl regex="true">^pkg:maven/org\.springframework/spring-jcl@6\.2\.19$</packageUrl>
+    <cve>CVE-2026-47890</cve>
+    <cve>CVE-2026-47891</cve>
+    <cve>CVE-2026-59282</cve>
+    <cve>CVE-2026-59281</cve>
+</suppress>
+<suppress until="2026-10-31Z">
+    <notes>Suppress CVE-2026-47890, CVE-2026-47891, CVE-2026-59282, CVE-2026-59281 for org.springframework:spring-jdbc@6.2.19.</notes>
+    <packageUrl regex="true">^pkg:maven/org\.springframework/spring-jdbc@6\.2\.19$</packageUrl>
+    <cve>CVE-2026-47890</cve>
+    <cve>CVE-2026-47891</cve>
+    <cve>CVE-2026-59282</cve>
+    <cve>CVE-2026-59281</cve>
+</suppress>
+<suppress until="2026-10-31Z">
+    <notes>Suppress CVE-2026-47890, CVE-2026-47891, CVE-2026-59282, CVE-2026-59281 for org.springframework:spring-orm@6.2.19.</notes>
+    <packageUrl regex="true">^pkg:maven/org\.springframework/spring-orm@6\.2\.19$</packageUrl>
+    <cve>CVE-2026-47890</cve>
+    <cve>CVE-2026-47891</cve>
+    <cve>CVE-2026-59282</cve>
+    <cve>CVE-2026-59281</cve>
+</suppress>
+<suppress until="2026-10-31Z">
+    <notes>Suppress CVE-2026-47890, CVE-2026-47891, CVE-2026-59282, CVE-2026-59281 for org.springframework:spring-tx@6.2.19.</notes>
+    <packageUrl regex="true">^pkg:maven/org\.springframework/spring-tx@6\.2\.19$</packageUrl>
+    <cve>CVE-2026-47890</cve>
+    <cve>CVE-2026-47891</cve>
+    <cve>CVE-2026-59282</cve>
+    <cve>CVE-2026-59281</cve>
+</suppress>
+<suppress until="2026-10-31Z">
+    <notes>Suppress CVE-2026-47890, CVE-2026-47891, CVE-2026-59282, CVE-2026-59281 for org.springframework:spring-web@6.2.19.</notes>
+    <packageUrl regex="true">^pkg:maven/org\.springframework/spring-web@6\.2\.19$</packageUrl>
+    <cve>CVE-2026-47890</cve>
+    <cve>CVE-2026-47891</cve>
+    <cve>CVE-2026-59282</cve>
+    <cve>CVE-2026-59281</cve>
+</suppress>
+<suppress until="2026-10-31Z">
+    <notes>Suppress CVE-2026-47890, CVE-2026-47891, CVE-2026-59282, CVE-2026-59281 for org.springframework:spring-webflux@6.2.19.</notes>
+    <packageUrl regex="true">^pkg:maven/org\.springframework/spring-webflux@6\.2\.19$</packageUrl>
+    <cve>CVE-2026-47890</cve>
+    <cve>CVE-2026-47891</cve>
+    <cve>CVE-2026-59282</cve>
+    <cve>CVE-2026-59281</cve>
+</suppress>
+<suppress until="2026-10-31Z">
+    <notes>Suppress CVE-2026-47890, CVE-2026-47891, CVE-2026-59282, CVE-2026-59281 for org.springframework:spring-webmvc@6.2.19.</notes>
+    <packageUrl regex="true">^pkg:maven/org\.springframework/spring-webmvc@6\.2\.19$</packageUrl>
+    <cve>CVE-2026-47890</cve>
+    <cve>CVE-2026-47891</cve>
+    <cve>CVE-2026-59282</cve>
+    <cve>CVE-2026-59281</cve>
+</suppress>
+<suppress until="2026-10-31Z">
+    <notes>Suppress CVE-2026-59276 for org.springframework.security:spring-security-config@6.5.11.</notes>
+    <packageUrl regex="true">^pkg:maven/org\.springframework\.security/spring-security-config@6\.5\.11$</packageUrl>
+    <cve>CVE-2026-59276</cve>
+</suppress>
+<suppress until="2026-10-31Z">
+    <notes>Suppress CVE-2026-59276 for org.springframework.security:spring-security-core@6.5.11.</notes>
+    <packageUrl regex="true">^pkg:maven/org\.springframework\.security/spring-security-core@6\.5\.11$</packageUrl>
+    <cve>CVE-2026-59276</cve>
+</suppress>
+<suppress until="2026-10-31Z">
+    <notes>Suppress CVE-2026-59276 for org.springframework.security:spring-security-crypto@6.5.11.</notes>
+    <packageUrl regex="true">^pkg:maven/org\.springframework\.security/spring-security-crypto@6\.5\.11$</packageUrl>
+    <cve>CVE-2026-59276</cve>
+</suppress>
+<suppress until="2026-10-31Z">
+    <notes>Suppress CVE-2026-59276 for org.springframework.security:spring-security-oauth2-client@6.5.11.</notes>
+    <packageUrl regex="true">^pkg:maven/org\.springframework\.security/spring-security-oauth2-client@6\.5\.11$</packageUrl>
+    <cve>CVE-2026-59276</cve>
+</suppress>
+<suppress until="2026-10-31Z">
+    <notes>Suppress CVE-2026-59276 for org.springframework.security:spring-security-oauth2-core@6.5.11.</notes>
+    <packageUrl regex="true">^pkg:maven/org\.springframework\.security/spring-security-oauth2-core@6\.5\.11$</packageUrl>
+    <cve>CVE-2026-59276</cve>
+</suppress>
+<suppress until="2026-10-31Z">
+    <notes>Suppress CVE-2026-59276 for org.springframework.security:spring-security-web@6.5.11.</notes>
+    <packageUrl regex="true">^pkg:maven/org\.springframework\.security/spring-security-web@6\.5\.11$</packageUrl>
+    <cve>CVE-2026-59276</cve>
+</suppress>
+<suppressions>
