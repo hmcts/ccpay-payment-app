@@ -91,6 +91,8 @@
         <cve>CVE-2026-59283</cve>
         <cve>CVE-2026-47893</cve>
         <cve>CVE-2026-59280</cve>
+        <cve>CVE-2026-47890</cve>
+        <cve>CVE-2026-47891</cve>
     </suppress>
     <suppress until="2026-10-31Z">
         <notes>
@@ -103,6 +105,8 @@
         <cve>CVE-2026-59283</cve>
         <cve>CVE-2026-47893</cve>
         <cve>CVE-2026-59280</cve>
+        <cve>CVE-2026-47890</cve>
+        <cve>CVE-2026-47891</cve>
     </suppress>
     <suppress until="2026-10-31Z">
         <notes>
@@ -115,6 +119,8 @@
         <cve>CVE-2026-59283</cve>
         <cve>CVE-2026-47893</cve>
         <cve>CVE-2026-59280</cve>
+        <cve>CVE-2026-47890</cve>
+        <cve>CVE-2026-47891</cve>
     </suppress>
     <suppress until="2026-10-31Z">
         <notes>
@@ -127,6 +133,8 @@
         <cve>CVE-2026-59283</cve>
         <cve>CVE-2026-47893</cve>
         <cve>CVE-2026-59280</cve>
+        <cve>CVE-2026-47890</cve>
+        <cve>CVE-2026-47891</cve>
     </suppress>
     <suppress until="2026-10-31Z">
         <notes>
@@ -139,6 +147,8 @@
         <cve>CVE-2026-59283</cve>
         <cve>CVE-2026-47893</cve>
         <cve>CVE-2026-59280</cve>
+        <cve>CVE-2026-47890</cve>
+        <cve>CVE-2026-47891</cve>
     </suppress>
     <suppress until="2026-10-31Z">
         <notes>
@@ -151,6 +161,8 @@
         <cve>CVE-2026-59283</cve>
         <cve>CVE-2026-47893</cve>
         <cve>CVE-2026-59280</cve>
+        <cve>CVE-2026-47890</cve>
+        <cve>CVE-2026-47891</cve>
     </suppress>
     <suppress until="2026-10-31Z">
         <notes>
@@ -163,6 +175,8 @@
         <cve>CVE-2026-59283</cve>
         <cve>CVE-2026-47893</cve>
         <cve>CVE-2026-59280</cve>
+        <cve>CVE-2026-47890</cve>
+        <cve>CVE-2026-47891</cve>
     </suppress>
     <suppress until="2026-10-31Z">
         <notes>
@@ -175,6 +189,8 @@
         <cve>CVE-2026-59283</cve>
         <cve>CVE-2026-47893</cve>
         <cve>CVE-2026-59280</cve>
+        <cve>CVE-2026-47890</cve>
+        <cve>CVE-2026-47891</cve>
     </suppress>
     <suppress until="2026-10-31Z">
         <notes>
@@ -187,6 +203,8 @@
         <cve>CVE-2026-59283</cve>
         <cve>CVE-2026-47893</cve>
         <cve>CVE-2026-59280</cve>
+        <cve>CVE-2026-47890</cve>
+        <cve>CVE-2026-47891</cve>
     </suppress>
     <suppress until="2026-10-31Z">
         <notes>
@@ -199,6 +217,8 @@
         <cve>CVE-2026-59283</cve>
         <cve>CVE-2026-47893</cve>
         <cve>CVE-2026-59280</cve>
+        <cve>CVE-2026-47890</cve>
+        <cve>CVE-2026-47891</cve>
     </suppress>
     <suppress until="2026-10-31Z">
         <notes>
@@ -211,6 +231,8 @@
         <cve>CVE-2026-59283</cve>
         <cve>CVE-2026-47893</cve>
         <cve>CVE-2026-59280</cve>
+        <cve>CVE-2026-47890</cve>
+        <cve>CVE-2026-47891</cve>
     </suppress>
     <suppress until="2026-10-31Z">
         <notes>
@@ -223,6 +245,8 @@
         <cve>CVE-2026-59283</cve>
         <cve>CVE-2026-47893</cve>
         <cve>CVE-2026-59280</cve>
+        <cve>CVE-2026-47890</cve>
+        <cve>CVE-2026-47891</cve>
     </suppress>
     <suppress until="2026-10-31Z">
         <notes>
@@ -235,6 +259,8 @@
         <cve>CVE-2026-59283</cve>
         <cve>CVE-2026-47893</cve>
         <cve>CVE-2026-59280</cve>
+        <cve>CVE-2026-47890</cve>
+        <cve>CVE-2026-47891</cve>
     </suppress>
     <suppress until="2026-10-31Z">
         <notes>
@@ -247,6 +273,8 @@
         <cve>CVE-2026-59283</cve>
         <cve>CVE-2026-47893</cve>
         <cve>CVE-2026-59280</cve>
+        <cve>CVE-2026-47890</cve>
+        <cve>CVE-2026-47891</cve>
     </suppress>
     <suppress until="2026-10-31Z">
         <notes>
@@ -289,6 +317,14 @@
         </notes>
         <packageUrl regex="true">^pkg:maven/org\.springframework.security/spring-security-web@6\.5\.11$</packageUrl>
         <cve>CVE-2026-59270</cve>
+    </suppress>
+    <suppress until="2026-10-31Z">
+        <notes>
+            CVE-2026-47874 Reactor Netty HTTP server to consume an excessive amount of memory.
+            Reactor Netty 1.3.0 - 1.3.6 Reactor Netty 1.1.0 - 1.2.18 Reactor Netty 1.0.52 and earlier
+        </notes>
+        <packageUrl regex="true">^pkg:maven/io\.projectreactor\.netty/reactor-netty-http@1\.2\.18$</packageUrl>
+        <cve>CVE-2026-47874</cve>
     </suppress>
 
 </suppressions>
