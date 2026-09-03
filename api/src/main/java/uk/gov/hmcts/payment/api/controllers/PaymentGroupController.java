@@ -63,7 +63,6 @@ import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentMethod;
 import uk.gov.hmcts.payment.api.model.PaymentProvider;
 import uk.gov.hmcts.payment.api.model.PaymentProviderRepository;
-import uk.gov.hmcts.payment.api.service.AntennaTelephonySystem;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.service.FeePayApportionService;
 import uk.gov.hmcts.payment.api.service.IdamService;
@@ -135,9 +134,6 @@ public class PaymentGroupController {
 
     @Autowired
     KervTelephonySystem kervTelephonySystem;
-
-    @Autowired
-    AntennaTelephonySystem antennaTelephonySystem;
 
     @Autowired
     public PaymentGroupController(PaymentGroupService paymentGroupService, PaymentGroupDtoMapper paymentGroupDtoMapper,
@@ -639,7 +635,7 @@ public class PaymentGroupController {
         String telephonyProvider = telephonyCardPaymentsRequest.getTelephonySystem();
 
         // Default to Antenna Telephony System if no telephony system is specified
-        TelephonySystem telephonySystem = antennaTelephonySystem;
+        TelephonySystem telephonySystem = kervTelephonySystem;
 
         if (telephonyCardPaymentsRequest.getTelephonySystem() != null
             && !telephonyCardPaymentsRequest.getTelephonySystem().equalsIgnoreCase(KervTelephonySystem.TELEPHONY_SYSTEM_NAME)) {
