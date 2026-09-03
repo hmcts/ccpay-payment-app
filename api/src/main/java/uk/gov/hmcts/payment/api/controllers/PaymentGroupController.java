@@ -632,11 +632,9 @@ public class PaymentGroupController {
     }
 
     public TelephonySystem getTelephonySystem(TelephonyCardPaymentsRequest telephonyCardPaymentsRequest) {
-        String telephonyProvider = telephonyCardPaymentsRequest.getTelephonySystem();
 
         // Default to Antenna Telephony System if no telephony system is specified
         TelephonySystem telephonySystem = kervTelephonySystem;
-
         if (telephonyCardPaymentsRequest.getTelephonySystem() != null
             && !telephonyCardPaymentsRequest.getTelephonySystem().equalsIgnoreCase(KervTelephonySystem.TELEPHONY_SYSTEM_NAME)) {
             throw new TelephonyServiceException("Invalid or missing attributes");
