@@ -67,7 +67,7 @@ sonarqube {
 
 def versions = [
         appinsights     : '3.7.9',
-        pitest          : '1.23.1',
+        pitest          : '1.30.0',
         gradlePitest    : '1.3.0',
         sonarPitest     : '0.5',
         lombok          : '1.18.48',
