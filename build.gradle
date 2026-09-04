@@ -261,7 +261,10 @@ def sonarExclusions = [
         '**/api/jpaaudit/listner/**',
         '**/api/jpaaudit/model/**',
         '**/api/service/PaymentRefundsServiceImpl.java',
-        '**/api/service/RefundRemissionEnableServiceImpl.java'
+        '**/api/service/RefundRemissionEnableServiceImpl.java',
+        '**/api/service/LiberataIdentity.java',
+        '**/api/dto/liberata/identity/TokenResponse.java',
+
 ]
 
 sonarqube {
