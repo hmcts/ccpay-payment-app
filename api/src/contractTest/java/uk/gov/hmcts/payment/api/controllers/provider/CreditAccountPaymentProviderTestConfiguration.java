@@ -1,12 +1,11 @@
 package uk.gov.hmcts.payment.api.controllers.provider;
 
+import org.mockito.Mockito;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import uk.gov.hmcts.payment.api.audit.AuditRepository;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
-import uk.gov.hmcts.payment.api.configuration.security.AuthenticatedServiceIdSupplier;
 import uk.gov.hmcts.payment.api.controllers.PaymentReference;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
@@ -50,82 +49,138 @@ public class CreditAccountPaymentProviderTestConfiguration {
         return new PaymentDtoMapper();
     }
 
-
     @Bean
     public UserAwareDelegatingCreditAccountPaymentService userAwareDelegatingCreditAccountPaymentService() {
-        return new UserAwareDelegatingCreditAccountPaymentService(paymentFeeLinkRepository(), paymentChannelRepository, paymentMethodRepository,
-            paymentProviderRepository, paymentStatusRepository,
-            payment2Repository, referenceUtil(), serviceIdSupplier, userIdSupplier, serviceRequestCaseUtil);
+        return new UserAwareDelegatingCreditAccountPaymentService(paymentFeeLinkRepository(), paymentChannelRepository(), paymentMethodRepository(),
+            paymentProviderRepository(), paymentStatusRepository(),
+            payment2Repository(), referenceUtil(), serviceIdSupplier(), userIdSupplier(), serviceRequestCaseUtil());
 
     }
 
     @Bean("loggingCreditAccountPaymentService")
     @Primary
     public LoggingCreditAccountPaymentService loggingCreditAccountPaymentService() {
-        return new LoggingCreditAccountPaymentService(userIdSupplier, userAwareDelegatingCreditAccountPaymentService());
+        return new LoggingCreditAccountPaymentService(userIdSupplier(), userAwareDelegatingCreditAccountPaymentService());
     }
 
-    @MockBean
-    PaymentProviderRepository paymentProviderRepository;
+    @Bean
+    public PaymentProviderRepository paymentProviderRepository() {
+        return Mockito.mock(PaymentProviderRepository.class);
+    }
 
-    @MockBean
-    PaymentStatusRepository paymentStatusRepository;
-    @MockBean
-    PaymentChannelRepository paymentChannelRepository;
-    @MockBean
-    PaymentMethodRepository paymentMethodRepository;
-    @MockBean
-    Payment2Repository payment2Repository;
+    @Bean
+    public PaymentStatusRepository paymentStatusRepository() {
+        return Mockito.mock(PaymentStatusRepository.class);
+    }
+
+    @Bean
+    public PaymentChannelRepository paymentChannelRepository() {
+        return Mockito.mock(PaymentChannelRepository.class);
+    }
+
+    @Bean
+    public PaymentMethodRepository paymentMethodRepository() {
+        return Mockito.mock(PaymentMethodRepository.class);
+    }
+
+    @Bean
+    public Payment2Repository payment2Repository() {
+        return Mockito.mock(Payment2Repository.class);
+    }
 
     @Bean
     @Primary
-    PaymentReference paymentReference(){
-
+    PaymentReference paymentReference() {
         return new PaymentReference(paymentFeeLinkRepository());
     }
-    @MockBean
-    ServiceIdSupplier serviceIdSupplier;
-    @MockBean
-    UserIdSupplier userIdSupplier;
 
-    @MockBean
-    DuplicatePaymentValidator paymentValidator;
-    @MockBean
-    FeePayApportionService feePayApportionService;
-    @MockBean
-    LaunchDarklyFeatureToggler featureToggler;
-    @MockBean
-    FeePayApportionRepository feePayApportionRepository;
-    @MockBean
-    PaymentFeeRepository paymentFeeRepository;
-    @MockBean
-    FeesService feesService;
+    @Bean
+    public ServiceIdSupplier serviceIdSupplier() {
+        return Mockito.mock(ServiceIdSupplier.class);
+    }
 
-    @MockBean
-    AccountService<AccountDto, String> accountService;
-    @MockBean
-    DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService;
-    @MockBean
-    CallbackService callbackService;
-    @MockBean
-    TelephonyRepository telephonyRepository;
-    @MockBean
-    AuditRepository paymentAuditRepository;
-    @MockBean
-    ReferenceDataService referenceDataService;
-    @MockBean
-    AuthTokenGenerator authTokenGenerator;
-    @MockBean
-    ServiceRequestCaseUtil serviceRequestCaseUtil;
+    @Bean
+    public UserIdSupplier userIdSupplier() {
+        return Mockito.mock(UserIdSupplier.class);
+    }
+
+    @Bean
+    public DuplicatePaymentValidator paymentValidator() {
+        return Mockito.mock(DuplicatePaymentValidator.class);
+    }
+
+    @Bean
+    public FeePayApportionService feePayApportionService() {
+        return Mockito.mock(FeePayApportionService.class);
+    }
+
+    @Bean
+    public LaunchDarklyFeatureToggler featureToggler() {
+        return Mockito.mock(LaunchDarklyFeatureToggler.class);
+    }
+
+    @Bean
+    public FeePayApportionRepository feePayApportionRepository() {
+        return Mockito.mock(FeePayApportionRepository.class);
+    }
+
+    @Bean
+    public PaymentFeeRepository paymentFeeRepository() {
+        return Mockito.mock(PaymentFeeRepository.class);
+    }
+
+    @Bean
+    public FeesService feesService() {
+        return Mockito.mock(FeesService.class);
+    }
+
+    @Bean
+    public AccountService<AccountDto, String> accountService() {
+        return Mockito.mock(AccountService.class);
+    }
+
+    @Bean
+    public DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService() {
+        return Mockito.mock(DelegatingPaymentService.class);
+    }
+
+    @Bean
+    public CallbackService callbackService() {
+        return Mockito.mock(CallbackService.class);
+    }
+
+    @Bean
+    public TelephonyRepository telephonyRepository() {
+        return Mockito.mock(TelephonyRepository.class);
+    }
+
+    @Bean
+    public AuditRepository paymentAuditRepository() {
+        return Mockito.mock(AuditRepository.class);
+    }
+
+    @Bean
+    public ReferenceDataService referenceDataService() {
+        return Mockito.mock(ReferenceDataService.class);
+    }
+
+    @Bean
+    public AuthTokenGenerator authTokenGenerator() {
+        return Mockito.mock(AuthTokenGenerator.class);
+    }
+
+    @Bean
+    public ServiceRequestCaseUtil serviceRequestCaseUtil() {
+        return Mockito.mock(ServiceRequestCaseUtil.class);
+    }
 
     @Bean
     @Primary
     public PaymentServiceImpl paymentService() {
-        return new PaymentServiceImpl(delegatingPaymentService, payment2Repository, callbackService, paymentStatusRepository, telephonyRepository,
-            paymentAuditRepository, feePayApportionService,
-            feePayApportionRepository, featureToggler);
+        return new PaymentServiceImpl(delegatingPaymentService(), payment2Repository(), callbackService(), paymentStatusRepository(), telephonyRepository(),
+            paymentAuditRepository(), feePayApportionService(),
+            feePayApportionRepository(), featureToggler());
     }
-
 
     @Bean
     @Primary
@@ -137,13 +192,6 @@ public class CreditAccountPaymentProviderTestConfiguration {
     @Primary
     public CreditAccountDtoMapper creditAccountDtoMapper() {
         return new CreditAccountDtoMapper();
-
-    }
-
-    @Bean
-    @Primary
-    public ServiceIdSupplier serviceIdSupplier() {
-        return new AuthenticatedServiceIdSupplier();
     }
 
     @Bean
@@ -164,10 +212,8 @@ public class CreditAccountPaymentProviderTestConfiguration {
         return new CreditAccountPaymentRequestMapper();
     }
 
-
     @Bean
     @Primary
     ServiceToTokenMap serviceToTokenMap() { return new ServiceToTokenMap(); }
-
 
 }

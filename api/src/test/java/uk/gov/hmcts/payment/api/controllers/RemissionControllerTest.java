@@ -8,7 +8,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -94,13 +94,13 @@ public class RemissionControllerTest {
     private ObjectMapper objectMapper;
     @Autowired
     private WebApplicationContext webApplicationContext;
-    @MockBean
+    @MockitoBean
     private AuthTokenGenerator authTokenGenerator;
     @Autowired
     private SiteService<Site, String> siteServiceMock;
-    @MockBean
+    @MockitoBean
     private ReferenceDataService referenceDataService;
-    @MockBean
+    @MockitoBean
     private RefundRemissionEnableService refundRemissionEnableService;
 
     @Before

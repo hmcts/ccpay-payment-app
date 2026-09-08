@@ -12,7 +12,7 @@ import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -73,7 +73,7 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil {
     @Autowired
     protected PaymentDbBackdoor db;
     RestActions restActions;
-    @MockBean
+    @MockitoBean
     ReferenceDataService referenceDataService;
     MockMvc mvc;
     @Autowired
@@ -88,9 +88,9 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil {
     private ObjectMapper objectMapper;
     @Autowired
     private PaymentService<PaymentFeeLink, String> paymentService;
-    @MockBean
+    @MockitoBean
     private LaunchDarklyFeatureToggler featureToggler;
-    @MockBean
+    @MockitoBean
     private RefundRemissionEnableService refundRemissionEnableService;
 
     @Mock

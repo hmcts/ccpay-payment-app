@@ -1,5 +1,7 @@
 package uk.gov.hmcts.payment.api.controllers;
 
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
+
 import com.google.common.collect.Lists;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -173,6 +175,7 @@ public class PaymentGroupController {
         @ApiResponse(responseCode = "403", description = "Payment info forbidden"),
         @ApiResponse(responseCode = "404", description = "Payment not found")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @GetMapping(value = "/payment-groups/{payment-group-reference}")
     public ResponseEntity<PaymentGroupDto> retrievePayment(@PathVariable("payment-group-reference") String paymentGroupReference) {
         PaymentFeeLink paymentFeeLink = paymentGroupService.findByPaymentGroupReference(paymentGroupReference);
@@ -185,6 +188,7 @@ public class PaymentGroupController {
         @ApiResponse(responseCode = "201", description = "Payment group with fee(s) created"),
         @ApiResponse(responseCode = "400", description = "Payment group creation failed")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @PostMapping(value = "/payment-groups")
     public ResponseEntity<PaymentGroupDto> addNewFee(@Valid @RequestBody PaymentGroupDto paymentGroupDto) {
 
@@ -218,6 +222,7 @@ public class PaymentGroupController {
         @ApiResponse(responseCode = "400", description = "Payment group creation failed"),
         @ApiResponse(responseCode = "404", description = "Payment Group not found")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @PutMapping(value = "/payment-groups/{payment-group-reference}")
     public ResponseEntity<PaymentGroupDto> addNewFeetoPaymentGroup(@PathVariable("payment-group-reference") String paymentGroupReference,
                                                                    @Valid @RequestBody PaymentGroupDto paymentGroupDto) {
@@ -241,6 +246,7 @@ public class PaymentGroupController {
         @ApiResponse(responseCode = "400", description = "Bulk Scan Payment creation failed"),
         @ApiResponse(responseCode = "422", description = "Invalid or missing attribute")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @PostMapping(value = "/payment-groups/{payment-group-reference}/bulk-scan-payments")
     @ResponseBody
     @Transactional
@@ -302,6 +308,7 @@ public class PaymentGroupController {
         @ApiResponse(responseCode = "400", description = "Bulk Scan Payment creation failed"),
         @ApiResponse(responseCode = "422", description = "Invalid or missing attribute")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @PostMapping(value = "/payment-groups/bulk-scan-payments")
     @ResponseBody
     public ResponseEntity<PaymentDto> recordUnsolicitedBulkScanPayment(@Valid @RequestBody BulkScanPaymentRequest bulkScanPaymentRequest) throws CheckDigitException {
@@ -357,6 +364,7 @@ public class PaymentGroupController {
         @ApiResponse(responseCode = "404", description = "No Service found for given CaseType"),
         @ApiResponse(responseCode = "504", description = "Unable to retrieve service information. Please try again later")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @PostMapping(value = "/payment-groups/{payment-group-reference}/bulk-scan-payments-strategic")
     @ResponseBody
     @Transactional
@@ -429,6 +437,7 @@ public class PaymentGroupController {
         @ApiResponse(responseCode = "400", description = "Bulk Scan Payment creation failed"),
         @ApiResponse(responseCode = "422", description = "Invalid or missing attribute")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @PostMapping(value = "/payment-groups/bulk-scan-payments-strategic")
     @ResponseBody
     @Transactional
@@ -541,6 +550,7 @@ public class PaymentGroupController {
         @ApiResponse(responseCode = "412", description = "Telephony configuration not supported"),
         @ApiResponse(responseCode = "422", description = "Invalid or missing attribute")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @PostMapping(value = "/payment-groups/{payment-group-reference}/telephony-card-payments")
     @ResponseBody
     @Transactional

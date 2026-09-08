@@ -1,5 +1,7 @@
 package uk.gov.hmcts.payment.api.controllers.pcipal;
 
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -44,6 +46,7 @@ public class TelephonyController {
         @ApiResponse(responseCode = "404", description = "Payment not found")
     })
     @PaymentExternalAPI
+    @RateLimiter(name = "default-rate-limiter")
     @PostMapping(path = "/telephony/callback", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public ResponseEntity updateTelephonyPaymentStatus(@Valid @ModelAttribute TelephonyCallbackDto callbackDto) {
         LOG.info("Received callback request from pci-apl : {}", callbackDto);

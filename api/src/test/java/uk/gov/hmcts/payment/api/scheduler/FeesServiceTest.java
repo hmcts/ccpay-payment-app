@@ -7,28 +7,22 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.test.annotation.DirtiesContext;
 import uk.gov.hmcts.fees2.register.api.contract.Fee2Dto;
 import uk.gov.hmcts.fees2.register.api.contract.FeeVersionDto;
-import uk.gov.hmcts.payment.api.contract.FeeDto;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.reports.FeesRegisterAdapter;
 import uk.gov.hmcts.payment.api.reports.FeesRegisterClient;
 import uk.gov.hmcts.payment.api.reports.FeesService;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.assertj.core.api.Java6Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 import static uk.gov.hmcts.fees2.register.api.contract.Fee2Dto.fee2DtoWith;
 
 @RunWith(MockitoJUnitRunner.class)
-@DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
 public class FeesServiceTest {
 
     private FeesService feesService;
@@ -37,11 +31,6 @@ public class FeesServiceTest {
 
     @Mock
     private FeesRegisterClient feesRegisterClient;
-
-    private List<PaymentDto> payments = Arrays.asList(PaymentDto.payment2DtoWith()
-        .fees(Arrays.asList(FeeDto.feeDtoWith()
-            .code("X0001")
-            .version("1").build())).build());
 
 
     @Before
@@ -76,7 +65,7 @@ public class FeesServiceTest {
         Optional<FeeVersionDto> feeVersion = feesService.getFeeVersion("FEE001", "2");
 
         // then
-        assertThat(feeVersion).isEqualTo(Optional.empty());
+        assertThat(feeVersion).isEmpty();
     }
 
     @Test
@@ -88,6 +77,17 @@ public class FeesServiceTest {
         Optional<FeeVersionDto> feeVersion = feesService.getFeeVersion("FEE001", "2");
 
         // then
-        assertThat(feeVersion).isEqualTo(Optional.empty());
-    }   
+        assertThat(feeVersion).isEmpty();
+    }
+
+    @Test
+    public void shouldHandleNullFromFeesDtoMap() {
+
+        when(feesRegisterClient.getFeesDataAsMap()).thenReturn(Optional.empty());
+        assertThat(feesService.getFeesVersionsData()).isEmpty();
+
+        when(feesRegisterClient.getFeesDataAsMap()).thenReturn(Optional.of(Collections.emptyMap())) ;
+        assertThat(feesService.getFeesVersionsData()).isEmpty();
+    }
+
 }

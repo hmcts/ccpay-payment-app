@@ -1,5 +1,7 @@
 package uk.gov.hmcts.payment.api.controllers;
 
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
+
 
 import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
@@ -64,6 +66,7 @@ public class ReplayCreditAccountPaymentController {
         @ApiResponse(responseCode = "400", description = "BAD Request"),
         @ApiResponse(responseCode = "500", description = "Replay Payment failed")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @PostMapping(value = "/replay-credit-account-payments", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseBody
     @Transactional
