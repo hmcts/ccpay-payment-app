@@ -306,51 +306,69 @@
     </suppress>
     <suppress until="2026-10-31Z">
         <notes>
-            CVE-2026-59270 affects Spring framework security 6.5.11 which is the latest release.
+            Spring Security 6.5.11 is the latest Boot 3.5-compatible OSS line; vulnerable crypto API usage is not present.
         </notes>
         <packageUrl regex="true">^pkg:maven/org\.springframework.security/spring-security-crypto@6\.5\.11$</packageUrl>
         <cve>CVE-2026-59270</cve>
         <cve>CVE-2026-59276</cve>
+        <cve>CVE-2026-47842</cve>
     </suppress>
     <suppress until="2026-10-31Z">
         <notes>
-            CVE-2026-59270 affects Spring framework security 6.5.11 which is the latest release.
+            Spring Security 6.5.11 is the latest Boot 3.5-compatible OSS line; WebAuthn and vulnerable crypto API usage are not present.
         </notes>
         <packageUrl regex="true">^pkg:maven/org\.springframework.security/spring-security-config@6\.5\.11$</packageUrl>
         <cve>CVE-2026-59270</cve>
         <cve>CVE-2026-59276</cve>
+        <cve>CVE-2026-47841</cve>
+        <cve>CVE-2026-47842</cve>
     </suppress>
     <suppress until="2026-10-31Z">
         <notes>
-            CVE-2026-59270 affects Spring framework security 6.5.11 which is the latest release.
+            Spring Security 6.5.11 is the latest Boot 3.5-compatible OSS line; WebAuthn and vulnerable crypto API usage are not present.
         </notes>
         <packageUrl regex="true">^pkg:maven/org\.springframework.security/spring-security-core@6\.5\.11$</packageUrl>
         <cve>CVE-2026-59270</cve>
         <cve>CVE-2026-59276</cve>
+        <cve>CVE-2026-47841</cve>
+        <cve>CVE-2026-47842</cve>
     </suppress>
     <suppress until="2026-10-31Z">
         <notes>
-            CVE-2026-59270 affects Spring framework security 6.5.11 which is the latest release.
+            Spring Security 6.5.11 is the latest Boot 3.5-compatible OSS line; WebAuthn and vulnerable crypto API usage are not present.
         </notes>
         <packageUrl regex="true">^pkg:maven/org\.springframework.security/spring-security-oauth2-client@6\.5\.11$</packageUrl>
         <cve>CVE-2026-59270</cve>
         <cve>CVE-2026-59276</cve>
+        <cve>CVE-2026-47841</cve>
+        <cve>CVE-2026-47842</cve>
     </suppress>
     <suppress until="2026-10-31Z">
         <notes>
-            CVE-2026-59270 affects Spring framework security 6.5.11 which is the latest release.
+            Spring Security 6.5.11 is the latest Boot 3.5-compatible OSS line; WebAuthn and vulnerable crypto API usage are not present.
         </notes>
         <packageUrl regex="true">^pkg:maven/org\.springframework.security/spring-security-oauth2-core@6\.5\.11$</packageUrl>
         <cve>CVE-2026-59270</cve>
         <cve>CVE-2026-59276</cve>
+        <cve>CVE-2026-47841</cve>
+        <cve>CVE-2026-47842</cve>
     </suppress>
     <suppress until="2026-10-31Z">
         <notes>
-            CVE-2026-59270 affects Spring framework security 6.5.11 which is the latest release.
+            Spring Security 6.5.11 is the latest Boot 3.5-compatible OSS line; WebAuthn and vulnerable crypto API usage are not present.
         </notes>
         <packageUrl regex="true">^pkg:maven/org\.springframework.security/spring-security-web@6\.5\.11$</packageUrl>
         <cve>CVE-2026-59270</cve>
         <cve>CVE-2026-59276</cve>
+        <cve>CVE-2026-47841</cve>
+        <cve>CVE-2026-47842</cve>
+    </suppress>
+    <suppress until="2026-10-31Z">
+        <notes>
+            Spring Data JPA 3.5.13 has no Boot 3.5-compatible OSS fix; vulnerable native query Sort/Pageable usage is not present.
+        </notes>
+        <packageUrl regex="true">^pkg:maven/org\.springframework\.data/spring-data-jpa@3\.5\.13$</packageUrl>
+        <cve>CVE-2026-47834</cve>
     </suppress>
     <suppress until="2026-10-31Z">
         <notes>
