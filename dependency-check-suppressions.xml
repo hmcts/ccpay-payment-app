@@ -306,11 +306,12 @@
     </suppress>
     <suppress until="2026-10-31Z">
         <notes>
-            Spring Security 6.5.11 is the latest Boot 3.5-compatible OSS line; vulnerable crypto API usage is not present.
+            Spring Security 6.5.11 is the latest Boot 3.5-compatible OSS line; WebAuthn and vulnerable crypto API usage are not present.
         </notes>
         <packageUrl regex="true">^pkg:maven/org\.springframework.security/spring-security-crypto@6\.5\.11$</packageUrl>
         <cve>CVE-2026-59270</cve>
         <cve>CVE-2026-59276</cve>
+        <cve>CVE-2026-47841</cve>
         <cve>CVE-2026-47842</cve>
     </suppress>
     <suppress until="2026-10-31Z">
