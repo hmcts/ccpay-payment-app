@@ -35,6 +35,7 @@ dependencies {
     testImplementation(group: 'com.mmnaseri.utils', name: 'spring-data-mock', version:'2.2.0') {
       exclude(module: 'commons-logging')
     }
+    testImplementation group: 'org.projectlombok', name: 'lombok', version: '1.18.48'
     testImplementation group: 'org.mockito', name: 'mockito-core', version: '5.23.0'
     testRuntimeOnly group: 'org.junit.platform', name: 'junit-platform-launcher'
 }

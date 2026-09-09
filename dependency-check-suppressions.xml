@@ -388,4 +388,12 @@
         <cve>CVE-2026-47874</cve>
     </suppress>
 
+    <suppress>
+        <notes>Suppress CVE-2026-41710, CVE-2026-47834, CVE-2026-47842 and CVE-2026-47841 for affected artifacts.</notes>
+        <cve>CVE-2026-41710</cve>
+        <cve>CVE-2026-47834</cve>
+        <cve>CVE-2026-47842</cve>
+        <cve>CVE-2026-47841</cve>
+    </suppress>
+
 </suppressions>
