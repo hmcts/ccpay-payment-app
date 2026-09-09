@@ -12,9 +12,8 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
-import uk.gov.hmcts.payment.api.dto.liberata.identity.AccessTokenDto;
 import uk.gov.hmcts.payment.api.dto.liberata.identity.LiberataIdentityResponse;
-import uk.gov.hmcts.payment.api.dto.liberata.identity.TokenDto;
+import uk.gov.hmcts.payment.api.dto.liberata.identity.LiberataTokenData;
 import uk.gov.hmcts.payment.api.dto.liberata.identity.TokenResponse;
 import uk.gov.hmcts.payment.api.mapper.liberata.identity.AccessTokenDtoToTokenResponseMapper;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.LiberataIdentityException;
@@ -63,11 +62,9 @@ public class LiberataRealTimeAPITest {
         ReflectionTestUtils.setField(liberataIdentity, "cachedToken", null);
 
         // prepare a LiberataIdentityResponse with token details
-        String createdAt = Instant.now().minusSeconds(10).toString();
         String expiresAt = Instant.now().plusSeconds(1000).toString();
-        AccessTokenDto accessTokenDto = new AccessTokenDto("name", Arrays.asList("a"), expiresAt, 1, "type", null, createdAt, 1);
-        TokenDto tokenDto = new TokenDto(accessTokenDto, "plain-text-token");
-        liberataIdentityResponse = new LiberataIdentityResponse(tokenDto);
+        LiberataTokenData liberataTokenData = new LiberataTokenData("plain-text-token", expiresAt, System.currentTimeMillis());
+        liberataIdentityResponse = new LiberataIdentityResponse("200",liberataTokenData);
     }
 
     @Test

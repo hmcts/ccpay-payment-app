@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.api.mapper.liberata.identity;
 
+import lombok.val;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.dto.liberata.identity.LiberataIdentityResponse;
 import uk.gov.hmcts.payment.api.dto.liberata.identity.TokenResponse;
@@ -14,13 +15,14 @@ public final class AccessTokenDtoToTokenResponseMapper {
     public TokenResponse toTokenResponse(LiberataIdentityResponse liberataIdentityResponse) {
         try {
             if (
-                Objects.nonNull(liberataIdentityResponse.getToken().getAccessToken()) &&
-                Objects.nonNull(liberataIdentityResponse.getToken().getAccessToken().getCreatedAt()) &&
-                Objects.nonNull(liberataIdentityResponse.getToken().getAccessToken().getExpiresAt())
+                Objects.nonNull(liberataIdentityResponse.getData() )&&
+                Objects.nonNull(liberataIdentityResponse.getData().getToken()) &&
+                Objects.nonNull(liberataIdentityResponse.getData().getExpiresAt() )
             ) {
-                final Long createdAtMillis = Instant.parse(liberataIdentityResponse.getToken().getAccessToken().getCreatedAt()).toEpochMilli();
-                final Long expiresAtMillis = Instant.parse(liberataIdentityResponse.getToken().getAccessToken().getExpiresAt()).toEpochMilli();
-                return new TokenResponse(liberataIdentityResponse.getToken().getPlainTextToken(), expiresAtMillis, createdAtMillis);
+
+                val createdAtMillis = liberataIdentityResponse.getData().getCreatedAt();
+                val expiresAtMillis = Instant.parse(liberataIdentityResponse.getData().getExpiresAt()).toEpochMilli();
+                return new TokenResponse(liberataIdentityResponse.getData().getToken(), expiresAtMillis, createdAtMillis);
             } else {
                 throw new LiberataIdentityException("Failed to parse createdAt or expiresAt from LiberataIdentityResponse: " + liberataIdentityResponse);
             }

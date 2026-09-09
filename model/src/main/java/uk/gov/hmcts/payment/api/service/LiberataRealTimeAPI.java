@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.api.service;
 
+import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -51,13 +52,8 @@ public class LiberataRealTimeAPI {
 
     @Cacheable(value = "liberataToken", sync = true)
     public TokenResponse getValidToken() {
-        TokenResponse token = getToken();
-
-        if (token.isExpired()) {
-            token = refreshToken();
-        }
-
-        return token;
+        val  token = getToken();
+        return token.isExpired() ? refreshToken() : token;
     }
 
     @CachePut(value = "liberataToken")
@@ -65,22 +61,19 @@ public class LiberataRealTimeAPI {
         return fetchNewToken();
     }
 
-
     private TokenResponse fetchNewToken() {
-        final HttpHeaders headers = new HttpHeaders();
-        final MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        val headers = new HttpHeaders();
+        val formData = new LinkedMultiValueMap<String, String>();
 
         headers.setAccept(java.util.Collections.singletonList(MediaType.APPLICATION_JSON));
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         formData.add("email", lieberataUsername);
         formData.add("password", liberataPassword);
-        final HttpEntity<MultiValueMap<String, String>> request =
-            new HttpEntity<>(formData, headers);
-        try
-        {
-            ResponseEntity<LiberataIdentityResponse> response =
-                liberataRestTemplate.postForEntity(baseUrl+"/pba_api_v2/api/auth/token", request, LiberataIdentityResponse.class);
-            return accessTokenDtoToTokenResponseMapper.toTokenResponse(response.getBody());
+        val request = new HttpEntity<MultiValueMap<String, String>>(formData, headers);
 
+        try {
+            val response = liberataRestTemplate.postForEntity(baseUrl + "/pba-api-v2-uat/api/auth/token", request, LiberataIdentityResponse.class);
+            return accessTokenDtoToTokenResponseMapper.toTokenResponse(response.getBody());
         } catch (Exception exception) {
             throw new LiberataIdentityException("Error fetching token from Liberata: " + exception.getMessage(), exception);
         }
