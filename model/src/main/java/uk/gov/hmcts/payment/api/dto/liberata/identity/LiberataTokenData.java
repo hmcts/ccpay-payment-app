@@ -14,11 +14,13 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-public class LiberataIdentityResponse {
+public class LiberataTokenData {
 
-    @JsonProperty("status")
-    private String status;
+    @JsonProperty("token")
+    private String token;
 
-    @JsonProperty("data")
-    private LiberataTokenData data;
+    @JsonProperty("expires_at")
+    private String expiresAt;
+
+    private long createdAt = System.currentTimeMillis();
 }
