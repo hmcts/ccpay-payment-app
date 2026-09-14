@@ -54,7 +54,10 @@ public class CallbackServiceImpl implements CallbackService {
                 topicClient.send(msg);
 
             } catch (Exception e) {
-                Thread.currentThread().interrupt();
+                LOG.error("Error sending payment callback message", e);
+                if (e instanceof InterruptedException) {
+                    Thread.currentThread().interrupt();
+                }
             }
         } else if (null != paymentFeeLink.getCallBackUrl()) {
             try {
@@ -73,7 +76,10 @@ public class CallbackServiceImpl implements CallbackService {
                 topicClient.send(msg);
 
             } catch (Exception e) {
-                Thread.currentThread().interrupt();
+                LOG.error("Error sending service request callback message", e);
+                if (e instanceof InterruptedException) {
+                    Thread.currentThread().interrupt();
+                }
             }
         }
     }
