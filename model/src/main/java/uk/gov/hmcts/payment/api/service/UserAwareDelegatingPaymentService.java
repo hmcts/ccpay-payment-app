@@ -402,12 +402,13 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
                 }
 
                 LOG.info("Payment reference updated following status change : {} ({})", paymentFeeLink.getPaymentReference(), paymentFeeLink.getCcdCaseNumber());
+
             }
         } catch (GovPayPaymentNotFoundException | NullPointerException pnfe) {
             LOG.error("Gov Pay external id not found is : {} and Gov Pay payment reference is : {}", payment.getExternalReference(), paymentReference);
         } catch (UnsupportedOperationException exception) {
-            LOG.error("Exception occurred while retrieving PaymentFeeLink : {} for {} due to {} {}",
-                    paymentFeeLink, paymentReference, exception.getMessage(), exception);
+            LOG.error("Exception occurred while retrieving PaymentFeeLink : {} for {}",
+                paymentFeeLink, paymentReference, exception);
         }
 
         return paymentFeeLink;
