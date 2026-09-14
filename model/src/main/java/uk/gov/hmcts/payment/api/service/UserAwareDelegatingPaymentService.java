@@ -392,7 +392,8 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
                     }
                 }
 
-                if (shouldCallBack && govPayPayment.getState().getFinished() && (null != payment.getServiceCallbackUrl() || null != paymentFeeLink.getCallBackUrl())) {
+                if (shouldCallBack && Boolean.TRUE.equals(govPayPayment.getState().getFinished()) && (payment.getServiceCallbackUrl() != null ||
+                    paymentFeeLink.getCallBackUrl() != null)) {
                         callbackService.callback(paymentFeeLink, payment);
                 } else {
                     if (shouldCallBack) {
