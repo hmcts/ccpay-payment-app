@@ -31,6 +31,7 @@ import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
+import uk.gov.hmcts.payment.api.dto.liberata.PaymentAccountResponse;
 import uk.gov.hmcts.payment.api.dto.liberata.identity.TokenResponse;
 import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
 import uk.gov.hmcts.payment.api.model.Payment;
@@ -127,6 +128,8 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
         this.restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
         Mockito.when(liberataRealTimeAPI.getValidToken()).thenReturn(createTestTokenResponse());
+        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
+
 
         restActions
             .withAuthorizedService("divorce")
@@ -1193,6 +1196,12 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         long createdAt = System.currentTimeMillis() / 1000L;
         long expiresIn = createdAt + 3600L; // expires in 1 hour
         return new TokenResponse("", expiresIn, createdAt);
+    }
+
+    private PaymentAccountResponse getSuccessPaymentAccountResponse() {
+        return PaymentAccountResponse.paymentDtoWith()
+            .status("success")
+            .message("Payment processed successfully.").build();
     }
 
     private String jsonRequestWithoutCcdCaseRefAndCaseRef() {
