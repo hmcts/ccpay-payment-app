@@ -98,7 +98,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     @Autowired
     protected AccountService<AccountDto, String> accountService;
 
-    @Autowired
+    @MockitoBean
     protected  LiberataRealTimeAPI liberataRealTimeAPI;
     @MockitoBean
     private SiteService<Site, String> siteServiceMock;
