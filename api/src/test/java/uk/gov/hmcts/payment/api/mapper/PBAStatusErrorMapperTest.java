@@ -14,6 +14,10 @@ import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.util.AccountStatus;
 
 import java.math.BigDecimal;
+import java.util.Map;
+
+import uk.gov.hmcts.payment.api.dto.liberata.PaymentAccountResponse;
+import uk.gov.hmcts.payment.api.model.StatusHistory;
 
 import static nl.altindag.log.LogCaptor.forClass;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -91,4 +95,54 @@ public class PBAStatusErrorMapperTest {
         pbaStatusErrorMapper.setPaymentStatus(creditAccountPaymentRequest,payment,deletedAccountDetails);
         assertThat(mockLOG.getInfoLogs().get(0)).isEqualTo("CreditAccountPayment received for ccdCaseNumber : ccd-number Liberata AccountStatus : DELETED PaymentStatus : failed - Account is deleted!");
     }
+
+    @Test
+    public void testSetPaymentStatusAndHistoriesSuccess() {
+        PBAStatusErrorMapper mapper = new PBAStatusErrorMapper();
+        PaymentAccountResponse resp = PaymentAccountResponse.paymentDtoWith()
+            .status("success")
+            .message(null)
+            .build();
+
+        Payment localPayment = Payment.paymentWith().ccdCaseNumber("ccd-number").build();
+
+        mapper.setPaymentStatusAndHistories(creditAccountPaymentRequest, localPayment, resp);
+
+        assertThat(localPayment.getPaymentStatus()).isNotNull();
+        assertThat(localPayment.getPaymentStatus().getName()).isEqualTo("success");
+        // success should not create status histories
+        assertThat(localPayment.getStatusHistories()).isNull();
+    }
+
+    @Test
+    public void testSetPaymentStatusAndHistoriesErrors() {
+        PBAStatusErrorMapper mapper = new PBAStatusErrorMapper();
+
+        for (Map.Entry<String, String> entry : PBAStatusErrorMapper.PBA_ERROR_CODE_MAP.entrySet()) {
+            String message = entry.getKey();
+            String expectedErrorCode = entry.getValue();
+
+            Payment localPayment = Payment.paymentWith().ccdCaseNumber("ccd-number").build();
+
+            PaymentAccountResponse resp = PaymentAccountResponse.paymentDtoWith()
+                .status("error")
+                .message(message)
+                .build();
+
+            mapper.setPaymentStatusAndHistories(creditAccountPaymentRequest, localPayment, resp);
+
+            assertThat(localPayment.getPaymentStatus()).isNotNull();
+            assertThat(localPayment.getPaymentStatus().getName()).isEqualTo("failed");
+
+            assertThat(localPayment.getStatusHistories()).isNotNull();
+            assertThat(localPayment.getStatusHistories()).hasSize(1);
+
+            StatusHistory history = localPayment.getStatusHistories().get(0);
+            assertThat(history.getStatus()).isEqualTo("failed");
+            assertThat(history.getErrorCode()).isEqualTo(expectedErrorCode);
+            // mapper overwrites the message with a failure text; assert it contains the failure prefix
+            assertThat(history.getMessage()).contains("Payment request failed");
+        }
+    }
+
 }
