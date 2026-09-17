@@ -31,6 +31,7 @@ import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
+import uk.gov.hmcts.payment.api.dto.liberata.identity.TokenResponse;
 import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.Payment2Repository;
@@ -41,6 +42,7 @@ import uk.gov.hmcts.payment.api.model.PaymentMethod;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.model.StatusHistory;
 import uk.gov.hmcts.payment.api.service.AccountService;
+import uk.gov.hmcts.payment.api.service.LiberataRealTimeAPI;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.service.RefundRemissionEnableService;
 import uk.gov.hmcts.payment.api.util.AccountStatus;
@@ -94,6 +96,9 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     protected Payment2Repository paymentRepository;
     @Autowired
     protected AccountService<AccountDto, String> accountService;
+
+    @Autowired
+    protected  LiberataRealTimeAPI liberataRealTimeAPI;
     @MockitoBean
     private SiteService<Site, String> siteServiceMock;
     @MockitoBean
@@ -121,6 +126,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         MockitoAnnotations.initMocks(this);
         mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
         this.restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
+        Mockito.when(liberataRealTimeAPI.getValidToken()).thenReturn(createTestTokenResponse());
 
         restActions
             .withAuthorizedService("divorce")
@@ -463,6 +469,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         assertNotNull(paymentDto);
         assertEquals("Success", paymentDto.getStatus());
     }
+
 
     @Test
     public void failCreditAccountPaymentForFinRemAndLiberataRespondsAccountHasInsufficientFundsShouldReturnPaymentFailed() throws Exception {
@@ -1180,6 +1187,12 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         restActions.delete("/credit-account-payments/test")
             .andExpect(status().isNotFound())
             .andReturn();
+    }
+
+    private TokenResponse createTestTokenResponse() {
+        long createdAt = System.currentTimeMillis() / 1000L;
+        long expiresIn = createdAt + 3600L; // expires in 1 hour
+        return new TokenResponse("", expiresIn, createdAt);
     }
 
     private String jsonRequestWithoutCcdCaseRefAndCaseRef() {
