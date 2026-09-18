@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.api.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
+import lombok.val;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -180,8 +181,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
     @Test
     public void createCreditAccountPaymentTest() throws Exception {
-        AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
-            new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
+
         Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
 
         restActions
@@ -269,7 +269,6 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     @Test
     public void shouldNotRejectDuplicatePaymentIfFeeVersionIsDifferent() throws Exception {
 
-        AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName", new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
         Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
 
         restActions
@@ -277,8 +276,10 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isCreated());
 
         // different fee version for the 2nd request
-        FeeDto x0101_v4 = FeeDto.feeDtoWith().code("X0101").version("4").calculatedAmount(BigDecimal.valueOf(101.89)).build();
-        request.setFees(Lists.newArrayList(x0101_v4));
+       val feeDto =  request.getFees().getFirst();
+        feeDto.setCode("X0101");
+        feeDto.setVersion("4");
+        feeDto.setCalculatedAmount(BigDecimal.valueOf(101.89));
         restActions
             .post(format("/credit-account-payments"), request)
             .andExpect(status().isCreated());

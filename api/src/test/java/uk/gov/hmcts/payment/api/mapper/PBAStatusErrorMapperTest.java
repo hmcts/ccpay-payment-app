@@ -140,8 +140,8 @@ public class PBAStatusErrorMapperTest {
             StatusHistory history = localPayment.getStatusHistories().get(0);
             assertThat(history.getStatus()).isEqualTo("failed");
             assertThat(history.getErrorCode()).isEqualTo(expectedErrorCode);
-            // mapper overwrites the message with a failure text; assert it contains the failure prefix
-            assertThat(history.getMessage()).contains("Payment request failed");
+
+            assertThat(history.getMessage()).isEqualTo(message);
         }
     }
 
