@@ -1219,6 +1219,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
             "      \"version\": \"1\"\n" +
+            "      \"volume\": 1,\n" +
             "    }\n" +
             "  ]\n" +
             "}";
@@ -1240,6 +1241,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
             "      \"version\": \"1\"\n" +
+            "      \"volume\": 1,\n" +
             "    }\n" +
             "  ]\n" +
             "}";
@@ -1262,6 +1264,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
             "      \"version\": \"1\"\n" +
+            "      \"volume\": 1,\n" +
             "    }\n" +
             "  ]\n" +
             "}";
@@ -1283,6 +1286,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
             "      \"version\": \"1\"\n" +
+            "      \"volume\": 1,\n" +
             "    }\n" +
             "  ]\n" +
             "}";
@@ -1305,6 +1309,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
             "      \"version\": \"1\"\n" +
+            "      \"volume\": 1,\n" +
             "    }\n" +
             "  ]\n" +
             "}";
@@ -1328,6 +1333,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "      \"code\": \"X0101\",\n" +
             "      \"volume\": 1,\n" +
             "      \"version\": \"1\"\n" +
+            "      \"volume\": 1,\n" +
             "    }\n" +
             "  ]\n" +
             "}";
@@ -1350,6 +1356,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
             "      \"version\": \"1\"\n" +
+            "      \"volume\": 1,\n" +
             "    }\n" +
             "  ]\n" +
             "}";
@@ -1372,6 +1379,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
             "      \"version\": \"1\"\n" +
+            "      \"volume\": 1,\n" +
             "    }\n" +
             "  ]\n" +
             "}";
@@ -1393,6 +1401,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
             "      \"version\": \"1\"\n" +
+            "      \"volume\": 1,\n" +
             "    }\n" +
             "  ]\n" +
             "}";
@@ -1433,6 +1442,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
             "      \"version\": \"1\"\n" +
+            "      \"volume\": 1,\n" +
             "    }\n" +
             "  ]\n" +
             "}";
@@ -1455,6 +1465,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
             "      \"version\": \"1\"\n" +
+            "      \"volume\": 1,\n" +
             "    }\n" +
             "  ]\n" +
             "}";
@@ -1477,6 +1488,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
             "      \"version\": \"1\"\n" +
+            "      \"volume\": 1,\n" +
             "    }\n" +
             "  ]\n" +
             "}";
@@ -1499,6 +1511,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
             "      \"version\": \"1\"\n" +
+            "      \"volume\": 1,\n" +
             "    }\n" +
             "  ]\n" +
             "}";
@@ -1521,6 +1534,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
             "      \"version\": \"1\"\n" +
+            "      \"volume\": 1,\n" +
             "    }\n" +
             "  ]\n" +
             "}";
@@ -1544,6 +1558,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
             "      \"version\": \"1\"\n" +
+            "      \"volume\": 1,\n" +
             "    }\n" +
             "  ]\n" +
             "}";
@@ -1566,6 +1581,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
             "      \"version\": \"1\"\n" +
+            "      \"volume\": 1,\n" +
             "    }\n" +
             "  ]\n" +
             "}";
@@ -1588,6 +1604,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
             "      \"version\": \"1\"\n" +
+            "      \"volume\": 1,\n" +
             "    }\n" +
             "  ]\n" +
             "}";
@@ -1609,6 +1626,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
             "      \"version\": \"1\"\n" +
+            "      \"volume\": 1,\n" +
             "    }\n" +
             "  ]\n" +
             "}";
@@ -1631,6 +1649,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
             "      \"version\": \"1\"\n" +
+            "      \"volume\": 1,\n" +
             "    }\n" +
             "  ]\n" +
             "}";
