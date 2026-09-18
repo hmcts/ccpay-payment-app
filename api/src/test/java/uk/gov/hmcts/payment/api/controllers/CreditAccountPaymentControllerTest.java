@@ -536,10 +536,18 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     @Test
     public void createCreditAccountPaymentAndLiberataRespondsCannotFindAccountShouldReturn404() throws Exception {
         Mockito.when(accountService.retrieve(request.getAccountNumber())).thenThrow(HttpClientErrorException.class);
+        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getAnErrorDueToAccountNotFound());
 
-        restActions
+
+        MvcResult result = restActions
             .post(format("/credit-account-payments"), request)
-            .andExpect(status().isNotFound());
+            .andExpect(status().isForbidden()).andReturn();
+
+        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+
+        assertEquals("Failed", paymentDto.getStatus());
+        assertEquals("CA-E0004", paymentDto.getStatusHistories().get(0).getErrorCode());
+        assertEquals(ACCOUNT_NOT_FOUND.getValue(), paymentDto.getStatusHistories().get(0).getErrorMessage());
     }
 
     @Test
@@ -1229,6 +1237,12 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
 
     private PaymentAccountResponse getAnErrorDueToDeleted() {
+        return PaymentAccountResponse.paymentDtoWith()
+            .status(PaymentAccountResponseStatus.ERROR.getValue())
+            .message(ACCOUNT_NOT_FOUND.getValue()).build();
+    }
+
+    private PaymentAccountResponse getAnErrorDueToAccountNotFound() {
         return PaymentAccountResponse.paymentDtoWith()
             .status(PaymentAccountResponseStatus.ERROR.getValue())
             .message(ACCOUNT_NOT_FOUND.getValue()).build();
