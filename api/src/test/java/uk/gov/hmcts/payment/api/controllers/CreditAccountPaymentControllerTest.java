@@ -32,6 +32,7 @@ import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.liberata.PaymentAccountResponse;
+import uk.gov.hmcts.payment.api.dto.liberata.PaymentAccountResponseStatus;
 import uk.gov.hmcts.payment.api.dto.liberata.identity.TokenResponse;
 import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
 import uk.gov.hmcts.payment.api.model.Payment;
@@ -476,9 +477,11 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
     @Test
     public void failCreditAccountPaymentForFinRemAndLiberataRespondsAccountHasInsufficientFundsShouldReturnPaymentFailed() throws Exception {
+
         AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
             new BigDecimal(100), new BigDecimal(100), AccountStatus.ACTIVE, new Date());
         Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
+        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getAnErrorDueToExceededCreditLimitPaymentAccountResponse());
 
         MvcResult result = restActions
             .post(format("/credit-account-payments"), request)
@@ -1200,8 +1203,13 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
     private PaymentAccountResponse getSuccessPaymentAccountResponse() {
         return PaymentAccountResponse.paymentDtoWith()
-            .status("success")
-            .message("Payment processed successfully.").build();
+            .status(PaymentAccountResponseStatus.ERROR.getValue())
+            .message(PaymentAccountResponseStatus.SUCCESSFULLY.getValue()).build();
+    }
+    private PaymentAccountResponse getAnErrorDueToExceededCreditLimitPaymentAccountResponse() {
+        return PaymentAccountResponse.paymentDtoWith()
+            .status(PaymentAccountResponseStatus.ERROR.getValue())
+            .message(PaymentAccountResponseStatus.EXCEEDED_CREDIT_LIMIT.getValue()).build();
     }
 
     private String jsonRequestWithoutCcdCaseRefAndCaseRef() {

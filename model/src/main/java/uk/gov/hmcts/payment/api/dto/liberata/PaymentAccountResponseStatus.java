@@ -4,6 +4,7 @@ public enum PaymentAccountResponseStatus {
     SUCCESS("success"),
     ERROR("error"),
 
+    SUCCESSFULLY("Payment processed successfully."),
     EXCEEDED_CREDIT_LIMIT("Exceeded credit limit."),
     ACCOUNT_NOT_FOUND("Account not found."),
     VALIDATION_FAILED("Validation failed."),
