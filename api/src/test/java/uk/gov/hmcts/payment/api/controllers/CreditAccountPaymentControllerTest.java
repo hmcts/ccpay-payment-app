@@ -78,6 +78,7 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
+import static uk.gov.hmcts.payment.api.dto.liberata.PaymentAccountResponseStatus.EXCEEDED_CREDIT_LIMIT;
 
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "componenttest"})
@@ -213,10 +214,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         request.setCcdCaseNumber(null);
         request.setCaseReference("33333");
-
-        AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
-            new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
-        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
+        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
 
         restActions
             .post(format("/credit-account-payments"), request)
@@ -498,7 +496,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         assertEquals("Failed", paymentDto.getStatus());
         assertEquals("CA-E0001", paymentDto.getStatusHistories().get(0).getErrorCode());
-        assertEquals("Payment request failed. PBA account accountName have insufficient funds available", paymentDto.getStatusHistories().get(0).getErrorMessage());
+        assertEquals("Exceeded credit limit.", paymentDto.getStatusHistories().get(0).getErrorMessage());
     }
 
     @Test
@@ -598,10 +596,8 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             CreditAccountPaymentRequest.class);
         request.setAmount(new BigDecimal(101));
 
-        AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
-            new BigDecimal(100), new BigDecimal("100.99"), AccountStatus.ACTIVE, new Date());
+        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getAnErrorDueToExceededCreditLimitPaymentAccountResponse());
 
-        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
 
         MvcResult result = restActions
             .post(format("/credit-account-payments"), request)
@@ -611,7 +607,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         assertEquals("Failed", paymentDto.getStatus());
         assertEquals("CA-E0001", paymentDto.getStatusHistories().get(0).getErrorCode());
-        assertEquals("Payment request failed. PBA account accountName have insufficient funds available", paymentDto.getStatusHistories().get(0).getErrorMessage());
+        assertEquals(EXCEEDED_CREDIT_LIMIT, paymentDto.getStatusHistories().get(0).getErrorMessage());
     }
 
     @Test
@@ -1221,7 +1217,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     private PaymentAccountResponse getAnErrorDueToExceededCreditLimitPaymentAccountResponse() {
         return PaymentAccountResponse.paymentDtoWith()
             .status(PaymentAccountResponseStatus.ERROR.getValue())
-            .message(PaymentAccountResponseStatus.EXCEEDED_CREDIT_LIMIT.getValue()).build();
+            .message(EXCEEDED_CREDIT_LIMIT.getValue()).build();
     }
 
     private PaymentAccountResponse getAnErrorDueToAccountOnHold() {
