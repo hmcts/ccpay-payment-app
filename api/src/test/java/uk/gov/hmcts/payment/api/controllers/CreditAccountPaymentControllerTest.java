@@ -78,6 +78,7 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
+import static uk.gov.hmcts.payment.api.dto.liberata.PaymentAccountResponseStatus.ACCOUNT_NOT_FOUND;
 import static uk.gov.hmcts.payment.api.dto.liberata.PaymentAccountResponseStatus.EXCEEDED_CREDIT_LIMIT;
 
 @RunWith(SpringRunner.class)
@@ -529,7 +530,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         assertEquals("Failed", paymentDto.getStatus());
         assertEquals("CA-E0004", paymentDto.getStatusHistories().get(0).getErrorCode());
-        assertEquals("Account not active.", paymentDto.getStatusHistories().get(0).getErrorMessage());
+        assertEquals(ACCOUNT_NOT_FOUND.getValue(), paymentDto.getStatusHistories().get(0).getErrorMessage());
     }
 
     @Test
@@ -607,7 +608,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         assertEquals("Failed", paymentDto.getStatus());
         assertEquals("CA-E0001", paymentDto.getStatusHistories().get(0).getErrorCode());
-        assertEquals(EXCEEDED_CREDIT_LIMIT, paymentDto.getStatusHistories().get(0).getErrorMessage());
+        assertEquals(EXCEEDED_CREDIT_LIMIT.getValue(), paymentDto.getStatusHistories().get(0).getErrorMessage());
     }
 
     @Test
@@ -1230,7 +1231,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     private PaymentAccountResponse getAnErrorDueToDeleted() {
         return PaymentAccountResponse.paymentDtoWith()
             .status(PaymentAccountResponseStatus.ERROR.getValue())
-            .message(PaymentAccountResponseStatus.ACCOUNT_NOT_ACTIVE.getValue()).build();
+            .message(ACCOUNT_NOT_FOUND.getValue()).build();
     }
 
     private String jsonRequestWithoutCcdCaseRefAndCaseRef() {
