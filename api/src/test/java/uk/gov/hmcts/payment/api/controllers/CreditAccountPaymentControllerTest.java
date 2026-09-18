@@ -618,7 +618,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     public void givenLiberataCheckOnAndCheckLiberataAccountForAllSericesOnThenAllServicesTriggerLiberataCheck() throws Exception {
         AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
             new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
-        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
+        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
 
         MvcResult result = restActions
             .post("/credit-account-payments", request)
@@ -667,7 +667,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
             new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
-        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
+        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
 
         MvcResult result = restActions
             .post("/credit-account-payments", request)
