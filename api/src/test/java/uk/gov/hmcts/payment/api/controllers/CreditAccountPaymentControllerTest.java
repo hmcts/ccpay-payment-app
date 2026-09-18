@@ -871,7 +871,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithFPLJson().getBytes(), CreditAccountPaymentRequest.class);
         AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
             new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
-        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
+        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
 
         restActions
             .post(format("/credit-account-payments"), request)
@@ -896,6 +896,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
 
         when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
+        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
 
         List<FeeDto> fees = new ArrayList<>();
         fees.add(0, FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
@@ -957,6 +958,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
 
         when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
+        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
 
         List<FeeDto> fees = new ArrayList<>();
         fees.add(0, FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(30))
@@ -1017,6 +1019,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
 
         when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
+        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
 
         List<FeeDto> fees = new ArrayList<>();
         fees.add(0, FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(10))
@@ -1077,6 +1080,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
 
         when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
+        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
 
         List<FeeDto> fees = new ArrayList<>();
         fees.add(0, FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
@@ -1136,6 +1140,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
         when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
+        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
         List<FeeDto> fees = new ArrayList<>();
         fees.add(0, FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
             .volume(1).version("1").calculatedAmount(new BigDecimal(20)).build());
