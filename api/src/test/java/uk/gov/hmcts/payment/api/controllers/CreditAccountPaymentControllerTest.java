@@ -101,6 +101,10 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
     @MockitoBean
     protected  LiberataRealTimeAPI liberataRealTimeAPI;
+
+    @MockitoBean
+    protected  LiberataRealTimeAPI liberataRealTimeAPIErrors;
+
     @MockitoBean
     private SiteService<Site, String> siteServiceMock;
     @MockitoBean
@@ -269,6 +273,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName", new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
         Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
+        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getAnErrorDueToDuplicatePaymentAccountResponse());
 
         restActions
             .post(format("/credit-account-payments"), request)
@@ -481,7 +486,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
             new BigDecimal(100), new BigDecimal(100), AccountStatus.ACTIVE, new Date());
         Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
-        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getAnErrorDueToExceededCreditLimitPaymentAccountResponse());
+        Mockito.when(liberataRealTimeAPIErrors.payByAccount(any())).thenReturn(getAnErrorDueToExceededCreditLimitPaymentAccountResponse());
 
         MvcResult result = restActions
             .post(format("/credit-account-payments"), request)
@@ -1207,6 +1212,12 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             .message(PaymentAccountResponseStatus.SUCCESSFULLY.getValue()).build();
     }
     private PaymentAccountResponse getAnErrorDueToExceededCreditLimitPaymentAccountResponse() {
+        return PaymentAccountResponse.paymentDtoWith()
+            .status(PaymentAccountResponseStatus.ERROR.getValue())
+            .message(PaymentAccountResponseStatus.EXCEEDED_CREDIT_LIMIT.getValue()).build();
+    }
+
+    private PaymentAccountResponse getAnErrorDueToDuplicatePaymentAccountResponse() {
         return PaymentAccountResponse.paymentDtoWith()
             .status(PaymentAccountResponseStatus.ERROR.getValue())
             .message(PaymentAccountResponseStatus.EXCEEDED_CREDIT_LIMIT.getValue()).build();
