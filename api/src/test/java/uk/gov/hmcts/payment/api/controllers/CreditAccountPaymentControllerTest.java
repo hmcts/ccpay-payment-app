@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.api.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
+import lombok.val;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -31,6 +32,9 @@ import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
+import uk.gov.hmcts.payment.api.dto.liberata.PaymentAccountResponse;
+import uk.gov.hmcts.payment.api.dto.liberata.PaymentAccountResponseStatus;
+import uk.gov.hmcts.payment.api.dto.liberata.identity.TokenResponse;
 import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.Payment2Repository;
@@ -41,6 +45,7 @@ import uk.gov.hmcts.payment.api.model.PaymentMethod;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.model.StatusHistory;
 import uk.gov.hmcts.payment.api.service.AccountService;
+import uk.gov.hmcts.payment.api.service.LiberataRealTimeAPI;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.service.RefundRemissionEnableService;
 import uk.gov.hmcts.payment.api.util.AccountStatus;
@@ -73,6 +78,8 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
+import static uk.gov.hmcts.payment.api.dto.liberata.PaymentAccountResponseStatus.ACCOUNT_NOT_FOUND;
+import static uk.gov.hmcts.payment.api.dto.liberata.PaymentAccountResponseStatus.EXCEEDED_CREDIT_LIMIT;
 
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "componenttest"})
@@ -94,6 +101,10 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     protected Payment2Repository paymentRepository;
     @Autowired
     protected AccountService<AccountDto, String> accountService;
+
+    @MockitoBean
+    protected  LiberataRealTimeAPI liberataRealTimeAPI;
+
     @MockitoBean
     private SiteService<Site, String> siteServiceMock;
     @MockitoBean
@@ -121,6 +132,8 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         MockitoAnnotations.initMocks(this);
         mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
         this.restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
+        Mockito.when(liberataRealTimeAPI.getValidToken()).thenReturn(createTestTokenResponse());
+
 
         restActions
             .withAuthorizedService("divorce")
@@ -170,9 +183,8 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
     @Test
     public void createCreditAccountPaymentTest() throws Exception {
-        AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
-            new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
-        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
+
+        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
 
         restActions
             .post(format("/credit-account-payments"), request)
@@ -186,6 +198,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
             new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
         Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
+        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
 
         restActions
             .post(format("/credit-account-payments"), request)
@@ -202,10 +215,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         request.setCcdCaseNumber(null);
         request.setCaseReference("33333");
-
-        AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
-            new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
-        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
+        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
 
         restActions
             .post(format("/credit-account-payments"), request)
@@ -222,7 +232,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
             new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
-        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
+        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
 
         restActions
             .post(format("/credit-account-payments"), request)
@@ -241,14 +251,19 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
             new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
         Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
+        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
 
         restActions
             .post(format("/credit-account-payments"), request)
             .andExpect(status().isCreated());
 
         // different fee code for the 2nd request
-        FeeDto x0102 = FeeDto.feeDtoWith().code("X0102").version("1").calculatedAmount(BigDecimal.valueOf(101.89)).build();
-        request.setFees(Lists.newArrayList(x0102));
+        val feeDto = request.getFees().getFirst();
+        feeDto.setCode("X0102");
+        feeDto.setVersion("1");
+        feeDto.setCalculatedAmount(BigDecimal.valueOf(101.89));
+
+
         restActions
             .post(format("/credit-account-payments"), request)
             .andExpect(status().isCreated());
@@ -257,16 +272,17 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     @Test
     public void shouldNotRejectDuplicatePaymentIfFeeVersionIsDifferent() throws Exception {
 
-        AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName", new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
-        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
+        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
 
         restActions
             .post(format("/credit-account-payments"), request)
             .andExpect(status().isCreated());
 
         // different fee version for the 2nd request
-        FeeDto x0101_v4 = FeeDto.feeDtoWith().code("X0101").version("4").calculatedAmount(BigDecimal.valueOf(101.89)).build();
-        request.setFees(Lists.newArrayList(x0101_v4));
+       val feeDto =  request.getFees().getFirst();
+        feeDto.setCode("X0101");
+        feeDto.setVersion("4");
+        feeDto.setCalculatedAmount(BigDecimal.valueOf(101.89));
         restActions
             .post(format("/credit-account-payments"), request)
             .andExpect(status().isCreated());
@@ -353,7 +369,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
                 .build()))
             .build();
         PaymentFee fee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").build();
-
+        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
         PaymentFeeLink paymentFeeLink = db.create(PaymentFeeLink.paymentFeeLinkWith().paymentReference("2018-15199028243").payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);
 
@@ -410,7 +426,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
             new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
-        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
+        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
 
 
         MvcResult res = restActions
@@ -452,7 +468,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     public void createCreditAccountPayment_withEitherCcdCaseNumberOrCaseReferenceTest() throws Exception {
         AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
             new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
-        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
+        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
 
         MvcResult result = restActions
             .post("/credit-account-payments", request)
@@ -464,11 +480,14 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         assertEquals("Success", paymentDto.getStatus());
     }
 
+
     @Test
     public void failCreditAccountPaymentForFinRemAndLiberataRespondsAccountHasInsufficientFundsShouldReturnPaymentFailed() throws Exception {
+
         AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
             new BigDecimal(100), new BigDecimal(100), AccountStatus.ACTIVE, new Date());
         Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
+        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getAnErrorDueToExceededCreditLimitPaymentAccountResponse());
 
         MvcResult result = restActions
             .post(format("/credit-account-payments"), request)
@@ -478,14 +497,12 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         assertEquals("Failed", paymentDto.getStatus());
         assertEquals("CA-E0001", paymentDto.getStatusHistories().get(0).getErrorCode());
-        assertEquals("Payment request failed. PBA account accountName have insufficient funds available", paymentDto.getStatusHistories().get(0).getErrorMessage());
+        assertEquals("Exceeded credit limit.", paymentDto.getStatusHistories().get(0).getErrorMessage());
     }
 
     @Test
     public void failCreditAccountPaymentWhenLiberataRespondsAccountStatusOnHold() throws Exception {
-        AccountDto accountOnHoldDto = new AccountDto(request.getAccountNumber(), "accountName",
-            new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ON_HOLD, new Date());
-        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountOnHoldDto);
+        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getAnErrorDueToAccountOnHold());
 
         MvcResult result = restActions
             .post(format("/credit-account-payments"), request)
@@ -495,7 +512,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         assertEquals("Failed", paymentDto.getStatus());
         assertEquals("CA-E0003", paymentDto.getStatusHistories().get(0).getErrorCode());
-        assertEquals("Your account is on hold", paymentDto.getStatusHistories().get(0).getErrorMessage());
+        assertEquals("Account not active.", paymentDto.getStatusHistories().get(0).getErrorMessage());
     }
 
     @Test
@@ -503,6 +520,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         AccountDto accountDeletedDto = new AccountDto(request.getAccountNumber(), "accountName",
             new BigDecimal(100), new BigDecimal(100), AccountStatus.DELETED, new Date());
         Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountDeletedDto);
+        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getAnErrorDueToDeleted());
 
         MvcResult result = restActions
             .post(format("/credit-account-payments"), request)
@@ -512,22 +530,30 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         assertEquals("Failed", paymentDto.getStatus());
         assertEquals("CA-E0004", paymentDto.getStatusHistories().get(0).getErrorCode());
-        assertEquals("Your account is deleted", paymentDto.getStatusHistories().get(0).getErrorMessage());
+        assertEquals(ACCOUNT_NOT_FOUND.getValue(), paymentDto.getStatusHistories().get(0).getErrorMessage());
     }
 
     @Test
     public void createCreditAccountPaymentAndLiberataRespondsCannotFindAccountShouldReturn404() throws Exception {
         Mockito.when(accountService.retrieve(request.getAccountNumber())).thenThrow(HttpClientErrorException.class);
+        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getAnErrorDueToAccountNotFound());
 
-        restActions
+
+        MvcResult result = restActions
             .post(format("/credit-account-payments"), request)
-            .andExpect(status().isNotFound());
+            .andExpect(status().isForbidden()).andReturn();
+
+        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+
+        assertEquals("Failed", paymentDto.getStatus());
+        assertEquals("CA-E0004", paymentDto.getStatusHistories().get(0).getErrorCode());
+        assertEquals(ACCOUNT_NOT_FOUND.getValue(), paymentDto.getStatusHistories().get(0).getErrorMessage());
     }
 
     @Test
     public void createCreditAccountPaymentAndLiberataIsNotResponsiveShouldReturn504() throws Exception {
-        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenThrow(AccountServiceUnavailableException.class);
 
+        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenThrow(GatewayTimeoutException.class);
         restActions
             .post(format("/credit-account-payments"), request)
             .andExpect(status().isGatewayTimeout());
@@ -542,7 +568,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
             new BigDecimal(100), new BigDecimal(100), AccountStatus.ACTIVE, new Date());
 
-        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
+        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
 
         MvcResult result = restActions
             .post(format("/credit-account-payments"), request)
@@ -562,7 +588,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
             new BigDecimal(200), new BigDecimal("100.99"), AccountStatus.ACTIVE, new Date());
 
-        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
+        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
 
         MvcResult result = restActions
             .post(format("/credit-account-payments"), request)
@@ -579,10 +605,8 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             CreditAccountPaymentRequest.class);
         request.setAmount(new BigDecimal(101));
 
-        AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
-            new BigDecimal(100), new BigDecimal("100.99"), AccountStatus.ACTIVE, new Date());
+        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getAnErrorDueToExceededCreditLimitPaymentAccountResponse());
 
-        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
 
         MvcResult result = restActions
             .post(format("/credit-account-payments"), request)
@@ -592,14 +616,14 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         assertEquals("Failed", paymentDto.getStatus());
         assertEquals("CA-E0001", paymentDto.getStatusHistories().get(0).getErrorCode());
-        assertEquals("Payment request failed. PBA account accountName have insufficient funds available", paymentDto.getStatusHistories().get(0).getErrorMessage());
+        assertEquals(EXCEEDED_CREDIT_LIMIT.getValue(), paymentDto.getStatusHistories().get(0).getErrorMessage());
     }
 
     @Test
     public void givenLiberataCheckOnAndCheckLiberataAccountForAllSericesOnThenAllServicesTriggerLiberataCheck() throws Exception {
         AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
             new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
-        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
+        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
 
         MvcResult result = restActions
             .post("/credit-account-payments", request)
@@ -623,7 +647,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     public void givenLiberataCheckOffAndCheckLiberataAccountForAllSericesOffThenNoServiceTriggersLiberataCheck() throws Exception {
         AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
             new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
-        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
+        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
 
         MvcResult result = restActions
             .post("/credit-account-payments", request)
@@ -648,7 +672,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
             new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
-        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
+        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
 
         MvcResult result = restActions
             .post("/credit-account-payments", request)
@@ -674,7 +698,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithFPLAJson().getBytes(), CreditAccountPaymentRequest.class);
         AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
             new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
-        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
+        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
 
         MvcResult result = restActions
             .post("/credit-account-payments", request)
@@ -700,7 +724,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithIACJson().getBytes(), CreditAccountPaymentRequest.class);
         AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
             new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
-        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
+        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
 
         MvcResult result = restActions
             .post("/credit-account-payments", request)
@@ -726,7 +750,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         setupForPaymentRoleUser();
         AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
             new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
-        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
+        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
 
         MvcResult result = restActions
             .post("/credit-account-payments", request)
@@ -766,7 +790,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithFPLAJson().getBytes(), CreditAccountPaymentRequest.class);
         AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
             new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
-        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
+        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
 
         MvcResult result = restActions
             .post("/credit-account-payments", request)
@@ -792,7 +816,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithIAC_Json().getBytes(), CreditAccountPaymentRequest.class);
         AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
             new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
-        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
+        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
 
         MvcResult result = restActions
             .post("/credit-account-payments", request)
@@ -818,7 +842,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithUnSpec_Json().getBytes(), CreditAccountPaymentRequest.class);
         AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
             new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
-        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
+        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
 
         MvcResult result = restActions
             .post("/credit-account-payments", request)
@@ -857,7 +881,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithFPLJson().getBytes(), CreditAccountPaymentRequest.class);
         AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
             new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
-        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
+        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
 
         restActions
             .post(format("/credit-account-payments"), request)
@@ -882,6 +906,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
 
         when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
+        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
 
         List<FeeDto> fees = new ArrayList<>();
         fees.add(0, FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
@@ -943,6 +968,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
 
         when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
+        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
 
         List<FeeDto> fees = new ArrayList<>();
         fees.add(0, FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(30))
@@ -1003,6 +1029,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
 
         when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
+        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
 
         List<FeeDto> fees = new ArrayList<>();
         fees.add(0, FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(10))
@@ -1063,6 +1090,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
 
         when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
+        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
 
         List<FeeDto> fees = new ArrayList<>();
         fees.add(0, FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
@@ -1122,6 +1150,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
         when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
+        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
         List<FeeDto> fees = new ArrayList<>();
         fees.add(0, FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
             .volume(1).version("1").calculatedAmount(new BigDecimal(20)).build());
@@ -1182,6 +1211,43 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             .andReturn();
     }
 
+    private TokenResponse createTestTokenResponse() {
+        long createdAt = System.currentTimeMillis() / 1000L;
+        long expiresIn = createdAt + 3600L; // expires in 1 hour
+        return new TokenResponse("", expiresIn, createdAt);
+    }
+
+    private PaymentAccountResponse getSuccessPaymentAccountResponse() {
+        return PaymentAccountResponse.paymentDtoWith()
+            .status(PaymentAccountResponseStatus.SUCCESS.getValue())
+            .message(PaymentAccountResponseStatus.SUCCESSFULLY.getValue()).build();
+    }
+
+    private PaymentAccountResponse getAnErrorDueToExceededCreditLimitPaymentAccountResponse() {
+        return PaymentAccountResponse.paymentDtoWith()
+            .status(PaymentAccountResponseStatus.ERROR.getValue())
+            .message(EXCEEDED_CREDIT_LIMIT.getValue()).build();
+    }
+
+    private PaymentAccountResponse getAnErrorDueToAccountOnHold() {
+        return PaymentAccountResponse.paymentDtoWith()
+            .status(PaymentAccountResponseStatus.ERROR.getValue())
+            .message(PaymentAccountResponseStatus.ACCOUNT_NOT_ACTIVE.getValue()).build();
+    }
+
+
+    private PaymentAccountResponse getAnErrorDueToDeleted() {
+        return PaymentAccountResponse.paymentDtoWith()
+            .status(PaymentAccountResponseStatus.ERROR.getValue())
+            .message(ACCOUNT_NOT_FOUND.getValue()).build();
+    }
+
+    private PaymentAccountResponse getAnErrorDueToAccountNotFound() {
+        return PaymentAccountResponse.paymentDtoWith()
+            .status(PaymentAccountResponseStatus.ERROR.getValue())
+            .message(ACCOUNT_NOT_FOUND.getValue()).build();
+    }
+
     private String jsonRequestWithoutCcdCaseRefAndCaseRef() {
         return "{\n" +
             "  \"amount\": 101.89,\n" +
@@ -1196,6 +1262,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "    {\n" +
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
+            "      \"volume\": 1,\n" +
             "      \"version\": \"1\"\n" +
             "    }\n" +
             "  ]\n" +
@@ -1217,6 +1284,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "    {\n" +
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
+            "      \"volume\": 1,\n" +
             "      \"version\": \"1\"\n" +
             "    }\n" +
             "  ]\n" +
@@ -1239,6 +1307,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "    {\n" +
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
+            "      \"volume\": 1,\n" +
             "      \"version\": \"1\"\n" +
             "    }\n" +
             "  ]\n" +
@@ -1260,6 +1329,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "    {\n" +
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
+            "      \"volume\": 1,\n" +
             "      \"version\": \"1\"\n" +
             "    }\n" +
             "  ]\n" +
@@ -1282,6 +1352,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "    {\n" +
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
+            "      \"volume\": 1,\n" +
             "      \"version\": \"1\"\n" +
             "    }\n" +
             "  ]\n" +
@@ -1304,6 +1375,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "    {\n" +
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
+            "      \"volume\": 1,\n" +
             "      \"version\": \"1\"\n" +
             "    }\n" +
             "  ]\n" +
@@ -1326,6 +1398,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "    {\n" +
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
+            "      \"volume\": 1,\n" +
             "      \"version\": \"1\"\n" +
             "    }\n" +
             "  ]\n" +
@@ -1348,6 +1421,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "    {\n" +
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
+            "      \"volume\": 1,\n" +
             "      \"version\": \"1\"\n" +
             "    }\n" +
             "  ]\n" +
@@ -1369,6 +1443,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "    {\n" +
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
+            "      \"volume\": 1,\n" +
             "      \"version\": \"1\"\n" +
             "    }\n" +
             "  ]\n" +
@@ -1409,6 +1484,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "    {\n" +
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
+            "      \"volume\": 1,\n" +
             "      \"version\": \"1\"\n" +
             "    }\n" +
             "  ]\n" +
@@ -1431,6 +1507,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "    {\n" +
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
+            "      \"volume\": 1,\n" +
             "      \"version\": \"1\"\n" +
             "    }\n" +
             "  ]\n" +
@@ -1453,6 +1530,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "    {\n" +
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
+            "      \"volume\": 1,\n" +
             "      \"version\": \"1\"\n" +
             "    }\n" +
             "  ]\n" +
@@ -1475,6 +1553,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "    {\n" +
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
+            "      \"volume\": 1,\n" +
             "      \"version\": \"1\"\n" +
             "    }\n" +
             "  ]\n" +
@@ -1497,6 +1576,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "    {\n" +
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
+            "      \"volume\": 1,\n" +
             "      \"version\": \"1\"\n" +
             "    }\n" +
             "  ]\n" +
@@ -1520,6 +1600,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "    {\n" +
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
+            "      \"volume\": 1,\n" +
             "      \"version\": \"1\"\n" +
             "    }\n" +
             "  ]\n" +
@@ -1542,6 +1623,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "    {\n" +
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
+            "      \"volume\": 1,\n" +
             "      \"version\": \"1\"\n" +
             "    }\n" +
             "  ]\n" +
@@ -1564,6 +1646,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "    {\n" +
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
+            "      \"volume\": 1,\n" +
             "      \"version\": \"1\"\n" +
             "    }\n" +
             "  ]\n" +
@@ -1585,6 +1668,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "    {\n" +
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
+            "      \"volume\": 1,\n" +
             "      \"version\": \"1\"\n" +
             "    }\n" +
             "  ]\n" +
@@ -1607,6 +1691,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "    {\n" +
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
+            "      \"volume\": 1,\n" +
             "      \"version\": \"1\"\n" +
             "    }\n" +
             "  ]\n" +
