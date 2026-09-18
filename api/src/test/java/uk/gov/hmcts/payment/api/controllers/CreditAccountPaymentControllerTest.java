@@ -103,9 +103,6 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     protected  LiberataRealTimeAPI liberataRealTimeAPI;
 
     @MockitoBean
-    protected  LiberataRealTimeAPI liberataRealTimeAPIErrors;
-
-    @MockitoBean
     private SiteService<Site, String> siteServiceMock;
     @MockitoBean
     ReferenceDataService referenceDataService;
@@ -486,7 +483,6 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
             new BigDecimal(100), new BigDecimal(100), AccountStatus.ACTIVE, new Date());
         Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
-        Mockito.when(liberataRealTimeAPIErrors.payByAccount(any())).thenReturn(getAnErrorDueToExceededCreditLimitPaymentAccountResponse());
 
         MvcResult result = restActions
             .post(format("/credit-account-payments"), request)
