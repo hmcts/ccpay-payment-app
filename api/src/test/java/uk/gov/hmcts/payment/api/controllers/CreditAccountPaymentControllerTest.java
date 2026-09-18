@@ -552,8 +552,8 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
     @Test
     public void createCreditAccountPaymentAndLiberataIsNotResponsiveShouldReturn504() throws Exception {
-        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenThrow(AccountServiceUnavailableException.class);
 
+        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenThrow(GatewayTimeoutException.class);
         restActions
             .post(format("/credit-account-payments"), request)
             .andExpect(status().isGatewayTimeout());
