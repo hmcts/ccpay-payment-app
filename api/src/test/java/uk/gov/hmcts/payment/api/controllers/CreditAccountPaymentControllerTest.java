@@ -259,8 +259,12 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isCreated());
 
         // different fee code for the 2nd request
-        FeeDto x0102 = FeeDto.feeDtoWith().code("X0102").version("1").calculatedAmount(BigDecimal.valueOf(101.89)).build();
-        request.setFees(Lists.newArrayList(x0102));
+        val feeDto = request.getFees().getFirst();
+        feeDto.setCode("X0102");
+        feeDto.setVersion("1");
+        feeDto.setCalculatedAmount(BigDecimal.valueOf(101.89));
+
+
         restActions
             .post(format("/credit-account-payments"), request)
             .andExpect(status().isCreated());
@@ -499,9 +503,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
     @Test
     public void failCreditAccountPaymentWhenLiberataRespondsAccountStatusOnHold() throws Exception {
-        AccountDto accountOnHoldDto = new AccountDto(request.getAccountNumber(), "accountName",
-            new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ON_HOLD, new Date());
-        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountOnHoldDto);
+        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getAnErrorDueToAccountOnHold());
 
         MvcResult result = restActions
             .post(format("/credit-account-payments"), request)
@@ -511,7 +513,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         assertEquals("Failed", paymentDto.getStatus());
         assertEquals("CA-E0003", paymentDto.getStatusHistories().get(0).getErrorCode());
-        assertEquals("Your account is on hold", paymentDto.getStatusHistories().get(0).getErrorMessage());
+        assertEquals("Account not active.", paymentDto.getStatusHistories().get(0).getErrorMessage());
     }
 
     @Test
@@ -519,6 +521,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         AccountDto accountDeletedDto = new AccountDto(request.getAccountNumber(), "accountName",
             new BigDecimal(100), new BigDecimal(100), AccountStatus.DELETED, new Date());
         Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountDeletedDto);
+        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getAnErrorDueToDeleted());
 
         MvcResult result = restActions
             .post(format("/credit-account-payments"), request)
@@ -528,7 +531,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         assertEquals("Failed", paymentDto.getStatus());
         assertEquals("CA-E0004", paymentDto.getStatusHistories().get(0).getErrorCode());
-        assertEquals("Your account is deleted", paymentDto.getStatusHistories().get(0).getErrorMessage());
+        assertEquals("Account not active.", paymentDto.getStatusHistories().get(0).getErrorMessage());
     }
 
     @Test
@@ -1214,16 +1217,24 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             .status(PaymentAccountResponseStatus.SUCCESS.getValue())
             .message(PaymentAccountResponseStatus.SUCCESSFULLY.getValue()).build();
     }
+
     private PaymentAccountResponse getAnErrorDueToExceededCreditLimitPaymentAccountResponse() {
         return PaymentAccountResponse.paymentDtoWith()
             .status(PaymentAccountResponseStatus.ERROR.getValue())
             .message(PaymentAccountResponseStatus.EXCEEDED_CREDIT_LIMIT.getValue()).build();
     }
 
-    private PaymentAccountResponse getAnErrorDueToDuplicatePaymentAccountResponse() {
+    private PaymentAccountResponse getAnErrorDueToAccountOnHold() {
         return PaymentAccountResponse.paymentDtoWith()
             .status(PaymentAccountResponseStatus.ERROR.getValue())
-            .message(PaymentAccountResponseStatus.EXCEEDED_CREDIT_LIMIT.getValue()).build();
+            .message(PaymentAccountResponseStatus.ACCOUNT_NOT_ACTIVE.getValue()).build();
+    }
+
+
+    private PaymentAccountResponse getAnErrorDueToDeleted() {
+        return PaymentAccountResponse.paymentDtoWith()
+            .status(PaymentAccountResponseStatus.ERROR.getValue())
+            .message(PaymentAccountResponseStatus.ACCOUNT_NOT_ACTIVE.getValue()).build();
     }
 
     private String jsonRequestWithoutCcdCaseRefAndCaseRef() {
