@@ -30,6 +30,7 @@ import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.service.CallbackService;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.service.FeePayApportionService;
+import uk.gov.hmcts.payment.api.service.IacService;
 import uk.gov.hmcts.payment.api.service.LiberataRealTimeAPI;
 import uk.gov.hmcts.payment.api.service.LoggingCreditAccountPaymentService;
 import uk.gov.hmcts.payment.api.service.PaymentServiceImpl;
@@ -87,6 +88,12 @@ public class CreditAccountPaymentProviderTestConfiguration {
     public PBAPaymentMapper  pBAPaymentMapper() {
         return Mockito.mock(PBAPaymentMapper.class);
     }
+
+    @Bean
+    public IacService  iacService() {
+        return Mockito.mock(IacService.class);
+    }
+
 
     @Bean
     public AccessTokenDtoToTokenResponseMapper  accessTokenDtoToTokenResponseMapper() {
