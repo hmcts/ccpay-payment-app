@@ -91,7 +91,7 @@ public class CreditAccountPaymentController {
         CreditAccountPaymentRequestMapper requestMapper, @Value("#{'${pba.config1.service.names}'.split(',')}") List<String> pbaConfig1ServiceNames,
         PaymentService<PaymentFeeLink, String> paymentService, ReferenceDataService referenceDataService,
         AuthTokenGenerator authTokenGenerator,
-        PaymentReference paymentReference) {
+        PaymentReference paymentReference, PBAPaymentMapper pBAPaymentMapper) {
         this.creditAccountPaymentService = creditAccountPaymentService;
         this.creditAccountDtoMapper = creditAccountDtoMapper;
         this.accountService = accountService;
@@ -105,6 +105,7 @@ public class CreditAccountPaymentController {
         this.referenceDataService = referenceDataService;
         this.authTokenGenerator = authTokenGenerator;
         this.paymentReference = paymentReference;
+        this.pBAPaymentMapper = pBAPaymentMapper;
     }
 
     @Operation(summary = "Create credit account payment", description = "Create credit account payment")

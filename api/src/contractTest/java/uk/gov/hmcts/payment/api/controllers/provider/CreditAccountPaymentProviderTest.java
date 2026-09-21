@@ -24,6 +24,7 @@ import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.mapper.CreditAccountPaymentRequestMapper;
 import uk.gov.hmcts.payment.api.mapper.PBAStatusErrorMapper;
+import uk.gov.hmcts.payment.api.mapper.PBAPaymentMapper;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.*;
 import uk.gov.hmcts.payment.api.util.AccountStatus;
@@ -105,6 +106,9 @@ class CreditAccountPaymentProviderTest {
 
     @Autowired
     PBAStatusErrorMapper pbaStatusErrorMapper;
+
+    @Autowired
+    PBAPaymentMapper pBAPaymentMapper;
 
     @Autowired
     CreditAccountPaymentRequestMapper requestMapper;
