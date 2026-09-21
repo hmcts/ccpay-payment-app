@@ -123,6 +123,9 @@ class CreditAccountPaymentProviderTest {
     @Autowired
     ServiceRequestCaseUtil serviceRequestCaseUtil;
 
+    @Autowired
+    LiberataRealTimeAPI liberataRealTimeAPI;
+
     @Value("${PACT_BRANCH_NAME:master}")
     String branchName;
 
@@ -150,7 +153,7 @@ class CreditAccountPaymentProviderTest {
         testTarget.setControllers(
             new CreditAccountPaymentController(creditAccountPaymentService, creditAccountDtoMapper, accountServiceMock, paymentValidator,
                 feePayApportionService, featureToggler, pbaStatusErrorMapper, requestMapper, Arrays.asList("CMC"), paymentService,
-                referenceDataService, authTokenGenerator, paymentReferenceMock, pBAPaymentMapper));
+                referenceDataService, authTokenGenerator, paymentReferenceMock, pBAPaymentMapper,liberataRealTimeAPI));
         if (context != null) {
             context.setTarget(testTarget);
         }
