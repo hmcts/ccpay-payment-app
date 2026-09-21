@@ -11,6 +11,7 @@ import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.mapper.CreditAccountPaymentRequestMapper;
+import uk.gov.hmcts.payment.api.mapper.PBAPaymentMapper;
 import uk.gov.hmcts.payment.api.mapper.PBAStatusErrorMapper;
 import uk.gov.hmcts.payment.api.model.FeePayApportionRepository;
 import uk.gov.hmcts.payment.api.model.Payment2Repository;
@@ -27,6 +28,7 @@ import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.service.CallbackService;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.service.FeePayApportionService;
+import uk.gov.hmcts.payment.api.service.LiberataRealTimeAPI;
 import uk.gov.hmcts.payment.api.service.LoggingCreditAccountPaymentService;
 import uk.gov.hmcts.payment.api.service.PaymentServiceImpl;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
@@ -67,6 +69,17 @@ public class CreditAccountPaymentProviderTestConfiguration {
     public PaymentProviderRepository paymentProviderRepository() {
         return Mockito.mock(PaymentProviderRepository.class);
     }
+
+    @Bean
+    public LiberataRealTimeAPI liberataRealTimeAPI() {
+        return Mockito.mock(LiberataRealTimeAPI.class);
+    }
+
+    @Bean
+    public PBAPaymentMapper  pBAPaymentMapper() {
+        return Mockito.mock(PBAPaymentMapper.class);
+    }
+
 
     @Bean
     public PaymentStatusRepository paymentStatusRepository() {

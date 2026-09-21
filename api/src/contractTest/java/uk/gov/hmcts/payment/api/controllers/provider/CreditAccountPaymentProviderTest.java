@@ -107,6 +107,8 @@ class CreditAccountPaymentProviderTest {
     @Autowired
     PBAStatusErrorMapper pbaStatusErrorMapper;
 
+    @Autowired
+    private PBAPaymentMapper pBAPaymentMapper;
 
     @Autowired
     CreditAccountPaymentRequestMapper requestMapper;
@@ -152,7 +154,7 @@ class CreditAccountPaymentProviderTest {
         testTarget.setControllers(
             new CreditAccountPaymentController(creditAccountPaymentService, creditAccountDtoMapper, accountServiceMock, paymentValidator,
                 feePayApportionService, featureToggler, pbaStatusErrorMapper, requestMapper, Arrays.asList("CMC"), paymentService,
-                referenceDataService, authTokenGenerator, paymentReferenceMock, new PBAPaymentMapper(),liberataRealTimeAPI));
+                referenceDataService, authTokenGenerator, paymentReferenceMock, pBAPaymentMapper,liberataRealTimeAPI));
         if (context != null) {
             context.setTarget(testTarget);
         }
