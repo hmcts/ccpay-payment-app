@@ -150,7 +150,7 @@ class CreditAccountPaymentProviderTest {
         testTarget.setControllers(
             new CreditAccountPaymentController(creditAccountPaymentService, creditAccountDtoMapper, accountServiceMock, paymentValidator,
                 feePayApportionService, featureToggler, pbaStatusErrorMapper, requestMapper, Arrays.asList("CMC"), paymentService,
-                referenceDataService, authTokenGenerator, paymentReferenceMock));
+                referenceDataService, authTokenGenerator, paymentReferenceMock, pBAPaymentMapper));
         if (context != null) {
             context.setTarget(testTarget);
         }
