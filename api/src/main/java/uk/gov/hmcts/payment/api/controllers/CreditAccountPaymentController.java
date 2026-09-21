@@ -106,7 +106,7 @@ public class CreditAccountPaymentController {
         this.authTokenGenerator = authTokenGenerator;
         this.paymentReference = paymentReference;
         this.pBAPaymentMapper = pBAPaymentMapper;
-        this.liberataRealTimeAPI =liberataRealTimeAPI;
+        this.liberataRealTimeAPI = liberataRealTimeAPI;
     }
 
     @Operation(summary = "Create credit account payment", description = "Create credit account payment")

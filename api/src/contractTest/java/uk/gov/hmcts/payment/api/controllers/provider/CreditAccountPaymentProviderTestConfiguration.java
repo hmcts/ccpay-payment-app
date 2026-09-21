@@ -4,6 +4,7 @@ import org.mockito.Mockito;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
+import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.payment.api.audit.AuditRepository;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.controllers.PaymentReference;
@@ -69,6 +70,12 @@ public class CreditAccountPaymentProviderTestConfiguration {
     public PaymentProviderRepository paymentProviderRepository() {
         return Mockito.mock(PaymentProviderRepository.class);
     }
+
+    @Bean (value = "liberataRestTemplate")
+    public RestTemplate liberataRestTemplate() {
+        return Mockito.mock(RestTemplate.class);
+    }
+
 
     @Bean
     public LiberataRealTimeAPI liberataRealTimeAPI() {
