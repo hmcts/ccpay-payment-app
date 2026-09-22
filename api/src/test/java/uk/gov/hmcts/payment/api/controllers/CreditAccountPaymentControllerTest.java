@@ -196,6 +196,8 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     public void createCreditAccountPaymentTest() throws Exception {
 
         Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
+        Mockito.when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
+        Mockito.when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
 
         restActions
             .post(format("/credit-account-payments"), request)
@@ -1334,8 +1336,56 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         val jurisdiction2 = new Jurisdiction2Dto();
         jurisdiction2.setName("JURISDICTION_TWO");
         fee2Dto.setJurisdiction2Dto(jurisdiction2);
-
         feesMap.put("X0101", fee2Dto);
+
+        val  fee2Dto1 = new Fee2Dto();
+        fee2Dto1.setCode("FEE0271");
+
+        val jurisdiction11 = new Jurisdiction1Dto();
+        jurisdiction11.setName("JURISDICTION_ONE");
+        fee2Dto1.setJurisdiction1Dto(jurisdiction11);
+
+        val jurisdiction21 = new Jurisdiction2Dto();
+        jurisdiction21.setName("JURISDICTION_TWO");
+        fee2Dto1.setJurisdiction2Dto(jurisdiction21);
+        feesMap.put("FEE0271", fee2Dto1);
+
+        val  fee2Dto2 = new Fee2Dto();
+        fee2Dto2.setCode("FEE0272");
+
+        val jurisdiction12 = new Jurisdiction1Dto();
+        jurisdiction12.setName("JURISDICTION_ONE");
+        fee2Dto2.setJurisdiction1Dto(jurisdiction12);
+
+        val jurisdiction22 = new Jurisdiction2Dto();
+        jurisdiction22.setName("JURISDICTION_TWO");
+        fee2Dto2.setJurisdiction2Dto(jurisdiction22);
+        feesMap.put("FEE0272", fee2Dto2);
+
+        val  fee2Dto3 = new Fee2Dto();
+        fee2Dto3.setCode("FEE0273");
+
+        val jurisdiction13 = new Jurisdiction1Dto();
+        jurisdiction13.setName("JURISDICTION_ONE");
+        fee2Dto3.setJurisdiction1Dto(jurisdiction13);
+
+        val jurisdiction23 = new Jurisdiction2Dto();
+        jurisdiction23.setName("JURISDICTION_TWO");
+        fee2Dto3.setJurisdiction2Dto(jurisdiction23);
+        feesMap.put("FEE0273", fee2Dto3);
+
+        val  fee2Dto4 = new Fee2Dto();
+        fee2Dto4.setCode("X0102");
+
+        val jurisdiction14 = new Jurisdiction1Dto();
+        jurisdiction14.setName("JURISDICTION_ONE");
+        fee2Dto4.setJurisdiction1Dto(jurisdiction14);
+
+        val jurisdiction24 = new Jurisdiction2Dto();
+        jurisdiction24.setName("JURISDICTION_TWO");
+        fee2Dto4.setJurisdiction2Dto(jurisdiction24);
+        feesMap.put("X0102", fee2Dto4);
+
         return feesMap;
     }
 
