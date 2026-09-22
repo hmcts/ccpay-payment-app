@@ -8,12 +8,13 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
+
 import java.math.BigDecimal;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class CreditAccountPaymentRequestTest {
+public class TelephonyPaymentRequestTest {
     private static ValidatorFactory validatorFactory;
     private static Validator validator;
 
@@ -28,8 +29,8 @@ public class CreditAccountPaymentRequestTest {
         validatorFactory.close();
     }
 
-    private static Set<ConstraintViolation<CreditAccountPaymentRequest>> violationsForAmount(String amount) {
-        CreditAccountPaymentRequest request = new CreditAccountPaymentRequest();
+    private static Set<ConstraintViolation<TelephonyPaymentRequest>> violationsForAmount(String amount) {
+        TelephonyPaymentRequest request = new TelephonyPaymentRequest();
         request.setAmount(new BigDecimal(amount));
         return validator.validateProperty(request, "amount");
     }
@@ -63,5 +64,4 @@ public class CreditAccountPaymentRequestTest {
             .extracting(ConstraintViolation::getMessage)
             .containsExactlyInAnyOrder("must be greater than 0", "must be greater than or equal to 0.01");
     }
-
 }
