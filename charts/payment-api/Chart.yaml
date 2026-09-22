@@ -12,7 +12,7 @@ dependencies:
     version: 6.1.1
     repository: 'oci://hmctsprod.azurecr.io/helm'
   - name: ccpay-refunds-api
-    version: 1.0.52
+    version: 1.0.53
     repository: 'oci://hmctsprod.azurecr.io/helm'
     condition: ccpay-refunds-api.enabled
   - name: ccpay-bulkscanning-api
