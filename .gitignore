@@ -1,6 +1,8 @@
 target/
 classes/
 api/target/
+api/bin/
+api/bin/test/
 api/out/
 gov-pay-client/out/
 !.mvn/wrapper/maven-wrapper.jar
@@ -28,10 +30,9 @@ api/src/main/resources/application-local.properties
 payment-audit.log
 api/src/main/resources/application.properties
 
-api/out/
 api-contract/out/
-gov-pay-client/out/
 model/out/
 reference-data/out/
 /.apt_generated/
 /api/pacts/
+/gov-pay-client/bin/test/__files/
