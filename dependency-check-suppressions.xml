@@ -119,6 +119,7 @@
         <cve>CVE-2026-59276</cve>
         <cve>CVE-2026-47841</cve>
         <cve>CVE-2026-47842</cve>
+        <cve>CVE-2026-41707</cve>
     </suppress>
     <suppress until="2027-03-31Z">
         <notes>
