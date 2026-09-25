@@ -6,7 +6,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -32,9 +31,13 @@ public class ControllerExceptionHandler {
 
     @ExceptionHandler(value = {MethodArgumentNotValidException.class})
     public ResponseEntity<String> validationException(MethodArgumentNotValidException e) {
-        LOG.debug("Validation error", e);
-        FieldError fieldError = e.getBindingResult().getFieldError();
-        return new ResponseEntity<>(fieldError.getField() + ": " + fieldError.getDefaultMessage(), UNPROCESSABLE_ENTITY);
+        String errors = e.getBindingResult().getFieldErrors().stream()
+            .map(fieldError -> fieldError.getField() + ": " + fieldError.getDefaultMessage())
+            .reduce((a, b) -> a + "; " + b)
+            .orElse("Unknown validation error");
+        LOG.warn("Validation error: {}", errors);
+        LOG.debug("Validation error details", e);
+        return new ResponseEntity<>(errors, UNPROCESSABLE_ENTITY);
     }
 
     @ExceptionHandler(value = {DataIntegrityViolationException.class})

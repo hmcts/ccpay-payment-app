@@ -1,99 +1,142 @@
 #!/usr/bin/env bash
+#
+# Obtain an S2S token and an IdAM OAuth2 access token for a target environment.
+#
+# Secrets are fetched from the ccpay-<env> Key Vault at runtime using the Azure
+# CLI and are never persisted or committed:
+#   - CLIENT_SECRET is always read from the `paybubble-idam-client-secret` secret
+#   - USER_EMAIL / USER_PASSWORD default to the `probate-caseworker-username` /
+#     `probate-caseworker-password` secrets unless passed explicitly
+#
+# Usage:
+#   ./scripts/tokens.sh [-e <env>] [<S2S_MICROSERVICE>] [<USER_EMAIL>] [<USER_PASSWORD>]
+#
+# -e <env>            target environment: aat (default), demo, perftest, ithc
+# <S2S_MICROSERVICE>  S2S microservice name, default: ccpay_bubble
+# <USER_EMAIL>        IdAM username (optional; falls back to probate-caseworker-username)
+# <USER_PASSWORD>     IdAM password (optional; falls back to probate-caseworker-password)
+#
+# Prerequisites:
+#   - Connected to the VPN (so the .internal S2S host resolves)
+#   - Logged in to the Azure CLI:  `az login`
 
-source ./config.sh
+set -euo pipefail
 
-if [ $# -eq 0 ]
-  then
-    echo "Usage: /.tokens.sh [SERVICE]"
-    echo "Service configuration is defined on config.sh (Ex. CMC). You can replace [SERVICE] with CMC,DIVORCE,PROBATE,CCD,FEES or BAR"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+ENVIRONMENT="aat"
+
+usage() {
+    sed -n '2,21p' "$0" | sed 's/^# \{0,1\}//'
+}
+
+case "${1:-}" in
+    --help|-h) usage; exit 0 ;;
+esac
+
+while getopts ":e:h" opt; do
+    case "$opt" in
+        e) ENVIRONMENT="$OPTARG" ;;
+        h) usage; exit 0 ;;
+        \?) echo "ERROR: unknown option -$OPTARG" >&2; usage >&2; exit 1 ;;
+        :) echo "ERROR: option -$OPTARG requires an argument" >&2; usage >&2; exit 1 ;;
+    esac
+done
+shift $((OPTIND - 1))
+
+case "${ENVIRONMENT}" in
+    aat|demo|perftest|ithc) ;;
+    *)
+        echo "ERROR: unsupported environment '${ENVIRONMENT}'. Use aat, demo, perftest or ithc." >&2
+        exit 1
+        ;;
+esac
+
+VAULT="ccpay-${ENVIRONMENT}"
+
+S2S_MICROSERVICE="${1:-ccpay_bubble}"
+USER_EMAIL="${2:-}"
+USER_PASSWORD="${3:-}"
+
+if ! command -v az >/dev/null 2>&1; then
+    echo "ERROR: Azure CLI not found. Install it and run 'az login'." >&2
     exit 1
 fi
 
-function jsonValue() {
-    KEY=$1
-    num=$2
-    awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'$KEY'\042/){print $(i+1)}}}' | tr -d '"' | sed -n ${num}p
+az account show >/dev/null 2>&1 || {
+    echo "ERROR: Not logged into Azure. Run 'az login' (and connect to the VPN) first." >&2
+    exit 1
 }
 
-SERVICE=$1
+vault_secret() {
+    az keyvault secret show \
+        --vault-name "$1" \
+        --name "$2" \
+        --query value \
+        --output tsv 2>/dev/null
+}
 
-echo "Fetching tokens for $SERVICE..."
-
-S2S_SECRET=${SERVICE}"_S2S_SECRET"
-S2S_SECRET=`eval echo \$c"${!S2S_SECRET}"`
-
-S2S_SERVICE=${SERVICE}"_S2S_SERVICE"
-S2S_SERVICE=`eval echo \$c"${!S2S_SERVICE}"`
-
-# Generate secret with Oathtool
-otp=`oathtool --totp -b "$S2S_SECRET"`
-
-# Curl S2S service
-
-s2s_token=`curl -X POST -s -H "Content-Type:application/json" "$S2S_URL" --proxy "$HTTP_PROXY" -k -d "{\"microservice\":\"$S2S_SERVICE\",\"oneTimePassword\":\"$otp\"}"`
-
-# Output S2S
-echo ""
-echo "S2S TOKEN:"
-echo "$s2s_token"
-
-# Login with IDAM
-
-IDAM_USER=${SERVICE}"_IDAM_USER"
-IDAM_USER=`eval echo \$c"${!IDAM_USER}"`
-
-IDAM_PASSWORD=${SERVICE}"_IDAM_PASSWORD"
-IDAM_PASSWORD=`eval echo \$c"${!IDAM_PASSWORD}"`
-
-IDAM_CLIENT_ID=${SERVICE}"_IDAM_CLIENT_ID"
-IDAM_CLIENT_ID=`eval echo \$c"${!IDAM_CLIENT_ID}"`
-
-IDAM_CLIENT_SECRET=${SERVICE}"_IDAM_CLIENT_SECRET"
-IDAM_CLIENT_SECRET=`eval echo \$c"${!IDAM_CLIENT_SECRET}"`
-
-REDIRECT_URI=${SERVICE}"_IDAM_REDIRECT_URI"
-REDIRECT_URI=`eval echo \$c"${!REDIRECT_URI}"`
-
-if [ "$USE_IDAM_FRONTEND_PROXY" = "true" ]; then
-
-    url="$IDAM_BASE_URL/login?state=xx&response_type=code&client_id=$IDAM_CLIENT_ID&redirect_uri=$REDIRECT_URI"
-
-    # GET
-    idam_get=`curl -s -k -c - "$url"`
-
-    csrf=$(echo "$idam_get" | grep -Po '<input type="hidden" name="_csrf" value="\K.*')
-    csrf=${csrf::-2}
-
-    csrf_cookie=$(echo "$idam_get" | tail -1 | grep -Po '.*_csrf\K.*' | xargs)
-
-    # POST
-
-    form="state=xx&username=$IDAM_USER&password=$IDAM_PASSWORD&response_type=code&redirect_uri=$REDIRECT_URI&client_id=$IDAM_CLIENT_ID&_csrf=$csrf"
-    idam_post_reply=`curl -X POST -s -k -H "Content-Type:application/x-www-form-urlencoded" --cookie "_csrf=$csrf_cookie" -d "$form" "$url"`
-
-   if [[ ${idam_post_reply} != *"Redirecting to"* ]]; then
-        echo "$idam_post_reply"
-        echo "ERROR LOGIN WITH IDAM BY FRONTEND, MOST LIKELY CAUSE: WRONG USER OR PASSWORD"
-        exit 1
-    fi
-
-    idam_code=$(echo "$idam_post_reply" | grep -Po '.*Redirecting.*&code=\K.*')
-
-    echo "IDAM CODE IS $idam_code"
-
-else
-    idam_code=`curl -X POST -s -k --proxy "$HTTP_PROXY" --user "$IDAM_USER:$IDAM_PASSWORD" "$IDAM_BASE_URL/oauth2/authorize?response_type=code&client_id=$IDAM_CLIENT_ID&redirect_uri=$REDIRECT_URI"`
-    idam_code=`echo "$idam_code" | jsonValue code`
+CLIENT_SECRET="$(vault_secret "${VAULT}" paybubble-idam-client-secret)"
+if [[ -z "${CLIENT_SECRET}" ]]; then
+    echo "ERROR: could not fetch 'paybubble-idam-client-secret' from vault '${VAULT}'." >&2
+    exit 1
 fi
 
-idam_token_output=`curl -X POST -s -k -H "Content-Type:application/x-www-form-urlencoded" "$IDAM_BASE_URL/oauth2/token?code=$idam_code&grant_type=authorization_code&redirect_uri=$REDIRECT_URI&client_id=$IDAM_CLIENT_ID&client_secret=$IDAM_CLIENT_SECRET"`
+if [[ -z "${USER_EMAIL}" ]]; then
+    USER_EMAIL="$(vault_secret "${VAULT}" probate-caseworker-username)"
+    if [[ -z "${USER_EMAIL}" ]]; then
+        echo "ERROR: could not fetch 'probate-caseworker-username' from vault '${VAULT}'." >&2
+        exit 1
+    fi
+fi
 
-echo "$idam_token_output"
+if [[ -z "${USER_PASSWORD}" ]]; then
+    USER_PASSWORD="$(vault_secret "${VAULT}" probate-caseworker-password)"
+    if [[ -z "${USER_PASSWORD}" ]]; then
+        echo "ERROR: could not fetch 'probate-caseworker-password' from vault '${VAULT}'." >&2
+        exit 1
+    fi
+fi
 
-idam_token=$( echo "$idam_token_output" | jsonValue access_token)
+echo "Fetching tokens for ${ENVIRONMENT}..."
 
-# Output IDAM Token
+S2S_URL="http://rpe-service-auth-provider-${ENVIRONMENT}.service.core-compute-${ENVIRONMENT}.internal/testing-support/lease"
+s2s_token="$(curl -sS -X POST "${S2S_URL}" \
+    -H "Content-Type: application/json" \
+    -d "{\"microservice\":\"${S2S_MICROSERVICE}\"}")"
+if [[ -z "${s2s_token}" ]]; then
+    echo "ERROR: S2S token request to '${S2S_URL}' returned nothing." >&2
+    exit 1
+fi
+
+IDAM_TOKEN_URL="https://idam-api.${ENVIRONMENT}.platform.hmcts.net:443/o/token"
+REDIRECT_URI="https://paybubble.${ENVIRONMENT}.platform.hmcts.net/oauth2/callback"
+idam_response="$(curl -sS -X POST "${IDAM_TOKEN_URL}" \
+    -H "Accept: *" \
+    -H "Content-Type: application/x-www-form-urlencoded" \
+    --data-urlencode "client_id=paybubble" \
+    --data-urlencode "redirect_uri=${REDIRECT_URI}" \
+    --data-urlencode "grant_type=password" \
+    --data-urlencode "client_secret=${CLIENT_SECRET}" \
+    --data-urlencode "password=${USER_PASSWORD}" \
+    --data-urlencode "username=${USER_EMAIL}" \
+    --data-urlencode "scope=openid profile roles")"
+
+idam_token="$(printf '%s' "${idam_response}" | sed -n 's/.*"access_token":"\([^"]*\)".*/\1/p')"
+if [[ -z "${idam_token}" ]]; then
+    echo "ERROR: could not parse an access_token from the IdAM response." >&2
+    echo "${idam_response}" >&2
+    exit 1
+fi
+
+echo ""
+echo "S2S MICROSERVICE: ${S2S_MICROSERVICE}"
+echo ""
+echo "S2S TOKEN:"
+echo "${s2s_token}"
+echo ""
+echo "IDAM USER: ${USER_EMAIL}"
 echo ""
 echo "IDAM TOKEN:"
-echo "$idam_token"
+echo "${idam_token}"
 echo ""
