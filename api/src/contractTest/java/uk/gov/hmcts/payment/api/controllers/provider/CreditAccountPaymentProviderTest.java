@@ -20,6 +20,8 @@ import uk.gov.hmcts.payment.api.controllers.CreditAccountPaymentController;
 import uk.gov.hmcts.payment.api.controllers.PaymentReference;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
+import uk.gov.hmcts.payment.api.dto.liberata.PaymentAccountResponse;
+import uk.gov.hmcts.payment.api.dto.liberata.PaymentAccountResponseStatus;
 import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.mapper.CreditAccountPaymentRequestMapper;
@@ -200,11 +202,18 @@ class CreditAccountPaymentProviderTest {
         setUpMockInteractions(paymentMap, "Payment Status failed", "failed", AccountStatus.DELETED);
     }
 
+    private PaymentAccountResponse getSuccessPaymentAccountResponse() {
+        return PaymentAccountResponse.paymentDtoWith()
+            .status(PaymentAccountResponseStatus.SUCCESS.getValue())
+            .message(PaymentAccountResponseStatus.SUCCESSFULLY.getValue()).build();
+    }
 
     private void setUpMockInteractions(Map<String, Object> paymentMap, String s, String success, AccountStatus accountStatus) {
         String accountNumber = (String) paymentMap.get(ACCOUNT_NUMBER_KEY);
         String availableBalance = (String) paymentMap.get(AVAILABLE_BALANCE_KEY);
         String accountName = (String) paymentMap.get(ACCOUNT_NAME_KEY);
+
+        when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
 
         when(userIdSupplierMock.get()).thenReturn("userId");
         when(serviceIdSupplierMock.get()).thenReturn("ccd_gw");
