@@ -14,14 +14,18 @@ import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.util.AccountStatus;
 
 import java.math.BigDecimal;
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.Map;
 
 import uk.gov.hmcts.payment.api.dto.liberata.PaymentAccountResponse;
+import uk.gov.hmcts.payment.api.dto.liberata.PaymentAccountResponseStatus;
 import uk.gov.hmcts.payment.api.model.StatusHistory;
 
 import static nl.altindag.log.LogCaptor.forClass;
 import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.hmcts.payment.api.util.AccountStatus.*;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PBAStatusErrorMapperTest {
@@ -106,12 +110,19 @@ public class PBAStatusErrorMapperTest {
 
         Payment localPayment = Payment.paymentWith().ccdCaseNumber("ccd-number").build();
 
-        mapper.setPaymentStatusAndHistories(creditAccountPaymentRequest, localPayment, resp);
+        // create an initial StatusHistory entry and spy the payment so mapper can call getStatusHistories().getFirst()
+        LinkedList<StatusHistory> histories = new LinkedList<>(Collections.singletonList(StatusHistory.statusHistoryWith().build()));
+        Payment spyPayment = spy(localPayment);
+        when(spyPayment.getStatusHistories()).thenReturn(histories);
 
-        assertThat(localPayment.getPaymentStatus()).isNotNull();
-        assertThat(localPayment.getPaymentStatus().getName()).isEqualTo("success");
-        // success should not create status histories
-        assertThat(localPayment.getStatusHistories()).isNull();
+        mapper.setPaymentStatusAndHistories(creditAccountPaymentRequest, spyPayment, resp);
+
+        assertThat(spyPayment.getPaymentStatus()).isNotNull();
+        assertThat(spyPayment.getPaymentStatus().getName()).isEqualTo("success");
+        // ensure the existing status history was updated to success
+        assertThat(spyPayment.getStatusHistories()).isNotNull();
+        assertThat(spyPayment.getStatusHistories()).hasSize(1);
+        assertThat(spyPayment.getStatusHistories().get(0).getStatus()).isEqualTo(PaymentAccountResponseStatus.SUCCESS.getValue());
     }
 
     @Test
@@ -123,6 +134,9 @@ public class PBAStatusErrorMapperTest {
             String expectedErrorCode = entry.getValue();
 
             Payment localPayment = Payment.paymentWith().ccdCaseNumber("ccd-number").build();
+
+            // ensure there's an initial StatusHistory element so mapper can call getFirst() safely
+            localPayment.setStatusHistories(new LinkedList<>(Collections.singletonList(StatusHistory.statusHistoryWith().build())));
 
             PaymentAccountResponse resp = PaymentAccountResponse.paymentDtoWith()
                 .status("error")
