@@ -52,7 +52,7 @@ module "payment-database-v15" {
   providers = {
     azurerm.postgres_network = azurerm.postgres_network
   }
-  source               = "git@github.com:hmcts/terraform-module-postgresql-flexible?ref=DTSPO-30107-additional-postgres-admins"
+  source               = "git@github.com:hmcts/terraform-module-postgresql-flexible?ref=master"
   product              = var.product
   component            = var.component
   business_area        = "cft"
@@ -87,6 +87,9 @@ module "payment-database-v15" {
   admin_user_object_id = var.jenkins_AAD_objectId
   common_tags          = var.common_tags
   pgsql_version        = var.postgresql_flexible_sql_version
+
+  # Add service criticality param
+  service_criticality  = var.service_criticality
 
   action_group_name          = join("-", [var.db_monitor_action_group_name, local.db_server_name, var.env])
   email_address_key          = var.db_alert_email_address_key
