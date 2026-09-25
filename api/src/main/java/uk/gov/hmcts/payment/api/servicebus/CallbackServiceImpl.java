@@ -65,14 +65,19 @@ public class CallbackServiceImpl implements CallbackService {
                         paymentGroupDtoMapper.toPaymentGroupDto(paymentFeeLink).getServiceRequestStatus();
                 String paymentStatus =
                         payment.getPaymentStatus() != null ? payment.getPaymentStatus().getName() : null;
+                Payment callbackPayment = payment;
                 if (!"success".equalsIgnoreCase(paymentStatus)
                         && "Paid".equalsIgnoreCase(serviceRequestStatus)) {
-                    LOG.info("Skipping service request callback for payment {} (status {}) as service request {} is already Paid",
-                            payment.getReference(), paymentStatus, paymentFeeLink.getPaymentReference());
-                    return;
+                    callbackPayment = paymentFeeLink.getPayments().stream()
+                        .filter(p -> p.getPaymentStatus() != null
+                            && "success".equalsIgnoreCase(p.getPaymentStatus().getName()))
+                        .findFirst().orElse(payment);
+                    LOG.info("Service request {} is already Paid: sending service request callback using successful payment {} instead of payment {} (status {})",
+                            paymentFeeLink.getPaymentReference(), callbackPayment.getReference(),
+                            payment.getReference(), paymentStatus);
                 }
                 PaymentStatusDto paymentStatusDto =
-                        paymentDtoMapper.toPaymentStatusDto(paymentFeeLink.getPaymentReference(), "", payment,
+                        paymentDtoMapper.toPaymentStatusDto(paymentFeeLink.getPaymentReference(), "", callbackPayment,
                                 serviceRequestStatus);
                 LOG.info("PaymentStatusDto: {}", paymentStatusDto);
                 Message msg = new Message(objectMapper.writeValueAsString(paymentStatusDto));

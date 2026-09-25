@@ -16,6 +16,7 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
+import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.service.CallbackService;
@@ -24,9 +25,13 @@ import uk.gov.hmcts.payment.api.servicebus.TopicClientProxy;
 
 import java.util.Arrays;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import org.mockito.ArgumentCaptor;
 
 @RunWith(MockitoJUnitRunner.class)
 @DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
@@ -168,62 +173,114 @@ public class CallbackServiceImplTest {
     }
 
     @Test
-    public void testThatStaleFailedPaymentCallbackIsNotSentWhenServiceRequestIsPaid() throws Exception {
-        paymentFeeLink.getPayments().get(0).setServiceCallbackUrl(null);
-        paymentFeeLink.getPayments().get(0).setPaymentStatus(PaymentStatus.FAILED);
-        paymentFeeLink.setCallBackUrl("dummy");
+    public void testThatServiceRequestCallbackRedirectsToSuccessfulPaymentWhenAlreadyPaid() throws Exception {
+        Payment failedPayment = CardPaymentComponentTest.getPaymentsData().get(2);
+        failedPayment.setServiceCallbackUrl(null);
+        failedPayment.setPaymentStatus(PaymentStatus.FAILED);
+        Payment successfulPayment = CardPaymentComponentTest.getPaymentsData().get(0);
+        successfulPayment.setServiceCallbackUrl(null);
+        successfulPayment.setPaymentStatus(PaymentStatus.SUCCESS);
+        PaymentFeeLink feeLink = buildPaymentFeeLink(failedPayment, successfulPayment);
 
         PaymentGroupDto paymentGroupDto = new PaymentGroupDto();
         paymentGroupDto.setServiceRequestStatus("Paid");
         when(paymentGroupDtoMapper.toPaymentGroupDto(any())).thenReturn(paymentGroupDto);
 
-        callbackService.callback(paymentFeeLink, paymentFeeLink.getPayments().get(0));
+        callbackService.callback(feeLink, failedPayment);
 
-        verifyNoInteractions(topicClient);
+        ArgumentCaptor<Payment> paymentCaptor = ArgumentCaptor.forClass(Payment.class);
+        verify(paymentDtoMapper).toPaymentStatusDto(eq("00000005"), eq(""), paymentCaptor.capture(), any());
+        assertEquals(successfulPayment.getReference(), paymentCaptor.getValue().getReference());
+        verify(topicClient, times(1)).send(any(IMessage.class));
+    }
+
+    @Test
+    public void testThatCancelledPaymentServiceRequestCallbackRedirectsToSuccessfulPaymentWhenAlreadyPaid() throws Exception {
+        Payment cancelledPayment = CardPaymentComponentTest.getPaymentsData().get(2);
+        cancelledPayment.setServiceCallbackUrl(null);
+        cancelledPayment.setPaymentStatus(PaymentStatus.CANCELLED);
+        Payment successfulPayment = CardPaymentComponentTest.getPaymentsData().get(0);
+        successfulPayment.setServiceCallbackUrl(null);
+        successfulPayment.setPaymentStatus(PaymentStatus.SUCCESS);
+        PaymentFeeLink feeLink = buildPaymentFeeLink(cancelledPayment, successfulPayment);
+
+        PaymentGroupDto paymentGroupDto = new PaymentGroupDto();
+        paymentGroupDto.setServiceRequestStatus("Paid");
+        when(paymentGroupDtoMapper.toPaymentGroupDto(any())).thenReturn(paymentGroupDto);
+
+        callbackService.callback(feeLink, cancelledPayment);
+
+        ArgumentCaptor<Payment> paymentCaptor = ArgumentCaptor.forClass(Payment.class);
+        verify(paymentDtoMapper).toPaymentStatusDto(eq("00000005"), eq(""), paymentCaptor.capture(), any());
+        assertEquals(successfulPayment.getReference(), paymentCaptor.getValue().getReference());
+        verify(topicClient, times(1)).send(any(IMessage.class));
     }
 
     @Test
     public void testThatFailedPaymentCallbackIsSentWhenServiceRequestIsNotPaid() throws Exception {
-        paymentFeeLink.getPayments().get(0).setServiceCallbackUrl(null);
-        paymentFeeLink.getPayments().get(0).setPaymentStatus(PaymentStatus.FAILED);
-        paymentFeeLink.setCallBackUrl("dummy");
+        Payment failedPayment = CardPaymentComponentTest.getPaymentsData().get(2);
+        failedPayment.setServiceCallbackUrl(null);
+        failedPayment.setPaymentStatus(PaymentStatus.FAILED);
+        Payment successfulPayment = CardPaymentComponentTest.getPaymentsData().get(0);
+        successfulPayment.setServiceCallbackUrl(null);
+        successfulPayment.setPaymentStatus(PaymentStatus.SUCCESS);
+        PaymentFeeLink feeLink = buildPaymentFeeLink(failedPayment, successfulPayment);
 
         PaymentGroupDto paymentGroupDto = new PaymentGroupDto();
         paymentGroupDto.setServiceRequestStatus("Not paid");
         when(paymentGroupDtoMapper.toPaymentGroupDto(any())).thenReturn(paymentGroupDto);
 
-        callbackService.callback(paymentFeeLink, paymentFeeLink.getPayments().get(0));
+        callbackService.callback(feeLink, failedPayment);
 
+        ArgumentCaptor<Payment> paymentCaptor = ArgumentCaptor.forClass(Payment.class);
+        verify(paymentDtoMapper).toPaymentStatusDto(eq("00000005"), eq(""), paymentCaptor.capture(), any());
+        assertEquals(failedPayment.getReference(), paymentCaptor.getValue().getReference());
         verify(topicClient, times(1)).send(any(IMessage.class));
     }
 
     @Test
-    public void testThatCancelledPaymentCallbackIsNotSentWhenServiceRequestIsPaid() throws Exception {
-        paymentFeeLink.getPayments().get(0).setServiceCallbackUrl(null);
-        paymentFeeLink.getPayments().get(0).setPaymentStatus(PaymentStatus.CANCELLED);
-        paymentFeeLink.setCallBackUrl("dummy");
+    public void testThatServiceRequestCallbackFallsBackToOriginalPaymentWhenNoSuccessPaymentExists() throws Exception {
+        Payment failedPayment = CardPaymentComponentTest.getPaymentsData().get(2);
+        failedPayment.setServiceCallbackUrl(null);
+        failedPayment.setPaymentStatus(PaymentStatus.FAILED);
+        PaymentFeeLink feeLink = buildPaymentFeeLink(failedPayment);
 
         PaymentGroupDto paymentGroupDto = new PaymentGroupDto();
         paymentGroupDto.setServiceRequestStatus("Paid");
         when(paymentGroupDtoMapper.toPaymentGroupDto(any())).thenReturn(paymentGroupDto);
 
-        callbackService.callback(paymentFeeLink, paymentFeeLink.getPayments().get(0));
+        callbackService.callback(feeLink, failedPayment);
 
-        verifyNoInteractions(topicClient);
+        ArgumentCaptor<Payment> paymentCaptor = ArgumentCaptor.forClass(Payment.class);
+        verify(paymentDtoMapper).toPaymentStatusDto(eq("00000005"), eq(""), paymentCaptor.capture(), any());
+        assertEquals(failedPayment.getReference(), paymentCaptor.getValue().getReference());
+        verify(topicClient, times(1)).send(any(IMessage.class));
     }
 
     @Test
     public void testThatSuccessfulPaymentCallbackIsSentWhenServiceRequestIsPaid() throws Exception {
-        paymentFeeLink.getPayments().get(0).setServiceCallbackUrl(null);
-        paymentFeeLink.getPayments().get(0).setPaymentStatus(PaymentStatus.SUCCESS);
-        paymentFeeLink.setCallBackUrl("dummy");
+        Payment successfulPayment = CardPaymentComponentTest.getPaymentsData().get(0);
+        successfulPayment.setServiceCallbackUrl(null);
+        successfulPayment.setPaymentStatus(PaymentStatus.SUCCESS);
+        PaymentFeeLink feeLink = buildPaymentFeeLink(successfulPayment);
 
         PaymentGroupDto paymentGroupDto = new PaymentGroupDto();
         paymentGroupDto.setServiceRequestStatus("Paid");
         when(paymentGroupDtoMapper.toPaymentGroupDto(any())).thenReturn(paymentGroupDto);
 
-        callbackService.callback(paymentFeeLink, paymentFeeLink.getPayments().get(0));
+        callbackService.callback(feeLink, successfulPayment);
 
+        ArgumentCaptor<Payment> paymentCaptor = ArgumentCaptor.forClass(Payment.class);
+        verify(paymentDtoMapper).toPaymentStatusDto(eq("00000005"), eq(""), paymentCaptor.capture(), any());
+        assertEquals(successfulPayment.getReference(), paymentCaptor.getValue().getReference());
         verify(topicClient, times(1)).send(any(IMessage.class));
+    }
+
+    private PaymentFeeLink buildPaymentFeeLink(Payment... payments) {
+        return PaymentFeeLink.paymentFeeLinkWith().paymentReference("00000005")
+            .payments(Arrays.asList(payments))
+            .fees(PaymentsDataUtil.getFeesData())
+            .callBackUrl("dummy")
+            .build();
     }
 }
