@@ -208,9 +208,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     public void rejectDuplicatePayment_ccdCaseNumber() throws Exception {
         request.setCcdCaseNumber("CCD105");
         request.setCaseReference(null);
-        AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
-            new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
-        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
+
         Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
         Mockito.when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
         Mockito.when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());

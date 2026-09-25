@@ -74,16 +74,18 @@ public class PBAStatusErrorMapper {
             payment.getCcdCaseNumber(), paymentAccountResponse.getStatus(), creditAccountPaymentRequest.getAccountNumber());
 
         if (paymentAccountResponse.getStatus().equals(PaymentAccountResponseStatus.SUCCESS.getValue())) {
+
             payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("success").build());
-
+            payment.getStatusHistories().getFirst().setStatus(PaymentAccountResponseStatus.SUCCESS.getValue());
+            LOG.info("Payment request  was SUCCESS. " + paymentAccountResponse.getMessage() + " PBA account {}" + creditAccountPaymentRequest.getAccountNumber());
         } else if (paymentAccountResponse.getStatus().equals(PaymentAccountResponseStatus.ERROR.getValue())) {
-            payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name(FAILED).build());
 
+            payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name(FAILED).build());
             LOG.info("Payment request failed. " + paymentAccountResponse.getMessage() + " PBA account {}" + creditAccountPaymentRequest.getAccountNumber());
-            payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
-                .status(payment.getPaymentStatus().getName())
-                .errorCode(PBA_ERROR_CODE_MAP.get( paymentAccountResponse.getMessage()))
-                .message(paymentAccountResponse.getMessage()).build()));
+            // modify the first status history with the error code and message from the response
+            payment.getStatusHistories().getFirst().setStatus(payment.getPaymentStatus().getName());
+            payment.getStatusHistories().getFirst().setErrorCode(PBA_ERROR_CODE_MAP.get( paymentAccountResponse.getMessage()));
+            payment.getStatusHistories().getFirst().setMessage(paymentAccountResponse.getMessage());
         }
     }
 

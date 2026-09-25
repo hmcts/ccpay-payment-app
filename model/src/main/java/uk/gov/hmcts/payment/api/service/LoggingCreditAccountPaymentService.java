@@ -83,4 +83,17 @@ public class LoggingCreditAccountPaymentService implements CreditAccountPaymentS
         LOG.info("Deleting payment for reference: {}", paymentReference);
         delegate.deleteByPaymentReference(paymentReference);
     }
+
+    @Override
+    public Payment createOrUpdate(Payment paymentFeeLink) throws CheckDigitException {
+        Payment saved = delegate.createOrUpdate(paymentFeeLink);
+        LOG.info("Payment event", StructuredArguments.entries(ImmutableMap.of(
+            PAYMENT_ID, saved.getId(),
+            USER_ID, userIdSupplier.get(),
+            EVENT_TYPE, "createOrUpdate",
+            AMOUNT, saved.getAmount(),
+            REFERENCE, saved.getReference()
+        )));
+        return saved;
+    }
 }

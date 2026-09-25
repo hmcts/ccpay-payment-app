@@ -47,8 +47,8 @@ public class PBAPaymentMapper {
         this.iacService = iacService;
     }
 
-    public PaymentAccountRequest mapToPaymentByAccountRequest(CreditAccountPaymentRequest creditAccountPaymentRequest, String groupReference, Payment payment) {
-        val paymentDto = mapPaymentAccountPayment(creditAccountPaymentRequest, groupReference,payment);
+    public PaymentAccountRequest mapToPaymentByAccountRequest(CreditAccountPaymentRequest creditAccountPaymentRequest, String groupReference, Payment payment, PaymentFeeLink paymentFeeLink ) {
+        val paymentDto = mapPaymentAccountPayment(creditAccountPaymentRequest, groupReference,payment,paymentFeeLink);
         val  paymentByAccountRequest = PaymentByAccountRequest.paymentByAccountRequestWith()
             .pbaNumber(creditAccountPaymentRequest.getAccountNumber())
             .payment(paymentDto)
@@ -120,7 +120,7 @@ public class PBAPaymentMapper {
         return paymentDto;
     }
 
-    private PaymentRequest mapPaymentAccountPayment(CreditAccountPaymentRequest creditAccountPaymentRequest, String groupReference,Payment payment) {
+    private PaymentRequest mapPaymentAccountPayment(CreditAccountPaymentRequest creditAccountPaymentRequest, String groupReference,Payment payment, PaymentFeeLink paymentFeeLink) {
         val surname = getSurname(payment, creditAccountPaymentRequest, groupReference);
         return PaymentRequest.paymentDtoWith()
             .groupReference(groupReference)
@@ -133,21 +133,27 @@ public class PBAPaymentMapper {
             .caseReference(creditAccountPaymentRequest.getCaseReference())
             .ccdCaseNumber(creditAccountPaymentRequest.getCcdCaseNumber())
             .customerReference(creditAccountPaymentRequest.getCustomerReference())
-            .fee(mapPaymentAccountFee(creditAccountPaymentRequest))
+            .fee(mapPaymentAccountFee(creditAccountPaymentRequest, paymentFeeLink))
             .dateCreated(new Date())
             .build();
     }
 
-    private List<FeeRequest> mapPaymentAccountFee(CreditAccountPaymentRequest creditAccountPaymentRequest) {
+    private List<FeeRequest> mapPaymentAccountFee(CreditAccountPaymentRequest creditAccountPaymentRequest,PaymentFeeLink paymentFeeLink) {
 
         return creditAccountPaymentRequest.getFees().stream().map(feeDto -> {
 
             val feeVersionDto = populateFeeDetails(feeDto.getCode(), feeDto.getVersion());
             val fee2Dto = getFee2Dto(feeDto.getCode());
+            val feeID = paymentFeeLink.getFees().stream()
+                .filter(f -> f.getCode().equals(feeDto.getCode()) && f.getVersion().equals(feeDto.getVersion()))
+                .findFirst()
+                .map(f -> f.getId())
+                .orElseThrow(() -> new PaymentException("Fee ID not found for feeCode: " + feeDto.getCode() + " and version: " + feeDto.getVersion()));
+
 
             return FeeRequest.feeWith()
                 .code(feeDto.getCode())
-                .id(1102)
+                .id(feeID)
                 .version(feeDto.getVersion())
                 .memoline(feeVersionDto.getMemoLine())
                 .nac(feeVersionDto.getNaturalAccountCode())

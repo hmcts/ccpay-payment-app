@@ -139,7 +139,7 @@ public class CreditAccountPaymentController {
         } else {
             creditAccountPaymentRequest.setService(paymentService.getServiceNameByCode(creditAccountPaymentRequest.getService()));
         }
-        final Payment payment = requestMapper.mapPBARequest(creditAccountPaymentRequest);
+        Payment payment = requestMapper.mapPBARequest(creditAccountPaymentRequest);
         List<PaymentFee> fees = requestMapper.mapPBAFeesFromRequest(creditAccountPaymentRequest);
 
         LOG.info("payment site map  Id : {}", payment.getSiteId());
@@ -147,8 +147,11 @@ public class CreditAccountPaymentController {
         LOG.info("CreditAccountPayment received for ccdCaseNumber : {} serviceType : {} pbaNumber : {} amount : {} NoOfFees : {}",
             payment.getCcdCaseNumber(), payment.getServiceType(), payment.getPbaNumber(), payment.getAmount(), fees.size());
 
+        checkDuplication(payment, fees);
+         val paymentFeeLink = creditAccountPaymentService.create(payment, fees, paymentGroupReference);
+        payment= paymentFeeLink.getPayments().get(0);
         if (!isPBAConfig1Journey) {
-            val paymentByAccountRequest = pBAPaymentMapper.mapToPaymentByAccountRequest(creditAccountPaymentRequest, paymentGroupReference, payment);
+            val paymentByAccountRequest = pBAPaymentMapper.mapToPaymentByAccountRequest(creditAccountPaymentRequest, paymentGroupReference, payment,paymentFeeLink);
             val paymentResponse = liberataRealTimeAPI.payByAccount(paymentByAccountRequest);
             pbaStatusErrorMapper.setPaymentStatusAndHistories(creditAccountPaymentRequest, payment, paymentResponse);
         } else {
@@ -156,8 +159,6 @@ public class CreditAccountPaymentController {
             payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("pending").build());
             LOG.info("CreditAccountPayment received for ccdCaseNumber : {} PaymentStatus : {} - Account Balance Sufficient!!!", payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
         }
-        checkDuplication(payment, fees);
-        PaymentFeeLink paymentFeeLink = creditAccountPaymentService.create(payment, fees, paymentGroupReference);
 
         // if there is any sort of error in the payment, we will return 403 FORBIDDEN with the payment status and error code/message
         if (payment.getPaymentStatus().getName().equals(FAILED)) {
