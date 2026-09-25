@@ -114,7 +114,7 @@
             Maven Central). WebAuthn and vulnerable crypto API usage are not present; the OSS fix only lands in
             Spring Security 7.x / Spring Boot 4.x. Remove when migrating to Spring Boot 4.
         </notes>
-        <packageUrl regex="true">^pkg:maven/org\.springframework\.security/spring-security-.*@6\.5\.11$</packageUrl>
+        <gav regex="true">^org\.springframework\.security:spring-security-.*:6\.5\.11$</gav>
         <cve>CVE-2026-59270</cve>
         <cve>CVE-2026-59276</cve>
         <cve>CVE-2026-47841</cve>
