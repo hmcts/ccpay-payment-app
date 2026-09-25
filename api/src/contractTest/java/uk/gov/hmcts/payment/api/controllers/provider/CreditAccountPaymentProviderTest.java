@@ -44,6 +44,7 @@ import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.payment.api.dto.liberata.PaymentAccountResponseStatus.EXCEEDED_CREDIT_LIMIT;
 import static uk.gov.hmcts.payment.api.model.PaymentFee.feeWith;
 import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 
@@ -181,24 +182,27 @@ class CreditAccountPaymentProviderTest {
 
     @State({"An active account has sufficient funds for a payment"})
     public void toCreateNewCreditAccountPayment(Map<String, Object> paymentMap) {
-
+        when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
         setUpMockInteractions(paymentMap, "Payment Status success", "success", AccountStatus.ACTIVE);
     }
 
 
     @State({"An active account has insufficient funds for a payment"})
     public void toRefuseCreditAccountPaymentInusfficientFunds(Map<String, Object> paymentMap) {
+        when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getAnErrorDueToExceededCreditLimitPaymentAccountResponse());
         setUpMockInteractions(paymentMap, "Payment Status failed", "failed", AccountStatus.ACTIVE);
     }
 
     @State({"An on hold account requests a payment"})
     public void toRefuseCreditAccountPaymenOnHold(Map<String, Object> paymentMap) {
+        when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getAnErrorDueToAccountOnHold());
         setUpMockInteractions(paymentMap, "Payment Status failed", "failed", AccountStatus.ON_HOLD);
     }
 
 
     @State({"A deleted account requests a payment"})
     public void toRefuseCreditAccountPaymenDeleted(Map<String, Object> paymentMap) {
+        when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getAnErrorDueToAccountOnHold());
         setUpMockInteractions(paymentMap, "Payment Status failed", "failed", AccountStatus.DELETED);
     }
 
@@ -208,12 +212,24 @@ class CreditAccountPaymentProviderTest {
             .message(PaymentAccountResponseStatus.SUCCESSFULLY.getValue()).build();
     }
 
+    private PaymentAccountResponse getAnErrorDueToExceededCreditLimitPaymentAccountResponse() {
+        return PaymentAccountResponse.paymentDtoWith()
+            .status(PaymentAccountResponseStatus.ERROR.getValue())
+            .message(EXCEEDED_CREDIT_LIMIT.getValue()).build();
+    }
+
+    private PaymentAccountResponse getAnErrorDueToAccountOnHold() {
+        return PaymentAccountResponse.paymentDtoWith()
+            .status(PaymentAccountResponseStatus.ERROR.getValue())
+            .message(PaymentAccountResponseStatus.ACCOUNT_NOT_ACTIVE.getValue()).build();
+    }
+
+
     private void setUpMockInteractions(Map<String, Object> paymentMap, String s, String success, AccountStatus accountStatus) {
         String accountNumber = (String) paymentMap.get(ACCOUNT_NUMBER_KEY);
         String availableBalance = (String) paymentMap.get(AVAILABLE_BALANCE_KEY);
         String accountName = (String) paymentMap.get(ACCOUNT_NAME_KEY);
 
-        when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
 
         when(userIdSupplierMock.get()).thenReturn("userId");
         when(serviceIdSupplierMock.get()).thenReturn("ccd_gw");
