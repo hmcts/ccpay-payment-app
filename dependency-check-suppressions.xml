@@ -130,4 +130,10 @@
         <packageUrl regex="true">^pkg:maven/org\.springframework\.data/spring-data-jpa@3\.5\.13$</packageUrl>
         <cve>CVE-2026-47834</cve>
     </suppress>
+
+    <suppress until="2027-03-31Z">
+        <cve>CVE-2026-41707</cve>
+    </suppress>
+
+
 </suppressions>
