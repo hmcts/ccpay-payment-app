@@ -63,6 +63,14 @@ public class CallbackServiceImpl implements CallbackService {
             try {
                 String serviceRequestStatus =
                         paymentGroupDtoMapper.toPaymentGroupDto(paymentFeeLink).getServiceRequestStatus();
+                String paymentStatus =
+                        payment.getPaymentStatus() != null ? payment.getPaymentStatus().getName() : null;
+                if (!"success".equalsIgnoreCase(paymentStatus)
+                        && "Paid".equalsIgnoreCase(serviceRequestStatus)) {
+                    LOG.info("Skipping service request callback for payment {} (status {}) as service request {} is already Paid",
+                            payment.getReference(), paymentStatus, paymentFeeLink.getPaymentReference());
+                    return;
+                }
                 PaymentStatusDto paymentStatusDto =
                         paymentDtoMapper.toPaymentStatusDto(paymentFeeLink.getPaymentReference(), "", payment,
                                 serviceRequestStatus);

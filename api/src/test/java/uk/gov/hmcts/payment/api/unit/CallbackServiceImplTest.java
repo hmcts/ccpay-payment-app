@@ -17,6 +17,7 @@ import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.service.CallbackService;
 import uk.gov.hmcts.payment.api.servicebus.CallbackServiceImpl;
 import uk.gov.hmcts.payment.api.servicebus.TopicClientProxy;
@@ -151,8 +152,8 @@ public class CallbackServiceImplTest {
         assertFalse(Thread.currentThread().isInterrupted());
     }
 
-    @Test
-    public void testThatPaymentFeeLinkCallbackSendInterruptedExceptionInterruptsThread() throws Exception {
+@Test
+    public void testThatWhenPaymentFeeLinkCallbackSendInterruptedExceptionInterruptsThread() throws Exception {
         Thread.interrupted(); // clear any pre-existing interrupt flag
         paymentFeeLink.getPayments().get(0).setServiceCallbackUrl(null);
         paymentFeeLink.setCallBackUrl("dummy");
@@ -164,5 +165,65 @@ public class CallbackServiceImplTest {
         callbackService.callback(paymentFeeLink, paymentFeeLink.getPayments().get(0));
 
         assertTrue(Thread.currentThread().isInterrupted());
+    }
+
+    @Test
+    public void testThatStaleFailedPaymentCallbackIsNotSentWhenServiceRequestIsPaid() throws Exception {
+        paymentFeeLink.getPayments().get(0).setServiceCallbackUrl(null);
+        paymentFeeLink.getPayments().get(0).setPaymentStatus(PaymentStatus.FAILED);
+        paymentFeeLink.setCallBackUrl("dummy");
+
+        PaymentGroupDto paymentGroupDto = new PaymentGroupDto();
+        paymentGroupDto.setServiceRequestStatus("Paid");
+        when(paymentGroupDtoMapper.toPaymentGroupDto(any())).thenReturn(paymentGroupDto);
+
+        callbackService.callback(paymentFeeLink, paymentFeeLink.getPayments().get(0));
+
+        verifyNoInteractions(topicClient);
+    }
+
+    @Test
+    public void testThatFailedPaymentCallbackIsSentWhenServiceRequestIsNotPaid() throws Exception {
+        paymentFeeLink.getPayments().get(0).setServiceCallbackUrl(null);
+        paymentFeeLink.getPayments().get(0).setPaymentStatus(PaymentStatus.FAILED);
+        paymentFeeLink.setCallBackUrl("dummy");
+
+        PaymentGroupDto paymentGroupDto = new PaymentGroupDto();
+        paymentGroupDto.setServiceRequestStatus("Not paid");
+        when(paymentGroupDtoMapper.toPaymentGroupDto(any())).thenReturn(paymentGroupDto);
+
+        callbackService.callback(paymentFeeLink, paymentFeeLink.getPayments().get(0));
+
+        verify(topicClient, times(1)).send(any(IMessage.class));
+    }
+
+    @Test
+    public void testThatCancelledPaymentCallbackIsNotSentWhenServiceRequestIsPaid() throws Exception {
+        paymentFeeLink.getPayments().get(0).setServiceCallbackUrl(null);
+        paymentFeeLink.getPayments().get(0).setPaymentStatus(PaymentStatus.CANCELLED);
+        paymentFeeLink.setCallBackUrl("dummy");
+
+        PaymentGroupDto paymentGroupDto = new PaymentGroupDto();
+        paymentGroupDto.setServiceRequestStatus("Paid");
+        when(paymentGroupDtoMapper.toPaymentGroupDto(any())).thenReturn(paymentGroupDto);
+
+        callbackService.callback(paymentFeeLink, paymentFeeLink.getPayments().get(0));
+
+        verifyNoInteractions(topicClient);
+    }
+
+    @Test
+    public void testThatSuccessfulPaymentCallbackIsSentWhenServiceRequestIsPaid() throws Exception {
+        paymentFeeLink.getPayments().get(0).setServiceCallbackUrl(null);
+        paymentFeeLink.getPayments().get(0).setPaymentStatus(PaymentStatus.SUCCESS);
+        paymentFeeLink.setCallBackUrl("dummy");
+
+        PaymentGroupDto paymentGroupDto = new PaymentGroupDto();
+        paymentGroupDto.setServiceRequestStatus("Paid");
+        when(paymentGroupDtoMapper.toPaymentGroupDto(any())).thenReturn(paymentGroupDto);
+
+        callbackService.callback(paymentFeeLink, paymentFeeLink.getPayments().get(0));
+
+        verify(topicClient, times(1)).send(any(IMessage.class));
     }
 }

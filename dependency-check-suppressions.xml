@@ -111,14 +111,16 @@
         <notes>
             All Spring Security 6.5.11 modules (spring-security-*) carry the same CVEs. 6.5.11 is the latest
             Boot 3.5-compatible OSS line (EOL 2026-06-30); the 6.5.12 fixes are HeroDevs NES-only (not on
-            Maven Central). WebAuthn and vulnerable crypto API usage are not present; the OSS fix only lands in
-            Spring Security 7.x / Spring Boot 4.x. Remove when migrating to Spring Boot 4.
+            Maven Central). WebAuthn and vulnerable crypto API usage are not present, and DPoP
+            (DPoPProofJwtDecoderFactory) is not used; the OSS fix only lands in Spring Security 7.x /
+            Spring Boot 4.x. Remove when migrating to Spring Boot 4.
         </notes>
         <packageUrl regex="true">^pkg:maven/org\.springframework\.security/spring-security-.*@6\.5\.11$</packageUrl>
         <cve>CVE-2026-59270</cve>
         <cve>CVE-2026-59276</cve>
         <cve>CVE-2026-47841</cve>
         <cve>CVE-2026-47842</cve>
+        <cve>CVE-2026-41707</cve>
     </suppress>
     <suppress until="2027-03-31Z">
         <notes>
