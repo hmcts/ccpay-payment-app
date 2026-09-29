@@ -268,6 +268,7 @@ task providerContractTest(type: Test) {
         systemProperty 'pact.verifier.publishResults', project.property('pact.verifier.publishResults')
     }
     systemProperty 'pact.provider.version', project.pactVersion
+    systemProperty 'pact.provider.branch', System.getenv('PACT_BRANCH_NAME') ?: 'Dev'
 
 }
 

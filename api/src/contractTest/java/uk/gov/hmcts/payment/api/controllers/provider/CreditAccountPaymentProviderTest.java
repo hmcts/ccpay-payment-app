@@ -6,7 +6,8 @@ import au.com.dius.pact.provider.junitsupport.IgnoreNoPactsToVerify;
 import au.com.dius.pact.provider.junitsupport.Provider;
 import au.com.dius.pact.provider.junitsupport.State;
 import au.com.dius.pact.provider.junitsupport.loader.PactBroker;
-import au.com.dius.pact.provider.junitsupport.loader.VersionSelector;
+import au.com.dius.pact.provider.junitsupport.loader.PactBrokerConsumerVersionSelectors;
+import au.com.dius.pact.provider.junitsupport.loader.SelectorBuilder;
 import au.com.dius.pact.provider.spring.junit5.MockMvcTestTarget;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestTemplate;
@@ -46,19 +47,18 @@ import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 
 @ExtendWith(SpringExtension.class)
 @Provider("payment_creditAccountPayment")
-@PactBroker(scheme = "${PACT_BROKER_SCHEME:http}", host = "${PACT_BROKER_URL:localhost}", port = "${PACT_BROKER_PORT:80}", consumerVersionSelectors = {
-    @VersionSelector(consumer = "civil_service", tag = "master"),
-    @VersionSelector(consumer = "divorce_caseOrchestratorService", tag = "master"),
-    @VersionSelector(consumer = "fpl_ccdConfiguration", tag = "master"),
-    @VersionSelector(consumer = "fr_caseOrchestratorService", tag = "master"),
-    @VersionSelector(consumer = "ia_caseDocumentsApi", tag = "master"),
-    @VersionSelector(consumer = "ia_casePaymentsApi", tag = "master"),
-    @VersionSelector(consumer = "probate_backOffice", tag = "master")
-})
-
+@PactBroker(scheme = "${PACT_BROKER_SCHEME:http}", host = "${PACT_BROKER_URL:localhost}", port = "${PACT_BROKER_PORT:80}", providerBranch = "${pact.provider.branch}")
 @Import(CreditAccountPaymentProviderTestConfiguration.class)
 @IgnoreNoPactsToVerify
 class CreditAccountPaymentProviderTest {
+
+    @PactBrokerConsumerVersionSelectors
+    public static SelectorBuilder consumerVersionSelectors() {
+        return new SelectorBuilder()
+            .matchingBranch()
+            .mainBranch()
+            .deployedOrReleased();
+    }
 
     private static final String ACCOUNT_NUMBER_KEY = "accountNumber";
     private static final String ACCOUNT_NAME_KEY = "accountName";
