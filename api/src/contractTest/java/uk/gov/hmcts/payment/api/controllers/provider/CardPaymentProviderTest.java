@@ -75,7 +75,7 @@ import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
     @VersionSelector(consumer = "divorce_caseOrchestratorService", tag = "master"),
     @VersionSelector(consumer = "fpl_ccdConfiguration", tag = "master"),
     @VersionSelector(consumer = "fr_caseOrchestratorService", tag = "master"),
-    @VersionSelector(consumer = "ia_casePaymentsApi", tag = "master}"),
+    @VersionSelector(consumer = "ia_casePaymentsApi", tag = "master"),
     @VersionSelector(consumer = "payment_App", tag = "master"),
     @VersionSelector(consumer = "pcs_api", tag = "master"),
     @VersionSelector(consumer = "prl_cos", tag = "master"),
