@@ -6,16 +6,16 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import uk.gov.hmcts.payment.api.dto.AccountDto;
+import uk.gov.hmcts.payment.api.dto.liberata.account.LiberataAccountResponse;
 import uk.gov.hmcts.payment.api.dto.liberata.identity.LiberataIdentityResponse;
 import uk.gov.hmcts.payment.api.dto.liberata.identity.TokenResponse;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.MediaType;
+import uk.gov.hmcts.payment.api.mapper.liberata.account.LiberataAccountMapper;
 import uk.gov.hmcts.payment.api.mapper.liberata.identity.AccessTokenDtoToTokenResponseMapper;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.LiberataIdentityException;
 
@@ -32,6 +32,8 @@ public class LiberataRealTimeAPI {
     @Autowired()
     private AccessTokenDtoToTokenResponseMapper accessTokenDtoToTokenResponseMapper;
 
+    @Autowired
+    private LiberataAccountMapper liberataAccountMapper;
 
     @Value("${liberata.api.realtime.account.url}")
     private String baseUrl;
@@ -76,6 +78,27 @@ public class LiberataRealTimeAPI {
             return accessTokenDtoToTokenResponseMapper.toTokenResponse(response.getBody());
         } catch (Exception exception) {
             throw new LiberataIdentityException("Error fetching token from Liberata: " + exception.getMessage(), exception);
+        }
+    }
+
+    public AccountDto getAccountDetails(String accessToken, String pbaCode) {
+
+        val headers = new HttpHeaders();
+        headers.setAccept(java.util.Collections.singletonList(MediaType.APPLICATION_JSON));
+        headers.setBearerAuth(accessToken);
+        val request = new HttpEntity<Void>(headers);
+
+        try {
+            // baseUrl should really include the environment-specific path (e.g.pba-api-v2-uat)??
+            val response = liberataRestTemplate.exchange(
+                baseUrl + "/pba-api-v2-uat/api/account/" + pbaCode,
+                HttpMethod.GET,
+                request,
+                LiberataAccountResponse.class
+            );
+            return liberataAccountMapper.toAccountDto(response.getBody());
+        } catch (Exception exception) {
+            throw new LiberataIdentityException("Error fetching account details from Liberata: " + exception.getMessage(), exception);
         }
     }
 }
