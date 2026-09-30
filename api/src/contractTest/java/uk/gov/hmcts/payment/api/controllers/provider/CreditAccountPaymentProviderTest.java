@@ -76,14 +76,14 @@ class CreditAccountPaymentProviderTest {
     }
 
     private static String masterSelector(String consumer) {
-        return "{\"consumer\":\"" + consumer + "\",\"tag\":\"master\",\"latest\":{}}";
+        return "{\"consumer\":\"" + consumer + "\",\"tag\":\"master\",\"latest\":true}";
     }
 
     private static String deployedOrReleasedSelector(String consumer) {
         return """
         {
           "consumer": "%s",
-          "deployedOrReleased": {}
+          "deployedOrReleased": true
         }
         """.formatted(consumer);
     }
