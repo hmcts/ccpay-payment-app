@@ -12,6 +12,7 @@ import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -64,6 +65,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.PATCH;
 public class PaymentController {
 
     private static final Logger LOG = LoggerFactory.getLogger(PaymentController.class);
+    private static final String PAYMENT_BY_ACCOUNT = "payment by account";
     private final PaymentService<PaymentFeeLink, String> paymentService;
     private final CallbackService callbackService;
     private final PaymentStatusRepository paymentStatusRepository;
@@ -72,6 +74,9 @@ public class PaymentController {
     private final DateTimeFormatter formatter;
     private final PaymentFeeRepository paymentFeeRepository;
     private final LaunchDarklyFeatureToggler featureToggler;
+
+    @Value("${pba.payments.exclude.reconciliation}")
+    private boolean excludePbaPaymentsForReconciliation;
 
     @Autowired
     private ServiceRequestCaseUtil serviceRequestCaseUtil;
@@ -191,7 +196,8 @@ public class PaymentController {
                                                           @RequestParam(name = "payment_method", required = false) Optional<String> paymentMethodType,
                                                           @RequestParam(name = "service_name", required = false) Optional<String> serviceType,
                                                           @RequestParam(name = "ccd_case_number", required = false) String ccdCaseNumber,
-                                                          @RequestParam(name = "pba_number", required = false) String pbaNumber
+                                                          @RequestParam(name = "pba_number", required = false) String pbaNumber,
+                                                          @RequestParam(name = "pba_payment_reconciliation_ignore", required = false) boolean pbaIgnore
     ) {
 
         validatePullRequest(startDateTimeString, endDateTimeString, paymentMethodType, serviceType);
@@ -205,6 +211,9 @@ public class PaymentController {
             .searchByCriteria(
                 getSearchCriteria(paymentMethodType, serviceType, ccdCaseNumber, pbaNumber, fromDateTime, toDateTime)
             );
+        if (excludePbaPaymentsForReconciliation || pbaIgnore) {
+            payments = excludePbaPayments(payments);
+        }
 
         final List<PaymentDto> paymentDtos = new ArrayList<>();
         LOG.info("No of paymentFeeLinks retrieved for Liberata Pull : {}", payments.size());
@@ -332,6 +341,13 @@ public class PaymentController {
         PaymentFeeLink paymentFeeLink = paymentService.retrievePayment(reference);
         return paymentFeeLink.getPayments().stream()
             .filter(p -> p.getReference().equals(reference)).findAny();
+    }
+
+    private List<Payment> excludePbaPayments(List<Payment> payments) {
+        return payments.stream()
+            .filter(payment -> payment.getPaymentMethod() == null
+                || !PAYMENT_BY_ACCOUNT.equalsIgnoreCase(payment.getPaymentMethod().getName()))
+            .collect(Collectors.toList());
     }
 
     private void populatePaymentDtos(final List<PaymentDto> paymentDtos, final PaymentFeeLink paymentFeeLink, Date fromDateTime, Date toDateTime) {
