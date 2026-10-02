@@ -197,7 +197,7 @@ public class PaymentController {
                                                           @RequestParam(name = "service_name", required = false) Optional<String> serviceType,
                                                           @RequestParam(name = "ccd_case_number", required = false) String ccdCaseNumber,
                                                           @RequestParam(name = "pba_number", required = false) String pbaNumber,
-                                                          @RequestParam(name = "pba_payment_reconciliation_ignore", required = false) boolean pbaIgnore
+                                                          @RequestParam(name = "pba_payment_reconciliation_ignore", defaultValue = "false") boolean pbaIgnore
     ) {
 
         validatePullRequest(startDateTimeString, endDateTimeString, paymentMethodType, serviceType);

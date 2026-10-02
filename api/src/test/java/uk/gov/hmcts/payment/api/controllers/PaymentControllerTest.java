@@ -1458,7 +1458,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             result.getResponse().getContentAsString(),
             ReconciliationPaymentsResponse.class
         );
-        assertThat(paymentsResponse.getPayments().size()).isEqualTo(2);
+        assertThat(paymentsResponse.getPayments()).hasSize(2);
         assertThat(paymentsResponse.getPayments())
             .extracting("method")
             .contains("card", "payment by account");
