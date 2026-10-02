@@ -1384,7 +1384,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
     @Test
     @Transactional
-    public void searchPaymentsByApportion_withValidDates_shouldIgnorePbaPayments() throws Exception {
+    public void searchPaymentsByApportion_withValidDates_shouldReturnPayments_IgnoringPbaPayments() throws Exception {
 
         ReflectionTestUtils.setField(paymentController, "excludePbaPaymentsForReconciliation", true);
         populateCardPaymentToDb("1");
