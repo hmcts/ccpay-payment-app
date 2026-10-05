@@ -6,7 +6,8 @@ import au.com.dius.pact.provider.junitsupport.IgnoreNoPactsToVerify;
 import au.com.dius.pact.provider.junitsupport.Provider;
 import au.com.dius.pact.provider.junitsupport.State;
 import au.com.dius.pact.provider.junitsupport.loader.PactBroker;
-import au.com.dius.pact.provider.junitsupport.loader.VersionSelector;
+import au.com.dius.pact.provider.junitsupport.loader.PactBrokerConsumerVersionSelectors;
+import au.com.dius.pact.provider.junitsupport.loader.SelectorBuilder;
 import au.com.dius.pact.provider.spring.junit5.MockMvcTestTarget;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestTemplate;
@@ -50,15 +51,7 @@ import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 
 @ExtendWith(SpringExtension.class)
 @Provider("payment_creditAccountPayment")
-@PactBroker(scheme = "${PACT_BROKER_SCHEME:http}", host = "${PACT_BROKER_URL:localhost}", port = "${PACT_BROKER_PORT:80}", consumerVersionSelectors = {
-    @VersionSelector(consumer = "civil_service", tag = "master"),
-    @VersionSelector(consumer = "divorce_caseOrchestratorService", tag = "master"),
-    @VersionSelector(consumer = "fpl_ccdConfiguration", tag = "master"),
-    @VersionSelector(consumer = "fr_caseOrchestratorService", tag = "master"),
-    @VersionSelector(consumer = "ia_caseDocumentsApi", tag = "master"),
-    @VersionSelector(consumer = "ia_casePaymentsApi", tag = "master"),
-    @VersionSelector(consumer = "probate_backOffice", tag = "master")
-})
+@PactBroker(scheme = "${PACT_BROKER_SCHEME:http}", host = "${PACT_BROKER_URL:localhost}", port = "${PACT_BROKER_PORT:80}")
 
 @Import(CreditAccountPaymentProviderTestConfiguration.class)
 @IgnoreNoPactsToVerify
@@ -67,6 +60,37 @@ class CreditAccountPaymentProviderTest {
     private static final String ACCOUNT_NUMBER_KEY = "accountNumber";
     private static final String ACCOUNT_NAME_KEY = "accountName";
     private static final String AVAILABLE_BALANCE_KEY = "availableBalance";
+
+    // Pacts are pinned to the master tagged version of each consumer, as before, except for
+    // fpl_ccdConfiguration which additionally has any deployed or released version verified.
+    // A consumer PR branch is not tagged master, so its pact would otherwise never be verified before the
+    // consumer "can I deploy" check runs, which fails the fpl PR build with no verified pact.
+    // See DTSPO-35311 / DTSPO-34578.
+    @PactBrokerConsumerVersionSelectors
+    public static SelectorBuilder pactSelectors() {
+        return new SelectorBuilder()
+            .rawSelectorJson(masterSelector("civil_service"))
+            .rawSelectorJson(masterSelector("divorce_caseOrchestratorService"))
+            .rawSelectorJson(masterSelector("fr_caseOrchestratorService"))
+            .rawSelectorJson(masterSelector("ia_caseDocumentsApi"))
+            .rawSelectorJson(masterSelector("ia_casePaymentsApi"))
+            .rawSelectorJson(masterSelector("probate_backOffice"))
+            .rawSelectorJson(masterSelector("fpl_ccdConfiguration"))
+            .rawSelectorJson(deployedOrReleasedSelector("fpl_ccdConfiguration"));
+    }
+
+    private static String masterSelector(String consumer) {
+        return "{\"consumer\":\"" + consumer + "\",\"tag\":\"master\",\"latest\":true}";
+    }
+
+    private static String deployedOrReleasedSelector(String consumer) {
+        return """
+        {
+          "consumer": "%s",
+          "deployedOrReleased": true
+        }
+        """.formatted(consumer);
+    }
 
     @Autowired
     PaymentDtoMapper paymentDtoMapper;
