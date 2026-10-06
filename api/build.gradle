@@ -4,6 +4,10 @@ buildscript {
         maven {
             url = uri('https://pkgs.dev.azure.com/hmcts/Artifacts/_packaging/hmcts-lib/maven/v1')
         }
+        maven {
+            // Mirror of Maven Central to reduce transient throttling in CI.
+            url = uri('https://maven-central.storage-download.googleapis.com/maven2')
+        }
         mavenCentral()
     }
     configurations.classpath {
@@ -22,7 +26,7 @@ buildscript {
 
 plugins {
     id "info.solidsoft.pitest" version '1.19.0'
-    id 'au.com.dius.pact' version '4.7.5'
+    id 'au.com.dius.pact' version '4.6.20'
 }
 
 apply from: 'liquibase.gradle'
