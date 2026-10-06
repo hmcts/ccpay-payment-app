@@ -2,10 +2,18 @@ buildscript {
     repositories {
         mavenLocal()
         mavenCentral()
+        maven {
+            name = 'google-central-fallback'
+            url = uri('https://maven-central.storage-download.googleapis.com/maven2/')
+            mavenContent {
+                releasesOnly()
+            }
+        }
     }
     dependencies {
         classpath("net.serenity-bdd:serenity-gradle-plugin:3.9.8")
         classpath("net.serenity-bdd:serenity-single-page-report:3.9.8")
+        classpath("io.cucumber:query:14.7.0")
     }
 }
 
