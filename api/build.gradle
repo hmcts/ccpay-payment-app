@@ -6,6 +6,14 @@ buildscript {
         }
         mavenCentral()
     }
+    configurations.classpath {
+        resolutionStrategy.eachDependency { details ->
+            if (details.requested.group == 'org.bouncycastle' && details.requested.name == 'bcutil-jdk18on') {
+                // Avoid dynamic version lookup ([1.81,1.82)) during plugin resolution in CI.
+                details.useVersion '1.81'
+            }
+        }
+    }
     dependencies {
         classpath("net.serenity-bdd:serenity-gradle-plugin:3.9.8")
         classpath("net.serenity-bdd:serenity-single-page-report:3.9.8")
