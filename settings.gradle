@@ -1,18 +1,3 @@
-pluginManagement {
-    repositories {
-        gradlePluginPortal()
-        mavenCentral()
-        // Fallback mirror for Maven Central when primary endpoint is rate-limited (HTTP 429)
-        maven {
-            name = 'google-central-fallback'
-            url = uri('https://maven-central.storage-download.googleapis.com/maven2/')
-            mavenContent {
-                releasesOnly()
-            }
-        }
-    }
-}
-
 rootProject.name = 'payment-app'
 include ':payment-reference-data'
 include ':payment-gov-pay-client'
