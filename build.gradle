@@ -272,14 +272,16 @@ tasks.withType(JavaExec).configureEach {
   javaLauncher.set(javaToolchains.launcherFor(java.toolchain))
 }
 
-task smoke(type: GradleBuild, description: 'Runs smoke tests', group: 'Verification') {
-    dir = file('api')
-    tasks = ['smokeTest']
+tasks.register('smoke') {
+    description = 'Runs smoke tests'
+    group = 'Verification'
+    dependsOn(':payment-api:smokeTest')
 }
 
-task functional(type: GradleBuild, description: 'Runs Functional tests', group: 'Verification') {
-    dir = file('api')
-    tasks = ['functionalTest']
+tasks.register('functional') {
+    description = 'Runs Functional tests'
+    group = 'Verification'
+    dependsOn(':payment-api:functionalTest')
 }
 
 task migratePostgresDatabase(type: GradleBuild, description: 'Migrates Postgres Database', group: 'liquibase') {
