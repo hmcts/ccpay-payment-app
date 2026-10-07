@@ -1,6 +1,8 @@
 package uk.gov.hmcts.payment.api.service;
 
 import lombok.val;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,7 +19,6 @@ import uk.gov.hmcts.payment.api.dto.liberata.PaymentAccountResponse;
 import uk.gov.hmcts.payment.api.dto.liberata.identity.LiberataIdentityResponse;
 import uk.gov.hmcts.payment.api.dto.liberata.identity.TokenResponse;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseEntity;
 
 import org.springframework.http.HttpEntity;
 import org.springframework.http.MediaType;
@@ -29,6 +30,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.LiberataIdentityException;
 public class LiberataRealTimeAPI {
 
     private TokenResponse cachedToken;
+    private static final Logger LOG = LoggerFactory.getLogger(LiberataRealTimeAPI.class);
 
     @Autowired()
     @Qualifier("liberataRestTemplate")
@@ -72,6 +74,10 @@ public class LiberataRealTimeAPI {
 
         headers.setAccept(java.util.Collections.singletonList(MediaType.APPLICATION_JSON));
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        LOG.error("----------------------------DALLEEEE------------------------------:");
+        LOG.error("----------------------------USER------------------------------: {}", lieberataUsername);
+        LOG.error("----------------------------USER------------------------------: {}", liberataPassword);
         formData.add("email", lieberataUsername);
         formData.add("password", liberataPassword);
         val request = new HttpEntity<MultiValueMap<String, String>>(formData, headers);
