@@ -75,9 +75,6 @@ public class LiberataRealTimeAPI {
         headers.setAccept(java.util.Collections.singletonList(MediaType.APPLICATION_JSON));
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
-        LOG.error("----------------------------DALLEEEE------------------------------:");
-        LOG.error("----------------------------USER------------------------------: {}", lieberataUsername);
-        LOG.error("----------------------------USER------------------------------: {}", liberataPassword);
         formData.add("email", lieberataUsername);
         formData.add("password", liberataPassword);
         val request = new HttpEntity<MultiValueMap<String, String>>(formData, headers);
@@ -86,6 +83,7 @@ public class LiberataRealTimeAPI {
             val response = liberataRestTemplate.postForEntity(baseUrl + "/pba-api-v2-uat/api/auth/token", request, LiberataIdentityResponse.class);
             return accessTokenDtoToTokenResponseMapper.toTokenResponse(response.getBody());
         } catch (Exception exception) {
+            LOG.error("Error fetching token from Liberata: {}", exception.getMessage(), exception);
             throw new LiberataIdentityException("Error fetching token from Liberata: " + exception.getMessage(), exception);
         }
     }
@@ -104,6 +102,7 @@ public class LiberataRealTimeAPI {
         } catch (HttpClientErrorException  httpClientErrorException) {
              return getPaymentAccountResponseError(httpClientErrorException);
         } catch (Exception exception) {
+            LOG.error("Error posting payment to Liberata: {}", exception.getMessage(), exception);
             throw new RuntimeException("Error posting payment to Liberata: " + exception.getMessage(), exception);
         }
     }
@@ -112,6 +111,7 @@ public class LiberataRealTimeAPI {
         try {
             return httpClientErrorException.getResponseBodyAs(PaymentAccountResponse.class);
         } catch (Exception exception) {
+            LOG.error("Error getting the  posting  error payment to Liberata: {}", exception.getMessage(), exception);
             throw new RuntimeException("Error posting payment to Liberata: " + exception.getMessage(), exception);
         }
     }
