@@ -1,7 +1,22 @@
 buildscript {
     repositories {
         mavenLocal()
+        maven {
+            url = uri('https://pkgs.dev.azure.com/hmcts/Artifacts/_packaging/hmcts-lib/maven/v1')
+        }
+        maven {
+            // Mirror of Maven Central to reduce transient throttling in CI.
+            url = uri('https://maven-central.storage-download.googleapis.com/maven2')
+        }
         mavenCentral()
+    }
+    configurations.classpath {
+        resolutionStrategy.eachDependency { details ->
+            if (details.requested.group == 'org.bouncycastle' && details.requested.name == 'bcutil-jdk18on') {
+                // Avoid dynamic version lookup ([1.81,1.82)) during plugin resolution in CI.
+                details.useVersion '1.81'
+            }
+        }
     }
     dependencies {
         classpath("net.serenity-bdd:serenity-gradle-plugin:3.9.8")
@@ -11,7 +26,7 @@ buildscript {
 
 plugins {
     id "info.solidsoft.pitest" version '1.19.0'
-    id 'au.com.dius.pact' version '4.7.5'
+    id 'au.com.dius.pact' version '4.6.20'
 }
 
 apply from: 'liquibase.gradle'
@@ -192,11 +207,11 @@ dependencies {
     contractTestImplementation("org.junit.jupiter:junit-jupiter-engine")
 
     functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-core', version: versions.serenity
-    functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-cucumber', version: versions.serenityCucumber
     functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-junit', version: versions.serenity
     functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-rest-assured', version: versions.serenity
     functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-spring', version: versions.serenity
-    functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-screenplay', version: versions.serenity
+    // Current functional tests are JUnit-based and do not use Cucumber/Screenplay APIs.
+    // Keeping the classpath lean avoids resolving unnecessary modules in restricted CI networks.
     functionalTestImplementation group: 'io.rest-assured', name: 'xml-path'
     functionalTestImplementation group: 'io.rest-assured', name: 'json-path'
     functionalTestImplementation group: 'org.awaitility', name: 'awaitility', version: '4.3.0'
