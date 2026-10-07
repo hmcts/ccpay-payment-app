@@ -7,8 +7,10 @@
 # committed - only the vault/secret names and target env var names live in this file.
 #
 # Usage:
-#   ./scripts/run-functional-tests.sh                # run all functional tests
-#   ./scripts/run-functional-tests.sh FooTest        # run a single test class
+#   ./scripts/run-functional-tests.sh [-e <env>]               # run all functional tests
+#   ./scripts/run-functional-tests.sh [-e <env>] FooTest       # run a single test class
+#
+# -e <env>   target environment: aat (default), demo, perftest, ithc
 #
 # Prerequisites:
 #   - Connected to the HMRC VPN (so the internal .internal URLs resolve)
@@ -20,6 +22,34 @@ set -euo pipefail
 # Configuration (mirrors Jenkinsfile_CNP + charts/payment-api/values.yaml)
 # ---------------------------------------------------------------------------
 ENVIRONMENT="aat"
+
+usage() {
+    sed -n '2,17p' "$0" | sed 's/^# \{0,1\}//'
+}
+
+case "${1:-}" in
+    --help|-h) usage; exit 0 ;;
+esac
+
+while getopts ":e:h" opt; do
+    case "$opt" in
+        e) ENVIRONMENT="$OPTARG" ;;
+        h) usage; exit 0 ;;
+        \?) echo "ERROR: unknown option -$OPTARG" >&2; usage >&2; exit 1 ;;
+        :) echo "ERROR: option -$OPTARG requires an argument" >&2; usage >&2; exit 1 ;;
+    esac
+done
+shift $((OPTIND - 1))
+
+case "${ENVIRONMENT}" in
+    aat|demo|perftest|ithc) ;;
+    *)
+        echo "ERROR: unsupported environment '${ENVIRONMENT}'. Use aat, demo, perftest or ithc." >&2
+        usage
+        exit 1
+        ;;
+esac
+
 VAULT="ccpay-${ENVIRONMENT}"                       # = ccpay-aat
 
 # test.url is derived from the ingressHost in charts/payment-api/values.yaml
@@ -42,16 +72,7 @@ export TZ=UTC
 JAVA_TOOL_OPTIONS="${JAVA_TOOL_OPTIONS:+$JAVA_TOOL_OPTIONS }-Duser.timezone=UTC"
 export JAVA_TOOL_OPTIONS
 
-usage() {
-    sed -n '2,12p' "$0" | sed 's/^# \{0,1\}//'
-}
-
 SINGLE_TEST="${1:-}"
-
-if [[ "${SINGLE_TEST}" == "-h" || "${SINGLE_TEST}" == "--help" ]]; then
-    usage
-    exit 0
-fi
 
 # ---------------------------------------------------------------------------
 # Azure check
