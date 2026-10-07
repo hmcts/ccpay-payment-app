@@ -207,11 +207,11 @@ dependencies {
     contractTestImplementation("org.junit.jupiter:junit-jupiter-engine")
 
     functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-core', version: versions.serenity
-    functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-cucumber', version: versions.serenityCucumber
     functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-junit', version: versions.serenity
     functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-rest-assured', version: versions.serenity
     functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-spring', version: versions.serenity
-    functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-screenplay', version: versions.serenity
+    // Current functional tests are JUnit-based and do not use Cucumber/Screenplay APIs.
+    // Keeping the classpath lean avoids resolving unnecessary modules in restricted CI networks.
     functionalTestImplementation group: 'io.rest-assured', name: 'xml-path'
     functionalTestImplementation group: 'io.rest-assured', name: 'json-path'
     functionalTestImplementation group: 'org.awaitility', name: 'awaitility', version: '4.3.0'
