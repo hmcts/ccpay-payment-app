@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.fees2.register.api.contract.Fee2Dto;
 import uk.gov.hmcts.fees2.register.api.contract.FeeVersionDto;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
+import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.liberata.FeeRequest;
@@ -159,12 +160,21 @@ public class PBAPaymentMapper {
                 .nac(feeVersionDto.getNaturalAccountCode())
                 .jurisdiction1(fee2Dto.getJurisdiction1Dto().getName())
                 .jurisdiction2(fee2Dto.getJurisdiction1Dto().getName())
-                .volume(feeDto.getVolume().toString())
+                .volume(getVolume(feeDto))
                 .calculatedAmount(feeDto.getCalculatedAmount().toString())
                 .build();
         }).toList();
     }
-
+/**
+ * Return the fee volume as a String.
+ * If not preset (null) or zero, defaults to "1".
+ */
+private String getVolume(FeeDto feeDto) {
+    if (feeDto == null || feeDto.getVolume() == null || feeDto.getVolume().intValue() == 0) {
+        return "1";
+    }
+    return feeDto.getVolume().toString();
+}
 
     private FeeVersionDto populateFeeDetails(String feeCode, String version) {
         val optionalFeeVersionDto =feesService.getFeeVersion(feeCode,version);
