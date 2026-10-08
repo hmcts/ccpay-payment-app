@@ -39,6 +39,7 @@ public class PaymentFixture {
                 .calculatedAmount(new BigDecimal(amountString))
                 .code("FEE0001")
                 .version("1")
+                .volume(1)
                 .build())
             )
             .build();
@@ -59,6 +60,7 @@ public class PaymentFixture {
                     .calculatedAmount(new BigDecimal(amountString))
                     .code("FEE0001")
                     .version("1")
+                    .volume(1)
                     .build())
             )
             .build();
@@ -79,6 +81,7 @@ public class PaymentFixture {
                     .calculatedAmount(new BigDecimal(amountString))
                     .code("FEE0123")
                     .version("1")
+                    .volume(1)
                     .build())
             )
             .build();
@@ -99,6 +102,7 @@ public class PaymentFixture {
                     .calculatedAmount(new BigDecimal(amountString))
                     .code("FEE0123")
                     .version("1")
+                    .volume(1)
                     .build())
             )
             .build();
@@ -119,6 +123,7 @@ public class PaymentFixture {
                     .calculatedAmount(new BigDecimal(amountString))
                     .code("FEE0123")
                     .version("1")
+                    .volume(1)
                     .build())
             )
             .build();
@@ -139,6 +144,7 @@ public class PaymentFixture {
                     .calculatedAmount(new BigDecimal(amountString))
                     .code("FEE0002")
                     .version("1")
+                    .volume(1)
                     .build())
             )
             .build();
@@ -162,6 +168,7 @@ public class PaymentFixture {
                     .calculatedAmount(new BigDecimal(amountString))
                     .code("FEE0001")
                     .version("1")
+                    .volume(1)
                     .build())
             )
             .build();
@@ -185,6 +192,7 @@ public class PaymentFixture {
                     .calculatedAmount(new BigDecimal(amountString))
                     .code("FEE0001")
                     .version("1")
+                    .volume(1)
                     .build())
             )
             .build();
@@ -208,6 +216,7 @@ public class PaymentFixture {
                     .calculatedAmount(new BigDecimal(amountString))
                     .code("FEE0002")
                     .version("1")
+                    .volume(1)
                     .build())
             )
             .build();
@@ -231,6 +240,7 @@ public class PaymentFixture {
                     .calculatedAmount(new BigDecimal(amountString))
                     .code("FEE0001")
                     .version("1")
+                    .volume(1)
                     .build())
             )
             .build();
@@ -254,6 +264,7 @@ public class PaymentFixture {
                     .calculatedAmount(new BigDecimal(amountString))
                     .code("FEE0001")
                     .version("1")
+                    .volume(1)
                     .build())
             )
             .build();
@@ -277,6 +288,7 @@ public class PaymentFixture {
                     .calculatedAmount(new BigDecimal(amountString))
                     .code("FEE0209")
                     .version("1")
+                    .volume(1)
                     .build())
             )
             .build();
@@ -301,6 +313,7 @@ public class PaymentFixture {
                     .calculatedAmount(new BigDecimal(amountString))
                     .code("FEE0001")
                     .version("1")
+                    .volume(1)
                     .feeAmount(new BigDecimal(amountString))
                     .build())
             )
@@ -325,6 +338,7 @@ public class PaymentFixture {
                     .calculatedAmount(new BigDecimal(amountString))
                     .code(feeCode)
                     .version("1")
+                    .volume(1)
                     .build())
             )
             .build();
@@ -361,6 +375,7 @@ public class PaymentFixture {
                     .calculatedAmount(new BigDecimal(feeAmount2))
                     .code(feeCode2)
                     .version("1")
+                    .volume(1)
                     .build())
             )
             .build();
@@ -384,6 +399,7 @@ public class PaymentFixture {
                     .calculatedAmount(new BigDecimal(amountString))
                     .code("FEE0226")
                     .version("1")
+                    .volume(1)
                     .build())
             )
             .build();
@@ -404,6 +420,7 @@ public class PaymentFixture {
                     .calculatedAmount(new BigDecimal(amountString))
                     .code("FEE0001")
                     .version("1")
+                    .volume(1)
                     .build())
             )
             .build();

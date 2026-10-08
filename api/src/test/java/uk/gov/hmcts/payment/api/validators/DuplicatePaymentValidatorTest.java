@@ -197,6 +197,7 @@ public class DuplicatePaymentValidatorTest {
             .ccdCaseNumber("ccdCaseNumber")
             .serviceType("Probate")
             .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
             .reference("RC-1519-9028-1909-3890")
             .build();
     }
@@ -309,4 +310,3 @@ public class DuplicatePaymentValidatorTest {
         LOG.info("Validation successful for empty dates.");
     }
 }
-

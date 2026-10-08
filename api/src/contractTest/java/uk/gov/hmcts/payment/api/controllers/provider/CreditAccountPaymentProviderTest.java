@@ -6,7 +6,8 @@ import au.com.dius.pact.provider.junitsupport.IgnoreNoPactsToVerify;
 import au.com.dius.pact.provider.junitsupport.Provider;
 import au.com.dius.pact.provider.junitsupport.State;
 import au.com.dius.pact.provider.junitsupport.loader.PactBroker;
-import au.com.dius.pact.provider.junitsupport.loader.VersionSelector;
+import au.com.dius.pact.provider.junitsupport.loader.PactBrokerConsumerVersionSelectors;
+import au.com.dius.pact.provider.junitsupport.loader.SelectorBuilder;
 import au.com.dius.pact.provider.spring.junit5.MockMvcTestTarget;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestTemplate;
@@ -20,10 +21,13 @@ import uk.gov.hmcts.payment.api.controllers.CreditAccountPaymentController;
 import uk.gov.hmcts.payment.api.controllers.PaymentReference;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
+import uk.gov.hmcts.payment.api.dto.liberata.PaymentAccountResponse;
+import uk.gov.hmcts.payment.api.dto.liberata.PaymentAccountResponseStatus;
 import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.mapper.CreditAccountPaymentRequestMapper;
 import uk.gov.hmcts.payment.api.mapper.PBAStatusErrorMapper;
+import uk.gov.hmcts.payment.api.mapper.PBAPaymentMapper;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.*;
 import uk.gov.hmcts.payment.api.util.AccountStatus;
@@ -41,20 +45,13 @@ import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.payment.api.dto.liberata.PaymentAccountResponseStatus.EXCEEDED_CREDIT_LIMIT;
 import static uk.gov.hmcts.payment.api.model.PaymentFee.feeWith;
 import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 
 @ExtendWith(SpringExtension.class)
 @Provider("payment_creditAccountPayment")
-@PactBroker(scheme = "${PACT_BROKER_SCHEME:http}", host = "${PACT_BROKER_URL:localhost}", port = "${PACT_BROKER_PORT:80}", consumerVersionSelectors = {
-    @VersionSelector(consumer = "civil_service", tag = "master"),
-    @VersionSelector(consumer = "divorce_caseOrchestratorService", tag = "master"),
-    @VersionSelector(consumer = "fpl_ccdConfiguration", tag = "master"),
-    @VersionSelector(consumer = "fr_caseOrchestratorService", tag = "master"),
-    @VersionSelector(consumer = "ia_caseDocumentsApi", tag = "master"),
-    @VersionSelector(consumer = "ia_casePaymentsApi", tag = "master"),
-    @VersionSelector(consumer = "probate_backOffice", tag = "master")
-})
+@PactBroker(scheme = "${PACT_BROKER_SCHEME:http}", host = "${PACT_BROKER_URL:localhost}", port = "${PACT_BROKER_PORT:80}")
 
 @Import(CreditAccountPaymentProviderTestConfiguration.class)
 @IgnoreNoPactsToVerify
@@ -63,6 +60,37 @@ class CreditAccountPaymentProviderTest {
     private static final String ACCOUNT_NUMBER_KEY = "accountNumber";
     private static final String ACCOUNT_NAME_KEY = "accountName";
     private static final String AVAILABLE_BALANCE_KEY = "availableBalance";
+
+    // Pacts are pinned to the master tagged version of each consumer, as before, except for
+    // fpl_ccdConfiguration which additionally has any deployed or released version verified.
+    // A consumer PR branch is not tagged master, so its pact would otherwise never be verified before the
+    // consumer "can I deploy" check runs, which fails the fpl PR build with no verified pact.
+    // See DTSPO-35311 / DTSPO-34578.
+    @PactBrokerConsumerVersionSelectors
+    public static SelectorBuilder pactSelectors() {
+        return new SelectorBuilder()
+            .rawSelectorJson(masterSelector("civil_service"))
+            .rawSelectorJson(masterSelector("divorce_caseOrchestratorService"))
+            .rawSelectorJson(masterSelector("fr_caseOrchestratorService"))
+            .rawSelectorJson(masterSelector("ia_caseDocumentsApi"))
+            .rawSelectorJson(masterSelector("ia_casePaymentsApi"))
+            .rawSelectorJson(masterSelector("probate_backOffice"))
+            .rawSelectorJson(masterSelector("fpl_ccdConfiguration"))
+            .rawSelectorJson(deployedOrReleasedSelector("fpl_ccdConfiguration"));
+    }
+
+    private static String masterSelector(String consumer) {
+        return "{\"consumer\":\"" + consumer + "\",\"tag\":\"master\",\"latest\":true}";
+    }
+
+    private static String deployedOrReleasedSelector(String consumer) {
+        return """
+        {
+          "consumer": "%s",
+          "deployedOrReleased": true
+        }
+        """.formatted(consumer);
+    }
 
     @Autowired
     PaymentDtoMapper paymentDtoMapper;
@@ -107,6 +135,9 @@ class CreditAccountPaymentProviderTest {
     PBAStatusErrorMapper pbaStatusErrorMapper;
 
     @Autowired
+    private PBAPaymentMapper pBAPaymentMapper;
+
+    @Autowired
     CreditAccountPaymentRequestMapper requestMapper;
 
     @Autowired
@@ -118,6 +149,9 @@ class CreditAccountPaymentProviderTest {
 
     @Autowired
     ServiceRequestCaseUtil serviceRequestCaseUtil;
+
+    @Autowired
+    LiberataRealTimeAPI liberataRealTimeAPI;
 
     @Value("${PACT_BRANCH_NAME:master}")
     String branchName;
@@ -142,11 +176,12 @@ class CreditAccountPaymentProviderTest {
         System.getProperties().setProperty("pact.provider.version", gitCommit);
         System.getProperties().setProperty("pact.provider.branch", branchName != null ? branchName : "master");
 
+
         MockMvcTestTarget testTarget = new MockMvcTestTarget();
         testTarget.setControllers(
             new CreditAccountPaymentController(creditAccountPaymentService, creditAccountDtoMapper, accountServiceMock, paymentValidator,
                 feePayApportionService, featureToggler, pbaStatusErrorMapper, requestMapper, Arrays.asList("CMC"), paymentService,
-                referenceDataService, authTokenGenerator, paymentReferenceMock));
+                referenceDataService, authTokenGenerator, paymentReferenceMock, pBAPaymentMapper,liberataRealTimeAPI));
         if (context != null) {
             context.setTarget(testTarget);
         }
@@ -171,25 +206,46 @@ class CreditAccountPaymentProviderTest {
 
     @State({"An active account has sufficient funds for a payment"})
     public void toCreateNewCreditAccountPayment(Map<String, Object> paymentMap) {
-
+        when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
         setUpMockInteractions(paymentMap, "Payment Status success", "success", AccountStatus.ACTIVE);
     }
 
 
     @State({"An active account has insufficient funds for a payment"})
     public void toRefuseCreditAccountPaymentInusfficientFunds(Map<String, Object> paymentMap) {
+        when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getAnErrorDueToExceededCreditLimitPaymentAccountResponse());
         setUpMockInteractions(paymentMap, "Payment Status failed", "failed", AccountStatus.ACTIVE);
     }
 
     @State({"An on hold account requests a payment"})
     public void toRefuseCreditAccountPaymenOnHold(Map<String, Object> paymentMap) {
+        when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getAnErrorDueToAccountOnHold());
         setUpMockInteractions(paymentMap, "Payment Status failed", "failed", AccountStatus.ON_HOLD);
     }
 
 
     @State({"A deleted account requests a payment"})
     public void toRefuseCreditAccountPaymenDeleted(Map<String, Object> paymentMap) {
+        when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getAnErrorDueToAccountOnHold());
         setUpMockInteractions(paymentMap, "Payment Status failed", "failed", AccountStatus.DELETED);
+    }
+
+    private PaymentAccountResponse getSuccessPaymentAccountResponse() {
+        return PaymentAccountResponse.paymentDtoWith()
+            .status(PaymentAccountResponseStatus.SUCCESS.getValue())
+            .message(PaymentAccountResponseStatus.SUCCESSFULLY.getValue()).build();
+    }
+
+    private PaymentAccountResponse getAnErrorDueToExceededCreditLimitPaymentAccountResponse() {
+        return PaymentAccountResponse.paymentDtoWith()
+            .status(PaymentAccountResponseStatus.ERROR.getValue())
+            .message(EXCEEDED_CREDIT_LIMIT.getValue()).build();
+    }
+
+    private PaymentAccountResponse getAnErrorDueToAccountOnHold() {
+        return PaymentAccountResponse.paymentDtoWith()
+            .status(PaymentAccountResponseStatus.ERROR.getValue())
+            .message(PaymentAccountResponseStatus.ACCOUNT_NOT_ACTIVE.getValue()).build();
     }
 
 
@@ -197,6 +253,7 @@ class CreditAccountPaymentProviderTest {
         String accountNumber = (String) paymentMap.get(ACCOUNT_NUMBER_KEY);
         String availableBalance = (String) paymentMap.get(AVAILABLE_BALANCE_KEY);
         String accountName = (String) paymentMap.get(ACCOUNT_NAME_KEY);
+
 
         when(userIdSupplierMock.get()).thenReturn("userId");
         when(serviceIdSupplierMock.get()).thenReturn("ccd_gw");

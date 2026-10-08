@@ -4,6 +4,7 @@ import org.mockito.Mockito;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
+import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.payment.api.audit.AuditRepository;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.controllers.PaymentReference;
@@ -11,7 +12,9 @@ import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.mapper.CreditAccountPaymentRequestMapper;
+import uk.gov.hmcts.payment.api.mapper.PBAPaymentMapper;
 import uk.gov.hmcts.payment.api.mapper.PBAStatusErrorMapper;
+import uk.gov.hmcts.payment.api.mapper.liberata.identity.AccessTokenDtoToTokenResponseMapper;
 import uk.gov.hmcts.payment.api.model.FeePayApportionRepository;
 import uk.gov.hmcts.payment.api.model.Payment2Repository;
 import uk.gov.hmcts.payment.api.model.PaymentChannelRepository;
@@ -27,6 +30,8 @@ import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.service.CallbackService;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.service.FeePayApportionService;
+import uk.gov.hmcts.payment.api.service.IacService;
+import uk.gov.hmcts.payment.api.service.LiberataRealTimeAPI;
 import uk.gov.hmcts.payment.api.service.LoggingCreditAccountPaymentService;
 import uk.gov.hmcts.payment.api.service.PaymentServiceImpl;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
@@ -67,6 +72,34 @@ public class CreditAccountPaymentProviderTestConfiguration {
     public PaymentProviderRepository paymentProviderRepository() {
         return Mockito.mock(PaymentProviderRepository.class);
     }
+
+    @Bean (value = "liberataRestTemplate")
+    public RestTemplate liberataRestTemplate() {
+        return Mockito.mock(RestTemplate.class);
+    }
+
+
+    @Bean
+    public LiberataRealTimeAPI liberataRealTimeAPI() {
+        return Mockito.mock(LiberataRealTimeAPI.class);
+    }
+
+    @Bean
+    public PBAPaymentMapper  pBAPaymentMapper() {
+        return Mockito.mock(PBAPaymentMapper.class);
+    }
+
+    @Bean
+    public IacService  iacService() {
+        return Mockito.mock(IacService.class);
+    }
+
+
+    @Bean
+    public AccessTokenDtoToTokenResponseMapper  accessTokenDtoToTokenResponseMapper() {
+        return Mockito.mock(AccessTokenDtoToTokenResponseMapper.class);
+    }
+
 
     @Bean
     public PaymentStatusRepository paymentStatusRepository() {
