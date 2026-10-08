@@ -6,20 +6,28 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.ArgumentCaptor;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
+import uk.gov.hmcts.payment.api.dto.AccountDto;
+import uk.gov.hmcts.payment.api.dto.liberata.account.LiberataAccountResponse;
 import uk.gov.hmcts.payment.api.dto.liberata.identity.LiberataIdentityResponse;
 import uk.gov.hmcts.payment.api.dto.liberata.identity.LiberataTokenData;
 import uk.gov.hmcts.payment.api.dto.liberata.identity.TokenResponse;
+import uk.gov.hmcts.payment.api.mapper.liberata.account.LiberataAccountMapper;
 import uk.gov.hmcts.payment.api.mapper.liberata.identity.AccessTokenDtoToTokenResponseMapper;
+import uk.gov.hmcts.payment.api.util.AccountStatus;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.LiberataIdentityException;
 
+import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.Arrays;
+import java.util.Date;
 
 
 import static org.junit.Assert.assertEquals;
@@ -42,6 +50,9 @@ public class LiberataRealTimeAPITest {
 
     @Mock
     private AccessTokenDtoToTokenResponseMapper accessTokenDtoToTokenResponseMapper;
+
+    @Mock
+    private LiberataAccountMapper liberataAccountMapper;
 
     @InjectMocks
     private LiberataRealTimeAPI liberataIdentity;
@@ -224,5 +235,93 @@ public class LiberataRealTimeAPITest {
 
         assertEquals("cached-token-2", result.getAccessToken());
         verify(liberataRestTemplate, never()).postForEntity(anyString(), any(HttpEntity.class), eq(LiberataIdentityResponse.class));
+    }
+
+    @Test
+    public void shouldReturnAccountDetailsWhenLiberataRespondsSuccessfully() {
+        LiberataAccountResponse liberataAccountResponse = new LiberataAccountResponse("200", null);
+        AccountDto accountDto = AccountDto.accountDtoWith()
+            .accountNumber("PBA1234567")
+            .accountName("Test Account")
+            .creditLimit(new BigDecimal("1000.00"))
+            .availableBalance(new BigDecimal("750.50"))
+            .status(AccountStatus.ACTIVE)
+            .effectiveDate(new Date(1735732800000L))
+            .build();
+
+        when(liberataRestTemplate.exchange(
+            eq("http://localhost/test/pba-api-v2-uat/api/account/PBA1234567"),
+            eq(HttpMethod.GET),
+            any(HttpEntity.class),
+            eq(LiberataAccountResponse.class)
+        )).thenReturn(ResponseEntity.ok(liberataAccountResponse));
+        when(liberataAccountMapper.toAccountDto(liberataAccountResponse)).thenReturn(accountDto);
+
+        AccountDto result = liberataIdentity.getAccountDetails("access-token", "PBA1234567");
+
+        assertEquals(accountDto, result);
+        verify(liberataAccountMapper).toAccountDto(liberataAccountResponse);
+    }
+
+    @Test
+    public void shouldSendBearerTokenWhenFetchingAccountDetails() {
+        LiberataAccountResponse liberataAccountResponse = new LiberataAccountResponse("200", null);
+        AccountDto accountDto = AccountDto.accountDtoWith().accountNumber("PBA1234567").build();
+        ArgumentCaptor<HttpEntity> requestCaptor = ArgumentCaptor.forClass(HttpEntity.class);
+
+        when(liberataRestTemplate.exchange(
+            anyString(),
+            eq(HttpMethod.GET),
+            requestCaptor.capture(),
+            eq(LiberataAccountResponse.class)
+        )).thenReturn(ResponseEntity.ok(liberataAccountResponse));
+        when(liberataAccountMapper.toAccountDto(liberataAccountResponse)).thenReturn(accountDto);
+
+        liberataIdentity.getAccountDetails("access-token", "PBA1234567");
+
+        HttpHeaders headers = requestCaptor.getValue().getHeaders();
+        assertEquals("Bearer access-token", headers.getFirst(HttpHeaders.AUTHORIZATION));
+    }
+
+    @Test
+    public void shouldThrowLiberataIdentityExceptionWhenAccountDetailsRestTemplateFails() {
+        when(liberataRestTemplate.exchange(
+            anyString(),
+            eq(HttpMethod.GET),
+            any(HttpEntity.class),
+            eq(LiberataAccountResponse.class)
+        )).thenThrow(new RuntimeException("rest failure"));
+
+        try {
+            liberataIdentity.getAccountDetails("access-token", "PBA1234567");
+            fail("Expected LiberataIdentityException");
+        } catch (LiberataIdentityException e) {
+            assertTrue(e.getMessage().contains("rest failure"));
+            assertTrue(e.getCause() instanceof RuntimeException);
+            assertEquals("rest failure", e.getCause().getMessage());
+        }
+    }
+
+    @Test
+    public void shouldThrowLiberataIdentityExceptionWhenAccountDetailsMapperFails() {
+        LiberataAccountResponse liberataAccountResponse = new LiberataAccountResponse("200", null);
+        when(liberataRestTemplate.exchange(
+            anyString(),
+            eq(HttpMethod.GET),
+            any(HttpEntity.class),
+            eq(LiberataAccountResponse.class)
+        )).thenReturn(ResponseEntity.ok(liberataAccountResponse));
+        when(liberataAccountMapper.toAccountDto(liberataAccountResponse))
+            .thenThrow(new RuntimeException("mapper failure"));
+
+        try {
+            liberataIdentity.getAccountDetails("access-token", "PBA1234567");
+            fail("Expected LiberataIdentityException");
+        } catch (LiberataIdentityException e) {
+            assertTrue(e.getMessage().contains("mapper failure"));
+            assertEquals("mapper failure", e.getCause().getMessage());
+        }
+
+        verify(liberataAccountMapper).toAccountDto(liberataAccountResponse);
     }
 }

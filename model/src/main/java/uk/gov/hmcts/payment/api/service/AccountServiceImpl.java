@@ -8,10 +8,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.ResourceAccessException;
@@ -30,7 +26,7 @@ public class AccountServiceImpl implements AccountService<AccountDto, String> {
     private static final Logger LOG = LoggerFactory.getLogger(AccountService.class);
 
     @Autowired
-    private LiberataService liberataService;
+    LiberataRealTimeAPI liberataRealTimeAPI;
 
     @Autowired
     @Qualifier("restTemplateLiberata")
@@ -69,12 +65,8 @@ public class AccountServiceImpl implements AccountService<AccountDto, String> {
                     .build();
             }
 
-            String accessToken = liberataService.getAccessToken();
-            HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(accessToken);
-            HttpEntity<Void> entity = new HttpEntity<>(headers);
-            ResponseEntity<AccountDto> response = restTemplate.exchange(baseUrl + "/" + pbaCode, HttpMethod.GET, entity, AccountDto.class);
-            return response.getBody();
+            String accessToken = liberataRealTimeAPI.getValidToken().getAccessToken();
+            return liberataRealTimeAPI.getAccountDetails(accessToken, pbaCode);
         });
     }
 }
