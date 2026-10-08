@@ -23,8 +23,9 @@ public class LiberataAccountData {
     @JsonProperty("pba_reference")
     private String pbaReference;
 
-//    @JsonProperty("account_name")
-//    Spec specifies account_name, but Test API returns trading_name....
+/*  @JsonProperty("account_name")
+    Spec specifies account_name, but Test API returns trading_name.... */
+
     @JsonProperty("trading_name")
     private String tradingName;
 

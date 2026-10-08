@@ -89,7 +89,7 @@ public class LiberataRealTimeAPI {
         val request = new HttpEntity<Void>(headers);
 
         try {
-            // baseUrl should really include the environment-specific path (e.g.pba-api-v2-uat)??
+            // As above, baseUrl should really include the environment-specific path (e.g.pba-api-v2-uat)??
             val response = liberataRestTemplate.exchange(
                 baseUrl + "/pba-api-v2-uat/api/account/" + pbaCode,
                 HttpMethod.GET,

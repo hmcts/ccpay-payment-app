@@ -19,9 +19,9 @@ def versions = [
 ]
 
 java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
-    }
+  toolchain {
+    languageVersion = JavaLanguageVersion.of(21)
+  }
 }
 
 dependencies{
@@ -170,7 +170,7 @@ subprojects {
 
     test {
         jvmArgs = [
-                '--add-opens', 'java.base/java.lang=ALL-UNNAMED'
+            '--add-opens', 'java.base/java.lang=ALL-UNNAMED'
         ]
     }
 }
@@ -269,7 +269,7 @@ sonarqube {
 project.tasks['sonarqube'].dependsOn codeCoverageReport
 
 tasks.withType(JavaExec).configureEach {
-    javaLauncher.set(javaToolchains.launcherFor(java.toolchain))
+  javaLauncher.set(javaToolchains.launcherFor(java.toolchain))
 }
 
 tasks.register('smoke') {
