@@ -1,6 +1,5 @@
 package uk.gov.hmcts.payment.api.dto.mapper;
 
-import com.google.common.collect.Streams;
 import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -114,9 +113,15 @@ public class PaymentGroupDtoMapper {
     }
     //added missing pba account details
     private PaymentDto toPaymentDto(Payment payment) {
+
+        final var  fees = (payment.getPaymentLink() != null && payment.getPaymentLink().getFees() != null)
+            ? toFeeDtos(payment.getPaymentLink().getFees())
+            : new ArrayList<FeeDto>();
+
         return PaymentDto.payment2DtoWith()
             .reference(payment.getReference())
             .amount(payment.getAmount())
+            .fees(fees)
             .currency(CurrencyCode.valueOf(payment.getCurrency()))
             .caseReference(payment.getCaseReference())
             .ccdCaseNumber(payment.getCcdCaseNumber())
@@ -311,22 +316,22 @@ public class PaymentGroupDtoMapper {
         return disputeDTOs;
     }
 
+
     public PaymentGroupDto calculateOverallBalance(PaymentGroupDto paymentGroupDto){
 
         if (paymentGroupDto.getRemissions() == null || paymentGroupDto.getPayments() == null || paymentGroupDto.getFees() == null) {
             return paymentGroupDto;
         }
-        final var remissions= paymentGroupDto.getRemissions().iterator();
-        final var payments= paymentGroupDto.getPayments().iterator();
-        final var fees= paymentGroupDto.getFees().iterator();
+        final var remissions = paymentGroupDto.getRemissions().iterator();
         final var isACollectionOfFess = isACollectionOfFess(paymentGroupDto.getFees());
 
-        while (remissions.hasNext() && payments.hasNext() && fees.hasNext()) {
+        while (remissions.hasNext() ) {
+
             final var remission = remissions.next();
-            remission.setOverallBalance(
-                payments.next().getAmount().subtract(
-                    fees.next().getCalculatedAmount().subtract(remission.getHwfAmount())
-                ));
+            final var fee = findFeeByCode(paymentGroupDto.getFees(), remission.getFeeCode());
+            final var totalPayments = findPaymentTotalAmountByFeeCode( paymentGroupDto.getPayments() ,remission.getFeeCode());
+            final var calculatedFeeAmount = fee.get().getCalculatedAmount().subtract(remission.getHwfAmount());
+            remission.setOverallBalance(totalPayments.subtract(calculatedFeeAmount));
             remission.setACollectionOfFess(isACollectionOfFess);
         }
         return paymentGroupDto;
@@ -334,5 +339,19 @@ public class PaymentGroupDtoMapper {
 
     private boolean isACollectionOfFess(List<FeeDto> fees){
         return fees.size() > 1;
+    }
+
+    private Optional<FeeDto> findFeeByCode(List<FeeDto> fees, String feeCode) {
+        return fees.stream()
+            .filter(f -> feeCode.equals(f.getCode()))
+            .findFirst();
+    }
+
+    private BigDecimal findPaymentTotalAmountByFeeCode(List<PaymentDto> payments, String feeCode) {
+
+        final var filteredPayments = payments.stream() .filter(p -> p.getFees() != null && p.getFees().stream().anyMatch(f -> feeCode.equals(f.getCode())))
+            .collect(Collectors.toList());
+
+        return filteredPayments.stream().map(p -> p.getAmount()).collect(Collectors.reducing(BigDecimal.ZERO, BigDecimal::add));
     }
 }

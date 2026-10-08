@@ -1,5 +1,7 @@
 package uk.gov.hmcts.payment.api.controllers;
 
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
+
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -76,6 +78,7 @@ public class PaymentRecordController {
         @ApiResponse(responseCode = "400", description = "Payment creation failed"),
         @ApiResponse(responseCode = "422", description = "Invalid or missing attribute")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @RequestMapping(value = "/payment-records", method = POST)
     @ResponseBody
     public ResponseEntity<PaymentDto> recordPayment(@Valid @RequestBody PaymentRecordRequest paymentRecordRequest) throws CheckDigitException {

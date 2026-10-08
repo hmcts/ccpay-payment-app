@@ -26,7 +26,6 @@ import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.TelephonyCardPaymentsRequest;
-import uk.gov.hmcts.payment.api.contract.TelephonyPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
@@ -74,7 +73,6 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
-import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "componenttest", "mockcallbackservice"})
@@ -94,19 +92,6 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
     @Autowired
     protected PaymentDbBackdoor db;
     RestActions restActions;
-    OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
-        .serviceCode("AA001")
-        .serviceDescription("DIVORCE")
-        .build();
-    TelephonyPaymentRequest telephonyPaymentRequest = TelephonyPaymentRequest.createTelephonyPaymentRequestDtoWith()
-        .amount(new BigDecimal("101.99"))
-        .currency(CurrencyCode.GBP)
-        .description("Test cross field validation")
-        .caseType("tax_exception")
-        .ccdCaseNumber("1234123412341234")
-        .provider("pci pal")
-        .channel("telephony")
-        .build();
     MockMvc mvc;
     @Autowired
     private WebApplicationContext webApplicationContext;
@@ -165,10 +150,10 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
 
         PaymentsResponse response = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentsResponse.class);
         List<PaymentDto> payments = response.getPayments();
-        assertThat(payments).hasSize(1);
-        assertEquals(payments.get(0).getPaymentReference(), paymentReference);
-        assertThat("success".equalsIgnoreCase(payments.get(0).getStatus()));
 
+        assertThat(payments).hasSize(1);
+        assertThat(payments.getFirst().getPaymentReference()).isEqualTo(paymentReference);
+        assertThat(payments.getFirst().getStatus()).isEqualToIgnoringCase("success");
     }
 
     @Test
@@ -227,7 +212,7 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
             .build();
         PaymentFee fee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("550.00")).version("1").code("FEE0123").build();
 
-        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2019-15186162099").payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        PaymentFeeLink paymentFeeLink = db.create(PaymentFeeLink.paymentFeeLinkWith().paymentReference("2019-15186162099").payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);
 
         Payment savedPayment = paymentFeeLink.getPayments().get(0);
@@ -315,8 +300,6 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
     @Test
     public void updateTelephonyPaymentStatusWithSuccess_Apportionment() throws Exception {
 
-        //String ccdCaseNumber = "1234567890123456";
-
         String ccdCaseNumber = "123456789012" + String.format("%04d", new Random().nextInt(10000));
 
         when(featureToggler.getBooleanValue("pci-pal-antenna-feature", false)).thenReturn(true);
@@ -392,7 +375,6 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
     @Test
     public void updateTelephonyPaymentStatusWithFailed_Apportionment() throws Exception {
 
-        //String ccdCaseNumber = "1234567890123456";
         String ccdCaseNumber = "123456789012" + String.format("%04d", new Random().nextInt(10000));
 
         when(featureToggler.getBooleanValue("pci-pal-antenna-feature", false)).thenReturn(true);

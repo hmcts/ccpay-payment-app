@@ -1,5 +1,7 @@
 package uk.gov.hmcts.payment.api.controllers;
 
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -69,6 +71,7 @@ public class FeePayApportionController {
         @ApiResponse(responseCode = "403", description = "Payment info forbidden"),
         @ApiResponse(responseCode = "404", description = "Payment not found")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @GetMapping(value = "/payment-groups/fee-pay-apportion/{paymentreference}")
     public ResponseEntity<PaymentGroupDto> retrieveApportionDetails(@PathVariable("paymentreference") String paymentReference,@RequestHeader(required = false) MultiValueMap<String, String> headers) {
         LOG.info("Invoking GET API retrieveApportionDetails in FeePayApportionController {}", paymentReference);

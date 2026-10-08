@@ -567,7 +567,9 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
             }
         } catch (Exception e) {
             LOG.error("Error sending message to topic for case {} : {}", serviceRequestDto.getCcdCaseNumber(), e.getMessage());
-            Thread.currentThread().interrupt();
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
         }
     }
 
@@ -602,7 +604,9 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
             }
         } catch (Exception e) {
             LOG.error("Error sending message to topic: {}", e.getMessage(), e);
-            Thread.currentThread().interrupt();
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
         }
     }
 

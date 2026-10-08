@@ -1,5 +1,7 @@
 package uk.gov.hmcts.payment.api.controllers;
 
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
+
     import com.fasterxml.jackson.core.JsonProcessingException;
     import com.fasterxml.jackson.databind.ObjectMapper;
     import com.fasterxml.jackson.databind.ObjectWriter;
@@ -120,6 +122,7 @@ public class ServiceRequestController {
         @ApiResponse(responseCode = "504", description = "Unable to retrieve service information. Please try again later"),
         @ApiResponse(responseCode = "500", description = "Internal Server")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @PostMapping(value = "/service-request")
     @Transactional
     @ResponseStatus(HttpStatus.CREATED)
@@ -160,6 +163,7 @@ public class ServiceRequestController {
         @ApiResponse(responseCode = "417", description = "The amount should be equal to serviceRequest balance"),
         @ApiResponse(responseCode = "422", description = "Invalid or missing attribute"),
     })
+    @RateLimiter(name = "default-rate-limiter")
     @PostMapping(value = "/service-request/{service-request-reference}/pba-payments")
     @ResponseBody
     @ResponseStatus(HttpStatus.CREATED)
@@ -285,6 +289,7 @@ public class ServiceRequestController {
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Dead letter queue processed")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @PatchMapping(value = "/jobs/dead-letter-queue-process")
     @Transactional
     public void receiveDeadLetterQueueMessage() throws ServiceBusException, InterruptedException, IOException {
@@ -308,6 +313,7 @@ public class ServiceRequestController {
         @ApiResponse(responseCode = "500", description = "Internal server error"),
         @ApiResponse(responseCode = "504", description = "Unable to connect to online card payment provider, please try again later"),
     })
+    @RateLimiter(name = "default-rate-limiter")
     @PostMapping(value = "/service-request/{service-request-reference}/card-payments")
     @ResponseBody
     @ResponseStatus(HttpStatus.CREATED)
@@ -327,6 +333,7 @@ public class ServiceRequestController {
         @ApiResponse(responseCode = "404", description = "Internal reference not found"),
     })
     @PaymentExternalAPI
+    @RateLimiter(name = "default-rate-limiter")
     @GetMapping(value = "/card-payments/{internal-reference}/status")
     public PaymentDto retrieveStatusByInternalReference(@PathVariable("internal-reference") String internalReference) throws JsonProcessingException {
         LOG.info("Entered /card-payments/{internal-reference}/status using internalReference: {}", internalReference);

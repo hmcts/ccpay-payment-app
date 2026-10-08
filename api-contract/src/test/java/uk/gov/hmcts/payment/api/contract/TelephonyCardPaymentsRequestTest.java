@@ -14,8 +14,7 @@ import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import java.math.BigDecimal;
 import java.util.Set;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class TelephonyCardPaymentsRequestTest {
     private static ValidatorFactory validatorFactory;
@@ -32,6 +31,12 @@ public class TelephonyCardPaymentsRequestTest {
         validatorFactory.close();
     }
 
+    private static Set<ConstraintViolation<TelephonyCardPaymentsRequest>> violationsForAmount(String amount) {
+        TelephonyCardPaymentsRequest request = new TelephonyCardPaymentsRequest();
+        request.setAmount(new BigDecimal(amount));
+        return validator.validateProperty(request, "amount");
+    }
+
     @Test
     public void testValidRequest() {
         TelephonyCardPaymentsRequest request = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
@@ -43,14 +48,35 @@ public class TelephonyCardPaymentsRequestTest {
             .telephonySystem("KERV")
             .build();
 
-        Set<ConstraintViolation<TelephonyCardPaymentsRequest>> violations = validator.validate(request);
-        assertEquals(0, violations.size());
+        assertThat(validator.validate(request)).isEmpty();
+    }
+
+    @Test
+    public void testAmountWithTwoDecimalPlacesIsValid() {
+        assertThat(violationsForAmount("2176.64")).isEmpty();
+    }
+
+    @Test
+    public void testAmountWithZeroDecimalPlacesIsValid() {
+        assertThat(violationsForAmount("2176")).isEmpty();
+    }
+
+    @Test
+    public void testAmountWithOneDecimalPlaceIsValid() {
+        assertThat(violationsForAmount("2176.6")).isEmpty();
     }
 
     @Test
     public void testInvalidAmount() {
+        assertThat(violationsForAmount("-2176.64"))
+            .extracting(ConstraintViolation::getMessage)
+            .containsExactlyInAnyOrder("must be greater than 0", "must be greater than or equal to 0.01");
+    }
+
+    @Test
+    public void testAmountWithMoreThanTwoDecimalPlaces() {
         TelephonyCardPaymentsRequest request = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
-            .amount(BigDecimal.valueOf(-1))
+            .amount(new BigDecimal("2176.6400000000003"))
             .ccdCaseNumber("1234567890123456")
             .caseType("case-type")
             .currency(CurrencyCode.GBP)
@@ -58,9 +84,10 @@ public class TelephonyCardPaymentsRequestTest {
             .telephonySystem("KERV")
             .build();
 
-        Set<ConstraintViolation<TelephonyCardPaymentsRequest>> violations = validator.validate(request);
-        assertEquals(2, violations.size());
-        assertTrue(violations.iterator().next().getMessage().contains("must be greater than"));
+        assertThat(validator.validate(request))
+            .hasSize(1)
+            .extracting(ConstraintViolation::getMessage)
+            .containsExactly("Payment amount cannot have more than 2 decimal places");
     }
 
     @Test
@@ -74,9 +101,10 @@ public class TelephonyCardPaymentsRequestTest {
             .telephonySystem("KERV")
             .build();
 
-        Set<ConstraintViolation<TelephonyCardPaymentsRequest>> violations = validator.validate(request);
-        assertEquals(1, violations.size());
-        assertEquals("ccd_case_number length must be 16 digits", violations.iterator().next().getMessage());
+        assertThat(validator.validate(request))
+            .hasSize(1)
+            .extracting(ConstraintViolation::getMessage)
+            .containsExactly("ccd_case_number length must be 16 digits");
     }
 
     @Test
@@ -90,9 +118,10 @@ public class TelephonyCardPaymentsRequestTest {
             .telephonySystem("KERV")
             .build();
 
-        Set<ConstraintViolation<TelephonyCardPaymentsRequest>> violations = validator.validate(request);
-        assertEquals(1, violations.size());
-        assertEquals("must not be blank", violations.iterator().next().getMessage());
+        assertThat(validator.validate(request))
+            .hasSize(1)
+            .extracting(ConstraintViolation::getMessage)
+            .containsExactly("must not be blank");
     }
 
     @Test
@@ -106,9 +135,10 @@ public class TelephonyCardPaymentsRequestTest {
             .telephonySystem("KERV")
             .build();
 
-        Set<ConstraintViolation<TelephonyCardPaymentsRequest>> violations = validator.validate(request);
-        assertEquals(1, violations.size());
-        assertEquals("must not be null", violations.iterator().next().getMessage());
+        assertThat(validator.validate(request))
+            .hasSize(1)
+            .extracting(ConstraintViolation::getMessage)
+            .containsExactly("must not be null");
     }
 
     @Test
@@ -122,8 +152,9 @@ public class TelephonyCardPaymentsRequestTest {
             .telephonySystem("KERV")
             .build();
 
-        Set<ConstraintViolation<TelephonyCardPaymentsRequest>> violations = validator.validate(request);
-        assertEquals(1, violations.size());
-        assertEquals("must not be empty", violations.iterator().next().getMessage());
+        assertThat(validator.validate(request))
+            .hasSize(1)
+            .extracting(ConstraintViolation::getMessage)
+            .containsExactly("must not be empty");
     }
 }

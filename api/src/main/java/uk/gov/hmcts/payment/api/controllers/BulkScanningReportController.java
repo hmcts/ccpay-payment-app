@@ -1,5 +1,7 @@
 package uk.gov.hmcts.payment.api.controllers;
 
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -46,6 +48,7 @@ public class BulkScanningReportController {
         @ApiResponse(responseCode = "404", description = "No Data found to generate Report")
     })
 
+    @RateLimiter(name = "default-rate-limiter")
     @GetMapping("/payment/bulkscan-data-report")
     public ResponseEntity<List<?>> getBulkScanReports(
         @RequestParam("date_from") Date fromDate,
