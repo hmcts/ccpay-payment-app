@@ -283,6 +283,9 @@ task providerContractTest(type: Test) {
         systemProperty 'pact.verifier.publishResults', project.property('pact.verifier.publishResults')
     }
     systemProperty 'pact.provider.version', project.pactVersion
+    // Provider verification publishes to the broker as a side-effect, so never skip/cached execution.
+    outputs.upToDateWhen { false }
+    outputs.cacheIf { false }
 
 }
 
@@ -300,7 +303,6 @@ runAndPublishConsumerPactTests.finalizedBy pactPublish
 
 runProviderPactVerification.dependsOn providerContractTest
 
-runProviderPactVerification.finalizedBy pactVerify
 
 serenity {
     reports = ["single-page-html"]
