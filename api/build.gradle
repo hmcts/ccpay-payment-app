@@ -241,13 +241,7 @@ task functionalTest(type: Test, description: 'Runs the functional tests', group:
 functionalTest.finalizedBy(aggregate)
 tasks.named('aggregate') {
     onlyIf {
-        def requestedTasks = gradle.startParameter.taskNames
-        requestedTasks.any { name ->
-            name == 'functionalTest' || name.endsWith(':functionalTest')
-                || name == 'aggregate' || name.endsWith(':aggregate')
-                || name == 'reports' || name.endsWith(':reports')
-                || name == 'checkOutcomes' || name.endsWith(':checkOutcomes')
-        }
+        gradle.taskGraph.hasTask(functionalTest)
     }
 }
 
