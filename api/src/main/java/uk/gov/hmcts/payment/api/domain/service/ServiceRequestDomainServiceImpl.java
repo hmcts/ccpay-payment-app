@@ -199,9 +199,11 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     }
 
     @Override
+    @Transactional
     public ResponseEntity<OnlineCardPaymentResponse> create(OnlineCardPaymentRequest onlineCardPaymentRequest, String serviceRequestReference, String returnUrl, String serviceCallbackURL) throws CheckDigitException {
-        // Find service request
-        PaymentFeeLink serviceRequest = paymentFeeLinkRepository.findByPaymentReference(serviceRequestReference).orElseThrow(() -> new ServiceRequestReferenceNotFoundException("Order reference doesn't exist"));
+        // Serialize payment creation for this service request across all application instances.
+        PaymentFeeLink serviceRequest = paymentFeeLinkRepository.findByPaymentReferenceForUpdate(serviceRequestReference)
+            .orElseThrow(() -> new ServiceRequestReferenceNotFoundException("Order reference doesn't exist"));
 
         LOG.info("returnURL {}",returnUrl);
 
@@ -217,8 +219,12 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
             return new ResponseEntity<>(headers, HttpStatus.FOUND);
         }
 
-        // If exist, will cancel existing payment channel session with gov pay
-        checkOnlinePaymentAlreadyExistWithCreatedState(serviceRequest);
+        // Do not replace an active payment. Return it so retries can continue the existing payment session.
+        Optional<OnlineCardPaymentResponse> activePayment = findActiveOnlineCardPayment(serviceRequest);
+        if (activePayment.isPresent()) {
+            LOG.warn("An active card payment already exists for service request {}", serviceRequestReference);
+            return new ResponseEntity<>(activePayment.get(), HttpStatus.OK);
+        }
 
         // Payment - Boundary Object
         ServiceRequestOnlinePaymentBo requestOnlinePaymentBo = serviceRequestDtoDomainMapper.toDomain(onlineCardPaymentRequest, returnUrl, serviceCallbackURL);
@@ -426,7 +432,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         return false;
     }
 
-    private void checkOnlinePaymentAlreadyExistWithCreatedState(PaymentFeeLink paymentFeeLink) {
+    private Optional<OnlineCardPaymentResponse> findActiveOnlineCardPayment(PaymentFeeLink paymentFeeLink) {
 
         // Already created state payment existed, then cancel gov pay section present
         Date ninetyMinAgo = new Date(System.currentTimeMillis() - 90 * 60 * 1000);
@@ -436,11 +442,22 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
                 && payment.getDateCreated().compareTo(ninetyMinAgo) >= 0).max(Comparator.comparing(Payment::getDateCreated));
 
         if (existingPayment.isPresent()) {
-            GovPayPayment payment = delegateGovPay.retrieve(existingPayment.get().getExternalReference());
-            if (canCancelPayment(payment)) {
-                delegatingPaymentService.cancel(existingPayment.get(), paymentFeeLink.getCcdCaseNumber(), paymentFeeLink.getEnterpriseServiceName());
+            Payment payment = existingPayment.get();
+            GovPayPayment govPayPayment = delegateGovPay.retrieve(payment.getExternalReference());
+            if (canCancelPayment(govPayPayment)) {
+                String nextUrl = govPayPayment.getLinks().getNextUrl() == null
+                    ? null : govPayPayment.getLinks().getNextUrl().getHref();
+                return Optional.of(OnlineCardPaymentResponse.onlineCardPaymentResponseWith()
+                    .dateCreated(payment.getDateCreated())
+                    .externalReference(payment.getExternalReference())
+                    .nextUrl(nextUrl)
+                    .paymentReference(payment.getReference())
+                    .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus())
+                    .build());
             }
         }
+
+        return Optional.empty();
     }
 
     public ResponseEntity createIdempotencyRecord(ObjectMapper objectMapper, String idempotencyKey, String serviceRequestReference,
