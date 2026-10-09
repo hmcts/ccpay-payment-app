@@ -242,12 +242,14 @@ functionalTest.finalizedBy(aggregate)
 tasks.named('aggregate') {
     onlyIf {
         def requestedTasks = gradle.startParameter.taskNames
-        requestedTasks.any { name ->
+        def explicitlyRequested = requestedTasks.any { name ->
             name == 'functionalTest' || name.endsWith(':functionalTest')
                 || name == 'aggregate' || name.endsWith(':aggregate')
                 || name == 'reports' || name.endsWith(':reports')
                 || name == 'checkOutcomes' || name.endsWith(':checkOutcomes')
         }
+        // Include cases where functionalTest is reached via an aggregate/root task (for example nightly jobs).
+        explicitlyRequested || gradle.taskGraph.hasTask(functionalTest)
     }
 }
 
