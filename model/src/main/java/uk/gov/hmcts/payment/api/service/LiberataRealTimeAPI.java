@@ -103,7 +103,7 @@ public class LiberataRealTimeAPI {
              return getPaymentAccountResponseError(httpClientErrorException);
         } catch (Exception exception) {
             LOG.error("Error posting payment to Liberata: {}", exception.getMessage(), exception);
-            throw new RuntimeException("Error posting payment to Liberata: " + exception.getMessage(), exception);
+            throw new LiberataIdentityException("Error posting payment to Liberata: " + exception.getMessage(), exception);
         }
     }
 
