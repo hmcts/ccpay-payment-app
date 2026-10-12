@@ -39,11 +39,8 @@ class AccountProviderTest {
 
     private static final String DATE_TIME_FORMAT_T_HH_MM_SS_SSS = "yyyy-MM-dd'T'HH:mm:ss.SSS";
 
-    // Most consumers are pinned to their master tagged version. pcs_api does not tag master (its pacts
-    // are published against feature branches), so for pcs_api the latest version on any branch is
-    // verified instead. Without this nothing selects the pcs_api pact, leaving its consumer
-    // "can I deploy" check with no verification to rely on.
-    // See DTSPO-35311 / DTSPO-34578.
+    // Pacts are pinned to the master tagged version of every consumer, as before, except for pcs_api
+    // which additionally has any branch as requested in PAY-9142.
     @PactBrokerConsumerVersionSelectors
     public static SelectorBuilder pactSelectors() {
         return new SelectorBuilder()
