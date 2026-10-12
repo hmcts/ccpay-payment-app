@@ -6,7 +6,8 @@ import au.com.dius.pact.provider.junitsupport.IgnoreNoPactsToVerify;
 import au.com.dius.pact.provider.junitsupport.Provider;
 import au.com.dius.pact.provider.junitsupport.State;
 import au.com.dius.pact.provider.junitsupport.loader.PactBroker;
-import au.com.dius.pact.provider.junitsupport.loader.VersionSelector;
+import au.com.dius.pact.provider.junitsupport.loader.PactBrokerConsumerVersionSelectors;
+import au.com.dius.pact.provider.junitsupport.loader.SelectorBuilder;
 import au.com.dius.pact.provider.spring.junit5.MockMvcTestTarget;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestTemplate;
@@ -31,13 +32,32 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
 @Provider("payment_accounts")
-@PactBroker(scheme = "${PACT_BROKER_SCHEME:http}", host = "${PACT_BROKER_URL:localhost}", port = "${PACT_BROKER_PORT:80}", consumerVersionSelectors = {
-    @VersionSelector(tag = "master")})
+@PactBroker(scheme = "${PACT_BROKER_SCHEME:http}", host = "${PACT_BROKER_URL:localhost}", port = "${PACT_BROKER_PORT:80}")
 @Import({CreditAccountPaymentProviderTestConfiguration.class, ServiceRequestProviderTestConfiguration.class})
 @IgnoreNoPactsToVerify
 class AccountProviderTest {
 
     private static final String DATE_TIME_FORMAT_T_HH_MM_SS_SSS = "yyyy-MM-dd'T'HH:mm:ss.SSS";
+
+    // Pacts are pinned to the master tagged version of every consumer, as before, except that pcs_api
+    // additionally has any deployed or released version verified. A consumer PR branch is not tagged
+    // master, so its pact would otherwise never be verified before the consumer "can I deploy" check runs.
+    // See DTSPO-35311 / DTSPO-34578.
+    @PactBrokerConsumerVersionSelectors
+    public static SelectorBuilder pactSelectors() {
+        return new SelectorBuilder()
+            .rawSelectorJson("{\"tag\":\"master\",\"latest\":true}")
+            .rawSelectorJson(deployedOrReleasedSelector("pcs_api"));
+    }
+
+    private static String deployedOrReleasedSelector(String consumer) {
+        return """
+        {
+          "consumer": "%s",
+          "deployedOrReleased": true
+        }
+        """.formatted(consumer);
+    }
 
     @Value("${PACT_BRANCH_NAME}")
     String branchName;
