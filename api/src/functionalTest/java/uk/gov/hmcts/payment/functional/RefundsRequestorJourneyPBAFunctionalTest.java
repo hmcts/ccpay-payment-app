@@ -297,7 +297,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
             .aPbaPaymentRequestForProbateSinglePaymentFor2Fees("640.00",
                 "PROBATE", accountNumber,
-                "FEE0001", "90.00", "FEE002", "550.00");
+                "FEE0001", "90.00", "FEE0002", "550.00");
 
         String ccdCaseNumber = accountPaymentRequest.getCcdCaseNumber();
 
@@ -1821,7 +1821,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
             .aPbaPaymentRequestForProbateSinglePaymentFor2Fees("640.00",
                 "PROBATE", accountNumber,
-                "FEE0001", "90.00", "FEE002", "550.00");
+                "FEE0001", "90.00", "FEE0002", "550.00");
 
         String ccdCaseNumber = accountPaymentRequest.getCcdCaseNumber();
 
