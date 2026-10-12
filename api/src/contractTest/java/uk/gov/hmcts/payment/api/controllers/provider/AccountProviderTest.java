@@ -39,24 +39,17 @@ class AccountProviderTest {
 
     private static final String DATE_TIME_FORMAT_T_HH_MM_SS_SSS = "yyyy-MM-dd'T'HH:mm:ss.SSS";
 
-    // Pacts are pinned to the master tagged version of every consumer, as before, except that pcs_api
-    // additionally has any deployed or released version verified. A consumer PR branch is not tagged
-    // master, so its pact would otherwise never be verified before the consumer "can I deploy" check runs.
-    // See DTSPO-35311 / DTSPO-34578.
+    // Pacts are pinned to the master tagged version of every consumer, as before, except for pcs_api
+    // which additionally has any branch as requested in PAY-9142.
     @PactBrokerConsumerVersionSelectors
     public static SelectorBuilder pactSelectors() {
         return new SelectorBuilder()
             .rawSelectorJson("{\"tag\":\"master\",\"latest\":true}")
-            .rawSelectorJson(deployedOrReleasedSelector("pcs_api"));
+            .rawSelectorJson(latestSelector("pcs_api"));
     }
 
-    private static String deployedOrReleasedSelector(String consumer) {
-        return """
-        {
-          "consumer": "%s",
-          "deployedOrReleased": true
-        }
-        """.formatted(consumer);
+    private static String latestSelector(String consumer) {
+        return "{\"consumer\":\"" + consumer + "\",\"latest\":true}";
     }
 
     @Value("${PACT_BRANCH_NAME}")

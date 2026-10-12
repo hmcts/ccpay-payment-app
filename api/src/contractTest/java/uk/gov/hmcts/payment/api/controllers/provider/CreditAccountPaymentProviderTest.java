@@ -57,10 +57,10 @@ class CreditAccountPaymentProviderTest {
     private static final String ACCOUNT_NAME_KEY = "accountName";
     private static final String AVAILABLE_BALANCE_KEY = "availableBalance";
 
-    // Pacts are pinned to the master tagged version of each consumer, as before, except for
-    // fpl_ccdConfiguration which additionally has any deployed or released version verified.
-    // A consumer PR branch is not tagged master, so its pact would otherwise never be verified before the
-    // consumer "can I deploy" check runs, which fails the fpl PR build with no verified pact.
+    // Most consumers are pinned to their master tagged version. fpl_ccdConfiguration does not tag master
+    // (its pacts are published against feature branches), so the latest version on any branch is verified
+    // instead. Without this nothing selects its pact, leaving the consumer "can I deploy" check with no
+    // verification to rely on.
     // See DTSPO-35311 / DTSPO-34578.
     @PactBrokerConsumerVersionSelectors
     public static SelectorBuilder pactSelectors() {
@@ -72,20 +72,15 @@ class CreditAccountPaymentProviderTest {
             .rawSelectorJson(masterSelector("ia_casePaymentsApi"))
             .rawSelectorJson(masterSelector("probate_backOffice"))
             .rawSelectorJson(masterSelector("fpl_ccdConfiguration"))
-            .rawSelectorJson(deployedOrReleasedSelector("fpl_ccdConfiguration"));
+            .rawSelectorJson(latestSelector("fpl_ccdConfiguration"));
     }
 
     private static String masterSelector(String consumer) {
         return "{\"consumer\":\"" + consumer + "\",\"tag\":\"master\",\"latest\":true}";
     }
 
-    private static String deployedOrReleasedSelector(String consumer) {
-        return """
-        {
-          "consumer": "%s",
-          "deployedOrReleased": true
-        }
-        """.formatted(consumer);
+    private static String latestSelector(String consumer) {
+        return "{\"consumer\":\"" + consumer + "\",\"latest\":true}";
     }
 
     @Autowired
