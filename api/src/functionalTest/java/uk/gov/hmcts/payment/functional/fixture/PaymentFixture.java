@@ -360,7 +360,7 @@ public class PaymentFixture {
                 FeeDto.feeDtoWith()
                     .calculatedAmount(new BigDecimal(feeAmount2))
                     .code(feeCode2)
-                    .version("1")
+                    .version("5")
                     .build())
             )
             .build();
