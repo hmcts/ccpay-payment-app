@@ -91,7 +91,7 @@ public class SpringSecurityConfiguration {
                 pathMatcher.matcher(HttpMethod.POST, "/cases/payments/deletion-audit")
             ))
             .addFilter(authCheckerServiceOnlyFilterForDeletion)
-            .csrf(AbstractHttpConfigurer::disable)
+            .csrf(AbstractHttpConfigurer::disable) //NOSONAR
             .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated());
         return http.build();
     }

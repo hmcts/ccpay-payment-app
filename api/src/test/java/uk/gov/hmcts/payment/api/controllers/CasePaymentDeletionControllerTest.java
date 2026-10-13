@@ -19,7 +19,6 @@ import uk.gov.hmcts.payment.api.service.PaymentService;
 
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -78,9 +77,9 @@ class CasePaymentDeletionControllerTest {
         var order = inOrder(barPaymentDeletionService, casePaymentDeletionService, paymentDeletionAuditService);
         order.verify(barPaymentDeletionService).deleteBarPaymentsByCcdCaseNumber(CCD_CASE_NUMBER);
         order.verify(casePaymentDeletionService).deletePaymentsByCcdCaseNumber(CCD_CASE_NUMBER);
-        order.verify(paymentDeletionAuditService).recordDeletionAudits(eq(List.of(
+        order.verify(paymentDeletionAuditService).recordDeletionAudits(List.of(
             new PaymentDeletionAuditDetails(CCD_CASE_NUMBER, "Payment Disposer", null, true)
-        )));
+        ));
     }
 
     @Test
@@ -95,9 +94,9 @@ class CasePaymentDeletionControllerTest {
                     + "}]"))
             .andExpect(status().isCreated());
 
-        verify(paymentDeletionAuditService).recordDeletionAudits(eq(List.of(
+        verify(paymentDeletionAuditService).recordDeletionAudits(List.of(
             new PaymentDeletionAuditDetails(
                 CCD_CASE_NUMBER, "Payment Disposer", "Exception message", false)
-        )));
+        ));
     }
 }

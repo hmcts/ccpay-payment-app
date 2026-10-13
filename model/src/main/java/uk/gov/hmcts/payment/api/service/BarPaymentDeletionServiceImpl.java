@@ -8,6 +8,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.hmcts.payment.api.util.LogSanitizer;
 
 import java.util.List;
 
@@ -27,7 +28,7 @@ public class BarPaymentDeletionServiceImpl implements BarPaymentDeletionService 
     @Override
     @Transactional(transactionManager = "barTransactionManager")
     public void deleteBarPaymentsByCcdCaseNumber(String ccdCaseNumber) {
-        LOG.info("Deleting Digital BAR payment data for case reference: {}", ccdCaseNumber);
+        LOG.info("Deleting Digital BAR payment data for case reference: {}", LogSanitizer.sanitize(ccdCaseNumber));
 
         List<Integer> paymentInstructionIds = barJdbcTemplate.queryForList(
             "SELECT DISTINCT payment_instruction_id FROM case_fee_detail WHERE case_reference = ?",
@@ -36,7 +37,8 @@ public class BarPaymentDeletionServiceImpl implements BarPaymentDeletionService 
         );
 
         if (paymentInstructionIds.isEmpty()) {
-            LOG.info("No Digital BAR payment instructions found for case reference: {}", ccdCaseNumber);
+            LOG.info("No Digital BAR payment instructions found for case reference: {}",
+                LogSanitizer.sanitize(ccdCaseNumber));
             return;
         }
 
@@ -66,7 +68,7 @@ public class BarPaymentDeletionServiceImpl implements BarPaymentDeletionService 
 
         LOG.info(
             "Completed Digital BAR payment deletion for case reference: {} ({} payment instruction(s))",
-            ccdCaseNumber,
+            LogSanitizer.sanitize(ccdCaseNumber),
             paymentInstructionIds.size()
         );
     }

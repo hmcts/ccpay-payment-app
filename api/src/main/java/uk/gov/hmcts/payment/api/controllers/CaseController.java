@@ -42,6 +42,7 @@ import uk.gov.hmcts.payment.api.service.PaymentGroupService;
 import uk.gov.hmcts.payment.api.service.PaymentRefundsService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.service.RefundRemissionEnableService;
+import uk.gov.hmcts.payment.api.util.LogSanitizer;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentGroupNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
@@ -128,7 +129,8 @@ public class CaseController {
     @PaymentExternalAPI
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteCasePayments(@PathVariable(name = "ccd-case-number") String ccdCaseNumber) {
-        LOG.info("Received request to delete payments for CCD case number: {}", ccdCaseNumber);
+        LOG.info("Received request to delete payments for CCD case number: {}",
+            LogSanitizer.sanitize(ccdCaseNumber));
         barPaymentDeletionService.deleteBarPaymentsByCcdCaseNumber(ccdCaseNumber);
         casePaymentDeletionService.deletePaymentsByCcdCaseNumber(ccdCaseNumber);
         paymentDeletionAuditService.recordDeletionAudits(List.of(
