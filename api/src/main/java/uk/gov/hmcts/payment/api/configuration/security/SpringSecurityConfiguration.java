@@ -13,6 +13,8 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import uk.gov.hmcts.reform.auth.checker.core.RequestAuthorizer;
 import uk.gov.hmcts.reform.auth.checker.core.service.Service;
 import uk.gov.hmcts.reform.auth.checker.core.user.User;
@@ -36,6 +38,7 @@ public class SpringSecurityConfiguration {
     private static final String AUTHORISED_REFUNDS_ROLE = "payments-refund";
     private static final String AUTHORISED_REFUNDS_APPROVER_ROLE = "payments-refund-approver";
     private final AuthCheckerServiceOnlyFilter authCheckerServiceOnlyFilter;
+    private final AuthCheckerServiceOnlyFilter authCheckerServiceOnlyFilterForDeletion;
     private final AuthCheckerServiceAndAnonymousUserFilter authCheckerUserOnlyFilter;
 
     public SpringSecurityConfiguration(
@@ -44,12 +47,15 @@ public class SpringSecurityConfiguration {
     ) {
         authCheckerServiceOnlyFilter = new AuthCheckerServiceOnlyFilter(serviceRequestAuthorizer);
         authCheckerServiceOnlyFilter.setAuthenticationManager(authenticationManager);
-        authCheckerUserOnlyFilter = new AuthCheckerServiceAndAnonymousUserFilter(serviceRequestAuthorizer, userRequestAuthorizer);
+        authCheckerServiceOnlyFilterForDeletion = new AuthCheckerServiceOnlyFilter(serviceRequestAuthorizer);
+        authCheckerServiceOnlyFilterForDeletion.setAuthenticationManager(authenticationManager);
+        authCheckerUserOnlyFilter = new AuthCheckerServiceAndAnonymousUserFilter(
+            serviceRequestAuthorizer, userRequestAuthorizer);
         authCheckerUserOnlyFilter.setAuthenticationManager(authenticationManager);
     }
 
     @Bean
-    @Order(2)
+    @Order(3)
     protected SecurityFilterChain configureExternal(HttpSecurity http) throws Exception {
         http
             .securityMatcher(
@@ -75,7 +81,23 @@ public class SpringSecurityConfiguration {
     }
 
     @Bean
-    @Order(3)
+    @Order(2)
+    protected SecurityFilterChain configureCasePaymentDeletion(HttpSecurity http) throws Exception {
+        // S2S-only deletion / failure-audit endpoints used by Payment Disposer (retain and dispose)
+        PathPatternRequestMatcher.Builder pathMatcher = PathPatternRequestMatcher.withDefaults();
+        http
+            .securityMatcher(new OrRequestMatcher(
+                pathMatcher.matcher(HttpMethod.DELETE, "/cases/*/payments"),
+                pathMatcher.matcher(HttpMethod.POST, "/cases/payments/deletion-audit")
+            ))
+            .addFilter(authCheckerServiceOnlyFilterForDeletion)
+            .csrf(AbstractHttpConfigurer::disable)
+            .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated());
+        return http.build();
+    }
+
+    @Bean
+    @Order(4)
     protected SecurityFilterChain configureInternal(HttpSecurity http) throws Exception {
         http.exceptionHandling(exceptionHandling -> exceptionHandling.accessDeniedHandler(accessDeniedHandler()))
             .addFilter(authCheckerUserOnlyFilter)
