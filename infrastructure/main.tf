@@ -62,6 +62,7 @@ module "payment-database-v15" {
   pgsql_admin_username = var.postgresql_user
 
   # Setup Access for reporting and JiT perms.
+  enable_write_group_access          = true
   force_user_permissions_trigger     = "2"
   enable_db_report_privileges        = true
   kv_subscription                    = var.kv_subscription
