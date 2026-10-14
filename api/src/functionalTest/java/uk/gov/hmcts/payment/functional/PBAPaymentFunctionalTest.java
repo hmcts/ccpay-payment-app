@@ -308,7 +308,7 @@ public class PBAPaymentFunctionalTest {
 
         String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
         String accountNumber = testProps.existingAccountNumber;
-        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequestForCivil("90.00", "DIVORCE");
+        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequestForCivil("90.00", "CMC");
         accountPaymentRequest.setAccountNumber(accountNumber);
         PaymentDto paymentDto = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
@@ -317,7 +317,7 @@ public class PBAPaymentFunctionalTest {
         String endDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
 
         dsl.given().userToken(USER_TOKEN).s2sToken(SERVICE_TOKEN).when()
-            .searchPaymentsByServiceBetweenDates("Divorce", startDate, endDate).then()
+            .searchPaymentsByServiceBetweenDates("Civil Money Claims", startDate, endDate).then()
             .getPayments((paymentsResponse -> {
                 Assertions.assertThat(paymentsResponse.getPayments().size()).isGreaterThanOrEqualTo(1);
                 PaymentDto retrievedPaymentDto = paymentsResponse.getPayments().stream()
