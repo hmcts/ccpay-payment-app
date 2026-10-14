@@ -309,6 +309,11 @@ public class PaymentFixture {
 
     public static CreditAccountPaymentRequest aPbaPaymentRequestForProbateWithFeeCode(
         final String amountString, final String feeCode, final String service, final String pbaAccountNumber, String ccdCaseNumber) {
+        return PaymentFixture.aPbaPaymentRequestForProbateWithFeeCode(amountString, feeCode, service, pbaAccountNumber, ccdCaseNumber, "1");
+    }
+
+    public static CreditAccountPaymentRequest aPbaPaymentRequestForProbateWithFeeCode(
+        final String amountString, final String feeCode, final String service, final String pbaAccountNumber, String ccdCaseNumber, String version) {
         return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
             .amount(new BigDecimal(amountString))
             .description("New passport application")
@@ -324,7 +329,7 @@ public class PaymentFixture {
                 FeeDto.feeDtoWith()
                     .calculatedAmount(new BigDecimal(amountString))
                     .code(feeCode)
-                    .version("1")
+                    .version(version)
                     .build())
             )
             .build();
