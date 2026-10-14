@@ -905,7 +905,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
 
         CreditAccountPaymentRequest accountPaymentRequest2 = PaymentFixture
             .aPbaPaymentRequestForProbateWithFeeCode("550.00", "FEE0002",
-                "PROBATE", accountNumber, ccdCaseNumber);
+                "PROBATE", accountNumber, ccdCaseNumber,"4");
 
         PaymentDto paymentDto1 = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest2).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
@@ -1221,10 +1221,10 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
 
         String accountNumber = testProps.existingAccountNumber;
 
-        // Create a PBA payment
+        // Create a PBA payment where PBA0088878 is a test account with insufficient funds available
         this.add_remisssions_and_add_refund_for_a_failed_payment("350000.00",
-            accountNumber,
-            "Payment request failed. PBA account CAERPHILLY COUNTY BOROUGH COUNCIL have insufficient funds available");
+            "PBA0088878",
+            "Exceeded credit limit.");
     }
 
     @Test
@@ -1233,10 +1233,10 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
 
         String accountNumber = testProps.deletedAccountNumber;
 
-        // Create a PBA payment
+        // Create a PBA payment when PBA0086928 is a test account that has been deleted.
         this.add_remisssions_and_add_refund_for_a_failed_payment("100.00",
-            accountNumber,
-            "Your account is deleted");
+            "PBA0086928",
+            "Account not active.");
     }
 
     @Test
@@ -1245,10 +1245,10 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
 
         String accountNumber = testProps.onHoldAccountNumber;
 
-        // Create a PBA payment
+        // Create a PBA payment when PBA0086940 is a test account with insufficient funds available and is on hold
         this.add_remisssions_and_add_refund_for_a_failed_payment("100.00",
-            accountNumber,
-            "Your account is on hold");
+            "PBA0086940",
+            "Account not active.");
     }
 
     private void add_remisssions_and_add_refund_for_a_failed_payment(final String amount,
