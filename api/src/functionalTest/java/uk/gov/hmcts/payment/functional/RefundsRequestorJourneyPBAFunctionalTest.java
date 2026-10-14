@@ -256,7 +256,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
 
         CreditAccountPaymentRequest accountPaymentRequest2 = PaymentFixture
             .aPbaPaymentRequestForProbateWithFeeCode("550.00", "FEE0002",
-                "PROBATE", "PBAFUNC12345", ccdCaseNumber);
+                "PROBATE", "PBAFUNC12345", ccdCaseNumber,"4");
 
         PaymentDto paymentDto1 = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest2).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);

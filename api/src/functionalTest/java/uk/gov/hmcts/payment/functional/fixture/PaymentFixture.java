@@ -146,6 +146,10 @@ public class PaymentFixture {
 
     public static CreditAccountPaymentRequest aPbaPaymentRequest(String amountString, String service) {
         String ccdCaseNumber = "11113333" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
+        return PaymentFixture.aPbaPaymentRequest(amountString, service, "AA101");
+    }
+    public static CreditAccountPaymentRequest aPbaPaymentRequest(String amountString, String service, String siteId) {
+        String ccdCaseNumber = "11113333" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
         return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
             .amount(new BigDecimal(amountString))
             .description("New passport application")
@@ -153,7 +157,7 @@ public class PaymentFixture {
             .caseReference("aCaseReference")
             .service(service)
             .currency(CurrencyCode.GBP)
-            .siteId("AA101")
+            .siteId(siteId)
             .customerReference("CUST101")
             .organisationName("ORG101")
             .accountNumber("PBAFUNC12345")
