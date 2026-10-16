@@ -19,7 +19,6 @@ import uk.gov.hmcts.payment.api.mapper.liberata.identity.AccessTokenDtoToTokenRe
 import uk.gov.hmcts.payment.api.v1.model.exceptions.LiberataIdentityException;
 
 import java.time.Instant;
-import java.util.Arrays;
 
 
 import static org.junit.Assert.assertEquals;
