@@ -105,6 +105,10 @@ java:
           alias: gov.pay.auth.key.pcs_api
         - name: pba-pcs-payments-email-to
           alias: pba.pcs.payments.email.to
+        - name: liberata-api-realtime-user
+          alias: LIBERATA_API_REALTIME_ACCOUNT_USERNAME
+        - name: liberata-api-realtime-password
+          alias: LIBERATA_API_REALTIME_ACCOUNT_PASSWORD
   postgresql:
     enabled: true
     primary:

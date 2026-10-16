@@ -106,6 +106,11 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
     }
 
     @Override
+    public Payment createOrUpdate(Payment paymentFeeLink) throws CheckDigitException {
+        return paymentRespository.save(paymentFeeLink);
+    }
+
+    @Override
     public PaymentFeeLink retrieveByPaymentGroupReference(String paymentGroupReference) {
         return paymentFeeLinkRepository.findByPaymentReference(paymentGroupReference).orElseThrow(PaymentNotFoundException::new);
     }
@@ -132,6 +137,8 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
             throw new PaymentNotFoundException("Payment reference not found in database for delete");
         }
     }
+
+
 
     private Payment findSavedPayment(@NotNull String paymentReference) {
         return paymentRespository.findByReferenceAndPaymentMethod(paymentReference,

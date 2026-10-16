@@ -23,6 +23,7 @@ import uk.gov.hmcts.payment.api.servicebus.TopicClientProxy;
 
 import java.util.Arrays;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
@@ -52,6 +53,7 @@ public class CallbackServiceImplTest {
     @After
     public void tearDown() {
         callbackService = null;
+        Thread.interrupted(); // clear any interrupt flag set during the test
     }
 
     @Test
@@ -91,16 +93,76 @@ public class CallbackServiceImplTest {
 
     @Test
     public void testThatWhenThreadInterruptedBusIsNotCalled() {
+        try {
+            Thread.currentThread().interrupt();
 
-        Thread.currentThread().interrupt();
+            paymentFeeLink.getPayments().get(0).setServiceCallbackUrl(null);
+            paymentFeeLink.setCallBackUrl("dummy");
 
+            when(paymentGroupDtoMapper.toPaymentGroupDto(any()))
+                .thenReturn(new PaymentGroupDto());
+
+            callbackService.callback(
+                paymentFeeLink,
+                paymentFeeLink.getPayments().get(0)
+            );
+
+            assertTrue(Thread.currentThread().isInterrupted());
+        } finally {
+            // Ensure this test never leaks its deliberately-set interrupt state.
+            Thread.interrupted();
+        }
+    }
+
+    @Test
+    public void testThatServiceCallbackSendFailureDoesNotInterruptThread() throws Exception {
+        Thread.interrupted(); // clear any pre-existing interrupt flag
+        doThrow(new RuntimeException("send failed"))
+            .when(topicClient).send(any(IMessage.class));
+
+        callbackService.callback(paymentFeeLink, paymentFeeLink.getPayments().get(0));
+
+        assertFalse(Thread.currentThread().isInterrupted());
+    }
+
+    @Test
+    public void testThatServiceCallbackSendInterruptedExceptionInterruptsThread() throws Exception {
+        Thread.interrupted(); // clear any pre-existing interrupt flag
+        doThrow(new InterruptedException())
+            .when(topicClient).send(any(IMessage.class));
+
+        callbackService.callback(paymentFeeLink, paymentFeeLink.getPayments().get(0));
+
+        assertTrue(Thread.currentThread().isInterrupted());
+    }
+
+    @Test
+    public void testThatPaymentFeeLinkCallbackSendFailureDoesNotInterruptThread() throws Exception {
+        Thread.interrupted(); // clear any pre-existing interrupt flag
         paymentFeeLink.getPayments().get(0).setServiceCallbackUrl(null);
         paymentFeeLink.setCallBackUrl("dummy");
 
         when(paymentGroupDtoMapper.toPaymentGroupDto(any())).thenReturn(new PaymentGroupDto());
+        doThrow(new RuntimeException("send failed"))
+            .when(topicClient).send(any(IMessage.class));
 
         callbackService.callback(paymentFeeLink, paymentFeeLink.getPayments().get(0));
 
-        assertTrue(Thread.interrupted());
+        assertFalse(Thread.currentThread().isInterrupted());
+    }
+
+    @Test
+    public void testThatPaymentFeeLinkCallbackSendInterruptedExceptionInterruptsThread() throws Exception {
+        Thread.interrupted(); // clear any pre-existing interrupt flag
+        paymentFeeLink.getPayments().get(0).setServiceCallbackUrl(null);
+        paymentFeeLink.setCallBackUrl("dummy");
+
+        when(paymentGroupDtoMapper.toPaymentGroupDto(any())).thenReturn(new PaymentGroupDto());
+        doThrow(new InterruptedException())
+            .when(topicClient).send(any(IMessage.class));
+
+        callbackService.callback(paymentFeeLink, paymentFeeLink.getPayments().get(0));
+
+        assertTrue(Thread.currentThread().isInterrupted());
     }
 }

@@ -101,3 +101,10 @@ variable "kv_subscription" {
   type        = string
   description = "Update this with the name of the subscription where the single server key vault is. Defaults to DCD-CNP-DEV."
 }
+
+### add service_criticality variable declaration
+variable "service_criticality" {
+  description = "Service criticality rating from 1-5."
+  type        = number
+  default     = 1
+}
