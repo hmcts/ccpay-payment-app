@@ -46,6 +46,7 @@ import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
     import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
     import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
     import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
+    import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestCancelDto;
     import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
     import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
     import uk.gov.hmcts.payment.api.exception.LiberataServiceTimeoutException;
@@ -65,8 +66,7 @@ import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
     import java.io.IOException;
     import java.util.List;
     import java.util.Optional;
-    import java.util.concurrent.TimeUnit;
-    import java.util.function.Function;
+import java.util.function.Function;
     import java.util.stream.Collectors;
 
 @RestController
@@ -372,6 +372,31 @@ public class ServiceRequestController {
     @ExceptionHandler(PaymentServiceNotFoundException.class)
     public String paymentNotSuccess(PaymentServiceNotFoundException ex) {
         return ex.getMessage();
+    }
+
+    // TODO WIP Cancel Service Request
+    @Operation(summary = "Cancel Service Request", description = "Cancel Service Request for a given Service Request Reference.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "Cancellation applied, or SR was already cancelled (idempotent)"),
+        @ApiResponse(responseCode = "400", description = "Invalid/missing request attributes (e.g. no value for reason)"),
+        @ApiResponse(responseCode = "401", description = "Credentials are required to access this resource"),
+        @ApiResponse(responseCode = "403", description = "Forbidden-Access Denied"),
+        @ApiResponse(responseCode = "404", description = "Service request not found"),
+        @ApiResponse(responseCode = "409", description = "Service request cannot be cancelled"),
+    })
+    @RateLimiter(name = "default-rate-limiter")
+    @PostMapping(value = "/service-request/{service-request-reference}/cancel")
+    @ResponseBody
+    @ResponseStatus(HttpStatus.NO_CONTENT) // 204 TODO check if this the best choice - what does "NO_CONTENT" mean?
+    // TODO @Transactional?
+    public ResponseEntity<ServiceRequestPaymentBo> createCreditAccountPaymentForServiceRequest(@PathVariable("service-request-reference") String serviceRequestReference,
+                                                                                               @Valid @RequestBody ServiceRequestCancelDto serviceRequestCancelDto) throws JsonProcessingException {
+
+        String cancelledBy = "TODO";
+
+        serviceRequestDomainService.cancel(serviceRequestReference, serviceRequestCancelDto.getReason(), cancelledBy);
+
+        return null;
     }
 
 }

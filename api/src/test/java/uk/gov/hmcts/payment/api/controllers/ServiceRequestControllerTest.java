@@ -32,6 +32,7 @@ import uk.gov.hmcts.payment.api.domain.service.ServiceRequestDomainService;
 import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.dto.PaymentReference;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
+import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestCancelDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestFeeDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
@@ -64,6 +65,7 @@ import java.util.*;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -114,6 +116,8 @@ public class ServiceRequestControllerTest {
     private ObjectMapper objectMapper;
 
     @MockitoBean
+    // The controller tests in this class mock the domain service. See ServiceRequestComponentTest
+    // for the equivalent test using the real service and database.
     ServiceRequestDomainService serviceRequestDomainService;
 
     @MockitoBean
@@ -1144,6 +1148,22 @@ public class ServiceRequestControllerTest {
             .post("/service-request", serviceRequestDto)
             .andExpect(status().isGatewayTimeout())
             .andExpect(content().string("Test Error"));
+    }
+
+    @Test
+    public void cancelServiceRequestDelegatesToDomainService() throws Exception {
+        // This verifies controller delegation only; database persistence is covered by ServiceRequestComponentTest.
+        String serviceRequestReference = "2021-1621352112222";
+        String reason = "The service request was created in error";
+        ServiceRequestCancelDto cancellation = ServiceRequestCancelDto.cancelDtoWith()
+            .reason(reason)
+            .build();
+
+        restActions
+            .post("/service-request/" + serviceRequestReference + "/cancel", cancellation)
+            .andExpect(status().isNoContent());
+
+        verify(serviceRequestDomainService).cancel(eq(serviceRequestReference), eq(reason), anyString());
     }
 
 

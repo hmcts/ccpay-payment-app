@@ -44,4 +44,5 @@ public interface ServiceRequestDomainService {
 
     IMessageReceiver createDLQConnection() throws ServiceBusException, InterruptedException;
 
+    void cancel(String serviceRequestReference, String reason, String cancelledBy);
 }

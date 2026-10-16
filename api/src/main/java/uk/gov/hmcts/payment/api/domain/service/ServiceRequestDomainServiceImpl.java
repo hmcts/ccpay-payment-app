@@ -618,4 +618,46 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         }
         return allowCancel;
     }
+
+    // TODO ticket PAY-9025 to implement, assigned to OS
+    boolean isServiceRequestCancellable(PaymentFeeLink paymentFeeLink) {
+        return true;
+    }
+
+    @Override
+    @Transactional
+    public void cancel(String serviceRequestReference, String reason, String cancelledBy) {
+
+        // get the entity
+        PaymentFeeLink paymentFeeLink = find(serviceRequestReference);
+
+        // check if already cancelled
+        if (paymentFeeLink.isCancelled()) {
+            LOG.info("{} is already cancelled", paymentFeeLink);
+            return;
+        }
+
+        // validate if this request can be cancelled
+        if (!isServiceRequestCancellable(paymentFeeLink)) {
+            LOG.warn("{} cannot be cancelled because TODO get reason", paymentFeeLink);
+            return;
+        }
+
+        // TODO Only actually need the transaction from here
+
+        // Start transaction to update 2 tables - payment-fee-link and audit log
+
+        // update pfl to mark sr as cancelled
+        paymentFeeLink.setCancelled(true);
+        paymentFeeLink.setCancellationReason(reason);
+        paymentFeeLink.setCancelledBy(cancelledBy);
+        paymentFeeLink.setDateCancelled(new Date());
+
+        // TODO need to update the audit log too
+
+        // TODO how flush out to db
+
+    }
+
 }
+

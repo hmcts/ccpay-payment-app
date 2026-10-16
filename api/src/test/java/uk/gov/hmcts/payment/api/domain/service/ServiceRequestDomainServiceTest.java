@@ -957,6 +957,25 @@ public class ServiceRequestDomainServiceTest {
         assertFalse(result);
     }
 
+    @Test
+    public void cancelServiceRequestUpdatesCancellationDetails() {
+        // Unit test: the service dependencies are mocked and the PaymentFeeLink is updated in memory.
+        // Database persistence is covered by ServiceRequestComponentTest.
+        String serviceRequestReference = "payment-ref";
+        String cancellationReason = "The service request was created in error";
+        String cancelledBy = "user-123";
+        PaymentFeeLink paymentFeeLink = getPaymentFeeLink();
+
+        when(paymentGroupService.findByPaymentGroupReference(serviceRequestReference)).thenReturn(paymentFeeLink);
+
+        serviceRequestDomainService.cancel(serviceRequestReference, cancellationReason, cancelledBy);
+
+        assertTrue(paymentFeeLink.isCancelled());
+        assertEquals(cancellationReason, paymentFeeLink.getCancellationReason());
+        assertEquals(cancelledBy, paymentFeeLink.getCancelledBy());
+        assertNotNull(paymentFeeLink.getDateCancelled());
+    }
+
 
     private ServiceRequestFeeDto getOrderFee() {
         return ServiceRequestFeeDto.feeDtoWith()
