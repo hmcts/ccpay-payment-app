@@ -1,7 +1,13 @@
 pluginManagement {
     repositories {
+        if (!System.getenv("GITHUB_ACTIONS")) {
+            maven {
+                url = uri("https://artifactory.platform.hmcts.net/artifactory/maven-remotes")
+            }
+        }
         maven {
-            url = uri("https://artifactory.platform.hmcts.net/artifactory/maven-remotes")
+            // Maven Central mirror used when HMCTS Artifactory is unavailable, for example on GitHub-hosted runners.
+            url = uri("https://maven-central.storage-download.googleapis.com/maven2")
         }
         maven {
             url = uri("https://pkgs.dev.azure.com/hmcts/Artifacts/_packaging/hmcts-lib/maven/v1")
