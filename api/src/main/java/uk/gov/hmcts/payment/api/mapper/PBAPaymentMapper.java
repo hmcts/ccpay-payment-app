@@ -32,6 +32,7 @@ import java.util.Optional;
 public class PBAPaymentMapper {
 
     private static final Logger LOG = LoggerFactory.getLogger(PBAStatusErrorMapper.class);
+    private static final String NOT_APPLICABLE_IAC = "Not applicable, the servide type is not IAC";
 
     @Autowired
     private FeesService feesService;
@@ -41,7 +42,6 @@ public class PBAPaymentMapper {
 
     @Autowired
     private IacService iacService;
-
     public PBAPaymentMapper(PaymentService<PaymentFeeLink, String> paymentService, FeesService feesService, IacService iacService) {
         this.paymentService = paymentService;
         this.feesService = feesService;
@@ -63,6 +63,7 @@ public class PBAPaymentMapper {
         return serviceCode.equalsIgnoreCase("IAC");
     }
 
+
     private String getSurname(Payment payment, CreditAccountPaymentRequest creditAccountPaymentRequest, String paymentReference) {
         if ( isACService(payment.getServiceType()) ){
             val  iacServiceName = paymentService.getServiceNameByCode(payment.getServiceType());
@@ -79,23 +80,22 @@ public class PBAPaymentMapper {
                     || iacResponse.getBody().getSupplementaryInfo().getFirst().getSupplementaryDetails().getSurname() == null
                     || iacResponse.getBody().getSupplementaryInfo().getFirst().getSupplementaryDetails().getSurname().trim().isEmpty()) {
                     LOG.info("IAC response missing surname for payment reference: {}", paymentReference);
-                    return "Not applicable, the servide type is not IAC";
+                    return NOT_APPLICABLE_IAC;
                 }
                 return iacResponse.getBody().getSupplementaryInfo().getFirst().getSupplementaryDetails().getSurname();
 
             } catch (Exception exception) {
                 LOG.error("Error occurred while fetching supplementary info from IAC service for payment reference: {}", paymentReference, exception);
-                return "Not applicable, the servide type is not IAC";
+                return NOT_APPLICABLE_IAC;
             }
         } else {
-            return "Not applicable, the servide type is not IAC";
+            return NOT_APPLICABLE_IAC;
         }
     }
 
 
     public PaymentDto getPaymentDtoFromModel(Payment payment, String paymentReference, CreditAccountPaymentRequest creditAccountPaymentReques) {
-
-        val paymentDto = PaymentDto.payment2DtoWith()
+        return PaymentDto.payment2DtoWith()
             .paymentReference(payment.getReference())
             .paymentGroupReference(paymentReference)
             .serviceName(payment.getServiceType())
@@ -118,7 +118,6 @@ public class PBAPaymentMapper {
             .externalReference(payment.getExternalReference())
             .fees(creditAccountPaymentReques.getFees())
             .build();
-        return paymentDto;
     }
 
     private PaymentRequest mapPaymentAccountPayment(CreditAccountPaymentRequest creditAccountPaymentRequest, String groupReference,Payment payment, PaymentFeeLink paymentFeeLink) {
