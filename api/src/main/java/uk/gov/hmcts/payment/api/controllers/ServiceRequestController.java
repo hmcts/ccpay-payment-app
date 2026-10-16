@@ -10,15 +10,18 @@ import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
     import com.microsoft.azure.servicebus.primitives.ServiceBusException;
     import io.swagger.v3.oas.annotations.Operation;
     import io.swagger.v3.oas.annotations.Parameter;
+    import io.swagger.v3.oas.annotations.media.Content;
+    import io.swagger.v3.oas.annotations.media.Schema;
     import io.swagger.v3.oas.annotations.responses.ApiResponse;
     import io.swagger.v3.oas.annotations.responses.ApiResponses;
     import io.swagger.v3.oas.annotations.tags.Tag;
-    import lombok.val;
+import lombok.val;
     import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
     import org.slf4j.Logger;
     import org.slf4j.LoggerFactory;
     import org.springframework.beans.factory.annotation.Autowired;
     import org.springframework.http.HttpStatus;
+    import org.springframework.http.MediaType;
     import org.springframework.http.ResponseEntity;
     import org.springframework.transaction.annotation.Transactional;
     import org.springframework.util.CollectionUtils;
@@ -35,7 +38,9 @@ import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
     import org.springframework.web.bind.annotation.ResponseBody;
     import org.springframework.web.bind.annotation.ResponseStatus;
     import org.springframework.web.bind.annotation.RestController;
-    import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.configuration.security.AuthenticatedServiceIdSupplier;
+import uk.gov.hmcts.payment.api.configuration.security.AuthenticatedUserIdSupplier;
+import uk.gov.hmcts.payment.api.contract.PaymentDto;
     import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
     import uk.gov.hmcts.payment.api.domain.service.IdempotencyService;
     import uk.gov.hmcts.payment.api.domain.service.ServiceRequestDomainService;
@@ -46,9 +51,13 @@ import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
     import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
     import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
     import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
+    import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestCancelDto;
+    import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestCancelErrorDto;
     import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
     import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
+    import uk.gov.hmcts.payment.api.exception.InvalidServiceRequestCancellationException;
     import uk.gov.hmcts.payment.api.exception.LiberataServiceTimeoutException;
+    import uk.gov.hmcts.payment.api.exception.ServiceRequestCancellationException;
     import uk.gov.hmcts.payment.api.exceptions.PaymentServiceNotFoundException;
     import uk.gov.hmcts.payment.api.model.FeePayApportion;
     import uk.gov.hmcts.payment.api.model.IdempotencyKeys;
@@ -62,11 +71,12 @@ import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
     import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotSuccessException;
 
     import jakarta.validation.Valid;
-    import java.io.IOException;
+
+import java.io.IOException;
     import java.util.List;
     import java.util.Optional;
-    import java.util.concurrent.TimeUnit;
-    import java.util.function.Function;
+import java.util.function.Function;
+import java.util.regex.Pattern;
     import java.util.stream.Collectors;
 
 @RestController
@@ -76,6 +86,18 @@ public class ServiceRequestController {
 
     private static final Logger LOG = LoggerFactory.getLogger(ServiceRequestController.class);
     private static final String FAILED = "failed";
+    private static final String AUTO_CANCELLATION_REASON = "Auto-Cancelled by Service";
+    // matches the payment_fee_link.cancellation_reason column size
+    private static final int MAX_CANCELLATION_REASON_LENGTH = 255;
+    // Deliberately loose (<year>-<digits>). The PAY-9031 spec says \d{4}-\d{11}, but PaymentReference.getNext
+    // has generated several lengths after the year (see its git history):
+    //   Jan 2018 - Feb 2018: 8 digits, then briefly 10 digits
+    //   Feb 2018 - Aug 2019: 11 digits (time in ms / 100)
+    //   Aug 2019 - May 2024: 13 digits (time in ms / 100 + 2 random digits)
+    //   May 2024 onwards:    13 digits (payment_reference_seq, starting at 1750000000000)
+    // PR reviewers: this could be tightened to ^\d{4}-(\d{11}|\d{13})$ if no open service requests from before
+    // 12 Feb 2018 (8 or 10 digits) need cancelling. Check production payment_fee_link data before doing so.
+    private static final Pattern SERVICE_REQUEST_REFERENCE_PATTERN = Pattern.compile("^\\d{4}-\\d+$");
 
     private final ServiceRequestDomainService serviceRequestDomainService;
 
@@ -102,6 +124,13 @@ public class ServiceRequestController {
 
     @Autowired
     private FeesService feeService;
+
+    @Autowired
+    AuthenticatedUserIdSupplier userIdSupplier;
+
+    @Autowired
+    AuthenticatedServiceIdSupplier serviceIdSupplier;
+
 
     private String serviceRequestReference;
 
@@ -214,6 +243,7 @@ public class ServiceRequestController {
         String idempotencyKey = serviceRequestPaymentDto.getIdempotencyKey();
 
         // Load service request
+        // TODO PAY-8554: Acquire the cancellation row lock and reject cancelled requests before creating a PBA payment.
         PaymentFeeLink serviceRequest = serviceRequestDomainService.businessValidationForServiceRequests(
             serviceRequestDomainService.find(serviceRequestReference), serviceRequestPaymentDto);
 
@@ -372,6 +402,86 @@ public class ServiceRequestController {
     @ExceptionHandler(PaymentServiceNotFoundException.class)
     public String paymentNotSuccess(PaymentServiceNotFoundException ex) {
         return ex.getMessage();
+    }
+
+    // The Service Request cancellation API (PAY-9031) must return errors as a JSON body of the form
+    // {"error": "..."}. The generic RestErrorHandler.return400 handler is not sufficient: it returns the bare
+    // exception message as a plain string, and it is shared by many existing endpoints whose clients rely on that
+    // format, so it cannot be changed. Cancellation errors therefore use their own exception types and handlers.
+    // These handlers live here rather than in a @ControllerAdvice because controller-local handlers always take
+    // precedence over advice, so ControllerExceptionHandler's catch-all RuntimeException handler can never turn
+    // them into a 500, and they only apply to the endpoints in this controller.
+    @ExceptionHandler(ServiceRequestCancellationException.class)
+    public ResponseEntity<ServiceRequestCancelErrorDto> cancellationConflict(ServiceRequestCancellationException ex) {
+        return cancellationError(ex, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(InvalidServiceRequestCancellationException.class)
+    public ResponseEntity<ServiceRequestCancelErrorDto> cancellationBadRequest(InvalidServiceRequestCancellationException ex) {
+        return cancellationError(ex, HttpStatus.BAD_REQUEST);
+    }
+
+    private ResponseEntity<ServiceRequestCancelErrorDto> cancellationError(RuntimeException ex, HttpStatus status) {
+        return ResponseEntity.status(status)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(ServiceRequestCancelErrorDto.cancelErrorDtoWith().error(ex.getMessage()).build());
+    }
+
+    @Operation(summary = "Cancel Service Request", description = "Cancel Service Request for a given Service Request Reference.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "Cancellation applied, or SR was already cancelled (idempotent)"),
+        @ApiResponse(responseCode = "400", description = "Invalid/missing request attributes (e.g. no value for reason)",
+            content = @Content(schema = @Schema(implementation = ServiceRequestCancelErrorDto.class))),
+        @ApiResponse(responseCode = "401", description = "Credentials are required to access this resource"),
+        @ApiResponse(responseCode = "403", description = "Forbidden-Access Denied"),
+        @ApiResponse(responseCode = "404", description = "Service request not found"),
+        @ApiResponse(responseCode = "409", description = "Service request cannot be cancelled",
+            content = @Content(schema = @Schema(implementation = ServiceRequestCancelErrorDto.class))),
+    })
+    @RateLimiter(name = "default-rate-limiter")
+    @PostMapping(value = "/service-request/{service-request-reference}/cancel")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void cancelServiceRequest(@PathVariable("service-request-reference") String serviceRequestReference,
+                                     @Valid @RequestBody(required = false) ServiceRequestCancelDto serviceRequestCancelDto,
+                                     @RequestHeader(value = "Authorization", required = false) String authorization) {
+        if (!SERVICE_REQUEST_REFERENCE_PATTERN.matcher(serviceRequestReference).matches()) {
+            throw new InvalidServiceRequestCancellationException("invalid service request reference format");
+        }
+
+        final boolean manualCancellation = authorization != null;
+        String reason = serviceRequestCancelDto == null ? null : serviceRequestCancelDto.getReason();
+
+        if (serviceRequestCancelDto != null && !serviceRequestCancelDto.getUnknownProperties().isEmpty()) {
+            throw new InvalidServiceRequestCancellationException(
+                "unknown field(s) in request body: " + String.join(", ", serviceRequestCancelDto.getUnknownProperties()));
+        }
+
+        if ((manualCancellation || serviceRequestCancelDto != null) && isBlank(reason)) {
+            throw new InvalidServiceRequestCancellationException(manualCancellation
+                ? "cancellation reason needs to be supplied for manual service request cancellation"
+                : "cancellation reason must have a value when body supplied");
+        }
+
+        if (reason != null && reason.length() > MAX_CANCELLATION_REASON_LENGTH) {
+            throw new InvalidServiceRequestCancellationException(
+                "cancellation reason must not exceed %d characters".formatted(MAX_CANCELLATION_REASON_LENGTH));
+        }
+
+        if (!manualCancellation && reason == null) {
+            reason = AUTO_CANCELLATION_REASON;
+        }
+
+        String cancelledBy = manualCancellation ? userIdSupplier.get() : serviceIdSupplier.get();
+        if (isBlank(cancelledBy)) {
+            throw new InvalidServiceRequestCancellationException(
+                "could not determine id for %s service request cancellation".formatted(manualCancellation ? "manual" : "automated"));
+        }
+
+        serviceRequestDomainService.cancel(serviceRequestReference, cancelledBy, reason);
+    }
+
+    private static boolean isBlank(String s) {
+        return (s == null || s.isBlank());
     }
 
 }

@@ -11,12 +11,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultMatcher;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -32,11 +35,13 @@ import uk.gov.hmcts.payment.api.domain.service.ServiceRequestDomainService;
 import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.dto.PaymentReference;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
+import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestCancelDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestFeeDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
+import uk.gov.hmcts.payment.api.exception.ServiceRequestCancellationException;
 import uk.gov.hmcts.payment.api.exceptions.ServiceRequestReferenceNotFoundException;
 import uk.gov.hmcts.payment.api.external.client.GovPayClient;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
@@ -56,18 +61,24 @@ import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.GatewayTimeoutException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestException;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.math.BigDecimal;
 import java.util.*;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
@@ -114,6 +125,8 @@ public class ServiceRequestControllerTest {
     private ObjectMapper objectMapper;
 
     @MockitoBean
+    // The controller tests in this class mock the domain service. See ServiceRequestComponentTest
+    // for the equivalent test using the real service and database.
     ServiceRequestDomainService serviceRequestDomainService;
 
     @MockitoBean
@@ -1144,6 +1157,249 @@ public class ServiceRequestControllerTest {
             .post("/service-request", serviceRequestDto)
             .andExpect(status().isGatewayTimeout())
             .andExpect(content().string("Test Error"));
+    }
+
+    @Test
+    public void cancelServiceRequestDelegatesToDomainService() throws Exception {
+        // This verifies controller delegation only; database persistence is covered by ServiceRequestComponentTest.
+        String serviceRequestReference = "2021-1621352112222";
+        String reason = "The service request was created in error";
+        ServiceRequestCancelDto cancellation = ServiceRequestCancelDto.cancelDtoWith()
+            .reason(reason)
+            .build();
+
+        manualCancellationRestActions()
+            .post("/service-request/" + serviceRequestReference + "/cancel", cancellation)
+            .andExpect(status().isNoContent());
+
+        verify(serviceRequestDomainService).cancel(eq(serviceRequestReference), eq(UserResolverBackdoor.CASEWORKER_ID), eq(reason));
+    }
+
+    @Test
+    public void cancelServiceRequestFromAutomatedServiceAllowsMissingBody() throws Exception {
+        String serviceRequestReference = "2021-1621352112222";
+        var result = serviceOnlyRestActions()
+            .post("/service-request/" + serviceRequestReference + "/cancel")
+            .andReturn();
+
+        assertThat(result.getResponse().getStatus()).isEqualTo(204);
+        verify(serviceRequestDomainService).cancel(eq(serviceRequestReference), eq("divorce"), eq("Auto-Cancelled by Service"));
+    }
+
+    @Test
+    public void cancelServiceRequestFromAutomatedServiceAcceptsSuppliedReason() throws Exception {
+        String serviceRequestReference = "2021-1621352112222";
+        String reason = "The service request was created in error";
+        ServiceRequestCancelDto cancellation = ServiceRequestCancelDto.cancelDtoWith()
+            .reason(reason)
+            .build();
+
+        var result = serviceOnlyRestActions()
+            .post("/service-request/" + serviceRequestReference + "/cancel", cancellation)
+            .andReturn();
+
+        assertThat(result.getResponse().getStatus()).isEqualTo(204);
+        verify(serviceRequestDomainService).cancel(eq(serviceRequestReference), eq("divorce"), eq(reason));
+    }
+
+    @Test
+    public void cancelServiceRequestFromAutomatedServiceRejectsBlankSuppliedReason() throws Exception {
+        String serviceRequestReference = "2021-1621352112222";
+        ServiceRequestCancelDto cancellation = ServiceRequestCancelDto.cancelDtoWith()
+            .reason(" ")
+            .build();
+
+        serviceOnlyRestActions()
+            .post("/service-request/" + serviceRequestReference + "/cancel", cancellation)
+            .andExpect(status().isBadRequest())
+            .andExpect(cancellationError("cancellation reason must have a value when body supplied"));
+
+        verify(serviceRequestDomainService, never()).cancel(anyString(), anyString(), any());
+    }
+
+    @Test
+    public void cancelServiceRequestRejectsBlankSuppliedReason() throws Exception {
+        String serviceRequestReference = "2021-1621352112222";
+        ServiceRequestCancelDto cancellation = ServiceRequestCancelDto.cancelDtoWith()
+            .reason(" ")
+            .build();
+
+        manualCancellationRestActions()
+            .post("/service-request/" + serviceRequestReference + "/cancel", cancellation)
+            .andExpect(status().isBadRequest())
+            .andExpect(cancellationError("cancellation reason needs to be supplied for manual service request cancellation"));
+
+        verify(serviceRequestDomainService, never()).cancel(anyString(), anyString(), any());
+    }
+
+    @Test
+    public void cancelServiceRequestRejectsMissingManualBody() throws Exception {
+        String serviceRequestReference = "2021-1621352112222";
+
+        manualCancellationRestActions()
+            .post("/service-request/" + serviceRequestReference + "/cancel")
+            .andExpect(status().isBadRequest())
+            .andExpect(cancellationError("cancellation reason needs to be supplied for manual service request cancellation"));
+
+        verify(serviceRequestDomainService, never()).cancel(anyString(), anyString(), any());
+    }
+
+    @Test
+    public void cancelServiceRequestRejectsReasonLongerThanColumn() throws Exception {
+        String serviceRequestReference = "2021-1621352112222";
+        ServiceRequestCancelDto cancellation = ServiceRequestCancelDto.cancelDtoWith()
+            .reason("x".repeat(256))
+            .build();
+
+        manualCancellationRestActions()
+            .post("/service-request/" + serviceRequestReference + "/cancel", cancellation)
+            .andExpect(status().isBadRequest())
+            .andExpect(cancellationError("cancellation reason must not exceed 255 characters"));
+
+        verify(serviceRequestDomainService, never()).cancel(anyString(), anyString(), any());
+    }
+
+    @Test
+    public void cancelServiceRequestRejectsMalformedReference() throws Exception {
+        for (String serviceRequestReference : List.of("banana", "2026-", "2026-12345a", "26-1750000000000", "2026_1750000000000")) {
+            serviceOnlyRestActions()
+                .post("/service-request/" + serviceRequestReference + "/cancel")
+                .andExpect(status().isBadRequest())
+                .andExpect(cancellationError("invalid service request reference format"));
+        }
+
+        verify(serviceRequestDomainService, never()).cancel(anyString(), anyString(), any());
+    }
+
+    @Test
+    public void cancelServiceRequestAcceptsGeneratedReferenceFormat() throws Exception {
+        // Current references have 13 digits after the year (longer than the \d{4}-\d{11} in the specs);
+        // 2018-2019 references have 11
+        for (String serviceRequestReference : List.of("2026-1750004025265", "2019-15500000000")) {
+            serviceOnlyRestActions()
+                .post("/service-request/" + serviceRequestReference + "/cancel")
+                .andExpect(status().isNoContent());
+
+            verify(serviceRequestDomainService).cancel(eq(serviceRequestReference), eq("divorce"), eq("Auto-Cancelled by Service"));
+        }
+    }
+
+    @Test
+    public void cancelServiceRequestRejectsUnknownBodyFields() throws Exception {
+        String serviceRequestReference = "2021-1621352112222";
+        Map<String, String> cancellation = Map.of(
+            "reason", "The service request was created in error",
+            "unexpected", "value");
+
+        serviceOnlyRestActions()
+            .post("/service-request/" + serviceRequestReference + "/cancel", cancellation)
+            .andExpect(status().isBadRequest())
+            .andExpect(cancellationError("unknown field(s) in request body: unexpected"));
+
+        verify(serviceRequestDomainService, never()).cancel(anyString(), anyString(), any());
+    }
+
+    @Test
+    public void cancelServiceRequestRejectsMalformedJsonBody() throws Exception {
+        // RestActions serialises its request body, so the malformed JSON is sent with MockMvc directly.
+        String serviceRequestReference = "2021-1621352112222";
+        String serviceToken = UUID.randomUUID().toString();
+        serviceRequestAuthorizer.registerToken(serviceToken, "divorce");
+
+        webAppContextSetup(webApplicationContext).apply(springSecurity()).build()
+            .perform(MockMvcRequestBuilders.post("/service-request/" + serviceRequestReference + "/cancel")
+                .header("ServiceAuthorization", serviceToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"reason\": "))
+            .andExpect(status().isBadRequest());
+
+        verify(serviceRequestDomainService, never()).cancel(anyString(), anyString(), any());
+    }
+
+    @Test
+    public void cancelServiceRequestAcceptsReasonAtColumnLimit() throws Exception {
+        String serviceRequestReference = "2021-1621352112222";
+        String reason = "x".repeat(255);
+        ServiceRequestCancelDto cancellation = ServiceRequestCancelDto.cancelDtoWith()
+            .reason(reason)
+            .build();
+
+        manualCancellationRestActions()
+            .post("/service-request/" + serviceRequestReference + "/cancel", cancellation)
+            .andExpect(status().isNoContent());
+
+        verify(serviceRequestDomainService).cancel(eq(serviceRequestReference), eq(UserResolverBackdoor.CASEWORKER_ID), eq(reason));
+    }
+
+    @Test
+    public void cancelServiceRequestRejectsManualBodyWithNullReason() throws Exception {
+        String serviceRequestReference = "2021-1621352112222";
+        ServiceRequestCancelDto cancellation = ServiceRequestCancelDto.cancelDtoWith()
+            .reason(null)
+            .build();
+
+        manualCancellationRestActions()
+            .post("/service-request/" + serviceRequestReference + "/cancel", cancellation)
+            .andExpect(status().isBadRequest())
+            .andExpect(cancellationError("cancellation reason needs to be supplied for manual service request cancellation"));
+
+        verify(serviceRequestDomainService, never()).cancel(anyString(), anyString(), any());
+    }
+
+    private static ResultMatcher cancellationError(String error) {
+        return ResultMatcher.matchAll(
+            content().contentType(MediaType.APPLICATION_JSON),
+            jsonPath("$.error").value(error));
+    }
+
+    private RestActions serviceOnlyRestActions() {
+        return new RestActions(
+            webAppContextSetup(webApplicationContext).apply(springSecurity()).build(),
+            serviceRequestAuthorizer, userRequestAuthorizer, objectMapper
+        ).withAuthorizedService("divorce");
+    }
+
+    private RestActions manualCancellationRestActions() {
+        return new RestActions(
+            webAppContextSetup(webApplicationContext).apply(springSecurity()).build(),
+            serviceRequestAuthorizer, userRequestAuthorizer, objectMapper
+        )
+            .withAuthorizedService("divorce")
+            .withAuthorizedUser(UserResolverBackdoor.CASEWORKER_ID);
+    }
+
+    @Test
+    public void cancelServiceRequestReturnsConflictWhenCancellationIsRejected() throws Exception {
+        String serviceRequestReference = "2021-1621352112222";
+        String reason = "Service request cannot be cancelled";
+        ServiceRequestCancelDto cancellation = ServiceRequestCancelDto.cancelDtoWith()
+            .reason("The service request was created in error")
+            .build();
+
+        doThrow(new ServiceRequestCancellationException(reason)).when(serviceRequestDomainService)
+            .cancel(eq(serviceRequestReference), anyString(), anyString());
+
+        manualCancellationRestActions()
+            .post("/service-request/" + serviceRequestReference + "/cancel", cancellation)
+            .andExpect(status().isConflict())
+            .andExpect(cancellationError(reason));
+    }
+
+    @Test
+    public void serviceRequestExceptionStillReturnsBadRequest() throws Exception {
+        String serviceRequestReference = "2021-1621352112222";
+        String reason = "Existing service request error";
+        ServiceRequestCancelDto cancellation = ServiceRequestCancelDto.cancelDtoWith()
+            .reason("The service request was created in error")
+            .build();
+
+        doThrow(new ServiceRequestException(reason)).when(serviceRequestDomainService)
+            .cancel(eq(serviceRequestReference), anyString(), anyString());
+
+        manualCancellationRestActions()
+            .post("/service-request/" + serviceRequestReference + "/cancel", cancellation)
+            .andExpect(status().isBadRequest())
+            .andExpect(content().string(reason));
     }
 
 

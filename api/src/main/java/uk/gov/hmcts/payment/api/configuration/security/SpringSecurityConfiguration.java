@@ -13,9 +13,11 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import uk.gov.hmcts.reform.auth.checker.core.RequestAuthorizer;
 import uk.gov.hmcts.reform.auth.checker.core.service.Service;
 import uk.gov.hmcts.reform.auth.checker.core.user.User;
+import uk.gov.hmcts.reform.auth.checker.core.user.UserRequestAuthorizer;
 import uk.gov.hmcts.reform.auth.checker.spring.serviceonly.AuthCheckerServiceOnlyFilter;
 
 
@@ -77,6 +79,8 @@ public class SpringSecurityConfiguration {
     @Bean
     @Order(3)
     protected SecurityFilterChain configureInternal(HttpSecurity http) throws Exception {
+        RequestMatcher cancellationRequestMatcher = request -> HttpMethod.POST.matches(request.getMethod())
+            && request.getRequestURI().matches("^/service-request/[^/]+/cancel$");
         http.exceptionHandling(exceptionHandling -> exceptionHandling.accessDeniedHandler(accessDeniedHandler()))
             .addFilter(authCheckerUserOnlyFilter)
             .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(STATELESS))
@@ -102,6 +106,8 @@ public class SpringSecurityConfiguration {
                 .requestMatchers(HttpMethod.POST, "/payment-failures/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/payment-failures/**").hasAuthority(PAYMENTS_ROLE)
                 .requestMatchers(HttpMethod.PATCH, "/payment-failures/**").permitAll()
+                .requestMatchers(request -> cancellationRequestMatcher.matches(request)
+                    && request.getHeader(UserRequestAuthorizer.AUTHORISATION) != null).hasAuthority(PAYMENTS_ROLE)
                 .anyRequest().authenticated()
             );
         return http.build();
