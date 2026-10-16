@@ -1,0 +1,24 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1810000000000-6
+      author: ccpay
+      changes:
+        - addColumn:
+            tableName: payment_fee_link
+            columns:
+              - column:
+                  name: cancelled
+                  type: boolean
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: cancellation_reason
+                  type: varchar(255)
+              - column:
+                  name: cancelled_by
+                  type: varchar(64)
+              - column:
+                  name: date_cancelled
+                  type: timestamp
+
