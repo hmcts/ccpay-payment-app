@@ -99,9 +99,10 @@ public class LiberataRealTimeAPI {
             val response = liberataRestTemplate.postForEntity(baseUrl + "/pba-api-v2-uat/api/payment", request, PaymentAccountResponse.class);
             return response.getBody();
         } catch (HttpClientErrorException  httpClientErrorException) {
+            LOG.error("Error posting payment to Liberata: {}", httpClientErrorException.getMessage(), httpClientErrorException);
              return getPaymentAccountResponseError(httpClientErrorException);
         } catch (Exception exception) {
-            LOG.error("Error posting payment to Liberata: {}", exception.getMessage(), exception);
+            LOG.error("Unexpected error posting payment to Liberata: {}", exception.getMessage(), exception);
             throw new LiberataIdentityException("Error posting payment to Liberata: " + exception.getMessage(), exception);
         }
     }
