@@ -118,7 +118,7 @@ public class CreditAccountPaymentController {
     @PostMapping(value = "/credit-account-payments")
     @ResponseBody
     @Transactional
-   @SuppressWarnings("squid:S5145") // Suppressed: headers forwarding is intentional and validated elsewhere in the method
+    @SuppressWarnings("javasecurity:S5145") // Suppressed: headers forwarding is intentional and validated elsewhere in the method
     public ResponseEntity<PaymentDto> createCreditAccountPayment(@Valid @RequestBody CreditAccountPaymentRequest creditAccountPaymentRequest, @RequestHeader(required = false) MultiValueMap<String, String> headers) throws CheckDigitException {
 
         val paymentGroupReference = paymentReference.getNext();
@@ -223,7 +223,7 @@ public class CreditAccountPaymentController {
     @RateLimiter(name = "default-rate-limiter")
     @DeleteMapping(value = "/credit-account-payments/{paymentReference}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @SuppressWarnings("squid:S5145") // Suppressed: headers forwarding is intentional and validated elsewhere in the method
+    @SuppressWarnings("javasecurity:S5145")
     public void deleteByPaymentReference(@PathVariable("paymentReference") String paymentReference) {
         creditAccountPaymentService.deleteByPaymentReference(paymentReference);
     }
