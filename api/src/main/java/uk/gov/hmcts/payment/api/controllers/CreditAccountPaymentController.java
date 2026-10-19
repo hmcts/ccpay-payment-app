@@ -58,7 +58,6 @@ public class CreditAccountPaymentController {
 
     private final CreditAccountPaymentService<PaymentFeeLink, String> creditAccountPaymentService;
     private final CreditAccountDtoMapper creditAccountDtoMapper;
-    private final AccountService<AccountDto, String> accountService;
     private final DuplicatePaymentValidator paymentValidator;
     private final FeePayApportionService feePayApportionService;
     private final LaunchDarklyFeatureToggler featureToggler;
@@ -83,7 +82,6 @@ public class CreditAccountPaymentController {
     public CreditAccountPaymentController(
         @Qualifier("loggingCreditAccountPaymentService") CreditAccountPaymentService<PaymentFeeLink, String> creditAccountPaymentService,
         CreditAccountDtoMapper creditAccountDtoMapper,
-        AccountService<AccountDto, String> accountService,
         DuplicatePaymentValidator paymentValidator,
         FeePayApportionService feePayApportionService, LaunchDarklyFeatureToggler featureToggler,
         PBAStatusErrorMapper pbaStatusErrorMapper,
@@ -93,7 +91,6 @@ public class CreditAccountPaymentController {
         PaymentReference paymentReference, PBAPaymentMapper pBAPaymentMapper, LiberataRealTimeAPI liberataRealTimeAPI) {
         this.creditAccountPaymentService = creditAccountPaymentService;
         this.creditAccountDtoMapper = creditAccountDtoMapper;
-        this.accountService = accountService;
         this.paymentValidator = paymentValidator;
         this.feePayApportionService = feePayApportionService;
         this.featureToggler = featureToggler;
@@ -129,7 +126,7 @@ public class CreditAccountPaymentController {
         Following piece of code to be removed once all Services are on-boarded to PBA Config 2
          */
         LOG.info("PBA Old Config Service Names : {}", pbaConfig1ServiceNames);
-        boolean isPBAConfig1Journey = pbaConfig1ServiceNames.contains(creditAccountPaymentRequest.getService()) ? true : false;
+        val isPBAConfig1Journey = pbaConfig1ServiceNames.contains(creditAccountPaymentRequest.getService());
 
         LOG.info("Case Type: {} ", creditAccountPaymentRequest.getCaseType());
         if (StringUtils.isNotBlank(creditAccountPaymentRequest.getCaseType())) {
@@ -226,6 +223,7 @@ public class CreditAccountPaymentController {
     @RateLimiter(name = "default-rate-limiter")
     @DeleteMapping(value = "/credit-account-payments/{paymentReference}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @SuppressWarnings("squid:S5145") // Suppressed: headers forwarding is intentional and validated elsewhere in the method
     public void deleteByPaymentReference(@PathVariable("paymentReference") String paymentReference) {
         creditAccountPaymentService.deleteByPaymentReference(paymentReference);
     }

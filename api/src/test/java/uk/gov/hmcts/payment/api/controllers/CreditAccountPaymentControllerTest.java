@@ -141,7 +141,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         MockitoAnnotations.initMocks(this);
         mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
         this.restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
-        Mockito.when(liberataRealTimeAPI.getValidToken()).thenReturn(createTestTokenResponse());
+        when(liberataRealTimeAPI.getValidToken()).thenReturn(createTestTokenResponse());
 
 
         restActions
@@ -192,9 +192,9 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     @Test
     public void createCreditAccountPaymentTest() throws Exception {
 
-        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
-        Mockito.when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
-        Mockito.when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
+        when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
+        when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
+        when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
 
         restActions
             .post(format("/credit-account-payments"), request)
@@ -206,9 +206,9 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         request.setCcdCaseNumber("CCD105");
         request.setCaseReference(null);
 
-        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
-        Mockito.when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
-        Mockito.when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
+        when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
+        when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
+        when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
 
         restActions
             .post(format("/credit-account-payments"), request)
@@ -225,9 +225,9 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         request.setCcdCaseNumber(null);
         request.setCaseReference("33333");
-        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
-        Mockito.when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
-        Mockito.when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
+        when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
+        when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
+        when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
 
         restActions
             .post(format("/credit-account-payments"), request)
@@ -242,9 +242,9 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     @Test
     public void shouldNotRejectDuplicatePaymentIfAmountIsDifferent() throws Exception {
 
-        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
-        Mockito.when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
-        Mockito.when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
+        when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
+        when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
+        when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
 
         restActions
             .post(format("/credit-account-payments"), request)
@@ -260,9 +260,9 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     @Test
     public void shouldNotRejectDuplicatePaymentIfFeeCodeIsDifferent() throws Exception {
 
-        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
-        Mockito.when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
-        Mockito.when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
+        when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
+        when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
+        when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
 
         restActions
             .post(format("/credit-account-payments"), request)
@@ -283,9 +283,9 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     @Test
     public void shouldNotRejectDuplicatePaymentIfFeeVersionIsDifferent() throws Exception {
 
-        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
-        Mockito.when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
-        Mockito.when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
+        when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
+        when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
+        when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
 
         restActions
             .post(format("/credit-account-payments"), request)
@@ -382,7 +382,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
                 .build()))
             .build();
         PaymentFee fee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").build();
-        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
+        when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
         PaymentFeeLink paymentFeeLink = db.create(PaymentFeeLink.paymentFeeLinkWith().paymentReference("2018-15199028243").payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);
 
@@ -437,9 +437,9 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenReturn(organisationalServiceDto);
 
-        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
-        Mockito.when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
-        Mockito.when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
+        when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
+        when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
+        when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
 
 
         MvcResult res = restActions
@@ -457,7 +457,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     public void CreateCreditAccountPayment_withCaseTypereturn404() throws Exception {
         CreditAccountPaymentRequest request = objectMapper.readValue(jsonRequestWithCaseType().getBytes(), CreditAccountPaymentRequest.class);
 
-        Mockito.when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenThrow(new NoServiceFoundException("Test Error"));
+        when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenThrow(new NoServiceFoundException("Test Error"));
 
         restActions
             .post("/credit-account-payments", request)
@@ -469,7 +469,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     public void CreateCreditAccountPayment_withCaseTypeReturn504() throws Exception {
         CreditAccountPaymentRequest request = objectMapper.readValue(jsonRequestWithCaseType().getBytes(), CreditAccountPaymentRequest.class);
 
-        Mockito.when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenThrow(new GatewayTimeoutException("Test Error"));
+        when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenThrow(new GatewayTimeoutException("Test Error"));
 
         restActions
             .post("/credit-account-payments", request)
@@ -480,9 +480,9 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     @Test
     public void createCreditAccountPayment_withEitherCcdCaseNumberOrCaseReferenceTest() throws Exception {
 
-        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
-        Mockito.when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
-        Mockito.when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
+        when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
+        when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
+        when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
 
         MvcResult result = restActions
             .post("/credit-account-payments", request)
@@ -498,9 +498,9 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     @Test
     public void failCreditAccountPaymentForFinRemAndLiberataRespondsAccountHasInsufficientFundsShouldReturnPaymentFailed() throws Exception {
 
-        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getAnErrorDueToExceededCreditLimitPaymentAccountResponse());
-        Mockito.when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
-        Mockito.when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
+        when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getAnErrorDueToExceededCreditLimitPaymentAccountResponse());
+        when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
+        when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
 
         MvcResult result = restActions
             .post(format("/credit-account-payments"), request)
@@ -515,9 +515,9 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
     @Test
     public void failCreditAccountPaymentWhenLiberataRespondsAccountStatusOnHold() throws Exception {
-        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getAnErrorDueToAccountOnHold());
-        Mockito.when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
-        Mockito.when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
+        when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getAnErrorDueToAccountOnHold());
+        when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
+        when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
 
         MvcResult result = restActions
             .post(format("/credit-account-payments"), request)
@@ -533,9 +533,9 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     @Test
     public void failCreditAccountPaymentWhenLiberataRespondsAccountStatusDeleted() throws Exception {
 
-        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getAnErrorDueToDeleted());
-        Mockito.when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
-        Mockito.when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
+        when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getAnErrorDueToDeleted());
+        when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
+        when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
 
         MvcResult result = restActions
             .post(format("/credit-account-payments"), request)
@@ -551,9 +551,9 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     @Test
     public void createCreditAccountPaymentAndLiberataRespondsCannotFindAccountShouldReturn404() throws Exception {
 
-        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getAnErrorDueToAccountNotFound());
-        Mockito.when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
-        Mockito.when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
+        when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getAnErrorDueToAccountNotFound());
+        when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
+        when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
 
 
         MvcResult result = restActions
@@ -570,9 +570,9 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     @Test
     public void createCreditAccountPaymentAndLiberataIsNotResponsiveShouldReturn504() throws Exception {
 
-        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenThrow(GatewayTimeoutException.class);
-        Mockito.when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
-        Mockito.when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
+        when(liberataRealTimeAPI.payByAccount(any())).thenThrow(GatewayTimeoutException.class);
+        when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
+        when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
 
         restActions
             .post(format("/credit-account-payments"), request)
@@ -585,9 +585,9 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             CreditAccountPaymentRequest.class);
         request.setAmount(new BigDecimal(50));
 
-        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
-        Mockito.when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
-        Mockito.when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
+        when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
+        when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
+        when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
 
         MvcResult result = restActions
             .post(format("/credit-account-payments"), request)
@@ -604,9 +604,9 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             CreditAccountPaymentRequest.class);
         request.setAmount(new BigDecimal("100.99"));
 
-        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
-        Mockito.when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
-        Mockito.when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
+        when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
+        when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
+        when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
 
         MvcResult result = restActions
             .post(format("/credit-account-payments"), request)
@@ -623,9 +623,9 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             CreditAccountPaymentRequest.class);
         request.setAmount(new BigDecimal(101));
 
-        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getAnErrorDueToExceededCreditLimitPaymentAccountResponse());
-        Mockito.when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
-        Mockito.when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
+        when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getAnErrorDueToExceededCreditLimitPaymentAccountResponse());
+        when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
+        when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
 
 
         MvcResult result = restActions
@@ -642,9 +642,9 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     @Test
     public void givenLiberataCheckOnAndCheckLiberataAccountForAllSericesOnThenAllServicesTriggerLiberataCheck() throws Exception {
 
-        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
-        Mockito.when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
-        Mockito.when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
+        when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
+        when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
+        when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
 
         MvcResult result = restActions
             .post("/credit-account-payments", request)
@@ -667,9 +667,9 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     @Test
     public void givenLiberataCheckOffAndCheckLiberataAccountForAllSericesOffThenNoServiceTriggersLiberataCheck() throws Exception {
 
-        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
-        Mockito.when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
-        Mockito.when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
+        when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
+        when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
+        when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
 
 
         MvcResult result = restActions
@@ -693,9 +693,9 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     @Test
     public void givenLiberataCheckOnAndCheckLiberataAccountForAllSericesOffThenOnlyFINREMTriggersLiberataCheck() throws Exception {
 
-        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
-        Mockito.when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
-        Mockito.when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
+        when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
+        when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
+        when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
 
         MvcResult result = restActions
             .post("/credit-account-payments", request)
@@ -720,9 +720,9 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithFPLAJson().getBytes(), CreditAccountPaymentRequest.class);
 
-        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
-        Mockito.when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
-        Mockito.when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
+        when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
+        when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
+        when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
 
         MvcResult result = restActions
             .post("/credit-account-payments", request)
@@ -747,9 +747,9 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithIACJson().getBytes(), CreditAccountPaymentRequest.class);
 
-        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
-        Mockito.when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
-        Mockito.when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
+        when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
+        when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
+        when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
 
         MvcResult result = restActions
             .post("/credit-account-payments", request)
@@ -773,9 +773,9 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     public void givenLiberataCheckOffAndCheckLiberataAccountForAllSericesOnThenAllServicesTriggerLiberataCheck() throws Exception {
 
         setupForPaymentRoleUser();
-        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
-        Mockito.when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
-        Mockito.when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
+        when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
+        when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
+        when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
 
         MvcResult result = restActions
             .post("/credit-account-payments", request)
@@ -814,9 +814,9 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithFPLAJson().getBytes(), CreditAccountPaymentRequest.class);
 
-        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
-        Mockito.when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
-        Mockito.when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
+        when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
+        when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
+        when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
 
         MvcResult result = restActions
             .post("/credit-account-payments", request)
@@ -840,9 +840,9 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     public void givenLiberataCheckOffAndCheckLiberataAccountForAllServicesOnThenAllServicesTriggerLiberataCheck_IAC() throws Exception {
 
         CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithIAC_Json().getBytes(), CreditAccountPaymentRequest.class);
-        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
-        Mockito.when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
-        Mockito.when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
+        when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
+        when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
+        when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
 
         MvcResult result = restActions
             .post("/credit-account-payments", request)
@@ -866,9 +866,9 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     public void checkPBAPaymentsFor_Unspec_Service() throws Exception {
 
         CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithUnSpec_Json().getBytes(), CreditAccountPaymentRequest.class);
-        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
-        Mockito.when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
-        Mockito.when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
+        when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
+        when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
+        when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
 
         MvcResult result = restActions
             .post("/credit-account-payments", request)
@@ -902,9 +902,9 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     public void createCreditAccountPaymentTest_FPLService() throws Exception {
 
         CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithFPLJson().getBytes(), CreditAccountPaymentRequest.class);
-        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
-        Mockito.when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
-        Mockito.when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
+        when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
+        when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
+        when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
 
         restActions
             .post(format("/credit-account-payments"), request)
@@ -926,9 +926,9 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
 
         when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
-        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
-        Mockito.when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
-        Mockito.when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
+        when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
+        when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
+        when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
 
         List<FeeDto> fees = new ArrayList<>();
         fees.add(0, FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
@@ -986,9 +986,9 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
 
         when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
-        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
-        Mockito.when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
-        Mockito.when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
+        when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
+        when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
+        when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
 
         List<FeeDto> fees = new ArrayList<>();
         fees.add(0, FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(30))
@@ -1045,9 +1045,9 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
 
         when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
-        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
-        Mockito.when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
-        Mockito.when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
+        when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
+        when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
+        when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
 
         List<FeeDto> fees = new ArrayList<>();
         fees.add(0, FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(10))
@@ -1105,9 +1105,9 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
 
         when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
-        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
-        Mockito.when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
-        Mockito.when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
+        when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
+        when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
+        when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
 
         List<FeeDto> fees = new ArrayList<>();
         fees.add(0, FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
@@ -1163,9 +1163,9 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
         when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
-        Mockito.when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
-        Mockito.when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
-        Mockito.when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
+        when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
+        when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
+        when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
 
         List<FeeDto> fees = new ArrayList<>();
         fees.add(0, FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))

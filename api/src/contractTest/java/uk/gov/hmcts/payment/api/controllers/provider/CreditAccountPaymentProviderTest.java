@@ -19,7 +19,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.controllers.CreditAccountPaymentController;
 import uk.gov.hmcts.payment.api.controllers.PaymentReference;
-import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
 import uk.gov.hmcts.payment.api.dto.liberata.PaymentAccountResponse;
 import uk.gov.hmcts.payment.api.dto.liberata.PaymentAccountResponseStatus;
@@ -93,8 +92,6 @@ class CreditAccountPaymentProviderTest {
     CreditAccountPaymentService<PaymentFeeLink, String> creditAccountPaymentService;
     @Autowired
     CreditAccountDtoMapper creditAccountDtoMapper;
-    @Autowired
-    AccountService<AccountDto, String> accountServiceMock;
     @Autowired
     DuplicatePaymentValidator paymentValidator;
     @Autowired
@@ -173,8 +170,9 @@ class CreditAccountPaymentProviderTest {
 
 
         MockMvcTestTarget testTarget = new MockMvcTestTarget();
+
         testTarget.setControllers(
-            new CreditAccountPaymentController(creditAccountPaymentService, creditAccountDtoMapper, accountServiceMock, paymentValidator,
+            new CreditAccountPaymentController(creditAccountPaymentService, creditAccountDtoMapper, paymentValidator,
                 feePayApportionService, featureToggler, pbaStatusErrorMapper, requestMapper, Arrays.asList("CMC"), paymentService,
                 referenceDataService, authTokenGenerator, paymentReferenceMock, pBAPaymentMapper,liberataRealTimeAPI));
         if (context != null) {
@@ -258,13 +256,6 @@ class CreditAccountPaymentProviderTest {
             .thenReturn(PaymentMethod.paymentMethodWith().description("Payment by account").name("Payment by account").build());
         when(paymentStatusRepositoryMock.findByNameOrThrow(anyString()))
             .thenReturn(PaymentStatus.paymentStatusWith().description(s).name(success).build());
-        when(accountServiceMock.retrieve(accountNumber)).thenReturn(AccountDto.accountDtoWith()
-            .accountNumber(accountNumber)
-            .accountName(accountName)
-            .creditLimit(BigDecimal.valueOf(28879))
-            .availableBalance(new BigDecimal(availableBalance))
-            .status(accountStatus)
-            .build());
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("AAD7")
