@@ -69,9 +69,11 @@ public class CreditAccountPaymentController {
     private final ReferenceDataService referenceDataService;
     private final AuthTokenGenerator authTokenGenerator;
 
+    @SuppressWarnings("java:S6813")
     @Autowired
     PaymentReference paymentReference;
 
+    @SuppressWarnings("java:S6813")
     @Autowired
     PBAPaymentMapper pBAPaymentMapper;
 
