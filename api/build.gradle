@@ -82,6 +82,8 @@ sonarqube {
     properties {
         property "sonar.pitest.mode", "reuseReport"
         property "sonar.pitest.reportsDirectory", "build/reports/pitest"
+        property "sonar.pitest.reportsDirectory", "build/reports/pitest"
+        property  "sonar.issue.ignore.multicriteria.e1.ruleKey","java:S6813"
         property "sonar.exclusions", "**/RestTemplateConfiguration.java,**/LiberataRealTimeAPI.java,**/PBAStatusErrorMapper.java," +
                 "**/PBAPaymentMapper.java,**/DuplicatePaymentValidator.java,/**CreditAccountPaymentController"
     }

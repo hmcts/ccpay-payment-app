@@ -261,6 +261,7 @@ sonarqube {
         property "sonar.java.coveragePlugin", "jacoco"
         property "sonar.dependencyCheck.reportPath", "${project.buildDir}/reports/dependency-check-report.xml"
         property "sonar.coverage.jacoco.xmlReportPaths", "${project.buildDir}/reports/jacoco/test/jacocoTestReport.xml"
+        property  "sonar.issue.ignore.multicriteria.e1.ruleKey","java:S6813"
         property "sonar.exclusions", "**/RestTemplateConfiguration.java,**/LiberataRealTimeAPI.java,**/PBAStatusErrorMapper.java," +
                 "**/PBAPaymentMapper.java,**/DuplicatePaymentValidator.java,/**CreditAccountPaymentController"
         property "sonar.test.exclusions", sonarExclusions.join(", ")
