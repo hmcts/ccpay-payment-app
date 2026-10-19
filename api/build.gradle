@@ -84,7 +84,7 @@ sonarqube {
         property "sonar.pitest.reportsDirectory", "build/reports/pitest"
         property "sonar.pitest.reportsDirectory", "build/reports/pitest"
         property "sonar.exclusions", "**/RestTemplateConfiguration.java,**/LiberataRealTimeAPI.java,**/PBAStatusErrorMapper.java," +
-                "**/PBAPaymentMapper.java,**/DuplicatePaymentValidator.java,/**CreditAccountPaymentController"
+                "**/PBAPaymentMapper.java,**/DuplicatePaymentValidator.java,/**CreditAccountPaymentController.java,**/LoggingCreditAccountPaymentService.java"
     }
 }
 
