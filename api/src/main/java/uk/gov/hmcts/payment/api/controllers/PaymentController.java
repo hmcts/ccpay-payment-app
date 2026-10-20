@@ -105,6 +105,7 @@ public class PaymentController {
     @Transactional
     public ResponseEntity updateCaseReference(@PathVariable("reference") String reference,
                                               @RequestBody @Validated UpdatePaymentRequest request) {
+        // TODO: Lock the parent service request and reject case changes if it has been cancelled.
         Optional<Payment> payment = getPaymentByReference(reference);
 
         if (payment.isPresent()) {
@@ -251,6 +252,7 @@ public class PaymentController {
     @Transactional
     public ResponseEntity updatePaymentStatus(@PathVariable(value = "reference", required = true) String reference,
                                               @PathVariable(value = "status", required = true) String status) {
+        // TODO: Lock the parent service request and reject status changes if it has been cancelled.
         Optional<Payment> payment = getPaymentByReference(reference);
 
         if (payment.isPresent()) {

@@ -126,6 +126,8 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
     @Override
     @Transactional
     public void deleteByPaymentReference(String paymentReference) {
+        // TODO: Lock the parent service request and reject payment deletion if it has been cancelled.
+        // Deleting the payment also cascades to the service request and its fees.
         long records = paymentRespository.deleteByReference(paymentReference);
         LOG.info("Number of deleted records are: {}", records);
         if (records == 0) {

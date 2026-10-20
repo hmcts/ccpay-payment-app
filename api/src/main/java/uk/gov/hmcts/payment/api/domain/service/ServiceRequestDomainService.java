@@ -25,7 +25,7 @@ public interface ServiceRequestDomainService {
 
     ServiceRequestResponseDto create(ServiceRequestDto serviceRequestDto, MultiValueMap<String, String> headers);
 
-    ServiceRequestPaymentBo addPayments(PaymentFeeLink serviceRequest, String serviceRequestReference, ServiceRequestPaymentDto serviceRequestPaymentDto) throws CheckDigitException;
+    ServiceRequestPaymentBo addPayments(String serviceRequestReference, ServiceRequestPaymentDto serviceRequestPaymentDto) throws CheckDigitException;
 
     ResponseEntity<OnlineCardPaymentResponse> create(OnlineCardPaymentRequest onlineCardPaymentRequest, String serviceRequestReference, String returnURL, String serviceCallbackURL) throws CheckDigitException;
 

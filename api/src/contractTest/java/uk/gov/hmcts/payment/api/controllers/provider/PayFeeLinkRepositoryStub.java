@@ -106,7 +106,18 @@ public class PayFeeLinkRepositoryStub implements PaymentFeeLinkRepository {
     }
 
     @Override
+    public Optional<PaymentFeeLink> findByPaymentReferenceAndCcdCaseNumberForUpdate(String paymentReference,
+                                                                               String ccdCaseNumber) {
+        return Optional.empty();
+    }
+
+    @Override
     public Optional<PaymentFeeLink> findByPaymentReferenceAndFeeId(String id, Integer feeId) {
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<PaymentFeeLink> findByPaymentReferenceAndFeeIdForUpdate(String paymentReference, Integer feeId) {
         return Optional.empty();
     }
 

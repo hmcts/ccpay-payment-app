@@ -372,6 +372,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
     }
 
     public void updateRemissionAmount(Integer feeId, BigDecimal remissionAmount) {
+        // TODO: Check cancellation on the service request owning this fee before changing its remission.
 //        if (feeId != null) {
             //Remission against fee
             Optional<Remission> remission = remissionRepository.findByFeeId(feeId);

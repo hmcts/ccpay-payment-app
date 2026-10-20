@@ -23,6 +23,17 @@ public interface PaymentFeeLinkRepository extends CrudRepository<PaymentFeeLink,
 
     Optional<PaymentFeeLink> findByPaymentReferenceAndCcdCaseNumber(String id, String ccdCaseNumber);
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+        select pfl
+        from PaymentFeeLink pfl
+        where pfl.paymentReference = :paymentReference
+          and pfl.ccdCaseNumber = :ccdCaseNumber
+        """)
+    Optional<PaymentFeeLink> findByPaymentReferenceAndCcdCaseNumberForUpdate(
+        @Param("paymentReference") String paymentReference,
+        @Param("ccdCaseNumber") String ccdCaseNumber);
+
     Optional<List<PaymentFeeLink>> findByCcdCaseNumber(String ccdCaseNumber);
 
     @Query(value = "SELECT pfl.* FROM payment_fee_link pfl "
@@ -32,6 +43,22 @@ public interface PaymentFeeLinkRepository extends CrudRepository<PaymentFeeLink,
         nativeQuery = true)
     Optional<PaymentFeeLink> findByPaymentReferenceAndFeeId(final @Param("paymentReference") String paymentReference,
                                          final @Param("feeId") Integer feeId);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+        select pfl
+        from PaymentFeeLink pfl
+        where pfl.paymentReference = :paymentReference
+          and exists (
+              select fee.id
+              from PaymentFee fee
+              where fee.paymentLink = pfl
+                and fee.id = :feeId
+          )
+        """)
+    Optional<PaymentFeeLink> findByPaymentReferenceAndFeeIdForUpdate(
+        @Param("paymentReference") String paymentReference,
+        @Param("feeId") Integer feeId);
 
     @Query(value = "SELECT concat(date_part('year', now()),'-',nextval('payment_reference_seq'))", nativeQuery = true)
     String getNextPaymentReference();

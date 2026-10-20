@@ -25,6 +25,7 @@ public class FeesServiceImpl implements FeesService {
         if (paymentFee.isEmpty()) {
             throw new EmptyResultDataAccessException("Fee not found", 1);
         }
+        // TODO: Lock the parent service request and reject fee deletion if it has been cancelled.
         paymentFeeRepository.deleteById(feeId);
     }
 

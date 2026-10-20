@@ -114,6 +114,8 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
     public void updateTelephonyPaymentStatus(String paymentReference, String status, String payload) {
         Payment payment = paymentRepository.findByReferenceAndPaymentProvider(paymentReference,
             PaymentProvider.paymentProviderWith().name(PCI_PAL).build()).orElseThrow(PaymentNotFoundException::new);
+        // TODO: Define how late telephony outcomes should be handled for cancelled service requests.
+        // Review payment history and fee balance updates while preserving the provider's settlement information.
         if (payment.getPaymentStatus() != null &&
             !payment.getPaymentStatus().getName().equalsIgnoreCase(PaymentStatus.SUCCESS.getName())) {
             payment.setPaymentStatus(paymentStatusRepository.findByNameOrThrow(status));

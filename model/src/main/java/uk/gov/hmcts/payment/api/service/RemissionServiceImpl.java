@@ -14,6 +14,7 @@ import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
 import uk.gov.hmcts.payment.api.model.Remission;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 import uk.gov.hmcts.payment.api.util.ServiceRequestCaseUtil;
+import uk.gov.hmcts.payment.api.util.ServiceRequestGuard;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidPaymentGroupReferenceException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentFeeNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.RemissionAlreadyExistException;
@@ -65,7 +66,11 @@ public class RemissionServiceImpl implements RemissionService {
     @Override
     @Transactional
     public PaymentFeeLink createRetrospectiveRemission(RemissionServiceRequest remissionServiceRequest, String paymentGroupReference, Integer feeId) throws CheckDigitException {
+
         PaymentFeeLink paymentFeeLink = findByPaymentReferenceAndOrCcdCaseNumber(paymentGroupReference, remissionServiceRequest.getCcdCaseNumber());
+
+        ServiceRequestGuard.requireNotCancelled(paymentFeeLink);
+
         serviceRequestCaseUtil.updateServiceRequestCaseDetails(paymentFeeLink, remissionServiceRequest);
 
         // Tactical check where feeId is null
@@ -99,7 +104,11 @@ public class RemissionServiceImpl implements RemissionService {
     @Override
     @Transactional
     public Remission createRetrospectiveRemissionForPayment(RetroRemissionServiceRequest remissionServiceRequest, String paymentGroupReference, Integer feeId) throws CheckDigitException {
+
         PaymentFeeLink paymentFeeLink = findByPaymentReferenceAndOrFeeId(paymentGroupReference, feeId);
+
+        ServiceRequestGuard.requireNotCancelled(paymentFeeLink);
+
         PaymentFee fee = populatePaymentFee(feeId, paymentFeeLink, remissionServiceRequest);
         return buildRemissionForPayment(paymentFeeLink, fee, remissionServiceRequest);
     }
@@ -107,9 +116,9 @@ public class RemissionServiceImpl implements RemissionService {
     private PaymentFeeLink findByPaymentReferenceAndOrCcdCaseNumber(String paymentGroupReference, String ccdCaseNumber) {
         Optional<PaymentFeeLink> paymentFeeLink;
         try {
-            paymentFeeLink = paymentFeeLinkRepository.findByPaymentReference(paymentGroupReference);
+            paymentFeeLink = paymentFeeLinkRepository.findByPaymentReferenceForUpdate(paymentGroupReference);
         } catch (IncorrectResultSizeDataAccessException error) {
-            paymentFeeLink = paymentFeeLinkRepository.findByPaymentReferenceAndCcdCaseNumber(paymentGroupReference, ccdCaseNumber);
+            paymentFeeLink = paymentFeeLinkRepository.findByPaymentReferenceAndCcdCaseNumberForUpdate(paymentGroupReference, ccdCaseNumber);
         }
         return paymentFeeLink.orElseThrow(() -> new InvalidPaymentGroupReferenceException("Payment group " + paymentGroupReference + MESSAGE));
     }
@@ -117,11 +126,12 @@ public class RemissionServiceImpl implements RemissionService {
     private PaymentFeeLink findByPaymentReferenceAndOrFeeId(String paymentGroupReference, Integer feeId) {
         Optional<PaymentFeeLink> paymentFeeLink;
         try {
-            paymentFeeLink = paymentFeeLinkRepository.findByPaymentReference(paymentGroupReference);
+            paymentFeeLink = paymentFeeLinkRepository.findByPaymentReferenceForUpdate(paymentGroupReference);
         } catch (IncorrectResultSizeDataAccessException error) {
-            paymentFeeLink = paymentFeeLinkRepository.findByPaymentReferenceAndFeeId(paymentGroupReference, feeId);
+            paymentFeeLink = paymentFeeLinkRepository.findByPaymentReferenceAndFeeIdForUpdate(paymentGroupReference, feeId);
         }
-        return paymentFeeLink.orElseThrow(() -> new InvalidPaymentGroupReferenceException("Payment group " + paymentGroupReference + MESSAGE));
+        return paymentFeeLink.orElseThrow(() -> new InvalidPaymentGroupReferenceException(
+            "Payment group %s%s".formatted(paymentGroupReference, MESSAGE)));
     }
 
     private PaymentFee populatePaymentFee(Integer feeId, PaymentFeeLink paymentFeeLink, RetroRemissionServiceRequest remissionServiceRequest) {
