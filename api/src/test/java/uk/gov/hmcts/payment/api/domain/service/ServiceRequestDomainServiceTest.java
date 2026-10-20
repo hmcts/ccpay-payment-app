@@ -9,7 +9,6 @@ import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.junit.runner.RunWith;
 import org.mockito.*;
-import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -25,6 +24,7 @@ import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestPaymentDtoDomainMapp
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestBo;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestOnlinePaymentBo;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
+import uk.gov.hmcts.payment.api.domain.service.ServiceRequestCancellationEligibilityService.Eligibility;
 import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
@@ -47,6 +47,10 @@ import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
 import uk.gov.hmcts.payment.api.model.PaymentMethod;
 import uk.gov.hmcts.payment.api.model.PaymentProvider;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
+import uk.gov.hmcts.payment.api.exception.ServiceRequestCancellationException;
+import uk.gov.hmcts.payment.api.jpaaudit.model.AuditEventsType;
+import uk.gov.hmcts.payment.api.jpaaudit.model.PaymentAuditHistory;
+import uk.gov.hmcts.payment.api.jpaaudit.model.PaymentAuditHistoryRepository;
 import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.service.FeePayApportionService;
@@ -66,6 +70,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -103,6 +108,12 @@ public class ServiceRequestDomainServiceTest {
 
     @Mock
     private PaymentFeeLinkRepository paymentFeeLinkRepository;
+
+    @Mock
+    private ServiceRequestCancellationEligibilityService cancellationEligibilityService;
+
+    @Mock
+    private PaymentAuditHistoryRepository paymentAuditHistoryRepository;
 
     @Mock
     private ServiceRequestBo orderBo;
@@ -955,6 +966,51 @@ public class ServiceRequestDomainServiceTest {
 
         // Assert
         assertFalse(result);
+    }
+
+    @Test
+    public void cancelServiceRequestUpdatesCancellationDetails() {
+        // Unit test: the service dependencies are mocked and the PaymentFeeLink is updated in memory.
+        // Database persistence is covered by ServiceRequestComponentTest.
+        String serviceRequestReference = "payment-ref";
+        String cancellationReason = "The service request was created in error";
+        String cancelledBy = "user-123";
+        PaymentFeeLink paymentFeeLink = getPaymentFeeLink();
+
+        when(paymentFeeLinkRepository.findByPaymentReferenceForUpdate(serviceRequestReference))
+            .thenReturn(Optional.of(paymentFeeLink));
+        when(cancellationEligibilityService.checkEligibility(paymentFeeLink))
+            .thenReturn(Eligibility.eligible());
+        serviceRequestDomainService.cancel(serviceRequestReference, cancelledBy, cancellationReason);
+
+        verify(paymentFeeLinkRepository).findByPaymentReferenceForUpdate(serviceRequestReference);
+        assertThat(paymentFeeLink.isCancelled()).isTrue();
+        assertThat(paymentFeeLink.getCancellationReason()).isEqualTo(cancellationReason);
+        assertThat(paymentFeeLink.getCancelledBy()).isEqualTo(cancelledBy);
+        assertThat(paymentFeeLink.getDateCancelled()).isNotNull();
+        ArgumentCaptor<PaymentAuditHistory> auditHistoryCaptor = ArgumentCaptor.forClass(PaymentAuditHistory.class);
+        verify(paymentAuditHistoryRepository).save(auditHistoryCaptor.capture());
+        assertThat(auditHistoryCaptor.getValue().getAuditType()).isEqualTo(AuditEventsType.ORDER_CANCELLED);
+    }
+
+    @Test
+    public void cancelServiceRequestRejectsIneligibleServiceRequestWithReason() {
+        String serviceRequestReference = "payment-ref";
+        String ineligibleReason = "Service request has a successful payment RC-1234-1234-1234";
+        PaymentFeeLink paymentFeeLink = getPaymentFeeLink();
+
+        when(paymentFeeLinkRepository.findByPaymentReferenceForUpdate(serviceRequestReference))
+            .thenReturn(Optional.of(paymentFeeLink));
+        when(cancellationEligibilityService.checkEligibility(paymentFeeLink))
+            .thenReturn(Eligibility.ineligible(ineligibleReason));
+
+        assertThatThrownBy(() -> serviceRequestDomainService.cancel(serviceRequestReference, "user-123", "reason"))
+            .isInstanceOf(ServiceRequestCancellationException.class)
+            .hasMessage(ineligibleReason);
+
+        assertThat(paymentFeeLink.isCancelled()).isFalse();
+        assertThat(paymentFeeLink.getCancellationReason()).isNull();
+        verify(paymentAuditHistoryRepository, Mockito.never()).save(any());
     }
 
 

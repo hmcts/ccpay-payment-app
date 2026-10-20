@@ -1,6 +1,8 @@
 package uk.gov.hmcts.payment.api.model;
 
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
@@ -14,6 +16,10 @@ public interface PaymentFeeLinkRepository extends CrudRepository<PaymentFeeLink,
     <S extends PaymentFeeLink> S save(S entity);
 
     Optional<PaymentFeeLink> findByPaymentReference(String id);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select paymentFeeLink from PaymentFeeLink paymentFeeLink where paymentFeeLink.paymentReference = :paymentReference")
+    Optional<PaymentFeeLink> findByPaymentReferenceForUpdate(@Param("paymentReference") String paymentReference);
 
     Optional<PaymentFeeLink> findByPaymentReferenceAndCcdCaseNumber(String id, String ccdCaseNumber);
 
