@@ -10,6 +10,7 @@ import com.microsoft.azure.servicebus.Message;
 import com.microsoft.azure.servicebus.ReceiveMode;
 import com.microsoft.azure.servicebus.primitives.ConnectionStringBuilder;
 import com.microsoft.azure.servicebus.primitives.ServiceBusException;
+import lombok.NonNull;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +33,7 @@ import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestPaymentDtoDomainMapp
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestBo;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestOnlinePaymentBo;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
+import uk.gov.hmcts.payment.api.domain.service.ServiceRequestCancellationEligibilityService.Eligibility;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentResponse;
@@ -47,6 +49,7 @@ import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
 import uk.gov.hmcts.payment.api.exception.LiberataServiceTimeoutException;
+import uk.gov.hmcts.payment.api.exception.ServiceRequestCancellationException;
 import uk.gov.hmcts.payment.api.exceptions.ServiceRequestReferenceNotFoundException;
 import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
@@ -60,6 +63,9 @@ import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.model.StatusHistory;
+import uk.gov.hmcts.payment.api.jpaaudit.model.AuditEventsType;
+import uk.gov.hmcts.payment.api.jpaaudit.model.PaymentAuditHistory;
+import uk.gov.hmcts.payment.api.jpaaudit.model.PaymentAuditHistoryRepository;
 import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.service.FeePayApportionService;
@@ -148,6 +154,12 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     private PaymentFeeLinkRepository paymentFeeLinkRepository;
 
     @Autowired
+    private ServiceRequestCancellationEligibilityService cancellationEligibilityService;
+
+    @Autowired
+    private PaymentAuditHistoryRepository paymentAuditHistoryRepository;
+
+    @Autowired
     private IdempotencyKeysRepository idempotencyKeysRepository;
 
     @Autowired
@@ -200,6 +212,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
 
     @Override
     public ResponseEntity<OnlineCardPaymentResponse> create(OnlineCardPaymentRequest onlineCardPaymentRequest, String serviceRequestReference, String returnUrl, String serviceCallbackURL) throws CheckDigitException {
+        // TODO PAY-8554: Acquire the cancellation row lock and reject cancelled requests before creating a GovPay payment.
         // Find service request
         PaymentFeeLink serviceRequest = paymentFeeLinkRepository.findByPaymentReference(serviceRequestReference).orElseThrow(() -> new ServiceRequestReferenceNotFoundException("Order reference doesn't exist"));
 
@@ -618,4 +631,41 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         }
         return allowCancel;
     }
+
+    @Override
+    @Transactional
+    public void cancel(String serviceRequestReference, String cancelledBy, String reason) {
+
+        PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.findByPaymentReferenceForUpdate(serviceRequestReference)
+            .orElseThrow(() -> new ServiceRequestReferenceNotFoundException("Service request not found"));
+
+        // check if already cancelled
+        if (paymentFeeLink.isCancelled()) {
+            LOG.info("{} is already cancelled", paymentFeeLink);
+            return;
+        }
+
+        // validate if this request can be cancelled
+        Eligibility eligibility = cancellationEligibilityService.checkEligibility(paymentFeeLink);
+        if (!eligibility.cancellable()) {
+            LOG.warn("{} cannot be cancelled: {}", paymentFeeLink, eligibility.reason());
+            throw new ServiceRequestCancellationException(eligibility.reason());
+        }
+
+        // update payment-fee-link to mark Service Request as cancelled
+        paymentFeeLink.setCancelled(true);
+        paymentFeeLink.setCancelledBy(cancelledBy);
+        paymentFeeLink.setCancellationReason(reason);
+        paymentFeeLink.setDateCancelled(new Date());
+
+        AuditEventsType auditEventsType = AuditEventsType.ORDER_CANCELLED;
+
+        paymentAuditHistoryRepository.save(PaymentAuditHistory.paymentAuditHistoryWith()
+            .ccdCaseNo(paymentFeeLink.getCcdCaseNumber())
+            .auditType(auditEventsType)
+            .auditPayload(paymentFeeLink.toString())
+            .auditDescription(auditEventsType.getDescription())
+            .build());
+    }
+
 }
