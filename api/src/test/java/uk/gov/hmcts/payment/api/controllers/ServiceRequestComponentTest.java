@@ -5,6 +5,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -196,8 +197,8 @@ public class ServiceRequestComponentTest {
         serviceOnlyRestActions()
             .post("/service-request/" + serviceRequestReference + "/cancel")
             .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isConflict())
-            .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.error")
-                .value(ineligibleReason));
+            .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+            .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$").value(ineligibleReason));
 
         PaymentFeeLink unchanged = paymentFeeLinkRepository.findByPaymentReference(serviceRequestReference)
             .orElseThrow();

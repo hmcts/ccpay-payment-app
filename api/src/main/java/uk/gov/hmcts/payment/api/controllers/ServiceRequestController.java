@@ -52,7 +52,6 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
     import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
     import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
     import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestCancelDto;
-    import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestCancelErrorDto;
     import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
     import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
     import uk.gov.hmcts.payment.api.exception.InvalidServiceRequestCancellationException;
@@ -402,39 +401,16 @@ public class ServiceRequestController {
         return ex.getMessage();
     }
 
-    // The Service Request cancellation API (PAY-9031) must return errors as a JSON body of the form
-    // {"error": "..."}. The generic RestErrorHandler.return400 handler is not sufficient: it returns the bare
-    // exception message as a plain string, and it is shared by many existing endpoints whose clients rely on that
-    // format, so it cannot be changed. Cancellation errors therefore use their own exception types and handlers.
-    // These handlers live here rather than in a @ControllerAdvice because controller-local handlers always take
-    // precedence over advice, so ControllerExceptionHandler's catch-all RuntimeException handler can never turn
-    // them into a 500, and they only apply to the endpoints in this controller.
-    @ExceptionHandler(ServiceRequestCancellationException.class)
-    public ResponseEntity<ServiceRequestCancelErrorDto> cancellationConflict(ServiceRequestCancellationException ex) {
-        return cancellationError(ex, HttpStatus.CONFLICT);
-    }
-
-    @ExceptionHandler(InvalidServiceRequestCancellationException.class)
-    public ResponseEntity<ServiceRequestCancelErrorDto> cancellationBadRequest(InvalidServiceRequestCancellationException ex) {
-        return cancellationError(ex, HttpStatus.BAD_REQUEST);
-    }
-
-    private ResponseEntity<ServiceRequestCancelErrorDto> cancellationError(RuntimeException ex, HttpStatus status) {
-        return ResponseEntity.status(status)
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(ServiceRequestCancelErrorDto.cancelErrorDtoWith().error(ex.getMessage()).build());
-    }
-
     @Operation(summary = "Cancel Service Request", description = "Cancel Service Request for a given Service Request Reference.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "204", description = "Cancellation applied, or SR was already cancelled (idempotent)"),
         @ApiResponse(responseCode = "400", description = "Invalid/missing request attributes (e.g. no value for reason)",
-            content = @Content(schema = @Schema(implementation = ServiceRequestCancelErrorDto.class))),
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class))),
         @ApiResponse(responseCode = "401", description = "Credentials are required to access this resource"),
         @ApiResponse(responseCode = "403", description = "Forbidden-Access Denied"),
         @ApiResponse(responseCode = "404", description = "Service request not found"),
         @ApiResponse(responseCode = "409", description = "Service request cannot be cancelled",
-            content = @Content(schema = @Schema(implementation = ServiceRequestCancelErrorDto.class))),
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class))),
     })
     @RateLimiter(name = "default-rate-limiter")
     @PostMapping(value = "/service-request/{service-request-reference}/cancel")

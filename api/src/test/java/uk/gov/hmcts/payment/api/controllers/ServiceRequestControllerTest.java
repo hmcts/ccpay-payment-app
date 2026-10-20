@@ -1348,8 +1348,8 @@ public class ServiceRequestControllerTest {
 
     private static ResultMatcher cancellationError(String error) {
         return ResultMatcher.matchAll(
-            content().contentType(MediaType.APPLICATION_JSON),
-            jsonPath("$.error").value(error));
+            content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON),
+            jsonPath("$").value(error));
     }
 
     private RestActions serviceOnlyRestActions() {

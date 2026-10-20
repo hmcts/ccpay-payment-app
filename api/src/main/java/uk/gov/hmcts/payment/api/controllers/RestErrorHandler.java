@@ -14,7 +14,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import uk.gov.hmcts.payment.api.contract.exception.ValidationErrorDTO;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
+import uk.gov.hmcts.payment.api.exception.InvalidServiceRequestCancellationException;
 import uk.gov.hmcts.payment.api.exception.LiberataServiceTimeoutException;
+import uk.gov.hmcts.payment.api.exception.ServiceRequestCancellationException;
 import uk.gov.hmcts.payment.api.exception.ValidationErrorException;
 import uk.gov.hmcts.payment.api.exceptions.ServiceRequestReferenceNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.*;
@@ -55,6 +57,16 @@ public class RestErrorHandler {
     @ExceptionHandler(value = {NoServiceFoundException.class, ServiceRequestReferenceNotFoundException.class, AccountNotFoundException.class})
     public ResponseEntity return404(Exception ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(InvalidServiceRequestCancellationException.class)
+    public ResponseEntity<String> invalidServiceRequestCancellation(InvalidServiceRequestCancellationException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(ServiceRequestCancellationException.class)
+    public ResponseEntity<String> serviceRequestCancellationConflict(ServiceRequestCancellationException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler({PaymentNotFoundException.class, InvalidFeeRequestException.class, PaymentException.class,
