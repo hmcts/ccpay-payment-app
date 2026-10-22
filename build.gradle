@@ -1,19 +1,19 @@
 plugins {
     id 'application'
     id "org.sonarqube" version "6.2.0.5505"
-    id 'org.springframework.boot' version '3.5.13'
+    id 'org.springframework.boot' version '3.5.16'
     id 'io.spring.dependency-management' version '1.1.7'
-    id 'org.owasp.dependencycheck' version '12.2.1'
-    id "uk.gov.hmcts.java" version '0.12.68'
+    id 'org.owasp.dependencycheck' version '12.2.2'
+    id "uk.gov.hmcts.java" version '0.12.70'
     id "com.gorylenko.gradle-git-properties" version "2.5.7"
     id 'jacoco'
 }
 
-def springBootVersion = '3.5.13'
+def springBootVersion = '3.5.16'
 def springCloudVersion = '2025.0.0'
 
 def versions = [
-        lombok: '1.18.44',
+        lombok: '1.18.48',
         javaVersion: '21',
         jacocoVersion: '0.8.12'
 ]
@@ -45,18 +45,6 @@ allprojects {
     }
     version = rootProject.file('version.txt').text.trim() + ".${buildNumber}"
 
-    repositories {
-        mavenLocal()
-        mavenCentral()
-        maven {
-            url = 'https://repo.spring.io/libs-milestone'
-            content {
-                includeGroupByRegex 'org\\.springframework(\\..+)?'
-                includeGroupByRegex 'io\\.projectreactor(\\..+)?'
-            }
-        }
-        maven { url = 'https://pkgs.dev.azure.com/hmcts/Artifacts/_packaging/hmcts-lib/maven/v1' }
-    }
 
     apply from: "${rootDir}/cve-resolution-strategy.gradle"
 
@@ -64,14 +52,14 @@ allprojects {
         imports {
             mavenBom "org.springframework.boot:spring-boot-dependencies:${springBootVersion}"
             mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
-            mavenBom 'org.testcontainers:testcontainers-bom:2.0.4'
-            mavenBom 'org.apache.logging.log4j:log4j-bom:2.25.4'
+            mavenBom 'org.apache.logging.log4j:log4j-bom:2.26.1'
+            mavenBom 'org.testcontainers:testcontainers-bom:2.0.5'
             mavenBom 'io.netty:netty-all:4.2.12.Final'
         }
         dependencies {
             dependencySet(
                     group: 'org.apache.tomcat.embed',
-                    version: '10.1.54'
+                    version: '10.1.60'
             ) {
                 entry 'tomcat-embed-core'
                 entry 'tomcat-embed-websocket'
@@ -84,11 +72,11 @@ allprojects {
                 entry 'jackson-databind'
             }
             // CVE-2020-8908
-            dependencySet(group: 'com.google.guava', version: '33.6.0-jre') {
+            dependencySet(group: 'com.google.guava', version: '33.7.2-jre') {
                 entry 'guava'
             }
 
-            dependencySet(group: 'ch.qos.logback', version: '1.5.32') {
+            dependencySet(group: 'ch.qos.logback', version: '1.5.38') {
                 entry 'logback-core'
                 entry 'logback-classic'
             }
@@ -97,10 +85,10 @@ allprojects {
 
     configurations {
         testCompile.exclude group: 'pull-parser', module: 'pull-parser'
-        testRuntime.exclude group: 'ch.qos.logback', module: 'logback-classic', version: '1.5.8'
-        testRuntime.exclude group: 'ch.qos.logback', module: 'logback-core', version: '1.5.8'
-        testCompile.exclude group: 'ch.qos.logback', module: 'logback-classic', version: '1.5.8'
-        testCompile.exclude group: 'ch.qos.logback', module: 'logback-core', version: '1.5.8'
+        testRuntime.exclude group: 'ch.qos.logback', module: 'logback-classic'
+        testRuntime.exclude group: 'ch.qos.logback', module: 'logback-core'
+        testCompile.exclude group: 'ch.qos.logback', module: 'logback-classic'
+        testCompile.exclude group: 'ch.qos.logback', module: 'logback-core'
     }
 
 
@@ -150,11 +138,11 @@ subprojects {
     }
 
     dependencies {
-        testImplementation 'io.github.openfeign:feign-jackson:13.11'
-        testImplementation 'io.github.openfeign:feign-micrometer:13.11'
+        testImplementation 'io.github.openfeign:feign-jackson:13.12'
+        testImplementation 'io.github.openfeign:feign-micrometer:13.12'
         implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version:'2.17.1'
         implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version:'2.17.1'
-        implementation group: 'joda-time', name: 'joda-time', version: '2.14.1'
+        implementation group: 'joda-time', name: 'joda-time', version: '2.14.4'
         implementation group: 'org.jboss.aerogear', name: 'aerogear-otp-java', version:'1.0.0'
         implementation group:'org.apache.poi', name: 'poi-ooxml', version: '5.5.1'
         testImplementation group: 'junit', name: 'junit', version: '4.13.2'
@@ -169,7 +157,7 @@ subprojects {
         implementation 'org.springframework.boot:spring-boot-starter-validation'
         implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: '2.19.2'
         implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jdk8', version: '2.19.2'
-        implementation(group: 'com.github.hmcts', name: 'core-case-data-store-client', version: '5.2.0') {
+        implementation(group: 'com.github.hmcts', name: 'core-case-data-store-client', version: '5.3.0') {
             sourceSets {
                 main {
                     java {
@@ -210,6 +198,23 @@ bootJar {
 
 springBoot {
     buildInfo()
+}
+
+tasks.named('processResources') {
+    doLast {
+        def buildInfoFile = file("$buildDir/resources/main/META-INF/build-info.properties")
+        if (!buildInfoFile.exists()) {
+            return
+        }
+
+        def props = new Properties()
+        buildInfoFile.withInputStream { props.load(it) }
+
+        if (!props.getProperty('build.version')?.trim()) {
+            props.setProperty('build.version', project.version.toString())
+            buildInfoFile.withOutputStream { props.store(it, null) }
+        }
+    }
 }
 
 dependencyCheck {
@@ -268,20 +273,22 @@ tasks.withType(JavaExec).configureEach {
   javaLauncher.set(javaToolchains.launcherFor(java.toolchain))
 }
 
-task smoke(type: GradleBuild, description: 'Runs smoke tests', group: 'Verification') {
-    buildFile = './api/build.gradle'
-    tasks = ['smokeTest']
+tasks.register('smoke') {
+    description = 'Runs smoke tests'
+    group = 'Verification'
+    dependsOn(':payment-api:smokeTest')
 }
 
-task functional(type: GradleBuild, description: 'Runs Functional tests', group: 'Verification') {
-    buildFile = './api/build.gradle'
-    tasks = ['functionalTest']
+tasks.register('functional') {
+    description = 'Runs Functional tests'
+    group = 'Verification'
+    dependsOn(':payment-api:functionalTest')
 }
 
 task migratePostgresDatabase(type: GradleBuild, description: 'Migrates Postgres Database', group: 'liquibase') {
     //forward projectProperties
     startParameter.projectProperties = project.gradle.startParameter.projectProperties
-    buildFile = './api/build.gradle'
+    dir = file('api')
     tasks = ['migratePostgresDatabase']
 }
 

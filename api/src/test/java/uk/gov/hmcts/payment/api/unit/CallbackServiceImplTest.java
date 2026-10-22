@@ -3,7 +3,6 @@ package uk.gov.hmcts.payment.api.unit;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.servicebus.IMessage;
 import com.microsoft.azure.servicebus.primitives.ServiceBusException;
-import org.ff4j.FF4j;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -24,6 +23,7 @@ import uk.gov.hmcts.payment.api.servicebus.TopicClientProxy;
 
 import java.util.Arrays;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
@@ -37,8 +37,6 @@ public class CallbackServiceImplTest {
         .build();
     @Mock
     private TopicClientProxy topicClient;
-    @Mock
-    private FF4j ff4j;
     private CallbackService callbackService;
     @Mock
     private PaymentDtoMapper paymentDtoMapper;
@@ -49,14 +47,13 @@ public class CallbackServiceImplTest {
 
     @Before
     public void init() {
-        callbackService = new CallbackServiceImpl(paymentDtoMapper, objectMapper, topicClient, ff4j,
-                paymentGroupDtoMapper);
-        when(ff4j.check(CallbackService.FEATURE)).thenReturn(true);
+        callbackService = new CallbackServiceImpl(paymentDtoMapper, objectMapper, topicClient, paymentGroupDtoMapper);
     }
 
     @After
     public void tearDown() {
         callbackService = null;
+        Thread.interrupted(); // clear any interrupt flag set during the test
     }
 
     @Test
@@ -95,27 +92,77 @@ public class CallbackServiceImplTest {
     }
 
     @Test
-    public void testThatWhenFeatureIsOffInPaymentFeeLinkBusIsNotCalled() {
+    public void testThatWhenThreadInterruptedBusIsNotCalled() {
+        try {
+            Thread.currentThread().interrupt();
 
-        when(ff4j.check(CallbackService.FEATURE)).thenReturn(false);
+            paymentFeeLink.getPayments().get(0).setServiceCallbackUrl(null);
+            paymentFeeLink.setCallBackUrl("dummy");
 
-        callbackService.callback(paymentFeeLink, paymentFeeLink.getPayments().get(0));
+            when(paymentGroupDtoMapper.toPaymentGroupDto(any()))
+                .thenReturn(new PaymentGroupDto());
 
-        verifyNoInteractions(topicClient);
+            callbackService.callback(
+                paymentFeeLink,
+                paymentFeeLink.getPayments().get(0)
+            );
+
+            assertTrue(Thread.currentThread().isInterrupted());
+        } finally {
+            // Ensure this test never leaks its deliberately-set interrupt state.
+            Thread.interrupted();
+        }
     }
 
     @Test
-    public void testThatWhenThreadInterruptedBusIsNotCalled() {
+    public void testThatServiceCallbackSendFailureDoesNotInterruptThread() throws Exception {
+        Thread.interrupted(); // clear any pre-existing interrupt flag
+        doThrow(new RuntimeException("send failed"))
+            .when(topicClient).send(any(IMessage.class));
 
-        Thread.currentThread().interrupt();
+        callbackService.callback(paymentFeeLink, paymentFeeLink.getPayments().get(0));
 
+        assertFalse(Thread.currentThread().isInterrupted());
+    }
+
+    @Test
+    public void testThatServiceCallbackSendInterruptedExceptionInterruptsThread() throws Exception {
+        Thread.interrupted(); // clear any pre-existing interrupt flag
+        doThrow(new InterruptedException())
+            .when(topicClient).send(any(IMessage.class));
+
+        callbackService.callback(paymentFeeLink, paymentFeeLink.getPayments().get(0));
+
+        assertTrue(Thread.currentThread().isInterrupted());
+    }
+
+    @Test
+    public void testThatPaymentFeeLinkCallbackSendFailureDoesNotInterruptThread() throws Exception {
+        Thread.interrupted(); // clear any pre-existing interrupt flag
         paymentFeeLink.getPayments().get(0).setServiceCallbackUrl(null);
         paymentFeeLink.setCallBackUrl("dummy");
 
         when(paymentGroupDtoMapper.toPaymentGroupDto(any())).thenReturn(new PaymentGroupDto());
+        doThrow(new RuntimeException("send failed"))
+            .when(topicClient).send(any(IMessage.class));
 
         callbackService.callback(paymentFeeLink, paymentFeeLink.getPayments().get(0));
 
-        assertTrue(Thread.interrupted());
+        assertFalse(Thread.currentThread().isInterrupted());
+    }
+
+    @Test
+    public void testThatPaymentFeeLinkCallbackSendInterruptedExceptionInterruptsThread() throws Exception {
+        Thread.interrupted(); // clear any pre-existing interrupt flag
+        paymentFeeLink.getPayments().get(0).setServiceCallbackUrl(null);
+        paymentFeeLink.setCallBackUrl("dummy");
+
+        when(paymentGroupDtoMapper.toPaymentGroupDto(any())).thenReturn(new PaymentGroupDto());
+        doThrow(new InterruptedException())
+            .when(topicClient).send(any(IMessage.class));
+
+        callbackService.callback(paymentFeeLink, paymentFeeLink.getPayments().get(0));
+
+        assertTrue(Thread.currentThread().isInterrupted());
     }
 }

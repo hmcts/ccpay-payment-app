@@ -1,7 +1,6 @@
 package uk.gov.hmcts.payment.api.dto.mapper;
 
 import lombok.SneakyThrows;
-import org.ff4j.FF4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -290,6 +289,7 @@ public class PaymentDtoMapper {
             .currency(CurrencyCode.valueOf(payment.getCurrency()))
             .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus())
             .statusHistories(payment.getStatusHistories() != null ? toStatusHistoryDtos(payment.getStatusHistories()) : null)
+            .paymentAllocation(payment.getPaymentAllocation() != null ? toPaymentAllocationDtoForLibereta(payment.getPaymentAllocation()) : null)
             .dateCreated(payment.getDateCreated())
             .dateUpdated(payment.getDateUpdated())
             .method(payment.getPaymentMethod().getName())
@@ -301,8 +301,6 @@ public class PaymentDtoMapper {
             .build();
         return enrichWithFeeData(paymentDto);
     }
-
-
 
     public PaymentDto toPaymentDto(Payment payment, PaymentFeeLink paymentFeeLink){
         PaymentDto paymentDto = PaymentDto.payment2DtoWith()
@@ -320,6 +318,7 @@ public class PaymentDtoMapper {
             .currency(CurrencyCode.valueOf(payment.getCurrency()))
             .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus())
             .statusHistories(payment.getStatusHistories() != null ? toStatusHistoryDtos(payment.getStatusHistories()) : null)
+            .paymentAllocation(payment.getPaymentAllocation() != null ? toPaymentAllocationDtos(payment.getPaymentAllocation()) : null)
             .dateCreated(payment.getDateCreated())
             .dateUpdated(payment.getDateUpdated())
             .method(payment.getPaymentMethod().getName())
@@ -333,9 +332,10 @@ public class PaymentDtoMapper {
     }
 
 
-    public PaymentDto toReconciliationResponseDtoForLibereta(final Payment payment, final String paymentReference, final List<PaymentFee> fees, final FF4j ff4j,boolean isPaymentAfterApportionment) {
+    public PaymentDto toReconciliationResponseDtoForLibereta(final Payment payment, final String paymentReference,
+                                                             final List<PaymentFee> fees, boolean isPaymentAfterApportionment) {
         boolean isBulkScanPayment = payment.getPaymentChannel() !=null && payment.getPaymentChannel().getName().equals("bulk scan");
-        boolean bulkScanCheck = ff4j.check("bulk-scan-check");
+        boolean bulkScanCheck = true;
         boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
         boolean apportionCheck = apportionFeature && isPaymentAfterApportionment;
         LOG.debug("bulkScanCheck value in PaymentDtoMapper: {}",bulkScanCheck);
@@ -361,6 +361,7 @@ public class PaymentDtoMapper {
             .method(payment.getPaymentMethod().getName())
             .bankedDate(payment.getBankedDate())
             .giroSlipNo(payment.getGiroSlipNo())
+            .paymentAllocation(payment.getPaymentAllocation() != null ? toPaymentAllocationDtoForLibereta(payment.getPaymentAllocation()) : null)
             .externalProvider(payment.getPaymentProvider() != null ? payment.getPaymentProvider().getName() : null)
             .externalReference(isBulkScanPayment ? payment.getDocumentControlNumber() : payment.getExternalReference())
             .reportedDateOffline(payment.getPaymentChannel() != null && payment.getPaymentChannel().getName().equals("digital bar") ? payment.getReportedDateOffline() : null)
@@ -609,5 +610,100 @@ public class PaymentDtoMapper {
             return paymentDtoList;
         }
         throw new PaymentNotFoundException("No Payment found");
+    }
+
+    public ReconciliationPaymentDto toReconciliationPaymentDto(PaymentDto paymentDto) {
+        if (paymentDto == null) {
+            return null;
+        }
+
+        return ReconciliationPaymentDto.reconciliationPaymentDtoWith()
+            .id(paymentDto.getId())
+            .description(paymentDto.getDescription())
+            .reference(paymentDto.getReference())
+            .paymentReference(paymentDto.getPaymentReference())
+            .paymentGroupReference(paymentDto.getPaymentGroupReference())
+            .serviceName(paymentDto.getServiceName())
+            .siteId(paymentDto.getSiteId())
+            .amount(paymentDto.getAmount())
+            .caseReference(paymentDto.getCaseReference())
+            .ccdCaseNumber(paymentDto.getCcdCaseNumber())
+            .accountNumber(paymentDto.getAccountNumber())
+            .organisationName(paymentDto.getOrganisationName())
+            .customerReference(paymentDto.getCustomerReference())
+            .channel(paymentDto.getChannel())
+            .currency(paymentDto.getCurrency())
+            .status(paymentDto.getStatus())
+            .dateCreated(paymentDto.getDateCreated())
+            .dateUpdated(paymentDto.getDateUpdated())
+            .method(paymentDto.getMethod())
+            .giroSlipNo(paymentDto.getGiroSlipNo())
+            .externalProvider(paymentDto.getExternalProvider())
+            .externalReference(paymentDto.getExternalReference())
+            .reportedDateOffline(paymentDto.getReportedDateOffline())
+            .documentControlNumber(paymentDto.getDocumentControlNumber())
+            .bankedDate(paymentDto.getBankedDate())
+            .payerName(paymentDto.getPayerName())
+            .refundEnable(paymentDto.getRefundEnable())
+            .fees(toReconciliationFeeDtos(paymentDto.getFees()))
+            .statusHistories(paymentDto.getStatusHistories())
+            .paymentAllocation(paymentDto.getPaymentAllocation())
+            .internalReference(paymentDto.getInternalReference())
+            .disputes(paymentDto.getDisputes())
+            .overPayment(paymentDto.getOverPayment())
+            .links(paymentDto.getLinks())
+            .build();
+    }
+
+    public List<ReconciliationPaymentDto> toReconciliationPaymentDtos(List<PaymentDto> paymentDtos) {
+        if (paymentDtos == null) {
+            return null;
+        }
+        return paymentDtos.stream()
+            .map(this::toReconciliationPaymentDto)
+            .collect(Collectors.toList());
+    }
+
+    private List<ReconciliationFeeDto> toReconciliationFeeDtos(List<FeeDto> fees) {
+        if (fees == null) {
+            return null;
+        }
+        return fees.stream()
+            .map(this::toReconciliationFeeDto)
+            .collect(Collectors.toList());
+    }
+
+    private ReconciliationFeeDto toReconciliationFeeDto(FeeDto fee) {
+        if (fee == null) {
+            return null;
+        }
+
+        return ReconciliationFeeDto.reconciliationFeeDtoWith()
+            .id(fee.getId())
+            .code(fee.getCode())
+            .version(fee.getVersion())
+            .volume(fee.getVolume())
+            .calculatedAmount(fee.getCalculatedAmount())
+            .feeAmount(fee.getFeeAmount())
+            .memoLine(fee.getMemoLine())
+            .naturalAccountCode(fee.getNaturalAccountCode())
+            .ccdCaseNumber(fee.getCcdCaseNumber())
+            .description(fee.getDescription())
+            .caseReference(fee.getCaseReference())
+            .reference(fee.getReference())
+            .jurisdiction1(fee.getJurisdiction1())
+            .jurisdiction2(fee.getJurisdiction2())
+            .apportionAmount(fee.getApportionAmount())
+            .allocatedAmount(fee.getAllocatedAmount())
+            .dateApportioned(fee.getDateApportioned())
+            .dateCreated(fee.getDateCreated())
+            .dateUpdated(fee.getDateUpdated())
+            .amountDue(fee.getAmountDue())
+            .paymentGroupReference(fee.getPaymentGroupReference())
+            .apportionedPayment(fee.getApportionedPayment())
+            .dateReceiptProcessed(fee.getDateReceiptProcessed())
+            .remissionEnable(fee.getRemissionEnable())
+            .overPayment(fee.getOverPayment())
+            .build();
     }
 }

@@ -183,7 +183,7 @@ public class PBAPaymentFunctionalTest {
 
         // Get pba payments by ccdCaseNumber
         PaymentsResponse liberataResponse = paymentTestService
-            .getPbaPaymentsByCCDCaseNumber(SERVICE_TOKEN, accountPaymentRequest.getCcdCaseNumber()).then()
+            .getReconciliationDataByCCDCaseNumber(SERVICE_TOKEN, accountPaymentRequest.getCcdCaseNumber()).then()
             .statusCode(OK.value()).extract().as(PaymentsResponse.class);
         assertThat(liberataResponse.getPayments().size()).isGreaterThanOrEqualTo(1);
         PaymentDto retrievedPaymentDto = liberataResponse.getPayments().stream()
@@ -233,7 +233,7 @@ public class PBAPaymentFunctionalTest {
 
         // Get pba payments by ccdCaseNumber
         PaymentsResponse liberataResponse = paymentTestService
-            .getPbaPaymentsByCCDCaseNumber(SERVICE_TOKEN, accountPaymentRequest.getCcdCaseNumber()).then()
+            .getReconciliationDataByCCDCaseNumber(SERVICE_TOKEN, accountPaymentRequest.getCcdCaseNumber()).then()
             .statusCode(OK.value()).extract().as(PaymentsResponse.class);
 
         assertThat(liberataResponse.getPayments().size()).isGreaterThanOrEqualTo(1);

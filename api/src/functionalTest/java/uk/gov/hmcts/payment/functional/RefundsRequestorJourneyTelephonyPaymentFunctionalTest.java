@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.functional;
 
 import io.restassured.response.Response;
+import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -42,10 +43,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
 
-@RunWith(SpringRunner.class)
+@RunWith(SpringIntegrationSerenityRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
 @ActiveProfiles({"functional-tests", "liberataMock"})
-//@SpringBootTest(classes = {PaymentApiApplication.class})
 public class RefundsRequestorJourneyTelephonyPaymentFunctionalTest {
 
     private static String USER_TOKEN;
@@ -158,16 +158,16 @@ public class RefundsRequestorJourneyTelephonyPaymentFunctionalTest {
         });
 
         paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
-                ccdCaseNumber, "5");
+                ccdCaseNumber, "6");
 
-        // Get pba payment by reference
+        // Get payment by reference
         PaymentDto paymentsResponse =
             paymentTestService.getPayments(USER_TOKEN, SERVICE_TOKEN, paymentReference).then()
                 .statusCode(OK.value()).extract().as(PaymentDto.class);
-        int paymentId = paymentsResponse.getFees().get(0).getId();
+        int feeId = paymentsResponse.getFees().get(0).getId();
         // initiate the refund
         PaymentRefundRequest paymentRefundRequest
-                = PaymentFixture.aRefundRequest(paymentId, "RR001", paymentReference, "550.00", "550");
+                = PaymentFixture.aRefundRequest(feeId, "RR001", paymentReference, "550.00", "550");
         Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
                 SERVICE_TOKEN_PAYMENT,
                 paymentRefundRequest);
@@ -238,16 +238,16 @@ public class RefundsRequestorJourneyTelephonyPaymentFunctionalTest {
 
 
         paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN, SERVICE_TOKEN,
-            ccdCaseNumber, "4");
+            ccdCaseNumber, "5");
 
-        // Get pba payment by reference
+        // Get payment by reference
         PaymentDto paymentsResponse =
             paymentTestService.getPayments(USER_TOKEN, SERVICE_TOKEN, paymentReference).then()
                 .statusCode(OK.value()).extract().as(PaymentDto.class);
-        int paymentId = paymentsResponse.getFees().get(0).getId();
+        int feeId = paymentsResponse.getFees().get(0).getId();
         // initiate the refund
         PaymentRefundRequest paymentRefundRequest
-            = PaymentFixture.aRefundRequest(paymentId, "RR001", paymentReference, "550", "550");
+            = PaymentFixture.aRefundRequest(feeId, "RR001", paymentReference, "550", "550");
         Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentRefundRequest);

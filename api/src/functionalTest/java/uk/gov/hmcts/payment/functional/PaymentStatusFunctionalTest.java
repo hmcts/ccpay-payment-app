@@ -1449,7 +1449,7 @@ public class PaymentStatusFunctionalTest {
         assertEquals("successful operation", ping2Response.getBody().prettyPrint());
 
         // delete payment record
-        paymentTestService.deleteBulkScanPayment(SERVICE_TOKEN, dcn, testProps.bulkScanUrl).then()
+        paymentTestService.deleteBulkScanPayment(USER_TOKEN_PAYMENT, SERVICE_TOKEN, dcn, testProps.bulkScanUrl).then()
             .statusCode(NO_CONTENT.value());
 
         // delete Payment Failure record
@@ -1488,7 +1488,7 @@ public class PaymentStatusFunctionalTest {
             bulkScanPayments, testProps.bulkScanUrl).then().statusCode(CREATED.value());
 
         // delete payment record
-        paymentTestService.deleteBulkScanPayment(SERVICE_TOKEN, dcn, testProps.bulkScanUrl).then()
+        paymentTestService.deleteBulkScanPayment(USER_TOKEN_PAYMENT, SERVICE_TOKEN, dcn, testProps.bulkScanUrl).then()
             .statusCode(NO_CONTENT.value());
 
         // Ping 1 for Unprocessed Payment event
@@ -1567,7 +1567,7 @@ public class PaymentStatusFunctionalTest {
             "Request already received for this failure reference");
 
         // delete payment record
-        paymentTestService.deleteBulkScanPayment(SERVICE_TOKEN, dcn, testProps.bulkScanUrl).then()
+        paymentTestService.deleteBulkScanPayment(USER_TOKEN_PAYMENT, SERVICE_TOKEN, dcn, testProps.bulkScanUrl).then()
             .statusCode(NO_CONTENT.value());
 
         // delete Payment Failure record
@@ -1623,7 +1623,7 @@ public class PaymentStatusFunctionalTest {
         assertThat(bounceChequeResponse.getStatusCode()).isEqualTo(BAD_REQUEST.value());
 
         // delete payment record
-        paymentTestService.deleteBulkScanPayment(SERVICE_TOKEN, dcn, testProps.bulkScanUrl).then()
+        paymentTestService.deleteBulkScanPayment(USER_TOKEN_PAYMENT, SERVICE_TOKEN, dcn, testProps.bulkScanUrl).then()
             .statusCode(NO_CONTENT.value());
     }
 
@@ -1740,7 +1740,7 @@ public class PaymentStatusFunctionalTest {
         // delete Payment Failure record
         paymentTestService.deleteFailedPayment(USER_TOKEN, SERVICE_TOKEN, unprocessedPayment.getFailureReference()).then().statusCode(NO_CONTENT.value());
 
-        paymentTestService.deleteBulkScanPayment(SERVICE_TOKEN, dcn, testProps.bulkScanUrl).then()
+        paymentTestService.deleteBulkScanPayment(USER_TOKEN_PAYMENT, SERVICE_TOKEN, dcn, testProps.bulkScanUrl).then()
             .statusCode(NO_CONTENT.value());
     }
 
@@ -1873,7 +1873,7 @@ public class PaymentStatusFunctionalTest {
         paymentTestService.deleteFailedPayment(USER_TOKEN, SERVICE_TOKEN, unprocessedPayment.getFailureReference()).then().statusCode(NO_CONTENT.value());
 
         // delete bulk scan record
-        paymentTestService.deleteBulkScanPayment(SERVICE_TOKEN, dcn, testProps.bulkScanUrl).then()
+        paymentTestService.deleteBulkScanPayment(USER_TOKEN_PAYMENT, SERVICE_TOKEN, dcn, testProps.bulkScanUrl).then()
             .statusCode(NO_CONTENT.value());
     }
 
@@ -2510,7 +2510,7 @@ public class PaymentStatusFunctionalTest {
         assertThat(unprocessedPaymentResponse.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
 
         // delete payment record
-        paymentTestService.deleteBulkScanPayment(SERVICE_TOKEN, dcn, testProps.bulkScanUrl).then()
+        paymentTestService.deleteBulkScanPayment(USER_TOKEN_PAYMENT, SERVICE_TOKEN, dcn, testProps.bulkScanUrl).then()
             .statusCode(NO_CONTENT.value());
     }
 
@@ -2568,7 +2568,7 @@ public class PaymentStatusFunctionalTest {
         assertThat(unprocessedPaymentResponse.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
 
         // delete payment record
-        paymentTestService.deleteBulkScanPayment(SERVICE_TOKEN, dcn, testProps.bulkScanUrl).then()
+        paymentTestService.deleteBulkScanPayment(USER_TOKEN_PAYMENT, SERVICE_TOKEN, dcn, testProps.bulkScanUrl).then()
             .statusCode(NO_CONTENT.value());
     }
 

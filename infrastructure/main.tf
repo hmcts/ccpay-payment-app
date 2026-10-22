@@ -61,12 +61,21 @@ module "payment-database-v15" {
   env                  = var.env
   pgsql_admin_username = var.postgresql_user
 
-  # Setup Access Reader db user
-  force_user_permissions_trigger = "1"
+  # Setup Access for reporting and JiT perms.
+  enable_write_group_access          = true
+  force_user_permissions_trigger     = "2"
+  enable_db_report_privileges        = true
+  kv_subscription                    = var.kv_subscription
+  kv_name                            = data.azurerm_key_vault.payment_key_vault.name
+  user_secret_name                   = azurerm_key_vault_secret.POSTGRES-USER.name
+  pass_secret_name                   = azurerm_key_vault_secret.POSTGRES-PASS.name
+  force_db_report_privileges_trigger = "2"
 
   pgsql_databases = [
     {
       name : var.database_name
+      report_privilege_schema : "public"
+      report_privilege_tables : ["payment", "fee", "payment_fee_link", "remission"]
     }
   ]
   pgsql_server_configuration = [
@@ -80,45 +89,48 @@ module "payment-database-v15" {
   common_tags          = var.common_tags
   pgsql_version        = var.postgresql_flexible_sql_version
 
-  action_group_name           = join("-", [var.db_monitor_action_group_name, local.db_server_name, var.env])
-  email_address_key           = var.db_alert_email_address_key
-  email_address_key_vault_id  = data.azurerm_key_vault.payment_key_vault.id
+  # Add service criticality param
+  service_criticality  = var.service_criticality
+
+  action_group_name          = join("-", [var.db_monitor_action_group_name, local.db_server_name, var.env])
+  email_address_key          = var.db_alert_email_address_key
+  email_address_key_vault_id = data.azurerm_key_vault.payment_key_vault.id
 }
 
 # Populate Vault with DB info
 resource "azurerm_key_vault_secret" "POSTGRES-USER" {
-  name = join("-", [var.component, "POSTGRES-USER"])
+  name         = join("-", [var.component, "POSTGRES-USER"])
   value        = module.payment-database-v15.username
   key_vault_id = data.azurerm_key_vault.payment_key_vault.id
 }
 
 resource "azurerm_key_vault_secret" "POSTGRES-PASS" {
-  name = join("-", [var.component, "POSTGRES-PASS"])
+  name         = join("-", [var.component, "POSTGRES-PASS"])
   value        = module.payment-database-v15.password
   key_vault_id = data.azurerm_key_vault.payment_key_vault.id
 }
 
 resource "azurerm_key_vault_secret" "POSTGRES_HOST" {
-  name = join("-", [var.component, "POSTGRES-HOST"])
+  name         = join("-", [var.component, "POSTGRES-HOST"])
   value        = module.payment-database-v15.fqdn
   key_vault_id = data.azurerm_key_vault.payment_key_vault.id
 }
 
 resource "azurerm_key_vault_secret" "POSTGRES_PORT" {
-  name = join("-", [var.component, "POSTGRES-PORT"])
+  name         = join("-", [var.component, "POSTGRES-PORT"])
   value        = var.postgresql_flexible_server_port
   key_vault_id = data.azurerm_key_vault.payment_key_vault.id
 }
 
 resource "azurerm_key_vault_secret" "POSTGRES_DATABASE" {
-  name = join("-", [var.component, "POSTGRES-DATABASE"])
+  name         = join("-", [var.component, "POSTGRES-DATABASE"])
   value        = var.database_name
   key_vault_id = data.azurerm_key_vault.payment_key_vault.id
 }
 
 # Populate Vault with SendGrid API token
 data "azurerm_key_vault" "sendgrid" {
-  provider = azurerm.sendgrid
+  provider            = azurerm.sendgrid
   name                = var.env != "prod" ? "sendgridnonprod" : "sendgridprod"
   resource_group_name = var.env != "prod" ? "SendGrid-nonprod" : "SendGrid-prod"
 }

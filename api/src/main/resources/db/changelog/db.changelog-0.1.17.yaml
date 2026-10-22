@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1810000000000-4
+      author: DaveJ
+      changes:
+        - sql:
+            splitStatements: true
+            sql: >
+              CREATE INDEX IF NOT EXISTS ix_fee_ccd_case_number ON fee USING btree (ccd_case_number);
+              CREATE INDEX IF NOT EXISTS ix_fee_ccd_case_number_payment_link_id ON fee USING btree (ccd_case_number, payment_link_id);
+

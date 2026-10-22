@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1810000000000-5
+      author: DaveJ
+      changes:
+        - sql:
+            splitStatements: true
+            sql: >
+              CREATE INDEX IF NOT EXISTS ix_payment_fee_link_payment_reference ON payment_fee_link USING btree (payment_reference);
+              CREATE INDEX IF NOT EXISTS ix_payment_fee_link_case_reference ON payment_fee_link USING btree (case_reference);
+              CREATE INDEX IF NOT EXISTS ix_idempotency_keys_request_hashcode ON idempotency_keys USING btree (request_hashcode);

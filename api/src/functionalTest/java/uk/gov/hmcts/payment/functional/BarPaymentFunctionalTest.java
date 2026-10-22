@@ -79,7 +79,7 @@ public class BarPaymentFunctionalTest {
 
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
-            .when().createTelephonyPayment(getPaymentRecordRequest())
+            .when().createPaymentRecord(getPaymentRecordRequest())
             .then().created(paymentDto -> {
                 assertNotNull(paymentDto.getReference());
 
@@ -160,7 +160,7 @@ public class BarPaymentFunctionalTest {
 
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
-            .when().createTelephonyPayment(getPaymentRecordRequestForPostalOrder())
+            .when().createPaymentRecord(getPaymentRecordRequestForPostalOrder())
             .then().created(paymentDto -> {
                 LOG.info(paymentDto.getReference());
                 assertNotNull(paymentDto.getReference());
@@ -266,7 +266,7 @@ public class BarPaymentFunctionalTest {
 
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
-            .when().createTelephonyPayment(getPaymentRecordRequestForCheque())
+            .when().createPaymentRecord(getPaymentRecordRequestForCheque())
             .then().created(paymentDto -> {
                 assertNotNull(paymentDto.getReference());
                 paymentReference = paymentDto.getReference();
@@ -351,7 +351,7 @@ public class BarPaymentFunctionalTest {
 
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
-            .when().createTelephonyPayment(getPaymentRecordRequestForCard())
+            .when().createPaymentRecord(getPaymentRecordRequestForCard())
             .then().created(paymentDto -> {
                 assertNotNull(paymentDto.getReference());
                 paymentReference = paymentDto.getReference();

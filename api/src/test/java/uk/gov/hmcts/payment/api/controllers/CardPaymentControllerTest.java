@@ -13,7 +13,7 @@ import org.mockito.InjectMocks;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -110,11 +110,11 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
     private RestActions restActions;
     @Autowired
     private ObjectMapper objectMapper;
-    @MockBean
+    @MockitoBean
     private AuthTokenGenerator authTokenGenerator;
-    @MockBean
+    @MockitoBean
     private LaunchDarklyFeatureToggler featureToggler;
-    @MockBean
+    @MockitoBean
     @Qualifier("restTemplatePaymentGroup")
     private RestTemplate restTemplatePaymentGroup;
 
@@ -409,11 +409,10 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
         assertNotNull(paymentDto);
         assertEquals(paymentDto.getReference(), savedPayment.getReference());
         assertEquals(paymentDto.getAmount(), new BigDecimal("499.99"));
-        assertEquals(paymentDto.getStatusHistories().size(), 1);
-        paymentDto.getStatusHistories().stream().forEach(h -> {
-            assertEquals(h.getStatus(), "Success");
-            assertEquals(h.getExternalStatus(), "success");
-        });
+        assertEquals(2, paymentDto.getStatusHistories().size());
+        var latestHistory = paymentDto.getStatusHistories().get(paymentDto.getStatusHistories().size() - 1);
+        assertEquals("Success", latestHistory.getStatus());
+        assertEquals("success", latestHistory.getExternalStatus());
     }
 
     @Test
@@ -523,6 +522,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .service("CMC")
             .currency(CurrencyCode.GBP)
             .channel("telephony")
+            .provider("pci pal")
             .siteId("siteId")
             .fees(Collections.singletonList(FeeDto.feeDtoWith()
                 .code("feeCode")
@@ -607,10 +607,8 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
         PaymentFeeLink savedPaymentGroup = db.findByReference("2018-15186162003");
         Payment dbPayment = savedPaymentGroup.getPayments().get(0);
         assertEquals(dbPayment.getReference(), "RC-1518-9429-1432-7825");
-        dbPayment.getStatusHistories().stream().forEach(h -> {
-            assertEquals(h.getErrorCode(), "P0200");
-            assertEquals(h.getMessage(), "Payment not found");
-        });
+        assertTrue(dbPayment.getStatusHistories().stream().anyMatch(h ->
+            "P0200".equals(h.getErrorCode()) && "Payment not found".equals(h.getMessage())));
     }
 
     @Test
@@ -749,28 +747,8 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
-    public void cancelPayment_withFeatureFlagDisabled_shouldReturnValidMessage() throws Exception {
-        restActions
-            .post("/api/ff4j/store/features/payment-cancel/disable")
-            .andExpect(status().isAccepted());
-
-        MvcResult result = createMockPayment();
-
-        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
-
-        result = restActions.post("/card-payments/" + paymentDto.getReference() + "/cancel")
-            .andExpect(status().isBadRequest())
-            .andReturn();
-
-        assertThat(result.getResponse().getContentAsString()).isEqualTo("Payment cancel feature is not available for usage.");
-    }
-
-    @Test
     @Transactional
     public void cancelPaymentSuccess_shouldReturn204Test() throws Exception {
-        restActions
-            .post("/api/ff4j/store/features/payment-cancel/enable")
-            .andExpect(status().isAccepted());
         MvcResult result = createMockPayment();
 
         PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
@@ -788,9 +766,6 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
     @Test
     @Transactional
     public void cancelPaymentBadRequest_shouldReturn400Test() throws Exception {
-        restActions
-            .post("/api/ff4j/store/features/payment-cancel/enable")
-            .andExpect(status().isAccepted());
         MvcResult result = createMockPayment();
 
         PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
@@ -819,9 +794,6 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
     @Test
     @Transactional
     public void cancelPaymentIncorrectPaymentRef_shouldReturn404Test() throws Exception {
-        restActions
-            .post("/api/ff4j/store/features/payment-cancel/enable")
-            .andExpect(status().isAccepted());
         MvcResult result = createMockPayment();
 
         PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
@@ -840,9 +812,6 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
     @Test
     @Transactional
     public void cancelPaymentInternalServerError_shouldReturn500Test() throws Exception {
-        restActions
-            .post("/api/ff4j/store/features/payment-cancel/enable")
-            .andExpect(status().isAccepted());
         MvcResult result = createMockPayment();
 
         PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);

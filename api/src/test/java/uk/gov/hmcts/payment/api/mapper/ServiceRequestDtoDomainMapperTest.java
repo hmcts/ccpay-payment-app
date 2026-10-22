@@ -7,6 +7,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.controllers.PaymentReference;
 import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestDtoDomainMapper;
@@ -18,16 +19,16 @@ import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestFeeDto;
 import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
+import uk.gov.hmcts.payment.api.util.HmacUtil;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
-
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-
+@ActiveProfiles({"local", "componenttest"})
 @RunWith(MockitoJUnitRunner.class)
 public class ServiceRequestDtoDomainMapperTest {
 
@@ -46,6 +47,10 @@ public class ServiceRequestDtoDomainMapperTest {
     @Mock
     PaymentReference paymentReference;
 
+    @org.junit.Before
+    public void setup() {
+        org.springframework.test.util.ReflectionTestUtils.setField(serviceRequestDtoDomainMapper, "secretKey", "toto1234!");
+    }
     @Test
     public void toDomainTest(){
 
@@ -96,6 +101,52 @@ public class ServiceRequestDtoDomainMapperTest {
         assertEquals(serviceRequestOnlinePaymentBo.getAmount(), BigDecimal.valueOf(99.99));
     }
 
+    @Test
+    public void toDomainTest3() throws CheckDigitException {
+
+        OnlineCardPaymentRequest onlineCardPaymentRequest = OnlineCardPaymentRequest.onlineCardPaymentRequestWith()
+            .language("Eng")
+            .currency(CurrencyCode.GBP)
+            .amount(new BigDecimal(99.99).setScale(2, RoundingMode.HALF_EVEN))
+            .build();
+
+        Mockito.when(referenceUtil.getNext("RC")).thenReturn("RC-ref");
+
+        Mockito.when(userIdSupplier.get()).thenReturn("userID");
+
+        Mockito.when(serviceIdSupplier.get()).thenReturn("s2sServiceName");
+
+        ServiceRequestOnlinePaymentBo serviceRequestOnlinePaymentBo = serviceRequestDtoDomainMapper.toDomain(onlineCardPaymentRequest,"https://paymentoutcome-web.demo.platform.hmcts.net","");
+
+        assertTrue(serviceRequestOnlinePaymentBo.getUserId().equals("userID"));
+        assertTrue(serviceRequestOnlinePaymentBo.getS2sServiceName().equals("s2sServiceName"));
+        assertTrue(serviceRequestOnlinePaymentBo.getLanguage().equals("eng"));
+        assertEquals(serviceRequestOnlinePaymentBo.getAmount(), BigDecimal.valueOf(99.99));
+    }
+
+    @Test
+    public void toDomainReturnUrlHashingTest() throws Exception {
+
+        OnlineCardPaymentRequest onlineCardPaymentRequest = OnlineCardPaymentRequest.onlineCardPaymentRequestWith()
+            .language("Eng")
+            .currency(CurrencyCode.GBP)
+            .amount(new BigDecimal(10).setScale(2, RoundingMode.HALF_EVEN))
+            .build();
+
+        Mockito.when(referenceUtil.getNext("RC")).thenReturn("RC-ref");
+        Mockito.when(userIdSupplier.get()).thenReturn("userID");
+        Mockito.when(serviceIdSupplier.get()).thenReturn("s2sServiceName");
+
+        ServiceRequestOnlinePaymentBo serviceRequestOnlinePaymentBo = serviceRequestDtoDomainMapper.toDomain(onlineCardPaymentRequest,"https://paymentoutcome-web.demo.platform.hmcts.net/","");
+
+        String returnUrl = serviceRequestOnlinePaymentBo.getReturnUrl();
+        String actualHash = returnUrl.substring(returnUrl.lastIndexOf('/') + 1);
+        String expectedHash = HmacUtil.hmacSha256("toto1234!","RC-ref");
+
+        assertEquals(expectedHash, actualHash);
+        assertTrue(!returnUrl.contains("RC-ref"));
+        assertTrue(returnUrl.contains(expectedHash));
+    }
     @Test
     public void createGovPayRequestTest() {
 

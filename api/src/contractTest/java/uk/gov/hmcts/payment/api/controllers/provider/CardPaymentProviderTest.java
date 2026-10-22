@@ -9,7 +9,6 @@ import au.com.dius.pact.provider.junitsupport.loader.PactBroker;
 import au.com.dius.pact.provider.junitsupport.loader.VersionSelector;
 import au.com.dius.pact.provider.spring.junit5.MockMvcTestTarget;
 import com.google.common.collect.ImmutableMap;
-import org.ff4j.FF4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -76,7 +75,7 @@ import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
     @VersionSelector(consumer = "divorce_caseOrchestratorService", tag = "master"),
     @VersionSelector(consumer = "fpl_ccdConfiguration", tag = "master"),
     @VersionSelector(consumer = "fr_caseOrchestratorService", tag = "master"),
-    @VersionSelector(consumer = "ia_casePaymentsApi", tag = "master}"),
+    @VersionSelector(consumer = "ia_casePaymentsApi", tag = "master"),
     @VersionSelector(consumer = "payment_App", tag = "master"),
     @VersionSelector(consumer = "pcs_api", tag = "master"),
     @VersionSelector(consumer = "prl_cos", tag = "master"),
@@ -99,8 +98,6 @@ class CardPaymentProviderTest {
     CardDetailsService<CardDetails, String> cardDetailsService;
     @Autowired
     PciPalPaymentService pciPalPaymentService;
-    @Autowired
-    FF4j ff4j;
     @Autowired
     FeePayApportionService feePayApportionService;
 
@@ -167,7 +164,7 @@ class CardPaymentProviderTest {
 
     @BeforeEach
     void before(PactVerificationContext context) {
-        System.getProperties().setProperty("pact.verifier.publishResults", "true");
+        System.getProperties().setProperty("pact.verifier.publishResults", Boolean.toString(isMasterBranch()));
         // Set provider version for publishing verification results
         String gitCommit = System.getenv().getOrDefault("GIT_COMMIT", getGitCommitHash());
         System.getProperties().setProperty("pact.provider.version", gitCommit);
@@ -176,18 +173,22 @@ class CardPaymentProviderTest {
         MockMvcTestTarget testTarget = new MockMvcTestTarget();
         when(paymentReferenceMock.getNext()).thenReturn("123");
         CardPaymentController cardPaymentController =
-            new CardPaymentController(cardDelegatingPaymentService, paymentDtoMapper, cardDetailsService, pciPalPaymentService, ff4j,
+            new CardPaymentController(cardDelegatingPaymentService, paymentDtoMapper, cardDetailsService, pciPalPaymentService,
                 feePayApportionService, featureToggler, referenceDataService, paymentReferenceMock);
         cardPaymentController.setApplicationContext(applicationContext);
         testTarget.setControllers(
             cardPaymentController,
             new PaymentController(paymentService, paymentStatusRepositoryMock, callbackServiceMock,
-                paymentDtoMapper, paymentValidator, ff4j,
+                paymentDtoMapper, paymentValidator,
                 dateUtil, paymentFeeRepositoryMock, featureToggler));
         if (context != null) {
             context.setTarget(testTarget);
         }
 
+    }
+
+    private boolean isMasterBranch() {
+        return "master".equalsIgnoreCase(branchName != null ? branchName.trim() : "");
     }
 
     private String getGitCommitHash() {
@@ -228,7 +229,6 @@ class CardPaymentProviderTest {
 
     @State({"Payments exist for a case"})
     public void toPaymentsForACasesWithSuccess() {
-        when(ff4j.check("payment-search")).thenReturn(Boolean.TRUE);
         PaymentFeeLink paymentLink = populateCardPaymentToDb("1", "e2kkddts5215h9qqoeuth5c0v", "ccd_gw").getPaymentLink();
         when(paymentFeeLinkRepositoryMock.findAll(any(Specification.class))).thenReturn(Arrays.asList(paymentLink));
 

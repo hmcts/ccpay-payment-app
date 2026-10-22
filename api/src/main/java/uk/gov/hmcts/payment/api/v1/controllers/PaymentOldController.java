@@ -1,5 +1,7 @@
 package uk.gov.hmcts.payment.api.v1.controllers;
 
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -53,6 +55,7 @@ public class PaymentOldController {
             @ApiResponse(responseCode = "400", description = "PaymentOld creation failed"),
             @ApiResponse(responseCode = "422", description = "Invalid or missing attribute")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @RequestMapping(value = "/users/{userId}/payments", method = POST)
     public ResponseEntity<PaymentOldDto> create(@PathVariable("userId") String userId,
                                                 @Valid @RequestBody CreatePaymentRequestDto request) {
@@ -71,6 +74,7 @@ public class PaymentOldController {
             @ApiResponse(responseCode = "200", description = "PaymentOld retrieved"),
             @ApiResponse(responseCode = "404", description = "PaymentOld not found")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @RequestMapping(value = "/users/{userId}/payments/{paymentId}", method = GET)
     public PaymentOldDto retrieve(@PathVariable("userId") String userId,
                                   @PathVariable("paymentId") Integer paymentId) {
@@ -83,6 +87,7 @@ public class PaymentOldController {
             @ApiResponse(responseCode = "400", description = "Cancellation failed"),
             @ApiResponse(responseCode = "404", description = "PaymentOld not found")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @RequestMapping(value = "/users/{userId}/payments/{paymentId}/cancel", method = POST)
     public ResponseEntity<?> cancel(@PathVariable("userId") String userId,
                                     @PathVariable("paymentId") Integer paymentId) {
@@ -101,6 +106,7 @@ public class PaymentOldController {
             @ApiResponse(responseCode = "412", description = "Refund amount available mismatch"),
             @ApiResponse(responseCode = "404", description = "PaymentOld not found")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @RequestMapping(value = "/users/{userId}/payments/{paymentId}/refunds", method = POST)
     public ResponseEntity<?> refund(@PathVariable("userId") String userId,
                                     @PathVariable("paymentId") Integer paymentId,

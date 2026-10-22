@@ -21,7 +21,8 @@ public class PaymentReportConfiguration {
                                                                  PbaCivilPaymentReportConfig pbaCivilPaymentReportConfig,
                                                                  PbaPrlPaymentReportConfig pbaPrlPaymentReportConfig,
                                                                  PbaIacPaymentReportConfig pbaIacPaymentReportConfig,
-                                                                 PbaSmcPaymentReportConfig pbaSmcPaymentReportConfig) {
+                                                                 PbaSmcPaymentReportConfig pbaSmcPaymentReportConfig,
+                                                                 PbaPcsPaymentReportConfig pbaPcsPaymentReportConfig) {
         return ImmutableMap.<PaymentReportType, PaymentReportConfig>builder()
             .put(PaymentReportType.DUPLICATE_PAYMENT, duplicatePaymentReportConfig)
             .put(PaymentReportType.CARD, cardPaymentReportConfig)
@@ -33,7 +34,7 @@ public class PaymentReportConfiguration {
             .put(PaymentReportType.PBA_PRL, pbaPrlPaymentReportConfig)
             .put(PaymentReportType.PBA_IAC, pbaIacPaymentReportConfig)
             .put(PaymentReportType.PBA_SMC, pbaSmcPaymentReportConfig)
+            .put(PaymentReportType.PBA_PCS, pbaPcsPaymentReportConfig)
             .build();
-
     }
 }

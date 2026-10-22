@@ -6,7 +6,8 @@ import au.com.dius.pact.provider.junitsupport.IgnoreNoPactsToVerify;
 import au.com.dius.pact.provider.junitsupport.Provider;
 import au.com.dius.pact.provider.junitsupport.State;
 import au.com.dius.pact.provider.junitsupport.loader.PactBroker;
-import au.com.dius.pact.provider.junitsupport.loader.VersionSelector;
+import au.com.dius.pact.provider.junitsupport.loader.PactBrokerConsumerVersionSelectors;
+import au.com.dius.pact.provider.junitsupport.loader.SelectorBuilder;
 import au.com.dius.pact.provider.spring.junit5.MockMvcTestTarget;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestTemplate;
@@ -31,13 +32,25 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
 @Provider("payment_accounts")
-@PactBroker(scheme = "${PACT_BROKER_SCHEME:http}", host = "${PACT_BROKER_URL:localhost}", port = "${PACT_BROKER_PORT:80}", consumerVersionSelectors = {
-    @VersionSelector(tag = "master")})
+@PactBroker(scheme = "${PACT_BROKER_SCHEME:http}", host = "${PACT_BROKER_URL:localhost}", port = "${PACT_BROKER_PORT:80}")
 @Import({CreditAccountPaymentProviderTestConfiguration.class, ServiceRequestProviderTestConfiguration.class})
 @IgnoreNoPactsToVerify
 class AccountProviderTest {
 
     private static final String DATE_TIME_FORMAT_T_HH_MM_SS_SSS = "yyyy-MM-dd'T'HH:mm:ss.SSS";
+
+    // Pacts are pinned to the master tagged version of every consumer, as before, except for pcs_api
+    // which additionally has any branch as requested in PAY-9142.
+    @PactBrokerConsumerVersionSelectors
+    public static SelectorBuilder pactSelectors() {
+        return new SelectorBuilder()
+            .rawSelectorJson("{\"tag\":\"master\",\"latest\":true}")
+            .rawSelectorJson(latestSelector("pcs_api"));
+    }
+
+    private static String latestSelector(String consumer) {
+        return "{\"consumer\":\"" + consumer + "\",\"latest\":true}";
+    }
 
     @Value("${PACT_BRANCH_NAME}")
     String branchName;
@@ -58,7 +71,7 @@ class AccountProviderTest {
 
     @BeforeEach
     void before(PactVerificationContext context) {
-        System.getProperties().setProperty("pact.verifier.publishResults", "true");
+        System.getProperties().setProperty("pact.verifier.publishResults", Boolean.toString(isMasterBranch()));
         // Set provider version for publishing verification results
         String gitCommit = System.getenv().getOrDefault("GIT_COMMIT", getGitCommitHash());
         System.getProperties().setProperty("pact.provider.version", gitCommit);
@@ -72,6 +85,10 @@ class AccountProviderTest {
         if (context != null) {
             context.setTarget(testTarget);
         }
+    }
+
+    private boolean isMasterBranch() {
+        return "master".equalsIgnoreCase(branchName != null ? branchName.trim() : "");
     }
 
     private String getGitCommitHash() {

@@ -18,6 +18,10 @@ java:
     PBA_CONFIG1_SERVICE_NAMES: dummy
     PCI_PAL_API_URL: https://ip3cloud.com/clients/hmcts/payments/index.php
     REFUND_API_URL: http://${SERVICE_NAME}-ccpay-refunds-api
+    PBA_PCS_PAYMENTS_REPORT_SCHEDULER_ENABLED: "true"
+    PBA_PCS_PAYMENTS_EMAIL_FROM: "no-reply@mail-payment-nonprod.platform.hmcts.net"
+    PBA_PCS_PAYMENTS_EMAIL_MESSAGE: "Hi, <br/><br/>Please find attached Payment by Account reconciliation report. <br/><br/>Regards, <br/>Fees & Payments Team <br/><br/>"
+    PBA_PCS_PAYMENTS_EMAIL_SUBJECT: "CNP:PBA Mortgage and Landlord Possession Claims Reconciliation Report"
 
     # For PR pointing amend these - not neccessary anymore for PRs to build.
     # REFUND_API_URL: http://ccpay-refunds-api-pr-367-java
@@ -99,6 +103,8 @@ java:
           alias: service.request.email.to
         - name: gov-pay-keys-pcs
           alias: gov.pay.auth.key.pcs_api
+        - name: pba-pcs-payments-email-to
+          alias: pba.pcs.payments.email.to
   postgresql:
     enabled: true
     primary:

@@ -6,9 +6,9 @@ import au.com.dius.pact.provider.junitsupport.IgnoreNoPactsToVerify;
 import au.com.dius.pact.provider.junitsupport.Provider;
 import au.com.dius.pact.provider.junitsupport.State;
 import au.com.dius.pact.provider.junitsupport.loader.PactBroker;
-import au.com.dius.pact.provider.junitsupport.loader.VersionSelector;
+import au.com.dius.pact.provider.junitsupport.loader.PactBrokerConsumerVersionSelectors;
+import au.com.dius.pact.provider.junitsupport.loader.SelectorBuilder;
 import au.com.dius.pact.provider.spring.junit5.MockMvcTestTarget;
-import org.ff4j.FF4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -47,8 +47,8 @@ import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 
 @ExtendWith(SpringExtension.class)
 @Provider("payment_creditAccountPayment")
-@PactBroker(scheme = "${PACT_BROKER_SCHEME:http}", host = "${PACT_BROKER_URL:localhost}", port = "${PACT_BROKER_PORT:80}", consumerVersionSelectors = {
-    @VersionSelector(tag = "master")})
+@PactBroker(scheme = "${PACT_BROKER_SCHEME:http}", host = "${PACT_BROKER_URL:localhost}", port = "${PACT_BROKER_PORT:80}")
+
 @Import(CreditAccountPaymentProviderTestConfiguration.class)
 @IgnoreNoPactsToVerify
 class CreditAccountPaymentProviderTest {
@@ -56,6 +56,32 @@ class CreditAccountPaymentProviderTest {
     private static final String ACCOUNT_NUMBER_KEY = "accountNumber";
     private static final String ACCOUNT_NAME_KEY = "accountName";
     private static final String AVAILABLE_BALANCE_KEY = "availableBalance";
+
+    // Most consumers are pinned to their master tagged version. fpl_ccdConfiguration does not tag master
+    // (its pacts are published against feature branches), so the latest version on any branch is verified
+    // instead. Without this nothing selects its pact, leaving the consumer "can I deploy" check with no
+    // verification to rely on.
+    // See DTSPO-35311 / DTSPO-34578.
+    @PactBrokerConsumerVersionSelectors
+    public static SelectorBuilder pactSelectors() {
+        return new SelectorBuilder()
+            .rawSelectorJson(masterSelector("civil_service"))
+            .rawSelectorJson(masterSelector("divorce_caseOrchestratorService"))
+            .rawSelectorJson(masterSelector("fr_caseOrchestratorService"))
+            .rawSelectorJson(masterSelector("ia_caseDocumentsApi"))
+            .rawSelectorJson(masterSelector("ia_casePaymentsApi"))
+            .rawSelectorJson(masterSelector("probate_backOffice"))
+            .rawSelectorJson(masterSelector("fpl_ccdConfiguration"))
+            .rawSelectorJson(latestSelector("fpl_ccdConfiguration"));
+    }
+
+    private static String masterSelector(String consumer) {
+        return "{\"consumer\":\"" + consumer + "\",\"tag\":\"master\",\"latest\":true}";
+    }
+
+    private static String latestSelector(String consumer) {
+        return "{\"consumer\":\"" + consumer + "\",\"latest\":true}";
+    }
 
     @Autowired
     PaymentDtoMapper paymentDtoMapper;
@@ -73,8 +99,6 @@ class CreditAccountPaymentProviderTest {
     PaymentFeeRepository paymentFeeRepository;
     @Autowired
     PaymentReference paymentReferenceMock;
-    @Autowired
-    FF4j ff4j;
     @Autowired
     FeePayApportionService feePayApportionService;
     @Autowired
@@ -131,7 +155,7 @@ class CreditAccountPaymentProviderTest {
 
     @BeforeEach
     void before(PactVerificationContext context) {
-        System.getProperties().setProperty("pact.verifier.publishResults", "true");
+        System.getProperties().setProperty("pact.verifier.publishResults", Boolean.toString(isMasterBranch()));
         // Set provider version for publishing verification results
         String gitCommit = System.getenv().getOrDefault("GIT_COMMIT", getGitCommitHash());
         System.getProperties().setProperty("pact.provider.version", gitCommit);
@@ -145,6 +169,10 @@ class CreditAccountPaymentProviderTest {
         if (context != null) {
             context.setTarget(testTarget);
         }
+    }
+
+    private boolean isMasterBranch() {
+        return "master".equalsIgnoreCase(branchName != null ? branchName.trim() : "");
     }
 
     private String getGitCommitHash() {

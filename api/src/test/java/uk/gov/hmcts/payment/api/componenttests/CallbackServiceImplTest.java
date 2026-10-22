@@ -2,15 +2,12 @@ package uk.gov.hmcts.payment.api.componenttests;
 
 import com.microsoft.azure.servicebus.IMessage;
 import com.microsoft.azure.servicebus.primitives.ServiceBusException;
-import org.ff4j.FF4j;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -18,7 +15,6 @@ import org.testcontainers.shaded.com.fasterxml.jackson.core.JsonProcessingExcept
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.service.CallbackService;
 import uk.gov.hmcts.payment.api.servicebus.CallbackServiceImpl;
 import uk.gov.hmcts.payment.api.servicebus.TopicClientProxy;
 
@@ -37,11 +33,8 @@ public class CallbackServiceImplTest {
     @Autowired
     private CallbackServiceImpl callbackService;
 
-    @MockBean
+    @MockitoBean
     private TopicClientProxy topicClient;
-
-    @Autowired
-    private FF4j ff4j;
 
     @Test
     public void testCallbackService() throws ServiceBusException, InterruptedException, JsonProcessingException {
@@ -57,14 +50,4 @@ public class CallbackServiceImplTest {
         Mockito.verify(topicClient).send(any());
     }
 
-
-    @Before
-    public void init() {
-        ff4j.enable(CallbackService.FEATURE);
-    }
-
-    @After
-    public void clean() {
-        ff4j.disable(CallbackService.FEATURE);
-    }
 }

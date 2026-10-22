@@ -11,7 +11,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
@@ -89,7 +89,7 @@ public class ReplayCreditAccountPaymentControllerTest extends PaymentsDataUtil {
     private WebApplicationContext webApplicationContext;
     @Autowired
     private ObjectMapper objectMapper;
-    @MockBean
+    @MockitoBean
     private LaunchDarklyFeatureToggler featureToggler;
 
     protected CustomResultMatcher body() {
@@ -354,9 +354,6 @@ public class ReplayCreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
     private void createCreditAccountPayments(Map<String, CreditAccountPaymentRequest> csvParseMap, int noOfPayments) throws Exception {
         for (int i = 0; i < noOfPayments; i++) {
-            //create PBA payment
-            setCreditAccountPaymentLiberataCheckFeature(true);
-
             when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
 
             Double calculatedAmount = Double.parseDouble(Integer.toString(ThreadLocalRandom.current().nextInt(99) + 1));
@@ -408,16 +405,4 @@ public class ReplayCreditAccountPaymentControllerTest extends PaymentsDataUtil {
         return fees;
     }
 
-    private void setCreditAccountPaymentLiberataCheckFeature(boolean enabled) throws Exception {
-        String url = "/api/ff4j/store/features/credit-account-payment-liberata-check/";
-        if (enabled) {
-            url += "enable";
-        } else {
-            url += "disable";
-        }
-
-        restActions
-            .post(url)
-            .andExpect(status().isAccepted());
-    }
 }

@@ -1,6 +1,5 @@
 package uk.gov.hmcts.payment.functional.service;
 
-import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import io.restassured.response.ValidatableResponse;
@@ -108,13 +107,7 @@ public class PaymentTestService {
             .get("/pba-accounts/{accountNumber}/payments", accountNumber);
     }
 
-    public Response getPbaPaymentsByCCDCaseNumber(String serviceToken, String ccdCaseNumber) {
-        return givenWithServiceHeaders(serviceToken)
-            .when()
-            .get("/reconciliation-payments?ccd_case_number={ccdCaseNumber}", ccdCaseNumber);
-    }
-
-    public Response getPbaPaymentsByCCDCaseNumberApproach1(String serviceToken, String ccdCaseNumber) {
+    public Response getReconciliationDataByCCDCaseNumber(String serviceToken, String ccdCaseNumber) {
         return givenWithServiceHeaders(serviceToken)
             .when()
             .get("/reconciliation-payments?ccd_case_number={ccdCaseNumber}", ccdCaseNumber);
@@ -264,8 +257,8 @@ public class PaymentTestService {
                 .get("/case/{dcn}", dcn);
     }
 
-    public Response deleteBulkScanPayment(String serviceToken, String dcn, final String baseUri) {
-        return givenWithServiceHeaders(serviceToken)
+    public Response deleteBulkScanPayment(String userToken, String serviceToken, String dcn, final String baseUri) {
+        return givenWithAuthHeaders(userToken, serviceToken)
                 .baseUri(baseUri)
                 .when()
                 .delete("/bulk-scan-payment/{dcn}", dcn);

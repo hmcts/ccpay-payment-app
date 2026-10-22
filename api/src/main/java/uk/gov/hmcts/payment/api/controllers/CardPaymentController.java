@@ -1,12 +1,13 @@
 package uk.gov.hmcts.payment.api.controllers;
 
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
-import org.ff4j.FF4j;
 import org.owasp.encoder.Encode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,7 +73,6 @@ public class CardPaymentController implements ApplicationContextAware {
     private final DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService;
     private final PaymentDtoMapper paymentDtoMapper;
     private final CardDetailsService<CardDetails, String> cardDetailsService;
-    private final FF4j ff4j;
     private final FeePayApportionService feePayApportionService;
     private final LaunchDarklyFeatureToggler featureToggler;
     private final ReferenceDataService referenceDataService;
@@ -89,7 +89,6 @@ public class CardPaymentController implements ApplicationContextAware {
                                  PaymentDtoMapper paymentDtoMapper,
                                  CardDetailsService<CardDetails, String> cardDetailsService,
                                  PciPalPaymentService pciPalPaymentService,
-                                 FF4j ff4j,
                                  FeePayApportionService feePayApportionService,
                                  LaunchDarklyFeatureToggler featureToggler,
                                  ReferenceDataService referenceDataService,
@@ -97,7 +96,6 @@ public class CardPaymentController implements ApplicationContextAware {
         this.delegatingPaymentService = cardDelegatingPaymentService;
         this.paymentDtoMapper = paymentDtoMapper;
         this.cardDetailsService = cardDetailsService;
-        this.ff4j = ff4j;
         this.feePayApportionService = feePayApportionService;
         this.featureToggler = featureToggler;
         this.referenceDataService = referenceDataService;
@@ -112,6 +110,7 @@ public class CardPaymentController implements ApplicationContextAware {
         @ApiResponse(responseCode = "404", description = "No Service found for given CaseType"),
         @ApiResponse(responseCode = "504", description = "Unable to retrieve service information. Please try again later")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @PostMapping(value = "/card-payments")
     @ResponseBody
     @Transactional
@@ -194,6 +193,7 @@ public class CardPaymentController implements ApplicationContextAware {
         @ApiResponse(responseCode = "403", description = "Payment info forbidden"),
         @ApiResponse(responseCode = "404", description = "Payment not found")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @GetMapping(value = "/card-payments/{reference}")
     public PaymentDto retrieve(@PathVariable("reference") String paymentReference) {
         return paymentDtoMapper.toRetrieveCardPaymentResponseDto(delegatingPaymentService.retrieve(paymentReference), paymentReference);
@@ -204,6 +204,7 @@ public class CardPaymentController implements ApplicationContextAware {
         @ApiResponse(responseCode = "200", description = "Payment card details retrieved"),
         @ApiResponse(responseCode = "404", description = "Payment card details not found")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @RequestMapping(value = "/card-payments/{reference}/details", method = GET)
     public CardDetails retrieveWithCardDetails(@PathVariable("reference") String paymentReference) {
         return cardDetailsService.retrieve(paymentReference);
@@ -214,6 +215,7 @@ public class CardPaymentController implements ApplicationContextAware {
         @ApiResponse(responseCode = "200", description = "Payment retrieved"),
         @ApiResponse(responseCode = "404", description = "Payment not found")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @GetMapping(value = "/card-payments/{reference}/statuses")
     public PaymentDto retrievePaymentStatus(@PathVariable("reference") String paymentReference) {
         PaymentFeeLink paymentFeeLink = delegatingPaymentService.retrieve(paymentReference);
@@ -235,11 +237,9 @@ public class CardPaymentController implements ApplicationContextAware {
         @ApiResponse(responseCode = "404", description = "Payment Not found"),
         @ApiResponse(responseCode = "500", description = "Downstream system error")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @PostMapping(value = "/card-payments/{reference}/cancel")
     public ResponseEntity cancelPayment(@PathVariable("reference") String paymentReference) {
-        if (!ff4j.check("payment-cancel")) {
-            throw new PaymentException("Payment cancel feature is not available for usage.");
-        }
         delegatingPaymentService.cancel(paymentReference);
         return ResponseEntity.noContent().build();
     }

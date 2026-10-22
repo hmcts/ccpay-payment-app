@@ -1,5 +1,7 @@
 package uk.gov.hmcts.payment.api.controllers;
 
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
+
 import io.swagger.v3.oas.annotations.*;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -42,6 +44,7 @@ public class PaymentReportController {
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Reports sent")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @PostMapping(value = "/jobs/email-pay-reports")
     public void generateAndEmailReport(@RequestParam(name = "payment_method", required = false) Optional<String> paymentMethodType,
                                        @RequestParam(name = "service_name", required = false) Optional<String> serviceType,
@@ -65,6 +68,7 @@ public class PaymentReportController {
         @ApiResponse(responseCode = "200", description = "Report Generated, email only sent if data exists"),
         @ApiResponse(responseCode = "500", description = "Internal Server Error")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @PostMapping(value = "/jobs/duplicate-payment-process")
     public void duplicatePaymentEmailReport(@RequestParam(name = "start_date", required = false) Optional<String> startDateString,
                                             @RequestParam(name = "end_date", required = false) Optional<String> endDateString) {
