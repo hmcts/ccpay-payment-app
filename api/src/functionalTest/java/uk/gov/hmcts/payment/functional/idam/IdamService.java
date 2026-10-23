@@ -133,19 +133,11 @@ public class IdamService {
 
 
     public String authenticateUser(String username, String password) {
-        String authorisation = username + ":" + password;
-        String base64Authorisation = Base64.getEncoder().encodeToString(authorisation.getBytes());
-
-        IdamApi.AuthenticateUserResponse authenticateUserResponse = idamApi.authenticateUser(
-            BASIC + base64Authorisation,
-            CODE,
-            testConfig.getOauth2().getClientId(),
-            testConfig.getOauth2().getRedirectUrl(),
-            SCOPES);
-
         TokenExchangeResponse tokenExchangeResponse = idamApi.exchangeCode(
-            authenticateUserResponse.getCode(),
-            AUTHORIZATION_CODE,
+            username,
+            password,
+            SCOPES,
+            GRANT_TYPE,
             testConfig.getOauth2().getClientId(),
             testConfig.getOauth2().getClientSecret(),
             testConfig.getOauth2().getRedirectUrl()
