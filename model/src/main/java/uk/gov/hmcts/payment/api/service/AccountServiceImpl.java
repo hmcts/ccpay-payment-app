@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
@@ -21,6 +22,7 @@ import java.util.concurrent.CompletionException;
 
 @Service
 @Profile("!liberataMock")
+@ConditionalOnProperty(name = "liberata.api.realtime.stub.enabled", havingValue = "false", matchIfMissing = true)
 public class AccountServiceImpl implements AccountService<AccountDto, String> {
 
     private static final Logger LOG = LoggerFactory.getLogger(AccountService.class);

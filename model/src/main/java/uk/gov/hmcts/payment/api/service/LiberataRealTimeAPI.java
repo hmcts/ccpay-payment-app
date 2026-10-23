@@ -12,6 +12,8 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.liberata.account.LiberataAccountResponse;
@@ -85,23 +87,58 @@ public class LiberataRealTimeAPI {
     }
 
     public AccountDto getAccountDetails(String accessToken, String pbaCode) {
+        try {
+            return fetchAccountDetails(accessToken, pbaCode);
+        } catch (HttpClientErrorException exception) {
+            if (exception.getStatusCode().value() == HttpStatus.NOT_FOUND.value()) {
+                LOG.warn("Account details not found in Liberata for PBA code {}: {}", pbaCode, exception.getMessage());
+                throw exception;
+            }
+            if (exception.getStatusCode().value() == HttpStatus.UNAUTHORIZED.value()) {
+                LOG.warn("Unauthorized fetching account details from Liberata for PBA code {}. Refreshing token and retrying once.", pbaCode);
+                TokenResponse refreshedToken = refreshToken();
+                try {
+                    return fetchAccountDetails(refreshedToken.getAccessToken(), pbaCode);
+                } catch (HttpClientErrorException retryException) {
+                    if (retryException.getStatusCode().value() == HttpStatus.NOT_FOUND.value()) {
+                        LOG.warn("Account details not found in Liberata for PBA code {} after token refresh: {}", pbaCode, retryException.getMessage());
+                        throw retryException;
+                    }
+                    LOG.error("Error fetching account details from Liberata for PBA code {} after token refresh: {}", pbaCode, retryException.getMessage(), retryException);
+                    throw new LiberataIdentityException("Error fetching account details from Liberata: " + retryException.getMessage(), retryException);
+                } catch (ResourceAccessException retryException) {
+                    LOG.error("Error connecting to Liberata for PBA code {} after token refresh: {}", pbaCode, retryException.getMessage(), retryException);
+                    throw retryException;
+                } catch (LiberataIdentityException retryException) {
+                    throw retryException;
+                } catch (Exception retryException) {
+                    LOG.error("Error fetching account details from Liberata for PBA code {} after token refresh: {}", pbaCode, retryException.getMessage(), retryException);
+                    throw new LiberataIdentityException("Error fetching account details from Liberata: " + retryException.getMessage(), retryException);
+                }
+            }
+            LOG.error("Error fetching account details from Liberata for PBA code {}: {}", pbaCode, exception.getMessage(), exception);
+            throw new LiberataIdentityException("Error fetching account details from Liberata: " + exception.getMessage(), exception);
+        } catch (ResourceAccessException exception) {
+            LOG.error("Error connecting to Liberata for PBA code {}: {}", pbaCode, exception.getMessage(), exception);
+            throw exception;
+        } catch (Exception exception) {
+            LOG.error("Error fetching account details from Liberata for PBA code {}: {}", pbaCode, exception.getMessage(), exception);
+            throw new LiberataIdentityException("Error fetching account details from Liberata: " + exception.getMessage(), exception);
+        }
+    }
 
+    private AccountDto fetchAccountDetails(String accessToken, String pbaCode) {
         val headers = new HttpHeaders();
         headers.setAccept(java.util.Collections.singletonList(MediaType.APPLICATION_JSON));
         headers.setBearerAuth(accessToken);
         val request = new HttpEntity<Void>(headers);
 
-        try {
-            val response = liberataRestTemplate.exchange(
-                baseUrl + "/api/account/" + pbaCode,
-                HttpMethod.GET,
-                request,
-                LiberataAccountResponse.class
-            );
-            return liberataAccountMapper.toAccountDto(response.getBody());
-        } catch (Exception exception) {
-            LOG.error("Error fetching account details from Liberata for PBA code {}: {}", pbaCode, exception.getMessage(), exception);
-            throw new LiberataIdentityException("Error fetching account details from Liberata: " + exception.getMessage(), exception);
-        }
+        val response = liberataRestTemplate.exchange(
+            baseUrl + "/api/account/" + pbaCode,
+            HttpMethod.GET,
+            request,
+            LiberataAccountResponse.class
+        );
+        return liberataAccountMapper.toAccountDto(response.getBody());
     }
 }
