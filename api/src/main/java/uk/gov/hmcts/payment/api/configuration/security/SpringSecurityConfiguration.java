@@ -124,7 +124,6 @@ public class SpringSecurityConfiguration {
                 "/health/liveness",
                 "/health/readiness",
                 "/info",
-                "/token-test",
                 "/favicon.ico",
                 "/mock-api/**",
                 "/")
