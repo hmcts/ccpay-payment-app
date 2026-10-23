@@ -74,7 +74,7 @@ public class CreditAccountPaymentController {
     public CreditAccountPaymentController(
         @Qualifier("loggingCreditAccountPaymentService") CreditAccountPaymentService<PaymentFeeLink, String> creditAccountPaymentService,
         CreditAccountDtoMapper creditAccountDtoMapper,
-        @Qualifier("accountServiceImpl") AccountService<AccountDto, String> accountService,
+        AccountService<AccountDto, String> accountService,
         DuplicatePaymentValidator paymentValidator,
         FeePayApportionService feePayApportionService, LaunchDarklyFeatureToggler featureToggler,
         PBAStatusErrorMapper pbaStatusErrorMapper,
