@@ -44,7 +44,7 @@ public class LiberataRealTimeAPI {
     private String baseUrl;
 
     @Value("${liberata.api.realtime.account.username}")
-    private String lieberataUsername;
+    private String liberataUsername;
 
     @Value("${liberata.api.realtime.account.password}")
     private String liberataPassword;
@@ -74,7 +74,7 @@ public class LiberataRealTimeAPI {
 
         headers.setAccept(java.util.Collections.singletonList(MediaType.APPLICATION_JSON));
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        formData.add("email", lieberataUsername);
+        formData.add("email", liberataUsername);
         formData.add("password", liberataPassword);
         val request = new HttpEntity<MultiValueMap<String, String>>(formData, headers);
 
@@ -90,41 +90,59 @@ public class LiberataRealTimeAPI {
         try {
             return fetchAccountDetails(accessToken, pbaCode);
         } catch (HttpClientErrorException exception) {
-            if (exception.getStatusCode().value() == HttpStatus.NOT_FOUND.value()) {
-                LOG.warn("Account details not found in Liberata for PBA code {}: {}", pbaCode, exception.getMessage());
-                throw exception;
-            }
-            if (exception.getStatusCode().value() == HttpStatus.UNAUTHORIZED.value()) {
-                LOG.warn("Unauthorized fetching account details from Liberata for PBA code {}. Refreshing token and retrying once.", pbaCode);
-                TokenResponse refreshedToken = refreshToken();
-                try {
-                    return fetchAccountDetails(refreshedToken.getAccessToken(), pbaCode);
-                } catch (HttpClientErrorException retryException) {
-                    if (retryException.getStatusCode().value() == HttpStatus.NOT_FOUND.value()) {
-                        LOG.warn("Account details not found in Liberata for PBA code {} after token refresh: {}", pbaCode, retryException.getMessage());
-                        throw retryException;
-                    }
-                    LOG.error("Error fetching account details from Liberata for PBA code {} after token refresh: {}", pbaCode, retryException.getMessage(), retryException);
-                    throw new LiberataIdentityException("Error fetching account details from Liberata: " + retryException.getMessage(), retryException);
-                } catch (ResourceAccessException retryException) {
-                    LOG.error("Error connecting to Liberata for PBA code {} after token refresh: {}", pbaCode, retryException.getMessage(), retryException);
-                    throw retryException;
-                } catch (LiberataIdentityException retryException) {
-                    throw retryException;
-                } catch (Exception retryException) {
-                    LOG.error("Error fetching account details from Liberata for PBA code {} after token refresh: {}", pbaCode, retryException.getMessage(), retryException);
-                    throw new LiberataIdentityException("Error fetching account details from Liberata: " + retryException.getMessage(), retryException);
-                }
-            }
-            LOG.error("Error fetching account details from Liberata for PBA code {}: {}", pbaCode, exception.getMessage(), exception);
-            throw new LiberataIdentityException("Error fetching account details from Liberata: " + exception.getMessage(), exception);
+            return handleAccountClientError(exception, pbaCode);
         } catch (ResourceAccessException exception) {
             LOG.error("Error connecting to Liberata for PBA code {}: {}", pbaCode, exception.getMessage(), exception);
             throw exception;
         } catch (Exception exception) {
-            LOG.error("Error fetching account details from Liberata for PBA code {}: {}", pbaCode, exception.getMessage(), exception);
-            throw new LiberataIdentityException("Error fetching account details from Liberata: " + exception.getMessage(), exception);
+            throw accountDetailsException(pbaCode, exception);
         }
+    }
+
+    private AccountDto handleAccountClientError(HttpClientErrorException exception, String pbaCode) {
+        if (hasStatus(exception, HttpStatus.NOT_FOUND)) {
+            LOG.warn("Account details not found in Liberata for PBA code {}: {}", pbaCode, exception.getMessage());
+            throw exception;
+        }
+        if (hasStatus(exception, HttpStatus.UNAUTHORIZED)) {
+            return retryWithRefreshedToken(pbaCode);
+        }
+        throw accountDetailsException(pbaCode, exception);
+    }
+
+    private AccountDto retryWithRefreshedToken(String pbaCode) {
+        LOG.warn("Unauthorized fetching account details from Liberata for PBA code {}. Refreshing token and retrying once.", pbaCode);
+        TokenResponse refreshedToken = refreshToken();
+        try {
+            return fetchAccountDetails(refreshedToken.getAccessToken(), pbaCode);
+        } catch (HttpClientErrorException exception) {
+            if (hasStatus(exception, HttpStatus.NOT_FOUND)) {
+                LOG.warn("Account details not found in Liberata for PBA code {} after token refresh: {}", pbaCode, exception.getMessage());
+                throw exception;
+            }
+            throw accountDetailsException(pbaCode, exception, true);
+        } catch (ResourceAccessException exception) {
+            LOG.error("Error connecting to Liberata for PBA code {} after token refresh: {}", pbaCode, exception.getMessage(), exception);
+            throw exception;
+        } catch (LiberataIdentityException exception) {
+            throw exception;
+        } catch (Exception exception) {
+            throw accountDetailsException(pbaCode, exception, true);
+        }
+    }
+
+    private boolean hasStatus(HttpClientErrorException exception, HttpStatus status) {
+        return exception.getStatusCode().value() == status.value();
+    }
+
+    private LiberataIdentityException accountDetailsException(String pbaCode, Exception exception) {
+        return accountDetailsException(pbaCode, exception, false);
+    }
+
+    private LiberataIdentityException accountDetailsException(String pbaCode, Exception exception, boolean afterTokenRefresh) {
+        String refreshContext = afterTokenRefresh ? " after token refresh" : "";
+        LOG.error("Error fetching account details from Liberata for PBA code {}{}: {}", pbaCode, refreshContext, exception.getMessage(), exception);
+        return new LiberataIdentityException("Error fetching account details from Liberata: " + exception.getMessage(), exception);
     }
 
     private AccountDto fetchAccountDetails(String accessToken, String pbaCode) {
