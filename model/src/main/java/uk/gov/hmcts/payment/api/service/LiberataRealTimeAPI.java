@@ -77,7 +77,7 @@ public class LiberataRealTimeAPI {
         val request = new HttpEntity<MultiValueMap<String, String>>(formData, headers);
 
         try {
-            val response = liberataRestTemplate.postForEntity(baseUrl + "/pba-api-v2-uat/api/auth/token", request, LiberataIdentityResponse.class);
+            val response = liberataRestTemplate.postForEntity(baseUrl + "/api/auth/token", request, LiberataIdentityResponse.class);
             return accessTokenDtoToTokenResponseMapper.toTokenResponse(response.getBody());
         } catch (Exception exception) {
             throw new LiberataIdentityException("Error fetching token from Liberata: " + exception.getMessage(), exception);
@@ -93,7 +93,7 @@ public class LiberataRealTimeAPI {
 
         try {
             val response = liberataRestTemplate.exchange(
-                baseUrl + "/pba-api-v2-uat/api/account/" + pbaCode,
+                baseUrl + "/api/account/" + pbaCode,
                 HttpMethod.GET,
                 request,
                 LiberataAccountResponse.class

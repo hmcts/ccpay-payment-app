@@ -66,7 +66,7 @@ public class LiberataRealTimeAPITest {
         ReflectionTestUtils.setField(
             liberataIdentity,
             "baseUrl",
-            "http://localhost/test"
+            "http://localhost/test/pba-api-v2-uat"
         );
 
         // ensure cached token is cleared between tests
