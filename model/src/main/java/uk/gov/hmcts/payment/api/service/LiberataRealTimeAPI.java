@@ -1,6 +1,8 @@
 package uk.gov.hmcts.payment.api.service;
 
 import lombok.val;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,6 +26,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.LiberataIdentityException;
 public class LiberataRealTimeAPI {
 
     private TokenResponse cachedToken;
+    private static final Logger LOG = LoggerFactory.getLogger(LiberataRealTimeAPI.class);
 
     @Autowired()
     @Qualifier("liberataRestTemplate")
@@ -89,7 +92,6 @@ public class LiberataRealTimeAPI {
         val request = new HttpEntity<Void>(headers);
 
         try {
-            // As above, baseUrl should really include the environment-specific path (e.g.pba-api-v2-uat)??
             val response = liberataRestTemplate.exchange(
                 baseUrl + "/pba-api-v2-uat/api/account/" + pbaCode,
                 HttpMethod.GET,
@@ -98,6 +100,7 @@ public class LiberataRealTimeAPI {
             );
             return liberataAccountMapper.toAccountDto(response.getBody());
         } catch (Exception exception) {
+            LOG.error("Error fetching account details from Liberata for PBA code {}: {}", pbaCode, exception.getMessage(), exception);
             throw new LiberataIdentityException("Error fetching account details from Liberata: " + exception.getMessage(), exception);
         }
     }
