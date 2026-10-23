@@ -140,7 +140,8 @@ public class IdamService {
             BASIC + base64Authorisation,
             CODE,
             testConfig.getOauth2().getClientId(),
-            testConfig.getOauth2().getRedirectUrl());
+            testConfig.getOauth2().getRedirectUrl(),
+            SCOPES);
 
         TokenExchangeResponse tokenExchangeResponse = idamApi.exchangeCode(
             authenticateUserResponse.getCode(),
