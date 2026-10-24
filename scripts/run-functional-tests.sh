@@ -120,6 +120,8 @@ require S2S_PAYMENT_APP_SERVICE_SECRET      "${VAULT}" payment-s2s-secret
 require IDAM_RD_PROFESSIONAL_CLIENT_SECRET "${VAULT}" ref-data-professional-client-secret
 require PROBATE_SOLICITOR_USER              "${VAULT}" probate-solicitor-username
 require PROBATE_SOLICITOR_PASSWORD          "${VAULT}" probate-solicitor-password
+require LIBERATA_API_REALTIME_ACCOUNT_USERNAME "${VAULT}" liberata-api-realtime-user
+require LIBERATA_API_REALTIME_ACCOUNT_PASSWORD "${VAULT}" liberata-api-realtime-password
 
 # Sanity check the secrets the tests need most
 for env_var in OAUTH2_CLIENT_SECRET TEST_USER_PASSWORD S2S_SERVICE_SECRET; do
