@@ -1,6 +1,6 @@
 package uk.gov.hmcts.payment.api.mapper.liberata.account;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.liberata.account.LiberataAccountData;
 import uk.gov.hmcts.payment.api.dto.liberata.account.LiberataAccountResponse;
@@ -10,7 +10,8 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.LiberataAccountException;
 import java.math.BigDecimal;
 import java.util.Date;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class LiberataAccountMapperTest {
 
@@ -25,7 +26,7 @@ public class LiberataAccountMapperTest {
     private final LiberataAccountMapper mapper = new LiberataAccountMapper();
 
     @Test
-    public void toAccountDtoMapsLiberataAccountResponse() {
+    void toAccountDtoMapsLiberataAccountResponse() {
         LiberataAccountResponse liberataAccountResponse = new LiberataAccountResponse(
             "200",
             validAccountData()
@@ -41,57 +42,57 @@ public class LiberataAccountMapperTest {
         assertEquals(EFFECTIVE_DATE, accountDto.getEffectiveDate());
     }
 
-    @Test(expected = LiberataAccountException.class)
-    public void toAccountDtoThrowsLiberataAccountExceptionWhenResponseIsNull() {
-        mapper.toAccountDto(null);
+    @Test
+    void toAccountDtoThrowsLiberataAccountExceptionWhenResponseIsNull() {
+        assertThrows(LiberataAccountException.class, () -> mapper.toAccountDto(null));
     }
 
-    @Test(expected = LiberataAccountException.class)
-    public void toAccountDtoThrowsLiberataAccountExceptionWhenDataIsNull() {
+    @Test
+    void toAccountDtoThrowsLiberataAccountExceptionWhenDataIsNull() {
         LiberataAccountResponse liberataAccountResponse = new LiberataAccountResponse("200", null);
-        mapper.toAccountDto(liberataAccountResponse);
+        assertThrows(LiberataAccountException.class, () -> mapper.toAccountDto(liberataAccountResponse));
     }
 
-    @Test(expected = LiberataAccountException.class)
-    public void toAccountDtoThrowsLiberataAccountExceptionWhenPbaReferenceIsNull() {
+    @Test
+    void toAccountDtoThrowsLiberataAccountExceptionWhenPbaReferenceIsNull() {
         LiberataAccountResponse liberataAccountResponse = new LiberataAccountResponse("200",
             new LiberataAccountData(null, TRADING_NAME, CREDIT_LIMIT, AVAILABLE_BALANCE, STATUS, REASON, EFFECTIVE_DATE));
-        mapper.toAccountDto(liberataAccountResponse);
+        assertThrows(LiberataAccountException.class, () -> mapper.toAccountDto(liberataAccountResponse));
     }
 
-    @Test(expected = LiberataAccountException.class)
-    public void toAccountDtoThrowsLiberataAccountExceptionWhenTradingNameIsNull() {
+    @Test
+    void toAccountDtoThrowsLiberataAccountExceptionWhenTradingNameIsNull() {
         LiberataAccountResponse liberataAccountResponse = new LiberataAccountResponse("200",
             new LiberataAccountData(PBA_REFERENCE, null, CREDIT_LIMIT, AVAILABLE_BALANCE, STATUS, REASON, EFFECTIVE_DATE));
-        mapper.toAccountDto(liberataAccountResponse);
+        assertThrows(LiberataAccountException.class, () -> mapper.toAccountDto(liberataAccountResponse));
     }
 
-    @Test(expected = LiberataAccountException.class)
-    public void toAccountDtoThrowsLiberataAccountExceptionWhenCreditLimitIsNull() {
+    @Test
+    void toAccountDtoThrowsLiberataAccountExceptionWhenCreditLimitIsNull() {
         LiberataAccountResponse liberataAccountResponse = new LiberataAccountResponse("200",
             new LiberataAccountData(PBA_REFERENCE, TRADING_NAME, null, AVAILABLE_BALANCE, STATUS, REASON, EFFECTIVE_DATE));
-        mapper.toAccountDto(liberataAccountResponse);
+        assertThrows(LiberataAccountException.class, () -> mapper.toAccountDto(liberataAccountResponse));
     }
 
-    @Test(expected = LiberataAccountException.class)
-    public void toAccountDtoThrowsLiberataAccountExceptionWhenAvailableBalanceIsNull() {
+    @Test
+    void toAccountDtoThrowsLiberataAccountExceptionWhenAvailableBalanceIsNull() {
         LiberataAccountResponse liberataAccountResponse = new LiberataAccountResponse("200",
             new LiberataAccountData(PBA_REFERENCE, TRADING_NAME, CREDIT_LIMIT, null, STATUS, REASON, EFFECTIVE_DATE));
-        mapper.toAccountDto(liberataAccountResponse);
+        assertThrows(LiberataAccountException.class, () -> mapper.toAccountDto(liberataAccountResponse));
     }
 
-    @Test(expected = LiberataAccountException.class)
-    public void toAccountDtoThrowsLiberataAccountExceptionWhenStatusIsNull() {
+    @Test
+    void toAccountDtoThrowsLiberataAccountExceptionWhenStatusIsNull() {
         LiberataAccountResponse liberataAccountResponse = new LiberataAccountResponse("200",
             new LiberataAccountData(PBA_REFERENCE, TRADING_NAME, CREDIT_LIMIT, AVAILABLE_BALANCE, null, REASON, EFFECTIVE_DATE));
-        mapper.toAccountDto(liberataAccountResponse);
+        assertThrows(LiberataAccountException.class, () -> mapper.toAccountDto(liberataAccountResponse));
     }
 
-    @Test(expected = LiberataAccountException.class)
-    public void toAccountDtoThrowsLiberataAccountExceptionWhenEffectiveDateIsNull() {
+    @Test
+    void toAccountDtoThrowsLiberataAccountExceptionWhenEffectiveDateIsNull() {
         LiberataAccountResponse liberataAccountResponse = new LiberataAccountResponse("200",
             new LiberataAccountData(PBA_REFERENCE, TRADING_NAME, CREDIT_LIMIT, AVAILABLE_BALANCE, STATUS, REASON, null));
-        mapper.toAccountDto(liberataAccountResponse);
+        assertThrows(LiberataAccountException.class, () -> mapper.toAccountDto(liberataAccountResponse));
     }
 
     private static LiberataAccountData validAccountData() {
@@ -107,7 +108,7 @@ public class LiberataAccountMapperTest {
     }
 
     @Test
-    public void transformStatusMapsInactiveWithDeletedReasonToDeleted() {
+    void transformStatusMapsInactiveWithDeletedReasonToDeleted() {
         LiberataAccountResponse response = new LiberataAccountResponse(
             "200",
             new LiberataAccountData(
@@ -126,7 +127,7 @@ public class LiberataAccountMapperTest {
     }
 
     @Test
-    public void transformStatusMapsInactiveWithDeletedReasonCaseInsensitive() {
+    void transformStatusMapsInactiveWithDeletedReasonCaseInsensitive() {
         LiberataAccountResponse response = new LiberataAccountResponse(
             "200",
             new LiberataAccountData(
@@ -145,7 +146,7 @@ public class LiberataAccountMapperTest {
     }
 
     @Test
-    public void transformStatusMapsInactiveWithOnHoldReasonToOnHold() {
+    void transformStatusMapsInactiveWithOnHoldReasonToOnHold() {
         LiberataAccountResponse response = new LiberataAccountResponse(
             "200",
             new LiberataAccountData(
@@ -164,7 +165,7 @@ public class LiberataAccountMapperTest {
     }
 
     @Test
-    public void transformStatusMapsInactiveWithOnHoldReasonCaseInsensitive() {
+    void transformStatusMapsInactiveWithOnHoldReasonCaseInsensitive() {
         LiberataAccountResponse response = new LiberataAccountResponse(
             "200",
             new LiberataAccountData(
@@ -183,7 +184,7 @@ public class LiberataAccountMapperTest {
     }
 
     @Test
-    public void transformStatusMapsInactiveWithoutOnHoldReasonToInactive() {
+    void transformStatusMapsInactiveWithoutOnHoldReasonToInactive() {
         LiberataAccountResponse response = new LiberataAccountResponse(
             "200",
             new LiberataAccountData(
@@ -202,7 +203,7 @@ public class LiberataAccountMapperTest {
     }
 
     @Test
-    public void transformStatusMapsActiveToActive() {
+    void transformStatusMapsActiveToActive() {
         LiberataAccountResponse response = new LiberataAccountResponse(
             "200",
             new LiberataAccountData(
@@ -221,7 +222,7 @@ public class LiberataAccountMapperTest {
     }
 
     @Test
-    public void transformStatusMapsActiveCaseInsensitive() {
+    void transformStatusMapsActiveCaseInsensitive() {
         LiberataAccountResponse response = new LiberataAccountResponse(
             "200",
             new LiberataAccountData(
@@ -240,7 +241,7 @@ public class LiberataAccountMapperTest {
     }
 
     @Test
-    public void transformStatusMapsUnknownStatusToInactive() {
+    void transformStatusMapsUnknownStatusToInactive() {
         LiberataAccountResponse response = new LiberataAccountResponse(
             "200",
             new LiberataAccountData(
@@ -249,25 +250,6 @@ public class LiberataAccountMapperTest {
                 CREDIT_LIMIT,
                 AVAILABLE_BALANCE,
                 "Unknown",
-                null,
-                EFFECTIVE_DATE
-            )
-        );
-
-        AccountDto accountDto = mapper.toAccountDto(response);
-        assertEquals(AccountStatus.INACTIVE, accountDto.getStatus());
-    }
-
-    @Test
-    public void transformStatusMapsNullStatusToInactive() {
-        LiberataAccountResponse response = new LiberataAccountResponse(
-            "200",
-            new LiberataAccountData(
-                PBA_REFERENCE,
-                TRADING_NAME,
-                CREDIT_LIMIT,
-                AVAILABLE_BALANCE,
-                null,
                 null,
                 EFFECTIVE_DATE
             )

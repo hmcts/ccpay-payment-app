@@ -39,10 +39,6 @@ public class LiberataAccountMapper {
     }
 
     private AccountStatus transformStatus(String liberataStatus, String reason) {
-        if (liberataStatus == null) {
-            return AccountStatus.INACTIVE;
-        }
-
         String statusLower = liberataStatus.toLowerCase();
         String reasonLower = reason != null ? reason.toLowerCase() : "";
 
