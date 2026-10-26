@@ -107,7 +107,7 @@ public class LiberataAccountMapperTest {
     }
 
     @Test
-    public void transformStatusMapsDeletedStatusToDeleted() {
+    public void transformStatusMapsInactiveWithDeletedReasonToDeleted() {
         LiberataAccountResponse response = new LiberataAccountResponse(
             "200",
             new LiberataAccountData(
@@ -115,8 +115,8 @@ public class LiberataAccountMapperTest {
                 TRADING_NAME,
                 CREDIT_LIMIT,
                 AVAILABLE_BALANCE,
-                "Deleted",
-                null,
+                "Inactive",
+                "DELETED",
                 EFFECTIVE_DATE
             )
         );
@@ -126,7 +126,7 @@ public class LiberataAccountMapperTest {
     }
 
     @Test
-    public void transformStatusMapsDeletedStatusCaseInsensitive() {
+    public void transformStatusMapsInactiveWithDeletedReasonCaseInsensitive() {
         LiberataAccountResponse response = new LiberataAccountResponse(
             "200",
             new LiberataAccountData(
@@ -134,8 +134,8 @@ public class LiberataAccountMapperTest {
                 TRADING_NAME,
                 CREDIT_LIMIT,
                 AVAILABLE_BALANCE,
+                "inactive",
                 "deleted",
-                null,
                 EFFECTIVE_DATE
             )
         );
@@ -192,7 +192,7 @@ public class LiberataAccountMapperTest {
                 CREDIT_LIMIT,
                 AVAILABLE_BALANCE,
                 "Inactive",
-                "DELETED",
+                "Some other reason",
                 EFFECTIVE_DATE
             )
         );

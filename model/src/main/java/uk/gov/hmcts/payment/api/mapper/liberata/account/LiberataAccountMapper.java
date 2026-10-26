@@ -46,7 +46,7 @@ public class LiberataAccountMapper {
         String statusLower = liberataStatus.toLowerCase();
         String reasonLower = reason != null ? reason.toLowerCase() : "";
 
-        if (statusLower.equals("deleted")) {
+        if (statusLower.equals("inactive") && reasonLower.equals("deleted")) {
             return AccountStatus.DELETED;
         }
 
