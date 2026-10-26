@@ -20,6 +20,7 @@ public class PBAStatusErrorMapper {
     private static final Logger LOG = LoggerFactory.getLogger(PBAStatusErrorMapper.class);
 
     public void setPaymentStatus(CreditAccountPaymentRequest creditAccountPaymentRequest, Payment payment, AccountDto accountDetails) {
+        LOG.info("CreditAccountPayment received for ccdCaseNumber: {}: Payload {}", payment.getCcdCaseNumber(), accountDetails);
         if (accountDetails.getStatus() == AccountStatus.ACTIVE && isAccountBalanceSufficient(accountDetails.getAvailableBalance(),
             creditAccountPaymentRequest.getAmount())) {
             payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("success").build());

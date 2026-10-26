@@ -6,7 +6,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import uk.gov.hmcts.payment.api.util.AccountStatus;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -36,7 +35,10 @@ public class LiberataAccountData {
     private BigDecimal availableBalance;
 
     @JsonProperty("status")
-    private AccountStatus status;
+    private String status;
+
+    @JsonProperty("reason")
+    private String reason;
 
     @JsonProperty("effective_date")
     private Date effectiveDate;
