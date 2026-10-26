@@ -257,4 +257,23 @@ public class LiberataAccountMapperTest {
         AccountDto accountDto = mapper.toAccountDto(response);
         assertEquals(AccountStatus.INACTIVE, accountDto.getStatus());
     }
+
+    @Test
+    public void transformStatusMapsNullStatusToInactive() {
+        LiberataAccountResponse response = new LiberataAccountResponse(
+            "200",
+            new LiberataAccountData(
+                PBA_REFERENCE,
+                TRADING_NAME,
+                CREDIT_LIMIT,
+                AVAILABLE_BALANCE,
+                null,
+                null,
+                EFFECTIVE_DATE
+            )
+        );
+
+        AccountDto accountDto = mapper.toAccountDto(response);
+        assertEquals(AccountStatus.INACTIVE, accountDto.getStatus());
+    }
 }
