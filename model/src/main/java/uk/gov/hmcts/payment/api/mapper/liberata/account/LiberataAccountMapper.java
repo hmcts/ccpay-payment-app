@@ -4,6 +4,7 @@ import lombok.val;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.liberata.account.LiberataAccountResponse;
+import uk.gov.hmcts.payment.api.util.AccountStatus;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.LiberataAccountException;
 
 import java.util.Objects;
@@ -26,13 +27,38 @@ public class LiberataAccountMapper {
             val tradingName = liberataAccountResponse.getData().getTradingName();
             val creditLimit = liberataAccountResponse.getData().getCreditLimit();
             val availableBalance = liberataAccountResponse.getData().getAvailableBalance();
-            val status = liberataAccountResponse.getData().getStatus();
+            val liberataStatus = liberataAccountResponse.getData().getStatus();
             val effectiveDate = liberataAccountResponse.getData().getEffectiveDate();
 
-            return new AccountDto(pbaReference, tradingName, creditLimit, availableBalance, status, effectiveDate);
+            AccountStatus accountStatus = transformStatus(liberataStatus, liberataAccountResponse.getData().getReason());
+
+            return new AccountDto(pbaReference, tradingName, creditLimit, availableBalance, accountStatus, effectiveDate);
         } else {
             throw new LiberataAccountException("Failed to parse LiberataIdentityResponse: " + liberataAccountResponse);
         }
+    }
+
+    private AccountStatus transformStatus(String liberataStatus, String reason) {
+        if (liberataStatus == null) {
+            return AccountStatus.INACTIVE;
+        }
+
+        String statusLower = liberataStatus.toLowerCase();
+        String reasonLower = reason != null ? reason.toLowerCase() : "";
+
+        if (statusLower.equals("deleted")) {
+            return AccountStatus.DELETED;
+        }
+
+        if (statusLower.equals("inactive") && reasonLower.contains("on hold")) {
+            return AccountStatus.ON_HOLD;
+        }
+
+        if (statusLower.equals("active")) {
+            return AccountStatus.ACTIVE;
+        }
+
+        return AccountStatus.INACTIVE;
     }
 }
 
