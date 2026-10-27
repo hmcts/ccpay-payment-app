@@ -109,6 +109,7 @@ java:
     REFUND_API_URL: http://ccpay-refunds-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal
     SERVER_SHUTDOWN_STRATEGY: graceful
     TIMEOUT_SERVER_SHUTDOWN_PHASE: 30s
+    LIBERATA_API_REALTIME_ACCOUNT_URL: https://lascustomerportaluat.liberata.com
 
     CARD_LAG_TIME: 144
     CASH_LAG_TIME: 120
@@ -259,3 +260,10 @@ java:
           alias: service.request.email.to
         - name:  paymentoutcome-s2s-web
           alias: PAYMENTOUTCOME_S2S_OTP_SECRET
+        - name: liberata-api-realtime-user
+          alias: LIBERATA_API_REALTIME_ACCOUNT_USERNAME
+        - name: liberata-api-realtime-password
+          alias: LIBERATA_API_REALTIME_ACCOUNT_PASSWORD
+
+
+
