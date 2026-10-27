@@ -14,7 +14,7 @@ import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
 import uk.gov.hmcts.payment.api.model.Remission;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 import uk.gov.hmcts.payment.api.util.ServiceRequestCaseUtil;
-import uk.gov.hmcts.payment.api.util.ServiceRequestGuard;
+import uk.gov.hmcts.payment.api.util.ServiceRequests;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidPaymentGroupReferenceException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentFeeNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.RemissionAlreadyExistException;
@@ -56,11 +56,16 @@ public class RemissionServiceImpl implements RemissionService {
             .remissions(Collections.singletonList(remission))
             .fees(Collections.singletonList(fee))
             .build();
+
         remission.setPaymentFeeLink(paymentFeeLink);
+
+        // TODO should the pfl not be set on the fee?
+        // Keep the in-memory association aligned with the parent collection; the entity mapping persists the foreign key.
+//        fee.setPaymentLink(paymentFeeLink);
+
         fee.setRemissions(Collections.singletonList(remission));
 
         return paymentFeeLinkRepository.save(serviceRequestCaseUtil.enhanceWithServiceRequestCaseDetails(paymentFeeLink, remissionServiceRequest));
-
     }
 
     @Override
@@ -69,7 +74,7 @@ public class RemissionServiceImpl implements RemissionService {
 
         PaymentFeeLink paymentFeeLink = findByPaymentReferenceAndOrCcdCaseNumber(paymentGroupReference, remissionServiceRequest.getCcdCaseNumber());
 
-        ServiceRequestGuard.requireNotCancelled(paymentFeeLink);
+        ServiceRequests.requireNotCancelled(paymentFeeLink);
 
         serviceRequestCaseUtil.updateServiceRequestCaseDetails(paymentFeeLink, remissionServiceRequest);
 
@@ -107,7 +112,7 @@ public class RemissionServiceImpl implements RemissionService {
 
         PaymentFeeLink paymentFeeLink = findByPaymentReferenceAndOrFeeId(paymentGroupReference, feeId);
 
-        ServiceRequestGuard.requireNotCancelled(paymentFeeLink);
+        ServiceRequests.requireNotCancelled(paymentFeeLink);
 
         PaymentFee fee = populatePaymentFee(feeId, paymentFeeLink, remissionServiceRequest);
         return buildRemissionForPayment(paymentFeeLink, fee, remissionServiceRequest);

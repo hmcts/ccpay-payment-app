@@ -74,7 +74,7 @@ import uk.gov.hmcts.payment.api.service.PciPalPaymentService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.service.TelephonySystem;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
-import uk.gov.hmcts.payment.api.util.ServiceRequestGuard;
+import uk.gov.hmcts.payment.api.util.ServiceRequests;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.DuplicatePaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidFeeRequestException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidPaymentGroupReferenceException;
@@ -568,7 +568,7 @@ public class PaymentGroupController {
 
         PaymentFeeLink paymentLink = paymentGroupService.findByPaymentGroupReferenceForUpdate(paymentGroupReference);
 
-        ServiceRequestGuard.requireNotCancelled(paymentLink);
+        ServiceRequests.requireNotCancelled(paymentLink);
 
         LOG.info("--------Here is the value of getTelephonySystem: {}", telephonyCardPaymentsRequest.getTelephonySystem());
 

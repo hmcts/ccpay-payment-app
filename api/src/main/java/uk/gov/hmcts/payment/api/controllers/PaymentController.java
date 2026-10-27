@@ -37,6 +37,7 @@ import uk.gov.hmcts.payment.api.model.FeePayApportion;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
 import uk.gov.hmcts.payment.api.model.PaymentFeeRepository;
 import uk.gov.hmcts.payment.api.model.PaymentStatusRepository;
 import uk.gov.hmcts.payment.api.service.CallbackService;
@@ -44,6 +45,7 @@ import uk.gov.hmcts.payment.api.service.IacService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.util.DateUtil;
 import uk.gov.hmcts.payment.api.util.ServiceRequestCaseUtil;
+import uk.gov.hmcts.payment.api.util.ServiceRequests;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
@@ -80,6 +82,9 @@ public class PaymentController {
     private IacService iacService;
 
     @Autowired
+    private PaymentFeeLinkRepository paymentFeeLinkRepository;
+
+    @Autowired
     public PaymentController(PaymentService<PaymentFeeLink, String> paymentService,
                              PaymentStatusRepository paymentStatusRepository, CallbackService callbackService,
                              PaymentDtoMapper paymentDtoMapper, PaymentValidator paymentValidator,
@@ -98,6 +103,7 @@ public class PaymentController {
     @Operation(summary = "Update case reference by payment reference", description = "Update case reference by payment reference")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "No content"),
+        @ApiResponse(responseCode = "409", description = "Service request has been cancelled"),
         @ApiResponse(responseCode = "404", description = "Payment not found")
     })
     @RateLimiter(name = "default-rate-limiter")
@@ -105,10 +111,11 @@ public class PaymentController {
     @Transactional
     public ResponseEntity updateCaseReference(@PathVariable("reference") String reference,
                                               @RequestBody @Validated UpdatePaymentRequest request) {
-        // TODO: Lock the parent service request and reject case changes if it has been cancelled.
-        Optional<Payment> payment = getPaymentByReference(reference);
+        Optional<Payment> payment = getPaymentByReferenceForUpdate(reference);
 
         if (payment.isPresent()) {
+            // TODO: Confirm this should be blocked when the service request is cancelled.
+            ServiceRequests.requireNotCancelled(payment.get().getPaymentLink());
             if (request.getCaseReference() != null) {
                 payment.get().setCaseReference(request.getCaseReference());
             }
@@ -244,6 +251,7 @@ public class PaymentController {
     @Operation(summary = "Update payment status by payment reference", description = "Update payment status by payment reference")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "204", description = "No content"),
+        @ApiResponse(responseCode = "409", description = "Service request has been cancelled"),
         @ApiResponse(responseCode = "404", description = "Payment not found")
     })
     @PaymentExternalAPI
@@ -252,10 +260,11 @@ public class PaymentController {
     @Transactional
     public ResponseEntity updatePaymentStatus(@PathVariable(value = "reference", required = true) String reference,
                                               @PathVariable(value = "status", required = true) String status) {
-        // TODO: Lock the parent service request and reject status changes if it has been cancelled.
-        Optional<Payment> payment = getPaymentByReference(reference);
+        Optional<Payment> payment = getPaymentByReferenceForUpdate(reference);
 
         if (payment.isPresent()) {
+            // TODO: Confirm this should be blocked when the service request is cancelled.
+            ServiceRequests.requireNotCancelled(payment.get().getPaymentLink());
             payment.get().setPaymentStatus(paymentStatusRepository.findByNameOrThrow(status));
             if (payment.get().getServiceCallbackUrl() != null) {
                 callbackService.callback(payment.get().getPaymentLink(), payment.get());
@@ -330,9 +339,11 @@ public class PaymentController {
             .orElse(null);
     }
 
-    private Optional<Payment> getPaymentByReference(String reference) {
+    private Optional<Payment> getPaymentByReferenceForUpdate(String reference) {
         PaymentFeeLink paymentFeeLink = paymentService.retrievePayment(reference);
-        return paymentFeeLink.getPayments().stream()
+        PaymentFeeLink lockedServiceRequest = paymentFeeLinkRepository.findByIdForUpdate(paymentFeeLink.getId())
+            .orElseThrow(PaymentNotFoundException::new);
+        return lockedServiceRequest.getPayments().stream()
             .filter(p -> p.getReference().equals(reference)).findAny();
     }
 

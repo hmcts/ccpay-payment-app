@@ -3,10 +3,9 @@ package uk.gov.hmcts.payment.api.util;
 import uk.gov.hmcts.payment.api.exceptions.ServiceRequestCancellationException;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 
-public final class ServiceRequestGuard {
+public final class ServiceRequests {
 
-    private ServiceRequestGuard() {
-    }
+    private ServiceRequests() {}
 
     public static void requireNotCancelled(PaymentFeeLink serviceRequest) {
         if (serviceRequest.isCancelled()) {

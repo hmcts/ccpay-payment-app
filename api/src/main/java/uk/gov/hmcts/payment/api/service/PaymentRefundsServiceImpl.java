@@ -14,6 +14,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
@@ -30,6 +31,7 @@ import uk.gov.hmcts.payment.api.exception.InvalidRefundRequestException;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.util.RefundEligibilityUtil;
+import uk.gov.hmcts.payment.api.util.ServiceRequests;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotSuccessException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.RemissionNotFoundException;
@@ -62,6 +64,8 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
     @Autowired
     private Payment2Repository paymentRepository;
+    @Autowired
+    private PaymentFeeLinkRepository paymentFeeLinkRepository;
     @Autowired
     private AuthTokenGenerator authTokenGenerator;
 
@@ -255,6 +259,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity updateTheRemissionAmount(String paymentReference, ResubmitRefundRemissionRequest request) {
         //Payment not found exception
         Payment payment = paymentRepository.findByReference(paymentReference).orElseThrow(PaymentNotFoundException::new);
@@ -371,13 +376,18 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         return new HttpEntity<>(httpHeaders);
     }
 
+    @Transactional
     public void updateRemissionAmount(Integer feeId, BigDecimal remissionAmount) {
-        // TODO: Check cancellation on the service request owning this fee before changing its remission.
 //        if (feeId != null) {
             //Remission against fee
             Optional<Remission> remission = remissionRepository.findByFeeId(feeId);
 
             if (remission.isPresent()) {
+                PaymentFeeLink serviceRequest = paymentFeeLinkRepository
+                    .findByIdForUpdate(remission.get().getFee().getPaymentLink().getId())
+                    .orElseThrow(PaymentNotFoundException::new);
+                // TODO: Confirm this should be blocked when the service request is cancelled.
+                ServiceRequests.requireNotCancelled(serviceRequest);
                 if (remission.get().getFee().getCalculatedAmount().compareTo(remissionAmount) < 0) {
                     throw new InvalidRefundRequestException("Remission Amount should not be more than Fee amount");
                 } else {

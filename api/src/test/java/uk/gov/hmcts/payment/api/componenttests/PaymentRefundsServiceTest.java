@@ -112,6 +112,9 @@ public class PaymentRefundsServiceTest {
     private RemissionRepository remissionRepository;
 
     @MockitoBean
+    private PaymentFeeLinkRepository paymentFeeLinkRepository;
+
+    @MockitoBean
     private FeePayApportionRepository feePayApportionRepository;
     @MockitoBean
     private PaymentFailureRepository paymentFailureRepository;
@@ -654,6 +657,7 @@ public class PaymentRefundsServiceTest {
         Remission remission = Remission.remissionWith()
             .fee(PaymentFee.feeWith()
                 .calculatedAmount(BigDecimal.valueOf(10))
+                .paymentLink(paymentFeeLink)
                 .build())
             .remissionReference("RM-1234-1234-1234-1234")
             .build();
@@ -661,6 +665,7 @@ public class PaymentRefundsServiceTest {
         when(feePayApportionRepository.findByPaymentId(any())).thenReturn(Optional.of(Arrays.asList(feePayApportion)));
 
         when(remissionRepository.findByFeeId(anyInt())).thenReturn(Optional.of(remission));
+        when(paymentFeeLinkRepository.findByIdForUpdate(paymentFeeLink.getId())).thenReturn(Optional.of(paymentFeeLink));
         ResubmitRefundRemissionRequest resubmitRefundRemissionRequest = ResubmitRefundRemissionRequest
             .resubmitRefundRemissionRequestWith()
             .amount(BigDecimal.valueOf(5))
@@ -787,6 +792,7 @@ public class PaymentRefundsServiceTest {
         Remission remission = Remission.remissionWith()
             .fee(PaymentFee.feeWith()
                 .calculatedAmount(BigDecimal.valueOf(75))
+                .paymentLink(paymentFeeLink)
                 .build())
             .remissionReference("RM-1234-1234-1234-1234")
             .build();
@@ -801,6 +807,7 @@ public class PaymentRefundsServiceTest {
             .build();
 
         when(remissionRepository.findByFeeId(anyInt())).thenReturn(Optional.of(remission));
+        when(paymentFeeLinkRepository.findByIdForUpdate(paymentFeeLink.getId())).thenReturn(Optional.of(paymentFeeLink));
         ResponseEntity responseEntity = paymentRefundsService.updateTheRemissionAmount("RC-1234-1234-1234-1234",resubmitRefundRemissionRequest);
         assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
         verify(remissionRepository).save(any(Remission.class));

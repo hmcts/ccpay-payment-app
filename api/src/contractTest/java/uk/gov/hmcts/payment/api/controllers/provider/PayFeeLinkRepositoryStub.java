@@ -43,6 +43,11 @@ public class PayFeeLinkRepositoryStub implements PaymentFeeLinkRepository {
     }
 
     @Override
+    public Optional<PaymentFeeLink> findByIdForUpdate(Integer id) {
+        return findById(id);
+    }
+
+    @Override
     public boolean existsById(Integer integer) {
         return false;
     }

@@ -180,6 +180,7 @@ public class UserAwareDelegatingCreditAccountPaymentServiceTest {
 
     @Test(expected = PaymentNotFoundException.class)
     public void testDeleteByPaymentReferenceWithException() {
+        mockServiceRequestForPayment("");
         long value = 0;
         when(paymentRespository.deleteByReference(anyString())).thenReturn(value);
         creditAccountPaymentService.deleteByPaymentReference("");
@@ -187,11 +188,19 @@ public class UserAwareDelegatingCreditAccountPaymentServiceTest {
 
     @Test
     public void testDeleteByPaymentReference() {
+        mockServiceRequestForPayment("dummy");
         long value = 1;
         when(paymentRespository.deleteByReference(anyString())).thenReturn(value);
         creditAccountPaymentService.deleteByPaymentReference("dummy");
         verify(paymentRespository).deleteByReference(anyString());
 
+    }
+
+    private void mockServiceRequestForPayment(String reference) {
+        PaymentFeeLink serviceRequest = PaymentFeeLink.paymentFeeLinkWith().id(1).build();
+        Payment payment = Payment.paymentWith().reference(reference).paymentLink(serviceRequest).build();
+        when(paymentRespository.findByReference(reference)).thenReturn(Optional.of(payment));
+        when(paymentFeeLinkRepository.findByIdForUpdate(serviceRequest.getId())).thenReturn(Optional.of(serviceRequest));
     }
 
     private Payment getPayment(int number, String reference) throws CheckDigitException {

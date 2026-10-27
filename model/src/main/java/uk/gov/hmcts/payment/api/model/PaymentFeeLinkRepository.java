@@ -15,6 +15,10 @@ public interface PaymentFeeLinkRepository extends CrudRepository<PaymentFeeLink,
 
     <S extends PaymentFeeLink> S save(S entity);
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select serviceRequest from PaymentFeeLink serviceRequest where serviceRequest.id = :id")
+    Optional<PaymentFeeLink> findByIdForUpdate(@Param("id") Integer id);
+
     Optional<PaymentFeeLink> findByPaymentReference(String id);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)

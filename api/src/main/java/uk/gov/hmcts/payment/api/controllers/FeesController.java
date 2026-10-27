@@ -35,6 +35,7 @@ public class FeesController {
     @Operation(summary = "Delete Fees by Id", description = "Delete Fees by Id")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "204", description = "Fees Deleted"),
+        @ApiResponse(responseCode = "409", description = "Service request has been cancelled"),
         @ApiResponse(responseCode = "400", description = "Fees not found")
     })
     @RateLimiter(name = "default-rate-limiter")

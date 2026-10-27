@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.util.ServiceRequestCaseUtil;
+import uk.gov.hmcts.payment.api.util.ServiceRequests;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
@@ -126,7 +127,11 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
     @Override
     @Transactional
     public void deleteByPaymentReference(String paymentReference) {
-        // TODO: Lock the parent service request and reject payment deletion if it has been cancelled.
+        Payment payment = paymentRespository.findByReference(paymentReference).orElseThrow(PaymentNotFoundException::new);
+        PaymentFeeLink serviceRequest = paymentFeeLinkRepository.findByIdForUpdate(payment.getPaymentLink().getId())
+            .orElseThrow(PaymentNotFoundException::new);
+        // TODO: Confirm this should be blocked when the service request is cancelled.
+        ServiceRequests.requireNotCancelled(serviceRequest);
         // Deleting the payment also cascades to the service request and its fees.
         long records = paymentRespository.deleteByReference(paymentReference);
         LOG.info("Number of deleted records are: {}", records);

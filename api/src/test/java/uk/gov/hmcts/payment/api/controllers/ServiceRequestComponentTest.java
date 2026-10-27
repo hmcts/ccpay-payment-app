@@ -75,11 +75,18 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
  * This test uses a real ServiceRequestDomainService
  * and makes writes to the db (unlike ServiceRequestControllerTest which uses mocks)
  *
+ * These tests let the application's transactions commit so they can verify persisted changes.
+ * The committed test data is not rolled back automatically. Sharing a database with other test
+ * classes allowed those records to appear in their queries and made results depend on test order.
+ * The distinct Testcontainers JDBC URL gives this class its own PostgreSQL container and database,
+ * so it can verify committed changes without affecting other component test classes.
+ *
  * @author jhilling
  */
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "componenttest"})
-@SpringBootTest(webEnvironment = MOCK)
+@SpringBootTest(webEnvironment = MOCK,
+    properties = "spring.datasource.url=jdbc:tc:postgresql:11.0://localhost/service_request_component_tests")
 public class ServiceRequestComponentTest {
 
     private static final String USER_ID = UserResolverBackdoor.CASEWORKER_ID;
@@ -531,10 +538,14 @@ public class ServiceRequestComponentTest {
         );
     }
 
+    /**
+     * Test that locking a service request by its ID waits for cancellation holding the reference lock.
+     * Both lookups must lock the same row, and the waiting transaction must see the committed cancellation.
+     */
     @Test
     public void cancellationRowLockBlocksAnotherTransactionUntilCommit() throws Exception {
         String serviceRequestReference = newServiceRequestReference();
-        paymentFeeLinkRepository.save(PaymentFeeLink.paymentFeeLinkWith()
+        PaymentFeeLink serviceRequest = paymentFeeLinkRepository.save(PaymentFeeLink.paymentFeeLinkWith()
             .paymentReference(serviceRequestReference)
             .build());
 
@@ -582,7 +593,7 @@ public class ServiceRequestComponentTest {
             Future<Boolean> waitingTransaction = executor.submit(() -> transactionTemplate.execute(status -> {
                 secondBackendPid.set(jdbcTemplate.queryForObject("select pg_backend_pid()", Integer.class));
                 secondTransactionHasPid.countDown();
-                return paymentFeeLinkRepository.findByPaymentReferenceForUpdate(serviceRequestReference)
+                return paymentFeeLinkRepository.findByIdForUpdate(serviceRequest.getId())
                     .orElseThrow()
                     .isCancelled();
             }));

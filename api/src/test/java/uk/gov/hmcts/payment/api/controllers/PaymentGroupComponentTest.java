@@ -30,6 +30,7 @@ import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
 import uk.gov.hmcts.payment.api.dto.PciPalPayment;
 import uk.gov.hmcts.payment.api.dto.PciPalPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.RemissionRequest;
+import uk.gov.hmcts.payment.api.dto.ResubmitRefundRemissionRequest;
 import uk.gov.hmcts.payment.api.dto.RetroRemissionRequest;
 import uk.gov.hmcts.payment.api.dto.idam.IdamUserIdResponse;
 import uk.gov.hmcts.payment.api.external.client.dto.State;
@@ -88,6 +89,11 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
  * PostgreSQL. External services are mocked. Each request uses the application's own transactions.
  * The database assertions run after the request completes to verify that its changes were committed.
  *
+ * The committed test data is not rolled back automatically. Sharing a database with other test
+ * classes allowed those records to appear in their queries and made results depend on test order.
+ * The distinct Testcontainers JDBC URL gives this class its own PostgreSQL container and database,
+ * so it can verify committed changes without affecting other component test classes.
+ *
  * @see ServiceRequestComponentTest
  *
  * @author jhilling
@@ -96,7 +102,10 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "componenttest"})
 @SpringBootTest(webEnvironment = MOCK,
-    properties = "bulk.scanning.payments.processed.url=http://bulk-scan.test")
+    properties = {
+        "bulk.scanning.payments.processed.url=http://bulk-scan.test",
+        "spring.datasource.url=jdbc:tc:postgresql:11.0://localhost/payment_group_component_tests"
+    })
 public class PaymentGroupComponentTest {
 
     private static final String USER_ID = UserResolverBackdoor.CASEWORKER_ID;
@@ -553,6 +562,51 @@ public class PaymentGroupComponentTest {
     }
 
     /**
+     * Test that refund resubmission cannot change a remission on a cancelled service request.
+     * The payment belongs to a different, open service request, so the check must use the fee's owner.
+     * The response returns HTTP 409, and both service requests and their records remain unchanged.
+     */
+    @Test
+    public void resubmittingRefundForCancelledFeeOwnerReturnsConflictWithoutChangingTheDatabase() throws Exception {
+        PaymentFeeLink cancelledServiceRequest = saveCancelledServiceRequest();
+        Remission remission = saveRemission(cancelledServiceRequest);
+        PaymentFeeLink paymentServiceRequest = saveServiceRequestWithPbaPayment(saveServiceRequest(), PaymentStatus.SUCCESS);
+        String paymentReference = paymentServiceRequest.getPayments().getFirst().getReference();
+        Map<String, List<Map<String, Object>>> cancelledBefore = databaseState(cancelledServiceRequest);
+        Map<String, List<Map<String, Object>>> paymentBefore = databaseState(paymentServiceRequest);
+        ResubmitRefundRemissionRequest request = ResubmitRefundRemissionRequest.resubmitRefundRemissionRequestWith()
+            .refundReason("RR036").feeId(remission.getFee().getId().toString())
+            .amount(new BigDecimal("3.00")).totalRefundedAmount(new BigDecimal("3.00")).build();
+
+        assertCancellationRejected(restActions.withAuthorizedUser(UserResolverBackdoor.REFUND_ID)
+                .withUserId(UserResolverBackdoor.REFUND_ID)
+                .patch("/refund/resubmit/%s".formatted(paymentReference), request),
+            cancelledServiceRequest, cancelledBefore);
+        assertThat(databaseState(paymentServiceRequest)).isEqualTo(paymentBefore);
+    }
+
+    /**
+     * Test that refund resubmission can still update a remission on an open service request.
+     * The response returns HTTP 200, and the revised remission amount is committed to the database.
+     */
+    @Test
+    public void resubmittingRefundForOpenFeeOwnerUpdatesTheRemission() throws Exception {
+        PaymentFeeLink serviceRequest = saveServiceRequestWithPbaPayment(saveServiceRequest(), PaymentStatus.SUCCESS);
+        Remission remission = saveRemission(serviceRequest);
+        String paymentReference = serviceRequest.getPayments().getFirst().getReference();
+        ResubmitRefundRemissionRequest request = ResubmitRefundRemissionRequest.resubmitRefundRemissionRequestWith()
+            .refundReason("RR036").feeId(remission.getFee().getId().toString())
+            .amount(new BigDecimal("3.00")).totalRefundedAmount(new BigDecimal("3.00")).build();
+
+        restActions.withAuthorizedUser(UserResolverBackdoor.REFUND_ID).withUserId(UserResolverBackdoor.REFUND_ID)
+            .patch("/refund/resubmit/%s".formatted(paymentReference), request).andExpect(status().isOk());
+
+        assertThat(remissionRepository.findByRemissionReference(remission.getRemissionReference())
+            .orElseThrow().getHwfAmount()).isEqualByComparingTo("3.00");
+        assertNotCancelled(serviceRequest);
+    }
+
+    /**
      * Test that a cancelled service request can still be read so its details remain available.
      * The response returns HTTP 200 with the existing fee, and reading it does not change the database.
      */
@@ -660,14 +714,30 @@ public class PaymentGroupComponentTest {
     }
 
     private PaymentFeeLink saveCancelledServiceRequestWithFailedPbaPayment() {
-        PaymentFeeLink serviceRequest = saveCancelledServiceRequest();
+        return saveServiceRequestWithPbaPayment(saveCancelledServiceRequest(), PaymentStatus.FAILED);
+    }
+
+    private PaymentFeeLink saveServiceRequestWithPbaPayment(PaymentFeeLink serviceRequest, PaymentStatus status) {
         serviceRequest.setPayments(List.of(Payment.paymentWith()
             .reference("RC-%s".formatted(UUID.randomUUID())).amount(FEE_AMOUNT).currency("GBP")
             .ccdCaseNumber(serviceRequest.getCcdCaseNumber()).serviceType(SERVICE_NAME).siteId(SITE_ID)
-            .paymentStatus(PaymentStatus.FAILED)
+            .paymentStatus(status)
             .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
             .paymentChannel(PaymentChannel.ONLINE).build()));
         return paymentFeeLinkRepository.save(serviceRequest);
+    }
+
+    private Remission saveRemission(PaymentFeeLink serviceRequest) {
+        PaymentFee fee = serviceRequest.getFees().getFirst();
+        Remission remission = Remission.remissionWith()
+            .remissionReference("RM-%s".formatted(UUID.randomUUID()))
+            .hwfReference("HWF-%s".formatted(UUID.randomUUID())).hwfAmount(new BigDecimal("4.00"))
+            .ccdCaseNumber(serviceRequest.getCcdCaseNumber()).siteId(SITE_ID)
+            .fee(fee).paymentFeeLink(serviceRequest).build();
+        fee.setRemissions(List.of(remission));
+        serviceRequest.setRemissions(List.of(remission));
+        paymentFeeLinkRepository.save(serviceRequest);
+        return remissionRepository.findByRemissionReference(remission.getRemissionReference()).orElseThrow();
     }
 
     private void assertCancellationRejected(ResultActions result, PaymentFeeLink serviceRequest,

@@ -16,7 +16,7 @@ import uk.gov.hmcts.payment.api.model.PaymentStatusRepository;
 import uk.gov.hmcts.payment.api.model.Remission;
 import uk.gov.hmcts.payment.api.model.StatusHistory;
 import uk.gov.hmcts.payment.api.util.ServiceRequestCaseUtil;
-import uk.gov.hmcts.payment.api.util.ServiceRequestGuard;
+import uk.gov.hmcts.payment.api.util.ServiceRequests;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidPaymentGroupReferenceException;
 
@@ -78,7 +78,7 @@ public class PaymentGroupServiceImpl implements PaymentGroupService<PaymentFeeLi
         PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.findByPaymentReferenceForUpdate(paymentGroupReference)
             .orElseThrow(() -> new InvalidPaymentGroupReferenceException("Payment group " + paymentGroupReference + " does not exists."));
 
-        ServiceRequestGuard.requireNotCancelled(paymentFeeLink);
+        ServiceRequests.requireNotCancelled(paymentFeeLink);
 
         paymentFeeLink.getFees().addAll(fees);
 
@@ -94,7 +94,7 @@ public class PaymentGroupServiceImpl implements PaymentGroupService<PaymentFeeLi
         PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.findByPaymentReferenceForUpdate(PaymentGroupReference)
             .orElseThrow(() -> new InvalidPaymentGroupReferenceException("Payment group " + PaymentGroupReference + " does not exists."));
 
-        ServiceRequestGuard.requireNotCancelled(paymentFeeLink);
+        ServiceRequests.requireNotCancelled(paymentFeeLink);
 
         serviceRequestCaseUtil.updateServiceRequestCaseDetails(paymentFeeLink, payment);
 

@@ -4,8 +4,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
 import uk.gov.hmcts.payment.api.model.PaymentFeeRepository;
+import uk.gov.hmcts.payment.api.util.ServiceRequests;
 
 import java.util.Optional;
 
@@ -14,18 +18,25 @@ import java.util.Optional;
 public class FeesServiceImpl implements FeesService {
     private static final Logger LOG = LoggerFactory.getLogger(FeesServiceImpl.class);
     private final PaymentFeeRepository paymentFeeRepository;
+    private final PaymentFeeLinkRepository paymentFeeLinkRepository;
 
-    public FeesServiceImpl(PaymentFeeRepository paymentFeeRepository) {
+    public FeesServiceImpl(PaymentFeeRepository paymentFeeRepository, PaymentFeeLinkRepository paymentFeeLinkRepository) {
         this.paymentFeeRepository = paymentFeeRepository;
+        this.paymentFeeLinkRepository = paymentFeeLinkRepository;
     }
 
     @Override
+    @Transactional
     public void deleteFee(int feeId) throws EmptyResultDataAccessException {
         Optional<PaymentFee> paymentFee = getPaymentFee(feeId);
         if (paymentFee.isEmpty()) {
             throw new EmptyResultDataAccessException("Fee not found", 1);
         }
-        // TODO: Lock the parent service request and reject fee deletion if it has been cancelled.
+        PaymentFeeLink serviceRequest = paymentFeeLinkRepository
+            .findByIdForUpdate(paymentFee.get().getPaymentLink().getId())
+            .orElseThrow(() -> new EmptyResultDataAccessException("Service request not found", 1));
+        // TODO: Confirm this should be blocked when the service request is cancelled.
+        ServiceRequests.requireNotCancelled(serviceRequest);
         paymentFeeRepository.deleteById(feeId);
     }
 

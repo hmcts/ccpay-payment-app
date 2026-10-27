@@ -75,7 +75,7 @@ import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.servicebus.TopicClientProxy;
 import uk.gov.hmcts.payment.api.servicebus.TopicClientService;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
-import uk.gov.hmcts.payment.api.util.ServiceRequestGuard;
+import uk.gov.hmcts.payment.api.util.ServiceRequests;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentGroupNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoAmountDue;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoMatchingAmount;
@@ -218,7 +218,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         PaymentFeeLink serviceRequest = paymentFeeLinkRepository.findByPaymentReferenceForUpdate(serviceRequestReference)
             .orElseThrow(() -> new ServiceRequestReferenceNotFoundException("Order reference doesn't exist"));
 
-        ServiceRequestGuard.requireNotCancelled(serviceRequest);
+        ServiceRequests.requireNotCancelled(serviceRequest);
 
         LOG.info("returnURL {}",returnUrl);
 
@@ -279,7 +279,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         PaymentFeeLink serviceRequest = paymentFeeLinkRepository.findByPaymentReferenceForUpdate(serviceRequestReference)
             .orElseThrow(() -> new ServiceRequestReferenceNotFoundException("Service request not found"));
 
-        ServiceRequestGuard.requireNotCancelled(serviceRequest);
+        ServiceRequests.requireNotCancelled(serviceRequest);
 
         /*
          * PaymentFeeLink / Service Request is now locked

@@ -224,6 +224,7 @@ public class CreditAccountPaymentController {
     @Operation(summary = "Delete credit account payment details by payment reference", description = "Delete payment details for supplied payment reference")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Payment deleted successfully"),
+            @ApiResponse(responseCode = "409", description = "Service request has been cancelled"),
             @ApiResponse(responseCode = "404", description = "Payment not found for the given reference")
     })
     @RateLimiter(name = "default-rate-limiter")
