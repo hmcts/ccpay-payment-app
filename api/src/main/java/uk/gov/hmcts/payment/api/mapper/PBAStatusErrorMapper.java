@@ -68,25 +68,37 @@ public class PBAStatusErrorMapper {
         }
     }
 
-    public void setPaymentStatusAndHistories(CreditAccountPaymentRequest creditAccountPaymentRequest, Payment payment, PaymentAccountResponse  paymentAccountResponse) {
+
+
+    public void setPaymentStatusAndHistories(String accountNumber, Payment payment, PaymentAccountResponse paymentAccountResponse) {
 
         LOG.info("CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {}  Account number  : {} ",
-            payment.getCcdCaseNumber(), paymentAccountResponse.getStatus(), creditAccountPaymentRequest.getAccountNumber());
+            payment.getCcdCaseNumber(), paymentAccountResponse.getStatus(), accountNumber);
+        // Ensure that the status histories list is initialized if it's null or empty, due to the fact that the method is generic.
+        if (payment.getStatusHistories() == null || payment.getStatusHistories().isEmpty()) {
+            payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
+                .status(payment.getPaymentStatus() != null ? payment.getPaymentStatus().getName() : PaymentAccountResponseStatus.PENDING.getValue())
+                .build()));
+        }
 
         if (paymentAccountResponse.getStatus().equals(PaymentAccountResponseStatus.SUCCESS.getValue())) {
 
             payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("success").build());
             payment.getStatusHistories().getFirst().setStatus(PaymentAccountResponseStatus.SUCCESS.getValue());
-            LOG.info("Payment request  was SUCCESS. " + paymentAccountResponse.getMessage() + " PBA account {}" + creditAccountPaymentRequest.getAccountNumber());
+            LOG.info("Payment request  was SUCCESS. " + paymentAccountResponse.getMessage() + " PBA account {}" + accountNumber);
         } else if (paymentAccountResponse.getStatus().equals(PaymentAccountResponseStatus.ERROR.getValue())) {
 
             payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name(FAILED).build());
-            LOG.info("Payment request failed. " + paymentAccountResponse.getMessage() + " PBA account {}" + creditAccountPaymentRequest.getAccountNumber());
+            LOG.info("Payment request failed. " + paymentAccountResponse.getMessage() + " PBA account {}" + accountNumber);
             // modify the first status history with the error code and message from the response
             payment.getStatusHistories().getFirst().setStatus(payment.getPaymentStatus().getName());
             payment.getStatusHistories().getFirst().setErrorCode(PBA_ERROR_CODE_MAP.get( paymentAccountResponse.getMessage()));
             payment.getStatusHistories().getFirst().setMessage(paymentAccountResponse.getMessage());
         }
+    }
+
+    public void setPaymentStatusAndHistories(CreditAccountPaymentRequest creditAccountPaymentRequest, Payment payment, PaymentAccountResponse paymentAccountResponse) {
+        setPaymentStatusAndHistories(creditAccountPaymentRequest.getAccountNumber(), payment, paymentAccountResponse);
     }
 
     public void setServiceRequestPaymentStatus(BigDecimal amount, Payment payment, AccountDto accountDetails) {

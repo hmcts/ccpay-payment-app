@@ -23,8 +23,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.ResourceAccessException;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestDomainDataEntityMapper;
 import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestDtoDomainMapper;
@@ -45,9 +43,6 @@ import uk.gov.hmcts.payment.api.dto.servicerequest.DeadLetterDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestCpoDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
-import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
-import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
-import uk.gov.hmcts.payment.api.exception.LiberataServiceTimeoutException;
 import uk.gov.hmcts.payment.api.exceptions.ServiceRequestReferenceNotFoundException;
 import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
@@ -271,9 +266,9 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         Payment payment = serviceRequestPaymentDomainDataEntityMapper.toEntity(serviceRequestPaymentBo, serviceRequest);
         payment.setPaymentLink(serviceRequest);
 
-        // Account check for PBA-Payment
-        payment = accountCheckForPBAPayment(serviceRequest, serviceRequestPaymentDto, payment);
-        xxxx(serviceRequest, serviceRequestPaymentDto, payment, serviceRequestReference);
+        // Account check for PBA-Payment and make a payment by calling the Liberata Real Time API and updating the payment status and histories based on the response received from the API.
+        payment = preparePayment(serviceRequest, serviceRequestPaymentDto, payment);
+        makeAPayment(serviceRequest, serviceRequestPaymentDto, payment, serviceRequestReference);
 
         // Update payments list
         serviceRequest.setPayments(Collections.singletonList(payment));
@@ -325,41 +320,23 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
             }
         }
     }
-
-    private void xxxx(PaymentFeeLink paymentFeeLink, ServiceRequestPaymentDto serviceRequestPaymentDto, Payment payment, String serviceRequestReference){
+    //  This method is used to make a payment by calling the Liberata Real Time API and updating the payment status and histories based on the response received from the API.
+    private void makeAPayment(PaymentFeeLink paymentFeeLink, ServiceRequestPaymentDto serviceRequestPaymentDto, Payment payment, String serviceRequestReference){
 
         val paymentByAccountRequest = pBAPaymentMapper.mapToPaymentByAccountRequestFromServiceRequestPaymentDto(serviceRequestPaymentDto, serviceRequestReference, payment,paymentFeeLink);
         val paymentResponse = liberataRealTimeAPI.payByAccount(paymentByAccountRequest);
-        //pbaStatusErrorMapper.setPaymentStatusAndHistories(creditAccountPaymentRequest, payment, paymentResponse);
+        pbaStatusErrorMapper.setPaymentStatusAndHistories(serviceRequestPaymentDto.getAccountNumber(), payment, paymentResponse);
     }
 
-    private Payment accountCheckForPBAPayment(PaymentFeeLink serviceRequest, ServiceRequestPaymentDto serviceRequestPaymentDto, Payment payment) {
+    private Payment preparePayment(PaymentFeeLink serviceRequest, ServiceRequestPaymentDto serviceRequestPaymentDto, Payment payment) {
         LOG.info("PBA Old Config Service Names : {}", pbaConfig1ServiceNames);
         Boolean isPBAConfig1Journey = pbaConfig1ServiceNames.contains(serviceRequest.getEnterpriseServiceName());
 
-        if (!isPBAConfig1Journey) {
-            LOG.info("Checking with Liberata for Service : {}", serviceRequest.getEnterpriseServiceName());
-//            AccountDto accountDetails;
-//            try {
-//                accountDetails = accountService.retrieve(serviceRequestPaymentDto.getAccountNumber());
-//                LOG.info("CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {}", payment.getCcdCaseNumber(), accountDetails.getStatus());
-//            } catch (HttpClientErrorException ex) {
-//                LOG.error("Account information could not be found, exception: {}", ex.getMessage());
-//                throw new AccountNotFoundException("Account information could not be found");
-//            } catch (ResourceAccessException ex) {
-//                LOG.error("Liberata response not received in time, exception: {}", ex.getMessage());
-//                throw new LiberataServiceTimeoutException("Unable to retrieve account information due to timeout");
-//            } catch (Exception ex) {
-//                LOG.error("Unable to retrieve account information, exception: {}", ex.getMessage());
-//                throw new AccountServiceUnavailableException("Unable to retrieve account information, please try again later");
-//            }
-//            pbaStatusErrorMapper.setServiceRequestPaymentStatus(serviceRequestPaymentDto.getAmount(), payment, accountDetails);
-        } else {
+        if (isPBAConfig1Journey) {
             LOG.info("Setting status to pending");
             payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("pending").build());
             LOG.info("CreditAccountPayment received for ccdCaseNumber : {} PaymentStatus : {} - Account Balance Sufficient!!!", payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
         }
-
         //status history from created -> success
         if (payment.getPaymentStatus().getName().equalsIgnoreCase(PaymentStatus.SUCCESS.getName())) {
             payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
