@@ -1,13 +1,20 @@
 package uk.gov.hmcts.payment.api.mapper;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.jetbrains.annotations.NotNull;
+import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import uk.gov.hmcts.fees2.register.api.contract.FeeVersionDto;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
@@ -20,6 +27,8 @@ import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentAllocation;
 import uk.gov.hmcts.payment.api.model.PaymentAllocationStatus;
 import uk.gov.hmcts.payment.api.model.PaymentChannel;
+import uk.gov.hmcts.payment.api.model.FeePayApportionRepository;
+import uk.gov.hmcts.payment.api.model.PaymentFailureRepository;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentMethod;
@@ -28,16 +37,20 @@ import uk.gov.hmcts.payment.api.model.Remission;
 import uk.gov.hmcts.payment.api.reports.FeesService;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PaymentGroupDtoMapperTest {
@@ -45,15 +58,29 @@ public class PaymentGroupDtoMapperTest {
     FeesService feesService;
 
     @Mock
+    PaymentFailureRepository paymentFailureRepository;
+
+    @Mock
+    FeePayApportionRepository feePayApportionRepository;
+
+    @Mock
     LaunchDarklyFeatureToggler featureToggler;
 
     @InjectMocks
     PaymentGroupDtoMapper paymentGroupDtoMapper = new PaymentGroupDtoMapper();
 
+    // TODO testing through object mapper/json while fields aren't yet on PaymentGroupDto
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
     PaymentFeeLink feeLink;
 
     @Before
     public void initiate(){
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
+            "test-user", "credentials", List.of(new SimpleGrantedAuthority("ROLE_USER"))));
+        when(paymentFailureRepository.findByPaymentReferenceIn(anyList())).thenReturn(Optional.empty());
+        when(feePayApportionRepository.findByPaymentId(1)).thenReturn(Optional.empty());
+
         List<Payment> payments = new ArrayList<Payment>();
         payments.add(getPayment());
         PaymentFee fee = PaymentFee.feeWith().feeAmount(new BigDecimal("100.00")).ccdCaseNumber("ccd-case-number").calculatedAmount(new BigDecimal("100.00")).build();
@@ -71,6 +98,86 @@ public class PaymentGroupDtoMapperTest {
             .fees(paymentFees)
             .payments(payments)
             .remissions(remissionList)
+            .build();
+    }
+
+    @After
+    public void clearSecurityContext() {
+        SecurityContextHolder.clearContext();
+    }
+
+    @Ignore("TODO PAY-9036 - enable when cancel mapping in place")
+    @Test
+    public void mapsCancelledServiceRequestMetadataAndStatus() throws Exception {
+        Date dateCancelled = Date.from(Instant.parse("2026-10-27T12:00:00Z"));
+        PaymentFeeLink cancelledServiceRequest = PaymentFeeLink.paymentFeeLinkWith()
+            .paymentReference("2026-1234567890123")
+            .cancelled(true)
+            .cancellationReason("Duplicate request")
+            .cancelledBy("payment-service")
+            .dateCancelled(dateCancelled)
+            .fees(List.of())
+            .payments(List.of())
+            .build();
+
+        PaymentGroupDto dto = paymentGroupDtoMapper.toPaymentGroupDto(cancelledServiceRequest);
+        JsonNode json = objectMapper.valueToTree(dto);
+
+        assertThat(json.path("cancelled").asBoolean()).isTrue();
+        assertThat(json.path("cancellation_reason").asText()).isEqualTo("Duplicate request");
+        assertThat(json.path("cancelled_by").asText()).isEqualTo("payment-service");
+        assertThat(json.path("date_cancelled").asLong()).isEqualTo(dateCancelled.getTime());
+        assertThat(json.path("service_request_status").asText()).isEqualTo("Cancelled");
+    }
+
+    @Test
+    public void mapsOpenServiceRequestAsNotCancelledWithoutCancellationMetadata() throws Exception {
+        PaymentFeeLink openServiceRequest = PaymentFeeLink.paymentFeeLinkWith()
+            .paymentReference("2026-1234567890123")
+            .cancelled(false)
+            .fees(List.of())
+            .payments(List.of())
+            .build();
+
+        PaymentGroupDto dto = paymentGroupDtoMapper.toPaymentGroupDto(openServiceRequest);
+        JsonNode json = objectMapper.valueToTree(dto);
+
+        assertThat(json.has("cancelled")).isFalse();
+        assertThat(json.has("cancellation_reason")).isFalse();
+        assertThat(json.has("cancelled_by")).isFalse();
+        assertThat(json.has("date_cancelled")).isFalse();
+        assertThat(json.path("service_request_status").asText()).isEqualTo("Paid");
+    }
+
+    @Test
+    public void emitsNotDisputedPlaceholderWhenFailureLookupIsAbsent() {
+        when(paymentFailureRepository.findByPaymentReferenceIn(anyList())).thenReturn(Optional.empty());
+
+        PaymentGroupDto dto = paymentGroupDtoMapper.toPaymentGroupDto(paymentGroupWithPayment());
+
+        assertThat(dto.getPayments().get(0).getDisputes())
+            .singleElement()
+            .satisfies(dispute -> {
+                assertThat(dispute.isDispute()).isFalse();
+                assertThat(dispute.getPingNumber()).isZero();
+            });
+    }
+
+    @Test
+    public void emitsNoDisputesWhenFailureLookupIsPresentButEmpty() {
+        when(paymentFailureRepository.findByPaymentReferenceIn(anyList())).thenReturn(Optional.of(List.of()));
+
+        PaymentGroupDto dto = paymentGroupDtoMapper.toPaymentGroupDto(paymentGroupWithPayment());
+
+        assertThat(dto.getPayments().get(0).getDisputes()).isEmpty();
+    }
+
+    private PaymentFeeLink paymentGroupWithPayment() {
+        return PaymentFeeLink.paymentFeeLinkWith()
+            .paymentReference("payment-reference")
+            .fees(List.of())
+            .payments(List.of(getPayment()))
+            .remissions(List.of())
             .build();
     }
 
