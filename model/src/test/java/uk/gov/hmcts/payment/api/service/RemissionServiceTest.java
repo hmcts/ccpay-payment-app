@@ -101,7 +101,7 @@ public class RemissionServiceTest {
             .fees(Arrays.asList(fee))
             .build();
 
-        when(paymentFeeLinkRepository.findByPaymentReference("2019-123456799")).thenReturn(Optional.ofNullable(paymentFeeLink));
+        when(paymentFeeLinkRepository.findByPaymentReferenceForUpdate("2019-123456799")).thenReturn(Optional.ofNullable(paymentFeeLink));
 
         RemissionServiceRequest remissionServiceRequest = RemissionServiceRequest.remissionServiceRequestWith()
             .paymentGroupReference("2019-123456799")
@@ -116,7 +116,7 @@ public class RemissionServiceTest {
         assertThat(res).isNotNull();
         assertThat(res.getPaymentReference()).isEqualTo(paymentFeeLink.getPaymentReference());
 
-        verify(paymentFeeLinkRepository, atLeastOnce()).findByPaymentReference(paymentFeeLink.getPaymentReference());
+        verify(paymentFeeLinkRepository, atLeastOnce()).findByPaymentReferenceForUpdate(paymentFeeLink.getPaymentReference());
     }
 
     @Test
@@ -131,8 +131,8 @@ public class RemissionServiceTest {
             .fees(Arrays.asList(fee))
             .build();
 
-        when(paymentFeeLinkRepository.findByPaymentReference("2019-123456799")).thenThrow(new IncorrectResultSizeDataAccessException(2));
-        when(paymentFeeLinkRepository.findByPaymentReferenceAndCcdCaseNumber("2019-123456799", "1111-2222-3333-4444")).thenReturn(Optional.ofNullable(paymentFeeLink));
+        when(paymentFeeLinkRepository.findByPaymentReferenceForUpdate("2019-123456799")).thenThrow(new IncorrectResultSizeDataAccessException(2));
+        when(paymentFeeLinkRepository.findByPaymentReferenceAndCcdCaseNumberForUpdate("2019-123456799", "1111-2222-3333-4444")).thenReturn(Optional.ofNullable(paymentFeeLink));
 
         RemissionServiceRequest remissionServiceRequest = RemissionServiceRequest.remissionServiceRequestWith()
             .paymentGroupReference("2019-123456799")
@@ -147,8 +147,8 @@ public class RemissionServiceTest {
         assertThat(res).isNotNull();
         assertThat(res.getPaymentReference()).isEqualTo(paymentFeeLink.getPaymentReference());
 
-        verify(paymentFeeLinkRepository, atLeastOnce()).findByPaymentReference(paymentFeeLink.getPaymentReference());
-        verify(paymentFeeLinkRepository, atLeastOnce()).findByPaymentReferenceAndCcdCaseNumber(paymentFeeLink.getPaymentReference(), paymentFeeLink.getCcdCaseNumber());
+        verify(paymentFeeLinkRepository, atLeastOnce()).findByPaymentReferenceForUpdate(paymentFeeLink.getPaymentReference());
+        verify(paymentFeeLinkRepository, atLeastOnce()).findByPaymentReferenceAndCcdCaseNumberForUpdate(paymentFeeLink.getPaymentReference(), paymentFeeLink.getCcdCaseNumber());
     }
 
     @Test
@@ -165,8 +165,8 @@ public class RemissionServiceTest {
             .build();
 
         fee.setRemissions(emptyRemissions);
-        when(paymentFeeLinkRepository.findByPaymentReference("2019-123456799")).thenThrow(new IncorrectResultSizeDataAccessException(2));
-        when(paymentFeeLinkRepository.findByPaymentReferenceAndFeeId("2019-123456799", 1)).thenReturn(Optional.ofNullable(paymentFeeLink));
+        when(paymentFeeLinkRepository.findByPaymentReferenceForUpdate("2019-123456799")).thenThrow(new IncorrectResultSizeDataAccessException(2));
+        when(paymentFeeLinkRepository.findByPaymentReferenceAndFeeIdForUpdate("2019-123456799", 1)).thenReturn(Optional.ofNullable(paymentFeeLink));
 
         RetroRemissionServiceRequest remissionServiceRequest = RetroRemissionServiceRequest.retroRemissionServiceRequestWith()
             .hwfAmount(new BigDecimal("100.99"))
@@ -179,8 +179,8 @@ public class RemissionServiceTest {
         assertThat(rem.getHwfAmount()).isEqualTo(remissionServiceRequest.getHwfAmount());
         assertThat(rem.getCcdCaseNumber()).isEqualTo(fee.getCcdCaseNumber());
 
-        verify(paymentFeeLinkRepository, atLeastOnce()).findByPaymentReference(paymentFeeLink.getPaymentReference());
-        verify(paymentFeeLinkRepository, atLeastOnce()).findByPaymentReferenceAndFeeId(paymentFeeLink.getPaymentReference(), fee.getId());
+        verify(paymentFeeLinkRepository, atLeastOnce()).findByPaymentReferenceForUpdate(paymentFeeLink.getPaymentReference());
+        verify(paymentFeeLinkRepository, atLeastOnce()).findByPaymentReferenceAndFeeIdForUpdate(paymentFeeLink.getPaymentReference(), fee.getId());
     }
 
     private Remission getRemission() {

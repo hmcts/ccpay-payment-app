@@ -6,10 +6,13 @@ import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface PaymentGroupService<T, ID> {
 
     T findByPaymentGroupReference(String paymentGroupReference);
+
+    T findByPaymentGroupReferenceForUpdate(String paymentGroupReference);
 
     T addNewFeeWithPaymentGroup(PaymentFeeLink feeLink);
 

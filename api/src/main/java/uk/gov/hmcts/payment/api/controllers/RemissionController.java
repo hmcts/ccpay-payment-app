@@ -75,6 +75,7 @@ public class RemissionController {
         @ApiResponse(responseCode = "201", description = "Remission created"),
         @ApiResponse(responseCode = "400", description = "Remission creation failed"),
         @ApiResponse(responseCode = "404", description = "Given payment group reference not found"),
+        @ApiResponse(responseCode = "409", description = "Service request has been cancelled"),
         @ApiResponse(responseCode = "422", description = "Invalid or missing attribute")
     })
     @RateLimiter(name = "default-rate-limiter")
@@ -99,6 +100,7 @@ public class RemissionController {
         @ApiResponse(responseCode = "201", description = "Retrospective Remission created"),
         @ApiResponse(responseCode = "400", description = "Retrospective Remission creation failed"),
         @ApiResponse(responseCode = "404", description = "Given payment group reference not found"),
+        @ApiResponse(responseCode = "409", description = "Service request has been cancelled"),
         @ApiResponse(responseCode = "422", description = "Invalid or missing attribute")
     })
     @RateLimiter(name = "default-rate-limiter")
@@ -109,6 +111,7 @@ public class RemissionController {
         @PathVariable("unique_fee_id") Integer feeId,
         @RequestHeader(required = false) MultiValueMap<String, String> headers,
         @Valid @RequestBody RetroRemissionRequest retroRetroRemissionRequest) throws CheckDigitException {
+
         RetroRemissionServiceRequest remissionServiceRequest = populateRetroRemissionServiceRequest(retroRetroRemissionRequest);
         Remission remission = remissionService.createRetrospectiveRemissionForPayment(remissionServiceRequest, paymentGroupReference, feeId);
         RetroRemissionDto retroRemissionDto =  remissionDtoMapper.toCreateRetroRemissionResponse(remission);

@@ -16,6 +16,7 @@ import uk.gov.hmcts.payment.api.model.PaymentStatusRepository;
 import uk.gov.hmcts.payment.api.model.Remission;
 import uk.gov.hmcts.payment.api.model.StatusHistory;
 import uk.gov.hmcts.payment.api.util.ServiceRequestCaseUtil;
+import uk.gov.hmcts.payment.api.util.ServiceRequests;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidPaymentGroupReferenceException;
 
@@ -61,6 +62,11 @@ public class PaymentGroupServiceImpl implements PaymentGroupService<PaymentFeeLi
     }
 
     @Override
+    public PaymentFeeLink findByPaymentGroupReferenceForUpdate(String paymentGroupReference) {
+        return paymentFeeLinkRepository.findByPaymentReferenceForUpdate(paymentGroupReference).orElseThrow(() -> new ServiceRequestReferenceNotFoundException("ServiceRequest reference doesn't exist"));
+    }
+
+    @Override
     public PaymentFeeLink addNewFeeWithPaymentGroup(PaymentFeeLink feeLink) {
         return paymentFeeLinkRepository.save(feeLink);
     }
@@ -69,9 +75,10 @@ public class PaymentGroupServiceImpl implements PaymentGroupService<PaymentFeeLi
     @Transactional
     public PaymentFeeLink addNewFeetoExistingPaymentGroup(List<PaymentFee> fees, String paymentGroupReference) {
 
-        PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.findByPaymentReference(paymentGroupReference)
+        PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.findByPaymentReferenceForUpdate(paymentGroupReference)
             .orElseThrow(() -> new InvalidPaymentGroupReferenceException("Payment group " + paymentGroupReference + " does not exists."));
 
+        ServiceRequests.requireNotCancelled(paymentFeeLink);
 
         paymentFeeLink.getFees().addAll(fees);
 
@@ -80,11 +87,14 @@ public class PaymentGroupServiceImpl implements PaymentGroupService<PaymentFeeLi
         return paymentFeeLink;
     }
 
+    @Transactional
     @Override
     public PaymentFeeLink addNewPaymenttoExistingPaymentGroup(Payment payment, String PaymentGroupReference) {
 
-        PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.findByPaymentReference(PaymentGroupReference)
+        PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.findByPaymentReferenceForUpdate(PaymentGroupReference)
             .orElseThrow(() -> new InvalidPaymentGroupReferenceException("Payment group " + PaymentGroupReference + " does not exists."));
+
+        ServiceRequests.requireNotCancelled(paymentFeeLink);
 
         serviceRequestCaseUtil.updateServiceRequestCaseDetails(paymentFeeLink, payment);
 
@@ -107,6 +117,9 @@ public class PaymentGroupServiceImpl implements PaymentGroupService<PaymentFeeLi
     @Override
     @Transactional
     public PaymentFeeLink addNewBulkScanPayment(Payment payment, String PaymentGroupReference) {
+
+        // No cancellation check is needed because this method creates a new service request.
+        // Both callers generate a new reference, so there is no existing cancellation state to check.
 
         payment.setPaymentStatus(paymentStatusRepository.findByNameOrThrow(payment.getPaymentStatus().getName()));
         payment.setStatus(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus());

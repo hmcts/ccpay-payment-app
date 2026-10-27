@@ -68,6 +68,7 @@ public class RefundsController {
     @Operation(summary = "Update the remission amount in resubmit journey", description = "Update the remission amount in resubmit journey")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Success"),
+        @ApiResponse(responseCode = "409", description = "Service request has been cancelled"),
         @ApiResponse(responseCode = "400", description = "Amount should not be more than Payment amount"),
         @ApiResponse(responseCode = "400", description = "Amount should not be more than remission amount")
     })

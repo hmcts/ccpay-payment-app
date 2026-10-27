@@ -21,8 +21,7 @@ import lombok.val;
     import org.slf4j.LoggerFactory;
     import org.springframework.beans.factory.annotation.Autowired;
     import org.springframework.http.HttpStatus;
-    import org.springframework.http.MediaType;
-    import org.springframework.http.ResponseEntity;
+import org.springframework.http.ResponseEntity;
     import org.springframework.transaction.annotation.Transactional;
     import org.springframework.util.CollectionUtils;
     import org.springframework.util.MultiValueMap;
@@ -56,9 +55,10 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
     import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
     import uk.gov.hmcts.payment.api.exception.InvalidServiceRequestCancellationException;
     import uk.gov.hmcts.payment.api.exception.LiberataServiceTimeoutException;
-    import uk.gov.hmcts.payment.api.exception.ServiceRequestCancellationException;
+    import uk.gov.hmcts.payment.api.exceptions.ServiceRequestCancellationException;
     import uk.gov.hmcts.payment.api.exceptions.PaymentServiceNotFoundException;
-    import uk.gov.hmcts.payment.api.model.FeePayApportion;
+import uk.gov.hmcts.payment.api.exceptions.ServiceRequestReferenceNotFoundException;
+import uk.gov.hmcts.payment.api.model.FeePayApportion;
     import uk.gov.hmcts.payment.api.model.IdempotencyKeys;
     import uk.gov.hmcts.payment.api.model.Payment;
     import uk.gov.hmcts.payment.api.model.PaymentFee;
@@ -70,6 +70,8 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
     import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotSuccessException;
 
     import jakarta.validation.Valid;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoAmountDue;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoMatchingAmount;
 
 import java.io.IOException;
     import java.util.List;
@@ -184,7 +186,7 @@ public class ServiceRequestController {
         @ApiResponse(responseCode = "403", description = "Payment failed due to insufficient funds or the account being on hold"),
         @ApiResponse(responseCode = "404", description = "Account information could not be found"),
         @ApiResponse(responseCode = "504", description = "Unable to retrieve account information, please try again later"),
-        @ApiResponse(responseCode = "409", description = "Payment has been recieved more than once"),
+        @ApiResponse(responseCode = "409", description = "Payment has been received more than once, or service request has been cancelled"),
         @ApiResponse(responseCode = "412", description = "The serviceRequest has already been paid"),
         @ApiResponse(responseCode = "417", description = "The amount should be equal to serviceRequest balance"),
         @ApiResponse(responseCode = "422", description = "Invalid or missing attribute"),
@@ -239,13 +241,11 @@ public class ServiceRequestController {
         String responseJson;
         String idempotencyKey = serviceRequestPaymentDto.getIdempotencyKey();
 
-        // Load service request
-        // TODO PAY-8554: Acquire the cancellation row lock and reject cancelled requests before creating a PBA payment.
-        PaymentFeeLink serviceRequest = serviceRequestDomainService.businessValidationForServiceRequests(
-            serviceRequestDomainService.find(serviceRequestReference), serviceRequestPaymentDto);
+
+        // TODO note that original exceptions thrown here would go to RestErrorHandler and idempotency record not updated. Was intentional?
 
         try {
-            serviceRequestPaymentBo = serviceRequestDomainService.addPayments(serviceRequest, serviceRequestReference, serviceRequestPaymentDto);
+            serviceRequestPaymentBo = serviceRequestDomainService.addPayments(serviceRequestReference, serviceRequestPaymentDto);
             HttpStatus httpStatus;
             if(serviceRequestPaymentBo.getError() != null && serviceRequestPaymentBo.getError().getErrorCode().equals("CA-E0004")) {
                 httpStatus = HttpStatus.GONE; //410 for deleted pba accounts
@@ -263,6 +263,23 @@ public class ServiceRequestController {
             LOG.error("PBA-CID={}, serviceRequestReference={}, Exception from Liberata for PBA payment {}", idempotencyKey, serviceRequestReference, liberataServiceTimeoutException);
             responseEntity = new ResponseEntity<>(liberataServiceTimeoutException.getMessage(), HttpStatus.GATEWAY_TIMEOUT);
             responseJson = liberataServiceTimeoutException.getMessage();
+        } catch (ServiceRequestCancellationException ex) {
+            LOG.error("PBA-CID={}, serviceRequestReference={}, ServiceRequestCancellationException: {}", idempotencyKey, serviceRequestReference, ex.getMessage());
+            responseEntity = new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT);
+            responseJson = ex.getMessage();
+        } catch (ServiceRequestReferenceNotFoundException ex) {
+            // Rethrow, let the generic handler deal with it, and don't complete the idempotency record.
+            // was that the intention of the original code?
+            // TODO check this
+            throw(ex);
+        } catch (ServiceRequestExceptionForNoAmountDue ex) {
+            LOG.error("PBA-CID={}, serviceRequestReference={}, ServiceRequestExceptionForNoAmountDue: {}", idempotencyKey, serviceRequestReference, ex.getMessage());
+            responseEntity = new ResponseEntity<>(ex.getMessage(), HttpStatus.PRECONDITION_FAILED);
+            responseJson = ex.getMessage();
+        } catch (ServiceRequestExceptionForNoMatchingAmount ex) {
+            LOG.error("PBA-CID={}, serviceRequestReference={}, ServiceRequestExceptionForNoMatchingAmount: {}", idempotencyKey, serviceRequestReference, ex.getMessage());
+            responseEntity = new ResponseEntity<>(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
+            responseJson = ex.getMessage();
         } catch (Exception ex) {
             LOG.error("PBA-CID={}, serviceRequestReference={}, Exception from Liberata for PBA payment {}", idempotencyKey, serviceRequestReference, ex);
             responseEntity = new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -289,7 +306,11 @@ public class ServiceRequestController {
                 if (!idempotencyKeys.getRequestHashcode().equals(serviceRequestPaymentDto.hashCodeWithServiceRequestReference(serviceRequestReference))) {
                     return conflictResponse;
                 }
-                if (idempotencyKeys.getResponseCode() >= 500) {
+                int responseCode = idempotencyKeys.getResponseCode();
+                if (responseCode >= 500
+                    || responseCode == HttpStatus.CONFLICT.value()
+                    || responseCode == HttpStatus.PRECONDITION_FAILED.value()
+                    || responseCode == HttpStatus.EXPECTATION_FAILED.value()) {
                     return new ResponseEntity<>(idempotencyKeys.getResponseBody(), HttpStatus.valueOf(idempotencyKeys.getResponseCode()));
                 }
                 responseBO = objectMapper.readValue(idempotencyKeys.getResponseBody(), ServiceRequestPaymentBo.class);
@@ -332,7 +353,7 @@ public class ServiceRequestController {
         @ApiResponse(responseCode = "400", description = "Bad request. Payment creation failed"),
         @ApiResponse(responseCode = "403", description = "Unauthenticated request"),
         @ApiResponse(responseCode = "404", description = "Service request not found"),
-        @ApiResponse(responseCode = "409", description = "Idempotency key already exist with different payment details"),
+        @ApiResponse(responseCode = "409", description = "Idempotency key already exists with different payment details, or service request has been cancelled"),
         @ApiResponse(responseCode = "412", description = "The order has already been paid"),
         @ApiResponse(responseCode = "422", description = "Invalid or missing attributes"),
         @ApiResponse(responseCode = "425", description = "Too many requests.\n There is already a payment request is in process for this service request."),
@@ -344,7 +365,6 @@ public class ServiceRequestController {
     @PostMapping(value = "/service-request/{service-request-reference}/card-payments")
     @ResponseBody
     @ResponseStatus(HttpStatus.CREATED)
-    @Transactional
     public ResponseEntity<OnlineCardPaymentResponse> createCardPayment(@Parameter(name = "return-url", hidden = true) @RequestHeader(required = false) String returnURL,
                                                                        @RequestHeader(value = "service-callback-url", required = false) String serviceCallbackURL,
                                                                        @PathVariable("service-request-reference") String serviceRequestReference,

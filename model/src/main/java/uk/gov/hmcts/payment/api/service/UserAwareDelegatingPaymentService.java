@@ -365,6 +365,8 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
 
             if (!statusExists) {
 
+                // TODO: Define how late GovPay outcomes should be handled for cancelled service requests.
+                // Review payment history and fee balance updates while keeping status reads available.
                 List<StatusHistory> updatedHistories = new ArrayList<>(payment.getStatusHistories());
                 updatedHistories.add(StatusHistory.statusHistoryWith()
                     .externalStatus(govPayPayment.getState().getStatus())
