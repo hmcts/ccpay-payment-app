@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.val;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
@@ -20,7 +21,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
@@ -30,6 +30,7 @@ import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
 import uk.gov.hmcts.payment.api.mapper.CreditAccountPaymentRequestMapper;
+import uk.gov.hmcts.payment.api.mapper.PBAPaymentMapper;
 import uk.gov.hmcts.payment.api.mapper.PBAStatusErrorMapper;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
@@ -57,7 +58,6 @@ public class CreditAccountPaymentController {
 
     private final CreditAccountPaymentService<PaymentFeeLink, String> creditAccountPaymentService;
     private final CreditAccountDtoMapper creditAccountDtoMapper;
-    private final AccountService<AccountDto, String> accountService;
     private final DuplicatePaymentValidator paymentValidator;
     private final FeePayApportionService feePayApportionService;
     private final LaunchDarklyFeatureToggler featureToggler;
@@ -71,20 +71,24 @@ public class CreditAccountPaymentController {
     @Autowired
     PaymentReference paymentReference;
 
+    @Autowired
+    PBAPaymentMapper pBAPaymentMapper;
+
+    @Autowired
+    LiberataRealTimeAPI liberataRealTimeAPI;
+
     public CreditAccountPaymentController(
         @Qualifier("loggingCreditAccountPaymentService") CreditAccountPaymentService<PaymentFeeLink, String> creditAccountPaymentService,
         CreditAccountDtoMapper creditAccountDtoMapper,
-        AccountService<AccountDto, String> accountService,
         DuplicatePaymentValidator paymentValidator,
         FeePayApportionService feePayApportionService, LaunchDarklyFeatureToggler featureToggler,
         PBAStatusErrorMapper pbaStatusErrorMapper,
         CreditAccountPaymentRequestMapper requestMapper, @Value("#{'${pba.config1.service.names}'.split(',')}") List<String> pbaConfig1ServiceNames,
         PaymentService<PaymentFeeLink, String> paymentService, ReferenceDataService referenceDataService,
         AuthTokenGenerator authTokenGenerator,
-        PaymentReference paymentReference) {
+        PaymentReference paymentReference, PBAPaymentMapper pBAPaymentMapper, LiberataRealTimeAPI liberataRealTimeAPI) {
         this.creditAccountPaymentService = creditAccountPaymentService;
         this.creditAccountDtoMapper = creditAccountDtoMapper;
-        this.accountService = accountService;
         this.paymentValidator = paymentValidator;
         this.feePayApportionService = feePayApportionService;
         this.featureToggler = featureToggler;
@@ -95,6 +99,8 @@ public class CreditAccountPaymentController {
         this.referenceDataService = referenceDataService;
         this.authTokenGenerator = authTokenGenerator;
         this.paymentReference = paymentReference;
+        this.pBAPaymentMapper = pBAPaymentMapper;
+        this.liberataRealTimeAPI = liberataRealTimeAPI;
     }
 
     @Operation(summary = "Create credit account payment", description = "Create credit account payment")
@@ -111,14 +117,13 @@ public class CreditAccountPaymentController {
     @ResponseBody
     @Transactional
     public ResponseEntity<PaymentDto> createCreditAccountPayment(@Valid @RequestBody CreditAccountPaymentRequest creditAccountPaymentRequest, @RequestHeader(required = false) MultiValueMap<String, String> headers) throws CheckDigitException {
-        String paymentGroupReference = paymentReference.getNext();
 
+        val paymentGroupReference = paymentReference.getNext();
         /*
         Following piece of code to be removed once all Services are on-boarded to PBA Config 2
          */
         LOG.info("PBA Old Config Service Names : {}", pbaConfig1ServiceNames);
-        boolean isPBAConfig1Journey = pbaConfig1ServiceNames.contains(creditAccountPaymentRequest.getService())
-            ? true : false;
+        val isPBAConfig1Journey = pbaConfig1ServiceNames.contains(creditAccountPaymentRequest.getService());
 
         LOG.info("Case Type: {} ", creditAccountPaymentRequest.getCaseType());
         if (StringUtils.isNotBlank(creditAccountPaymentRequest.getCaseType())) {
@@ -128,43 +133,28 @@ public class CreditAccountPaymentController {
         } else {
             creditAccountPaymentRequest.setService(paymentService.getServiceNameByCode(creditAccountPaymentRequest.getService()));
         }
-
-        final Payment payment = requestMapper.mapPBARequest(creditAccountPaymentRequest);
-
+        Payment payment = requestMapper.mapPBARequest(creditAccountPaymentRequest);
         List<PaymentFee> fees = requestMapper.mapPBAFeesFromRequest(creditAccountPaymentRequest);
 
         LOG.info("payment site map  Id : {}", payment.getSiteId());
-
         LOG.debug("Create credit account request for PaymentGroupRef:" + paymentGroupReference + " ,with Payment and " + fees.size() + " - Fees");
-
         LOG.info("CreditAccountPayment received for ccdCaseNumber : {} serviceType : {} pbaNumber : {} amount : {} NoOfFees : {}",
             payment.getCcdCaseNumber(), payment.getServiceType(), payment.getPbaNumber(), payment.getAmount(), fees.size());
 
+        checkDuplication(payment, fees);
+         val paymentFeeLink = creditAccountPaymentService.create(payment, fees, paymentGroupReference);
+        payment= paymentFeeLink.getPayments().get(0);
         if (!isPBAConfig1Journey) {
-            LOG.info("Checking with Liberata for Service : {}", creditAccountPaymentRequest.getService());
-            AccountDto accountDetails;
-            try {
-                accountDetails = accountService.retrieve(creditAccountPaymentRequest.getAccountNumber());
-                LOG.info("CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {}", payment.getCcdCaseNumber(), accountDetails.getStatus());
-            } catch (HttpClientErrorException ex) {
-                LOG.error("Account information could not be found, exception: {}", ex.getMessage());
-                throw new AccountNotFoundException("Account information could not be found");
-            } catch (Exception ex) {
-                LOG.error("Unable to retrieve account information, exception: {}", ex.getMessage());
-                throw new AccountServiceUnavailableException("Unable to retrieve account information, please try again later");
-            }
-
-            pbaStatusErrorMapper.setPaymentStatus(creditAccountPaymentRequest, payment, accountDetails);
+            val paymentByAccountRequest = pBAPaymentMapper.mapToPaymentByAccountRequest(creditAccountPaymentRequest, paymentGroupReference, payment,paymentFeeLink);
+            val paymentResponse = liberataRealTimeAPI.payByAccount(paymentByAccountRequest);
+            pbaStatusErrorMapper.setPaymentStatusAndHistories(creditAccountPaymentRequest, payment, paymentResponse);
         } else {
             LOG.info("Setting status to pending");
             payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("pending").build());
             LOG.info("CreditAccountPayment received for ccdCaseNumber : {} PaymentStatus : {} - Account Balance Sufficient!!!", payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
         }
 
-        checkDuplication(payment, fees);
-
-        PaymentFeeLink paymentFeeLink = creditAccountPaymentService.create(payment, fees, paymentGroupReference);
-
+        // if there is any sort of error in the payment, we will return 403 FORBIDDEN with the payment status and error code/message
         if (payment.getPaymentStatus().getName().equals(FAILED)) {
             LOG.info("CreditAccountPayment Response 403(FORBIDDEN) for ccdCaseNumber : {} PaymentStatus : {}", payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
             return new ResponseEntity<>(creditAccountDtoMapper.toCreateCreditAccountPaymentResponse(paymentFeeLink), HttpStatus.FORBIDDEN);
@@ -188,6 +178,7 @@ public class CreditAccountPaymentController {
         LOG.info("CreditAccountPayment Response 201(CREATED) for ccdCaseNumber : {} PaymentStatus : {}", payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
         return new ResponseEntity<>(creditAccountDtoMapper.toCreateCreditAccountPaymentResponse(paymentFeeLink), HttpStatus.CREATED);
     }
+
 
     @Operation(summary = "Get credit account payment details by payment reference", description = "Get payment details for supplied payment reference")
     @ApiResponses(value = {
