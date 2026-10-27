@@ -110,7 +110,6 @@ java:
     SERVER_SHUTDOWN_STRATEGY: graceful
     TIMEOUT_SERVER_SHUTDOWN_PHASE: 30s
     LIBERATA_API_REALTIME_ACCOUNT_URL: https://lascustomerportaluat.liberata.com/pba-api-v2-uat
-    LIBERATA_API_REALTIME_STUB_ENABLED: "false"
 
     CARD_LAG_TIME: 144
     CASH_LAG_TIME: 120
