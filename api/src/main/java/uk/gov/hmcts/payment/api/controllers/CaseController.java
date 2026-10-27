@@ -97,6 +97,7 @@ public class CaseController {
     }
 
 
+    // TODO PAY-9036
     @Operation(summary = "Get payment groups for a case", description = "Get payment groups for a case")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Payment Groups retrieved"),

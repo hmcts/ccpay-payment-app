@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.api.dto.mapper;
 
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,10 +34,6 @@ import uk.gov.hmcts.payment.api.util.ServiceRequestUtil;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
@@ -60,13 +57,13 @@ public class PaymentGroupDtoMapper {
 
 
     @Autowired
-   private  PaymentFailureRepository paymentFailureRepository;
+    private  PaymentFailureRepository paymentFailureRepository;
 
     private static final int FIRSTPING = 1;
     private static final int SECONDPING = 2;
 
-    Optional<List<PaymentFailures>> paymentFailuresList;
 
+    // TODO PAY-9036
     public PaymentGroupDto toPaymentGroupDto(PaymentFeeLink paymentFeeLink) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         ServiceRequestUtil serviceRequestUtil = new ServiceRequestUtil();
@@ -75,15 +72,14 @@ public class PaymentGroupDtoMapper {
 
         List<String> paymentReference = paymentFeeLink.getPayments().stream().map(Payment::getReference).collect(Collectors.toList());
 
-        paymentFailuresList = paymentFailureRepository.findByPaymentReferenceIn(paymentReference);
-        PaymentGroupDto paymentGroupDto;
+        Optional<List<PaymentFailures>> paymentFailuresList = paymentFailureRepository.findByPaymentReferenceIn(paymentReference);
 
-        paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
+        PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
             .dateCreated(paymentFeeLink.getDateCreated())
             .dateUpdated(paymentFeeLink.getDateUpdated())
             .fees(toFeeDtos(paymentFeeLink.getFees()))
-            .payments((!(paymentFeeLink.getPayments() == null) && !paymentFeeLink.getPayments().isEmpty()) ? toPaymentDtos(paymentFeeLink.getPayments()) : null)
+            .payments((!(paymentFeeLink.getPayments() == null) && !paymentFeeLink.getPayments().isEmpty()) ? toPaymentDtos(paymentFeeLink.getPayments(), paymentFailuresList) : null)
             .remissions(!(paymentFeeLink.getRemissions() == null) ? toRemissionDtos(paymentFeeLink.getRemissions()) : null)
             .build();
 
@@ -108,11 +104,11 @@ public class PaymentGroupDtoMapper {
         return paymentGroupDto;
     }
 
-    private List<PaymentDto> toPaymentDtos(List<Payment> payments) {
-        return payments.stream().map(p -> toPaymentDto(p)).collect(Collectors.toList());
+    private List<PaymentDto> toPaymentDtos(List<Payment> payments, Optional<List<PaymentFailures>> paymentFailuresList) {
+        return payments.stream().map(p -> toPaymentDto(p, paymentFailuresList)).collect(Collectors.toList());
     }
     //added missing pba account details
-    private PaymentDto toPaymentDto(Payment payment) {
+    private PaymentDto toPaymentDto(Payment payment, Optional<List<PaymentFailures>> paymentFailuresList) {
 
         final var  fees = (payment.getPaymentLink() != null && payment.getPaymentLink().getFees() != null)
             ? toFeeDtos(payment.getPaymentLink().getFees())
@@ -144,7 +140,7 @@ public class PaymentGroupDtoMapper {
             .refundEnable(payment.getDateUpdated() != null ? toRefundEligible(payment):false)
             .paymentAllocation(payment.getPaymentAllocation() !=null ? toPaymentAllocationDtos(payment.getPaymentAllocation()) : null)
             .overPayment(setOverpaymentObj(payment.getId()))
-            .disputes(evaluatePaymentDispute(payment))
+            .disputes(evaluatePaymentDispute(payment, paymentFailuresList))
             .build();
     }
 
@@ -274,7 +270,7 @@ public class PaymentGroupDtoMapper {
         return overpayment;
     }
 
-    private List<DisputeDto> evaluatePaymentDispute(Payment payment) {
+    private List<DisputeDto> evaluatePaymentDispute(Payment payment, Optional<List<PaymentFailures>> paymentFailuresList) {
 
         List<DisputeDto> disputeDTOs = new ArrayList<>();
 
