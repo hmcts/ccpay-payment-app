@@ -17,9 +17,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
-import uk.gov.hmcts.payment.api.dto.liberata.identity.TokenResponse;
 import uk.gov.hmcts.payment.api.service.AccountServiceImpl;
-import uk.gov.hmcts.payment.api.service.LiberataRealTimeAPI;
+import uk.gov.hmcts.payment.api.service.LiberataService;
 import uk.gov.hmcts.payment.api.util.AccountStatus;
 
 import java.lang.reflect.Field;
@@ -38,7 +37,7 @@ class AccountServiceTest {
     private RestTemplate restTemplate;
 
     @Mock
-    private LiberataRealTimeAPI liberataRealTimeAPI;
+    private LiberataService liberataService;
 
     @InjectMocks
     private AccountServiceImpl accountServiceImpl;
@@ -61,9 +60,7 @@ class AccountServiceTest {
         AccountDto expectedDto = new AccountDto(pbaCode, "accountName", new BigDecimal(100),
             new BigDecimal(100), AccountStatus.ACTIVE, new Date());
         ResponseEntity<AccountDto> expectedResponse = ResponseEntity.ok(expectedDto);
-        TokenResponse tokenResponse = new TokenResponse("accessToken", 0, 0);
-        when(liberataRealTimeAPI.getValidToken()).thenReturn(tokenResponse);
-        when(liberataRealTimeAPI.getAccountDetails("accessToken", pbaCode)).thenReturn(expectedDto);
+        when(liberataService.getAccessToken()).thenReturn("accessToken");
         when(restTemplate.exchange(baseUrl + "/" + pbaCode, HttpMethod.GET, entity, AccountDto.class)).thenReturn(expectedResponse);
         assertEquals(expectedDto, accountServiceImpl.retrieve(pbaCode));
     }

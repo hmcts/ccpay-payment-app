@@ -30,7 +30,7 @@ public class IdamServiceImpl implements IdamService {
 
     private static final Logger LOG = LoggerFactory.getLogger(IdamServiceImpl.class);
 
-    public static final String USERDETAILS_ENDPOINT = "/o/userinfo";
+    public static final String USERDETAILS_ENDPOINT = "/details";
     public static final String USERID_ENDPOINT = "/o/userinfo";
 
     public static final String USER_FULL_NAME_ENDPOINT = "/api/v1/users";
@@ -77,8 +77,8 @@ public class IdamServiceImpl implements IdamService {
             if (responseEntity != null) {
                 IdamUserIdDetailsResponse idamUserIdDetailsResponse = responseEntity.getBody();
                 if (idamUserIdDetailsResponse != null) {
-                    LOG.info("User id from IDAM service {} " ,idamUserIdDetailsResponse.getSub());
-                    return idamUserIdDetailsResponse.getSub();
+                    LOG.info("User id from IDAM service {} " ,idamUserIdDetailsResponse.getEmail());
+                    return idamUserIdDetailsResponse.getEmail();
                 }
             }
             LOG.error("Parse error user not found");

@@ -17,42 +17,38 @@ import java.math.BigDecimal;
 public class MockAccountServiceImpl implements AccountService<AccountDto, String> {
 
     private static final Logger LOG = LoggerFactory.getLogger(MockAccountServiceImpl.class);
-    private static final String ACCOUNT_NAME = "CAERPHILLY COUNTY BOROUGH COUNCIL";
-    private static final BigDecimal CREDIT_LIMIT = BigDecimal.valueOf(28879);
-    private static final BigDecimal AVAILABLE_BALANCE = BigDecimal.valueOf(30000);
 
     @Override
     public AccountDto retrieve(String pbaCode) {
         LOG.info("Called mock liberata account service");
-        if (matches(pbaCode, "PBAFUNC12345", "PBAFUNC345", "PBAFUNC245", "PBA0082126")) {
-            return buildAccountDto(pbaCode, AccountStatus.ACTIVE);
-        } else if (matches(pbaCode, "PBAFUNC12350", "PBAFUNC350", "PBAFUNC250", "PBA0087741")) {
-            return buildAccountDto(pbaCode, AccountStatus.DELETED);
-        } else if (matches(pbaCode, "PBAFUNC12355", "PBAFUNC355", "PBAFUNC255", "PBA0078303")) {
-            return buildAccountDto(pbaCode, AccountStatus.ON_HOLD);
-        } else if (matches(pbaCode, "PBAFUNC360", "PBAFUNC260")) {
+        if ("PBAFUNC12345".equalsIgnoreCase(pbaCode) || "PBAFUNC345".equalsIgnoreCase(pbaCode) || "PBAFUNC245".equalsIgnoreCase(pbaCode)) {
+            return AccountDto.accountDtoWith()
+                .accountNumber("PBAFUNC12345")
+                .accountName("CAERPHILLY COUNTY BOROUGH COUNCIL")
+                .creditLimit(BigDecimal.valueOf(28879))
+                .availableBalance(BigDecimal.valueOf(30000))
+                .status(AccountStatus.ACTIVE)
+                .build();
+        } else if ("PBAFUNC12350".equalsIgnoreCase(pbaCode) || "PBAFUNC350".equalsIgnoreCase(pbaCode) || "PBAFUNC250".equalsIgnoreCase(pbaCode)) {
+            return AccountDto.accountDtoWith()
+                .accountNumber("PBAFUNC12350")
+                .accountName("CAERPHILLY COUNTY BOROUGH COUNCIL")
+                .creditLimit(BigDecimal.valueOf(28879))
+                .availableBalance(BigDecimal.valueOf(30000))
+                .status(AccountStatus.DELETED)
+                .build();
+        } else if ("PBAFUNC12355".equalsIgnoreCase(pbaCode) || "PBAFUNC355".equalsIgnoreCase(pbaCode) || "PBAFUNC255".equalsIgnoreCase(pbaCode)) {
+            return AccountDto.accountDtoWith()
+                .accountNumber("PBAFUNC12355")
+                .accountName("CAERPHILLY COUNTY BOROUGH COUNCIL")
+                .creditLimit(BigDecimal.valueOf(28879))
+                .availableBalance(BigDecimal.valueOf(30000))
+                .status(AccountStatus.ON_HOLD)
+                .build();
+        } else if ("PBAFUNC360".equalsIgnoreCase(pbaCode) || "PBAFUNC260".equalsIgnoreCase(pbaCode)) {
             throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR,
                 "An Error for the purposes of testing an Error in Series 500...");
         }
         throw new HttpClientErrorException(HttpStatus.NOT_FOUND, "UnKnown test pba account number");
-    }
-
-    private AccountDto buildAccountDto(String pbaCode, AccountStatus status) {
-        return AccountDto.accountDtoWith()
-            .accountNumber(pbaCode)
-            .accountName(ACCOUNT_NAME)
-            .creditLimit(CREDIT_LIMIT)
-            .availableBalance(AVAILABLE_BALANCE)
-            .status(status)
-            .build();
-    }
-
-    private boolean matches(String pbaCode, String... accountNumbers) {
-        for (String accountNumber : accountNumbers) {
-            if (accountNumber.equalsIgnoreCase(pbaCode)) {
-                return true;
-            }
-        }
-        return false;
     }
 }

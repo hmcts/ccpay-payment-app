@@ -738,51 +738,6 @@ public class ServiceRequestControllerTest {
     }
 
     @Test
-    public void createPBAPaymentWithInactiveAccountShouldReturn412() throws Exception {
-        String serviceRequestReference = getServiceRequestReference();
-
-        ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
-            .paymentDtoWith().accountNumber("PBA12347")
-            .amount(BigDecimal.valueOf(300))
-            .idempotencyKey(UUID.randomUUID().toString())
-            .organisationName("sommin")
-            .currency("GBP")
-            .customerReference("testCustReference")
-            .build();
-
-        Error error = new Error();
-        error.setErrorCode("CA-E0002");
-        error.setErrorMessage("Your account is inactive");
-
-        ServiceRequestPaymentBo serviceRequestPaymentBo = ServiceRequestPaymentBo.serviceRequestPaymentBoWith()
-            .paymentReference("RC-reference")
-            .dateCreated("20-09-2021")
-            .error(error)
-            .status("failed")
-            .build();
-
-        ResponseEntity<ServiceRequestPaymentBo> responseEntity =
-            new ResponseEntity<>(serviceRequestPaymentBo, HttpStatus.PRECONDITION_FAILED);
-
-        when(serviceRequestDomainService.addPayments(any(), any(), any())).thenReturn(serviceRequestPaymentBo);
-        when(serviceRequestDomainService.createIdempotencyRecord(any(), any(), any(), any(),
-            eq(IdempotencyKeys.ResponseStatusType.pending), any(), any())).thenReturn(responseEntity);
-        when(serviceRequestDomainService.createIdempotencyRecord(any(), any(), any(), any(),
-            eq(IdempotencyKeys.ResponseStatusType.completed), any(), any())).thenReturn(responseEntity);
-
-        MvcResult result = restActions
-            .post("/service-request/" + serviceRequestReference + "/pba-payments", serviceRequestPaymentDto)
-            .andExpect(status().isPreconditionFailed())
-            .andReturn();
-
-        ServiceRequestPaymentBo response =
-            objectMapper.readValue(result.getResponse().getContentAsByteArray(), ServiceRequestPaymentBo.class);
-
-        assertEquals("CA-E0002", response.getError().getErrorCode());
-        assertEquals("Your account is inactive", response.getError().getErrorMessage());
-    }
-
-    @Test
     public void createPBAPaymentWithDeletedAccountShouldReturn410() throws Exception {
         AccountDto accountDeletedResponse = AccountDto.accountDtoWith()
             .accountNumber("PBA12347")

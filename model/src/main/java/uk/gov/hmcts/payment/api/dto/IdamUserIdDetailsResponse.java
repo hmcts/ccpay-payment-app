@@ -20,11 +20,11 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @JsonInclude(NON_NULL)
 public class IdamUserIdDetailsResponse {
 
-    private String uid;
-    private String sub;
-    private String givenName;
-    private String familyName;
-    private String name;
+    private String id;
+    private String forename;
+    private String surname;
+    private String email;
+    private String active;
     private List<String> roles;
 
 

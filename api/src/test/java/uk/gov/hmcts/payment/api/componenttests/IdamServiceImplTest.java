@@ -194,11 +194,11 @@ public class IdamServiceImplTest {
 
         IdamUserIdDetailsResponse mockIdamUserIdDetailsResponse = IdamUserIdDetailsResponse.
             idamUserIdResponseWith()
-            .givenName("AAA")
-            .familyName("VP")
-            .sub("V_P@gmail.com")
+            .forename("AAA")
+            .surname("VP")
+            .email("V_P@gmail.com")
             .roles(Arrays.asList("vp"))
-            .uid("986-erfg-kjhg-123")
+            .id("986-erfg-kjhg-123")
             .build();
 
         ResponseEntity<IdamUserIdDetailsResponse> responseEntity = new ResponseEntity<>
@@ -209,7 +209,7 @@ public class IdamServiceImplTest {
         )).thenReturn(responseEntity);
 
         String idamUserIdDetailsResponse = idamService.getUserDetails(header);
-        assertEquals(mockIdamUserIdDetailsResponse.getSub(), idamUserIdDetailsResponse);
+        assertEquals(mockIdamUserIdDetailsResponse.getEmail(), idamUserIdDetailsResponse);
     }
 
     @Test
