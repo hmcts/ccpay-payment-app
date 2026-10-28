@@ -159,7 +159,7 @@ public class ServiceRequestController {
         @ApiResponse(responseCode = "404", description = "Account information could not be found"),
         @ApiResponse(responseCode = "504", description = "Unable to retrieve account information, please try again later"),
         @ApiResponse(responseCode = "409", description = "Payment has been recieved more than once"),
-        @ApiResponse(responseCode = "412", description = "The serviceRequest has already been paid, or the PBA account is inactive or on hold"),
+        @ApiResponse(responseCode = "412", description = "The serviceRequest has already been paid"),
         @ApiResponse(responseCode = "417", description = "The amount should be equal to serviceRequest balance"),
         @ApiResponse(responseCode = "422", description = "Invalid or missing attribute"),
     })
@@ -224,8 +224,6 @@ public class ServiceRequestController {
                 httpStatus = HttpStatus.GONE; //410 for deleted pba accounts
             }else if(serviceRequestPaymentBo.getError() != null && serviceRequestPaymentBo.getError().getErrorCode().equals("CA-E0003")){
                 httpStatus = HttpStatus.PRECONDITION_FAILED; //412 for pba account on hold
-            }else if(serviceRequestPaymentBo.getError() != null && serviceRequestPaymentBo.getError().getErrorCode().equals("CA-E0002")){
-                httpStatus = HttpStatus.PRECONDITION_FAILED; //412 for inactive pba account
             }else if(serviceRequestPaymentBo.getError() != null && serviceRequestPaymentBo.getError().getErrorCode().equals("CA-E0001")){
                 httpStatus = HttpStatus.PAYMENT_REQUIRED; //402 for pba insufficient funds
             }else{

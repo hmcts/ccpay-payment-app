@@ -52,11 +52,6 @@ public class RestTemplateConfiguration {
         return new RestTemplate(new HttpComponentsClientHttpRequestFactory());
     }
 
-    @Bean (value = "liberataRestTemplate")
-    public RestTemplate liberataRestTemplate() {
-        return new RestTemplate(new HttpComponentsClientHttpRequestFactory());
-    }
-
     @Bean (value = "restTemplateIacSupplementaryInfo")
     public RestTemplate restTemplateIacSupplementaryInfo() {
         return createRestTemplate(iacReadTimeout, iacConnectTimeout);
