@@ -10,6 +10,7 @@ public enum PaymentAccountResponseStatus {
     VALIDATION_FAILED("Validation failed."),
     ACCOUNT_NOT_ACTIVE("Account not active."),
     DUPLICATE_PAYMENT_DETECTED("Duplicate payment detected."),
+    PENDING("Pending"),
     UNAUTHENTICATED("Unauthenticated.");
 
     private final String value;

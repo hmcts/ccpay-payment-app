@@ -17,7 +17,9 @@ import uk.gov.hmcts.payment.api.dto.liberata.FeeRequest;
 import uk.gov.hmcts.payment.api.dto.liberata.PaymentAccountRequest;
 import uk.gov.hmcts.payment.api.dto.liberata.PaymentByAccountRequest;
 import uk.gov.hmcts.payment.api.dto.liberata.PaymentRequest;
+import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
 import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.reports.FeesService;
 import uk.gov.hmcts.payment.api.service.IacService;
@@ -46,6 +48,18 @@ public class PBAPaymentMapper {
         this.paymentService = paymentService;
         this.feesService = feesService;
         this.iacService = iacService;
+    }
+
+
+    public PaymentAccountRequest mapToPaymentByAccountRequestFromServiceRequestPaymentDto(ServiceRequestPaymentDto serviceRequestPaymentDto, String groupReference, Payment payment, PaymentFeeLink paymentFeeLink ) {
+        val paymentDto = mapPaymentAccountPaymentFromServiceRequestPaymentDto(serviceRequestPaymentDto, groupReference,payment,paymentFeeLink);
+        val  paymentByAccountRequest = PaymentByAccountRequest.paymentByAccountRequestWith()
+                .pbaNumber(serviceRequestPaymentDto.getAccountNumber())
+                .payment(paymentDto)
+                .build();
+
+        return PaymentAccountRequest.paymentAccountRequestWith()
+                .PaymentByAccountRequest(paymentByAccountRequest).build();
     }
 
     public PaymentAccountRequest mapToPaymentByAccountRequest(CreditAccountPaymentRequest creditAccountPaymentRequest, String groupReference, Payment payment, PaymentFeeLink paymentFeeLink ) {
@@ -120,28 +134,52 @@ public class PBAPaymentMapper {
             .build();
     }
 
-    private PaymentRequest mapPaymentAccountPayment(CreditAccountPaymentRequest creditAccountPaymentRequest, String groupReference,Payment payment, PaymentFeeLink paymentFeeLink) {
-        val surname = getSurname(payment, creditAccountPaymentRequest, groupReference);
+    private PaymentRequest mapPaymentAccountPaymentFromServiceRequestPaymentDto(ServiceRequestPaymentDto serviceRequestPaymentDto, String groupReference, Payment payment, PaymentFeeLink paymentFeeLink) {
+        //val surname = getSurname(payment, creditAccountPaymentRequest, groupReference);
         return PaymentRequest.paymentDtoWith()
-            .groupReference(groupReference)
-            .paymentReference(groupReference)
-            .surname(surname)
-            .serviceName(creditAccountPaymentRequest.getService())
-            .amount(creditAccountPaymentRequest.getAmount().toString())
-            .currency(creditAccountPaymentRequest.getCurrency().getCode())
-            .siteId(creditAccountPaymentRequest.getSiteId())
-            .caseReference(creditAccountPaymentRequest.getCaseReference())
-            .ccdCaseNumber(creditAccountPaymentRequest.getCcdCaseNumber())
-            .customerReference(creditAccountPaymentRequest.getCustomerReference())
-            .fee(mapPaymentAccountFee(creditAccountPaymentRequest, paymentFeeLink))
+            .groupReference(paymentFeeLink.getPaymentReference())
+            .paymentReference(paymentFeeLink.getPaymentReference())
+            .surname("SURNAME") //TODO
+            .serviceName(paymentFeeLink.getEnterpriseServiceName()) //TODO
+            .amount(serviceRequestPaymentDto.getAmount().toString())
+            .currency(serviceRequestPaymentDto.getCurrency())
+            .siteId(paymentFeeLink.getOrgId()) //TODO
+            .caseReference(paymentFeeLink.getCaseReference())
+            .ccdCaseNumber(paymentFeeLink.getCcdCaseNumber())
+            .customerReference(serviceRequestPaymentDto.getCustomerReference())
+            .fee(mapPaymentAccountFee(paymentFeeLink)) //TODO
             .dateCreated(new Date())
             .build();
     }
 
-    private List<FeeRequest> mapPaymentAccountFee(CreditAccountPaymentRequest creditAccountPaymentRequest,PaymentFeeLink paymentFeeLink) {
+    private PaymentRequest mapPaymentAccountPayment(CreditAccountPaymentRequest creditAccountPaymentRequest, String groupReference,Payment payment, PaymentFeeLink paymentFeeLink) {
+        val surname = getSurname(payment, creditAccountPaymentRequest, groupReference);
+        return PaymentRequest.paymentDtoWith()
+                .groupReference(groupReference)
+                .paymentReference(groupReference)
+                .surname(surname)
+                .serviceName(creditAccountPaymentRequest.getService())
+                .amount(creditAccountPaymentRequest.getAmount().toString())
+                .currency(creditAccountPaymentRequest.getCurrency().getCode())
+                .siteId(creditAccountPaymentRequest.getSiteId())
+                .caseReference(creditAccountPaymentRequest.getCaseReference())
+                .ccdCaseNumber(creditAccountPaymentRequest.getCcdCaseNumber())
+                .customerReference(creditAccountPaymentRequest.getCustomerReference())
+                .fee(mapPaymentAccountFee(creditAccountPaymentRequest.getFees(), paymentFeeLink))
+                .dateCreated(new Date())
+                .build();
+    }
 
-        return creditAccountPaymentRequest.getFees().stream().map(feeDto -> {
+    private List<FeeRequest> mapPaymentAccountFee(PaymentFeeLink paymentFeeLink) {
+        val feeDtos = paymentFeeLink.getFees().stream()
+            .map(paymentFee -> convertPaymentFeeToFeeDto(FeeDto.feeDtoWith().build(), paymentFee))
+            .toList();
+        return mapPaymentAccountFee(feeDtos,paymentFeeLink);
+    }
 
+    private List<FeeRequest> mapPaymentAccountFee(List<FeeDto> fees,PaymentFeeLink paymentFeeLink) {
+
+        return fees.stream().map(feeDto -> {
             val feeVersionDto = populateFeeDetails(feeDto.getCode(), feeDto.getVersion());
             val fee2Dto = getFee2Dto(feeDto.getCode());
             val feeID = paymentFeeLink.getFees().stream()
@@ -149,7 +187,6 @@ public class PBAPaymentMapper {
                 .findFirst()
                 .map(f -> f.getId())
                 .orElseThrow(() -> new PaymentException("Fee ID not found for feeCode: " + feeDto.getCode() + " and version: " + feeDto.getVersion()));
-
 
             return FeeRequest.feeWith()
                 .code(feeDto.getCode())
@@ -164,20 +201,29 @@ public class PBAPaymentMapper {
                 .build();
         }).toList();
     }
-/**
- * Return the fee volume as a String.
- * If not preset (null) or zero, defaults to "1".
- */
-private String getVolume(FeeDto feeDto) {
-    if (feeDto == null || feeDto.getVolume() == null || feeDto.getVolume().intValue() == 0) {
-        return "1";
+
+    /**
+     * Return the fee volume as a String.
+     * If not preset (null) or zero, defaults to "1".
+     */
+    private String getVolume(FeeDto feeDto) {
+        if (feeDto == null || feeDto.getVolume() == null || feeDto.getVolume().intValue() == 0) {
+            return "1";
+        }
+        return feeDto.getVolume().toString();
     }
-    return feeDto.getVolume().toString();
-}
 
     private FeeVersionDto populateFeeDetails(String feeCode, String version) {
         val optionalFeeVersionDto =feesService.getFeeVersion(feeCode,version);
        return optionalFeeVersionDto.orElseThrow(()-> new PaymentException("Fee details not found for feeCode: " + feeCode + " and version: " + version));
+    }
+
+    private FeeDto convertPaymentFeeToFeeDto(FeeDto feeDto, PaymentFee paymentFee) {
+        feeDto.setCode(paymentFee.getCode());
+        feeDto.setVersion(paymentFee.getVersion());
+        feeDto.setCalculatedAmount(paymentFee.getCalculatedAmount());
+        feeDto.setVolume(paymentFee.getVolume());
+        return feeDto;
     }
 
     private Fee2Dto  getFee2Dto(String feeCode){

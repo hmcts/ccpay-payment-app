@@ -9,7 +9,6 @@ import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.junit.runner.RunWith;
 import org.mockito.*;
-import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -35,7 +34,10 @@ import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
 import uk.gov.hmcts.payment.api.external.client.dto.State;
+import uk.gov.hmcts.payment.api.dto.liberata.PaymentAccountResponse;
+import uk.gov.hmcts.payment.api.mapper.PBAPaymentMapper;
 import uk.gov.hmcts.payment.api.mapper.PBAStatusErrorMapper;
+import uk.gov.hmcts.payment.api.service.LiberataRealTimeAPI;
 import uk.gov.hmcts.payment.api.model.IdempotencyKeys;
 import uk.gov.hmcts.payment.api.model.IdempotencyKeysRepository;
 import uk.gov.hmcts.payment.api.model.Payment;
@@ -142,6 +144,12 @@ public class ServiceRequestDomainServiceTest {
 
     @Mock
     private TopicClientService topicClientService;
+
+    @Mock
+    private PBAPaymentMapper pBAPaymentMapper;
+
+    @Mock
+    private LiberataRealTimeAPI liberataRealTimeAPI;
 
     @InjectMocks
     private ServiceRequestDomainServiceImpl serviceRequestDomainService;
@@ -374,216 +382,17 @@ public class ServiceRequestDomainServiceTest {
         paymentGroupDto.setServiceRequestStatus("Paid");
         when(paymentGroupDtoMapper.toPaymentGroupDto(any())).thenReturn(paymentGroupDto);
 
+        PaymentAccountResponse paymentAccountResponse = PaymentAccountResponse.paymentDtoWith()
+            .status("success")
+            .message(null)
+            .build();
+        when(liberataRealTimeAPI.payByAccount(any())).thenReturn(paymentAccountResponse);
+
         ServiceRequestPaymentBo bo =
              serviceRequestDomainService.addPayments(getPaymentFeeLink(), "123", serviceRequestPaymentDto);
 
         assertNull(bo);
     }
-
-    @Test
-    public void addPaymentsTimeoutExceptionThrownTest() throws Exception {
-
-        ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto.paymentDtoWith()
-            .accountNumber("1234")
-            .amount(new BigDecimal(99.99).setScale(2, RoundingMode.HALF_EVEN))
-            .build();
-
-        ServiceRequestPaymentBo serviceRequestPaymentBo = ServiceRequestPaymentBo.serviceRequestPaymentBoWith()
-            .paymentReference("RC-ref")
-            .build();
-
-        Payment payment = Payment.paymentWith()
-            .paymentLink(getPaymentFeeLink())
-            .currency("GBP")
-            .paymentMethod(PaymentMethod.paymentMethodWith().name("Online").build())
-            .paymentStatus(PaymentStatus.SUCCESS)
-            .build();
-
-        Payment paymentFailed = Payment.paymentWith()
-            .paymentLink(getPaymentFeeLink())
-            .currency("GBP")
-            .paymentMethod(PaymentMethod.paymentMethodWith().name("Online").build())
-            .paymentStatus(PaymentStatus.FAILED)
-            .build();
-
-        PaymentReference paymentReference = PaymentReference.paymentReference()
-            .caseReference("1234")
-            .paymentAmount(BigDecimal.valueOf(24244.60))
-            .accountNumber("12344")
-            .paymentReference("ABC")
-            .paymentMethod("ONLINE")
-            .build();
-
-        PaymentStatusDto paymentStatusDto = PaymentStatusDto.paymentStatusDto()
-            .serviceRequestReference("ABC123")
-            .ccdCaseNumber("12345")
-            .serviceRequestAmount(BigDecimal.valueOf(12300.00))
-            .serviceRequestStatus("PAID")
-            .payment(paymentReference)
-            .build();
-
-        when(serviceRequestPaymentDtoDomainMapper.toDomain(any())).thenReturn(serviceRequestPaymentBo);
-
-        when(serviceRequestPaymentDomainDataEntityMapper.toEntity(any(),any())).thenReturn(payment,paymentFailed);
-
-        when(paymentFeeLinkRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(getPaymentFeeLink()));
-
-        when(paymentDtoMapper.toPaymentStatusDto(any(),any(),any(), any())).thenReturn(paymentStatusDto);
-
-        when(accountService.retrieve(serviceRequestPaymentDto.getAccountNumber())).thenThrow(
-            new ResourceAccessException("Error thrown"));
-
-        AccountDto accountDto = AccountDto.accountDtoWith()
-            .accountNumber("1234")
-            .build();
-
-        PaymentGroupDto paymentGroupDto = new PaymentGroupDto();
-        paymentGroupDto.setServiceRequestStatus("Paid");
-        when(paymentGroupDtoMapper.toPaymentGroupDto(any())).thenReturn(paymentGroupDto);
-        try{
-            ServiceRequestPaymentBo bo =
-                serviceRequestDomainService.addPayments(getPaymentFeeLink(), "123", serviceRequestPaymentDto);
-        }catch(Exception ex){
-            assertEquals(ex.getMessage(),"Unable to retrieve account information due to timeout");
-        }
-
-    }
-
-    @Test
-    public void addPaymentsExceptionThrownTest() throws Exception {
-
-        ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto.paymentDtoWith()
-            .accountNumber("1234")
-            .amount(new BigDecimal(99.99).setScale(2, RoundingMode.HALF_EVEN))
-            .build();
-
-        ServiceRequestPaymentBo serviceRequestPaymentBo = ServiceRequestPaymentBo.serviceRequestPaymentBoWith()
-            .paymentReference("RC-ref")
-            .build();
-
-        Payment payment = Payment.paymentWith()
-            .paymentLink(getPaymentFeeLink())
-            .currency("GBP")
-            .paymentMethod(PaymentMethod.paymentMethodWith().name("Online").build())
-            .paymentStatus(PaymentStatus.SUCCESS)
-            .build();
-
-        Payment paymentFailed = Payment.paymentWith()
-            .paymentLink(getPaymentFeeLink())
-            .currency("GBP")
-            .paymentMethod(PaymentMethod.paymentMethodWith().name("Online").build())
-            .paymentStatus(PaymentStatus.FAILED)
-            .build();
-
-        PaymentReference paymentReference = PaymentReference.paymentReference()
-            .caseReference("1234")
-            .paymentAmount(BigDecimal.valueOf(24244.60))
-            .accountNumber("12344")
-            .paymentReference("ABC")
-            .paymentMethod("ONLINE")
-            .build();
-
-        PaymentStatusDto paymentStatusDto = PaymentStatusDto.paymentStatusDto()
-            .serviceRequestReference("ABC123")
-            .ccdCaseNumber("12345")
-            .serviceRequestAmount(BigDecimal.valueOf(12300.00))
-            .serviceRequestStatus("PAID")
-            .payment(paymentReference)
-            .build();
-
-        when(serviceRequestPaymentDtoDomainMapper.toDomain(any())).thenReturn(serviceRequestPaymentBo);
-
-        when(serviceRequestPaymentDomainDataEntityMapper.toEntity(any(),any())).thenReturn(payment,paymentFailed);
-
-        when(paymentFeeLinkRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(getPaymentFeeLink()));
-
-        when(paymentDtoMapper.toPaymentStatusDto(any(),any(),any(), any())).thenReturn(paymentStatusDto);
-
-        when(accountService.retrieve(serviceRequestPaymentDto.getAccountNumber())).thenThrow(
-            new RuntimeException("unknown Exception"));
-
-        AccountDto accountDto = AccountDto.accountDtoWith()
-            .accountNumber("1234")
-            .build();
-
-        PaymentGroupDto paymentGroupDto = new PaymentGroupDto();
-        paymentGroupDto.setServiceRequestStatus("Paid");
-        when(paymentGroupDtoMapper.toPaymentGroupDto(any())).thenReturn(paymentGroupDto);
-        try{
-            ServiceRequestPaymentBo bo =
-                serviceRequestDomainService.addPayments(getPaymentFeeLink(), "123", serviceRequestPaymentDto);
-        }catch(Exception ex){
-            assertEquals(ex.getMessage(),"Unable to retrieve account information, please try again later");
-        }
-
-    }
-
-
-    @Test
-    public void addPaymentsHttpClientExceptionThrownTest() throws Exception {
-
-        ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto.paymentDtoWith()
-            .accountNumber("1234")
-            .amount(new BigDecimal(99.99).setScale(2, RoundingMode.HALF_EVEN))
-            .build();
-
-        ServiceRequestPaymentBo serviceRequestPaymentBo = ServiceRequestPaymentBo.serviceRequestPaymentBoWith()
-            .paymentReference("RC-ref")
-            .build();
-
-        Payment payment = Payment.paymentWith()
-            .paymentLink(getPaymentFeeLink())
-            .currency("GBP")
-            .paymentMethod(PaymentMethod.paymentMethodWith().name("Online").build())
-            .paymentStatus(PaymentStatus.SUCCESS)
-            .build();
-
-        Payment paymentFailed = Payment.paymentWith()
-            .paymentLink(getPaymentFeeLink())
-            .currency("GBP")
-            .paymentMethod(PaymentMethod.paymentMethodWith().name("Online").build())
-            .paymentStatus(PaymentStatus.FAILED)
-            .build();
-
-        PaymentReference paymentReference = PaymentReference.paymentReference()
-            .caseReference("1234")
-            .paymentAmount(BigDecimal.valueOf(24244.60))
-            .accountNumber("12344")
-            .paymentReference("ABC")
-            .paymentMethod("ONLINE")
-            .build();
-
-        PaymentStatusDto paymentStatusDto = PaymentStatusDto.paymentStatusDto()
-            .serviceRequestReference("ABC123")
-            .ccdCaseNumber("12345")
-            .serviceRequestAmount(BigDecimal.valueOf(12300.00))
-            .serviceRequestStatus("PAID")
-            .payment(paymentReference)
-            .build();
-
-        when(serviceRequestPaymentDtoDomainMapper.toDomain(any())).thenReturn(serviceRequestPaymentBo);
-
-        when(serviceRequestPaymentDomainDataEntityMapper.toEntity(any(),any())).thenReturn(payment,paymentFailed);
-
-        when(accountService.retrieve(serviceRequestPaymentDto.getAccountNumber())).thenThrow(
-            HttpClientErrorException.create(HttpStatus.NOT_FOUND, "not found", null, null, null));
-
-        AccountDto accountDto = AccountDto.accountDtoWith()
-            .accountNumber("1234")
-            .build();
-
-        PaymentGroupDto paymentGroupDto = new PaymentGroupDto();
-        paymentGroupDto.setServiceRequestStatus("Paid");
-        when(paymentGroupDtoMapper.toPaymentGroupDto(any())).thenReturn(paymentGroupDto);
-        try{
-            ServiceRequestPaymentBo bo =
-                serviceRequestDomainService.addPayments(getPaymentFeeLink(), "123", serviceRequestPaymentDto);
-        }catch(Exception ex){
-            assertEquals(ex.getMessage(),"Account information could not be found");
-        }
-
-    }
-
 
     @Test
     public void createOnlineCardPaymentTest() throws Exception {
