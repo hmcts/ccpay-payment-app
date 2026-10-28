@@ -660,12 +660,25 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     @Transactional
     public void cancel(String serviceRequestReference, String cancelledBy, String reason) {
 
+        // TODO could take read only lock first.. is already cancelled then can bomb out
+//
+//        PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.findByPaymentReference(serviceRequestReference)
+//            .orElseThrow(() -> new ServiceRequestReferenceNotFoundException("Service request not found"));
+//
+//        // check if already cancelled
+//        if (paymentFeeLink.isCancelled()) {
+//            LOG.info("{} is already cancelled after preliminary check", paymentFeeLink);
+//            return;
+//        }
+
+        // Need to lock
+
         PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.findByPaymentReferenceForUpdate(serviceRequestReference)
             .orElseThrow(() -> new ServiceRequestReferenceNotFoundException("Service request not found"));
 
-        // check if already cancelled
+        // check again if already cancelled
         if (paymentFeeLink.isCancelled()) {
-            LOG.info("{} is already cancelled", paymentFeeLink);
+            LOG.info("{} is already cancelled after lock", paymentFeeLink);
             return;
         }
 

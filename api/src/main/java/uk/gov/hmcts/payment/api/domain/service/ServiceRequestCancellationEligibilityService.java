@@ -1,18 +1,19 @@
 package uk.gov.hmcts.payment.api.domain.service;
 
-import org.apache.logging.log4j.util.Strings;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentAllocation;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.model.PaymentStatus;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+@Slf4j
 @Service
 public class ServiceRequestCancellationEligibilityService {
+
     /**
      * Result of checking whether a service request can be cancelled.
      *
@@ -21,6 +22,7 @@ public class ServiceRequestCancellationEligibilityService {
      *                    so it is required when {@code cancellable} is false and must be null otherwise
      */
     public record Eligibility(boolean cancellable, String reason) {
+        private static final Eligibility ELIGIBLE = new Eligibility(true, null);
 
         public Eligibility {
             if (cancellable && reason != null) {
@@ -32,7 +34,7 @@ public class ServiceRequestCancellationEligibilityService {
         }
 
         public static Eligibility eligible() {
-            return new Eligibility(true, null);
+            return ELIGIBLE;
         }
 
         public static Eligibility ineligible(String reason) {
@@ -40,68 +42,79 @@ public class ServiceRequestCancellationEligibilityService {
         }
     }
 
-    // No successful payment on the SR: Reject if any payment on the SR has status success
-    // No payment in progress: Reject if any payment status is one of pending, created, started
-    // Failed payments are OK: Statuses failed, error, decline, cancelled do not block
-
-    // Map payment status names to whether they are eligible for cancellation
-    private static final Map<String, Eligibility> eliMap = Map.of(
-        "created", Eligibility.ineligible("Created ineligible for Cancellation"),
-        "success", Eligibility.ineligible("Success ineligible for Cancellation"),
-        "pending", Eligibility.ineligible("Pending ineligible for Cancellation"),
-        "decline", Eligibility.eligible(),
-        "cancelled", Eligibility.eligible(),
-        "error", Eligibility.eligible(),
-        "failed", Eligibility.eligible()
-    );
-
-    private static final Eligibility SR_ALREADY_CANCELLED = Eligibility.eligible();
-    private static final Eligibility UNKNOWN_PAYMENT_STATUS = Eligibility.ineligible("Unknown payment status ineligible for Cancellation");
+    private static final Eligibility UNKNOWN_PAYMENT_STATUS = Eligibility.ineligible("unknown payment status");
     private static final Eligibility REMISSIONS_EXISTING_ON_SR = Eligibility.ineligible("remissions existing on SR");
     private static final Eligibility PAYMENT_ALLOCATION_EXISTING_ON_SR = Eligibility.ineligible("payment allocation existing on SR");
 
-    // implement the cancellation eligibility rules.
+    // Map payment status names to whether they are eligible for cancellation
+    private static final Map<String, Eligibility> eliMap = Map.of(
+        "created",    Eligibility.ineligible("payment with status created"),
+        "started",    Eligibility.ineligible("payment with status started"),
+        "success",    Eligibility.ineligible("payment with status success"),
+        "pending",    Eligibility.ineligible("payment with status pending"),
+        "submitted",  Eligibility.ineligible("payment with status submitted"),
+        "decline",    Eligibility.eligible(),
+        "cancelled",  Eligibility.eligible(),
+        "error",      Eligibility.eligible(),
+        "failed",     Eligibility.eligible()
+    );
+
+    /**
+     * Check if the given Service Request is eligible for cancellation
+     * @param paymentFeeLink Reference to the Service Request
+     * @return eligibility status including reason if not eligible
+     */
     public Eligibility checkEligibility(PaymentFeeLink paymentFeeLink) {
 
         if (paymentFeeLink.isCancelled()) {
-            return SR_ALREADY_CANCELLED;
+            return Eligibility.eligible();
         }
 
-        Optional<Eligibility> inEligiblePayments = paymentFeeLink.getPayments()
+        // Check payment status against the map
+        Optional<Eligibility> ineligiblePayment = paymentFeeLink.getPayments()
             .stream()
             .map(Payment::getPaymentStatus)
             .map(s -> eliMap.getOrDefault(s.getName(), UNKNOWN_PAYMENT_STATUS))
-            .filter( e -> !e.cancellable() )
+            .filter(e -> !e.cancellable())
             .findFirst();
 
-        if (inEligiblePayments.isPresent()) {
-            // TODO check the spec for return value
-            return Eligibility.ineligible("payment status ineligible for cancellation: %s"
-                .formatted(inEligiblePayments.get()));
+        if (ineligiblePayment.isPresent()) {
+            log.info("{} ineligible for cancellation as {}", render(paymentFeeLink), ineligiblePayment.get().reason());
+            return ineligiblePayment.get();
         }
 
-        // Remissions: Reject if the SR has any remission row where payment_link_id = SR id (conservative superset of
-        //  "full remission out of scope")
-        //  I.e. block if any remissions are being used for the SR, partial or full.
         if (!paymentFeeLink.getRemissions().isEmpty()) {
-            // TODO is this check enough?
+            log.info("{} ineligible for cancellation as has remissions present", render(paymentFeeLink));
             return REMISSIONS_EXISTING_ON_SR;
         }
 
-        // No unallocated payment on the case Reject: if any payment_allocation record exists against payments on the SR
-        //   additionally query bulk-scanning app for pending/unallocated payments against the Case.
-        List<PaymentAllocation> list = paymentFeeLink.getPayments()
+        // Check no unallocated payment on the case
+        // if any payment_allocation record exists against payments on the SR
+        Optional<PaymentAllocation> paymentAllocation = paymentFeeLink.getPayments()
             .stream()
             .map(Payment::getPaymentAllocation)
             .flatMap(List::stream)
-            .toList();
+            .findFirst();
 
-        if (!list.isEmpty()) {
+        if (paymentAllocation.isPresent()) {
+            log.info("{} ineligible for cancellation as have payment allocation {}", render(paymentFeeLink), paymentAllocation.get());
             return PAYMENT_ALLOCATION_EXISTING_ON_SR;
         }
 
-        // Must be eligible
+        return checkEligibilityBulkScanning(paymentFeeLink);
+    }
+
+    // TODO make call to additionally query bulk-scanning app for pending/unallocated payments against the Case.
+    // Worry about row lock time
+    Eligibility checkEligibilityBulkScanning(PaymentFeeLink paymentFeeLink) {
 
         return Eligibility.eligible();
     }
+
+
+    String render(PaymentFeeLink sr) {
+        return "Service Request (id=%s, payment_reference=%s, ccd_case_number=%s)"
+            .formatted(sr.getId(), sr.getPaymentReference(), sr.getCcdCaseNumber());
+    }
+
 }
