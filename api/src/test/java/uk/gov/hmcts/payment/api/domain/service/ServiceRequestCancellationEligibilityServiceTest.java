@@ -3,21 +3,31 @@ package uk.gov.hmcts.payment.api.domain.service;
 import org.assertj.core.api.AbstractAssert;
 import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.payment.api.domain.service.ServiceRequestCancellationEligibilityService.Eligibility;
+import uk.gov.hmcts.payment.api.dto.SearchResponse;
+import uk.gov.hmcts.payment.api.exception.BulkScanningServiceUnavailableException;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentAllocation;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.model.Remission;
+import uk.gov.hmcts.payment.api.service.BulkScanningClient;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 /**
  * @author jhilling
  */
 class ServiceRequestCancellationEligibilityServiceTest {
+
+    private static final String CCD_CASE_NUMBER = "1234567890123456";
 
     static class EligibilityAssert extends AbstractAssert<EligibilityAssert, Eligibility> {
 
@@ -60,8 +70,11 @@ class ServiceRequestCancellationEligibilityServiceTest {
         }
     }
 
+    // Mockito returns Optional.empty() by default, so bulk scanning reports nothing unless a test stubs it.
+    private final BulkScanningClient bulkScanningClient = mock(BulkScanningClient.class);
+
     private final ServiceRequestCancellationEligibilityService service =
-        new ServiceRequestCancellationEligibilityService();
+        new ServiceRequestCancellationEligibilityService(bulkScanningClient, true);
 
 
     EligibilityAssert assertThatEligibility(Eligibility actual) {
@@ -177,6 +190,98 @@ class ServiceRequestCancellationEligibilityServiceTest {
     void alreadyCancelledServiceRequestRemainsEligibleForIdempotentCancellation() {
         assertThatSR(PaymentFeeLink.paymentFeeLinkWith().cancelled(true).build())
             .isCancellable();
+    }
+
+    @Test
+    void blocksCancellationWhenBulkScanningHasPaymentsReadyToAllocate() {
+        givenBulkScanningReturns(uk.gov.hmcts.payment.api.dto.PaymentStatus.COMPLETE);
+
+        assertThatSR(paymentFeeLinkForCase(CCD_CASE_NUMBER)).isNotCancellable()
+            .withReason("unallocated bulk scan payment existing on case");
+    }
+
+    @Test
+    void blocksCancellationWhenBulkScanningHasIncompletePayments() {
+        givenBulkScanningReturns(uk.gov.hmcts.payment.api.dto.PaymentStatus.INCOMPLETE);
+
+        assertThatSR(paymentFeeLinkForCase(CCD_CASE_NUMBER)).isNotCancellable()
+            .withReason("unallocated bulk scan payment existing on case");
+    }
+
+    @Test
+    void allowsCancellationWhenAllBulkScanPaymentsAreProcessed() {
+        givenBulkScanningReturns(uk.gov.hmcts.payment.api.dto.PaymentStatus.PROCESSED);
+
+        assertThatSR(paymentFeeLinkForCase(CCD_CASE_NUMBER)).isCancellable();
+    }
+
+    @Test
+    void allowsCancellationWhenBulkScanningHasNothingForTheCase() {
+        // Bulk scanning returns 200 with no status when it has no envelopes for the case.
+        givenBulkScanningReturns(null);
+        assertThatSR(paymentFeeLinkForCase(CCD_CASE_NUMBER)).isCancellable();
+
+        // The client returns empty when bulk scanning responds with 404.
+        when(bulkScanningClient.findPaymentsForCase(CCD_CASE_NUMBER)).thenReturn(Optional.empty());
+        assertThatSR(paymentFeeLinkForCase(CCD_CASE_NUMBER)).isCancellable();
+    }
+
+    @Test
+    void skipsBulkScanningWhenTheServiceRequestHasNoCaseNumber() {
+        assertThatSR(paymentFeeLinkForCase(null)).isCancellable();
+        assertThatSR(paymentFeeLinkForCase(" ")).isCancellable();
+
+        verifyNoInteractions(bulkScanningClient);
+    }
+
+    @Test
+    void skipsBulkScanningWhenALocalCheckHasAlreadyFailed() {
+        PaymentFeeLink paymentFeeLink = paymentFeeLinkForCase(CCD_CASE_NUMBER);
+        paymentFeeLink.setPayments(List.of(payment(status("success"))));
+
+        assertThatSR(paymentFeeLink).isNotCancellable();
+        verifyNoInteractions(bulkScanningClient);
+    }
+
+    @Test
+    void skipsBulkScanningForAnAlreadyCancelledServiceRequest() {
+        PaymentFeeLink paymentFeeLink = paymentFeeLinkForCase(CCD_CASE_NUMBER);
+        paymentFeeLink.setCancelled(true);
+
+        assertThatSR(paymentFeeLink).isCancellable();
+        verifyNoInteractions(bulkScanningClient);
+    }
+
+    @Test
+    void skipsBulkScanningWhenTheCheckIsDisabled() {
+        ServiceRequestCancellationEligibilityService serviceWithCheckDisabled =
+            new ServiceRequestCancellationEligibilityService(bulkScanningClient, false);
+        givenBulkScanningReturns(uk.gov.hmcts.payment.api.dto.PaymentStatus.COMPLETE);
+
+        assertThatEligibility(serviceWithCheckDisabled.checkEligibility(paymentFeeLinkForCase(CCD_CASE_NUMBER)))
+            .isCancellable();
+        verifyNoInteractions(bulkScanningClient);
+    }
+
+    @Test
+    void propagatesBulkScanningFailure() {
+        BulkScanningServiceUnavailableException failure =
+            new BulkScanningServiceUnavailableException("unable to check bulk scanning for unallocated payments", null);
+        when(bulkScanningClient.findPaymentsForCase(CCD_CASE_NUMBER)).thenThrow(failure);
+
+        assertThatThrownBy(() -> service.checkEligibility(paymentFeeLinkForCase(CCD_CASE_NUMBER)))
+            .isSameAs(failure);
+    }
+
+    private void givenBulkScanningReturns(uk.gov.hmcts.payment.api.dto.PaymentStatus status) {
+        when(bulkScanningClient.findPaymentsForCase(CCD_CASE_NUMBER))
+            .thenReturn(Optional.of(SearchResponse.searchResponseWith().allPaymentsStatus(status).build()));
+    }
+
+    private static PaymentFeeLink paymentFeeLinkForCase(String ccdCaseNumber) {
+        PaymentFeeLink paymentFeeLink = paymentFeeLink();
+        paymentFeeLink.setCcdCaseNumber(ccdCaseNumber);
+        return paymentFeeLink;
     }
 
     private static PaymentFeeLink paymentFeeLink(Payment... payments) {

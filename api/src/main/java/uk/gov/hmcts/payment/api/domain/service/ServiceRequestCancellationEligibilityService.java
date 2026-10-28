@@ -1,10 +1,14 @@
 package uk.gov.hmcts.payment.api.domain.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.payment.api.dto.PaymentStatus;
+import uk.gov.hmcts.payment.api.dto.SearchResponse;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentAllocation;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.service.BulkScanningClient;
 
 import java.util.List;
 import java.util.Map;
@@ -45,6 +49,8 @@ public class ServiceRequestCancellationEligibilityService {
     private static final Eligibility UNKNOWN_PAYMENT_STATUS = Eligibility.ineligible("unknown payment status");
     private static final Eligibility REMISSIONS_EXISTING_ON_SR = Eligibility.ineligible("remissions existing on SR");
     private static final Eligibility PAYMENT_ALLOCATION_EXISTING_ON_SR = Eligibility.ineligible("payment allocation existing on SR");
+    private static final Eligibility UNALLOCATED_BULK_SCAN_PAYMENT_ON_CASE = Eligibility
+        .ineligible("unallocated bulk scan payment existing on case");
 
     // Map payment status names to whether they are eligible for cancellation
     private static final Map<String, Eligibility> eliMap = Map.of(
@@ -58,6 +64,20 @@ public class ServiceRequestCancellationEligibilityService {
         "error",      Eligibility.eligible(),
         "failed",     Eligibility.eligible()
     );
+
+    private final BulkScanningClient bulkScanningClient;
+    private final boolean bulkScanningCheckEnabled;
+
+    /**
+     * @param bulkScanningClient       client used to look for unallocated bulk-scanned payments on the case
+     * @param bulkScanningCheckEnabled whether to check bulk scanning at all; on unless the property is set to false
+     */
+    public ServiceRequestCancellationEligibilityService(
+        BulkScanningClient bulkScanningClient,
+        @Value("${feature.cancellation.bulk-scanning-check:true}") boolean bulkScanningCheckEnabled) {
+        this.bulkScanningClient = bulkScanningClient;
+        this.bulkScanningCheckEnabled = bulkScanningCheckEnabled;
+    }
 
     /**
      * Check if the given Service Request is eligible for cancellation
@@ -104,9 +124,34 @@ public class ServiceRequestCancellationEligibilityService {
         return checkEligibilityBulkScanning(paymentFeeLink);
     }
 
-    // TODO make call to additionally query bulk-scanning app for pending/unallocated payments against the Case.
-    // Worry about row lock time
+    /**
+     * Check bulk scanning for payments against the case that are still waiting to be allocated (BR-9, LLD 6.1).
+     *
+     * <p>Bulk scanning reports {@code PROCESSED} once every payment on the case has been allocated, and no status
+     * when it has nothing for the case. {@code COMPLETE} (ready to allocate) and {@code INCOMPLETE} (still being
+     * worked on as an exception record) both mean money may be heading for this case, so both block cancellation.</p>
+     */
     Eligibility checkEligibilityBulkScanning(PaymentFeeLink paymentFeeLink) {
+        if (!bulkScanningCheckEnabled) {
+            log.warn("Bulk scanning check disabled, so {} was not checked for unallocated bulk scan payments",
+                render(paymentFeeLink));
+            return Eligibility.eligible();
+        }
+
+        String ccdCaseNumber = paymentFeeLink.getCcdCaseNumber();
+        if (ccdCaseNumber == null || ccdCaseNumber.isBlank()) {
+            // Bulk-scanned payments are always held against a CCD case, so there is nothing to look up.
+            return Eligibility.eligible();
+        }
+
+        Optional<PaymentStatus> bulkScanStatus = bulkScanningClient.findPaymentsForCase(ccdCaseNumber)
+            .map(SearchResponse::getAllPaymentsStatus);
+
+        if (bulkScanStatus.isPresent() && bulkScanStatus.get() != PaymentStatus.PROCESSED) {
+            log.info("{} ineligible for cancellation as bulk scanning has {} payments on the case",
+                render(paymentFeeLink), bulkScanStatus.get());
+            return UNALLOCATED_BULK_SCAN_PAYMENT_ON_CASE;
+        }
 
         return Eligibility.eligible();
     }
