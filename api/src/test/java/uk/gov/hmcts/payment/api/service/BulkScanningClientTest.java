@@ -27,7 +27,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 /**
- * Checks the bulk-scanning case lookup sends a service token to {@code GET /cases/{ccd_reference}}, reads the
+ * Checks the bulk-scanning case lookup sends the user and service tokens to {@code GET /cases/{ccd_reference}}, reads the
  * response, treats 404 as no payments, and turns any other failure into a
  * {@link BulkScanningServiceUnavailableException}.
  */
@@ -36,6 +36,7 @@ class BulkScanningClientTest {
     private static final String BULK_SCANNING_URL = "http://bulk-scanning";
     private static final String CASE_URL = BULK_SCANNING_URL + "/cases/1234567890123456";
     private static final String CCD_CASE_NUMBER = "1234567890123456";
+    private static final String USER_TOKEN = "Bearer user-token";
 
     private MockRestServiceServer server;
     private BulkScanningClient client;
@@ -56,12 +57,13 @@ class BulkScanningClientTest {
         server.expect(requestTo(CASE_URL))
             .andExpect(method(HttpMethod.GET))
             .andExpect(header("ServiceAuthorization", "s2s-token"))
+            .andExpect(header("Authorization", USER_TOKEN))
             .andRespond(withSuccess("""
                 {"ccd_reference": "1234567890123456", "all_payments_status": "COMPLETE",
                  "payments": [{"dcn_reference": "DCN1", "amount": 100}]}
                 """, MediaType.APPLICATION_JSON));
 
-        Optional<SearchResponse> response = client.findPaymentsForCase(CCD_CASE_NUMBER);
+        Optional<SearchResponse> response = client.findPaymentsForCase(CCD_CASE_NUMBER, USER_TOKEN);
 
         assertThat(response).isPresent();
         assertThat(response.get().getAllPaymentsStatus()).isEqualTo(PaymentStatus.COMPLETE);
@@ -74,14 +76,14 @@ class BulkScanningClientTest {
         server.expect(requestTo(CASE_URL))
             .andRespond(withStatus(HttpStatus.NOT_FOUND).body("Payments Not found for ccdReference"));
 
-        assertThat(client.findPaymentsForCase(CCD_CASE_NUMBER)).isEmpty();
+        assertThat(client.findPaymentsForCase(CCD_CASE_NUMBER, USER_TOKEN)).isEmpty();
     }
 
     @Test
     void reportsBulkScanningErrorsAsUnavailable() {
         server.expect(requestTo(CASE_URL)).andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR));
 
-        assertThatThrownBy(() -> client.findPaymentsForCase(CCD_CASE_NUMBER))
+        assertThatThrownBy(() -> client.findPaymentsForCase(CCD_CASE_NUMBER, USER_TOKEN))
             .isInstanceOf(BulkScanningServiceUnavailableException.class);
     }
 
@@ -89,7 +91,7 @@ class BulkScanningClientTest {
     void reportsRejectedRequestsAsUnavailable() {
         server.expect(requestTo(CASE_URL)).andRespond(withStatus(HttpStatus.FORBIDDEN));
 
-        assertThatThrownBy(() -> client.findPaymentsForCase(CCD_CASE_NUMBER))
+        assertThatThrownBy(() -> client.findPaymentsForCase(CCD_CASE_NUMBER, USER_TOKEN))
             .isInstanceOf(BulkScanningServiceUnavailableException.class);
     }
 
@@ -97,7 +99,7 @@ class BulkScanningClientTest {
     void reportsTimeoutsAsUnavailable() {
         server.expect(requestTo(CASE_URL)).andRespond(withException(new SocketTimeoutException("read timed out")));
 
-        assertThatThrownBy(() -> client.findPaymentsForCase(CCD_CASE_NUMBER))
+        assertThatThrownBy(() -> client.findPaymentsForCase(CCD_CASE_NUMBER, USER_TOKEN))
             .isInstanceOf(BulkScanningServiceUnavailableException.class);
     }
 }

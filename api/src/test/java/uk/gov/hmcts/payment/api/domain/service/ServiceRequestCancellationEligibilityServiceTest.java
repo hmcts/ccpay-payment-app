@@ -28,6 +28,7 @@ import static org.mockito.Mockito.when;
 class ServiceRequestCancellationEligibilityServiceTest {
 
     private static final String CCD_CASE_NUMBER = "1234567890123456";
+    private static final String USER_TOKEN = "Bearer user-token";
 
     static class EligibilityAssert extends AbstractAssert<EligibilityAssert, Eligibility> {
 
@@ -82,7 +83,7 @@ class ServiceRequestCancellationEligibilityServiceTest {
     }
 
     EligibilityAssert assertThatSR(PaymentFeeLink pfl) {
-        return new EligibilityAssert(service.checkEligibility(pfl));
+        return new EligibilityAssert(service.checkEligibility(pfl, USER_TOKEN));
     }
 
     @Test
@@ -222,7 +223,7 @@ class ServiceRequestCancellationEligibilityServiceTest {
         assertThatSR(paymentFeeLinkForCase(CCD_CASE_NUMBER)).isCancellable();
 
         // The client returns empty when bulk scanning responds with 404.
-        when(bulkScanningClient.findPaymentsForCase(CCD_CASE_NUMBER)).thenReturn(Optional.empty());
+        when(bulkScanningClient.findPaymentsForCase(CCD_CASE_NUMBER, USER_TOKEN)).thenReturn(Optional.empty());
         assertThatSR(paymentFeeLinkForCase(CCD_CASE_NUMBER)).isCancellable();
     }
 
@@ -258,8 +259,33 @@ class ServiceRequestCancellationEligibilityServiceTest {
             new ServiceRequestCancellationEligibilityService(bulkScanningClient, false);
         givenBulkScanningReturns(uk.gov.hmcts.payment.api.dto.PaymentStatus.COMPLETE);
 
-        assertThatEligibility(serviceWithCheckDisabled.checkEligibility(paymentFeeLinkForCase(CCD_CASE_NUMBER)))
+        assertThatEligibility(serviceWithCheckDisabled.checkEligibility(paymentFeeLinkForCase(CCD_CASE_NUMBER), USER_TOKEN))
             .isCancellable();
+        verifyNoInteractions(bulkScanningClient);
+    }
+
+    @Test
+    void blocksAnAutomatedCancellationWithoutAUserTokenAsBulkScanningCannotBeChecked() {
+        assertThatEligibility(service.checkEligibility(paymentFeeLinkForCase(CCD_CASE_NUMBER), null)).isNotCancellable()
+            .withReason("unable to check bulk scanning for unallocated payments without a user token");
+        assertThatEligibility(service.checkEligibility(paymentFeeLinkForCase(CCD_CASE_NUMBER), " ")).isNotCancellable()
+            .withReason("unable to check bulk scanning for unallocated payments without a user token");
+        verifyNoInteractions(bulkScanningClient);
+    }
+
+    @Test
+    void allowsAnAutomatedCancellationWithoutAUserTokenWhenTheCheckIsDisabled() {
+        ServiceRequestCancellationEligibilityService serviceWithCheckDisabled =
+            new ServiceRequestCancellationEligibilityService(bulkScanningClient, false);
+
+        assertThatEligibility(serviceWithCheckDisabled.checkEligibility(paymentFeeLinkForCase(CCD_CASE_NUMBER), null))
+            .isCancellable();
+        verifyNoInteractions(bulkScanningClient);
+    }
+
+    @Test
+    void allowsAnAutomatedCancellationWithoutAUserTokenWhenThereIsNoCaseNumber() {
+        assertThatEligibility(service.checkEligibility(paymentFeeLinkForCase(null), null)).isCancellable();
         verifyNoInteractions(bulkScanningClient);
     }
 
@@ -267,14 +293,14 @@ class ServiceRequestCancellationEligibilityServiceTest {
     void propagatesBulkScanningFailure() {
         BulkScanningServiceUnavailableException failure =
             new BulkScanningServiceUnavailableException("unable to check bulk scanning for unallocated payments", null);
-        when(bulkScanningClient.findPaymentsForCase(CCD_CASE_NUMBER)).thenThrow(failure);
+        when(bulkScanningClient.findPaymentsForCase(CCD_CASE_NUMBER, USER_TOKEN)).thenThrow(failure);
 
-        assertThatThrownBy(() -> service.checkEligibility(paymentFeeLinkForCase(CCD_CASE_NUMBER)))
+        assertThatThrownBy(() -> service.checkEligibility(paymentFeeLinkForCase(CCD_CASE_NUMBER), USER_TOKEN))
             .isSameAs(failure);
     }
 
     private void givenBulkScanningReturns(uk.gov.hmcts.payment.api.dto.PaymentStatus status) {
-        when(bulkScanningClient.findPaymentsForCase(CCD_CASE_NUMBER))
+        when(bulkScanningClient.findPaymentsForCase(CCD_CASE_NUMBER, USER_TOKEN))
             .thenReturn(Optional.of(SearchResponse.searchResponseWith().allPaymentsStatus(status).build()));
     }
 

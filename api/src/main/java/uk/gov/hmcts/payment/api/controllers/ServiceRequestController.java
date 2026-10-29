@@ -471,7 +471,7 @@ public class ServiceRequestController {
                 "could not determine id for %s service request cancellation".formatted(manualCancellation ? "manual" : "automated"));
         }
 
-        serviceRequestDomainService.cancel(serviceRequestReference, cancelledBy, reason);
+        serviceRequestDomainService.cancel(serviceRequestReference, cancelledBy, reason, authorization);
     }
 
     private static boolean isBlank(String s) {

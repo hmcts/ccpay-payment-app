@@ -80,7 +80,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 /**
  * This test uses a real ServiceRequestDomainService
  * and makes writes to the db (unlike ServiceRequestControllerTest which uses mocks)
- *
+ * <p>
  * These tests let the application's transactions commit so they can verify persisted changes.
  * The committed test data is not rolled back automatically. Sharing a database with other test
  * classes allowed those records to appear in their queries and made results depend on test order.
@@ -166,7 +166,7 @@ public class ServiceRequestComponentTest {
             .withUserId(USER_ID);
 
         when(referenceDataService.getOrganisationalDetail(any(), any(), any())).thenReturn(null);
-        when(cancellationEligibilityService.checkEligibility(any())).thenReturn(Eligibility.eligible());
+        when(cancellationEligibilityService.checkEligibility(any(), any())).thenReturn(Eligibility.eligible());
         when(paymentRefundsService.checkRefundAgainstRemissionV2(any(), any(), any()))
             .thenAnswer(invocation -> invocation.getArgument(1));
     }
@@ -255,7 +255,7 @@ public class ServiceRequestComponentTest {
             .ccdCaseNumber(ccdCaseNumber)
             .build());
         String ineligibleReason = "Service request has a successful payment RC-1234-1234-1234";
-        when(cancellationEligibilityService.checkEligibility(any()))
+        when(cancellationEligibilityService.checkEligibility(any(), any()))
             .thenReturn(Eligibility.ineligible(ineligibleReason));
 
         serviceOnlyRestActions()
@@ -272,7 +272,7 @@ public class ServiceRequestComponentTest {
         assertThat(unchanged.getDateCancelled()).isNull();
         assertThat(paymentAuditHistoryRepository.findByCcdCaseNo(ccdCaseNumber))
             .noneMatch(entry -> AuditEventsType.ORDER_CANCELLED.getName().equals(entry.getAuditType().getName()));
-        verify(cancellationEligibilityService).checkEligibility(any());
+        verify(cancellationEligibilityService).checkEligibility(any(), any());
     }
 
     /**

@@ -51,6 +51,8 @@ public class ServiceRequestCancellationEligibilityService {
     private static final Eligibility PAYMENT_ALLOCATION_EXISTING_ON_SR = Eligibility.ineligible("payment allocation existing on SR");
     private static final Eligibility UNALLOCATED_BULK_SCAN_PAYMENT_ON_CASE = Eligibility
         .ineligible("unallocated bulk scan payment existing on case");
+    private static final Eligibility BULK_SCANNING_NOT_CHECKED_WITHOUT_USER_TOKEN = Eligibility
+        .ineligible("unable to check bulk scanning for unallocated payments without a user token");
 
     // Map payment status names to whether they are eligible for cancellation
     private static final Map<String, Eligibility> eliMap = Map.of(
@@ -81,10 +83,12 @@ public class ServiceRequestCancellationEligibilityService {
 
     /**
      * Check if the given Service Request is eligible for cancellation
-     * @param paymentFeeLink Reference to the Service Request
+     * @param paymentFeeLink    Reference to the Service Request
+     * @param userAuthorization the caller's user token, needed to check bulk scanning; null for an automated
+     *                          cancellation, which is then ineligible unless the bulk scanning check is disabled
      * @return eligibility status including reason if not eligible
      */
-    public Eligibility checkEligibility(PaymentFeeLink paymentFeeLink) {
+    public Eligibility checkEligibility(PaymentFeeLink paymentFeeLink, String userAuthorization) {
 
         if (paymentFeeLink.isCancelled()) {
             return Eligibility.eligible();
@@ -121,7 +125,7 @@ public class ServiceRequestCancellationEligibilityService {
             return PAYMENT_ALLOCATION_EXISTING_ON_SR;
         }
 
-        return checkEligibilityBulkScanning(paymentFeeLink);
+        return checkEligibilityBulkScanning(paymentFeeLink, userAuthorization);
     }
 
     /**
@@ -130,8 +134,12 @@ public class ServiceRequestCancellationEligibilityService {
      * <p>Bulk scanning reports {@code PROCESSED} once every payment on the case has been allocated, and no status
      * when it has nothing for the case. {@code COMPLETE} (ready to allocate) and {@code INCOMPLETE} (still being
      * worked on as an exception record) both mean money may be heading for this case, so both block cancellation.</p>
+     *
+     * <p>Bulk scanning only allows its case search with a user token. An automated cancellation has none, so
+     * it cannot be checked and is treated as ineligible. Disable the check with
+     * {@code feature.cancellation.bulk-scanning-check} to allow automated cancellation without it.</p>
      */
-    Eligibility checkEligibilityBulkScanning(PaymentFeeLink paymentFeeLink) {
+    Eligibility checkEligibilityBulkScanning(PaymentFeeLink paymentFeeLink, String userAuthorization) {
         if (!bulkScanningCheckEnabled) {
             log.warn("Bulk scanning check disabled, so {} was not checked for unallocated bulk scan payments",
                 render(paymentFeeLink));
@@ -144,7 +152,13 @@ public class ServiceRequestCancellationEligibilityService {
             return Eligibility.eligible();
         }
 
-        Optional<PaymentStatus> bulkScanStatus = bulkScanningClient.findPaymentsForCase(ccdCaseNumber)
+        if (userAuthorization == null || userAuthorization.isBlank()) {
+            log.warn("{} ineligible for cancellation as bulk scanning cannot be checked without a user token",
+                render(paymentFeeLink));
+            return BULK_SCANNING_NOT_CHECKED_WITHOUT_USER_TOKEN;
+        }
+
+        Optional<PaymentStatus> bulkScanStatus = bulkScanningClient.findPaymentsForCase(ccdCaseNumber, userAuthorization)
             .map(SearchResponse::getAllPaymentsStatus);
 
         if (bulkScanStatus.isPresent() && bulkScanStatus.get() != PaymentStatus.PROCESSED) {

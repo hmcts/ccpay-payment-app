@@ -42,16 +42,18 @@ public class BulkScanningClient {
      * {@code all_payments_status} of {@code PROCESSED} when everything has been allocated, and an empty
      * response when it has no envelopes for the case.</p>
      *
-     * @param ccdCaseNumber the CCD case number of the service request
+     * <p>Bulk scanning secures this endpoint with a user token holding the {@code payments} or {@code citizen}
+     * role, as well as a service token, so the caller's user token is passed on.</p>
+     *
+     * @param ccdCaseNumber     the CCD case number of the service request
+     * @param userAuthorization the caller's user token, sent as the {@code Authorization} header
      * @return the search response, or empty when bulk scanning reports no payments for the case (HTTP 404)
      * @throws BulkScanningServiceUnavailableException when bulk scanning cannot be reached or returns an error
      */
-    public Optional<SearchResponse> findPaymentsForCase(String ccdCaseNumber) {
+    public Optional<SearchResponse> findPaymentsForCase(String ccdCaseNumber, String userAuthorization) {
         HttpHeaders headers = new HttpHeaders();
+        headers.set(HttpHeaders.AUTHORIZATION, userAuthorization);
         headers.set("ServiceAuthorization", authTokenGenerator.generate());
-        // TODO PAY-9025: bulk scanning secures GET /cases/** with a user token holding the payments or citizen role,
-        // and requires an Authorization header. An automated cancellation has no user token, so bulk scanning
-        // must allow service-only access here (as it does for GET /case/**) or this app needs a system user.
 
         try {
             log.info("Calling bulk scanning for payments against case {}", ccdCaseNumber);
