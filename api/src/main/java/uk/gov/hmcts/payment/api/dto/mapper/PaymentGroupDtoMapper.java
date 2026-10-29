@@ -63,7 +63,6 @@ public class PaymentGroupDtoMapper {
     private static final int SECONDPING = 2;
 
 
-    // TODO PAY-9036
     public PaymentGroupDto toPaymentGroupDto(PaymentFeeLink paymentFeeLink) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         ServiceRequestUtil serviceRequestUtil = new ServiceRequestUtil();

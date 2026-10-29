@@ -1,11 +1,8 @@
 package uk.gov.hmcts.payment.api.mapper;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -69,9 +66,6 @@ public class PaymentGroupDtoMapperTest {
     @InjectMocks
     PaymentGroupDtoMapper paymentGroupDtoMapper = new PaymentGroupDtoMapper();
 
-    // TODO testing through object mapper/json while fields aren't yet on PaymentGroupDto
-    private final ObjectMapper objectMapper = new ObjectMapper();
-
     PaymentFeeLink feeLink;
 
     @Before
@@ -106,7 +100,6 @@ public class PaymentGroupDtoMapperTest {
         SecurityContextHolder.clearContext();
     }
 
-    @Ignore("TODO PAY-9036 - enable when cancel mapping in place")
     @Test
     public void mapsCancelledServiceRequestMetadataAndStatus() throws Exception {
         Date dateCancelled = Date.from(Instant.parse("2026-10-27T12:00:00Z"));
@@ -121,13 +114,12 @@ public class PaymentGroupDtoMapperTest {
             .build();
 
         PaymentGroupDto dto = paymentGroupDtoMapper.toPaymentGroupDto(cancelledServiceRequest);
-        JsonNode json = objectMapper.valueToTree(dto);
 
-        assertThat(json.path("cancelled").asBoolean()).isTrue();
-        assertThat(json.path("cancellation_reason").asText()).isEqualTo("Duplicate request");
-        assertThat(json.path("cancelled_by").asText()).isEqualTo("payment-service");
-        assertThat(json.path("date_cancelled").asLong()).isEqualTo(dateCancelled.getTime());
-        assertThat(json.path("service_request_status").asText()).isEqualTo("Cancelled");
+        assertThat(dto.getCancelled()).isTrue();
+        assertThat(dto.getCancellationReason()).isEqualTo("Duplicate request");
+        assertThat(dto.getCancelledBy()).isEqualTo("payment-service");
+        assertThat(dto.getDateCancelled()).isEqualTo(dateCancelled);
+        assertThat(dto.getServiceRequestStatus()).isEqualTo("Cancelled");
     }
 
     @Test
@@ -140,13 +132,12 @@ public class PaymentGroupDtoMapperTest {
             .build();
 
         PaymentGroupDto dto = paymentGroupDtoMapper.toPaymentGroupDto(openServiceRequest);
-        JsonNode json = objectMapper.valueToTree(dto);
 
-        assertThat(json.has("cancelled")).isFalse();
-        assertThat(json.has("cancellation_reason")).isFalse();
-        assertThat(json.has("cancelled_by")).isFalse();
-        assertThat(json.has("date_cancelled")).isFalse();
-        assertThat(json.path("service_request_status").asText()).isEqualTo("Paid");
+        assertThat(dto.getCancelled()).isNull();
+        assertThat(dto.getCancellationReason()).isNull();
+        assertThat(dto.getCancelledBy()).isNull();
+        assertThat(dto.getDateCancelled()).isNull();
+        assertThat(dto.getServiceRequestStatus()).isEqualTo("Paid");
     }
 
     @Test
@@ -155,7 +146,9 @@ public class PaymentGroupDtoMapperTest {
 
         PaymentGroupDto dto = paymentGroupDtoMapper.toPaymentGroupDto(paymentGroupWithPayment());
 
-        assertThat(dto.getPayments().get(0).getDisputes())
+        PaymentDto payment = assertThat(dto.getPayments()).singleElement().actual();
+
+        assertThat(payment.getDisputes())
             .singleElement()
             .satisfies(dispute -> {
                 assertThat(dispute.isDispute()).isFalse();

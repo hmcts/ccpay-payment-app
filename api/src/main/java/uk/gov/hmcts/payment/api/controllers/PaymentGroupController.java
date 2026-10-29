@@ -170,7 +170,6 @@ public class PaymentGroupController {
         this.idamService = idamService;
     }
 
-    // TODO PAY-9036
     @Operation(summary = "Get payments/remissions/fees details by payment group reference", description = "Get payments/remissions/fees details for supplied payment group reference")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Payment retrieved"),
