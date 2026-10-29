@@ -15,7 +15,6 @@ import java.util.List;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
-// TODO PAY-9036
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(NON_NULL)
@@ -45,5 +44,17 @@ public class PaymentGroupDto {
     private boolean isAnyPaymentDisputed;
 
     private List<RefundDto> refunds;
+
+    @JsonProperty("cancelled")
+    private Boolean cancelled;
+
+    @JsonProperty("cancellation_reason")
+    private String cancellationReason;
+
+    @JsonProperty("cancelled_by")
+    private String cancelledBy;
+
+    @JsonProperty("date_cancelled")
+    private Date dateCancelled;
 
 }

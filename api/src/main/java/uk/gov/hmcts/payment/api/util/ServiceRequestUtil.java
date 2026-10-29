@@ -12,6 +12,10 @@ public class ServiceRequestUtil {
     private static final String DISPUTED = "Disputed";
 
     public String getServiceRequestStatus(PaymentGroupDto paymentGroupDto){
+        if (Boolean.TRUE.equals(paymentGroupDto.getCancelled())) {
+            return "Cancelled";
+        }
+
         //Calculate the fee total in a payment group
         BigDecimal orderFeeTotal = getTotalFeeAmount(paymentGroupDto);
 
