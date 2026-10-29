@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.test.context.ActiveProfiles;
@@ -23,6 +22,8 @@ import uk.gov.hmcts.payment.api.domain.service.ServiceRequestCancellationEligibi
 import uk.gov.hmcts.payment.api.domain.service.ServiceRequestCancellationEligibilityService.Eligibility;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentRequest;
+import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
+import uk.gov.hmcts.payment.api.dto.PaymentGroupResponse;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestCancelDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
 import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
@@ -40,6 +41,7 @@ import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
 import uk.gov.hmcts.payment.api.reports.FeesRegisterClient;
 import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
+import uk.gov.hmcts.payment.api.service.PaymentRefundsService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.service.RefundRemissionEnableService;
 import uk.gov.hmcts.payment.api.servicebus.TopicClientProxy;
@@ -49,6 +51,7 @@ import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
@@ -69,6 +72,9 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
 /**
@@ -142,6 +148,10 @@ public class ServiceRequestComponentTest {
     @MockitoBean
     private RefundRemissionEnableService refundRemissionEnableService;
 
+    // The case payment groups endpoint asks the refunds app about refunds and remissions.
+    @MockitoBean
+    private PaymentRefundsService paymentRefundsService;
+
     private RestActions restActions;
 
     @Before
@@ -157,6 +167,8 @@ public class ServiceRequestComponentTest {
 
         when(referenceDataService.getOrganisationalDetail(any(), any(), any())).thenReturn(null);
         when(cancellationEligibilityService.checkEligibility(any())).thenReturn(Eligibility.eligible());
+        when(paymentRefundsService.checkRefundAgainstRemissionV2(any(), any(), any()))
+            .thenAnswer(invocation -> invocation.getArgument(1));
     }
 
     @Test
@@ -175,7 +187,7 @@ public class ServiceRequestComponentTest {
             .build();
 
         manualCancellationRestActions().post("/service-request/%s/cancel".formatted(serviceRequestReference), cancellation)
-            .andExpect(MockMvcResultMatchers.status().isNoContent());
+            .andExpect(status().isNoContent());
 
         PaymentFeeLink persisted = paymentFeeLinkRepository.findByPaymentReference(serviceRequestReference)
             .orElseThrow();
@@ -213,13 +225,13 @@ public class ServiceRequestComponentTest {
         String cancellationPath = "/service-request/%s/cancel".formatted(serviceRequestReference);
 
         serviceOnlyActions.post(cancellationPath)
-            .andExpect(MockMvcResultMatchers.status().isNoContent());
+            .andExpect(status().isNoContent());
         PaymentFeeLink cancelled = paymentFeeLinkRepository.findByPaymentReference(serviceRequestReference)
             .orElseThrow();
         var cancellationDate = cancelled.getDateCancelled();
 
         serviceOnlyActions.post(cancellationPath)
-            .andExpect(MockMvcResultMatchers.status().isNoContent());
+            .andExpect(status().isNoContent());
 
         PaymentFeeLink persisted = paymentFeeLinkRepository.findByPaymentReference(serviceRequestReference)
             .orElseThrow();
@@ -248,9 +260,9 @@ public class ServiceRequestComponentTest {
 
         serviceOnlyRestActions()
             .post("/service-request/%s/cancel".formatted(serviceRequestReference))
-            .andExpect(MockMvcResultMatchers.status().isConflict())
-            .andExpect(MockMvcResultMatchers.content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-            .andExpect(MockMvcResultMatchers.jsonPath("$").value(ineligibleReason));
+            .andExpect(status().isConflict())
+            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$").value(ineligibleReason));
 
         PaymentFeeLink unchanged = paymentFeeLinkRepository.findByPaymentReference(serviceRequestReference)
             .orElseThrow();
@@ -261,6 +273,74 @@ public class ServiceRequestComponentTest {
         assertThat(paymentAuditHistoryRepository.findByCcdCaseNo(ccdCaseNumber))
             .noneMatch(entry -> AuditEventsType.ORDER_CANCELLED.getName().equals(entry.getAuditType().getName()));
         verify(cancellationEligibilityService).checkEligibility(any());
+    }
+
+    /**
+     * Test that a service request cancelled through the API is shown as cancelled by the applicable read endpoints
+     */
+    @Test
+    public void cancelledServiceRequestIsReturnedAsCancelledByReadEndpoints() throws Exception {
+        PaymentFeeLink serviceRequest = saveUnpaidServiceRequest();
+        String serviceRequestReference = serviceRequest.getPaymentReference();
+        String reason = "The service request was created in error";
+
+        manualCancellationRestActions().post("/service-request/%s/cancel".formatted(serviceRequestReference),
+                ServiceRequestCancelDto.cancelDtoWith().reason(reason).build())
+            .andExpect(status().isNoContent());
+
+        Date dateCancelled = paymentFeeLinkRepository.findByPaymentReference(serviceRequestReference)
+            .orElseThrow()
+            .getDateCancelled();
+
+        String paymentGroupJson = restActions.get("/payment-groups/%s".formatted(serviceRequestReference))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.service_request_status").value("Cancelled"))
+            .andExpect(jsonPath("$.cancelled").value(true))
+            .andExpect(jsonPath("$.cancellation_reason").value(reason))
+            .andExpect(jsonPath("$.cancelled_by").value(USER_ID))
+            .andExpect(jsonPath("$.date_cancelled").exists())
+            .andReturn().getResponse().getContentAsString();
+        assertThat(objectMapper.readValue(paymentGroupJson, PaymentGroupDto.class).getDateCancelled())
+            .isEqualTo(dateCancelled);
+
+        String casePaymentGroupsJson = restActions.get("/cases/%s/paymentgroups".formatted(serviceRequest.getCcdCaseNumber()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.payment_groups.length()").value(1))
+            .andExpect(jsonPath("$.payment_groups[0].payment_group_reference").value(serviceRequestReference))
+            .andExpect(jsonPath("$.payment_groups[0].service_request_status").value("Cancelled"))
+            .andExpect(jsonPath("$.payment_groups[0].cancelled").value(true))
+            .andExpect(jsonPath("$.payment_groups[0].cancellation_reason").value(reason))
+            .andExpect(jsonPath("$.payment_groups[0].cancelled_by").value(USER_ID))
+            .andExpect(jsonPath("$.payment_groups[0].date_cancelled").exists())
+            .andReturn().getResponse().getContentAsString();
+        assertThat(objectMapper.readValue(casePaymentGroupsJson, PaymentGroupResponse.class).getPaymentGroups())
+            .singleElement()
+            .satisfies(paymentGroup -> assertThat(paymentGroup.getDateCancelled()).isEqualTo(dateCancelled));
+    }
+
+    /**
+     * Test that a service request that has not been cancelled keeps its normal status in the read endpoints
+     * and leaves out the cancellation fields, so existing consumers see no change in the response.
+     */
+    @Test
+    public void openServiceRequestOmitsCancellationFieldsFromReadEndpoints() throws Exception {
+        PaymentFeeLink serviceRequest = saveUnpaidServiceRequest();
+
+        restActions.get("/payment-groups/%s".formatted(serviceRequest.getPaymentReference()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.service_request_status").value("Not paid"))
+            .andExpect(jsonPath("$.cancelled").doesNotExist())
+            .andExpect(jsonPath("$.cancellation_reason").doesNotExist())
+            .andExpect(jsonPath("$.cancelled_by").doesNotExist())
+            .andExpect(jsonPath("$.date_cancelled").doesNotExist());
+
+        restActions.get("/cases/%s/paymentgroups".formatted(serviceRequest.getCcdCaseNumber()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.payment_groups[0].service_request_status").value("Not paid"))
+            .andExpect(jsonPath("$.payment_groups[0].cancelled").doesNotExist())
+            .andExpect(jsonPath("$.payment_groups[0].cancellation_reason").doesNotExist())
+            .andExpect(jsonPath("$.payment_groups[0].cancelled_by").doesNotExist())
+            .andExpect(jsonPath("$.payment_groups[0].date_cancelled").doesNotExist());
     }
 
     /**
@@ -292,17 +372,17 @@ public class ServiceRequestComponentTest {
         try (MockedConstruction<TopicClientProxy> callbackClients = mockConstruction(TopicClientProxy.class)) {
             String responseBody = serviceOnlyRestActions()
                 .post(endpoint, paymentRequest)
-                .andExpect(MockMvcResultMatchers.status().isCreated())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.status").value("success"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.payment_reference").isNotEmpty())
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.payment_reference").isNotEmpty())
                 .andReturn().getResponse().getContentAsString();
             String paymentReference = objectMapper.readTree(responseBody).get("payment_reference").asText();
 
             serviceOnlyRestActions()
                 .post(endpoint, paymentRequest)
-                .andExpect(MockMvcResultMatchers.status().isCreated())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.status").value("success"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.payment_reference").value(paymentReference));
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.payment_reference").value(paymentReference));
 
             Payment persisted = paymentRepository.findByReference(paymentReference).orElseThrow();
             assertThat(persisted.getAmount()).isEqualByComparingTo("10.00");
@@ -347,13 +427,13 @@ public class ServiceRequestComponentTest {
 
         serviceOnlyRestActions()
             .post(endpoint, paymentRequest)
-            .andExpect(MockMvcResultMatchers.status().isConflict())
-            .andExpect(MockMvcResultMatchers.jsonPath("$").value(message));
+            .andExpect(status().isConflict())
+            .andExpect(jsonPath("$").value(message));
 
         serviceOnlyRestActions()
             .post(endpoint, paymentRequest)
-            .andExpect(MockMvcResultMatchers.status().isConflict())
-            .andExpect(MockMvcResultMatchers.jsonPath("$").value(message));
+            .andExpect(status().isConflict())
+            .andExpect(jsonPath("$").value(message));
 
         PaymentFeeLink unchanged = paymentFeeLinkRepository.findByPaymentReference(serviceRequestReference)
             .orElseThrow();
@@ -391,11 +471,11 @@ public class ServiceRequestComponentTest {
 
         String responseBody = serviceOnlyRestActions()
             .post("/service-request/%s/card-payments".formatted(serviceRequest.getPaymentReference()), paymentRequest)
-            .andExpect(MockMvcResultMatchers.status().isCreated())
-            .andExpect(MockMvcResultMatchers.jsonPath("$.status").value("Initiated"))
-            .andExpect(MockMvcResultMatchers.jsonPath("$.external_reference").value(externalReference))
-            .andExpect(MockMvcResultMatchers.jsonPath("$.next_url").value(nextUrl))
-            .andExpect(MockMvcResultMatchers.jsonPath("$.payment_reference").isNotEmpty())
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.status").value("Initiated"))
+            .andExpect(jsonPath("$.external_reference").value(externalReference))
+            .andExpect(jsonPath("$.next_url").value(nextUrl))
+            .andExpect(jsonPath("$.payment_reference").isNotEmpty())
             .andReturn().getResponse().getContentAsString();
         String paymentReference = objectMapper.readTree(responseBody).get("payment_reference").asText();
 
@@ -441,8 +521,8 @@ public class ServiceRequestComponentTest {
 
         serviceOnlyRestActions()
             .post("/service-request/%s/card-payments".formatted(serviceRequestReference), paymentRequest)
-            .andExpect(MockMvcResultMatchers.status().isConflict())
-            .andExpect(MockMvcResultMatchers.jsonPath("$").value(message));
+            .andExpect(status().isConflict())
+            .andExpect(jsonPath("$").value(message));
 
         PaymentFeeLink unchanged = paymentFeeLinkRepository.findByPaymentReference(serviceRequestReference)
             .orElseThrow();
@@ -459,8 +539,8 @@ public class ServiceRequestComponentTest {
 
         serviceOnlyRestActions()
             .post("/service-request/%s/cancel".formatted(serviceRequestReference))
-            .andExpect(MockMvcResultMatchers.status().isNotFound())
-            .andExpect(MockMvcResultMatchers.content()
+            .andExpect(status().isNotFound())
+            .andExpect(content()
                 .string("Service request not found"));
     }
 
@@ -473,17 +553,17 @@ public class ServiceRequestComponentTest {
 
         unauthorizedActions
             .post("/service-request/2026-12345678901/cancel")
-            .andExpect(MockMvcResultMatchers.status().isForbidden());
+            .andExpect(status().isForbidden());
 
         newRestActions()
             .post("/service-request/2026-12345678901/cancel")
-            .andExpect(MockMvcResultMatchers.status().isForbidden());
+            .andExpect(status().isForbidden());
 
         newRestActions()
             .withAuthorizedService("divorce")
             .withHeader("Authorization", "invalid-user-token")
             .post("/service-request/2026-12345678901/cancel")
-            .andExpect(MockMvcResultMatchers.status().isForbidden());
+            .andExpect(status().isForbidden());
     }
 
     @Test
@@ -494,17 +574,20 @@ public class ServiceRequestComponentTest {
             .post("/service-request/2026-12345678901/cancel", ServiceRequestCancelDto.cancelDtoWith()
                 .reason("The service request was created in error")
                 .build())
-            .andExpect(MockMvcResultMatchers.status().isForbidden());
+            .andExpect(status().isForbidden());
     }
 
     private PaymentFeeLink saveUnpaidServiceRequest() {
         BigDecimal amount = new BigDecimal("10.00");
+        // The case payment groups search matches on the fee's case number, so it is set on both.
+        String ccdCaseNumber = UUID.randomUUID().toString().replace("-", "");
         return paymentFeeLinkRepository.save(PaymentFeeLink.paymentFeeLinkWith()
             .paymentReference(newServiceRequestReference())
             .enterpriseServiceName("Divorce")
             .orgId("AA01")
-            .ccdCaseNumber(UUID.randomUUID().toString().replace("-", ""))
+            .ccdCaseNumber(ccdCaseNumber)
             .fees(List.of(PaymentFee.feeWith()
+                .ccdCaseNumber(ccdCaseNumber)
                 .code("FEE0001")
                 .version("1")
                 .volume(1)
