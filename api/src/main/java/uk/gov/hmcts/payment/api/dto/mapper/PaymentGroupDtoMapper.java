@@ -81,6 +81,10 @@ public class PaymentGroupDtoMapper {
             .fees(toFeeDtos(paymentFeeLink.getFees()))
             .payments((!(paymentFeeLink.getPayments() == null) && !paymentFeeLink.getPayments().isEmpty()) ? toPaymentDtos(paymentFeeLink.getPayments(), paymentFailuresList) : null)
             .remissions(!(paymentFeeLink.getRemissions() == null) ? toRemissionDtos(paymentFeeLink.getRemissions()) : null)
+            .cancelled(paymentFeeLink.isCancelled() ? Boolean.TRUE : null)
+            .cancellationReason(paymentFeeLink.isCancelled() ? paymentFeeLink.getCancellationReason() : null)
+            .cancelledBy(paymentFeeLink.isCancelled() ? paymentFeeLink.getCancelledBy() : null)
+            .dateCancelled(paymentFeeLink.isCancelled() ? paymentFeeLink.getDateCancelled() : null)
             .build();
 
         if (null != paymentGroupDto.getPayments()) {
