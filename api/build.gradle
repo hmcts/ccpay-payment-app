@@ -146,7 +146,7 @@ dependencies {
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-aop'
     implementation group: 'org.springframework.cloud', name: 'spring-cloud-openfeign-core'
     implementation group: 'commons-fileupload', name: 'commons-fileupload', version: '1.6.0'
-    implementation(group: 'org.postgresql', name: 'postgresql', version: '42.7.13') {
+    implementation(group: 'org.postgresql', name: 'postgresql', version: '42.7.14') {
         exclude(module: 'commons-logging')
         exclude(module: 'slf4j-simple')
     }
@@ -183,7 +183,7 @@ dependencies {
 
     // JUnit 4 dependencies
     testImplementation group: 'org.mockito', name: 'mockito-core', version: '5.23.0'
-    testImplementation group: 'io.github.hakky54', name: 'logcaptor', version: '2.12.7'
+    testImplementation group: 'io.github.hakky54', name: 'logcaptor', version: '2.13.0'
     testImplementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.5.38'
     testRuntimeOnly group: 'org.junit.vintage', name: 'junit-vintage-engine'
     testRuntimeOnly group: 'org.junit.platform', name: 'junit-platform-launcher'
