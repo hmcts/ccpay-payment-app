@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.BulkScanPaymentRequest;
+import uk.gov.hmcts.payment.api.dto.BulkScanPaymentRequestStrategic;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupResponse;
 import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
@@ -171,8 +172,8 @@ public class PaymentsTestDsl {
             return this;
         }
 
-        public PaymentWhenDsl createBulkScanPaymentStrategic(BulkScanPaymentRequest bulkScanPaymentRequest, String paymentGroupReference) {
-            response = newRequest().contentType(ContentType.JSON).body(bulkScanPaymentRequest)
+        public PaymentWhenDsl createBulkScanPaymentStrategic(BulkScanPaymentRequestStrategic bulkScanPaymentRequestStrategic, String paymentGroupReference) {
+            response = newRequest().contentType(ContentType.JSON).body(bulkScanPaymentRequestStrategic)
                 .post("/payment-groups/{payment-group-reference}/bulk-scan-payments-strategic", paymentGroupReference );
             return this;
         }
