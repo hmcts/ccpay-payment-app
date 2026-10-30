@@ -20,6 +20,7 @@ public class PBAStatusErrorMapper {
     private static final Logger LOG = LoggerFactory.getLogger(PBAStatusErrorMapper.class);
 
     public void setPaymentStatus(CreditAccountPaymentRequest creditAccountPaymentRequest, Payment payment, AccountDto accountDetails) {
+        LOG.info("CreditAccountPayment received for ccdCaseNumber: {}: Payload {}", payment.getCcdCaseNumber(), accountDetails);
         if (accountDetails.getStatus() == AccountStatus.ACTIVE && isAccountBalanceSufficient(accountDetails.getAvailableBalance(),
             creditAccountPaymentRequest.getAmount())) {
             payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("success").build());
@@ -37,6 +38,14 @@ public class PBAStatusErrorMapper {
                 accountDetails.getAccountName(), creditAccountPaymentRequest.getAmount(),
                 accountDetails.getAvailableBalance());
             LOG.info("ccdCaseNumber : {} Liberata AccountStatus : {} PaymentStatus : {} - Account Balance InSufficient!!!", payment.getCcdCaseNumber(), accountDetails.getStatus(), payment.getPaymentStatus().getName());
+        } else if (accountDetails.getStatus() == AccountStatus.INACTIVE) {
+            payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name(FAILED).build());
+            payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
+                .status(payment.getPaymentStatus().getName())
+                .errorCode("CA-E0002")
+                .message("Your account is inactive")
+                .build()));
+            LOG.info("CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {} PaymentStatus : {} - Account is inactive!", payment.getCcdCaseNumber(), accountDetails.getStatus(), payment.getPaymentStatus().getName());
         } else if (accountDetails.getStatus() == AccountStatus.ON_HOLD) {
             payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name(FAILED).build());
             payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
