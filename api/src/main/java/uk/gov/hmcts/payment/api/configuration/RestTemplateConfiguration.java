@@ -29,6 +29,12 @@ public class RestTemplateConfiguration {
     @Value("${liberata.read.timeout:10000}")
     private int liberataReadTimeout;
 
+    @Value("${bulk.scanning.connect.timeout:5000}")
+    private int bulkScanningConnectTimeout;
+
+    @Value("${bulk.scanning.read.timeout:5000}")
+    private int bulkScanningReadTimeout;
+
     @Primary
     @Bean
     public CloseableHttpClient paymentsHttpClient() {
@@ -40,6 +46,13 @@ public class RestTemplateConfiguration {
     @Bean (value = "restTemplatePaymentGroup")
     public RestTemplate restTemplatePaymentGroup() {
         return new RestTemplate(new HttpComponentsClientHttpRequestFactory());
+    }
+
+    // The cancellation eligibility check calls bulk scanning while holding a lock on the service request,
+    // so this client has timeouts to stop a slow response holding that lock indefinitely.
+    @Bean (value = "restTemplateBulkScanning")
+    public RestTemplate restTemplateBulkScanning() {
+        return createRestTemplate(bulkScanningReadTimeout, bulkScanningConnectTimeout);
     }
 
     @Bean (value = "restTemplateLiberata")

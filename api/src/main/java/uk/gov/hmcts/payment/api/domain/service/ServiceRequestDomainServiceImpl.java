@@ -655,22 +655,25 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
      * @param serviceRequestReference reference of the service request to cancel
      * @param cancelledBy             identifier of the user or service requesting the cancellation
      * @param reason                  cancellation reason
+     * @param userAuthorization       the caller's user token for a manual cancellation, or null for an automated one
      */
     @Override
     @Transactional
-    public void cancel(String serviceRequestReference, String cancelledBy, String reason) {
+    public void cancel(String serviceRequestReference, String cancelledBy, String reason, String userAuthorization) {
+
+        // Need to lock
 
         PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.findByPaymentReferenceForUpdate(serviceRequestReference)
             .orElseThrow(() -> new ServiceRequestReferenceNotFoundException("Service request not found"));
 
-        // check if already cancelled
+        // check again if already cancelled
         if (paymentFeeLink.isCancelled()) {
-            LOG.info("{} is already cancelled", paymentFeeLink);
+            LOG.info("{} is already cancelled after lock", paymentFeeLink);
             return;
         }
 
         // validate if this request is allowed to be cancelled
-        Eligibility eligibility = cancellationEligibilityService.checkEligibility(paymentFeeLink);
+        Eligibility eligibility = cancellationEligibilityService.checkEligibility(paymentFeeLink, userAuthorization);
         if (!eligibility.cancellable()) {
             LOG.warn("{} cannot be cancelled: {}", paymentFeeLink, eligibility.reason());
             throw new ServiceRequestCancellationException(eligibility.reason());

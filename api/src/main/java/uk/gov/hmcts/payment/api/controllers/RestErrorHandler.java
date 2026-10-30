@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import uk.gov.hmcts.payment.api.contract.exception.ValidationErrorDTO;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
+import uk.gov.hmcts.payment.api.exception.BulkScanningServiceUnavailableException;
 import uk.gov.hmcts.payment.api.exception.InvalidServiceRequestCancellationException;
 import uk.gov.hmcts.payment.api.exception.LiberataServiceTimeoutException;
 import uk.gov.hmcts.payment.api.exceptions.ServiceRequestCancellationException;
@@ -40,7 +41,8 @@ public class RestErrorHandler {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @ExceptionHandler({GatewayTimeoutException.class, AccountServiceUnavailableException.class, LiberataServiceTimeoutException.class})
+    @ExceptionHandler({GatewayTimeoutException.class, AccountServiceUnavailableException.class, LiberataServiceTimeoutException.class,
+        BulkScanningServiceUnavailableException.class})
     public ResponseEntity return504(Exception ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.GATEWAY_TIMEOUT);
     }
