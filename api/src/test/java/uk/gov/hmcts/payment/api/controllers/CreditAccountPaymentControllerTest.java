@@ -531,6 +531,23 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
+    public void failCreditAccountPaymentWhenLiberataRespondsAccountStatusInactive() throws Exception {
+        AccountDto accountInactiveDto = new AccountDto(request.getAccountNumber(), "accountName",
+            new BigDecimal(1000), new BigDecimal(1000), AccountStatus.INACTIVE, new Date());
+        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountInactiveDto);
+
+        MvcResult result = restActions
+            .post(format("/credit-account-payments"), request)
+            .andExpect(status().isForbidden()).andReturn();
+
+        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+
+        assertEquals("Failed", paymentDto.getStatus());
+        assertEquals("CA-E0002", paymentDto.getStatusHistories().get(0).getErrorCode());
+        assertEquals("Your account is inactive", paymentDto.getStatusHistories().get(0).getErrorMessage());
+    }
+
+    @Test
     public void failCreditAccountPaymentWhenLiberataRespondsAccountStatusDeleted() throws Exception {
 
         when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getAnErrorDueToDeleted());

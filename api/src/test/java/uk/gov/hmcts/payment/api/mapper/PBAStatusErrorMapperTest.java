@@ -49,6 +49,7 @@ public class PBAStatusErrorMapperTest {
     private static AccountDto activeAccountDetails;
     private static AccountDto activeAccountInsufficientDetails;
     private static AccountDto onHoldAccountDetails;
+    private static AccountDto inactiveAccountDetails;
     private static AccountDto deletedAccountDetails;
 
     private static LogCaptor mockLOG;
@@ -81,6 +82,10 @@ public class PBAStatusErrorMapperTest {
             .accountName("account-name")
             .availableBalance(new BigDecimal("100.00"))
             .status(AccountStatus.ON_HOLD).build();
+        inactiveAccountDetails = AccountDto.accountDtoWith()
+            .accountName("account-name")
+            .availableBalance(new BigDecimal("100.00"))
+            .status(AccountStatus.INACTIVE).build();
         deletedAccountDetails = AccountDto.accountDtoWith()
             .accountName("account-name")
             .availableBalance(new BigDecimal("100.00"))
@@ -103,21 +108,35 @@ public class PBAStatusErrorMapperTest {
     public void testSetPaymentStatusWithOnHold() {
         PBAStatusErrorMapper pbaStatusErrorMapper = new PBAStatusErrorMapper();
         pbaStatusErrorMapper.setPaymentStatus(creditAccountPaymentRequest, payment, onHoldAccountDetails);
-        assertThat(mockLOG.getInfoLogs().get(0)).isEqualTo("CreditAccountPayment received for ccdCaseNumber : ccd-number Liberata AccountStatus : ON_HOLD PaymentStatus : failed - Account is on hold!");
+        assertThat(mockLOG.getInfoLogs().get(1)).isEqualTo("CreditAccountPayment received for ccdCaseNumber : ccd-number Liberata AccountStatus : ON_HOLD PaymentStatus : failed - Account is on hold!");
+    }
+
+    @Test
+    public void testSetPaymentStatusWithInactive() {
+        PBAStatusErrorMapper pbaStatusErrorMapper = new PBAStatusErrorMapper();
+        Payment inactivePayment = Payment.paymentWith().ccdCaseNumber("ccd-number").build();
+
+        pbaStatusErrorMapper.setPaymentStatus(creditAccountPaymentRequest, inactivePayment, inactiveAccountDetails);
+
+        assertThat(mockLOG.getInfoLogs().get(1)).isEqualTo("CreditAccountPayment received for ccdCaseNumber : ccd-number Liberata AccountStatus : INACTIVE PaymentStatus : failed - Account is inactive!");
+        assertThat(inactivePayment.getPaymentStatus().getName()).isEqualTo("failed");
+        assertThat(inactivePayment.getStatusHistories()).hasSize(1);
+        assertThat(inactivePayment.getStatusHistories().get(0).getErrorCode()).isEqualTo("CA-E0002");
+        assertThat(inactivePayment.getStatusHistories().get(0).getMessage()).isEqualTo("Your account is inactive");
     }
 
     @Test
     public void testSetPaymentStatusWithActiveAndSufficientBalance() {
         PBAStatusErrorMapper pbaStatusErrorMapper = new PBAStatusErrorMapper();
         pbaStatusErrorMapper.setPaymentStatus(creditAccountPaymentRequest,payment,activeAccountDetails);
-        assertThat(mockLOG.getInfoLogs().get(0)).isEqualTo("CreditAccountPayment received for ccdCaseNumber : ccd-number Liberata AccountStatus : ACTIVE PaymentStatus : success - Account Balance Sufficient!!!");
+        assertThat(mockLOG.getInfoLogs().get(1)).isEqualTo("CreditAccountPayment received for ccdCaseNumber : ccd-number Liberata AccountStatus : ACTIVE PaymentStatus : success - Account Balance Sufficient!!!");
     }
 
     @Test
     public void testSetPaymentStatusWithDeletedStatus() {
         PBAStatusErrorMapper pbaStatusErrorMapper = new PBAStatusErrorMapper();
         pbaStatusErrorMapper.setPaymentStatus(creditAccountPaymentRequest,payment,deletedAccountDetails);
-        assertThat(mockLOG.getInfoLogs().get(0)).isEqualTo("CreditAccountPayment received for ccdCaseNumber : ccd-number Liberata AccountStatus : DELETED PaymentStatus : failed - Account is deleted!");
+        assertThat(mockLOG.getInfoLogs().get(1)).isEqualTo("CreditAccountPayment received for ccdCaseNumber : ccd-number Liberata AccountStatus : DELETED PaymentStatus : failed - Account is deleted!");
     }
 
     @Test

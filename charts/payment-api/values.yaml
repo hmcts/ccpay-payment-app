@@ -101,6 +101,7 @@ java:
     SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: true
     SPRING_MAIL_USERNAME: apikey
 
+
     FEATURE_PAYMENTS_SEARCH: "true"
     FEATURE_SERVICE_CALLBACK: "true"
     PAYMENT_S2S_MICROSERVICE_NAME: payment_app
@@ -109,7 +110,7 @@ java:
     REFUND_API_URL: http://ccpay-refunds-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal
     SERVER_SHUTDOWN_STRATEGY: graceful
     TIMEOUT_SERVER_SHUTDOWN_PHASE: 30s
-    LIBERATA_API_REALTIME_ACCOUNT_URL: https://lascustomerportaluat.liberata.com
+    LIBERATA_API_REALTIME_ACCOUNT_URL: https://lascustomerportaluat.liberata.com/pba-api-v2-uat
 
     CARD_LAG_TIME: 144
     CASH_LAG_TIME: 120
