@@ -65,7 +65,8 @@ public class LiberataRealTimeAPI {
 
     @CachePut(value = "liberataToken")
     public TokenResponse refreshToken() {
-        return fetchNewToken();
+        cachedToken = fetchNewToken();
+        return cachedToken;
     }
 
     private TokenResponse fetchNewToken() {
