@@ -655,11 +655,10 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
      * @param serviceRequestReference reference of the service request to cancel
      * @param cancelledBy             identifier of the user or service requesting the cancellation
      * @param reason                  cancellation reason
-     * @param userAuthorization       the caller's user token for a manual cancellation, or null for an automated one
      */
     @Override
     @Transactional
-    public void cancel(String serviceRequestReference, String cancelledBy, String reason, String userAuthorization) {
+    public void cancel(String serviceRequestReference, String cancelledBy, String reason) {
 
         // Need to lock
 
@@ -673,7 +672,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         }
 
         // validate if this request is allowed to be cancelled
-        Eligibility eligibility = cancellationEligibilityService.checkEligibility(paymentFeeLink, userAuthorization);
+        Eligibility eligibility = cancellationEligibilityService.checkEligibility(paymentFeeLink);
         if (!eligibility.cancellable()) {
             LOG.warn("{} cannot be cancelled: {}", paymentFeeLink, eligibility.reason());
             throw new ServiceRequestCancellationException(eligibility.reason());

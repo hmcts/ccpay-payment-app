@@ -166,7 +166,7 @@ public class ServiceRequestComponentTest {
             .withUserId(USER_ID);
 
         when(referenceDataService.getOrganisationalDetail(any(), any(), any())).thenReturn(null);
-        when(cancellationEligibilityService.checkEligibility(any(), any())).thenReturn(Eligibility.eligible());
+        when(cancellationEligibilityService.checkEligibility(any())).thenReturn(Eligibility.eligible());
         when(paymentRefundsService.checkRefundAgainstRemissionV2(any(), any(), any()))
             .thenAnswer(invocation -> invocation.getArgument(1));
     }
@@ -255,7 +255,7 @@ public class ServiceRequestComponentTest {
             .ccdCaseNumber(ccdCaseNumber)
             .build());
         String ineligibleReason = "Service request has a successful payment RC-1234-1234-1234";
-        when(cancellationEligibilityService.checkEligibility(any(), any()))
+        when(cancellationEligibilityService.checkEligibility(any()))
             .thenReturn(Eligibility.ineligible(ineligibleReason));
 
         serviceOnlyRestActions()
@@ -272,7 +272,7 @@ public class ServiceRequestComponentTest {
         assertThat(unchanged.getDateCancelled()).isNull();
         assertThat(paymentAuditHistoryRepository.findByCcdCaseNo(ccdCaseNumber))
             .noneMatch(entry -> AuditEventsType.ORDER_CANCELLED.getName().equals(entry.getAuditType().getName()));
-        verify(cancellationEligibilityService).checkEligibility(any(), any());
+        verify(cancellationEligibilityService).checkEligibility(any());
     }
 
     /**

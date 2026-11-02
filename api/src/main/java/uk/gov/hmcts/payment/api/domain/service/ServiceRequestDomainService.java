@@ -50,7 +50,6 @@ public interface ServiceRequestDomainService {
      * @param serviceRequestReference reference of the service request to cancel
      * @param cancelledBy             identifier of the user or service requesting the cancellation
      * @param reason                  cancellation reason
-     * @param userAuthorization       the caller's user token for a manual cancellation, or null for an automated one
      */
-    void cancel(String serviceRequestReference, String cancelledBy, String reason, String userAuthorization);
+    void cancel(String serviceRequestReference, String cancelledBy, String reason);
 }
