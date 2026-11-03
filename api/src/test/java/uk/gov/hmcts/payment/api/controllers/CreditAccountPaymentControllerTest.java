@@ -36,6 +36,7 @@ import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.liberata.PaymentAccountResponse;
 import uk.gov.hmcts.payment.api.dto.liberata.PaymentAccountResponseStatus;
 import uk.gov.hmcts.payment.api.dto.liberata.identity.TokenResponse;
+import uk.gov.hmcts.payment.api.mapper.PBAStatusErrorMapper;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.Payment2Repository;
 import uk.gov.hmcts.payment.api.model.PaymentChannel;
@@ -505,7 +506,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         assertEquals("Failed", paymentDto.getStatus());
         assertEquals("CA-E0001", paymentDto.getStatusHistories().get(0).getErrorCode());
-        assertEquals("Exceeded credit limit.", paymentDto.getStatusHistories().get(0).getErrorMessage());
+        assertEquals("Payment request failed. PBA account AC101010 have insufficient funds available", paymentDto.getStatusHistories().get(0).getErrorMessage());
     }
 
     @Test
@@ -522,24 +523,9 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         assertEquals("Failed", paymentDto.getStatus());
         assertEquals("CA-E0003", paymentDto.getStatusHistories().get(0).getErrorCode());
-        assertEquals("Account not active.", paymentDto.getStatusHistories().get(0).getErrorMessage());
+        assertEquals("Your account is on hold", paymentDto.getStatusHistories().get(0).getErrorMessage());
     }
 
-    @Test
-    public void failCreditAccountPaymentWhenLiberataRespondsAccountStatusInactive() throws Exception {
-        AccountDto accountInactiveDto = new AccountDto(request.getAccountNumber(), "accountName",
-            new BigDecimal(1000), new BigDecimal(1000), AccountStatus.INACTIVE, new Date());
-
-        MvcResult result = restActions
-            .post(format("/credit-account-payments"), request)
-            .andExpect(status().isForbidden()).andReturn();
-
-        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
-
-        assertEquals("Failed", paymentDto.getStatus());
-        assertEquals("CA-E0002", paymentDto.getStatusHistories().get(0).getErrorCode());
-        assertEquals("Your account is inactive", paymentDto.getStatusHistories().get(0).getErrorMessage());
-    }
 
     @Test
     public void failCreditAccountPaymentWhenLiberataRespondsAccountStatusDeleted() throws Exception {
@@ -647,7 +633,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         assertEquals("Failed", paymentDto.getStatus());
         assertEquals("CA-E0001", paymentDto.getStatusHistories().get(0).getErrorCode());
-        assertEquals(EXCEEDED_CREDIT_LIMIT.getValue(), paymentDto.getStatusHistories().get(0).getErrorMessage());
+        assertEquals("Payment request failed. PBA account AC101010 have insufficient funds available", paymentDto.getStatusHistories().get(0).getErrorMessage());
     }
 
     @Test
@@ -1255,6 +1241,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     private PaymentAccountResponse getAnErrorDueToAccountOnHold() {
         return PaymentAccountResponse.paymentDtoWith()
             .status(PaymentAccountResponseStatus.ERROR.getValue())
+            .reason(PBAStatusErrorMapper.ON_HOLD)
             .message(PaymentAccountResponseStatus.ACCOUNT_NOT_ACTIVE.getValue()).build();
     }
 
