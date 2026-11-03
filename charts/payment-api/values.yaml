@@ -13,7 +13,7 @@ java:
   environment:
     POSTGRES_NAME: payment
     POSTGRES_CONNECTION_OPTIONS: ?sslmode=require
-    SPRING_LIQUIBASE_ENABLED: false
+    SPRING_LIQUIBASE_ENABLED: true
 
     RUN_DB_MIGRATION_ON_STARTUP: 'false'
     S2S_URL: http://rpe-service-auth-provider-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal
