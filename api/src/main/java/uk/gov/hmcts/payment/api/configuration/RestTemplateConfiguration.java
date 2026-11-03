@@ -14,6 +14,8 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Collections;
+
 @Configuration
 public class RestTemplateConfiguration {
 
@@ -77,6 +79,11 @@ public class RestTemplateConfiguration {
         return  new RestTemplate(new HttpComponentsClientHttpRequestFactory());
     }
 
+
+    @Bean(name = "liberataRestTemplate")
+    public RestTemplate liberataRestTemplate() {
+        return  new RestTemplate(new HttpComponentsClientHttpRequestFactory());
+    }
 
     private RestTemplate createRestTemplate(int readTimeout, int connectTimeout) {
         PoolingHttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
