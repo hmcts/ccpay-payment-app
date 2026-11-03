@@ -14,6 +14,7 @@ import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.mapper.CreditAccountPaymentRequestMapper;
 import uk.gov.hmcts.payment.api.mapper.PBAPaymentMapper;
 import uk.gov.hmcts.payment.api.mapper.PBAStatusErrorMapper;
+import uk.gov.hmcts.payment.api.mapper.liberata.account.LiberataAccountMapper;
 import uk.gov.hmcts.payment.api.mapper.liberata.identity.AccessTokenDtoToTokenResponseMapper;
 import uk.gov.hmcts.payment.api.model.FeePayApportionRepository;
 import uk.gov.hmcts.payment.api.model.Payment2Repository;
@@ -78,7 +79,6 @@ public class CreditAccountPaymentProviderTestConfiguration {
         return Mockito.mock(RestTemplate.class);
     }
 
-
     @Bean
     public LiberataRealTimeAPI liberataRealTimeAPI() {
         return Mockito.mock(LiberataRealTimeAPI.class);
@@ -87,6 +87,11 @@ public class CreditAccountPaymentProviderTestConfiguration {
     @Bean
     public PBAPaymentMapper  pBAPaymentMapper() {
         return Mockito.mock(PBAPaymentMapper.class);
+    }
+
+    @Bean
+    public LiberataAccountMapper liberataAccountMapper() {
+        return Mockito.mock(LiberataAccountMapper.class);
     }
 
     @Bean

@@ -1224,7 +1224,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         // Create a PBA payment where PBA0088878 is a test account with insufficient funds available
         this.add_remisssions_and_add_refund_for_a_failed_payment("350000.00",
             "PBA0088878",
-            "Exceeded credit limit.");
+            "Payment request failed. PBA account PBA0088878  have insufficient funds available");
     }
 
     @Test
@@ -1233,10 +1233,10 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
 
         String accountNumber = testProps.deletedAccountNumber;
 
-        // Create a PBA payment when PBA0086928 is a test account that has been deleted.
+        // Create a PBA payment when PBAFUNC12345_DELETED  is a test account that has been deleted.
         this.add_remisssions_and_add_refund_for_a_failed_payment("100.00",
-            "PBA0086928",
-            "Account not active.");
+            "PBAFUNC12345_DELETED",
+            "Your account is deleted");
     }
 
     @Test
@@ -1245,10 +1245,10 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
 
         String accountNumber = testProps.onHoldAccountNumber;
 
-        // Create a PBA payment when PBA0086940 is a test account with insufficient funds available and is on hold
+        // Create a PBA payment when PBAFUNC12345_ON_HOLD  is a test account with insufficient funds available and is on hold
         this.add_remisssions_and_add_refund_for_a_failed_payment("100.00",
-            "PBA0086940",
-            "Account not active.");
+            "PBAFUNC12345_ON_HOLD",
+            "Your account is on hold");
     }
 
     private void add_remisssions_and_add_refund_for_a_failed_payment(final String amount,
