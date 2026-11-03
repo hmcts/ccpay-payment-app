@@ -2,6 +2,8 @@ package uk.gov.hmcts.payment.api.service;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -76,6 +78,25 @@ class IdamSystemUserTokenProviderTest {
             .andRespond(tokenResponse("token-1", "28800"));
 
         assertThat(provider("").getAccessToken()).isEqualTo("token-1");
+        server.verify();
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "http://idam-api, http://idam-api/o/token",
+        "http://idam-api/, http://idam-api/o/token",
+        "http://idam-api/idam, http://idam-api/idam/o/token",
+        "http://idam-api/idam/, http://idam-api/idam/o/token"
+    })
+    void appendsTheTokenEndpointToTheBaseUrl(String baseUrl, String tokenUrl) {
+        server.expect(requestTo(tokenUrl))
+            .andExpect(method(HttpMethod.POST))
+            .andRespond(tokenResponse("token-1", "28800"));
+
+        IdamSystemUserTokenProvider provider = new IdamSystemUserTokenProvider(restTemplate, baseUrl,
+            "system.user@hmcts.net", "secret-password", "payment_api", "client-secret", "openid profile roles", "", clock);
+
+        assertThat(provider.getAccessToken()).isEqualTo("token-1");
         server.verify();
     }
 

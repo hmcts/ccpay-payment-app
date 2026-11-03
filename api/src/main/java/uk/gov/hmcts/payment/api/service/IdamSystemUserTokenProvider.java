@@ -12,9 +12,11 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.payment.api.dto.idam.IdamTokenResponse;
 import uk.gov.hmcts.payment.api.exception.SystemUserTokenException;
 
+import java.net.URI;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -39,7 +41,7 @@ public class IdamSystemUserTokenProvider {
     static final Duration EXPIRY_MARGIN = Duration.ofMinutes(1);
 
     private final RestTemplate restTemplate;
-    private final String idamBaseUrl;
+    private final URI tokenUri;
     private final String username;
     private final String password;
     private final String clientId;
@@ -67,7 +69,10 @@ public class IdamSystemUserTokenProvider {
     IdamSystemUserTokenProvider(RestTemplate restTemplate, String idamBaseUrl, String username, String password,
                                 String clientId, String clientSecret, String scope, String redirectUri, Clock clock) {
         this.restTemplate = restTemplate;
-        this.idamBaseUrl = idamBaseUrl;
+        this.tokenUri = UriComponentsBuilder.fromUriString(idamBaseUrl)
+            .path(TOKEN_ENDPOINT)
+            .build()
+            .toUri();
         this.username = username;
         this.password = password;
         this.clientId = clientId;
@@ -119,7 +124,7 @@ public class IdamSystemUserTokenProvider {
         IdamTokenResponse response;
         try {
             log.info("Getting an IDAM token for the system user");
-            response = restTemplate.postForObject(idamBaseUrl + TOKEN_ENDPOINT, new HttpEntity<>(form, headers),
+            response = restTemplate.postForObject(tokenUri, new HttpEntity<>(form, headers),
                 IdamTokenResponse.class);
         } catch (RestClientException e) {
             // The exception message can include the response body but never the request, so the password is not logged.
