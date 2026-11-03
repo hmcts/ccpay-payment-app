@@ -22,13 +22,28 @@ public class PBAStatusErrorMapper {
     private static final String FAILED = "failed";
     private static final Logger LOG = LoggerFactory.getLogger(PBAStatusErrorMapper.class);
 
+    private static final String EXCEEDED_CREDIT_LIMIT_MESSAGE = "Payment request failed. PBA account {accountNumber} have insufficient funds available";
+    private static final String EXCEEDED_CREDIT_LIMIT = "Exceeded credit limit.";
+    private static  String ON_HOLD="CUSTOMER ON HOLD - EXCEEDED CREDIT LIMIT";
+    private static  String DELETED="DELETED";
+
     public static final Map<String, String> PBA_ERROR_CODE_MAP = Map.of(
         "Exceeded credit limit.", "CA-E0001",
         "Account not found.", "CA-E0004",
         "Validation failed.", "CA-E0005",
-        "Account not active.", "CA-E0003",
         "Duplicate payment detected.", "CA-E0006",
         "Unauthenticated.", "CA-E0007"
+    );
+
+    public static final Map<String, String> PBA_REASON_CODE_MAP = Map.of(
+        DELETED, "CA-E0004",
+        ON_HOLD, "CA-E0003"
+    );
+
+    public static final Map<String, String> PBA_MESSAGES_CODE_MAP = Map.of(
+        DELETED, "Your account is deleted",
+        ON_HOLD, "Your account is on hold",
+        EXCEEDED_CREDIT_LIMIT,EXCEEDED_CREDIT_LIMIT_MESSAGE
     );
 
     public void setPaymentStatus(CreditAccountPaymentRequest creditAccountPaymentRequest, Payment payment, AccountDto accountDetails) {
@@ -91,11 +106,27 @@ public class PBAStatusErrorMapper {
 
             payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name(FAILED).build());
             LOG.info("Payment request failed. " + paymentAccountResponse.getMessage() + " PBA account {}" + creditAccountPaymentRequest.getAccountNumber());
-            // modify the first status history with the error code and message from the response
+
+            // check if the reason code is present in the response and if it is mapped to an error code, this done for deleted and on hold accounts.
+            if(paymentAccountResponse.getReason() != null && PBA_REASON_CODE_MAP.containsKey(paymentAccountResponse.getReason())) {
+                payment.getStatusHistories().getFirst().setStatus(payment.getPaymentStatus().getName());
+                payment.getStatusHistories().getFirst().setErrorCode(PBA_REASON_CODE_MAP.get(paymentAccountResponse.getReason()));
+                payment.getStatusHistories().getFirst().setMessage(PBA_MESSAGES_CODE_MAP.get(paymentAccountResponse.getReason()));
+                return;
+            }
             payment.getStatusHistories().getFirst().setStatus(payment.getPaymentStatus().getName());
-            payment.getStatusHistories().getFirst().setErrorCode(PBA_ERROR_CODE_MAP.get( paymentAccountResponse.getMessage()));
-            payment.getStatusHistories().getFirst().setMessage(paymentAccountResponse.getMessage());
+            payment.getStatusHistories().getFirst().setErrorCode(PBA_ERROR_CODE_MAP.get(paymentAccountResponse.getMessage()));
+            payment.getStatusHistories().getFirst().setMessage(getMessageForErrorCode(paymentAccountResponse, creditAccountPaymentRequest));
         }
+    }
+    // This method is used to get the message for the error code. If the error code is "Exceeded credit limit.",
+    // it will return a message with the account number. Otherwise, it will return the message from the paymentAccountResponse.
+    private String getMessageForErrorCode(PaymentAccountResponse paymentAccountResponse,CreditAccountPaymentRequest creditAccountPaymentRequest ) {
+
+        if (paymentAccountResponse.getMessage().equals("Exceeded credit limit.")){
+            return PBA_MESSAGES_CODE_MAP.get(paymentAccountResponse.getMessage()).replace("{accountNumber}", creditAccountPaymentRequest.getAccountNumber());
+        }
+        return paymentAccountResponse.getMessage();
     }
 
     public void setServiceRequestPaymentStatus(BigDecimal amount, Payment payment, AccountDto accountDetails) {

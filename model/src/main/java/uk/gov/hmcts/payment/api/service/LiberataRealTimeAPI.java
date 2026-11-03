@@ -84,6 +84,7 @@ public class LiberataRealTimeAPI {
             val response = liberataRestTemplate.postForEntity(baseUrl + "/api/auth/token", request, LiberataIdentityResponse.class);
             return accessTokenDtoToTokenResponseMapper.toTokenResponse(response.getBody());
         } catch (Exception exception) {
+            LOG.error("Error fetching token from Liberata: {}", exception.getMessage(), exception);
             throw new LiberataIdentityException("Error fetching token from Liberata: " + exception.getMessage(), exception);
         }
     }
@@ -172,11 +173,11 @@ public class LiberataRealTimeAPI {
         headers.set("Authorization", "Bearer " + tokenResponse.getAccessToken());
         val request = new HttpEntity<>(paymentByAccountRequest, headers);
         try {
-            val response = liberataRestTemplate.postForEntity(baseUrl + "/pba-api-v2-uat/api/payment", request, PaymentAccountResponse.class);
+            val response = liberataRestTemplate.postForEntity(baseUrl + "/api/payment", request, PaymentAccountResponse.class);
             return response.getBody();
         } catch (HttpClientErrorException  httpClientErrorException) {
             LOG.error("Error posting payment to Liberata: {}", httpClientErrorException.getMessage(), httpClientErrorException);
-            return getPaymentAccountResponseError(httpClientErrorException);
+             return getPaymentAccountResponseError(httpClientErrorException);
         } catch (Exception exception) {
             LOG.error("Unexpected error posting payment to Liberata: {}", exception.getMessage(), exception);
             throw new LiberataIdentityException("Error posting payment to Liberata: " + exception.getMessage(), exception);
