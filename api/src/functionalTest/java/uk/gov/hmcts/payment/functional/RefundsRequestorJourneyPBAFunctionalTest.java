@@ -1224,7 +1224,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
         // Create a PBA payment where PBA0088878 is a test account with insufficient funds available
         this.add_remisssions_and_add_refund_for_a_failed_payment("350000.00",
             "PBA0088878",
-            "Payment request failed. PBA account PBA0088878  have insufficient funds available");
+            "Payment request failed. PBA account PBA0088878 have insufficient funds available");
     }
 
     @Test
