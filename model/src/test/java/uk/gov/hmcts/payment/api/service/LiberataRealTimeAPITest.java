@@ -6,29 +6,44 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.ArgumentCaptor;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
+import uk.gov.hmcts.payment.api.dto.AccountDto;
+import uk.gov.hmcts.payment.api.dto.liberata.account.LiberataAccountResponse;
 import uk.gov.hmcts.payment.api.dto.liberata.identity.LiberataIdentityResponse;
 import uk.gov.hmcts.payment.api.dto.liberata.identity.LiberataTokenData;
 import uk.gov.hmcts.payment.api.dto.liberata.identity.TokenResponse;
+import uk.gov.hmcts.payment.api.mapper.liberata.account.LiberataAccountMapper;
 import uk.gov.hmcts.payment.api.mapper.liberata.identity.AccessTokenDtoToTokenResponseMapper;
+import uk.gov.hmcts.payment.api.util.AccountStatus;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.LiberataIdentityException;
 
+import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.util.Date;
 
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -42,6 +57,9 @@ public class LiberataRealTimeAPITest {
     @Mock
     private AccessTokenDtoToTokenResponseMapper accessTokenDtoToTokenResponseMapper;
 
+    @Mock
+    private LiberataAccountMapper liberataAccountMapper;
+
     @InjectMocks
     private LiberataRealTimeAPI liberataIdentity;
 
@@ -54,7 +72,7 @@ public class LiberataRealTimeAPITest {
         ReflectionTestUtils.setField(
             liberataIdentity,
             "baseUrl",
-            "http://localhost/test"
+            "http://localhost/test/pba-api-v2-uat"
         );
 
         // ensure cached token is cleared between tests
@@ -223,5 +241,275 @@ public class LiberataRealTimeAPITest {
 
         assertEquals("cached-token-2", result.getAccessToken());
         verify(liberataRestTemplate, never()).postForEntity(anyString(), any(HttpEntity.class), eq(LiberataIdentityResponse.class));
+    }
+
+    @Test
+    public void shouldReturnAccountDetailsWhenLiberataRespondsSuccessfully() {
+        LiberataAccountResponse liberataAccountResponse = new LiberataAccountResponse("200", null);
+        AccountDto accountDto = AccountDto.accountDtoWith()
+            .accountNumber("PBA1234567")
+            .accountName("Test Account")
+            .creditLimit(new BigDecimal("1000.00"))
+            .availableBalance(new BigDecimal("750.50"))
+            .status(AccountStatus.ACTIVE)
+            .effectiveDate(new Date(1735732800000L))
+            .build();
+
+        when(liberataRestTemplate.exchange(
+            eq("http://localhost/test/pba-api-v2-uat/api/account/PBA1234567"),
+            eq(HttpMethod.GET),
+            any(HttpEntity.class),
+            eq(LiberataAccountResponse.class)
+        )).thenReturn(ResponseEntity.ok(liberataAccountResponse));
+        when(liberataAccountMapper.toAccountDto(liberataAccountResponse)).thenReturn(accountDto);
+
+        AccountDto result = liberataIdentity.getAccountDetails("access-token", "PBA1234567");
+
+        assertEquals(accountDto, result);
+        verify(liberataAccountMapper).toAccountDto(liberataAccountResponse);
+    }
+
+    @Test
+    public void shouldSendBearerTokenWhenFetchingAccountDetails() {
+        LiberataAccountResponse liberataAccountResponse = new LiberataAccountResponse("200", null);
+        AccountDto accountDto = AccountDto.accountDtoWith().accountNumber("PBA1234567").build();
+        ArgumentCaptor<HttpEntity> requestCaptor = ArgumentCaptor.forClass(HttpEntity.class);
+
+        when(liberataRestTemplate.exchange(
+            anyString(),
+            eq(HttpMethod.GET),
+            requestCaptor.capture(),
+            eq(LiberataAccountResponse.class)
+        )).thenReturn(ResponseEntity.ok(liberataAccountResponse));
+        when(liberataAccountMapper.toAccountDto(liberataAccountResponse)).thenReturn(accountDto);
+
+        liberataIdentity.getAccountDetails("access-token", "PBA1234567");
+
+        HttpHeaders headers = requestCaptor.getValue().getHeaders();
+        assertEquals("Bearer access-token", headers.getFirst(HttpHeaders.AUTHORIZATION));
+    }
+
+    @Test
+    public void shouldThrowLiberataIdentityExceptionWhenAccountDetailsRestTemplateFails() {
+        when(liberataRestTemplate.exchange(
+            anyString(),
+            eq(HttpMethod.GET),
+            any(HttpEntity.class),
+            eq(LiberataAccountResponse.class)
+        )).thenThrow(new RuntimeException("rest failure"));
+
+        try {
+            liberataIdentity.getAccountDetails("access-token", "PBA1234567");
+            fail("Expected LiberataIdentityException");
+        } catch (LiberataIdentityException e) {
+            assertTrue(e.getMessage().contains("rest failure"));
+            assertTrue(e.getCause() instanceof RuntimeException);
+            assertEquals("rest failure", e.getCause().getMessage());
+        }
+    }
+
+    @Test
+    public void shouldThrowLiberataIdentityExceptionWhenAccountDetailsMapperFails() {
+        LiberataAccountResponse liberataAccountResponse = new LiberataAccountResponse("200", null);
+        when(liberataRestTemplate.exchange(
+            anyString(),
+            eq(HttpMethod.GET),
+            any(HttpEntity.class),
+            eq(LiberataAccountResponse.class)
+        )).thenReturn(ResponseEntity.ok(liberataAccountResponse));
+        when(liberataAccountMapper.toAccountDto(liberataAccountResponse))
+            .thenThrow(new RuntimeException("mapper failure"));
+
+        try {
+            liberataIdentity.getAccountDetails("access-token", "PBA1234567");
+            fail("Expected LiberataIdentityException");
+        } catch (LiberataIdentityException e) {
+            assertTrue(e.getMessage().contains("mapper failure"));
+            assertEquals("mapper failure", e.getCause().getMessage());
+        }
+
+        verify(liberataAccountMapper).toAccountDto(liberataAccountResponse);
+    }
+
+    @Test
+    public void shouldPropagateNotFoundWhenAccountDoesNotExist() {
+        when(liberataRestTemplate.exchange(
+            anyString(),
+            eq(HttpMethod.GET),
+            any(HttpEntity.class),
+            eq(LiberataAccountResponse.class)
+        )).thenThrow(notFound());
+
+        HttpClientErrorException exception = assertThrows(
+            HttpClientErrorException.class,
+            () -> liberataIdentity.getAccountDetails("access-token", "PBA1234567")
+        );
+
+        assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
+        verify(liberataRestTemplate, never())
+            .postForEntity(anyString(), any(HttpEntity.class), eq(LiberataIdentityResponse.class));
+    }
+
+    @Test
+    public void shouldRefreshTokenAndRetryOnceWhenAccountRequestIsUnauthorized() {
+        LiberataAccountResponse liberataAccountResponse = new LiberataAccountResponse("200", null);
+        AccountDto accountDto = AccountDto.accountDtoWith().accountNumber("PBA1234567").build();
+        TokenResponse refreshedToken = new TokenResponse("refreshed-token", 1000000L, System.currentTimeMillis());
+
+        when(liberataRestTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(LiberataIdentityResponse.class)))
+            .thenReturn(ResponseEntity.ok(liberataIdentityResponse));
+        when(accessTokenDtoToTokenResponseMapper.toTokenResponse(liberataIdentityResponse)).thenReturn(refreshedToken);
+        when(liberataRestTemplate.exchange(
+            anyString(),
+            eq(HttpMethod.GET),
+            any(HttpEntity.class),
+            eq(LiberataAccountResponse.class)
+        )).thenThrow(unauthorized()).thenReturn(ResponseEntity.ok(liberataAccountResponse));
+        when(liberataAccountMapper.toAccountDto(liberataAccountResponse)).thenReturn(accountDto);
+
+        AccountDto result = liberataIdentity.getAccountDetails("access-token", "PBA1234567");
+
+        assertEquals(accountDto, result);
+        verify(liberataRestTemplate, times(2))
+            .exchange(anyString(), eq(HttpMethod.GET), any(HttpEntity.class), eq(LiberataAccountResponse.class));
+        verify(liberataRestTemplate)
+            .postForEntity(anyString(), any(HttpEntity.class), eq(LiberataIdentityResponse.class));
+    }
+
+    @Test
+    public void shouldThrowLiberataIdentityExceptionWhenAccountRequestRemainsUnauthorizedAfterRefresh() {
+        TokenResponse refreshedToken = new TokenResponse("refreshed-token", 1000000L, System.currentTimeMillis());
+
+        when(liberataRestTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(LiberataIdentityResponse.class)))
+            .thenReturn(ResponseEntity.ok(liberataIdentityResponse));
+        when(accessTokenDtoToTokenResponseMapper.toTokenResponse(liberataIdentityResponse)).thenReturn(refreshedToken);
+        when(liberataRestTemplate.exchange(
+            anyString(),
+            eq(HttpMethod.GET),
+            any(HttpEntity.class),
+            eq(LiberataAccountResponse.class)
+        )).thenThrow(unauthorized());
+
+        LiberataIdentityException exception = assertThrows(
+            LiberataIdentityException.class,
+            () -> liberataIdentity.getAccountDetails("access-token", "PBA1234567")
+        );
+
+        assertTrue(exception.getMessage().contains("Error fetching account details from Liberata"));
+        verify(liberataRestTemplate, times(2))
+            .exchange(anyString(), eq(HttpMethod.GET), any(HttpEntity.class), eq(LiberataAccountResponse.class));
+        verify(liberataRestTemplate)
+            .postForEntity(anyString(), any(HttpEntity.class), eq(LiberataIdentityResponse.class));
+    }
+
+    @Test
+    public void shouldPropagateNotFoundWhenRetryAfterRefreshIsNotFound() {
+        TokenResponse refreshedToken = new TokenResponse("refreshed-token", 1000000L, System.currentTimeMillis());
+
+        when(liberataRestTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(LiberataIdentityResponse.class)))
+            .thenReturn(ResponseEntity.ok(liberataIdentityResponse));
+        when(accessTokenDtoToTokenResponseMapper.toTokenResponse(liberataIdentityResponse)).thenReturn(refreshedToken);
+        when(liberataRestTemplate.exchange(
+            anyString(),
+            eq(HttpMethod.GET),
+            any(HttpEntity.class),
+            eq(LiberataAccountResponse.class)
+        )).thenThrow(unauthorized()).thenThrow(notFound());
+
+        HttpClientErrorException exception = assertThrows(
+            HttpClientErrorException.class,
+            () -> liberataIdentity.getAccountDetails("access-token", "PBA1234567")
+        );
+
+        assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
+        verify(liberataRestTemplate, times(2))
+            .exchange(anyString(), eq(HttpMethod.GET), any(HttpEntity.class), eq(LiberataAccountResponse.class));
+    }
+
+    @Test
+    public void shouldPropagateResourceAccessExceptionWhenAccountRequestTimesOut() {
+        when(liberataRestTemplate.exchange(
+            anyString(),
+            eq(HttpMethod.GET),
+            any(HttpEntity.class),
+            eq(LiberataAccountResponse.class)
+        )).thenThrow(new ResourceAccessException("timeout"));
+
+        ResourceAccessException exception = assertThrows(
+            ResourceAccessException.class,
+            () -> liberataIdentity.getAccountDetails("access-token", "PBA1234567")
+        );
+
+        assertEquals("timeout", exception.getMessage());
+        verify(liberataRestTemplate, never())
+            .postForEntity(anyString(), any(HttpEntity.class), eq(LiberataIdentityResponse.class));
+    }
+
+    @Test
+    public void shouldPropagateResourceAccessExceptionWhenRetryAfterRefreshTimesOut() {
+        TokenResponse refreshedToken = new TokenResponse("refreshed-token", 1000000L, System.currentTimeMillis());
+
+        when(liberataRestTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(LiberataIdentityResponse.class)))
+            .thenReturn(ResponseEntity.ok(liberataIdentityResponse));
+        when(accessTokenDtoToTokenResponseMapper.toTokenResponse(liberataIdentityResponse)).thenReturn(refreshedToken);
+        when(liberataRestTemplate.exchange(
+            anyString(),
+            eq(HttpMethod.GET),
+            any(HttpEntity.class),
+            eq(LiberataAccountResponse.class)
+        )).thenThrow(unauthorized()).thenThrow(new ResourceAccessException("timeout"));
+
+        ResourceAccessException exception = assertThrows(
+            ResourceAccessException.class,
+            () -> liberataIdentity.getAccountDetails("access-token", "PBA1234567")
+        );
+
+        assertEquals("timeout", exception.getMessage());
+        verify(liberataRestTemplate, times(2))
+            .exchange(anyString(), eq(HttpMethod.GET), any(HttpEntity.class), eq(LiberataAccountResponse.class));
+    }
+
+    @Test
+    public void shouldPropagateLiberataIdentityExceptionWhenRetryAfterRefreshFailsWithIdentityException() {
+        TokenResponse refreshedToken = new TokenResponse("refreshed-token", 1000000L, System.currentTimeMillis());
+
+        when(liberataRestTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(LiberataIdentityResponse.class)))
+            .thenReturn(ResponseEntity.ok(liberataIdentityResponse));
+        when(accessTokenDtoToTokenResponseMapper.toTokenResponse(liberataIdentityResponse)).thenReturn(refreshedToken);
+        when(liberataRestTemplate.exchange(
+            anyString(),
+            eq(HttpMethod.GET),
+            any(HttpEntity.class),
+            eq(LiberataAccountResponse.class)
+        )).thenThrow(unauthorized()).thenThrow(new LiberataIdentityException("Identity error"));
+
+        LiberataIdentityException exception = assertThrows(
+            LiberataIdentityException.class,
+            () -> liberataIdentity.getAccountDetails("access-token", "PBA1234567")
+        );
+
+        assertEquals("Identity error", exception.getMessage());
+        verify(liberataRestTemplate, times(2))
+            .exchange(anyString(), eq(HttpMethod.GET), any(HttpEntity.class), eq(LiberataAccountResponse.class));
+    }
+
+    private HttpClientErrorException unauthorized() {
+        return HttpClientErrorException.create(
+            HttpStatus.UNAUTHORIZED,
+            "Unauthorized",
+            new HttpHeaders(),
+            new byte[0],
+            StandardCharsets.UTF_8
+        );
+    }
+
+    private HttpClientErrorException notFound() {
+        return HttpClientErrorException.create(
+            HttpStatus.NOT_FOUND,
+            "Not Found",
+            new HttpHeaders(),
+            new byte[0],
+            StandardCharsets.UTF_8
+        );
     }
 }

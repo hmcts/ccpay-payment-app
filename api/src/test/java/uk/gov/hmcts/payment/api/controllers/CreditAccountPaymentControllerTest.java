@@ -1,14 +1,12 @@
 package uk.gov.hmcts.payment.api.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Lists;
 import lombok.val;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -20,7 +18,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.fees2.register.api.contract.Fee2Dto;
 import uk.gov.hmcts.fees2.register.api.contract.FeeVersionDto;
@@ -39,7 +36,7 @@ import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.liberata.PaymentAccountResponse;
 import uk.gov.hmcts.payment.api.dto.liberata.PaymentAccountResponseStatus;
 import uk.gov.hmcts.payment.api.dto.liberata.identity.TokenResponse;
-import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
+import uk.gov.hmcts.payment.api.mapper.PBAStatusErrorMapper;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.Payment2Repository;
 import uk.gov.hmcts.payment.api.model.PaymentChannel;
@@ -49,7 +46,6 @@ import uk.gov.hmcts.payment.api.model.PaymentMethod;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.model.StatusHistory;
 import uk.gov.hmcts.payment.api.reports.FeesService;
-import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.service.LiberataRealTimeAPI;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.service.RefundRemissionEnableService;
@@ -510,7 +506,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         assertEquals("Failed", paymentDto.getStatus());
         assertEquals("CA-E0001", paymentDto.getStatusHistories().get(0).getErrorCode());
-        assertEquals("Exceeded credit limit.", paymentDto.getStatusHistories().get(0).getErrorMessage());
+        assertEquals("Payment request failed. PBA account AC101010 have insufficient funds available", paymentDto.getStatusHistories().get(0).getErrorMessage());
     }
 
     @Test
@@ -527,8 +523,9 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         assertEquals("Failed", paymentDto.getStatus());
         assertEquals("CA-E0003", paymentDto.getStatusHistories().get(0).getErrorCode());
-        assertEquals("Account not active.", paymentDto.getStatusHistories().get(0).getErrorMessage());
+        assertEquals("Your account is on hold", paymentDto.getStatusHistories().get(0).getErrorMessage());
     }
+
 
     @Test
     public void failCreditAccountPaymentWhenLiberataRespondsAccountStatusDeleted() throws Exception {
@@ -636,7 +633,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         assertEquals("Failed", paymentDto.getStatus());
         assertEquals("CA-E0001", paymentDto.getStatusHistories().get(0).getErrorCode());
-        assertEquals(EXCEEDED_CREDIT_LIMIT.getValue(), paymentDto.getStatusHistories().get(0).getErrorMessage());
+        assertEquals("Payment request failed. PBA account AC101010 have insufficient funds available", paymentDto.getStatusHistories().get(0).getErrorMessage());
     }
 
     @Test
@@ -1244,6 +1241,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     private PaymentAccountResponse getAnErrorDueToAccountOnHold() {
         return PaymentAccountResponse.paymentDtoWith()
             .status(PaymentAccountResponseStatus.ERROR.getValue())
+            .reason(PBAStatusErrorMapper.ON_HOLD)
             .message(PaymentAccountResponseStatus.ACCOUNT_NOT_ACTIVE.getValue()).build();
     }
 

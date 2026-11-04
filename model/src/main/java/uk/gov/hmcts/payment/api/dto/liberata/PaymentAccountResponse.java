@@ -18,4 +18,5 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 public class PaymentAccountResponse {
     private String status;
     private String message;
+    private String reason;
 }

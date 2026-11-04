@@ -49,6 +49,7 @@ public class PBAStatusErrorMapperTest {
     private static AccountDto activeAccountDetails;
     private static AccountDto activeAccountInsufficientDetails;
     private static AccountDto onHoldAccountDetails;
+    private static AccountDto inactiveAccountDetails;
     private static AccountDto deletedAccountDetails;
 
     private static LogCaptor mockLOG;
@@ -67,8 +68,11 @@ public class PBAStatusErrorMapperTest {
         mockLOG = forClass(PBAStatusErrorMapper.class);
         creditAccountPaymentRequest = CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
                                         .amount(new BigDecimal("10.00"))
+                                        .accountNumber("PBA1234567")
                                         .build();
         payment = Payment.paymentWith().ccdCaseNumber("ccd-number").build();
+
+
         activeAccountDetails = AccountDto.accountDtoWith()
                             .accountName("account-name")
                             .availableBalance(new BigDecimal("100.00"))
@@ -81,6 +85,10 @@ public class PBAStatusErrorMapperTest {
             .accountName("account-name")
             .availableBalance(new BigDecimal("100.00"))
             .status(AccountStatus.ON_HOLD).build();
+        inactiveAccountDetails = AccountDto.accountDtoWith()
+            .accountName("account-name")
+            .availableBalance(new BigDecimal("100.00"))
+            .status(AccountStatus.INACTIVE).build();
         deletedAccountDetails = AccountDto.accountDtoWith()
             .accountName("account-name")
             .availableBalance(new BigDecimal("100.00"))
@@ -103,21 +111,35 @@ public class PBAStatusErrorMapperTest {
     public void testSetPaymentStatusWithOnHold() {
         PBAStatusErrorMapper pbaStatusErrorMapper = new PBAStatusErrorMapper();
         pbaStatusErrorMapper.setPaymentStatus(creditAccountPaymentRequest, payment, onHoldAccountDetails);
-        assertThat(mockLOG.getInfoLogs().get(0)).isEqualTo("CreditAccountPayment received for ccdCaseNumber : ccd-number Liberata AccountStatus : ON_HOLD PaymentStatus : failed - Account is on hold!");
+        assertThat(mockLOG.getInfoLogs().get(1)).isEqualTo("CreditAccountPayment received for ccdCaseNumber : ccd-number Liberata AccountStatus : ON_HOLD PaymentStatus : failed - Account is on hold!");
+    }
+
+    @Test
+    public void testSetPaymentStatusWithInactive() {
+        PBAStatusErrorMapper pbaStatusErrorMapper = new PBAStatusErrorMapper();
+        Payment inactivePayment = Payment.paymentWith().ccdCaseNumber("ccd-number").build();
+
+        pbaStatusErrorMapper.setPaymentStatus(creditAccountPaymentRequest, inactivePayment, inactiveAccountDetails);
+
+        assertThat(mockLOG.getInfoLogs().get(1)).isEqualTo("CreditAccountPayment received for ccdCaseNumber : ccd-number Liberata AccountStatus : INACTIVE PaymentStatus : failed - Account is inactive!");
+        assertThat(inactivePayment.getPaymentStatus().getName()).isEqualTo("failed");
+        assertThat(inactivePayment.getStatusHistories()).hasSize(1);
+        assertThat(inactivePayment.getStatusHistories().get(0).getErrorCode()).isEqualTo("CA-E0002");
+        assertThat(inactivePayment.getStatusHistories().get(0).getMessage()).isEqualTo("Your account is inactive");
     }
 
     @Test
     public void testSetPaymentStatusWithActiveAndSufficientBalance() {
         PBAStatusErrorMapper pbaStatusErrorMapper = new PBAStatusErrorMapper();
         pbaStatusErrorMapper.setPaymentStatus(creditAccountPaymentRequest,payment,activeAccountDetails);
-        assertThat(mockLOG.getInfoLogs().get(0)).isEqualTo("CreditAccountPayment received for ccdCaseNumber : ccd-number Liberata AccountStatus : ACTIVE PaymentStatus : success - Account Balance Sufficient!!!");
+        assertThat(mockLOG.getInfoLogs().get(1)).isEqualTo("CreditAccountPayment received for ccdCaseNumber : ccd-number Liberata AccountStatus : ACTIVE PaymentStatus : success - Account Balance Sufficient!!!");
     }
 
     @Test
     public void testSetPaymentStatusWithDeletedStatus() {
         PBAStatusErrorMapper pbaStatusErrorMapper = new PBAStatusErrorMapper();
         pbaStatusErrorMapper.setPaymentStatus(creditAccountPaymentRequest,payment,deletedAccountDetails);
-        assertThat(mockLOG.getInfoLogs().get(0)).isEqualTo("CreditAccountPayment received for ccdCaseNumber : ccd-number Liberata AccountStatus : DELETED PaymentStatus : failed - Account is deleted!");
+        assertThat(mockLOG.getInfoLogs().get(1)).isEqualTo("CreditAccountPayment received for ccdCaseNumber : ccd-number Liberata AccountStatus : DELETED PaymentStatus : failed - Account is deleted!");
     }
 
     @Test
@@ -145,8 +167,160 @@ public class PBAStatusErrorMapperTest {
         assertThat(spyPayment.getStatusHistories().get(0).getStatus()).isEqualTo(PaymentAccountResponseStatus.SUCCESS.getValue());
     }
 
+    // --- setPaymentStatusAndHistories: ERROR cases without reason ---
+
+    @Test
+    public void testSetPaymentStatusAndHistoriesErrorExceededCreditLimit() {
+        PBAStatusErrorMapper mapper = new PBAStatusErrorMapper();
+        Payment localPayment = Payment.paymentWith().ccdCaseNumber("ccd-number").build();
+        localPayment.setStatusHistories(new LinkedList<>(Collections.singletonList(StatusHistory.statusHistoryWith().build())));
+
+        PaymentAccountResponse resp = PaymentAccountResponse.paymentDtoWith()
+            .status("error")
+            .message("Exceeded credit limit.")
+            .build();
+
+        mapper.setPaymentStatusAndHistories(creditAccountPaymentRequest, localPayment, resp);
+
+        assertThat(localPayment.getPaymentStatus().getName()).isEqualTo("failed");
+        StatusHistory history = localPayment.getStatusHistories().get(0);
+        assertThat(history.getStatus()).isEqualTo("failed");
+        assertThat(history.getErrorCode()).isEqualTo("CA-E0001");
+        // message should include account number, not raw key
+        assertThat(history.getMessage()).isEqualTo(
+            "Payment request failed. PBA account PBA1234567 have insufficient funds available");
+    }
+
+    @Test
+    public void testSetPaymentStatusAndHistoriesErrorAccountNotFound() {
+        PBAStatusErrorMapper mapper = new PBAStatusErrorMapper();
+        Payment localPayment = Payment.paymentWith().ccdCaseNumber("ccd-number").build();
+        localPayment.setStatusHistories(new LinkedList<>(Collections.singletonList(StatusHistory.statusHistoryWith().build())));
+
+        PaymentAccountResponse resp = PaymentAccountResponse.paymentDtoWith()
+            .status("error")
+            .message("Account not found.")
+            .build();
+
+        mapper.setPaymentStatusAndHistories(creditAccountPaymentRequest, localPayment, resp);
+
+        assertThat(localPayment.getPaymentStatus().getName()).isEqualTo("failed");
+        StatusHistory history = localPayment.getStatusHistories().get(0);
+        assertThat(history.getStatus()).isEqualTo("failed");
+        assertThat(history.getErrorCode()).isEqualTo("CA-E0004");
+        assertThat(history.getMessage()).isEqualTo("Account not found.");
+    }
+
+    @Test
+    public void testSetPaymentStatusAndHistoriesErrorValidationFailed() {
+        PBAStatusErrorMapper mapper = new PBAStatusErrorMapper();
+        Payment localPayment = Payment.paymentWith().ccdCaseNumber("ccd-number").build();
+        localPayment.setStatusHistories(new LinkedList<>(Collections.singletonList(StatusHistory.statusHistoryWith().build())));
+
+        PaymentAccountResponse resp = PaymentAccountResponse.paymentDtoWith()
+            .status("error")
+            .message("Validation failed.")
+            .build();
+
+        mapper.setPaymentStatusAndHistories(creditAccountPaymentRequest, localPayment, resp);
+
+        assertThat(localPayment.getPaymentStatus().getName()).isEqualTo("failed");
+        StatusHistory history = localPayment.getStatusHistories().get(0);
+        assertThat(history.getStatus()).isEqualTo("failed");
+        assertThat(history.getErrorCode()).isEqualTo("CA-E0005");
+        assertThat(history.getMessage()).isEqualTo("Validation failed.");
+    }
+
+    @Test
+    public void testSetPaymentStatusAndHistoriesErrorDuplicatePayment() {
+        PBAStatusErrorMapper mapper = new PBAStatusErrorMapper();
+        Payment localPayment = Payment.paymentWith().ccdCaseNumber("ccd-number").build();
+        localPayment.setStatusHistories(new LinkedList<>(Collections.singletonList(StatusHistory.statusHistoryWith().build())));
+
+        PaymentAccountResponse resp = PaymentAccountResponse.paymentDtoWith()
+            .status("error")
+            .message("Duplicate payment detected.")
+            .build();
+
+        mapper.setPaymentStatusAndHistories(creditAccountPaymentRequest, localPayment, resp);
+
+        assertThat(localPayment.getPaymentStatus().getName()).isEqualTo("failed");
+        StatusHistory history = localPayment.getStatusHistories().get(0);
+        assertThat(history.getStatus()).isEqualTo("failed");
+        assertThat(history.getErrorCode()).isEqualTo("CA-E0006");
+        assertThat(history.getMessage()).isEqualTo("Duplicate payment detected.");
+    }
+
+    @Test
+    public void testSetPaymentStatusAndHistoriesErrorUnauthenticated() {
+        PBAStatusErrorMapper mapper = new PBAStatusErrorMapper();
+        Payment localPayment = Payment.paymentWith().ccdCaseNumber("ccd-number").build();
+        localPayment.setStatusHistories(new LinkedList<>(Collections.singletonList(StatusHistory.statusHistoryWith().build())));
+
+        PaymentAccountResponse resp = PaymentAccountResponse.paymentDtoWith()
+            .status("error")
+            .message("Unauthenticated.")
+            .build();
+
+        mapper.setPaymentStatusAndHistories(creditAccountPaymentRequest, localPayment, resp);
+
+        assertThat(localPayment.getPaymentStatus().getName()).isEqualTo("failed");
+        StatusHistory history = localPayment.getStatusHistories().get(0);
+        assertThat(history.getStatus()).isEqualTo("failed");
+        assertThat(history.getErrorCode()).isEqualTo("CA-E0007");
+        assertThat(history.getMessage()).isEqualTo("Unauthenticated.");
+    }
+
+    // --- setPaymentStatusAndHistories: ERROR with reason = DELETED ---
+
+    @Test
+    public void testSetPaymentStatusAndHistoriesErrorReasonDeleted() {
+        PBAStatusErrorMapper mapper = new PBAStatusErrorMapper();
+        Payment localPayment = Payment.paymentWith().ccdCaseNumber("ccd-number").build();
+        localPayment.setStatusHistories(new LinkedList<>(Collections.singletonList(StatusHistory.statusHistoryWith().build())));
+
+        PaymentAccountResponse resp = PaymentAccountResponse.paymentDtoWith()
+            .status("error")
+            .message("Account not found.")
+            .reason("DELETED")
+            .build();
+
+        mapper.setPaymentStatusAndHistories(creditAccountPaymentRequest, localPayment, resp);
+
+        assertThat(localPayment.getPaymentStatus().getName()).isEqualTo("failed");
+        StatusHistory history = localPayment.getStatusHistories().get(0);
+        assertThat(history.getStatus()).isEqualTo("failed");
+        assertThat(history.getErrorCode()).isEqualTo("CA-E0004");
+        assertThat(history.getMessage()).isEqualTo("Your account is deleted");
+    }
+
+    // --- setPaymentStatusAndHistories: ERROR with reason = ON_HOLD ---
+
+    @Test
+    public void testSetPaymentStatusAndHistoriesErrorReasonOnHold() {
+        PBAStatusErrorMapper mapper = new PBAStatusErrorMapper();
+        Payment localPayment = Payment.paymentWith().ccdCaseNumber("ccd-number").build();
+        localPayment.setStatusHistories(new LinkedList<>(Collections.singletonList(StatusHistory.statusHistoryWith().build())));
+
+        PaymentAccountResponse resp = PaymentAccountResponse.paymentDtoWith()
+            .status("error")
+            .message("Account not active.")
+            .reason("CUSTOMER ON HOLD - EXCEEDED CREDIT LIMIT")
+            .build();
+
+        mapper.setPaymentStatusAndHistories(creditAccountPaymentRequest, localPayment, resp);
+
+        assertThat(localPayment.getPaymentStatus().getName()).isEqualTo("failed");
+        StatusHistory history = localPayment.getStatusHistories().get(0);
+        assertThat(history.getStatus()).isEqualTo("failed");
+        assertThat(history.getErrorCode()).isEqualTo("CA-E0003");
+        assertThat(history.getMessage()).isEqualTo("Your account is on hold");
+    }
+
+    // kept for backward compatibility — now replaced by the granular tests above
     @Test
     public void testSetPaymentStatusAndHistoriesErrors() {
+        // this test is superseded by the individual tests above; kept as a smoke test
         PBAStatusErrorMapper mapper = new PBAStatusErrorMapper();
 
         for (Map.Entry<String, String> entry : PBAStatusErrorMapper.PBA_ERROR_CODE_MAP.entrySet()) {
@@ -154,8 +328,6 @@ public class PBAStatusErrorMapperTest {
             String expectedErrorCode = entry.getValue();
 
             Payment localPayment = Payment.paymentWith().ccdCaseNumber("ccd-number").build();
-
-            // ensure there's an initial StatusHistory element so mapper can call getFirst() safely
             localPayment.setStatusHistories(new LinkedList<>(Collections.singletonList(StatusHistory.statusHistoryWith().build())));
 
             PaymentAccountResponse resp = PaymentAccountResponse.paymentDtoWith()
@@ -175,9 +347,16 @@ public class PBAStatusErrorMapperTest {
             assertThat(history.getStatus()).isEqualTo("failed");
             assertThat(history.getErrorCode()).isEqualTo(expectedErrorCode);
 
-            assertThat(history.getMessage()).isEqualTo(message);
+            // for "Exceeded credit limit." the message contains the account number
+            if (message.equals("Exceeded credit limit.")) {
+                assertThat(history.getMessage()).contains("PBA1234567");
+            } else {
+                assertThat(history.getMessage()).isEqualTo(message);
+            }
         }
     }
+
+
 
     // -------------------- New tests for LiberataRealTimeAPI.payByAccount --------------------
 
