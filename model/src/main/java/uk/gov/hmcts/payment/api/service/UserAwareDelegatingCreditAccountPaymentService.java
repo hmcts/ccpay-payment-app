@@ -18,7 +18,7 @@ import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.validation.constraints.NotNull;
 import java.util.Arrays;
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 
@@ -27,11 +27,11 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
 
     private static final Logger LOG = LoggerFactory.getLogger(UserAwareDelegatingCreditAccountPaymentService.class);
 
-    private final static String PAYMENT_CHANNEL_ONLINE = "online";
+    private static final String PAYMENT_CHANNEL_ONLINE = "online";
 
-    private final static String PAYMENT_METHOD = "payment by account";
+    private static final String PAYMENT_METHOD = "payment by account";
 
-    private final static String PAYMENT_METHOD_BY_ACCOUNT = "payment by account";
+    private static final String PAYMENT_METHOD_BY_ACCOUNT = "payment by account";
 
     private final PaymentFeeLinkRepository paymentFeeLinkRepository;
     private final PaymentStatusRepository paymentStatusRepository;
@@ -93,16 +93,14 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
                     : creditAccount.getStatusHistories())
                 .build();
         } catch (CheckDigitException e) {
-            LOG.error("Error in generating check digit for the payment reference, {}", e);
+            LOG.error("Error in generating check digit for the payment reference, {}", e.getMessage());
         }
 
-        PaymentFeeLink result = paymentFeeLinkRepository.save(serviceRequestCaseUtil.enhanceWithServiceRequestCaseDetails(PaymentFeeLink.paymentFeeLinkWith()
+        return paymentFeeLinkRepository.save(serviceRequestCaseUtil.enhanceWithServiceRequestCaseDetails(PaymentFeeLink.paymentFeeLinkWith()
             .paymentReference(paymentGroupRef)
             .payments(Arrays.asList(payment))
             .fees(fees)
             .build(), payment));
-
-        return result;
     }
 
     @Override
@@ -122,10 +120,9 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
     }
 
     @Override
-    public List<PaymentFeeLink> search(Date startDate, Date endDate) {
-        LOG.info("Search for payments between " + startDate + " and " + endDate);
-        List<PaymentFeeLink> paymentFeeLinks = paymentFeeLinkRepository.findAll(findCreditAccountPaymentsByBetweenDates(startDate, endDate));
-        return paymentFeeLinks;
+    public List<PaymentFeeLink> search(LocalDate startDate, LocalDate endDate) {
+        LOG.info("Search for payments between {} and {}", startDate, endDate);
+        return paymentFeeLinkRepository.findAll(findCreditAccountPaymentsByBetweenDates(startDate, endDate));
     }
 
     @Override
@@ -145,7 +142,7 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
             PaymentMethod.paymentMethodWith().name(PAYMENT_METHOD).build()).orElseThrow(PaymentNotFoundException::new);
     }
 
-    private static Specification findCreditAccountPaymentsByBetweenDates(Date fromDate, Date toDate) {
+    private static Specification findCreditAccountPaymentsByBetweenDates(LocalDate fromDate, LocalDate toDate) {
         return isEquals(PaymentMethod.paymentMethodWith().name(PAYMENT_METHOD).build())
             .and(isBetween(fromDate, toDate));
     }
@@ -158,11 +155,11 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
 
     }
 
-    private static Specification isBetween(Date startDate, Date endDate) {
+    private static Specification isBetween(LocalDate startDate, LocalDate endDate) {
 
         return ((root, query, cb) -> {
             Join<PaymentFeeLink, Payment> paymentJoin = root.join("payments", JoinType.LEFT);
-            return cb.between(paymentJoin.get("dateUpdated"), startDate, endDate);
+            return cb.between(paymentJoin.get("dateUpdated").as(LocalDate.class), startDate, endDate);
         });
     }
 }

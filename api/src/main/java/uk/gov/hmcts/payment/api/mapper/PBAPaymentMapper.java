@@ -24,7 +24,7 @@ import uk.gov.hmcts.payment.api.service.IacService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -56,7 +56,7 @@ public class PBAPaymentMapper {
             .build();
 
         return PaymentAccountRequest.paymentAccountRequestWith()
-            .PaymentByAccountRequest(paymentByAccountRequest).build();
+            .paymentByAccountRequest(paymentByAccountRequest).build();
     }
 
     private boolean isACService(String serviceCode) {
@@ -134,7 +134,7 @@ public class PBAPaymentMapper {
             .ccdCaseNumber(creditAccountPaymentRequest.getCcdCaseNumber())
             .customerReference(creditAccountPaymentRequest.getCustomerReference())
             .fee(mapPaymentAccountFee(creditAccountPaymentRequest, paymentFeeLink))
-            .dateCreated(new Date())
+            .dateCreated(LocalDate.now())
             .build();
     }
 
