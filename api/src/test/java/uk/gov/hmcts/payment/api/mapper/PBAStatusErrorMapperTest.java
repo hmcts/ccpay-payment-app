@@ -179,7 +179,7 @@ public class PBAStatusErrorMapperTest {
         "'Duplicate payment detected.', CA-E0006, 'Duplicate payment detected.'",
         "'Unauthenticated.', CA-E0007, 'Unauthenticated.'"
     })
-    public void testSetPaymentStatusAndHistoriesErrorsWithoutReason(String errorMessage, String expectedErrorCode,
+    void testSetPaymentStatusAndHistoriesErrorsWithoutReason(String errorMessage, String expectedErrorCode,
                                                                     String expectedHistoryMessage) {
         Payment localPayment = Payment.paymentWith().ccdCaseNumber("ccd-number").build();
         localPayment.setStatusHistories(new LinkedList<>(Collections.singletonList(StatusHistory.statusHistoryWith().build())));
