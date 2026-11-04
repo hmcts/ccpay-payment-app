@@ -12,7 +12,7 @@ import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Component
@@ -70,7 +70,7 @@ public class LoggingCreditAccountPaymentService implements CreditAccountPaymentS
     }
 
     @Override
-    public List<PaymentFeeLink> search(LocalDate startDate, LocalDate endDate) {
+    public List<PaymentFeeLink> search(LocalDateTime startDate, LocalDateTime endDate) {
         LOG.info("Searching for payments between {} and {}", startDate, endDate);
 
         List<PaymentFeeLink> paymentFeeLinks =  delegate.search(startDate, endDate);

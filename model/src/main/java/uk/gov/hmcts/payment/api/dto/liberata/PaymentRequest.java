@@ -2,7 +2,7 @@ package uk.gov.hmcts.payment.api.dto.liberata;
 
 import lombok.*;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -17,7 +17,7 @@ public class PaymentRequest {
     private String serviceName;
     private String groupReference;
     private String paymentReference;
-    private LocalDate dateCreated;
+    private LocalDateTime dateCreated;
     private String amount;
     private String currency;
     private String siteId;

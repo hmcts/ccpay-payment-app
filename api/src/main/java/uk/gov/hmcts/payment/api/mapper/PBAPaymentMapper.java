@@ -24,7 +24,7 @@ import uk.gov.hmcts.payment.api.service.IacService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -134,7 +134,7 @@ public class PBAPaymentMapper {
             .ccdCaseNumber(creditAccountPaymentRequest.getCcdCaseNumber())
             .customerReference(creditAccountPaymentRequest.getCustomerReference())
             .fee(mapPaymentAccountFee(creditAccountPaymentRequest, paymentFeeLink))
-            .dateCreated(LocalDate.now())
+            .dateCreated(LocalDateTime.now())
             .build();
     }
 
