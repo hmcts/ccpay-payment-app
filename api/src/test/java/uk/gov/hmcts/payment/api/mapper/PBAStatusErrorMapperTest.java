@@ -3,10 +3,10 @@ package uk.gov.hmcts.payment.api.mapper;
 import nl.altindag.log.LogCaptor;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -104,7 +104,7 @@ public class PBAStatusErrorMapperTest {
         }
     }
 
-    @AfterEach
+    @After
     public void afterTest() {
         mockLOG.clearLogs();
     }
