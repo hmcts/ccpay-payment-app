@@ -3,10 +3,10 @@ package uk.gov.hmcts.payment.api.mapper;
 import nl.altindag.log.LogCaptor;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -104,8 +104,8 @@ public class PBAStatusErrorMapperTest {
         }
     }
 
-    @After
-    public void afterTest() {
+    @AfterEach
+    void afterTest() {
         mockLOG.clearLogs();
     }
 
@@ -179,7 +179,7 @@ public class PBAStatusErrorMapperTest {
         "'Duplicate payment detected.', CA-E0006, 'Duplicate payment detected.'",
         "'Unauthenticated.', CA-E0007, 'Unauthenticated.'"
     })
-    public void testSetPaymentStatusAndHistoriesErrorsWithoutReason(String errorMessage, String expectedErrorCode,
+    void testSetPaymentStatusAndHistoriesErrorsWithoutReason(String errorMessage, String expectedErrorCode,
                                                                     String expectedHistoryMessage) {
         Payment localPayment = Payment.paymentWith().ccdCaseNumber("ccd-number").build();
         localPayment.setStatusHistories(new LinkedList<>(Collections.singletonList(StatusHistory.statusHistoryWith().build())));
