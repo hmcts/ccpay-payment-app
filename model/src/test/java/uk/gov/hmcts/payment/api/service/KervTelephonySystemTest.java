@@ -1,6 +1,5 @@
 package uk.gov.hmcts.payment.api.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,7 +24,7 @@ class KervTelephonySystemTest {
     }
 
     @Test
-    void shouldReturnCorrectFlowIdForProbate() throws JsonProcessingException {
+    void shouldReturnCorrectFlowIdForProbate() {
         TelephonySystem telephonySystem = kervTelephonySystem;
         String flowId = telephonySystem.getFlowId("Probate");
         assertEquals("mockProbateKervFlowId", flowId);
