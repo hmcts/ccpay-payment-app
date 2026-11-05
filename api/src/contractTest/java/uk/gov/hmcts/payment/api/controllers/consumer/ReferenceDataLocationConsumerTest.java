@@ -6,7 +6,8 @@ import au.com.dius.pact.consumer.junit5.PactConsumerTestExt;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
 import au.com.dius.pact.core.model.RequestResponsePact;
 import au.com.dius.pact.core.model.annotations.Pact;
-import au.com.dius.pact.core.model.annotations.PactFolder;
+import au.com.dius.pact.core.model.annotations.PactDirectory;
+import au.com.dius.pact.core.model.PactSpecVersion;
 import org.json.JSONException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -37,8 +38,8 @@ import static org.mockito.BDDMockito.given;
 
 @ExtendWith(PactConsumerTestExt.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@PactTestFor(providerName = "referenceData_location", port = "8891")
-@PactFolder("pacts")
+@PactTestFor(providerName = "referenceData_location", port = "8891", pactVersion = PactSpecVersion.V3)
+@PactDirectory("pacts")
 @SpringBootTest({
     "rd.location.url : http://localhost:8891"
 })

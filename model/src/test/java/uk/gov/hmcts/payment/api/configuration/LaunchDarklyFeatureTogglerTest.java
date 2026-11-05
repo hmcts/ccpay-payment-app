@@ -1,6 +1,6 @@
 package uk.gov.hmcts.payment.api.configuration;
 
-import com.launchdarkly.sdk.LDUser;
+import com.launchdarkly.sdk.LDContext;
 import com.launchdarkly.sdk.server.interfaces.LDClientInterface;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -25,7 +25,7 @@ public class LaunchDarklyFeatureTogglerTest {
 
     @Test
     public void testGetBooleanValue(){
-        LDUser user = new LDUser("testUser");
+        LDContext user = LDContext.create("testUser");
         when(ldClient.boolVariation("key",user,true)).thenReturn(false);
         boolean response = launchDarklyFeatureToggler.getBooleanValue("key",true);
         assertEquals(false,response);

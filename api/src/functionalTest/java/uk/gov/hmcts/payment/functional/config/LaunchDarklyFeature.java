@@ -1,6 +1,6 @@
 package uk.gov.hmcts.payment.functional.config;
 
-import com.launchdarkly.sdk.LDUser;
+import com.launchdarkly.sdk.LDContext;
 import com.launchdarkly.sdk.server.interfaces.LDClientInterface;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,11 +24,11 @@ public class LaunchDarklyFeature implements FeatureToggler {
     public boolean getBooleanValue(String key, Boolean defaultValue) {
 
         LOG.debug("userName in LaunchDarklyFeatureToggler: {}", userName);
-        LDUser user = new LDUser(userName);
+        LDContext context = LDContext.create(userName);
 
         return ldClient.boolVariation(
             key,
-            user,
+            context,
             defaultValue
         );
     }

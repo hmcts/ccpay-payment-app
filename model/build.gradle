@@ -11,21 +11,21 @@ dependencies {
     implementation project(':payment-gov-pay-client')
     implementation project(':payment-reference-data')
     implementation project(':case-payment-orders-client')
-    implementation group: 'com.google.guava', name: 'guava', version: '33.6.0-jre'
+    implementation group: 'com.google.guava', name: 'guava', version: '33.8.0-jre'
     implementation group: 'com.microsoft.azure', name: 'applicationinsights-core', version: '3.7.10'
     implementation group: 'org.apache.httpcomponents.client5', name: 'httpclient5'
-    implementation group: 'net.logstash.logback', name: 'logstash-logback-encoder', version:'8.1'
+    implementation group: 'net.logstash.logback', name: 'logstash-logback-encoder', version:'9.0'
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web'
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa'
     implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign'
     api group: 'org.springframework.security', name: 'spring-security-oauth2-client'
     implementation group: 'com.querydsl', name: 'querydsl-jpa', version:'5.1.0'
-    api group: 'commons-validator', name: 'commons-validator', version:'1.10.1'
-    implementation (group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '6.0.1') {
+    api group: 'commons-validator', name: 'commons-validator', version:'1.11.0'
+    implementation (group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '6.1.2') {
         exclude group: 'org.apache.httpcomponents', module: 'httpclient'
     }
     implementation group: 'io.github.resilience4j', name: 'resilience4j-spring-boot4', version: '2.4.0'
-    api group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '5.10.9'
+    api group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '7.17.5'
 
     testImplementation(group: 'org.springframework.boot', name: 'spring-boot-starter-test') {
       exclude(module: 'commons-logging')
