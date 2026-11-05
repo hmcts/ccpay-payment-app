@@ -11,7 +11,7 @@ import jakarta.validation.ValidatorFactory;
 import java.math.BigDecimal;
 import java.util.Set;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class CreditAccountPaymentRequestTest {
     private static ValidatorFactory validatorFactory;
@@ -28,75 +28,40 @@ public class CreditAccountPaymentRequestTest {
         validatorFactory.close();
     }
 
-    @Test
-    public void testAmountFractionInCreditAccountPaymentRequest(){
+    private static Set<ConstraintViolation<CreditAccountPaymentRequest>> violationsForAmount(String amount) {
         CreditAccountPaymentRequest request = new CreditAccountPaymentRequest();
-        request.setAmount(BigDecimal.valueOf(100.1234));
-        Set<ConstraintViolation<CreditAccountPaymentRequest>> violations = validator.validate(request);
-        violations.stream().forEach(v->{
-                if(v.getMessage().equals("Payment amount cannot have more than 2 decimal places")){
-                    assertEquals("Payment amount cannot have more than 2 decimal places",v.getMessage());
-                }
-            }
-        );
+        request.setAmount(new BigDecimal(amount));
+        return validator.validateProperty(request, "amount");
     }
 
     @Test
-    public void testNegativeAmountInCreditAccountPaymentRequest(){
-        CreditAccountPaymentRequest request = new CreditAccountPaymentRequest();
-        request.setAmount(BigDecimal.valueOf(-100.12));
-        Set<ConstraintViolation<CreditAccountPaymentRequest>> violations = validator.validate(request);
-        violations.stream().forEach(v->{
-                if(v.getMessage().equals("must be greater than 0")){
-                    assertEquals("must be greater than 0",v.getMessage());
-                }
-            }
-        );
+    public void testAmountWithTwoDecimalPlacesIsValid() {
+        assertThat(violationsForAmount("2176.64")).isEmpty();
     }
 
     @Test
-    public void testValidateSiteIdForCivil(){
-        CreditAccountPaymentRequest request = new CreditAccountPaymentRequest();
-        request.setService("CMC");
-        request.setSiteId("invalid-site-id");
-        Set<ConstraintViolation<CreditAccountPaymentRequest>> violations = validator.validate(request);
-        violations.stream().forEach(v->{
-                if(v.getMessage().equals("Invalid Site ID (URN) provided for Civil. Accepted values are AAA7")){
-                    assertEquals("Invalid Site ID (URN) provided for Civil. Accepted values are AAA7",v.getMessage());
-                }
-            }
-        );
+    public void testAmountWithZeroDecimalPlacesIsValid() {
+        assertThat(violationsForAmount("2176")).isEmpty();
     }
 
     @Test
-    public void testValidateSiteIdForIac(){
-        CreditAccountPaymentRequest request = new CreditAccountPaymentRequest();
-        request.setService("IAC");
-        request.setSiteId("invalid-site-id");
-        Set<ConstraintViolation<CreditAccountPaymentRequest>> violations = validator.validate(request);
-        violations.stream().forEach(v->{
-                if(v.getMessage().equals("Invalid Site ID (URN) provided for IAC. Accepted values are BFA1")){
-                    assertEquals("Invalid Site ID (URN) provided for IAC. Accepted values are BFA1",v.getMessage());
-                }
-            }
-        );
+    public void testAmountWithOneDecimalPlaceIsValid() {
+        assertThat(violationsForAmount("2176.6")).isEmpty();
     }
 
     @Test
-    public void testValidateSiteIdForFpl() {
-        CreditAccountPaymentRequest request = new CreditAccountPaymentRequest();
-        request.setService("FPL");
-        request.setSiteId("invalid-site-id");
-        Set<ConstraintViolation<CreditAccountPaymentRequest>> violations = validator.validate(request);
-        violations.stream().forEach(v->{
-                if(v.getMessage().equals("Invalid Site ID (URN) provided for FPL. Accepted values are ABA3")){
-                    assertEquals("Invalid Site ID (URN) provided for FPL. Accepted values are ABA3",v.getMessage());
-                }
-            }
-        );
+    public void testAmountWithMoreThanTwoDecimalPlacesIsInvalid() {
+        assertThat(violationsForAmount("2176.6400000000003"))
+            .hasSize(1)
+            .extracting(ConstraintViolation::getMessage)
+            .containsExactly("Payment amount cannot have more than 2 decimal places");
     }
 
-
-
+    @Test
+    public void testNegativeAmountIsInvalid() {
+        assertThat(violationsForAmount("-2176.64"))
+            .extracting(ConstraintViolation::getMessage)
+            .containsExactlyInAnyOrder("must be greater than 0", "must be greater than or equal to 0.01");
+    }
 
 }

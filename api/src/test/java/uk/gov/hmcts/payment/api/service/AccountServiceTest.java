@@ -4,7 +4,7 @@ import static org.mockito.Mockito.*;
 import static org.junit.Assert.*;
 
 import java.math.BigDecimal;
-import java.util.concurrent.CompletableFuture;
+import java.util.Date;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -12,12 +12,12 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
+import uk.gov.hmcts.payment.api.dto.liberata.identity.TokenResponse;
 import uk.gov.hmcts.payment.api.util.AccountStatus;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -27,7 +27,7 @@ public class AccountServiceTest {
     private AccountServiceImpl accountService;
 
     @Mock
-    private LiberataService liberataService;
+    private LiberataRealTimeAPI liberataRealTimeAPI;
 
     @Mock
     private RestTemplate restTemplate;
@@ -38,7 +38,8 @@ public class AccountServiceTest {
     @Before
     public void setUp() {
         // Setup mock behavior
-        when(liberataService.getAccessToken()).thenReturn("mockAccessToken");
+        TokenResponse tokenResponse = new TokenResponse("mockAccessToken", 0, 0);
+        when(liberataRealTimeAPI.getValidToken()).thenReturn(tokenResponse);
     }
 
     @Test
@@ -73,7 +74,7 @@ public class AccountServiceTest {
         String pbaCode = "PBA1234332";
 
         // Simulate a scenario where the restTemplate throws an HttpClientErrorException
-        when(restTemplate.exchange(anyString(), eq(HttpMethod.GET), any(), eq(AccountDto.class)))
+        when(liberataRealTimeAPI.getAccountDetails(any(), eq(pbaCode)))
             .thenThrow(HttpClientErrorException.class);
 
         // Act
@@ -86,7 +87,7 @@ public class AccountServiceTest {
         String pbaCode = "PBA1234332";
 
         // Simulate a scenario where the restTemplate throws a ResourceAccessException
-        when(restTemplate.exchange(anyString(), eq(HttpMethod.GET), any(), eq(AccountDto.class)))
+        when(liberataRealTimeAPI.getAccountDetails(any(), eq(pbaCode)))
             .thenThrow(ResourceAccessException.class);
 
         // Act
@@ -97,18 +98,12 @@ public class AccountServiceTest {
     public void testRetrieve_externalServiceCall() throws Exception {
         // Arrange
         String pbaCode = "PBAFUNC67890";
-        AccountDto externalAccount = AccountDto.accountDtoWith()
-            .accountNumber(pbaCode)
-            .accountName("Some Account")
-            .creditLimit(BigDecimal.valueOf(5000))
-            .availableBalance(BigDecimal.valueOf(7000))
-            .status(AccountStatus.ACTIVE)
-            .build();
+        AccountDto externalAccount = new AccountDto(pbaCode, "accountName", new BigDecimal(5000),
+            new BigDecimal(7000), AccountStatus.ACTIVE, new Date());
 
         // Mock restTemplate behavior
-        when(restTemplate.exchange(anyString(), eq(HttpMethod.GET), any(), eq(AccountDto.class)))
-            .thenReturn(responseEntity);
-        when(responseEntity.getBody()).thenReturn(externalAccount);
+        when(liberataRealTimeAPI.getAccountDetails(any(), eq(pbaCode)))
+            .thenReturn(externalAccount);
 
         // Act
         AccountDto result = accountService.retrieve(pbaCode);

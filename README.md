@@ -65,6 +65,17 @@ $ ./gradlew test
 Please refer to Swagger UI and Gov.UK Pay for more details.
 
 
+### Rate Limiting
+All API endpoints within this application have rate limiting applied.
+
+The limit is configured through three resiliance4j parameters, which may be configured from environment variables:
+```
+REFUNDS_API_RATE_LIMIT_FOR_PERIOD  (default = 20)
+REFUNDS_API_RATE_LIMIT_REFRESH_PERIOD  (default = 1 second)
+REFUNDS_API_RATE_LIMIT_TIMEOUT_DURATION   (default = 0)
+```
+
+
 ### Useful Links
 * https://gds-payments.gelato.io/docs/versions/1.0.0/resources/general
 * https://github.com/hmcts/ccpay-reference-app

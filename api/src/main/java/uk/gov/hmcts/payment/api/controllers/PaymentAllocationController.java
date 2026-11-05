@@ -1,5 +1,7 @@
 package uk.gov.hmcts.payment.api.controllers;
 
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
+
 import io.swagger.v3.oas.annotations.*;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -45,6 +47,7 @@ public class PaymentAllocationController {
         @ApiResponse(responseCode = "201", description = "Payment Allocation created"),
         @ApiResponse(responseCode = "400", description = "Payment Allocation failed")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @PostMapping(value = "/payment-allocations")
     public ResponseEntity<PaymentAllocationDto> addNewFee(@Valid @RequestBody PaymentAllocationDto paymentAllocationDto) {
 

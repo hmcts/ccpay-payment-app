@@ -39,7 +39,7 @@ java:
     CALLBACK_PAYMENTS_CUTOFF_TIME_IN_MINUTES: 2
 
     GOV_PAY_URL: "https://publicapi.payments.service.gov.uk/v1/payments"
-    GOV_PAY_OPERATIONAL_SERVICES: "ccd_gw,api_gw,xui_webapp,ccpay_gw"
+    GOV_PAY_OPERATIONAL_SERVICES: "ccd_gw,api_gw,xui_webapp,ccpay_gw,ccpay_bubble"
     PCI_PAL_CALLBACK_URL: https://cft-mtls-api-mgmt-appgw.{{ .Values.global.environment }}.platform.hmcts.net/telephony-api/telephony/callback
 
     TRUSTED_S2S_SERVICE_NAMES: "refunds_api,iac,cmc,cmc_claim_store,probate_frontend,divorce_frontend,ccd_gw,api_gw,finrem_payment_service,ccpay_bubble,jui_webapp,xui_webapp,fpl_case_service,civil_service,paymentoutcome_web,adoption_web,prl_cos_api,notifications_service,ccpay_gw,pcs_api,pcs_frontend,pt_api"
@@ -101,6 +101,7 @@ java:
     SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: true
     SPRING_MAIL_USERNAME: apikey
 
+
     FEATURE_PAYMENTS_SEARCH: "true"
     FEATURE_SERVICE_CALLBACK: "true"
     PAYMENT_S2S_MICROSERVICE_NAME: payment_app
@@ -109,6 +110,7 @@ java:
     REFUND_API_URL: http://ccpay-refunds-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal
     SERVER_SHUTDOWN_STRATEGY: graceful
     TIMEOUT_SERVER_SHUTDOWN_PHASE: 30s
+    LIBERATA_API_REALTIME_ACCOUNT_URL: https://lascustomerportaluat.liberata.com/pba-api-v2-uat
 
     CARD_LAG_TIME: 144
     CASH_LAG_TIME: 120
@@ -259,3 +261,10 @@ java:
           alias: service.request.email.to
         - name:  paymentoutcome-s2s-web
           alias: PAYMENTOUTCOME_S2S_OTP_SECRET
+        - name: liberata-api-realtime-user
+          alias: LIBERATA_API_REALTIME_ACCOUNT_USERNAME
+        - name: liberata-api-realtime-password
+          alias: LIBERATA_API_REALTIME_ACCOUNT_PASSWORD
+
+
+

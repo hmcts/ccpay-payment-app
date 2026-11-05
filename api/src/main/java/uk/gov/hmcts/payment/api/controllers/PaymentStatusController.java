@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.api.controllers;
 
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.*;
@@ -56,6 +57,7 @@ public class PaymentStatusController {
         @ApiResponse(responseCode = "500", description = "Internal Server Error")
     })
     @PaymentExternalAPI
+    @RateLimiter(name = "default-rate-limiter")
     @PostMapping(path = "/payment-failures/bounced-cheque")
     public ResponseEntity<String> paymentStatusBouncedCheque(@Valid @RequestBody PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto){
 
@@ -78,6 +80,7 @@ public class PaymentStatusController {
         @ApiResponse(responseCode = "200", description = "successful operation"),
     })
     @PaymentExternalAPI
+    @RateLimiter(name = "default-rate-limiter")
     @PostMapping(path = "/payment-failures/chargeback")
     public ResponseEntity<String> paymentStatusChargeBack(@Valid @RequestBody PaymentStatusChargebackDto paymentStatusChargebackDto) throws JacksonException {
 
@@ -97,6 +100,7 @@ public class PaymentStatusController {
     }
 
     @PaymentExternalAPI
+    @RateLimiter(name = "default-rate-limiter")
     @PostMapping(path = "/payment-failures/unprocessed-payment")
     public ResponseEntity<String> unprocessedPayment(@Valid @RequestBody UnprocessedPayment unprocessedPayment,
                                                      @RequestHeader(required = false) MultiValueMap<String, String> headers) {
@@ -117,6 +121,7 @@ public class PaymentStatusController {
         @ApiResponse(responseCode = "204", description = "No record found"),
         @ApiResponse(responseCode = "500", description = "Internal Server Error")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @GetMapping("/payment-failures/{paymentReference}")
     public ResponseEntity<PaymentFailureResponse> retrievePaymentFailure(@PathVariable("paymentReference") String paymentReference) {
 
@@ -143,6 +148,7 @@ public class PaymentStatusController {
         @ApiResponse(responseCode = "204", description = "Payment status deleted successfully"),
         @ApiResponse(responseCode = "404", description = "Payment status not found for the given reference")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @DeleteMapping(value = "/payment-status-delete/{failureReference}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteByFailureReference(@PathVariable("failureReference") String failureReference) {
@@ -150,6 +156,7 @@ public class PaymentStatusController {
     }
 
     @PaymentExternalAPI
+    @RateLimiter(name = "default-rate-limiter")
     @PatchMapping("/payment-failures/{failureReference}")
     public ResponseEntity<String> paymentStatusSecond(@PathVariable("failureReference") String failureReference,
                                                       @RequestBody PaymentStatusUpdateSecond paymentStatusUpdateSecondDto) {
@@ -165,6 +172,7 @@ public class PaymentStatusController {
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "payment reference updated successfully")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @PatchMapping(value = "/jobs/unprocessed-payment-update")
     public void updateUnprocessedPayment(){
 
@@ -184,6 +192,7 @@ public class PaymentStatusController {
         @ApiResponse(responseCode = "404", description = "No Data found to generate Report"),
         @ApiResponse(responseCode = "500", description = "Internal Server Error")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @GetMapping("/payment-failures/failure-report")
     public PaymentFailureReportResponse retrievePaymentFailureReport(@RequestParam("date_from") Date fromDate,
                                                                       @RequestParam("date_to") Date toDate,
@@ -206,6 +215,7 @@ public class PaymentStatusController {
         @ApiResponse(responseCode = "404", description = "No Data found to generate Report"),
         @ApiResponse(responseCode = "500", description = "Internal Server Error")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @GetMapping("/telephony-payments/telephony-payments-report")
     public TelephonyPaymentsReportResponse retrieveTelephonyPaymentsReport(@RequestParam("date_from") Date fromDate,
                                                                             @RequestParam("date_to") Date toDate,

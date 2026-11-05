@@ -139,8 +139,7 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
     }
 
     private static Specification findCreditAccountPaymentsByBetweenDates(Date fromDate, Date toDate) {
-        return Specification
-            .where(isEquals(PaymentMethod.paymentMethodWith().name(PAYMENT_METHOD).build()))
+        return isEquals(PaymentMethod.paymentMethodWith().name(PAYMENT_METHOD).build())
             .and(isBetween(fromDate, toDate));
     }
 

@@ -1,5 +1,7 @@
 package uk.gov.hmcts.payment.api.controllers;
 
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -55,6 +57,7 @@ public class AccountController {
         @ApiResponse(responseCode = "500", description = "Internal Server Error"),
         @ApiResponse(responseCode = "503", description = "Failed to connect with Liberata")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @GetMapping(value = "/accounts/{accountNumber}")
     public AccountDto getAccounts(@PathVariable("accountNumber") String accountNumber) {
         try {

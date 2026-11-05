@@ -1,7 +1,27 @@
 buildscript {
     repositories {
         mavenLocal()
+        if (!System.getenv("GITHUB_ACTIONS")) {
+            maven {
+                url = uri('https://artifactory.platform.hmcts.net/artifactory/maven-remotes')
+            }
+        }
+        maven {
+            url = uri('https://pkgs.dev.azure.com/hmcts/Artifacts/_packaging/hmcts-lib/maven/v1')
+        }
+        maven {
+            // Mirror of Maven Central to reduce transient throttling in CI.
+            url = uri('https://maven-central.storage-download.googleapis.com/maven2')
+        }
         mavenCentral()
+    }
+    configurations.classpath {
+        resolutionStrategy.eachDependency { details ->
+            if (details.requested.group == 'org.bouncycastle' && details.requested.name == 'bcutil-jdk18on') {
+                // Avoid dynamic version lookup ([1.81,1.82)) during plugin resolution in CI.
+                details.useVersion '1.81'
+            }
+        }
     }
     dependencies {
         classpath("net.serenity-bdd:serenity-single-page-report:5.4.2")
@@ -119,9 +139,10 @@ dependencies {
         exclude(module: 'azure-core')
     }
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-cache'
-    implementation group: 'com.github.ben-manes.caffeine', name: 'caffeine', version: '3.2.4'
+    implementation group: 'com.github.ben-manes.caffeine', name: 'caffeine', version: '3.3.1'
     implementation group: 'io.github.openfeign', name: 'feign-core', version: '13.17'
     implementation group: 'io.github.resilience4j', name:'resilience4j-spring-boot4', version:'2.4.0'
+    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-aspectj'
     implementation group: 'org.springframework.cloud', name: 'spring-cloud-openfeign-core'
     implementation group: 'commons-fileupload', name: 'commons-fileupload', version: '1.6.0'
     implementation(group: 'org.postgresql', name: 'postgresql') {
@@ -188,11 +209,11 @@ dependencies {
     contractTestImplementation("org.junit.jupiter:junit-jupiter-engine")
 
     functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-core', version: versions.serenity
-    functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-cucumber', version: versions.serenityCucumber
     functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-junit', version: versions.serenity
     functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-rest-assured', version: versions.serenity
     functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-spring', version: versions.serenity
-    functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-screenplay', version: versions.serenity
+    // Current functional tests are JUnit-based and do not use Cucumber/Screenplay APIs.
+    // Keeping the classpath lean avoids resolving unnecessary modules in restricted CI networks.
     functionalTestImplementation group: 'io.rest-assured', name: 'xml-path', version: versions.restAssured
     functionalTestImplementation group: 'io.rest-assured', name: 'json-path', version: versions.restAssured
     functionalTestImplementation group: 'org.awaitility', name: 'awaitility', version: '4.3.0'
@@ -222,13 +243,7 @@ task functionalTest(type: Test, description: 'Runs the functional tests', group:
 functionalTest.finalizedBy(aggregate)
 tasks.named('aggregate') {
     onlyIf {
-        def requestedTasks = gradle.startParameter.taskNames
-        requestedTasks.any { name ->
-            name == 'functionalTest' || name.endsWith(':functionalTest')
-                || name == 'aggregate' || name.endsWith(':aggregate')
-                || name == 'reports' || name.endsWith(':reports')
-                || name == 'checkOutcomes' || name.endsWith(':checkOutcomes')
-        }
+        gradle.taskGraph.hasTask(functionalTest)
     }
 }
 
@@ -264,6 +279,9 @@ task providerContractTest(type: Test) {
         systemProperty 'pact.verifier.publishResults', project.property('pact.verifier.publishResults')
     }
     systemProperty 'pact.provider.version', project.pactVersion
+    // Provider verification publishes to the broker as a side-effect, so never skip/cached execution.
+    outputs.upToDateWhen { false }
+    outputs.cacheIf { false }
 
 }
 
@@ -281,7 +299,6 @@ runAndPublishConsumerPactTests.finalizedBy pactPublish
 
 runProviderPactVerification.dependsOn providerContractTest
 
-runProviderPactVerification.finalizedBy pactVerify
 
 serenity {
     reports = ["single-page-html"]

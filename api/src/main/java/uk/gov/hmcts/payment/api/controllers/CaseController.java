@@ -1,5 +1,7 @@
 package uk.gov.hmcts.payment.api.controllers;
 
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -76,6 +78,7 @@ public class CaseController {
         @ApiResponse(responseCode = "200", description = "Payments retrieved"),
         @ApiResponse(responseCode = "400", description = "Bad request")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @RequestMapping(value = "/cases/{case}/payments", method = GET)
     @PaymentExternalAPI
     public PaymentsResponse retrieveCasePayments(@PathVariable(name = "case") String ccdCaseNumber) {
@@ -102,6 +105,7 @@ public class CaseController {
         @ApiResponse(responseCode = "403", description = "Payment Info Forbidden"),
         @ApiResponse(responseCode = "404", description = "Payment Groups not found")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @RequestMapping(value = "/cases/{ccdcasenumber}/paymentgroups", method = GET)
     public ResponseEntity<PaymentGroupResponse> retrieveCasePaymentGroups(@PathVariable(name = "ccdcasenumber") String ccdCaseNumber,
         @RequestHeader(required = false) MultiValueMap<String, String> headers) {

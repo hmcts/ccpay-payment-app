@@ -1,5 +1,7 @@
 package uk.gov.hmcts.payment.api.controllers;
 
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
+
 import io.swagger.v3.oas.annotations.*;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -51,6 +53,7 @@ public class RemissionController {
         @ApiResponse(responseCode = "404", description = "Given payment group reference not found"),
         @ApiResponse(responseCode = "422", description = "Invalid or missing attribute")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @PostMapping(value = "/remissions")
     @ResponseBody
     public ResponseEntity<RemissionDto> createRemission(@Valid @RequestBody RemissionRequest remissionRequest,
@@ -74,6 +77,7 @@ public class RemissionController {
         @ApiResponse(responseCode = "404", description = "Given payment group reference not found"),
         @ApiResponse(responseCode = "422", description = "Invalid or missing attribute")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @PostMapping(value = "/payment-groups/{payment-group-reference}/fees/{unique_fee_id}/remissions")
     @ResponseBody
     public ResponseEntity<RemissionDto> createRetrospectiveRemission(
@@ -97,6 +101,7 @@ public class RemissionController {
         @ApiResponse(responseCode = "404", description = "Given payment group reference not found"),
         @ApiResponse(responseCode = "422", description = "Invalid or missing attribute")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @PostMapping(value = "/payment-groups/{payment-group-reference}/fees/{unique_fee_id}/retro-remission")
     @ResponseBody
     public ResponseEntity<RetroRemissionDto> createRetrospectiveRemissionForPayment(

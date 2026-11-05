@@ -1,22 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
-<!--    <suppress>-->
-<!--        <notes>Suppress CVE-2020-29582 for org.jetbrains.kotlin:kotlin-reflect:1.9.25 only.</notes>-->
-<!--        <packageUrl regex="true">^pkg:maven/org\.jetbrains\.kotlin/kotlin-reflect@1\.9\.25$</packageUrl>-->
-<!--        <cve>CVE-2020-29582</cve>-->
-<!--    </suppress>-->
-
-<!--    <suppress>-->
-<!--        <notes>Suppress CVE-2020-29582 for org.jetbrains.kotlin:kotlin-stdlib:1.9.25 only.</notes>-->
-<!--        <packageUrl regex="true">^pkg:maven/org\.jetbrains\.kotlin/kotlin-stdlib@1\.9\.25$</packageUrl>-->
-<!--        <cve>CVE-2020-29582</cve>-->
-<!--    </suppress>-->
-
-<!--    <suppress>-->
-<!--        <notes>Suppress CVE-2025-21199 for com.microsoft.azure/applicationinsights-core@3.7.8 only.</notes>-->
-<!--        <packageUrl regex="true">^pkg:maven/com\.microsoft\.azure/applicationinsights-core@3\.7\.8$</packageUrl>-->
-<!--        <cve>CVE-2025-21199</cve>-->
-<!--    </suppress>-->
 
 <!--    keep-->
     <suppress>
@@ -24,20 +7,6 @@
         <packageUrl regex="true">^pkg:maven/com\.amdelamar/jotp@1\.3\.0$</packageUrl>
         <cve>CVE-2021-32816</cve>
     </suppress>
-
-<!--    <suppress>-->
-<!--        <notes>-->
-<!--            Nu Html Checker (validator.nu) contains a restriction bypass that allows remote attackers to make the server perform arbitrary HTTP/HTTPS requests to internal resources, including localhost services.-->
-<!--        </notes>-->
-<!--        <cve>CVE-2025-15104</cve>-->
-<!--    </suppress>-->
-
-<!--    <suppress>-->
-<!--        <notes>-->
-<!--            By selecting these links, you will be leaving NIST webspace. We have provided these links to other web sites because they may have information that would be of interest to you. No inferences should be drawn on account of other sites being referenced,-->
-<!--        </notes>-->
-<!--        <cve>CVE-2026-33117</cve>-->
-<!--    </suppress>-->
 
 <!--    keep-->
     <suppress>
@@ -49,29 +18,5 @@
         </notes>
         <cve>CVE-2025-21199</cve>
     </suppress>
-
-<!--    <suppress>-->
-<!--        <notes>-->
-<!--            CVE-2026-66299 is an uncontrolled resource consumption issue in Apache Tomcat's bundled WebSocket-->
-<!--            chat example web application (webapps/examples). tomcat-embed-core/tomcat-embed-websocket, as used-->
-<!--            via Spring Boot's embedded container, never ship that examples webapp, so this does not apply here.-->
-<!--            No fixed release exists yet regardless (needs 11.0.25; latest published is 11.0.24, see-->
-<!--            build-version-overrides.gradle). Revisit once 11.0.25 ships and we bump to it.-->
-<!--        </notes>-->
-<!--        <packageUrl regex="true">^pkg:maven/org\.apache\.tomcat\.embed/tomcat-embed-core@11\.0\.24$</packageUrl>-->
-<!--        <cve>CVE-2026-66299</cve>-->
-<!--    </suppress>-->
-
-<!--    <suppress>-->
-<!--        <notes>-->
-<!--            CVE-2026-66299 is an uncontrolled resource consumption issue in Apache Tomcat's bundled WebSocket-->
-<!--            chat example web application (webapps/examples). tomcat-embed-core/tomcat-embed-websocket, as used-->
-<!--            via Spring Boot's embedded container, never ship that examples webapp, so this does not apply here.-->
-<!--            No fixed release exists yet regardless (needs 11.0.25; latest published is 11.0.24, see-->
-<!--            build-version-overrides.gradle). Revisit once 11.0.25 ships and we bump to it.-->
-<!--        </notes>-->
-<!--        <packageUrl regex="true">^pkg:maven/org\.apache\.tomcat\.embed/tomcat-embed-websocket@11\.0\.24$</packageUrl>-->
-<!--        <cve>CVE-2026-66299</cve>-->
-<!--    </suppress>-->
 
 </suppressions>

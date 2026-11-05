@@ -1,5 +1,7 @@
 package uk.gov.hmcts.payment.api.controllers;
 
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -35,6 +37,7 @@ public class FeesController {
         @ApiResponse(responseCode = "204", description = "Fees Deleted"),
         @ApiResponse(responseCode = "400", description = "Fees not found")
     })
+    @RateLimiter(name = "default-rate-limiter")
     @DeleteMapping(value = "/fees/{feeId}")
     public ResponseEntity<Boolean> deleteFee(@NotNull @PathVariable("feeId") String feeId) throws EmptyResultDataAccessException {
         feesService.deleteFee(Integer.parseInt(feeId));

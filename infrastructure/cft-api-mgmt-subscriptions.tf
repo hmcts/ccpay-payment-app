@@ -7,6 +7,7 @@ resource "azurerm_api_management_subscription" "fee_pay_team_telephony_subscript
   product_id          = module.cft_api_mgmt_product.id
   display_name        = "Telephony API - Fee and Pay DTS Team Subscription"
   state               = "active"
+  allow_tracing       = false
   provider            = azurerm.aks-cftapps
 }
 
@@ -23,6 +24,7 @@ resource "azurerm_api_management_subscription" "pcipal_supplier_subscription" {
   product_id          = module.cft_api_mgmt_product.id
   display_name        = "Telephony API - PCIPal Subscription"
   state               = "active"
+  allow_tracing       = false
   provider            = azurerm.aks-cftapps
 }
 

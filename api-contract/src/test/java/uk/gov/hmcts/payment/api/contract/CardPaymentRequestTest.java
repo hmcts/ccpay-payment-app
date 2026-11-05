@@ -11,7 +11,7 @@ import jakarta.validation.ValidatorFactory;
 import java.math.BigDecimal;
 import java.util.Set;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class CardPaymentRequestTest {
     private static ValidatorFactory validatorFactory;
@@ -28,30 +28,40 @@ public class CardPaymentRequestTest {
         validatorFactory.close();
     }
 
-    @Test
-    public void testAmountFractionInCardPaymentRequest(){
+    private static Set<ConstraintViolation<CardPaymentRequest>> violationsForAmount(String amount) {
         CardPaymentRequest request = new CardPaymentRequest();
-        request.setAmount(BigDecimal.valueOf(100.1234));
-        Set<ConstraintViolation<CardPaymentRequest>> violations = validator.validate(request);
-        violations.stream().forEach(v->{
-                if(v.getMessage().equals("Payment amount cannot have more than 2 decimal places")){
-                    assertEquals("Payment amount cannot have more than 2 decimal places",v.getMessage());
-                }
-            }
-        );
+        request.setAmount(new BigDecimal(amount));
+        return validator.validateProperty(request, "amount");
     }
 
     @Test
-    public void  testNegativeAmountInCardPaymentRequest(){
-        CardPaymentRequest request = new CardPaymentRequest();
-        request.setAmount(BigDecimal.valueOf(-100.12));
-        Set<ConstraintViolation<CardPaymentRequest>> violations = validator.validate(request);
-        violations.stream().forEach(v->{
-                if(v.getMessage().equals("must be greater than 0")){
-                    assertEquals("must be greater than 0",v.getMessage());
-                }
-            }
-        );
+    public void testAmountWithTwoDecimalPlacesIsValid() {
+        assertThat(violationsForAmount("2176.64")).isEmpty();
+    }
+
+    @Test
+    public void testAmountWithZeroDecimalPlacesIsValid() {
+        assertThat(violationsForAmount("2176")).isEmpty();
+    }
+
+    @Test
+    public void testAmountWithOneDecimalPlaceIsValid() {
+        assertThat(violationsForAmount("2176.6")).isEmpty();
+    }
+
+    @Test
+    public void testAmountWithMoreThanTwoDecimalPlacesIsInvalid() {
+        assertThat(violationsForAmount("2176.6400000000003"))
+            .hasSize(1)
+            .extracting(ConstraintViolation::getMessage)
+            .containsExactly("Payment amount cannot have more than 2 decimal places");
+    }
+
+    @Test
+    public void testNegativeAmountIsInvalid() {
+        assertThat(violationsForAmount("-2176.64"))
+            .extracting(ConstraintViolation::getMessage)
+            .containsExactlyInAnyOrder("must be greater than 0", "must be greater than or equal to 0.01");
     }
 
     @Test
@@ -60,13 +70,10 @@ public class CardPaymentRequestTest {
         request.setCcdCaseNumber("ccd-number");
         request.setSiteId("site-id");
         request.setDescription("");
-        Set<ConstraintViolation<CardPaymentRequest>> violations = validator.validate(request);
-        violations.stream().forEach(v->{
-                if(v.getMessage().equals("must not be empty")){
-                    assertEquals("must not be empty",v.getMessage());
-                }
-            }
-        );
+
+        assertThat(validator.validate(request))
+            .extracting(ConstraintViolation::getMessage)
+            .contains("must not be empty");
     }
 
     @Test
@@ -74,42 +81,10 @@ public class CardPaymentRequestTest {
         CardPaymentRequest request = new CardPaymentRequest();
         request.setSiteId("site-id");
         request.setDescription("");
-        Set<ConstraintViolation<CardPaymentRequest>> violations = validator.validate(request);
-        violations.stream().forEach(v->{
-                if(v.getMessage().equals("Either ccdCaseNumber or caseReference is required.")){
-                    assertEquals("Either ccdCaseNumber or caseReference is required.",v.getMessage());
-                }
-            }
-        );
-    }
 
-    @Test
-    public void testValidateSiteIdForAdoption() {
-        CreditAccountPaymentRequest request = new CreditAccountPaymentRequest();
-        request.setService("ADOPTION");
-        request.setSiteId("invalid-site-id");
-        Set<ConstraintViolation<CreditAccountPaymentRequest>> violations = validator.validate(request);
-        violations.stream().forEach(v->{
-                if(v.getMessage().equals("Invalid Site ID (URN) provided for Adoption. Accepted values are ABA4")){
-                    assertEquals("Invalid Site ID (URN) provided for Adoption. Accepted values are ABA4",v.getMessage());
-                }
-            }
-        );
+        assertThat(validator.validate(request))
+            .extracting(ConstraintViolation::getMessage)
+            .contains("Either ccdCaseNumber or caseReference is required.");
     }
-
-    @Test
-    public void testValidateSiteIdForPRL() {
-        CreditAccountPaymentRequest request = new CreditAccountPaymentRequest();
-        request.setService("PRL");
-        request.setSiteId("invalid-site-id");
-        Set<ConstraintViolation<CreditAccountPaymentRequest>> violations = validator.validate(request);
-        violations.stream().forEach(v->{
-                if(v.getMessage().equals("Invalid Site ID (URN) provided for PRL. Accepted values are ABA5")){
-                    assertEquals("Invalid Site ID (URN) provided for FPL. Accepted values are ABA5",v.getMessage());
-                }
-            }
-        );
-    }
-
 
 }
