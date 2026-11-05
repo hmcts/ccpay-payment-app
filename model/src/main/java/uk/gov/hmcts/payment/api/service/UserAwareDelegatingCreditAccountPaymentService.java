@@ -18,7 +18,7 @@ import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.validation.constraints.NotNull;
 import java.util.Arrays;
-import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 
 
@@ -120,7 +120,7 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
     }
 
     @Override
-    public List<PaymentFeeLink> search(LocalDateTime startDate, LocalDateTime endDate) {
+    public List<PaymentFeeLink> search(Date startDate, Date endDate) {
         LOG.info("Search for payments between {} and {}", startDate, endDate);
         return paymentFeeLinkRepository.findAll(findCreditAccountPaymentsByBetweenDates(startDate, endDate));
     }
@@ -142,7 +142,7 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
             PaymentMethod.paymentMethodWith().name(PAYMENT_METHOD).build()).orElseThrow(PaymentNotFoundException::new);
     }
 
-    private static Specification findCreditAccountPaymentsByBetweenDates(LocalDateTime fromDate, LocalDateTime toDate) {
+    private static Specification findCreditAccountPaymentsByBetweenDates(Date fromDate, Date toDate) {
         return isEquals(PaymentMethod.paymentMethodWith().name(PAYMENT_METHOD).build())
             .and(isBetween(fromDate, toDate));
     }
@@ -155,11 +155,11 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
 
     }
 
-    private static Specification isBetween(LocalDateTime startDate, LocalDateTime endDate) {
+    private static Specification isBetween(Date startDate, Date endDate) {
 
         return ((root, query, cb) -> {
             Join<PaymentFeeLink, Payment> paymentJoin = root.join("payments", JoinType.LEFT);
-            return cb.between(paymentJoin.get("dateUpdated").as(LocalDateTime.class), startDate, endDate);
+            return cb.between(paymentJoin.get("dateUpdated").as(Date.class), startDate, endDate);
         });
     }
 }

@@ -4,7 +4,7 @@ import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.Payment;
 
-import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 
 public interface CreditAccountPaymentService<T, I> {
@@ -15,7 +15,7 @@ public interface CreditAccountPaymentService<T, I> {
 
     T retrieveByPaymentReference(I id);
 
-    List<T> search(LocalDateTime startDate, LocalDateTime endDate);
+    List<T> search(Date startDate, Date endDate);
 
     void deleteByPaymentReference(String paymentReference);
 
