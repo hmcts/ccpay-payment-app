@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.api.dto.liberata;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 
@@ -18,6 +19,11 @@ public class PaymentRequest {
     private String serviceName;
     private String groupReference;
     private String paymentReference;
+    @JsonFormat(
+        shape = JsonFormat.Shape.STRING,
+        pattern = "yyyy-MM-dd HH:mm:ss",
+        timezone = "GMT"
+    )
     private Date dateCreated;
     private String amount;
     private String currency;

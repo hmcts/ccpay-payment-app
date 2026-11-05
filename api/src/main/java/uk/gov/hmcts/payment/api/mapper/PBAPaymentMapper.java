@@ -56,7 +56,7 @@ public class PBAPaymentMapper {
             .build();
 
         return PaymentAccountRequest.paymentAccountRequestWith()
-            .PaymentByAccountRequest(paymentByAccountRequest).build();
+            .paymentByAccountRequest(paymentByAccountRequest).build();
     }
 
     private boolean isACService(String serviceCode) {

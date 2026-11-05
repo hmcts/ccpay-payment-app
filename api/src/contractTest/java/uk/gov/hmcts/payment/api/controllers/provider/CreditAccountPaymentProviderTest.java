@@ -219,7 +219,7 @@ class CreditAccountPaymentProviderTest {
 
     @State({"A deleted account requests a payment"})
     public void toRefuseCreditAccountPaymenDeleted(Map<String, Object> paymentMap) {
-        when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getAnErrorDueToAccountOnHold());
+        when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getAnErrorDueToAccountDeleted());
         setUpMockInteractions(paymentMap, "Payment Status failed", "failed", AccountStatus.DELETED);
     }
 
@@ -238,6 +238,14 @@ class CreditAccountPaymentProviderTest {
     private PaymentAccountResponse getAnErrorDueToAccountOnHold() {
         return PaymentAccountResponse.paymentDtoWith()
             .status(PaymentAccountResponseStatus.ERROR.getValue())
+            .reason(PBAStatusErrorMapper.ON_HOLD)
+            .message(PaymentAccountResponseStatus.ACCOUNT_NOT_ACTIVE.getValue()).build();
+    }
+
+    private PaymentAccountResponse getAnErrorDueToAccountDeleted() {
+        return PaymentAccountResponse.paymentDtoWith()
+            .status(PaymentAccountResponseStatus.ERROR.getValue())
+            .reason(PBAStatusErrorMapper.DELETED)
             .message(PaymentAccountResponseStatus.ACCOUNT_NOT_ACTIVE.getValue()).build();
     }
 

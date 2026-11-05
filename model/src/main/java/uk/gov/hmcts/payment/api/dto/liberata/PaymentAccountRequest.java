@@ -17,5 +17,5 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 public class PaymentAccountRequest {
 
     @JsonProperty("PaymentByAccountRequest")
-    private PaymentByAccountRequest  PaymentByAccountRequest;
+    private PaymentByAccountRequest paymentByAccountRequest;
 }
