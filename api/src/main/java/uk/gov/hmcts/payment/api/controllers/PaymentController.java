@@ -50,6 +50,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.api.validators.PaymentValidator;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
@@ -75,8 +76,8 @@ public class PaymentController {
     private final PaymentFeeRepository paymentFeeRepository;
     private final LaunchDarklyFeatureToggler featureToggler;
 
-    @Value("${pba.payments.exclude.reconciliation}")
-    private boolean excludePbaPaymentsForReconciliation;
+    @Value("${pba.payments.reconciliation.stop.datetime}")
+    private Instant pbaPaymentsReconciliationStopDatetime;
 
     @Autowired
     private ServiceRequestCaseUtil serviceRequestCaseUtil;
@@ -211,7 +212,7 @@ public class PaymentController {
             .searchByCriteria(
                 getSearchCriteria(paymentMethodType, serviceType, ccdCaseNumber, pbaNumber, fromDateTime, toDateTime)
             );
-        if (excludePbaPaymentsForReconciliation || pbaIgnore) {
+        if (pbaIgnore || Instant.now().isAfter(pbaPaymentsReconciliationStopDatetime)) {
             payments = excludePbaPayments(payments);
         }
 

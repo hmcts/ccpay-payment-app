@@ -54,6 +54,7 @@ import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -124,7 +125,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .withAuthorizedUser(USER_ID)
             .withUserId(USER_ID)
             .withReturnUrl("https://www.moneyclaims.service.gov.uk");
-        ReflectionTestUtils.setField(paymentController, "excludePbaPaymentsForReconciliation", false);
+        ReflectionTestUtils.setField(paymentController, "excludePbaPaymentsForReconciliation", Instant.MAX);
     }
 
     @Test
@@ -1386,7 +1387,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     @Transactional
     public void searchPaymentsByApportion_withValidDates_shouldReturnPayments_IgnoringPbaPayments() throws Exception {
 
-        ReflectionTestUtils.setField(paymentController, "excludePbaPaymentsForReconciliation", true);
+        ReflectionTestUtils.setField(paymentController, "excludePbaPaymentsForReconciliation", Instant.now().minusSeconds(1));
         populateCardPaymentToDb("1");
         populateCreditAccountPaymentToDb("2");
 
@@ -1418,7 +1419,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     @Transactional
     public void searchPaymentsByApportion_withPbaPaymentMethod_shouldReturnNoPayments() throws Exception {
 
-        ReflectionTestUtils.setField(paymentController, "excludePbaPaymentsForReconciliation", true);
+        ReflectionTestUtils.setField(paymentController, "excludePbaPaymentsForReconciliation", Instant.now().minusSeconds(1));
         populateCreditAccountPaymentToDb("2");
 
         String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
@@ -1441,7 +1442,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     @Transactional
     public void searchPaymentsByApportion_withPbaIgnoreFalse_shouldReturnPbaPayments() throws Exception {
 
-        ReflectionTestUtils.setField(paymentController, "excludePbaPaymentsForReconciliation", false);
+        ReflectionTestUtils.setField(paymentController, "excludePbaPaymentsForReconciliation", Instant.MAX);
         populateCardPaymentToDb("1");
         populateCreditAccountPaymentToDb("2");
 
@@ -1469,7 +1470,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     @Transactional
     public void searchPaymentsByApportion_withPbaIgnoreTrue_shouldIgnorePbaPayments() throws Exception {
 
-        ReflectionTestUtils.setField(paymentController, "excludePbaPaymentsForReconciliation", false);
+        ReflectionTestUtils.setField(paymentController, "excludePbaPaymentsForReconciliation", Instant.MAX);
         populateCardPaymentToDb("1");
         populateCreditAccountPaymentToDb("2");
 
