@@ -122,6 +122,7 @@ java:
     # IDAM system user for the bulk scanning check on service request cancellation.
     PAYMENT_SYSTEM_USER_CLIENT_ID: "payment_api"
     PAYMENT_SYSTEM_USER_SCOPE: "openid profile roles"
+    PAYMENT_SYSTEM_USER_REDIRECT_URI: "http://payment-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal/oauth2/callback"
 
   keyVaults:
     "ccpay":

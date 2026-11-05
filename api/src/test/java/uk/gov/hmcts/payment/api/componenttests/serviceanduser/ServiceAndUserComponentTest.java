@@ -11,12 +11,14 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.ResourceUtils;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.reform.auth.checker.core.service.ServiceRequestAuthorizer;
 import uk.gov.hmcts.reform.auth.checker.core.user.UserRequestAuthorizer;
+import uk.gov.hmcts.reform.idam.client.IdamClient;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -42,6 +44,10 @@ public class ServiceAndUserComponentTest {
 
     @Autowired
     private ConfigurableListableBeanFactory configurableListableBeanFactory;
+
+    // ServiceAndUserTestApplication does not scan for idam-java-client's Feign IdamApi, which the real IdamClient needs.
+    @MockitoBean
+    private IdamClient idamClient;
 
     private static final String SERVICE_ID_DIVORCE = "divorce";
 

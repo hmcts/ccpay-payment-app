@@ -35,12 +35,6 @@ public class RestTemplateConfiguration {
     @Value("${bulk.scanning.read.timeout:5000}")
     private int bulkScanningReadTimeout;
 
-    @Value("${idam.system-user.connect.timeout:5000}")
-    private int idamSystemUserConnectTimeout;
-
-    @Value("${idam.system-user.read.timeout:5000}")
-    private int idamSystemUserReadTimeout;
-
     @Primary
     @Bean
     public CloseableHttpClient paymentsHttpClient() {
@@ -59,12 +53,6 @@ public class RestTemplateConfiguration {
     @Bean (value = "restTemplateBulkScanning")
     public RestTemplate restTemplateBulkScanning() {
         return createRestTemplate(bulkScanningReadTimeout, bulkScanningConnectTimeout);
-    }
-
-    // The system user's token is fetched during the same cancellation eligibility check, so it has timeouts too.
-    @Bean (value = "restTemplateIdamSystemUser")
-    public RestTemplate restTemplateIdamSystemUser() {
-        return createRestTemplate(idamSystemUserReadTimeout, idamSystemUserConnectTimeout);
     }
 
     @Bean (value = "restTemplateLiberata")

@@ -18,6 +18,7 @@ java:
     PBA_CONFIG1_SERVICE_NAMES: dummy
     PCI_PAL_API_URL: https://ip3cloud.com/clients/hmcts/payments/index.php
     REFUND_API_URL: http://${SERVICE_NAME}-ccpay-refunds-api
+    PAYMENT_SYSTEM_USER_REDIRECT_URI: "http://payment-api-aat.service.core-compute-aat.internal/oauth2/callback"
     PBA_PCS_PAYMENTS_REPORT_SCHEDULER_ENABLED: "true"
     PBA_PCS_PAYMENTS_EMAIL_FROM: "no-reply@mail-payment-nonprod.platform.hmcts.net"
     PBA_PCS_PAYMENTS_EMAIL_MESSAGE: "Hi, <br/><br/>Please find attached Payment by Account reconciliation report. <br/><br/>Regards, <br/>Fees & Payments Team <br/><br/>"

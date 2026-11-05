@@ -1,179 +1,133 @@
 package uk.gov.hmcts.payment.api.service;
 
+import feign.FeignException;
+import feign.Request;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.mock.http.client.MockClientHttpRequest;
-import org.springframework.test.web.client.ExpectedCount;
-import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.test.web.client.ResponseCreator;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.payment.api.exception.SystemUserTokenException;
+import uk.gov.hmcts.reform.idam.client.IdamClient;
+import uk.gov.hmcts.reform.idam.client.OAuth2Configuration;
+import uk.gov.hmcts.reform.idam.client.models.TokenResponse;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.content;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 /**
- * Checks the system user's token is requested from IDAM with the password grant, cached until shortly before it
- * expires, and that a missing configuration or a failed request is reported as a {@link SystemUserTokenException}.
+ * Checks the system user's token is cached until shortly before it expires, and that a missing configuration or a
+ * failed request is reported as a {@link SystemUserTokenException}. The request itself is made by idam-java-client;
+ * {@link BulkScanningSystemUserComponentTest} checks what it sends.
  */
 class IdamSystemUserTokenProviderTest {
 
-    private static final String IDAM_URL = "http://idam-api";
-    private static final String TOKEN_URL = IDAM_URL + "/o/token";
+    private static final String USERNAME = "system.user@hmcts.net";
+    private static final String PASSWORD = "secret-password";
+    private static final OAuth2Configuration CLIENT =
+        new OAuth2Configuration("", "payment_api", "client-secret", "openid profile roles");
 
-    private MockRestServiceServer server;
-    private RestTemplate restTemplate;
+    private IdamClient idamClient;
     private MutableClock clock;
 
     @BeforeEach
     void setUp() {
-        restTemplate = new RestTemplate();
-        server = MockRestServiceServer.bindTo(restTemplate).build();
+        idamClient = mock(IdamClient.class);
         clock = new MutableClock(Instant.parse("2026-10-30T09:00:00Z"));
     }
 
     @Test
-    void requestsATokenWithThePasswordGrant() {
-        MultiValueMap<String, String> expectedForm = new LinkedMultiValueMap<>();
-        expectedForm.add("grant_type", "password");
-        expectedForm.add("username", "system.user@hmcts.net");
-        expectedForm.add("password", "secret-password");
-        expectedForm.add("client_id", "payment_api");
-        expectedForm.add("client_secret", "client-secret");
-        expectedForm.add("scope", "openid profile roles");
-        expectedForm.add("redirect_uri", "http://payment-api/oauth2/callback");
+    void requestsATokenForTheSystemUser() {
+        when(idamClient.getAccessTokenResponse(USERNAME, PASSWORD)).thenReturn(tokenResponse("token-1", "28800"));
 
-        server.expect(requestTo(TOKEN_URL))
-            .andExpect(method(HttpMethod.POST))
-            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_FORM_URLENCODED))
-            .andExpect(content().formData(expectedForm))
-            .andRespond(tokenResponse("token-1", "28800"));
-
-        assertThat(provider("http://payment-api/oauth2/callback").getAccessToken()).isEqualTo("token-1");
-        server.verify();
-    }
-
-    @Test
-    void leavesOutTheRedirectUriWhenItIsNotSet() {
-        server.expect(requestTo(TOKEN_URL))
-            .andExpect(request -> assertThat(((MockClientHttpRequest) request).getBodyAsString()).doesNotContain("redirect_uri"))
-            .andRespond(tokenResponse("token-1", "28800"));
-
-        assertThat(provider("").getAccessToken()).isEqualTo("token-1");
-        server.verify();
-    }
-
-    @ParameterizedTest
-    @CsvSource({
-        "http://idam-api, http://idam-api/o/token",
-        "http://idam-api/, http://idam-api/o/token",
-        "http://idam-api/idam, http://idam-api/idam/o/token",
-        "http://idam-api/idam/, http://idam-api/idam/o/token"
-    })
-    void appendsTheTokenEndpointToTheBaseUrl(String baseUrl, String tokenUrl) {
-        server.expect(requestTo(tokenUrl))
-            .andExpect(method(HttpMethod.POST))
-            .andRespond(tokenResponse("token-1", "28800"));
-
-        IdamSystemUserTokenProvider provider = new IdamSystemUserTokenProvider(restTemplate, baseUrl,
-            "system.user@hmcts.net", "secret-password", "payment_api", "client-secret", "openid profile roles", "", clock);
-
-        assertThat(provider.getAccessToken()).isEqualTo("token-1");
-        server.verify();
+        assertThat(provider().getAccessToken()).isEqualTo("token-1");
     }
 
     @Test
     void reusesTheTokenUntilShortlyBeforeItExpires() {
-        IdamSystemUserTokenProvider provider = provider("");
-        server.expect(ExpectedCount.once(), requestTo(TOKEN_URL)).andRespond(tokenResponse("token-1", "3600"));
+        IdamSystemUserTokenProvider provider = provider();
+        when(idamClient.getAccessTokenResponse(USERNAME, PASSWORD))
+            .thenReturn(tokenResponse("token-1", "3600"), tokenResponse("token-2", "3600"));
 
         assertThat(provider.getAccessToken()).isEqualTo("token-1");
         clock.advance(Duration.ofSeconds(3600).minus(IdamSystemUserTokenProvider.EXPIRY_MARGIN).minusSeconds(1));
         assertThat(provider.getAccessToken()).isEqualTo("token-1");
-        server.verify();
-
-        server.reset();
-        server.expect(ExpectedCount.once(), requestTo(TOKEN_URL)).andRespond(tokenResponse("token-2", "3600"));
         clock.advance(Duration.ofSeconds(1));
         assertThat(provider.getAccessToken()).isEqualTo("token-2");
-        server.verify();
+        verify(idamClient, times(2)).getAccessTokenResponse(USERNAME, PASSWORD);
     }
 
     @Test
     void doesNotCacheATokenWithoutAUsableExpiry() {
-        IdamSystemUserTokenProvider provider = provider("");
-        server.expect(ExpectedCount.twice(), requestTo(TOKEN_URL)).andRespond(tokenResponse("token-1", "\"soon\""));
+        IdamSystemUserTokenProvider provider = provider();
+        when(idamClient.getAccessTokenResponse(USERNAME, PASSWORD)).thenReturn(tokenResponse("token-1", "soon"));
 
         provider.getAccessToken();
         provider.getAccessToken();
-        server.verify();
+        verify(idamClient, times(2)).getAccessTokenResponse(USERNAME, PASSWORD);
     }
 
     @Test
     void reportsAnIdamFailure() {
-        server.expect(requestTo(TOKEN_URL)).andRespond(withStatus(HttpStatus.UNAUTHORIZED));
+        FeignException unauthorized = FeignException.errorStatus("IdamApi#generateOpenIdToken", feign.Response.builder()
+            .status(401)
+            .request(Request.create(Request.HttpMethod.POST, "http://idam-api/o/token", Map.of(), null,
+                StandardCharsets.UTF_8, null))
+            .build());
+        when(idamClient.getAccessTokenResponse(any(), any())).thenThrow(unauthorized);
 
-        assertThatThrownBy(() -> provider("").getAccessToken())
+        assertThatThrownBy(() -> provider().getAccessToken())
             .isInstanceOf(SystemUserTokenException.class)
-            .hasMessage("unable to get an IDAM token for the system user");
+            .hasMessage("unable to get an IDAM token for the system user")
+            .hasCause(unauthorized);
     }
 
     @Test
     void reportsAResponseWithoutAnAccessToken() {
-        server.expect(requestTo(TOKEN_URL)).andRespond(withSuccess("{\"expires_in\": 28800}", MediaType.APPLICATION_JSON));
+        when(idamClient.getAccessTokenResponse(USERNAME, PASSWORD)).thenReturn(tokenResponse(null, "28800"));
 
-        assertThatThrownBy(() -> provider("").getAccessToken())
+        assertThatThrownBy(() -> provider().getAccessToken())
             .isInstanceOf(SystemUserTokenException.class)
             .hasMessage("IDAM did not return an access token for the system user");
     }
 
     @Test
     void isNotConfiguredWithoutTheUserOrClientCredentials() {
-        assertThat(provider("").isConfigured()).isTrue();
-        assertThat(new IdamSystemUserTokenProvider(restTemplate, IDAM_URL, "", "secret-password", "payment_api",
-            "client-secret", "openid profile roles", "", clock).isConfigured()).isFalse();
-        assertThat(new IdamSystemUserTokenProvider(restTemplate, IDAM_URL, "system.user@hmcts.net", "secret-password",
-            "payment_api", " ", "openid profile roles", "", clock).isConfigured()).isFalse();
+        assertThat(provider().isConfigured()).isTrue();
+        assertThat(new IdamSystemUserTokenProvider(idamClient, CLIENT, "", PASSWORD, clock).isConfigured()).isFalse();
+        assertThat(new IdamSystemUserTokenProvider(idamClient,
+            new OAuth2Configuration("", "payment_api", " ", "openid profile roles"), USERNAME, PASSWORD, clock)
+            .isConfigured()).isFalse();
     }
 
     @Test
     void refusesToRequestATokenWhenNotConfigured() {
-        IdamSystemUserTokenProvider provider = new IdamSystemUserTokenProvider(restTemplate, IDAM_URL, "", "", "", "",
-            "openid profile roles", "", clock);
+        IdamSystemUserTokenProvider provider = new IdamSystemUserTokenProvider(idamClient,
+            new OAuth2Configuration("", "", "", "openid profile roles"), "", "", clock);
 
         assertThatThrownBy(provider::getAccessToken)
             .isInstanceOf(SystemUserTokenException.class)
             .hasMessage("the IDAM system user is not configured");
-        server.verify();
+        verifyNoInteractions(idamClient);
     }
 
-    private IdamSystemUserTokenProvider provider(String redirectUri) {
-        return new IdamSystemUserTokenProvider(restTemplate, IDAM_URL, "system.user@hmcts.net", "secret-password",
-            "payment_api", "client-secret", "openid profile roles", redirectUri, clock);
+    private IdamSystemUserTokenProvider provider() {
+        return new IdamSystemUserTokenProvider(idamClient, CLIENT, USERNAME, PASSWORD, clock);
     }
 
-    private static ResponseCreator tokenResponse(String accessToken, String expiresIn) {
-        return withSuccess("""
-            {"access_token": "%s", "token_type": "Bearer", "scope": "openid profile roles", "expires_in": %s}
-            """.formatted(accessToken, expiresIn), MediaType.APPLICATION_JSON);
+    private static TokenResponse tokenResponse(String accessToken, String expiresIn) {
+        return new TokenResponse(accessToken, expiresIn, null, null, "openid profile roles", "Bearer");
     }
 
     private static final class MutableClock extends Clock {
