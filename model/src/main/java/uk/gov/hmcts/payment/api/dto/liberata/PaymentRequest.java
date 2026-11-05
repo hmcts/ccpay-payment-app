@@ -1,7 +1,6 @@
 package uk.gov.hmcts.payment.api.dto.liberata;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 
 import java.util.Date;
