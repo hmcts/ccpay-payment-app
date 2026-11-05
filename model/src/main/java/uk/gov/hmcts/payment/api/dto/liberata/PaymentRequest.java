@@ -19,7 +19,11 @@ public class PaymentRequest {
     private String serviceName;
     private String groupReference;
     private String paymentReference;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "GMT")
+    @JsonFormat(
+        shape = JsonFormat.Shape.STRING,
+        pattern = "yyyy-MM-dd HH:mm:ss",
+        timezone = "GMT"
+    )
     private Date dateCreated;
     private String amount;
     private String currency;
