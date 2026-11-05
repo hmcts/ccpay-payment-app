@@ -45,26 +45,6 @@ def compareVersions(String a, String b) {
 
 def cveOverrides = [
         [
-                reason     : 'CVE fix for postgres JDBC driver',
-                coordinates: ['org.postgresql:postgresql'],
-                version    : '42.7.13',
-        ],
-        [
-                reason     : 'CVE-2026-54399, CVE-2026-54428 - HttpComponents Core HTTP/1.1 parser and HTTP/2 HPACK decoder DoS',
-                coordinates: ['org.apache.httpcomponents.core5:httpcore5', 'org.apache.httpcomponents.core5:httpcore5-h2'],
-                version    : '5.4.3',
-        ],
-        [
-                reason     : 'Kept coherent with the httpcore5 5.4.3 CVE fix above (CVE-2026-54399, CVE-2026-54428); httpclient5 itself is not flagged',
-                coordinates: ['org.apache.httpcomponents.client5:httpclient5'],
-                version    : '5.6.2',
-        ],
-        [
-                reason     : 'CVE-2026-49844 - Log4j2, fixed at 2.25.5',
-                coordinates: ['org.apache.logging.log4j:log4j-api', 'org.apache.logging.log4j:log4j-core', 'org.apache.logging.log4j:log4j-to-slf4j'],
-                version    : '2.25.5',
-        ],
-        [
                 reason     : 'CVE-2026-66257, CVE-2026-66273, CVE-2026-66274, CVE-2026-66275, CVE-2026-66276, ' +
                              'CVE-2026-66277 - Qpid proton-j, fixed at 0.35.0',
                 coordinates: ['org.apache.qpid:proton-j'],
@@ -78,14 +58,6 @@ def cveOverrides = [
                              'sidestepping the disputed CVE-2026-53914 CPE match on kotlin-stdlib.',
                 group      : 'io.github.resilience4j',
                 version    : '2.4.0',
-        ],
-        [
-                reason     : 'CVE-2026-53434, CVE-2026-55276, CVE-2026-59083, CVE-2026-59084, CVE-2026-53404, ' +
-                             'CVE-2026-55955, CVE-2026-55956, CVE-2026-50229 - Tomcat, fixed at 11.0.24. ' +
-                             'CVE-2026-66299 (examples webapp, not shipped by tomcat-embed-*) needs 11.0.25, ' +
-                             'not yet released - suppressed separately in dependency-check-suppressions.xml.',
-                coordinates: ['org.apache.tomcat.embed:tomcat-embed-core', 'org.apache.tomcat.embed:tomcat-embed-websocket'],
-                version    : '11.0.24',
         ],
 ]
 
