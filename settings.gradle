@@ -1,6 +1,6 @@
 pluginManagement {
     repositories {
-        if (!System.getenv("GITHUB_ACTIONS")) {
+        if (System.getenv("JENKINS_URL")) {
             maven {
                 url = uri("https://artifactory.platform.hmcts.net/artifactory/maven-remotes")
             }
@@ -24,7 +24,7 @@ dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
     repositories {
         mavenLocal()
-        if (!System.getenv("GITHUB_ACTIONS")) {
+        if (System.getenv("JENKINS_URL")) {
             maven {
                 url = uri("https://artifactory.platform.hmcts.net/artifactory/maven-remotes")
             }
