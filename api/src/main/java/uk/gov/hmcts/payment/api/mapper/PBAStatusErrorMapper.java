@@ -24,26 +24,32 @@ public class PBAStatusErrorMapper {
 
     private static final String EXCEEDED_CREDIT_LIMIT_MESSAGE = "Payment request failed. PBA account {accountNumber} have insufficient funds available";
     private static final String EXCEEDED_CREDIT_LIMIT = "Exceeded credit limit.";
+    private static final String EXCEEDED_CODE = "CA-E0001";
+    private static final String NOT_FOUND_CODE = "CA-E0004";
+    private static final String VALIDATION_CODE = "CA-E0005";
+    private static final String DUPLICATE_CODE = "CA-E0006";
+    private static final String UNAUTHENTICATED_CODE = "CA-E0007";
     public static  String ON_HOLD="CUSTOMER ON HOLD - EXCEEDED CREDIT LIMIT";
+
     public static  String DELETED="DELETED";
 
     public static final Map<String, String> PBA_ERROR_CODE_MAP = Map.of(
-        "Exceeded credit limit.", "CA-E0001",
-        "Account not found.", "CA-E0004",
-        "Validation failed.", "CA-E0005",
-        "Duplicate payment detected.", "CA-E0006",
-        "Unauthenticated.", "CA-E0007"
+        EXCEEDED_CREDIT_LIMIT, EXCEEDED_CODE,
+        "Account not found.", NOT_FOUND_CODE,
+        "Validation failed.", VALIDATION_CODE,
+        "Duplicate payment detected.", DUPLICATE_CODE,
+        "Unauthenticated.", UNAUTHENTICATED_CODE
     );
 
     public static final Map<String, String> PBA_REASON_CODE_MAP = Map.of(
-        DELETED, "CA-E0004",
+        DELETED, NOT_FOUND_CODE,
         ON_HOLD, "CA-E0003"
     );
 
     public static final Map<String, String> PBA_MESSAGES_CODE_MAP = Map.of(
         DELETED, "Your account is deleted",
         ON_HOLD, "Your account is on hold",
-        EXCEEDED_CREDIT_LIMIT,EXCEEDED_CREDIT_LIMIT_MESSAGE
+        EXCEEDED_CREDIT_LIMIT, EXCEEDED_CREDIT_LIMIT_MESSAGE
     );
 
     public void setPaymentStatus(CreditAccountPaymentRequest creditAccountPaymentRequest, Payment payment, AccountDto accountDetails) {
@@ -56,7 +62,7 @@ public class PBAStatusErrorMapper {
             payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name(FAILED).build());
             payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
                 .status(payment.getPaymentStatus().getName())
-                .errorCode("CA-E0001")
+                .errorCode(EXCEEDED_CODE)
                 .message("You have insufficient funds available")
                 .message("Payment request failed. PBA account " + accountDetails.getAccountName()
                     + " have insufficient funds available").build()));
@@ -85,7 +91,7 @@ public class PBAStatusErrorMapper {
             payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name(FAILED).build());
             payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
                 .status(payment.getPaymentStatus().getName())
-                .errorCode("CA-E0004")
+                .errorCode(NOT_FOUND_CODE)
                 .message("Your account is deleted")
                 .build()));
             LOG.info("CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {} PaymentStatus : {} - Account is deleted!", payment.getCcdCaseNumber(), accountDetails.getStatus(), payment.getPaymentStatus().getName());
