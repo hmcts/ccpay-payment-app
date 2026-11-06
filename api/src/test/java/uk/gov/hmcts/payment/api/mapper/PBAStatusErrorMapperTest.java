@@ -1,16 +1,17 @@
 package uk.gov.hmcts.payment.api.mapper;
 
 import nl.altindag.log.LogCaptor;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
@@ -34,7 +35,6 @@ import static org.mockito.Mockito.*;
 // new imports for LiberataRealTimeAPI tests
 import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
@@ -44,7 +44,7 @@ import uk.gov.hmcts.payment.api.dto.liberata.PaymentRequest;
 import uk.gov.hmcts.payment.api.dto.liberata.identity.TokenResponse;
 import uk.gov.hmcts.payment.api.service.LiberataRealTimeAPI;
 
-@ExtendWith(MockitoExtension.class)
+@RunWith(MockitoJUnitRunner.class)
 public class PBAStatusErrorMapperTest {
     private static CreditAccountPaymentRequest creditAccountPaymentRequest;
     private static Payment payment;
@@ -66,8 +66,8 @@ public class PBAStatusErrorMapperTest {
     @InjectMocks
     private LiberataRealTimeAPI liberataRealTimeAPI;
 
-    @BeforeAll
-    static void initiate(){
+    @BeforeClass
+    public static void initiate(){
         mockLOG = forClass(PBAStatusErrorMapper.class);
         creditAccountPaymentRequest = CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
                                         .amount(new BigDecimal("10.00"))
@@ -98,27 +98,27 @@ public class PBAStatusErrorMapperTest {
             .status(AccountStatus.DELETED).build();
     }
 
-    @AfterAll
-    static void closeDown() {
+    @AfterClass
+    public static void closeDown() {
         if (mockLOG != null) {
             mockLOG = null;
         }
     }
 
-    @AfterEach
-    void afterTest() {
+    @After
+    public void afterTest() {
         mockLOG.clearLogs();
     }
 
     @Test
-    void testSetPaymentStatusWithOnHold() {
+    public void testSetPaymentStatusWithOnHold() {
         PBAStatusErrorMapper pbaStatusErrorMapper = new PBAStatusErrorMapper();
         pbaStatusErrorMapper.setPaymentStatus(creditAccountPaymentRequest, payment, onHoldAccountDetails);
         assertThat(mockLOG.getInfoLogs().get(1)).isEqualTo("CreditAccountPayment received for ccdCaseNumber : ccd-number Liberata AccountStatus : ON_HOLD PaymentStatus : failed - Account is on hold!");
     }
 
     @Test
-    void testSetPaymentStatusWithInactive() {
+    public void testSetPaymentStatusWithInactive() {
         PBAStatusErrorMapper pbaStatusErrorMapper = new PBAStatusErrorMapper();
         Payment inactivePayment = Payment.paymentWith().ccdCaseNumber("ccd-number").build();
 
@@ -132,21 +132,21 @@ public class PBAStatusErrorMapperTest {
     }
 
     @Test
-    void testSetPaymentStatusWithActiveAndSufficientBalance() {
+    public void testSetPaymentStatusWithActiveAndSufficientBalance() {
         PBAStatusErrorMapper pbaStatusErrorMapper = new PBAStatusErrorMapper();
         pbaStatusErrorMapper.setPaymentStatus(creditAccountPaymentRequest,payment,activeAccountDetails);
         assertThat(mockLOG.getInfoLogs().get(1)).isEqualTo("CreditAccountPayment received for ccdCaseNumber : ccd-number Liberata AccountStatus : ACTIVE PaymentStatus : success - Account Balance Sufficient!!!");
     }
 
     @Test
-    void testSetPaymentStatusWithDeletedStatus() {
+    public void testSetPaymentStatusWithDeletedStatus() {
         PBAStatusErrorMapper pbaStatusErrorMapper = new PBAStatusErrorMapper();
         pbaStatusErrorMapper.setPaymentStatus(creditAccountPaymentRequest,payment,deletedAccountDetails);
         assertThat(mockLOG.getInfoLogs().get(1)).isEqualTo("CreditAccountPayment received for ccdCaseNumber : ccd-number Liberata AccountStatus : DELETED PaymentStatus : failed - Account is deleted!");
     }
 
     @Test
-    void testSetPaymentStatusAndHistoriesSuccess() {
+    public void testSetPaymentStatusAndHistoriesSuccess() {
         PBAStatusErrorMapper mapper = new PBAStatusErrorMapper();
         PaymentAccountResponse resp = PaymentAccountResponse.paymentDtoWith()
             .status("success")
@@ -205,7 +205,7 @@ public class PBAStatusErrorMapperTest {
     // --- setPaymentStatusAndHistories: ERROR with reason = DELETED ---
 
     @Test
-    void testSetPaymentStatusAndHistoriesErrorReasonDeleted() {
+    public void testSetPaymentStatusAndHistoriesErrorReasonDeleted() {
         PBAStatusErrorMapper mapper = new PBAStatusErrorMapper();
         Payment localPayment = Payment.paymentWith().ccdCaseNumber("ccd-number").build();
         localPayment.setStatusHistories(new LinkedList<>(Collections.singletonList(StatusHistory.statusHistoryWith().build())));
@@ -228,7 +228,7 @@ public class PBAStatusErrorMapperTest {
     // --- setPaymentStatusAndHistories: ERROR with reason = ON_HOLD ---
 
     @Test
-    void testSetPaymentStatusAndHistoriesErrorReasonOnHold() {
+    public void testSetPaymentStatusAndHistoriesErrorReasonOnHold() {
         PBAStatusErrorMapper mapper = new PBAStatusErrorMapper();
         Payment localPayment = Payment.paymentWith().ccdCaseNumber("ccd-number").build();
         localPayment.setStatusHistories(new LinkedList<>(Collections.singletonList(StatusHistory.statusHistoryWith().build())));
@@ -250,7 +250,7 @@ public class PBAStatusErrorMapperTest {
 
     // kept for backward compatibility — now replaced by the granular tests above
     @Test
-    void testSetPaymentStatusAndHistoriesErrors() {
+    public void testSetPaymentStatusAndHistoriesErrors() {
         // this test is superseded by the individual tests above; kept as a smoke test
         PBAStatusErrorMapper mapper = new PBAStatusErrorMapper();
 
@@ -292,7 +292,7 @@ public class PBAStatusErrorMapperTest {
     // -------------------- New tests for LiberataRealTimeAPI.payByAccount --------------------
 
     @Test
-    void testPayByAccountReturnsSuccessResponse() {
+    public void testPayByAccountReturnsSuccessResponse() {
         // prepare request
         PaymentByAccountRequest pbaReq = PaymentByAccountRequest.paymentByAccountRequestWith()
             .pbaNumber("PBA123")
@@ -306,7 +306,7 @@ public class PBAStatusErrorMapperTest {
         // prepare token and stub getValidToken by spying the injected instance
         TokenResponse token = new TokenResponse("plain-text-token", 1000000L, System.currentTimeMillis());
         LiberataRealTimeAPI spyApi = spy(liberataRealTimeAPI);
-        stubValidToken(spyApi, token);
+        doReturn(token).when(spyApi).getValidToken();
 
         // prepare expected PaymentAccountResponse
         PaymentAccountResponse expected = PaymentAccountResponse.paymentDtoWith()
@@ -326,7 +326,7 @@ public class PBAStatusErrorMapperTest {
     }
 
     @Test
-    void testPayByAccountHandlesHttpClientErrorExceptionWithBody() {
+    public void testPayByAccountHandlesHttpClientErrorExceptionWithBody() {
         PaymentByAccountRequest pbaReq = PaymentByAccountRequest.paymentByAccountRequestWith()
             .pbaNumber("PBA123")
             .payment(PaymentRequest.paymentDtoWith().amount("10.00").serviceName("TEST").build())
@@ -338,7 +338,7 @@ public class PBAStatusErrorMapperTest {
 
         TokenResponse token = new TokenResponse("plain-text-token", 1000000L, System.currentTimeMillis());
         LiberataRealTimeAPI spyApi = spy(liberataRealTimeAPI);
-        stubValidToken(spyApi, token);
+        doReturn(token).when(spyApi).getValidToken();
 
         PaymentAccountResponse errorResp = PaymentAccountResponse.paymentDtoWith()
             .status("error")
@@ -361,7 +361,7 @@ public class PBAStatusErrorMapperTest {
     }
 
     @Test
-    void testPayByAccountThrowsWhenErrorBodyParsingFails() {
+    public void testPayByAccountThrowsWhenErrorBodyParsingFails() {
         PaymentByAccountRequest pbaReq = PaymentByAccountRequest.paymentByAccountRequestWith()
             .pbaNumber("PBA123")
             .payment(PaymentRequest.paymentDtoWith().amount("10.00").serviceName("TEST").build())
@@ -373,7 +373,7 @@ public class PBAStatusErrorMapperTest {
 
         TokenResponse token = new TokenResponse("plain-text-token", 1000000L, System.currentTimeMillis());
         LiberataRealTimeAPI spyApi = spy(liberataRealTimeAPI);
-        stubValidToken(spyApi, token);
+        doReturn(token).when(spyApi).getValidToken();
 
         HttpClientErrorException httpEx = mock(HttpClientErrorException.class);
         when(httpEx.getResponseBodyAs(PaymentAccountResponse.class)).thenThrow(new RuntimeException("parse fail"));
@@ -383,7 +383,7 @@ public class PBAStatusErrorMapperTest {
 
         try {
             spyApi.payByAccount(request);
-            org.junit.jupiter.api.Assertions.fail("Expected RuntimeException");
+            org.junit.Assert.fail("Expected RuntimeException");
         } catch (RuntimeException ex) {
             assertThat(ex.getMessage()).contains("Error posting payment to Liberata");
             assertThat(ex.getCause()).isNotNull();
@@ -391,11 +391,6 @@ public class PBAStatusErrorMapperTest {
         }
 
         verify(liberataRestTemplate).postForEntity(anyString(), any(HttpEntity.class), eq(PaymentAccountResponse.class));
-    }
-
-    private void stubValidToken(LiberataRealTimeAPI spyApi, TokenResponse token) {
-        ReflectionTestUtils.setField(spyApi, "liberataRealTimeAPIProxy", spyApi);
-        doReturn(token).when(spyApi).getValidToken();
     }
 
 }
