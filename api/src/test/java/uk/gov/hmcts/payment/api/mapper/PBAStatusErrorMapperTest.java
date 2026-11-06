@@ -34,6 +34,7 @@ import static org.mockito.Mockito.*;
 // new imports for LiberataRealTimeAPI tests
 import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
@@ -305,7 +306,7 @@ public class PBAStatusErrorMapperTest {
         // prepare token and stub getValidToken by spying the injected instance
         TokenResponse token = new TokenResponse("plain-text-token", 1000000L, System.currentTimeMillis());
         LiberataRealTimeAPI spyApi = spy(liberataRealTimeAPI);
-        doReturn(token).when(spyApi).getValidToken();
+        stubValidToken(spyApi, token);
 
         // prepare expected PaymentAccountResponse
         PaymentAccountResponse expected = PaymentAccountResponse.paymentDtoWith()
@@ -337,7 +338,7 @@ public class PBAStatusErrorMapperTest {
 
         TokenResponse token = new TokenResponse("plain-text-token", 1000000L, System.currentTimeMillis());
         LiberataRealTimeAPI spyApi = spy(liberataRealTimeAPI);
-        doReturn(token).when(spyApi).getValidToken();
+        stubValidToken(spyApi, token);
 
         PaymentAccountResponse errorResp = PaymentAccountResponse.paymentDtoWith()
             .status("error")
@@ -372,7 +373,7 @@ public class PBAStatusErrorMapperTest {
 
         TokenResponse token = new TokenResponse("plain-text-token", 1000000L, System.currentTimeMillis());
         LiberataRealTimeAPI spyApi = spy(liberataRealTimeAPI);
-        doReturn(token).when(spyApi).getValidToken();
+        stubValidToken(spyApi, token);
 
         HttpClientErrorException httpEx = mock(HttpClientErrorException.class);
         when(httpEx.getResponseBodyAs(PaymentAccountResponse.class)).thenThrow(new RuntimeException("parse fail"));
@@ -390,6 +391,11 @@ public class PBAStatusErrorMapperTest {
         }
 
         verify(liberataRestTemplate).postForEntity(anyString(), any(HttpEntity.class), eq(PaymentAccountResponse.class));
+    }
+
+    private void stubValidToken(LiberataRealTimeAPI spyApi, TokenResponse token) {
+        ReflectionTestUtils.setField(spyApi, "liberataRealTimeAPIProxy", spyApi);
+        doReturn(token).when(spyApi).getValidToken();
     }
 
 }

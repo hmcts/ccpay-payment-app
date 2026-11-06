@@ -129,7 +129,7 @@ public class PBAStatusErrorMapper {
     // it will return a message with the account number. Otherwise, it will return the message from the paymentAccountResponse.
     private String getMessageForErrorCode(PaymentAccountResponse paymentAccountResponse,CreditAccountPaymentRequest creditAccountPaymentRequest ) {
 
-        if (paymentAccountResponse.getMessage().equals("Exceeded credit limit.")){
+        if (paymentAccountResponse.getMessage().equals(EXCEEDED_CREDIT_LIMIT)){
             return PBA_MESSAGES_CODE_MAP.get(paymentAccountResponse.getMessage()).replace("{accountNumber}", creditAccountPaymentRequest.getAccountNumber());
         }
         return paymentAccountResponse.getMessage();

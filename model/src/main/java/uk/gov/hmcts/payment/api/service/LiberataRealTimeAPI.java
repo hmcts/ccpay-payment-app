@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
@@ -41,6 +42,10 @@ public class LiberataRealTimeAPI {
 
     @Autowired
     private LiberataAccountMapper liberataAccountMapper;
+
+    @Autowired
+    @Lazy
+    private LiberataRealTimeAPI liberataRealTimeAPIProxy;
 
     @Value("${liberata.api.realtime.account.url}")
     private String baseUrl;
@@ -167,7 +172,7 @@ public class LiberataRealTimeAPI {
 
     public PaymentAccountResponse payByAccount(PaymentAccountRequest paymentByAccountRequest) {
 
-        val tokenResponse = getValidToken();
+        val tokenResponse = liberataRealTimeAPIProxy.getValidToken();
         val headers = new HttpHeaders();
         headers.setAccept(java.util.Collections.singletonList(MediaType.APPLICATION_JSON));
         headers.setContentType(MediaType.APPLICATION_JSON);
