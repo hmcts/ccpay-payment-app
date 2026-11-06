@@ -13,7 +13,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -68,14 +67,9 @@ public class CreditAccountPaymentController {
     private final ReferenceDataService referenceDataService;
     private final AuthTokenGenerator authTokenGenerator;
 
-    @Autowired
-    PaymentReference paymentReference;
-
-    @Autowired
-    PBAPaymentMapper pBAPaymentMapper;
-
-    @Autowired
-    LiberataRealTimeAPI liberataRealTimeAPI;
+    private final PaymentReference paymentReference;
+    private final PBAPaymentMapper pBAPaymentMapper;
+    private final LiberataRealTimeAPI liberataRealTimeAPI;
 
     public CreditAccountPaymentController(
         @Qualifier("loggingCreditAccountPaymentService") CreditAccountPaymentService<PaymentFeeLink, String> creditAccountPaymentService,
@@ -115,7 +109,7 @@ public class CreditAccountPaymentController {
     @RateLimiter(name = "default-rate-limiter")
     @PostMapping(value = "/credit-account-payments")
     @ResponseBody
-    @Transactional
+    @Transactional(rollbackFor = CheckDigitException.class)
     public ResponseEntity<PaymentDto> createCreditAccountPayment(@Valid @RequestBody CreditAccountPaymentRequest creditAccountPaymentRequest, @RequestHeader(required = false) MultiValueMap<String, String> headers) throws CheckDigitException {
 
         val paymentGroupReference = paymentReference.getNext();
