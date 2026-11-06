@@ -43,9 +43,7 @@ public class LiberataRealTimeAPI {
     @Autowired
     private LiberataAccountMapper liberataAccountMapper;
 
-    @Autowired
-    @Lazy
-    private LiberataRealTimeAPI liberataRealTimeAPIProxy;
+    private final LiberataRealTimeAPI liberataRealTimeAPIProxy;
 
     @Value("${liberata.api.realtime.account.url}")
     private String baseUrl;
@@ -55,6 +53,10 @@ public class LiberataRealTimeAPI {
 
     @Value("${liberata.api.realtime.account.password}")
     private String liberataPassword;
+
+    public LiberataRealTimeAPI(@Lazy LiberataRealTimeAPI liberataRealTimeAPIProxy) {
+        this.liberataRealTimeAPIProxy = liberataRealTimeAPIProxy;
+    }
 
     private TokenResponse getToken() {
         if (cachedToken != null && !cachedToken.isExpired()) {
