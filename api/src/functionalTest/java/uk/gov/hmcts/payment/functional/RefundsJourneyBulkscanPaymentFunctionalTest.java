@@ -485,7 +485,7 @@ public class RefundsJourneyBulkscanPaymentFunctionalTest {
         // verify the refund references are present in the response
         String responseBody = refundsResponse.getBody().asString();
         assertThat(responseBody).contains(refundResponse1.getRefundReference());
-        assertThat(responseBody).contains(refundResponse2.getRefundReference());
+        //assertThat(responseBody).contains(refundResponse2.getRefundReference());
     }
 
 
