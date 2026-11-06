@@ -3,7 +3,6 @@ package uk.gov.hmcts.payment.api.service;
 import lombok.val;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CachePut;
@@ -33,29 +32,32 @@ public class LiberataRealTimeAPI {
     private TokenResponse cachedToken;
     private static final Logger LOG = LoggerFactory.getLogger(LiberataRealTimeAPI.class);
 
-    @Autowired()
-    @Qualifier("liberataRestTemplate")
-    private RestTemplate liberataRestTemplate;
-
-    @Autowired()
-    private AccessTokenDtoToTokenResponseMapper accessTokenDtoToTokenResponseMapper;
-
-    @Autowired
-    private LiberataAccountMapper liberataAccountMapper;
+    private final RestTemplate liberataRestTemplate;
+    private final AccessTokenDtoToTokenResponseMapper accessTokenDtoToTokenResponseMapper;
+    private final LiberataAccountMapper liberataAccountMapper;
 
     private final LiberataRealTimeAPI liberataRealTimeAPIProxy;
 
-    @Value("${liberata.api.realtime.account.url}")
-    private String baseUrl;
+    private final String baseUrl;
+    private final String liberataUsername;
+    private final String liberataPassword;
 
-    @Value("${liberata.api.realtime.account.username}")
-    private String liberataUsername;
-
-    @Value("${liberata.api.realtime.account.password}")
-    private String liberataPassword;
-
-    public LiberataRealTimeAPI(@Lazy LiberataRealTimeAPI liberataRealTimeAPIProxy) {
+    public LiberataRealTimeAPI(
+        @Qualifier("liberataRestTemplate") RestTemplate liberataRestTemplate,
+        AccessTokenDtoToTokenResponseMapper accessTokenDtoToTokenResponseMapper,
+        LiberataAccountMapper liberataAccountMapper,
+        @Lazy LiberataRealTimeAPI liberataRealTimeAPIProxy,
+        @Value("${liberata.api.realtime.account.url}") String baseUrl,
+        @Value("${liberata.api.realtime.account.username}") String liberataUsername,
+        @Value("${liberata.api.realtime.account.password}") String liberataPassword
+    ) {
+        this.liberataRestTemplate = liberataRestTemplate;
+        this.accessTokenDtoToTokenResponseMapper = accessTokenDtoToTokenResponseMapper;
+        this.liberataAccountMapper = liberataAccountMapper;
         this.liberataRealTimeAPIProxy = liberataRealTimeAPIProxy;
+        this.baseUrl = baseUrl;
+        this.liberataUsername = liberataUsername;
+        this.liberataPassword = liberataPassword;
     }
 
     private TokenResponse getToken() {
