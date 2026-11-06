@@ -104,6 +104,7 @@ dependencies {
     implementation group: 'com.github.hmcts.java-logging', name: 'logging-appinsights', version: javaLoggingVersion
 
     implementation group: 'com.github.hmcts', name: 'auth-checker-lib', version: '3.1.2'
+    implementation group: 'com.github.hmcts', name: 'idam-java-client', version: '3.0.5'
     implementation (group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: versions.reformS2sClient) {
         exclude group: 'org.apache.httpcomponents', module: 'httpclient'
     }

@@ -1050,9 +1050,9 @@ public class ServiceRequestDomainServiceTest {
 
         when(paymentFeeLinkRepository.findByPaymentReferenceForUpdate(serviceRequestReference))
             .thenReturn(Optional.of(paymentFeeLink));
-        when(cancellationEligibilityService.checkEligibility(paymentFeeLink, "Bearer user-token"))
+        when(cancellationEligibilityService.checkEligibility(paymentFeeLink))
             .thenReturn(Eligibility.eligible());
-        serviceRequestDomainService.cancel(serviceRequestReference, cancelledBy, cancellationReason, "Bearer user-token");
+        serviceRequestDomainService.cancel(serviceRequestReference, cancelledBy, cancellationReason);
 
         verify(paymentFeeLinkRepository).findByPaymentReferenceForUpdate(serviceRequestReference);
         assertThat(paymentFeeLink.isCancelled()).isTrue();
@@ -1072,10 +1072,10 @@ public class ServiceRequestDomainServiceTest {
 
         when(paymentFeeLinkRepository.findByPaymentReferenceForUpdate(serviceRequestReference))
             .thenReturn(Optional.of(paymentFeeLink));
-        when(cancellationEligibilityService.checkEligibility(paymentFeeLink, "Bearer user-token"))
+        when(cancellationEligibilityService.checkEligibility(paymentFeeLink))
             .thenReturn(Eligibility.ineligible(ineligibleReason));
 
-        assertThatThrownBy(() -> serviceRequestDomainService.cancel(serviceRequestReference, "user-123", "reason", "Bearer user-token"))
+        assertThatThrownBy(() -> serviceRequestDomainService.cancel(serviceRequestReference, "user-123", "reason"))
             .isInstanceOf(ServiceRequestCancellationException.class)
             .hasMessage(ineligibleReason);
 

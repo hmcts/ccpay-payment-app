@@ -119,6 +119,11 @@ java:
     CPO_SELECT_ACCOUNT_GRANT_TYPE: password
     CPO_SELECT_ACCOUNT_SCOPE: openid profile roles
 
+    # IDAM system user for the bulk scanning check on service request cancellation.
+    PAYMENT_SYSTEM_USER_CLIENT_ID: "payment_api"
+    PAYMENT_SYSTEM_USER_SCOPE: "openid profile roles"
+    PAYMENT_SYSTEM_USER_REDIRECT_URI: "http://payment-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal/oauth2/callback"
+
   keyVaults:
     "ccpay":
       resourceGroup: ccpay
@@ -259,3 +264,9 @@ java:
           alias: service.request.email.to
         - name:  paymentoutcome-s2s-web
           alias: PAYMENTOUTCOME_S2S_OTP_SECRET
+        - name: payment-system-user
+          alias: PAYMENT_SYSTEM_USER
+        - name: payment-system-password
+          alias: PAYMENT_SYSTEM_PASSWORD
+        - name: payment-api-idam-client-secret
+          alias: PAYMENT_SYSTEM_USER_CLIENT_SECRET

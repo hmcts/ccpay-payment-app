@@ -431,6 +431,8 @@ public class ServiceRequestController {
         @ApiResponse(responseCode = "404", description = "Service request not found"),
         @ApiResponse(responseCode = "409", description = "Service request cannot be cancelled",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class))),
+        @ApiResponse(responseCode = "504", description = "Unable to check bulk scanning for unallocated payments, please try again later",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class)))
     })
     @RateLimiter(name = "default-rate-limiter")
     @PostMapping(value = "/service-request/{service-request-reference}/cancel")
@@ -471,7 +473,7 @@ public class ServiceRequestController {
                 "could not determine id for %s service request cancellation".formatted(manualCancellation ? "manual" : "automated"));
         }
 
-        serviceRequestDomainService.cancel(serviceRequestReference, cancelledBy, reason, authorization);
+        serviceRequestDomainService.cancel(serviceRequestReference, cancelledBy, reason);
     }
 
     private static boolean isBlank(String s) {

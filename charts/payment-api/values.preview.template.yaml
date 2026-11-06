@@ -18,10 +18,15 @@ java:
     PBA_CONFIG1_SERVICE_NAMES: dummy
     PCI_PAL_API_URL: https://ip3cloud.com/clients/hmcts/payments/index.php
     REFUND_API_URL: http://${SERVICE_NAME}-ccpay-refunds-api
+    PAYMENT_SYSTEM_USER_REDIRECT_URI: "http://payment-api-aat.service.core-compute-aat.internal/oauth2/callback"
     PBA_PCS_PAYMENTS_REPORT_SCHEDULER_ENABLED: "true"
     PBA_PCS_PAYMENTS_EMAIL_FROM: "no-reply@mail-payment-nonprod.platform.hmcts.net"
     PBA_PCS_PAYMENTS_EMAIL_MESSAGE: "Hi, <br/><br/>Please find attached Payment by Account reconciliation report. <br/><br/>Regards, <br/>Fees & Payments Team <br/><br/>"
     PBA_PCS_PAYMENTS_EMAIL_SUBJECT: "CNP:PBA Mortgage and Landlord Possession Claims Reconciliation Report"
+
+    # IDAM system user for the bulk scanning check on service request cancellation.
+    PAYMENT_SYSTEM_USER_CLIENT_ID: "payment_api"
+    PAYMENT_SYSTEM_USER_SCOPE: "openid profile roles"
 
     # For PR pointing amend these - not neccessary anymore for PRs to build.
     # REFUND_API_URL: http://ccpay-refunds-api-pr-367-java
@@ -105,6 +110,12 @@ java:
           alias: gov.pay.auth.key.pcs_api
         - name: pba-pcs-payments-email-to
           alias: pba.pcs.payments.email.to
+        - name: payment-system-user
+          alias: PAYMENT_SYSTEM_USER
+        - name: payment-system-password
+          alias: PAYMENT_SYSTEM_PASSWORD
+        - name: payment-api-idam-client-secret
+          alias: PAYMENT_SYSTEM_USER_CLIENT_SECRET
   postgresql:
     enabled: true
     primary:

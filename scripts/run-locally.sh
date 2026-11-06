@@ -104,6 +104,8 @@ env_block() {
 
 env_var_count=0
 while IFS= read -r line; do
+    # Skip blank lines and comments, which are indented inside the block.
+    line="$(trim "${line}")"
     [[ -z "${line}" || "${line}" == \#* ]] && continue
     key="$(trim "${line%%:*}")"
     value="${line#*: }"

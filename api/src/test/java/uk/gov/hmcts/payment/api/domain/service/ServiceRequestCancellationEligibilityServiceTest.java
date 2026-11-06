@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.api.domain.service;
 
 import org.assertj.core.api.AbstractAssert;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.payment.api.domain.service.ServiceRequestCancellationEligibilityService.Eligibility;
 import uk.gov.hmcts.payment.api.dto.SearchResponse;
@@ -18,7 +19,10 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -28,7 +32,6 @@ import static org.mockito.Mockito.when;
 class ServiceRequestCancellationEligibilityServiceTest {
 
     private static final String CCD_CASE_NUMBER = "1234567890123456";
-    private static final String USER_TOKEN = "Bearer user-token";
 
     static class EligibilityAssert extends AbstractAssert<EligibilityAssert, Eligibility> {
 
@@ -77,13 +80,17 @@ class ServiceRequestCancellationEligibilityServiceTest {
     private final ServiceRequestCancellationEligibilityService service =
         new ServiceRequestCancellationEligibilityService(bulkScanningClient, true);
 
+    @BeforeEach
+    void systemUserIsConfigured() {
+        when(bulkScanningClient.canAuthenticate()).thenReturn(true);
+    }
 
     EligibilityAssert assertThatEligibility(Eligibility actual) {
         return new EligibilityAssert(actual);
     }
 
     EligibilityAssert assertThatSR(PaymentFeeLink pfl) {
-        return new EligibilityAssert(service.checkEligibility(pfl, USER_TOKEN));
+        return new EligibilityAssert(service.checkEligibility(pfl));
     }
 
     @Test
@@ -223,7 +230,7 @@ class ServiceRequestCancellationEligibilityServiceTest {
         assertThatSR(paymentFeeLinkForCase(CCD_CASE_NUMBER)).isCancellable();
 
         // The client returns empty when bulk scanning responds with 404.
-        when(bulkScanningClient.findPaymentsForCase(CCD_CASE_NUMBER, USER_TOKEN)).thenReturn(Optional.empty());
+        when(bulkScanningClient.findPaymentsForCase(CCD_CASE_NUMBER)).thenReturn(Optional.empty());
         assertThatSR(paymentFeeLinkForCase(CCD_CASE_NUMBER)).isCancellable();
     }
 
@@ -259,33 +266,36 @@ class ServiceRequestCancellationEligibilityServiceTest {
             new ServiceRequestCancellationEligibilityService(bulkScanningClient, false);
         givenBulkScanningReturns(uk.gov.hmcts.payment.api.dto.PaymentStatus.COMPLETE);
 
-        assertThatEligibility(serviceWithCheckDisabled.checkEligibility(paymentFeeLinkForCase(CCD_CASE_NUMBER), USER_TOKEN))
+        assertThatEligibility(serviceWithCheckDisabled.checkEligibility(paymentFeeLinkForCase(CCD_CASE_NUMBER)))
             .isCancellable();
         verifyNoInteractions(bulkScanningClient);
     }
 
     @Test
-    void blocksAnAutomatedCancellationWithoutAUserTokenAsBulkScanningCannotBeChecked() {
-        assertThatEligibility(service.checkEligibility(paymentFeeLinkForCase(CCD_CASE_NUMBER), null)).isNotCancellable()
-            .withReason("unable to check bulk scanning for unallocated payments without a user token");
-        assertThatEligibility(service.checkEligibility(paymentFeeLinkForCase(CCD_CASE_NUMBER), " ")).isNotCancellable()
-            .withReason("unable to check bulk scanning for unallocated payments without a user token");
-        verifyNoInteractions(bulkScanningClient);
+    void blocksCancellationWhenNoSystemUserIsConfiguredToCheckBulkScanning() {
+        when(bulkScanningClient.canAuthenticate()).thenReturn(false);
+
+        assertThatSR(paymentFeeLinkForCase(CCD_CASE_NUMBER)).isNotCancellable()
+            .withReason("unable to check bulk scanning for unallocated payments as no system user is configured");
+        verify(bulkScanningClient, never()).findPaymentsForCase(any());
     }
 
     @Test
-    void allowsAnAutomatedCancellationWithoutAUserTokenWhenTheCheckIsDisabled() {
+    void allowsCancellationWithoutASystemUserWhenTheCheckIsDisabled() {
+        when(bulkScanningClient.canAuthenticate()).thenReturn(false);
         ServiceRequestCancellationEligibilityService serviceWithCheckDisabled =
             new ServiceRequestCancellationEligibilityService(bulkScanningClient, false);
 
-        assertThatEligibility(serviceWithCheckDisabled.checkEligibility(paymentFeeLinkForCase(CCD_CASE_NUMBER), null))
+        assertThatEligibility(serviceWithCheckDisabled.checkEligibility(paymentFeeLinkForCase(CCD_CASE_NUMBER)))
             .isCancellable();
         verifyNoInteractions(bulkScanningClient);
     }
 
     @Test
-    void allowsAnAutomatedCancellationWithoutAUserTokenWhenThereIsNoCaseNumber() {
-        assertThatEligibility(service.checkEligibility(paymentFeeLinkForCase(null), null)).isCancellable();
+    void allowsCancellationWithoutASystemUserWhenThereIsNoCaseNumber() {
+        when(bulkScanningClient.canAuthenticate()).thenReturn(false);
+
+        assertThatSR(paymentFeeLinkForCase(null)).isCancellable();
         verifyNoInteractions(bulkScanningClient);
     }
 
@@ -293,14 +303,14 @@ class ServiceRequestCancellationEligibilityServiceTest {
     void propagatesBulkScanningFailure() {
         BulkScanningServiceUnavailableException failure =
             new BulkScanningServiceUnavailableException("unable to check bulk scanning for unallocated payments", null);
-        when(bulkScanningClient.findPaymentsForCase(CCD_CASE_NUMBER, USER_TOKEN)).thenThrow(failure);
+        when(bulkScanningClient.findPaymentsForCase(CCD_CASE_NUMBER)).thenThrow(failure);
 
-        assertThatThrownBy(() -> service.checkEligibility(paymentFeeLinkForCase(CCD_CASE_NUMBER), USER_TOKEN))
+        assertThatThrownBy(() -> service.checkEligibility(paymentFeeLinkForCase(CCD_CASE_NUMBER)))
             .isSameAs(failure);
     }
 
     private void givenBulkScanningReturns(uk.gov.hmcts.payment.api.dto.PaymentStatus status) {
-        when(bulkScanningClient.findPaymentsForCase(CCD_CASE_NUMBER, USER_TOKEN))
+        when(bulkScanningClient.findPaymentsForCase(CCD_CASE_NUMBER))
             .thenReturn(Optional.of(SearchResponse.searchResponseWith().allPaymentsStatus(status).build()));
     }
 

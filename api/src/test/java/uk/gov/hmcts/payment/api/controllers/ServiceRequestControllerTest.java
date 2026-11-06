@@ -1225,7 +1225,7 @@ public class ServiceRequestControllerTest {
             .post("/service-request/" + serviceRequestReference + "/cancel", cancellation)
             .andExpect(status().isNoContent());
 
-        verify(serviceRequestDomainService).cancel(eq(serviceRequestReference), eq(UserResolverBackdoor.CASEWORKER_ID), eq(reason), notNull());
+        verify(serviceRequestDomainService).cancel(eq(serviceRequestReference), eq(UserResolverBackdoor.CASEWORKER_ID), eq(reason));
     }
 
     @Test
@@ -1236,7 +1236,7 @@ public class ServiceRequestControllerTest {
             .andReturn();
 
         assertThat(result.getResponse().getStatus()).isEqualTo(204);
-        verify(serviceRequestDomainService).cancel(eq(serviceRequestReference), eq("divorce"), eq("Auto-Cancelled by Service"), isNull());
+        verify(serviceRequestDomainService).cancel(eq(serviceRequestReference), eq("divorce"), eq("Auto-Cancelled by Service"));
     }
 
     @Test
@@ -1252,7 +1252,7 @@ public class ServiceRequestControllerTest {
             .andReturn();
 
         assertThat(result.getResponse().getStatus()).isEqualTo(204);
-        verify(serviceRequestDomainService).cancel(eq(serviceRequestReference), eq("divorce"), eq(reason), isNull());
+        verify(serviceRequestDomainService).cancel(eq(serviceRequestReference), eq("divorce"), eq(reason));
     }
 
     @Test
@@ -1267,7 +1267,7 @@ public class ServiceRequestControllerTest {
             .andExpect(status().isBadRequest())
             .andExpect(cancellationError("cancellation reason must have a value when body supplied"));
 
-        verify(serviceRequestDomainService, never()).cancel(anyString(), anyString(), any(), any());
+        verify(serviceRequestDomainService, never()).cancel(anyString(), anyString(), any());
     }
 
     @Test
@@ -1282,7 +1282,7 @@ public class ServiceRequestControllerTest {
             .andExpect(status().isBadRequest())
             .andExpect(cancellationError("cancellation reason needs to be supplied for manual service request cancellation"));
 
-        verify(serviceRequestDomainService, never()).cancel(anyString(), anyString(), any(), any());
+        verify(serviceRequestDomainService, never()).cancel(anyString(), anyString(), any());
     }
 
     @Test
@@ -1294,7 +1294,7 @@ public class ServiceRequestControllerTest {
             .andExpect(status().isBadRequest())
             .andExpect(cancellationError("cancellation reason needs to be supplied for manual service request cancellation"));
 
-        verify(serviceRequestDomainService, never()).cancel(anyString(), anyString(), any(), any());
+        verify(serviceRequestDomainService, never()).cancel(anyString(), anyString(), any());
     }
 
     @Test
@@ -1309,7 +1309,7 @@ public class ServiceRequestControllerTest {
             .andExpect(status().isBadRequest())
             .andExpect(cancellationError("cancellation reason must not exceed 255 characters"));
 
-        verify(serviceRequestDomainService, never()).cancel(anyString(), anyString(), any(), any());
+        verify(serviceRequestDomainService, never()).cancel(anyString(), anyString(), any());
     }
 
     @Test
@@ -1321,7 +1321,7 @@ public class ServiceRequestControllerTest {
                 .andExpect(cancellationError("invalid service request reference format"));
         }
 
-        verify(serviceRequestDomainService, never()).cancel(anyString(), anyString(), any(), any());
+        verify(serviceRequestDomainService, never()).cancel(anyString(), anyString(), any());
     }
 
     @Test
@@ -1333,7 +1333,7 @@ public class ServiceRequestControllerTest {
                 .post("/service-request/" + serviceRequestReference + "/cancel")
                 .andExpect(status().isNoContent());
 
-            verify(serviceRequestDomainService).cancel(eq(serviceRequestReference), eq("divorce"), eq("Auto-Cancelled by Service"), isNull());
+            verify(serviceRequestDomainService).cancel(eq(serviceRequestReference), eq("divorce"), eq("Auto-Cancelled by Service"));
         }
     }
 
@@ -1349,7 +1349,7 @@ public class ServiceRequestControllerTest {
             .andExpect(status().isBadRequest())
             .andExpect(cancellationError("unknown field(s) in request body: unexpected"));
 
-        verify(serviceRequestDomainService, never()).cancel(anyString(), anyString(), any(), any());
+        verify(serviceRequestDomainService, never()).cancel(anyString(), anyString(), any());
     }
 
     @Test
@@ -1366,7 +1366,7 @@ public class ServiceRequestControllerTest {
                 .content("{\"reason\": "))
             .andExpect(status().isBadRequest());
 
-        verify(serviceRequestDomainService, never()).cancel(anyString(), anyString(), any(), any());
+        verify(serviceRequestDomainService, never()).cancel(anyString(), anyString(), any());
     }
 
     @Test
@@ -1381,7 +1381,7 @@ public class ServiceRequestControllerTest {
             .post("/service-request/" + serviceRequestReference + "/cancel", cancellation)
             .andExpect(status().isNoContent());
 
-        verify(serviceRequestDomainService).cancel(eq(serviceRequestReference), eq(UserResolverBackdoor.CASEWORKER_ID), eq(reason), notNull());
+        verify(serviceRequestDomainService).cancel(eq(serviceRequestReference), eq(UserResolverBackdoor.CASEWORKER_ID), eq(reason));
     }
 
     @Test
@@ -1396,7 +1396,7 @@ public class ServiceRequestControllerTest {
             .andExpect(status().isBadRequest())
             .andExpect(cancellationError("cancellation reason needs to be supplied for manual service request cancellation"));
 
-        verify(serviceRequestDomainService, never()).cancel(anyString(), anyString(), any(), any());
+        verify(serviceRequestDomainService, never()).cancel(anyString(), anyString(), any());
     }
 
     private static ResultMatcher cancellationError(String error) {
@@ -1430,7 +1430,7 @@ public class ServiceRequestControllerTest {
             .build();
 
         doThrow(new ServiceRequestCancellationException(reason)).when(serviceRequestDomainService)
-            .cancel(eq(serviceRequestReference), anyString(), anyString(), any());
+            .cancel(eq(serviceRequestReference), anyString(), anyString());
 
         manualCancellationRestActions()
             .post("/service-request/" + serviceRequestReference + "/cancel", cancellation)
@@ -1447,7 +1447,7 @@ public class ServiceRequestControllerTest {
             .build();
 
         doThrow(new ServiceRequestException(reason)).when(serviceRequestDomainService)
-            .cancel(eq(serviceRequestReference), anyString(), anyString(), any());
+            .cancel(eq(serviceRequestReference), anyString(), anyString());
 
         manualCancellationRestActions()
             .post("/service-request/" + serviceRequestReference + "/cancel", cancellation)

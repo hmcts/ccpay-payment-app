@@ -12,6 +12,7 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.payment.api.dto.SearchResponse;
 import uk.gov.hmcts.payment.api.exception.BulkScanningServiceUnavailableException;
+import uk.gov.hmcts.payment.api.exception.SystemUserTokenException;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.util.Optional;
@@ -25,14 +26,24 @@ public class BulkScanningClient {
 
     private final RestTemplate restTemplate;
     private final AuthTokenGenerator authTokenGenerator;
+    private final IdamSystemUserTokenProvider systemUserTokenProvider;
     private final String bulkScanningUrl;
 
     public BulkScanningClient(@Qualifier("restTemplateBulkScanning") RestTemplate restTemplate,
                               AuthTokenGenerator authTokenGenerator,
+                              IdamSystemUserTokenProvider systemUserTokenProvider,
                               @Value("${bulk.scanning.payments.processed.url}") String bulkScanningUrl) {
         this.restTemplate = restTemplate;
         this.authTokenGenerator = authTokenGenerator;
+        this.systemUserTokenProvider = systemUserTokenProvider;
         this.bulkScanningUrl = bulkScanningUrl;
+    }
+
+    /**
+     * Whether this client can authenticate to bulk scanning, which needs the IDAM system user to be configured.
+     */
+    public boolean canAuthenticate() {
+        return systemUserTokenProvider.isConfigured();
     }
 
     /**
@@ -43,16 +54,21 @@ public class BulkScanningClient {
      * response when it has no envelopes for the case.</p>
      *
      * <p>Bulk scanning secures this endpoint with a user token holding the {@code payments} or {@code citizen}
-     * role, as well as a service token, so the caller's user token is passed on.</p>
+     * role, as well as a service token. The system user's token is sent for every cancellation, manual or
+     * automated, as bulk scanning only checks the role and not who the user is.</p>
      *
-     * @param ccdCaseNumber     the CCD case number of the service request
-     * @param userAuthorization the caller's user token, sent as the {@code Authorization} header
+     * @param ccdCaseNumber the CCD case number of the service request
      * @return the search response, or empty when bulk scanning reports no payments for the case (HTTP 404)
-     * @throws BulkScanningServiceUnavailableException when bulk scanning cannot be reached or returns an error
+     * @throws BulkScanningServiceUnavailableException when no system user token can be obtained, or bulk scanning
+     *                                                 cannot be reached or returns an error
      */
-    public Optional<SearchResponse> findPaymentsForCase(String ccdCaseNumber, String userAuthorization) {
+    public Optional<SearchResponse> findPaymentsForCase(String ccdCaseNumber) {
         HttpHeaders headers = new HttpHeaders();
-        headers.set(HttpHeaders.AUTHORIZATION, userAuthorization);
+        try {
+            headers.setBearerAuth(systemUserTokenProvider.getAccessToken());
+        } catch (SystemUserTokenException e) {
+            throw new BulkScanningServiceUnavailableException("unable to check bulk scanning for unallocated payments", e);
+        }
         headers.set("ServiceAuthorization", authTokenGenerator.generate());
 
         try {
