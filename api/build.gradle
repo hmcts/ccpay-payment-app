@@ -66,6 +66,16 @@ sourceSets {
     }
 }
 
+// Allow smoke tests to reuse the functional test classes (IdamService, TestContextConfiguration, etc.)
+// and their resources (application-functional-tests.properties).
+sourceSets.smokeTest.compileClasspath += sourceSets.functionalTest.output
+sourceSets.smokeTest.runtimeClasspath += sourceSets.functionalTest.output
+
+configurations {
+    smokeTestImplementation.extendsFrom functionalTestImplementation
+    smokeTestRuntimeOnly.extendsFrom functionalTestRuntimeOnly
+}
+
 apply plugin: 'idea'
 idea {
     module {
@@ -189,6 +199,10 @@ dependencies {
 
     // smoke
     smokeTestImplementation sourceSets.test.runtimeClasspath
+    smokeTestImplementation group: 'net.serenity-bdd', name: 'serenity-core', version: versions.serenity
+    smokeTestImplementation group: 'net.serenity-bdd', name: 'serenity-junit', version: versions.serenity
+    smokeTestImplementation group: 'net.serenity-bdd', name: 'serenity-rest-assured', version: versions.serenity
+    smokeTestImplementation group: 'net.serenity-bdd', name: 'serenity-spring', version: versions.serenity
     // functional
     functionalTestImplementation sourceSets.test.runtimeClasspath
     // contract
@@ -229,8 +243,10 @@ test {
 }
 
 task smokeTest(type: Test, description: 'Runs the smoke tests', group: 'Verification') {
+    include "uk/gov/hmcts/payment/smoke/**"
     testClassesDirs = sourceSets.smokeTest.output.classesDirs
     classpath = sourceSets.smokeTest.runtimeClasspath
+    scanForTestClasses = true
 }
 
 task functionalTest(type: Test, description: 'Runs the functional tests', group: 'Verification') {
@@ -242,6 +258,7 @@ task functionalTest(type: Test, description: 'Runs the functional tests', group:
 }
 
 // Serenity Reporting
+smokeTest.finalizedBy(aggregate)
 functionalTest.finalizedBy(aggregate)
 tasks.named('aggregate') {
     onlyIf {
