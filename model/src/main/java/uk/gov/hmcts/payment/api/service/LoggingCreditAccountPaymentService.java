@@ -6,6 +6,7 @@ import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.Payment;
@@ -34,7 +35,9 @@ public class LoggingCreditAccountPaymentService implements CreditAccountPaymentS
     private final CreditAccountPaymentService<PaymentFeeLink, String> delegate;
 
     @Autowired
-    public LoggingCreditAccountPaymentService(UserIdSupplier userIdSupplier, CreditAccountPaymentService<PaymentFeeLink, String> delegate) {
+    public LoggingCreditAccountPaymentService(UserIdSupplier userIdSupplier,
+                                              @Qualifier("userAwareDelegatingCreditAccountPaymentService")
+                                              CreditAccountPaymentService<PaymentFeeLink, String> delegate) {
         this.userIdSupplier = userIdSupplier;
         this.delegate = delegate;
 
@@ -82,5 +85,18 @@ public class LoggingCreditAccountPaymentService implements CreditAccountPaymentS
     public void deleteByPaymentReference(String paymentReference) {
         LOG.info("Deleting payment for reference: {}", paymentReference);
         delegate.deleteByPaymentReference(paymentReference);
+    }
+
+    @Override
+    public Payment createOrUpdate(Payment paymentFeeLink) throws CheckDigitException {
+        Payment saved = delegate.createOrUpdate(paymentFeeLink);
+        LOG.info("Payment event", StructuredArguments.entries(ImmutableMap.of(
+            PAYMENT_ID, saved.getId(),
+            USER_ID, userIdSupplier.get(),
+            EVENT_TYPE, "createOrUpdate",
+            AMOUNT, saved.getAmount(),
+            REFERENCE, saved.getReference()
+        )));
+        return saved;
     }
 }
