@@ -4,8 +4,6 @@ import lombok.val;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.fees2.register.api.contract.Fee2Dto;
 import uk.gov.hmcts.fees2.register.api.contract.FeeVersionDto;
@@ -34,14 +32,10 @@ public class PBAPaymentMapper {
     private static final Logger LOG = LoggerFactory.getLogger(PBAStatusErrorMapper.class);
     private static final String NOT_APPLICABLE_IAC = "Not applicable, the servide type is not IAC";
 
-    @Autowired
-    private FeesService feesService;
-
-    @Autowired
+    private final FeesService feesService;
     private final PaymentService<PaymentFeeLink, String> paymentService;
+    private final IacService iacService;
 
-    @Autowired
-    private IacService iacService;
     public PBAPaymentMapper(PaymentService<PaymentFeeLink, String> paymentService, FeesService feesService, IacService iacService) {
         this.paymentService = paymentService;
         this.feesService = feesService;

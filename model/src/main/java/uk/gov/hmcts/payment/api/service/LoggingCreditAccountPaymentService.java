@@ -6,6 +6,7 @@ import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.Payment;
@@ -34,7 +35,9 @@ public class LoggingCreditAccountPaymentService implements CreditAccountPaymentS
     private final CreditAccountPaymentService<PaymentFeeLink, String> delegate;
 
     @Autowired
-    public LoggingCreditAccountPaymentService(UserIdSupplier userIdSupplier, CreditAccountPaymentService<PaymentFeeLink, String> delegate) {
+    public LoggingCreditAccountPaymentService(UserIdSupplier userIdSupplier,
+                                              @Qualifier("userAwareDelegatingCreditAccountPaymentService")
+                                              CreditAccountPaymentService<PaymentFeeLink, String> delegate) {
         this.userIdSupplier = userIdSupplier;
         this.delegate = delegate;
 
