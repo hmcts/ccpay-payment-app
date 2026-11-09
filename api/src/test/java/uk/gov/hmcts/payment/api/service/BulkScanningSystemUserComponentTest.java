@@ -60,9 +60,8 @@ class BulkScanningSystemUserComponentTest {
         registry.add("bulk.scanning.payments.processed.url", wireMock::baseUrl);
         registry.add("idam.system-user.username", () -> "system.user@hmcts.net");
         registry.add("idam.system-user.password", () -> "secret-password");
-        registry.add("idam.client.id", () -> "payment_api");
+        // The client id, scope and redirect URI are left as the application sets them, so the test checks those values.
         registry.add("idam.client.secret", () -> "client-secret");
-        registry.add("idam.client.redirect_uri", () -> "http://payment-api/oauth2/callback");
         registry.add("spring.cloud.openfeign.client.config.idam-api.read-timeout", () -> READ_TIMEOUT_MILLIS);
     }
 
@@ -110,7 +109,7 @@ class BulkScanningSystemUserComponentTest {
             .withFormParam("password", equalTo("secret-password"))
             .withFormParam("client_id", equalTo("payment_api"))
             .withFormParam("client_secret", equalTo("client-secret"))
-            .withFormParam("redirect_uri", equalTo("http://payment-api/oauth2/callback"))
+            .withFormParam("redirect_uri", equalTo(""))
             .withFormParam("scope", equalTo("openid profile roles")));
         wireMock.verify(2, getRequestedFor(urlEqualTo(CASE_PATH))
             .withHeader("Authorization", equalTo("Bearer token-1"))
