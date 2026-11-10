@@ -50,16 +50,15 @@ public class PBAPaymentMapper {
         this.iacService = iacService;
     }
 
-
     public PaymentAccountRequest mapToPaymentByAccountRequestFromServiceRequestPaymentDto(ServiceRequestPaymentDto serviceRequestPaymentDto, String groupReference, Payment payment, PaymentFeeLink paymentFeeLink ) {
         val paymentDto = mapPaymentAccountPaymentFromServiceRequestPaymentDto(serviceRequestPaymentDto, groupReference,payment,paymentFeeLink);
         val  paymentByAccountRequest = PaymentByAccountRequest.paymentByAccountRequestWith()
-                .pbaNumber(serviceRequestPaymentDto.getAccountNumber())
-                .payment(paymentDto)
-                .build();
+            .pbaNumber(serviceRequestPaymentDto.getAccountNumber())
+            .payment(paymentDto)
+            .build();
 
         return PaymentAccountRequest.paymentAccountRequestWith()
-                .PaymentByAccountRequest(paymentByAccountRequest).build();
+            .paymentByAccountRequest(paymentByAccountRequest).build();
     }
 
     public PaymentAccountRequest mapToPaymentByAccountRequest(CreditAccountPaymentRequest creditAccountPaymentRequest, String groupReference, Payment payment, PaymentFeeLink paymentFeeLink ) {

@@ -159,7 +159,7 @@ public class PBAStatusErrorMapperTest {
         Payment spyPayment = spy(localPayment);
         when(spyPayment.getStatusHistories()).thenReturn(histories);
 
-        mapper.setPaymentStatusAndHistories(creditAccountPaymentRequest, spyPayment, resp);
+        mapper.setPaymentStatusAndHistories(creditAccountPaymentRequest.getAccountNumber(), spyPayment, resp);
 
         assertThat(spyPayment.getPaymentStatus()).isNotNull();
         assertThat(spyPayment.getPaymentStatus().getName()).isEqualTo("success");
@@ -192,7 +192,7 @@ public class PBAStatusErrorMapperTest {
             .accountNumber("PBA1234567")
             .build();
 
-        new PBAStatusErrorMapper().setPaymentStatusAndHistories(request, localPayment, response);
+        new PBAStatusErrorMapper().setPaymentStatusAndHistories(request.getAccountNumber(), localPayment, response);
 
         assertThat(localPayment.getPaymentStatus().getName()).isEqualTo("failed");
         StatusHistory history = localPayment.getStatusHistories().get(0);
@@ -215,7 +215,7 @@ public class PBAStatusErrorMapperTest {
             .reason("DELETED")
             .build();
 
-        mapper.setPaymentStatusAndHistories(creditAccountPaymentRequest, localPayment, resp);
+        mapper.setPaymentStatusAndHistories(creditAccountPaymentRequest.getAccountNumber(), localPayment, resp);
 
         assertThat(localPayment.getPaymentStatus().getName()).isEqualTo("failed");
         StatusHistory history = localPayment.getStatusHistories().get(0);
@@ -238,7 +238,7 @@ public class PBAStatusErrorMapperTest {
             .reason("CUSTOMER ON HOLD - EXCEEDED CREDIT LIMIT")
             .build();
 
-        mapper.setPaymentStatusAndHistories(creditAccountPaymentRequest, localPayment, resp);
+        mapper.setPaymentStatusAndHistories(creditAccountPaymentRequest.getAccountNumber(), localPayment, resp);
 
         assertThat(localPayment.getPaymentStatus().getName()).isEqualTo("failed");
         StatusHistory history = localPayment.getStatusHistories().get(0);
@@ -265,7 +265,7 @@ public class PBAStatusErrorMapperTest {
                 .message(message)
                 .build();
 
-            mapper.setPaymentStatusAndHistories(creditAccountPaymentRequest, localPayment, resp);
+            mapper.setPaymentStatusAndHistories(creditAccountPaymentRequest.getAccountNumber(), localPayment, resp);
 
             assertThat(localPayment.getPaymentStatus()).isNotNull();
             assertThat(localPayment.getPaymentStatus().getName()).isEqualTo("failed");
