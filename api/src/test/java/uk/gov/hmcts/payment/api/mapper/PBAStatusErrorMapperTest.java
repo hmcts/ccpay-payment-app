@@ -1,6 +1,8 @@
 package uk.gov.hmcts.payment.api.mapper;
 
 import nl.altindag.log.LogCaptor;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -169,106 +171,34 @@ public class PBAStatusErrorMapperTest {
 
     // --- setPaymentStatusAndHistories: ERROR cases without reason ---
 
-    @Test
-    public void testSetPaymentStatusAndHistoriesErrorExceededCreditLimit() {
-        PBAStatusErrorMapper mapper = new PBAStatusErrorMapper();
+    @ParameterizedTest
+    @CsvSource({
+        "'Exceeded credit limit.', CA-E0001, 'Payment request failed. PBA account PBA1234567 have insufficient funds available'",
+        "'Account not found.', CA-E0004, 'Account not found.'",
+        "'Validation failed.', CA-E0005, 'Validation failed.'",
+        "'Duplicate payment detected.', CA-E0006, 'Duplicate payment detected.'",
+        "'Unauthenticated.', CA-E0007, 'Unauthenticated.'"
+    })
+    void testSetPaymentStatusAndHistoriesErrorsWithoutReason(String errorMessage, String expectedErrorCode,
+                                                                    String expectedHistoryMessage) {
         Payment localPayment = Payment.paymentWith().ccdCaseNumber("ccd-number").build();
         localPayment.setStatusHistories(new LinkedList<>(Collections.singletonList(StatusHistory.statusHistoryWith().build())));
-
-        PaymentAccountResponse resp = PaymentAccountResponse.paymentDtoWith()
+        PaymentAccountResponse response = PaymentAccountResponse.paymentDtoWith()
             .status("error")
-            .message("Exceeded credit limit.")
+            .message(errorMessage)
+            .build();
+        CreditAccountPaymentRequest request = CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
+            .amount(new BigDecimal("10.00"))
+            .accountNumber("PBA1234567")
             .build();
 
-        mapper.setPaymentStatusAndHistories(creditAccountPaymentRequest, localPayment, resp);
+        new PBAStatusErrorMapper().setPaymentStatusAndHistories(request, localPayment, response);
 
         assertThat(localPayment.getPaymentStatus().getName()).isEqualTo("failed");
         StatusHistory history = localPayment.getStatusHistories().get(0);
         assertThat(history.getStatus()).isEqualTo("failed");
-        assertThat(history.getErrorCode()).isEqualTo("CA-E0001");
-        // message should include account number, not raw key
-        assertThat(history.getMessage()).isEqualTo(
-            "Payment request failed. PBA account PBA1234567 have insufficient funds available");
-    }
-
-    @Test
-    public void testSetPaymentStatusAndHistoriesErrorAccountNotFound() {
-        PBAStatusErrorMapper mapper = new PBAStatusErrorMapper();
-        Payment localPayment = Payment.paymentWith().ccdCaseNumber("ccd-number").build();
-        localPayment.setStatusHistories(new LinkedList<>(Collections.singletonList(StatusHistory.statusHistoryWith().build())));
-
-        PaymentAccountResponse resp = PaymentAccountResponse.paymentDtoWith()
-            .status("error")
-            .message("Account not found.")
-            .build();
-
-        mapper.setPaymentStatusAndHistories(creditAccountPaymentRequest, localPayment, resp);
-
-        assertThat(localPayment.getPaymentStatus().getName()).isEqualTo("failed");
-        StatusHistory history = localPayment.getStatusHistories().get(0);
-        assertThat(history.getStatus()).isEqualTo("failed");
-        assertThat(history.getErrorCode()).isEqualTo("CA-E0004");
-        assertThat(history.getMessage()).isEqualTo("Account not found.");
-    }
-
-    @Test
-    public void testSetPaymentStatusAndHistoriesErrorValidationFailed() {
-        PBAStatusErrorMapper mapper = new PBAStatusErrorMapper();
-        Payment localPayment = Payment.paymentWith().ccdCaseNumber("ccd-number").build();
-        localPayment.setStatusHistories(new LinkedList<>(Collections.singletonList(StatusHistory.statusHistoryWith().build())));
-
-        PaymentAccountResponse resp = PaymentAccountResponse.paymentDtoWith()
-            .status("error")
-            .message("Validation failed.")
-            .build();
-
-        mapper.setPaymentStatusAndHistories(creditAccountPaymentRequest, localPayment, resp);
-
-        assertThat(localPayment.getPaymentStatus().getName()).isEqualTo("failed");
-        StatusHistory history = localPayment.getStatusHistories().get(0);
-        assertThat(history.getStatus()).isEqualTo("failed");
-        assertThat(history.getErrorCode()).isEqualTo("CA-E0005");
-        assertThat(history.getMessage()).isEqualTo("Validation failed.");
-    }
-
-    @Test
-    public void testSetPaymentStatusAndHistoriesErrorDuplicatePayment() {
-        PBAStatusErrorMapper mapper = new PBAStatusErrorMapper();
-        Payment localPayment = Payment.paymentWith().ccdCaseNumber("ccd-number").build();
-        localPayment.setStatusHistories(new LinkedList<>(Collections.singletonList(StatusHistory.statusHistoryWith().build())));
-
-        PaymentAccountResponse resp = PaymentAccountResponse.paymentDtoWith()
-            .status("error")
-            .message("Duplicate payment detected.")
-            .build();
-
-        mapper.setPaymentStatusAndHistories(creditAccountPaymentRequest, localPayment, resp);
-
-        assertThat(localPayment.getPaymentStatus().getName()).isEqualTo("failed");
-        StatusHistory history = localPayment.getStatusHistories().get(0);
-        assertThat(history.getStatus()).isEqualTo("failed");
-        assertThat(history.getErrorCode()).isEqualTo("CA-E0006");
-        assertThat(history.getMessage()).isEqualTo("Duplicate payment detected.");
-    }
-
-    @Test
-    public void testSetPaymentStatusAndHistoriesErrorUnauthenticated() {
-        PBAStatusErrorMapper mapper = new PBAStatusErrorMapper();
-        Payment localPayment = Payment.paymentWith().ccdCaseNumber("ccd-number").build();
-        localPayment.setStatusHistories(new LinkedList<>(Collections.singletonList(StatusHistory.statusHistoryWith().build())));
-
-        PaymentAccountResponse resp = PaymentAccountResponse.paymentDtoWith()
-            .status("error")
-            .message("Unauthenticated.")
-            .build();
-
-        mapper.setPaymentStatusAndHistories(creditAccountPaymentRequest, localPayment, resp);
-
-        assertThat(localPayment.getPaymentStatus().getName()).isEqualTo("failed");
-        StatusHistory history = localPayment.getStatusHistories().get(0);
-        assertThat(history.getStatus()).isEqualTo("failed");
-        assertThat(history.getErrorCode()).isEqualTo("CA-E0007");
-        assertThat(history.getMessage()).isEqualTo("Unauthenticated.");
+        assertThat(history.getErrorCode()).isEqualTo(expectedErrorCode);
+        assertThat(history.getMessage()).isEqualTo(expectedHistoryMessage);
     }
 
     // --- setPaymentStatusAndHistories: ERROR with reason = DELETED ---
@@ -369,7 +299,7 @@ public class PBAStatusErrorMapperTest {
             .build();
 
         PaymentAccountRequest request = PaymentAccountRequest.paymentAccountRequestWith()
-            .PaymentByAccountRequest(pbaReq)
+            .paymentByAccountRequest(pbaReq)
             .build();
 
         // prepare token and stub getValidToken by spying the injected instance
@@ -402,7 +332,7 @@ public class PBAStatusErrorMapperTest {
             .build();
 
         PaymentAccountRequest request = PaymentAccountRequest.paymentAccountRequestWith()
-            .PaymentByAccountRequest(pbaReq)
+            .paymentByAccountRequest(pbaReq)
             .build();
 
         TokenResponse token = new TokenResponse("plain-text-token", 1000000L, System.currentTimeMillis());
@@ -437,7 +367,7 @@ public class PBAStatusErrorMapperTest {
             .build();
 
         PaymentAccountRequest request = PaymentAccountRequest.paymentAccountRequestWith()
-            .PaymentByAccountRequest(pbaReq)
+            .paymentByAccountRequest(pbaReq)
             .build();
 
         TokenResponse token = new TokenResponse("plain-text-token", 1000000L, System.currentTimeMillis());
