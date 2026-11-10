@@ -145,8 +145,7 @@ public class PBAController {
         //Service token
         headerMultiValueMapForRefData.put("ServiceAuthorization", serviceAuthTokenPaymentList);
         headerMultiValueMapForRefData.put("UserEmail", email);
-        LOG.info("headers to ref data : {}", headerMultiValueMapForRefData);
-        LOG.info("ServiceAuthorization Token : {}", serviceAuthTokenPaymentList);
+
         return headerMultiValueMapForRefData;
     }
 
