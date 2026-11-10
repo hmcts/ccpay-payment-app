@@ -11,6 +11,7 @@ import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.model.StatusHistory;
 import uk.gov.hmcts.payment.api.util.AccountStatus;
+import uk.gov.hmcts.payment.api.util.LogSanitizer;
 
 import java.math.BigDecimal;
 import java.util.Collections;
@@ -53,11 +54,13 @@ public class PBAStatusErrorMapper {
     );
 
     public void setPaymentStatus(CreditAccountPaymentRequest creditAccountPaymentRequest, Payment payment, AccountDto accountDetails) {
-        LOG.info("CreditAccountPayment received for ccdCaseNumber: {}: Payload {}", payment.getCcdCaseNumber(), accountDetails);
+        LOG.info("CreditAccountPayment received for ccdCaseNumber: {}: Payload {}",
+            LogSanitizer.sanitize(payment.getCcdCaseNumber()), LogSanitizer.sanitize(String.valueOf(accountDetails)));
         if (accountDetails.getStatus() == AccountStatus.ACTIVE && isAccountBalanceSufficient(accountDetails.getAvailableBalance(),
             creditAccountPaymentRequest.getAmount())) {
             payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("success").build());
-            LOG.info("CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {} PaymentStatus : {} - Account Balance Sufficient!!!", payment.getCcdCaseNumber(), accountDetails.getStatus(), payment.getPaymentStatus().getName());
+            LOG.info("CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {} PaymentStatus : {} - Account Balance Sufficient!!!",
+                LogSanitizer.sanitize(payment.getCcdCaseNumber()), accountDetails.getStatus(), payment.getPaymentStatus().getName());
         } else if (accountDetails.getStatus() == AccountStatus.ACTIVE) {
             payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name(FAILED).build());
             payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
@@ -68,9 +71,10 @@ public class PBAStatusErrorMapper {
                     + " have insufficient funds available").build()));
             LOG.info("Payment request failed. PBA account {} has insufficient funds available." +
                     " Requested payment was {} where available balance is {}",
-                accountDetails.getAccountName(), creditAccountPaymentRequest.getAmount(),
+                LogSanitizer.sanitize(accountDetails.getAccountName()), creditAccountPaymentRequest.getAmount(),
                 accountDetails.getAvailableBalance());
-            LOG.info("ccdCaseNumber : {} Liberata AccountStatus : {} PaymentStatus : {} - Account Balance InSufficient!!!", payment.getCcdCaseNumber(), accountDetails.getStatus(), payment.getPaymentStatus().getName());
+            LOG.info("ccdCaseNumber : {} Liberata AccountStatus : {} PaymentStatus : {} - Account Balance InSufficient!!!",
+                LogSanitizer.sanitize(payment.getCcdCaseNumber()), accountDetails.getStatus(), payment.getPaymentStatus().getName());
         } else if (accountDetails.getStatus() == AccountStatus.INACTIVE) {
             payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name(FAILED).build());
             payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
@@ -78,7 +82,8 @@ public class PBAStatusErrorMapper {
                 .errorCode("CA-E0002")
                 .message("Your account is inactive")
                 .build()));
-            LOG.info("CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {} PaymentStatus : {} - Account is inactive!", payment.getCcdCaseNumber(), accountDetails.getStatus(), payment.getPaymentStatus().getName());
+            LOG.info("CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {} PaymentStatus : {} - Account is inactive!",
+                LogSanitizer.sanitize(payment.getCcdCaseNumber()), accountDetails.getStatus(), payment.getPaymentStatus().getName());
         } else if (accountDetails.getStatus() == AccountStatus.ON_HOLD) {
             payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name(FAILED).build());
             payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
@@ -86,7 +91,8 @@ public class PBAStatusErrorMapper {
                 .errorCode("CA-E0003")
                 .message("Your account is on hold")
                 .build()));
-            LOG.info("CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {} PaymentStatus : {} - Account is on hold!", payment.getCcdCaseNumber(), accountDetails.getStatus(), payment.getPaymentStatus().getName());
+            LOG.info("CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {} PaymentStatus : {} - Account is on hold!",
+                LogSanitizer.sanitize(payment.getCcdCaseNumber()), accountDetails.getStatus(), payment.getPaymentStatus().getName());
         } else if (accountDetails.getStatus() == AccountStatus.DELETED) {
             payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name(FAILED).build());
             payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
@@ -94,24 +100,30 @@ public class PBAStatusErrorMapper {
                 .errorCode(NOT_FOUND_CODE)
                 .message("Your account is deleted")
                 .build()));
-            LOG.info("CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {} PaymentStatus : {} - Account is deleted!", payment.getCcdCaseNumber(), accountDetails.getStatus(), payment.getPaymentStatus().getName());
+            LOG.info("CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {} PaymentStatus : {} - Account is deleted!",
+                LogSanitizer.sanitize(payment.getCcdCaseNumber()), accountDetails.getStatus(), payment.getPaymentStatus().getName());
         }
     }
 
     public void setPaymentStatusAndHistories(CreditAccountPaymentRequest creditAccountPaymentRequest, Payment payment, PaymentAccountResponse  paymentAccountResponse) {
 
         LOG.info("CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {}  Account number  : {} ",
-            payment.getCcdCaseNumber(), paymentAccountResponse.getStatus(), creditAccountPaymentRequest.getAccountNumber());
+            LogSanitizer.sanitize(payment.getCcdCaseNumber()), paymentAccountResponse.getStatus(),
+            LogSanitizer.sanitize(creditAccountPaymentRequest.getAccountNumber()));
 
         if (paymentAccountResponse.getStatus().equals(PaymentAccountResponseStatus.SUCCESS.getValue())) {
 
             payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("success").build());
             payment.getStatusHistories().getFirst().setStatus(PaymentAccountResponseStatus.SUCCESS.getValue());
-            LOG.info("Payment request  was SUCCESS. " + paymentAccountResponse.getMessage() + " PBA account {}" + creditAccountPaymentRequest.getAccountNumber());
+            LOG.info("Payment request was SUCCESS. {} PBA account {}",
+                LogSanitizer.sanitize(paymentAccountResponse.getMessage()),
+                LogSanitizer.sanitize(creditAccountPaymentRequest.getAccountNumber()));
         } else if (paymentAccountResponse.getStatus().equals(PaymentAccountResponseStatus.ERROR.getValue())) {
 
             payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name(FAILED).build());
-            LOG.info("Payment request failed. " + paymentAccountResponse.getMessage() + " PBA account {}" + creditAccountPaymentRequest.getAccountNumber());
+            LOG.info("Payment request failed. {} PBA account {}",
+                LogSanitizer.sanitize(paymentAccountResponse.getMessage()),
+                LogSanitizer.sanitize(creditAccountPaymentRequest.getAccountNumber()));
 
             // check if the reason code is present in the response and if it is mapped to an error code, this done for deleted and on hold accounts.
             if(paymentAccountResponse.getReason() != null && PBA_REASON_CODE_MAP.containsKey(paymentAccountResponse.getReason())) {

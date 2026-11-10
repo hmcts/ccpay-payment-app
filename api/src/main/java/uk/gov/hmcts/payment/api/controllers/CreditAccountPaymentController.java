@@ -36,6 +36,7 @@ import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.service.*;
+import uk.gov.hmcts.payment.api.util.LogSanitizer;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.*;
 import uk.gov.hmcts.payment.api.validators.DuplicatePaymentValidator;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
@@ -119,7 +120,7 @@ public class CreditAccountPaymentController {
         LOG.info("PBA Old Config Service Names : {}", pbaConfig1ServiceNames);
         val isPBAConfig1Journey = pbaConfig1ServiceNames.contains(creditAccountPaymentRequest.getService());
 
-        LOG.info("Case Type: {} ", creditAccountPaymentRequest.getCaseType());
+        LOG.info("Case Type: {} ", LogSanitizer.sanitize(creditAccountPaymentRequest.getCaseType()));
         if (StringUtils.isNotBlank(creditAccountPaymentRequest.getCaseType())) {
             OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(Optional.ofNullable(creditAccountPaymentRequest.getCaseType()),Optional.empty(), headers);
             creditAccountPaymentRequest.setSiteId(organisationalServiceDto.getServiceCode());
@@ -133,7 +134,8 @@ public class CreditAccountPaymentController {
         LOG.info("payment site map  Id : {}", payment.getSiteId());
         LOG.debug("Create credit account request for PaymentGroupRef:" + paymentGroupReference + " ,with Payment and " + fees.size() + " - Fees");
         LOG.info("CreditAccountPayment received for ccdCaseNumber : {} serviceType : {} pbaNumber : {} amount : {} NoOfFees : {}",
-            payment.getCcdCaseNumber(), payment.getServiceType(), payment.getPbaNumber(), payment.getAmount(), fees.size());
+            LogSanitizer.sanitize(payment.getCcdCaseNumber()), LogSanitizer.sanitize(payment.getServiceType()),
+            LogSanitizer.sanitize(payment.getPbaNumber()), payment.getAmount(), fees.size());
 
         checkDuplication(payment, fees);
          val paymentFeeLink = creditAccountPaymentService.create(payment, fees, paymentGroupReference);
@@ -145,12 +147,14 @@ public class CreditAccountPaymentController {
         } else {
             LOG.info("Setting status to pending");
             payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("pending").build());
-            LOG.info("CreditAccountPayment received for ccdCaseNumber : {} PaymentStatus : {} - Account Balance Sufficient!!!", payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
+            LOG.info("CreditAccountPayment received for ccdCaseNumber : {} PaymentStatus : {} - Account Balance Sufficient!!!",
+                LogSanitizer.sanitize(payment.getCcdCaseNumber()), payment.getPaymentStatus().getName());
         }
 
         // if there is any sort of error in the payment, we will return 403 FORBIDDEN with the payment status and error code/message
         if (payment.getPaymentStatus().getName().equals(FAILED)) {
-            LOG.info("CreditAccountPayment Response 403(FORBIDDEN) for ccdCaseNumber : {} PaymentStatus : {}", payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
+            LOG.info("CreditAccountPayment Response 403(FORBIDDEN) for ccdCaseNumber : {} PaymentStatus : {}",
+                LogSanitizer.sanitize(payment.getCcdCaseNumber()), payment.getPaymentStatus().getName());
             return new ResponseEntity<>(creditAccountDtoMapper.toCreateCreditAccountPaymentResponse(paymentFeeLink), HttpStatus.FORBIDDEN);
         }
 
@@ -169,10 +173,10 @@ public class CreditAccountPaymentController {
             }
         }
 
-        LOG.info("CreditAccountPayment Response 201(CREATED) for ccdCaseNumber : {} PaymentStatus : {}", payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
+        LOG.info("CreditAccountPayment Response 201(CREATED) for ccdCaseNumber : {} PaymentStatus : {}",
+            LogSanitizer.sanitize(payment.getCcdCaseNumber()), payment.getPaymentStatus().getName());
         return new ResponseEntity<>(creditAccountDtoMapper.toCreateCreditAccountPaymentResponse(paymentFeeLink), HttpStatus.CREATED);
     }
-
 
     @Operation(summary = "Get credit account payment details by payment reference", description = "Get payment details for supplied payment reference")
     @ApiResponses(value = {
