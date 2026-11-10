@@ -89,6 +89,7 @@ public class ServiceRequestCancellationEligibilityService {
     public Eligibility checkEligibility(PaymentFeeLink paymentFeeLink) {
 
         if (paymentFeeLink.isCancelled()) {
+            log.info("{} eligible for cancellation as already cancelled", render(paymentFeeLink));
             return Eligibility.eligible();
         }
 
@@ -147,6 +148,8 @@ public class ServiceRequestCancellationEligibilityService {
         String ccdCaseNumber = paymentFeeLink.getCcdCaseNumber();
         if (ccdCaseNumber == null || ccdCaseNumber.isBlank()) {
             // Bulk-scanned payments are always held against a CCD case, so there is nothing to look up.
+            log.info("{} eligible for cancellation as has no CCD case number, so bulk scanning was not checked",
+                render(paymentFeeLink));
             return Eligibility.eligible();
         }
 
@@ -165,6 +168,8 @@ public class ServiceRequestCancellationEligibilityService {
             return UNALLOCATED_BULK_SCAN_PAYMENT_ON_CASE;
         }
 
+        log.info("{} eligible for cancellation as bulk scanning has no unallocated payments on the case ({})",
+            render(paymentFeeLink), bulkScanStatus.map(PaymentStatus::toString).orElse("no payments"));
         return Eligibility.eligible();
     }
 

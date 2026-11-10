@@ -663,7 +663,10 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         // Need to lock
 
         PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.findByPaymentReferenceForUpdate(serviceRequestReference)
-            .orElseThrow(() -> new ServiceRequestReferenceNotFoundException("Service request not found"));
+            .orElseThrow(() -> {
+                LOG.warn("Service request {} not found, so cannot be cancelled", serviceRequestReference);
+                return new ServiceRequestReferenceNotFoundException("Service request not found");
+            });
 
         // check again if already cancelled
         if (paymentFeeLink.isCancelled()) {
@@ -692,6 +695,8 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
             .auditPayload(paymentFeeLink.toString())
             .auditDescription(auditEventsType.getDescription())
             .build());
+
+        LOG.info("{} cancelled by {}", paymentFeeLink, cancelledBy);
     }
 
 }

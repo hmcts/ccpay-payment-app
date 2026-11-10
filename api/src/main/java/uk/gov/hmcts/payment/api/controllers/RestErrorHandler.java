@@ -63,6 +63,7 @@ public class RestErrorHandler {
 
     @ExceptionHandler(InvalidServiceRequestCancellationException.class)
     public ResponseEntity<String> invalidServiceRequestCancellation(InvalidServiceRequestCancellationException ex) {
+        LOG.warn("Service request cancellation refused as invalid: {}", ex.getMessage());
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 

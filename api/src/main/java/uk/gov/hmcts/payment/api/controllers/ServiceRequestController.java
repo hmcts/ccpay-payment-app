@@ -445,6 +445,8 @@ public class ServiceRequestController {
         }
 
         final boolean manualCancellation = authorization != null;
+        LOG.info("Request to cancel service request {} ({} cancellation)", serviceRequestReference,
+            manualCancellation ? "manual" : "automated");
         String reason = serviceRequestCancelDto == null ? null : serviceRequestCancelDto.getReason();
 
         if (serviceRequestCancelDto != null && !serviceRequestCancelDto.getUnknownProperties().isEmpty()) {
