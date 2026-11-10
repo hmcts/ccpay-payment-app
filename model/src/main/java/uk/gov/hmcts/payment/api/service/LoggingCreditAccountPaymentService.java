@@ -12,6 +12,7 @@ import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
+import uk.gov.hmcts.payment.api.util.LogSanitizer;
 
 import java.util.Date;
 import java.util.List;
@@ -62,13 +63,13 @@ public class LoggingCreditAccountPaymentService implements CreditAccountPaymentS
 
     @Override
     public PaymentFeeLink retrieveByPaymentGroupReference(String paymentGroupReference) {
-        LOG.info("Get payments by payment group reference: {}", paymentGroupReference);
+        LOG.info("Get payments by payment group reference: {}", LogSanitizer.sanitize(paymentGroupReference));
         return delegate.retrieveByPaymentGroupReference(paymentGroupReference);
     }
 
     @Override
     public PaymentFeeLink retrieveByPaymentReference(String paymentReference) {
-        LOG.info("Get payment by payment reference: {}", paymentReference);
+        LOG.info("Get payment by payment reference: {}", LogSanitizer.sanitize(paymentReference));
         return delegate.retrieveByPaymentReference(paymentReference);
     }
 
@@ -83,7 +84,7 @@ public class LoggingCreditAccountPaymentService implements CreditAccountPaymentS
 
     @Override
     public void deleteByPaymentReference(String paymentReference) {
-        LOG.info("Deleting payment for reference: {}", paymentReference);
+        LOG.info("Deleting payment for reference: {}", LogSanitizer.sanitize(paymentReference));
         delegate.deleteByPaymentReference(paymentReference);
     }
 
