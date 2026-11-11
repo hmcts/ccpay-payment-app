@@ -247,6 +247,8 @@ def sonarExclusions = [
         '**/api/external/client/exceptions/**',
         '**/api/jpaaudit/listner/**',
         '**/api/jpaaudit/model/**',
+        '**/api/mapper/PBAPaymentMapper.java',
+        '**/api/mapper/PBAStatusErrorMapper.java',
         '**/api/service/PaymentRefundsServiceImpl.java',
         '**/api/service/RefundRemissionEnableServiceImpl.java',
         '**/api/service/LiberataIdentity.java',
