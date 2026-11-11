@@ -9,6 +9,15 @@
 
     <suppress>
         <notes>
+            False positive: CVE-2025-15104 affects Nu Html Checker (validator.nu), not Hibernate Validator.
+            Dependency-Check matches a generic validator CPE; see Dependency-Check issue #8249.
+        </notes>
+        <packageUrl regex="true">^pkg:maven/org\.hibernate\.validator/hibernate-validator@8\.0\.6\.Final$</packageUrl>
+        <cve>CVE-2025-15104</cve>
+    </suppress>
+
+    <suppress>
+        <notes>
             By selecting these links, you will be leaving NIST webspace. We have provided these links to other web sites because they may have information that would be of interest to you. No inferences should be drawn on account of other sites being referenced,
         </notes>
         <cve>CVE-2026-33117</cve>
