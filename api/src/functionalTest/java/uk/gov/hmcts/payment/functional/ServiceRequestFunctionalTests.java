@@ -597,7 +597,7 @@ public class ServiceRequestFunctionalTests {
     public void positive_create_service_request_and_a_duplicate_service_request_post_failed_payment_account_over_limit() {
 
         final ServiceRequestDto serviceRequestDto
-            = ServiceRequestFixture.buildServiceRequestDTOWithFees35000("ABA6", null);
+            = ServiceRequestFixture.buildServiceRequestDTOWithFeesFEE0228("ABA6", null);
 
         final Response createServiceRequestResponse
             = serviceRequestTestService.createServiceRequest(USER_TOKEN_PAYMENT, SERVICE_TOKEN,
@@ -609,8 +609,8 @@ public class ServiceRequestFunctionalTests {
         assertThat(serviceRequestReference).matches(SERVICE_REQUEST_REGEX_PATTERN);
 
         final ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
-            .paymentDtoWith().accountNumber("PBAFUNC12345")
-            .amount(BigDecimal.valueOf(35000.00))
+            .paymentDtoWith().accountNumber("PBAFUNC12345_EXCEEDED")
+            .amount(BigDecimal.valueOf(58.00))
             .currency("GBP")
             .organisationName("TestOrg")
             .idempotencyKey(ServiceRequestFixture.generateUniqueCCDCaseReferenceNumber())
