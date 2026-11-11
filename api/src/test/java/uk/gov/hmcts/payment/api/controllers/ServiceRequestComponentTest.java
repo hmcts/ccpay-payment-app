@@ -53,6 +53,7 @@ import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -186,6 +187,7 @@ public class ServiceRequestComponentTest {
             .reason(reason)
             .build();
 
+        when(cancellationEligibilityService.ccdCaseNumbers(any())).thenReturn(Set.of(ccdCaseNumber));
         manualCancellationRestActions().post("/service-request/%s/cancel".formatted(serviceRequestReference), cancellation)
             .andExpect(status().isNoContent());
 
@@ -224,6 +226,7 @@ public class ServiceRequestComponentTest {
         RestActions serviceOnlyActions = serviceOnlyRestActions();
         String cancellationPath = "/service-request/%s/cancel".formatted(serviceRequestReference);
 
+        when(cancellationEligibilityService.ccdCaseNumbers(any())).thenReturn(Set.of(ccdCaseNumber));
         serviceOnlyActions.post(cancellationPath)
             .andExpect(status().isNoContent());
         PaymentFeeLink cancelled = paymentFeeLinkRepository.findByPaymentReference(serviceRequestReference)

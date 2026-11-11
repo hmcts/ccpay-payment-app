@@ -7,12 +7,17 @@ import uk.gov.hmcts.payment.api.dto.PaymentStatus;
 import uk.gov.hmcts.payment.api.dto.SearchResponse;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentAllocation;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.BulkScanningClient;
 
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Stream;
 
 @Slf4j
 @Service
@@ -145,8 +150,8 @@ public class ServiceRequestCancellationEligibilityService {
             return Eligibility.eligible();
         }
 
-        String ccdCaseNumber = paymentFeeLink.getCcdCaseNumber();
-        if (ccdCaseNumber == null || ccdCaseNumber.isBlank()) {
+        Set<String> ccdCaseNumbers = ccdCaseNumbers(paymentFeeLink);
+        if (ccdCaseNumbers.isEmpty()) {
             // Bulk-scanned payments are always held against a CCD case, so there is nothing to look up.
             log.info("{} eligible for cancellation as has no CCD case number, so bulk scanning was not checked",
                 render(paymentFeeLink));
@@ -159,18 +164,53 @@ public class ServiceRequestCancellationEligibilityService {
             return BULK_SCANNING_NOT_CHECKED_WITHOUT_SYSTEM_USER;
         }
 
-        Optional<PaymentStatus> bulkScanStatus = bulkScanningClient.findPaymentsForCase(ccdCaseNumber)
-            .map(SearchResponse::getAllPaymentsStatus);
+        for (String ccdCaseNumber : ccdCaseNumbers) {
+            Optional<PaymentStatus> bulkScanStatus = bulkScanningClient.findPaymentsForCase(ccdCaseNumber)
+                .map(SearchResponse::getAllPaymentsStatus);
 
-        if (bulkScanStatus.isPresent() && bulkScanStatus.get() != PaymentStatus.PROCESSED) {
-            log.info("{} ineligible for cancellation as bulk scanning has {} payments on the case",
-                render(paymentFeeLink), bulkScanStatus.get());
-            return UNALLOCATED_BULK_SCAN_PAYMENT_ON_CASE;
+            if (bulkScanStatus.isPresent() && bulkScanStatus.get() != PaymentStatus.PROCESSED) {
+                log.info("{} ineligible for cancellation as bulk scanning has {} payments on case {}",
+                    render(paymentFeeLink), bulkScanStatus.get(), ccdCaseNumber);
+                return UNALLOCATED_BULK_SCAN_PAYMENT_ON_CASE;
+            }
+
+            log.info("{} has no unallocated bulk scan payments on case {} ({})", render(paymentFeeLink),
+                ccdCaseNumber, bulkScanStatus.map(PaymentStatus::toString).orElse("no payments"));
         }
 
-        log.info("{} eligible for cancellation as bulk scanning has no unallocated payments on the case ({})",
-            render(paymentFeeLink), bulkScanStatus.map(PaymentStatus::toString).orElse("no payments"));
+        log.info("{} eligible for cancellation as bulk scanning has no unallocated payments on case(s) {}",
+            render(paymentFeeLink), ccdCaseNumbers);
+
         return Eligibility.eligible();
+    }
+
+    /**
+     * The CCD case numbers a service request belongs to: its own, and those on its fees and payments.
+     *
+     * <p>A service request created as a payment group (for example by paybubble) often has its case number only on
+     * its fees, not on {@code payment_fee_link}, and the case page finds it that way. So all of them are checked. The
+     * service request's own case number comes first.</p>
+     *
+     * @param paymentFeeLink the service request
+     * @return the distinct, non-blank case numbers, in order; empty when there are none
+     */
+    public Set<String> ccdCaseNumbers(PaymentFeeLink paymentFeeLink) {
+
+        Stream<String> own = Stream.of(paymentFeeLink.getCcdCaseNumber());
+
+        Stream<String> fees = Optional.ofNullable(paymentFeeLink.getFees()).orElse(List.of()).stream().map(PaymentFee::getCcdCaseNumber);
+
+        Stream<String> payments = Optional.ofNullable(paymentFeeLink.getPayments()).orElse(List.of()).stream().map(Payment::getCcdCaseNumber);
+
+        Set<String> ccdCaseNumbers = new LinkedHashSet<>();
+
+        Stream.of(own, fees, payments).flatMap(s -> s)
+            .filter(Objects::nonNull)
+            .map(String::trim)
+            .filter(s -> !s.isEmpty())
+            .forEach(ccdCaseNumbers::add);
+
+        return ccdCaseNumbers;
     }
 
 

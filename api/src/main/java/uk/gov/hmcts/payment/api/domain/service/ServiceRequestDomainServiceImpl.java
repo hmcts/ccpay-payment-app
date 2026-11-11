@@ -690,7 +690,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         AuditEventsType auditEventsType = AuditEventsType.ORDER_CANCELLED;
 
         paymentAuditHistoryRepository.save(PaymentAuditHistory.paymentAuditHistoryWith()
-            .ccdCaseNo(paymentFeeLink.getCcdCaseNumber())
+            .ccdCaseNo(cancellationEligibilityService.ccdCaseNumbers(paymentFeeLink).stream().findFirst().orElse(null))
             .auditType(auditEventsType)
             .auditPayload(paymentFeeLink.toString())
             .auditDescription(auditEventsType.getDescription())

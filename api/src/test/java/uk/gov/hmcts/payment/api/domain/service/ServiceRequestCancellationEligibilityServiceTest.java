@@ -8,6 +8,7 @@ import uk.gov.hmcts.payment.api.dto.SearchResponse;
 import uk.gov.hmcts.payment.api.exception.BulkScanningServiceUnavailableException;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentAllocation;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.model.Remission;
@@ -17,11 +18,13 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -32,6 +35,7 @@ import static org.mockito.Mockito.when;
 class ServiceRequestCancellationEligibilityServiceTest {
 
     private static final String CCD_CASE_NUMBER = "1234567890123456";
+    private static final String OTHER_CCD_CASE_NUMBER = "6543210987654321";
 
     static class EligibilityAssert extends AbstractAssert<EligibilityAssert, Eligibility> {
 
@@ -243,6 +247,70 @@ class ServiceRequestCancellationEligibilityServiceTest {
     }
 
     @Test
+    void skipsBulkScanningWhenNoFeeOrPaymentHasACaseNumberEither() {
+        PaymentFeeLink paymentFeeLink = paymentFeeLink(paymentForCase(null));
+        paymentFeeLink.setFees(List.of(feeForCase(null), feeForCase(" ")));
+
+        assertThatSR(paymentFeeLink).isCancellable();
+        verifyNoInteractions(bulkScanningClient);
+    }
+
+    @Test
+    void checksTheCaseNumberOnTheFeesWhenTheServiceRequestHasNone() {
+        // As for a payment group created by paybubble: the case number is only on the fees.
+        PaymentFeeLink paymentFeeLink = paymentFeeLinkForCase(null);
+        paymentFeeLink.setFees(List.of(feeForCase(CCD_CASE_NUMBER)));
+        givenBulkScanningReturns(uk.gov.hmcts.payment.api.dto.PaymentStatus.COMPLETE);
+
+        assertThatSR(paymentFeeLink).isNotCancellable()
+            .withReason("unallocated bulk scan payment existing on case");
+    }
+
+    @Test
+    void checksTheCaseNumberOnThePaymentsWhenTheServiceRequestHasNone() {
+        PaymentFeeLink paymentFeeLink = paymentFeeLink(paymentForCase(CCD_CASE_NUMBER));
+        givenBulkScanningReturns(uk.gov.hmcts.payment.api.dto.PaymentStatus.INCOMPLETE);
+
+        assertThatSR(paymentFeeLink).isNotCancellable()
+            .withReason("unallocated bulk scan payment existing on case");
+    }
+
+    @Test
+    void checksEveryCaseNumberOnTheServiceRequest() {
+        PaymentFeeLink paymentFeeLink = paymentFeeLinkForCase(CCD_CASE_NUMBER);
+        paymentFeeLink.setFees(List.of(feeForCase(OTHER_CCD_CASE_NUMBER)));
+        givenBulkScanningReturns(uk.gov.hmcts.payment.api.dto.PaymentStatus.PROCESSED);
+        when(bulkScanningClient.findPaymentsForCase(OTHER_CCD_CASE_NUMBER))
+            .thenReturn(Optional.of(SearchResponse.searchResponseWith()
+                .allPaymentsStatus(uk.gov.hmcts.payment.api.dto.PaymentStatus.COMPLETE).build()));
+
+        assertThatSR(paymentFeeLink).isNotCancellable()
+            .withReason("unallocated bulk scan payment existing on case");
+        verify(bulkScanningClient).findPaymentsForCase(CCD_CASE_NUMBER);
+        verify(bulkScanningClient).findPaymentsForCase(OTHER_CCD_CASE_NUMBER);
+    }
+
+    @Test
+    void checksEachCaseNumberOnlyOnce() {
+        PaymentFeeLink paymentFeeLink = paymentFeeLink(paymentForCase(CCD_CASE_NUMBER));
+        paymentFeeLink.setCcdCaseNumber(CCD_CASE_NUMBER);
+        paymentFeeLink.setFees(List.of(feeForCase(CCD_CASE_NUMBER), feeForCase(" " + CCD_CASE_NUMBER)));
+
+        assertThatSR(paymentFeeLink).isCancellable();
+        verify(bulkScanningClient, times(1)).findPaymentsForCase(CCD_CASE_NUMBER);
+    }
+
+    @Test
+    void caseNumberOrder() {
+        PaymentFeeLink paymentFeeLink = paymentFeeLink(paymentForCase("payment-case-number-789"));
+        paymentFeeLink.setFees(List.of(feeForCase("fee-case-number-456")));
+        paymentFeeLink.setCcdCaseNumber("ccd-case-number-123");
+
+        assertThat(service.ccdCaseNumbers(paymentFeeLink))
+            .containsExactly("ccd-case-number-123", "fee-case-number-456", "payment-case-number-789");
+    }
+
+    @Test
     void skipsBulkScanningWhenALocalCheckHasAlreadyFailed() {
         PaymentFeeLink paymentFeeLink = paymentFeeLinkForCase(CCD_CASE_NUMBER);
         paymentFeeLink.setPayments(List.of(payment(status("success"))));
@@ -326,6 +394,16 @@ class ServiceRequestCancellationEligibilityServiceTest {
             .payments(List.of(payments))
             .remissions(List.of())
             .build();
+    }
+
+    private static Payment paymentForCase(String ccdCaseNumber) {
+        Payment payment = payment(status("failed"));
+        payment.setCcdCaseNumber(ccdCaseNumber);
+        return payment;
+    }
+
+    private static PaymentFee feeForCase(String ccdCaseNumber) {
+        return PaymentFee.feeWith().ccdCaseNumber(ccdCaseNumber).build();
     }
 
     private static Payment payment(PaymentStatus status) {
