@@ -66,9 +66,11 @@ import java.math.RoundingMode;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
@@ -1052,6 +1054,7 @@ public class ServiceRequestDomainServiceTest {
             .thenReturn(Optional.of(paymentFeeLink));
         when(cancellationEligibilityService.checkEligibility(paymentFeeLink))
             .thenReturn(Eligibility.eligible());
+        when(cancellationEligibilityService.ccdCaseNumbers(paymentFeeLink)).thenReturn(Set.of("1607065108455502"));
         serviceRequestDomainService.cancel(serviceRequestReference, cancelledBy, cancellationReason);
 
         verify(paymentFeeLinkRepository).findByPaymentReferenceForUpdate(serviceRequestReference);
@@ -1062,6 +1065,26 @@ public class ServiceRequestDomainServiceTest {
         ArgumentCaptor<PaymentAuditHistory> auditHistoryCaptor = ArgumentCaptor.forClass(PaymentAuditHistory.class);
         verify(paymentAuditHistoryRepository).save(auditHistoryCaptor.capture());
         assertThat(auditHistoryCaptor.getValue().getAuditType()).isEqualTo(AuditEventsType.ORDER_CANCELLED);
+        assertThat(auditHistoryCaptor.getValue().getCcdCaseNo()).isEqualTo("1607065108455502");
+    }
+
+    @Test
+    public void cancelServiceRequestAuditsTheFirstCaseNumber() {
+        // Which case numbers a service request has is tested in ServiceRequestCancellationEligibilityServiceTest.
+        String serviceRequestReference = "payment-ref";
+        PaymentFeeLink paymentFeeLink = getPaymentFeeLink();
+
+        when(paymentFeeLinkRepository.findByPaymentReferenceForUpdate(serviceRequestReference))
+            .thenReturn(Optional.of(paymentFeeLink));
+        when(cancellationEligibilityService.checkEligibility(paymentFeeLink))
+            .thenReturn(Eligibility.eligible());
+        when(cancellationEligibilityService.ccdCaseNumbers(paymentFeeLink))
+            .thenReturn(new LinkedHashSet<>(List.of("1794310324094755", "6543210987654321")));
+        serviceRequestDomainService.cancel(serviceRequestReference, "user-123", "reason");
+
+        ArgumentCaptor<PaymentAuditHistory> auditHistoryCaptor = ArgumentCaptor.forClass(PaymentAuditHistory.class);
+        verify(paymentAuditHistoryRepository).save(auditHistoryCaptor.capture());
+        assertThat(auditHistoryCaptor.getValue().getCcdCaseNo()).isEqualTo("1794310324094755");
     }
 
     @Test
