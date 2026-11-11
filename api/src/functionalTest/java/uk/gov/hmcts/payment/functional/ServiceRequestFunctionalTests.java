@@ -310,7 +310,7 @@ public class ServiceRequestFunctionalTests {
     public void positive_create_service_request_and_a_full_pba_payment_user_hmcts() throws Exception {
 
         final ServiceRequestDto serviceRequestDto
-            = ServiceRequestFixture.buildServiceRequestDTO("ABA6", null);
+            = ServiceRequestFixture.buildServiceRequestDTOWithFEE0228("ABA6", null);
         final Response createServiceRequestResponse
             = serviceRequestTestService.createServiceRequest(USER_TOKEN_PAYMENT, SERVICE_TOKEN,
             serviceRequestDto);
@@ -322,7 +322,7 @@ public class ServiceRequestFunctionalTests {
 
         ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
             .paymentDtoWith().accountNumber("PBAFUNC12345")
-            .amount(BigDecimal.valueOf(100.00))
+            .amount(BigDecimal.valueOf(58.00))
             .organisationName("TestOrg")
             .currency("GBP")
             .idempotencyKey(ServiceRequestFixture.generateUniqueCCDCaseReferenceNumber())
@@ -414,7 +414,7 @@ public class ServiceRequestFunctionalTests {
         throws Exception {
         String ccdCaseNumber = "11111234" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
         final ServiceRequestDto serviceRequestDto
-            = ServiceRequestFixture.buildServiceRequestDTO("ABA6", ccdCaseNumber);
+            = ServiceRequestFixture.buildServiceRequestDTOWithFEE0228("ABA6", ccdCaseNumber);
         final Response createServiceRequestResponse
             = serviceRequestTestService.createServiceRequest(USER_TOKEN_PAYMENT, SERVICE_TOKEN,
             serviceRequestDto);
@@ -427,7 +427,7 @@ public class ServiceRequestFunctionalTests {
         final ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
             .paymentDtoWith().accountNumber("PBAFUNC12345")
             .organisationName("TestOrg")
-            .amount(BigDecimal.valueOf(100.00))
+            .amount(BigDecimal.valueOf(58.00))
             .currency("GBP")
             .idempotencyKey(ServiceRequestFixture.generateUniqueCCDCaseReferenceNumber())
             .customerReference("123245677").
@@ -455,7 +455,7 @@ public class ServiceRequestFunctionalTests {
     public void positive_create_service_request_and_a_pba_payment_and_a_duplicate_payment_for_a_different_idempotent_Key() {
 
         final ServiceRequestDto serviceRequestDto
-            = ServiceRequestFixture.buildServiceRequestDTO("ABA6", null);
+            = ServiceRequestFixture.buildServiceRequestDTOWithFEE0228("ABA6", null);
         final Response createServiceRequestResponse
             = serviceRequestTestService.createServiceRequest(USER_TOKEN_PAYMENT, SERVICE_TOKEN,
             serviceRequestDto);
@@ -467,7 +467,7 @@ public class ServiceRequestFunctionalTests {
 
         final ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
             .paymentDtoWith().accountNumber("PBAFUNC12345")
-            .amount(BigDecimal.valueOf(100.00))
+            .amount(BigDecimal.valueOf(58.00))
             .organisationName("TestOrg")
             .currency("GBP")
             .idempotencyKey(ServiceRequestFixture.generateUniqueCCDCaseReferenceNumber())
@@ -549,7 +549,7 @@ public class ServiceRequestFunctionalTests {
         Assume.assumeTrue(!testProps.baseTestUrl.contains("payment-api-pr-"));
 
         final ServiceRequestDto serviceRequestDto
-            = ServiceRequestFixture.buildServiceRequestDTO("ABA6", null);
+            = ServiceRequestFixture.buildServiceRequestDTOWithFEE0228("ABA6", null);
 
         final Response createServiceRequestResponse
             = serviceRequestTestService.createServiceRequest(USER_TOKEN_PAYMENT, SERVICE_TOKEN,
@@ -563,7 +563,7 @@ public class ServiceRequestFunctionalTests {
 
         final ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
             .paymentDtoWith().accountNumber(testProps.onHoldAccountNumber)
-            .amount(BigDecimal.valueOf(100.00))
+            .amount(BigDecimal.valueOf(58.00))
             .organisationName("TestOrg")
             .currency("GBP")
             .idempotencyKey(ServiceRequestFixture.generateUniqueCCDCaseReferenceNumber())

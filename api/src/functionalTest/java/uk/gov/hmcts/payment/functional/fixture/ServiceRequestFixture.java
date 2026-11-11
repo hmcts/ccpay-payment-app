@@ -29,6 +29,43 @@ public class ServiceRequestFixture {
         return serviceRequestDto;
     }
 
+    public static final ServiceRequestDto buildServiceRequestDTOWithFEE0228(final String hmctsOrgId,
+                                                                 final String ccdCaseNumber) {
+
+        CasePaymentRequest casePaymentRequest = CasePaymentRequest
+            .casePaymentRequestWith()
+            .responsibleParty("Party 1")
+            .action("Action 1").build();
+
+        ServiceRequestDto serviceRequestDto = ServiceRequestDto
+            .serviceRequestDtoWith()
+            .casePaymentRequest(casePaymentRequest)
+            .callBackUrl("http://callback.hmcts.net")
+            .hmctsOrgId(hmctsOrgId)
+            .caseReference("123245677")
+            .ccdCaseNumber(ccdCaseNumber != null ? ccdCaseNumber : generateUniqueCCDCaseReferenceNumber()).fees(List.of(getFeeFEE0228())).build();
+        return serviceRequestDto;
+    }
+
+
+    public static final ServiceRequestDto buildServiceRequestDTOForCardPayments(final String hmctsOrgId,
+                                                                 final String ccdCaseNumber) {
+
+        CasePaymentRequest casePaymentRequest = CasePaymentRequest
+            .casePaymentRequestWith()
+            .responsibleParty("Party 1")
+            .action("Action 1").build();
+
+        ServiceRequestDto serviceRequestDto = ServiceRequestDto
+            .serviceRequestDtoWith()
+            .casePaymentRequest(casePaymentRequest)
+            .callBackUrl("http://callback.hmcts.net")
+            .hmctsOrgId(hmctsOrgId)
+            .caseReference("123245677")
+            .ccdCaseNumber(ccdCaseNumber != null ? ccdCaseNumber : generateUniqueCCDCaseReferenceNumber()).fees(List.of(getFee())).build();
+        return serviceRequestDto;
+    }
+
     public static final ServiceRequestDto buildServiceRequestDTOWithMultipleFees(final String hmctsOrgId,
                                                                  final String ccdCaseNumber) {
 
