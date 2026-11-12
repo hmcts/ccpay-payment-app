@@ -79,8 +79,13 @@ public class SpringSecurityConfiguration {
     @Bean
     @Order(3)
     protected SecurityFilterChain configureInternal(HttpSecurity http) throws Exception {
+
+        // Cancelling a service request: a user (with an Authorization header) needs the payments role, below, while an
+        // automated cancellation by a service (S2S token only) just needs to be authenticated. A path pattern cannot
+        // also check the header, so this matcher is combined with one that does.
         RequestMatcher cancellationRequestMatcher = request -> HttpMethod.POST.matches(request.getMethod())
             && request.getRequestURI().matches("^/service-request/[^/]+/cancel$");
+
         http.exceptionHandling(exceptionHandling -> exceptionHandling.accessDeniedHandler(accessDeniedHandler()))
             .addFilter(authCheckerUserOnlyFilter)
             .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(STATELESS))
