@@ -61,7 +61,7 @@ public class SpringSecurityConfiguration {
                 "/jobs/**"
             )
             .addFilter(authCheckerServiceOnlyFilter)
-            .csrf(AbstractHttpConfigurer::disable)
+            .csrf(AbstractHttpConfigurer::disable) //NOSONAR
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers(HttpMethod.GET, "/payments").authenticated()
                 .requestMatchers(HttpMethod.GET, "/payments1").authenticated()
@@ -90,18 +90,18 @@ public class SpringSecurityConfiguration {
                 .requestMatchers(HttpMethod.POST, "/card-payments").hasAnyAuthority(PAYMENTS_ROLE, CITIZEN_ROLE)
                 .requestMatchers(HttpMethod.POST, "/card-payments/*/cancel").hasAnyAuthority(PAYMENTS_ROLE, CITIZEN_ROLE)
                 .requestMatchers(HttpMethod.GET, "/card-payments/*/details").hasAnyAuthority(PAYMENTS_ROLE, CITIZEN_ROLE)
-                .requestMatchers(HttpMethod.GET, "/pba-accounts/*/payments").hasAnyAuthority(PAYMENTS_ROLE,"pui-finance-manager","caseworker-cmc-solicitor", "caseworker-publiclaw-solicitor", "caseworker-probate-solicitor", "caseworker-financialremedy-solicitor", "caseworker-divorce-solicitor")
+                .requestMatchers(HttpMethod.GET, "/pba-accounts/{account}/payments").hasAnyAuthority(PAYMENTS_ROLE,"pui-finance-manager","caseworker-cmc-solicitor", "caseworker-publiclaw-solicitor", "caseworker-probate-solicitor", "caseworker-financialremedy-solicitor", "caseworker-divorce-solicitor")
                 //.requestMatchers(HttpMethod.GET, "/card-payments/*/status").hasAnyAuthority(PAYMENTS_ROLE, CITIZEN_ROLE)
                 .requestMatchers(HttpMethod.POST,"/refund-for-payment").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE)
                 .requestMatchers(HttpMethod.POST,"/refund-retro-remission").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE)
                 .requestMatchers(HttpMethod.PATCH,"/refund/resubmit/*").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE)
                 .requestMatchers(HttpMethod.GET, "/reference-data/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/case-payment-orders**").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/payment-failures/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/payment-failures/**").hasAuthority(PAYMENTS_ROLE)
                 .requestMatchers(HttpMethod.PATCH, "/payment-failures/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/**").permitAll()
                 .anyRequest().authenticated()
             );
         return http.build();
@@ -129,7 +129,7 @@ public class SpringSecurityConfiguration {
                 "/")
             .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
             .anonymous(Customizer.withDefaults())
-            .csrf(AbstractHttpConfigurer::disable)
+            .csrf(AbstractHttpConfigurer::disable) //NOSONAR
             .formLogin(AbstractHttpConfigurer::disable)
             .logout(AbstractHttpConfigurer::disable);
         return http.build();
