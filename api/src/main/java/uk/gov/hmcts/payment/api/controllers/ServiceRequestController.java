@@ -439,6 +439,7 @@ public class ServiceRequestController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void cancelServiceRequest(@PathVariable("service-request-reference") String serviceRequestReference,
                                      @Valid @RequestBody(required = false) ServiceRequestCancelDto serviceRequestCancelDto,
+                                     @Parameter(description = "User token; omit for an automated cancellation by a service")
                                      @RequestHeader(value = "Authorization", required = false) String authorization) {
         if (!SERVICE_REQUEST_REFERENCE_PATTERN.matcher(serviceRequestReference).matches()) {
             throw new InvalidServiceRequestCancellationException("invalid service request reference format");
