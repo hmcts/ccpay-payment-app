@@ -77,7 +77,6 @@ public class IdamServiceImpl implements IdamService {
             if (responseEntity != null) {
                 IdamUserIdDetailsResponse idamUserIdDetailsResponse = responseEntity.getBody();
                 if (idamUserIdDetailsResponse != null) {
-                    LOG.info("User id from IDAM service {} " ,idamUserIdDetailsResponse.getSub());
                     return idamUserIdDetailsResponse.getSub();
                 }
             }
