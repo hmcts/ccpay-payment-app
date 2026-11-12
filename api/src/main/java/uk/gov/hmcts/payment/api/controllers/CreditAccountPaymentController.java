@@ -147,7 +147,7 @@ public class CreditAccountPaymentController {
         if (!isPBAConfig1Journey) {
             val paymentByAccountRequest = pBAPaymentMapper.mapToPaymentByAccountRequest(creditAccountPaymentRequest, paymentGroupReference, payment,paymentFeeLink);
             val paymentResponse = liberataRealTimeAPI.payByAccount(paymentByAccountRequest);
-            pbaStatusErrorMapper.setPaymentStatusAndHistories(creditAccountPaymentRequest, payment, paymentResponse);
+            pbaStatusErrorMapper.setPaymentStatusAndHistories(creditAccountPaymentRequest.getAccountNumber(), payment, paymentResponse);
         } else {
             LOG.info("Setting status to pending");
             payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("pending").build());

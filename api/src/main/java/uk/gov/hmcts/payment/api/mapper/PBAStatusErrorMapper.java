@@ -92,20 +92,26 @@ public class PBAStatusErrorMapper {
         }
     }
 
-    public void setPaymentStatusAndHistories(CreditAccountPaymentRequest creditAccountPaymentRequest, Payment payment, PaymentAccountResponse  paymentAccountResponse) {
+    public void setPaymentStatusAndHistories(String accountNumber, Payment payment, PaymentAccountResponse  paymentAccountResponse) {
 
         LOG.info("CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {}  Account number  : {} ",
-            payment.getCcdCaseNumber(), paymentAccountResponse.getStatus(), creditAccountPaymentRequest.getAccountNumber());
+            payment.getCcdCaseNumber(), paymentAccountResponse.getStatus(), accountNumber);
+        // Ensure that the status histories list is initialized if it's null or empty, due to the fact that the method is generic.
+        if (payment.getStatusHistories() == null || payment.getStatusHistories().isEmpty()) {
+            payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
+                .status(payment.getPaymentStatus() != null ? payment.getPaymentStatus().getName() : PaymentAccountResponseStatus.PENDING.getValue())
+                .build()));
+        }
 
         if (paymentAccountResponse.getStatus().equals(PaymentAccountResponseStatus.SUCCESS.getValue())) {
 
             payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("success").build());
             payment.getStatusHistories().getFirst().setStatus(PaymentAccountResponseStatus.SUCCESS.getValue());
-            LOG.info("Payment request  was SUCCESS. " + paymentAccountResponse.getMessage() + " PBA account {}" + creditAccountPaymentRequest.getAccountNumber());
+            LOG.info("Payment request  was SUCCESS. " + paymentAccountResponse.getMessage() + " PBA account {}" + accountNumber);
         } else if (paymentAccountResponse.getStatus().equals(PaymentAccountResponseStatus.ERROR.getValue())) {
 
             payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name(FAILED).build());
-            LOG.info("Payment request failed. " + paymentAccountResponse.getMessage() + " PBA account {}" + creditAccountPaymentRequest.getAccountNumber());
+            LOG.info("Payment request failed. " + paymentAccountResponse.getMessage() + " PBA account {}" + accountNumber);
 
             // check if the reason code is present in the response and if it is mapped to an error code, this done for deleted and on hold accounts.
             if(paymentAccountResponse.getReason() != null && PBA_REASON_CODE_MAP.containsKey(paymentAccountResponse.getReason())) {
@@ -116,15 +122,19 @@ public class PBAStatusErrorMapper {
             }
             payment.getStatusHistories().getFirst().setStatus(payment.getPaymentStatus().getName());
             payment.getStatusHistories().getFirst().setErrorCode(PBA_ERROR_CODE_MAP.get(paymentAccountResponse.getMessage()));
-            payment.getStatusHistories().getFirst().setMessage(getMessageForErrorCode(paymentAccountResponse, creditAccountPaymentRequest));
+            payment.getStatusHistories().getFirst().setMessage(getMessageForErrorCode(paymentAccountResponse, accountNumber));
         }
     }
+
+
+
+
     // This method is used to get the message for the error code. If the error code is "Exceeded credit limit.",
-    // it will return a message with the account number. Otherwise, it will return the message from the paymentAccountResponse.
-    private String getMessageForErrorCode(PaymentAccountResponse paymentAccountResponse,CreditAccountPaymentRequest creditAccountPaymentRequest ) {
+    // it will return a custom message with the account number. Otherwise, it will return the message from the paymentAccountResponse.
+    private String getMessageForErrorCode(PaymentAccountResponse paymentAccountResponse,String accountNumber) {
 
         if (paymentAccountResponse.getMessage().equals("Exceeded credit limit.")){
-            return PBA_MESSAGES_CODE_MAP.get(paymentAccountResponse.getMessage()).replace("{accountNumber}", creditAccountPaymentRequest.getAccountNumber());
+            return PBA_MESSAGES_CODE_MAP.get(paymentAccountResponse.getMessage()).replace("{accountNumber}", accountNumber);
         }
         return paymentAccountResponse.getMessage();
     }
