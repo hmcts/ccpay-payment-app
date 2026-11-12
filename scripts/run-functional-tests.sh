@@ -7,10 +7,15 @@
 # committed - only the vault/secret names and target env var names live in this file.
 #
 # Usage:
-#   ./scripts/run-functional-tests.sh [-e <env>]               # run all functional tests
-#   ./scripts/run-functional-tests.sh [-e <env>] FooTest       # run a single test class
+#   ./scripts/run-functional-tests.sh [-e <env>]                  # run all functional tests
+#   ./scripts/run-functional-tests.sh [-e <env>] FooTest          # run a single test class
+#   ./scripts/run-functional-tests.sh [-e <env>] FooTest.method   # run a single test method
 #
 # -e <env>   target environment: aat (default), demo, perftest, ithc
+#
+# Any of the TEST_URL, REFUND_API_URL, CCPAY_BULK_SCANNING_API_URL, S2S_URL,
+# IDAM_API_URL, AUTH_IDAM_CLIENT_BASEURL, REF_DATA_API_URL or OAUTH2_REDIRECT_URI
+# variables can be overridden in the environment; otherwise they are derived from -e.
 #
 # Prerequisites:
 #   - Connected to the HMRC VPN (so the internal .internal URLs resolve)
@@ -24,7 +29,7 @@ set -euo pipefail
 ENVIRONMENT="aat"
 
 usage() {
-    sed -n '2,17p' "$0" | sed 's/^# \{0,1\}//'
+    sed -n '2,22p' "$0" | sed 's/^# \{0,1\}//'
 }
 
 case "${1:-}" in
@@ -52,17 +57,37 @@ esac
 
 VAULT="ccpay-${ENVIRONMENT}"                       # = ccpay-aat
 
+# All URLs default to the target environment but can be overridden in the
+# environment (e.g. for PR/preview endpoints).
 # test.url is derived from the ingressHost in charts/payment-api/values.yaml
 #   java.ingressHost: payment-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal
-TEST_URL="http://payment-api-${ENVIRONMENT}.service.core-compute-${ENVIRONMENT}.internal"
+TEST_URL="${TEST_URL:-http://payment-api-${ENVIRONMENT}.service.core-compute-${ENVIRONMENT}.internal}"
 
 # From Jenkinsfile_CNP `before('functionalTest:aat')`
-REFUND_API_URL="http://ccpay-refunds-api-${ENVIRONMENT}.service.core-compute-${ENVIRONMENT}.internal"
-CCPAY_BULK_SCANNING_API_URL="http://ccpay-bulkscanning-api-${ENVIRONMENT}.service.core-compute-${ENVIRONMENT}.internal"
+REFUND_API_URL="${REFUND_API_URL:-http://ccpay-refunds-api-${ENVIRONMENT}.service.core-compute-${ENVIRONMENT}.internal}"
+CCPAY_BULK_SCANNING_API_URL="${CCPAY_BULK_SCANNING_API_URL:-http://ccpay-bulkscanning-api-${ENVIRONMENT}.service.core-compute-${ENVIRONMENT}.internal}"
+
+# Services the functional tests call directly (application-functional-tests.properties).
+S2S_URL="${S2S_URL:-http://rpe-service-auth-provider-${ENVIRONMENT}.service.core-compute-${ENVIRONMENT}.internal}"
+IDAM_API_URL="${IDAM_API_URL:-https://idam-api.${ENVIRONMENT}.platform.hmcts.net}"
+AUTH_IDAM_CLIENT_BASEURL="${AUTH_IDAM_CLIENT_BASEURL:-https://idam-api.${ENVIRONMENT}.platform.hmcts.net}"
+REF_DATA_API_URL="${REF_DATA_API_URL:-http://rd-professional-api-${ENVIRONMENT}.service.core-compute-${ENVIRONMENT}.internal}"
+OAUTH2_REDIRECT_URI="${OAUTH2_REDIRECT_URI:-https://moneyclaims.${ENVIRONMENT}.platform.hmcts.net}"
 
 export TEST_URL
 export REFUND_API_URL
 export CCPAY_BULK_SCANNING_API_URL
+export S2S_URL
+export IDAM_API_URL
+export AUTH_IDAM_CLIENT_BASEURL
+export REF_DATA_API_URL
+export OAUTH2_REDIRECT_URI
+
+echo "Target environment: ${ENVIRONMENT}"
+echo "  TEST_URL:                 ${TEST_URL}"
+echo "  S2S_URL:                  ${S2S_URL}"
+echo "  IDAM_API_URL:             ${IDAM_API_URL}"
+echo "  REF_DATA_API_URL:         ${REF_DATA_API_URL}"
 
 # Jenkins agents run in UTC; enforce the same on the local JVM (and its forked
 # test JVMs). Otherwise date-based assertions (e.g. verifyDate in
@@ -120,6 +145,8 @@ require S2S_PAYMENT_APP_SERVICE_SECRET      "${VAULT}" payment-s2s-secret
 require IDAM_RD_PROFESSIONAL_CLIENT_SECRET "${VAULT}" ref-data-professional-client-secret
 require PROBATE_SOLICITOR_USER              "${VAULT}" probate-solicitor-username
 require PROBATE_SOLICITOR_PASSWORD          "${VAULT}" probate-solicitor-password
+require LIBERATA_API_REALTIME_ACCOUNT_USERNAME "${VAULT}" liberata-api-realtime-user
+require LIBERATA_API_REALTIME_ACCOUNT_PASSWORD "${VAULT}" liberata-api-realtime-password
 
 # Sanity check the secrets the tests need most
 for env_var in OAUTH2_CLIENT_SECRET TEST_USER_PASSWORD S2S_SERVICE_SECRET; do
@@ -133,7 +160,7 @@ done
 # Run the tests
 # ---------------------------------------------------------------------------
 if [ -n "$SINGLE_TEST" ]; then
-    echo "Running single functional test class: $SINGLE_TEST"
+    echo "Running single functional test: $SINGLE_TEST"
     ./gradlew :payment-api:functionalTest \
         --tests "uk.gov.hmcts.payment.functional.${SINGLE_TEST}" \
         --rerun-tasks
