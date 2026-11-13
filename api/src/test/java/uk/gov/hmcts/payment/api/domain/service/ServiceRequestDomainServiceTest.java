@@ -74,6 +74,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
@@ -591,7 +592,7 @@ public class ServiceRequestDomainServiceTest {
             .amount(new BigDecimal(99.99).setScale(2, RoundingMode.HALF_EVEN))
             .build();
 
-        when(paymentFeeLinkRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(getPaymentFeeLink()));
+        when(paymentFeeLinkRepository.findByPaymentReferenceForUpdate(anyString())).thenReturn(Optional.of(getPaymentFeeLink()));
 
         ServiceRequestOnlinePaymentBo serviceRequestOnlinePaymentBo = ServiceRequestOnlinePaymentBo.serviceRequestOnlinePaymentBo()
                 .paymentReference("RC-ref")
@@ -664,7 +665,7 @@ public class ServiceRequestDomainServiceTest {
             .payments(payments)
             .build();
 
-        when(paymentFeeLinkRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(paymentFeeLink));
+        when(paymentFeeLinkRepository.findByPaymentReferenceForUpdate(anyString())).thenReturn(Optional.of(paymentFeeLink));
 
         ResponseEntity<OnlineCardPaymentResponse> response = serviceRequestDomainService.create(
             onlineCardPaymentRequest,
@@ -747,7 +748,7 @@ public class ServiceRequestDomainServiceTest {
             .payments(payments)
             .build();
 
-        when(paymentFeeLinkRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(paymentFeeLink));
+        when(paymentFeeLinkRepository.findByPaymentReferenceForUpdate(anyString())).thenReturn(Optional.of(paymentFeeLink));
 
         GovPayPayment successfulGovPayPayment = GovPayPayment.govPaymentWith()
             .amount(9999)
@@ -789,7 +790,7 @@ public class ServiceRequestDomainServiceTest {
     }
 
     @Test
-    public void createOnlineCardPaymentWithPaymentFeeLinksPaymentTest() throws Exception {
+    public void shouldReturnActivePaymentWhenCardPaymentCreationIsRetried() throws Exception {
 
         OnlineCardPaymentRequest onlineCardPaymentRequest = OnlineCardPaymentRequest.onlineCardPaymentRequestWith()
             .language("Eng")
@@ -797,7 +798,8 @@ public class ServiceRequestDomainServiceTest {
             .build();
         PaymentFeeLink paymentFeeLinkMock = mock(PaymentFeeLink.class);
 
-        when(paymentFeeLinkRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(getPaymentFeeLinkWithPayments()));
+        when(paymentFeeLinkRepository.findByPaymentReferenceForUpdate(anyString()))
+            .thenReturn(Optional.of(getPaymentFeeLinkWithPayments()));
 
         ServiceRequestOnlinePaymentBo serviceRequestOnlinePaymentBo = ServiceRequestOnlinePaymentBo.serviceRequestOnlinePaymentBo()
             .paymentReference("RC-ref")
@@ -833,6 +835,14 @@ public class ServiceRequestDomainServiceTest {
         ResponseEntity<OnlineCardPaymentResponse> onlineCardPaymentResponse = serviceRequestDomainService.create(onlineCardPaymentRequest,"","","");
 
         assertNotNull(onlineCardPaymentResponse);
+        assertEquals(HttpStatus.OK, onlineCardPaymentResponse.getStatusCode());
+        assertNotNull(onlineCardPaymentResponse.getBody());
+        assertEquals("reference", onlineCardPaymentResponse.getBody().getPaymentReference());
+        assertEquals("externalReference", onlineCardPaymentResponse.getBody().getExternalReference());
+        assertEquals("Initiated", onlineCardPaymentResponse.getBody().getStatus());
+        assertEquals("nextHref", onlineCardPaymentResponse.getBody().getNextUrl());
+        verify(delegateGovPay, never()).create(any(CreatePaymentRequest.class), anyString());
+        verify(paymentRepository, never()).save(any());
 
     }
 
@@ -989,6 +999,7 @@ public class ServiceRequestDomainServiceTest {
         Date ninetyTwoAgo = new Date(System.currentTimeMillis() - 89 * 60 * 1000);
         payment.setDateCreated(ninetyTwoAgo);
         payment.setExternalReference("externalReference");
+        payment.setReference("reference");
         payments.add(payment);
 
         return PaymentFeeLink.paymentFeeLinkWith()
@@ -1017,7 +1028,10 @@ public class ServiceRequestDomainServiceTest {
             .paymentId("paymentId")
             .paymentProvider("sandbox")
             .returnUrl("https://www.google.com")
-            .links(GovPayPayment.Links.linksWith().cancel(new Link("any", ImmutableMap.of(), "cancelHref", "any")).build())
+            .links(GovPayPayment.Links.linksWith()
+                .nextUrl(new Link("any", ImmutableMap.of(), "nextHref", "any"))
+                .cancel(new Link("any", ImmutableMap.of(), "cancelHref", "any"))
+                .build())
             .build();
     }
 
