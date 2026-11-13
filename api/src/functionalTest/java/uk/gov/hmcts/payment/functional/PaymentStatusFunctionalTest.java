@@ -2029,7 +2029,7 @@ public class PaymentStatusFunctionalTest {
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
             .aPbaPaymentRequestForProbateSinglePaymentFor2Fees("640.00",
                 "PROBATE", "PBAFUNC12345",
-                "FEE0001", "90.00", "FEE002", "550.00");
+                "FEE0001", "90.00", "FEE0002", "550.00");
         accountPaymentRequest.setAccountNumber(accountNumber);
         PaymentDto paymentDto = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
