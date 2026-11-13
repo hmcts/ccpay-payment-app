@@ -63,7 +63,6 @@ import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentMethod;
 import uk.gov.hmcts.payment.api.model.PaymentProvider;
 import uk.gov.hmcts.payment.api.model.PaymentProviderRepository;
-import uk.gov.hmcts.payment.api.service.AntennaTelephonySystem;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.service.FeePayApportionService;
 import uk.gov.hmcts.payment.api.service.IdamService;
@@ -135,12 +134,6 @@ public class PaymentGroupController {
 
     @Autowired
     KervTelephonySystem kervTelephonySystem;
-
-    @Autowired
-    AntennaTelephonySystem antennaTelephonySystem;
-
-    @Value("${pci-pal.antenna.user.name}")
-    private String antennaUserName;
 
     @Autowired
     public PaymentGroupController(PaymentGroupService paymentGroupService, PaymentGroupDtoMapper paymentGroupDtoMapper,
@@ -597,7 +590,7 @@ public class PaymentGroupController {
             .orderReference(payment.getReference()).build();
 
         // Set the user based on Kerv or Antenna systems.
-        String userName = telephonySystem.getSystemName().equals(KervTelephonySystem.TELEPHONY_SYSTEM_NAME) ? idamUserId : antennaUserName;
+        String userName = telephonySystem.getSystemName().equals(KervTelephonySystem.TELEPHONY_SYSTEM_NAME) ? idamUserId : "antennaUserName";
 
         telephonyProviderAuthorisationResponse = handleTelephonyProviderAuthorisation(telephonyCardPaymentsRequest, pciPalPaymentRequest, telephonySystem, organisationalServiceDto, userName);
         TelephonyCardPaymentsResponse telephonyCardPaymentsResponse = telephonyDtoMapper.toTelephonyCardPaymentsResponse(paymentLink, payment, telephonyProviderAuthorisationResponse);
@@ -639,22 +632,13 @@ public class PaymentGroupController {
     }
 
     public TelephonySystem getTelephonySystem(TelephonyCardPaymentsRequest telephonyCardPaymentsRequest) {
-        String telephonyProvider = telephonyCardPaymentsRequest.getTelephonySystem();
 
         // Default to Antenna Telephony System if no telephony system is specified
-        TelephonySystem telephonySystem = antennaTelephonySystem;
-
+        TelephonySystem telephonySystem = kervTelephonySystem;
         if (telephonyCardPaymentsRequest.getTelephonySystem() != null
-            && !telephonyCardPaymentsRequest.getTelephonySystem().equalsIgnoreCase(KervTelephonySystem.TELEPHONY_SYSTEM_NAME)
-            && !telephonyCardPaymentsRequest.getTelephonySystem().equalsIgnoreCase(AntennaTelephonySystem.TELEPHONY_SYSTEM_NAME)) {
+            && !telephonyCardPaymentsRequest.getTelephonySystem().equalsIgnoreCase(KervTelephonySystem.TELEPHONY_SYSTEM_NAME)) {
             throw new TelephonyServiceException("Invalid or missing attributes");
         }
-
-        // If the telephony provider is Kerv, use the KervTelephonySystem - remove when Antenna is fully migrated to Kerv
-        if (telephonyProvider != null && telephonyProvider.equalsIgnoreCase(KervTelephonySystem.TELEPHONY_SYSTEM_NAME)) {
-            telephonySystem = kervTelephonySystem;
-        }
-
         return telephonySystem;
     }
 
