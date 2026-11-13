@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.api.configuration;
 
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.media.StringSchema;
 import io.swagger.v3.oas.models.parameters.Parameter;
@@ -65,12 +66,21 @@ public class SwaggerConfiguration {
 
     @Bean
     public OperationCustomizer authorizationHeaders() {
-        return (operation, handlerMethod) ->
-            operation
-                .addParametersItem(
-                    mandatoryStringParameter("Authorization", "User authorization header"))
-                .addParametersItem(
-                    mandatoryStringParameter("ServiceAuthorization", "Service authorization header"));
+        return (operation, handlerMethod) -> {
+            addHeaderIfAbsent(operation, "Authorization", "User authorization header");
+            addHeaderIfAbsent(operation, "ServiceAuthorization", "Service authorization header");
+            return operation;
+        };
+    }
+
+    // An endpoint that declares the header itself (e.g. as optional) keeps its own definition rather than getting a
+    // second, mandatory one.
+    private void addHeaderIfAbsent(Operation operation, String name, String description) {
+        boolean declared = operation.getParameters() != null && operation.getParameters().stream()
+            .anyMatch(p -> HEADER.equals(p.getIn()) && name.equalsIgnoreCase(p.getName()));
+        if (!declared) {
+            operation.addParametersItem(mandatoryStringParameter(name, description));
+        }
     }
 
     private Parameter mandatoryStringParameter(String name, String description) {
