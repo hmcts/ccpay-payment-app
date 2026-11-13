@@ -66,6 +66,16 @@ sourceSets {
     }
 }
 
+// Allow smoke tests to reuse the functional test classes (IdamService, TestContextConfiguration, etc.)
+// and their resources (application-functional-tests.properties).
+sourceSets.smokeTest.compileClasspath += sourceSets.functionalTest.output
+sourceSets.smokeTest.runtimeClasspath += sourceSets.functionalTest.output
+
+configurations {
+    smokeTestImplementation.extendsFrom functionalTestImplementation
+    smokeTestRuntimeOnly.extendsFrom functionalTestRuntimeOnly
+}
+
 apply plugin: 'idea'
 idea {
     module {
