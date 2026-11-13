@@ -15,8 +15,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -31,6 +31,9 @@ import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.ReconciliationPaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.UpdatePaymentRequest;
 import uk.gov.hmcts.payment.api.contract.exception.ValidationErrorDTO;
+import uk.gov.hmcts.payment.api.dto.LiberataSupplementaryDetails;
+import uk.gov.hmcts.payment.api.dto.LiberataSupplementaryInfo;
+import uk.gov.hmcts.payment.api.dto.SupplementaryPaymentDto;
 import uk.gov.hmcts.payment.api.model.FeePayApportion;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentAllocation;
@@ -40,11 +43,8 @@ import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentMethod;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
-import uk.gov.hmcts.payment.api.servicebus.CallbackServiceImpl;
-import uk.gov.hmcts.payment.api.dto.LiberataSupplementaryDetails;
-import uk.gov.hmcts.payment.api.dto.LiberataSupplementaryInfo;
-import uk.gov.hmcts.payment.api.dto.SupplementaryPaymentDto;
 import uk.gov.hmcts.payment.api.service.IacService;
+import uk.gov.hmcts.payment.api.servicebus.CallbackServiceImpl;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
@@ -62,6 +62,7 @@ import java.util.Random;
 
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -1563,6 +1564,44 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
+    public void retrieveBothRefundPaymentsOnSameServiceRequest() throws Exception {
+        String firstReference = "payment_reference_1";
+        String secondReference = "payment_reference_2";
+        String serviceRequestReference = "sr_reference";
+        Payment firstPayment = createRefundsPayment( "25.00", firstReference);
+        Payment secondPayment = createRefundsPayment( "250.00", secondReference);
+        PaymentFee fee = PaymentFee.feeWith()
+            .code("X0001")
+            .version("1")
+            .calculatedAmount(new BigDecimal("275.00"))
+            .build();
+        PaymentFeeLink paymentFeeLink = db.create(PaymentFeeLink.paymentFeeLinkWith()
+            .paymentReference(serviceRequestReference)
+            .payments(Arrays.asList(firstPayment, secondPayment))
+            .fees(Arrays.asList(fee)));
+        firstPayment.setPaymentLink(paymentFeeLink);
+        secondPayment.setPaymentLink(paymentFeeLink);
+
+        MvcResult result = restActions
+            .get("/refunds/payments?paymentReferenceList=" + firstReference + "," + secondReference)
+            .andExpect(status().isOk())
+            .andReturn();
+
+        List<PaymentDto> paymentList = objectMapper.readValue(
+            result.getResponse().getContentAsByteArray(), new TypeReference<>() {});
+        assertThat(paymentList)
+            .extracting(PaymentDto::getPaymentReference, PaymentDto::getAmount, PaymentDto::getPaymentGroupReference)
+            .containsExactlyInAnyOrder(
+                tuple(firstReference, new BigDecimal("25.00"), serviceRequestReference),
+                tuple(secondReference, new BigDecimal("250.00"), serviceRequestReference));
+        assertThat(paymentList).allSatisfy(payment -> {
+            assertThat(payment.getFees()).hasSize(1);
+            assertThat(payment.getFees().get(0).getCode()).isEqualTo("X0001");
+            assertThat(payment.getFees().get(0).getCalculatedAmount()).isEqualByComparingTo("275.00");
+        });
+    }
+
+    @Test
     public void retrievePaymentsWithEmptyList() throws Exception {
         MvcResult result = restActions
             .get("/refunds/payments?paymentReferenceList=")
@@ -1578,12 +1617,30 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andReturn();
     }
 
-
     private Date parseDate(String date) {
         try {
             return new SimpleDateFormat("dd.MM.yyyy").parse(date);
         } catch (ParseException e) {
             return null;
         }
+    }
+
+    private Payment createRefundsPayment(String amount, String reference) {
+        return Payment.paymentWith()
+            .reference(reference)
+            .amount(new BigDecimal(amount))
+            .caseReference("caseReference")
+            .ccdCaseNumber("ccdCaseNumber")
+            .description("Description1")
+            .serviceType("Probate")
+            .currency("GBP")
+            .siteId("AA01")
+            .userId(USER_ID)
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
+            .dateCreated(new Date())
+            .dateUpdated(new Date())
+            .build();
     }
 }
