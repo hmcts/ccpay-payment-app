@@ -1,0 +1,44 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1910000000000-1
+      author: kiran.yenigala
+      changes:
+        - createTable:
+            tableName: payment_audit_deletion
+            columns:
+              - column:
+                  name: id
+                  type: INT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: ccd_case_number
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: source_system
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: deletion_date
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: error_message
+                  type: VARCHAR(500)
+              - column:
+                  name: success
+                  type: BOOLEAN
+                  constraints:
+                    nullable: false
+        - createIndex:
+            indexName: ix_payment_audit_deletion_ccd_case_number
+            tableName: payment_audit_deletion
+            columns:
+              - column:
+                  name: ccd_case_number

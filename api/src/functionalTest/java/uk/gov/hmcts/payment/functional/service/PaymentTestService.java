@@ -177,6 +177,19 @@ public class PaymentTestService {
                 .delete("/credit-account-payments/{paymentReference}", paymentReference);
     }
 
+    public Response deleteCasePayments(String serviceToken, String ccdCaseNumber) {
+        return givenWithServiceHeaders(serviceToken)
+            .when()
+            .delete("/cases/{ccdCaseNumber}/payments", ccdCaseNumber);
+    }
+
+    public Response recordPaymentDeletionAudits(String serviceToken, String bodyJson) {
+        return givenWithServiceHeaders(serviceToken)
+            .body(bodyJson)
+            .when()
+            .post("/cases/payments/deletion-audit");
+    }
+
     public Response deleteRefund(final String userToken, final String serviceToken,
                                  final String refundReference) {
         return givenWithAuthHeaders(userToken, serviceToken)
