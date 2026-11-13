@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.api.service;
 
+import jakarta.persistence.Tuple;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
@@ -8,6 +9,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -16,6 +18,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,40 +27,57 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
-import uk.gov.hmcts.payment.api.dto.*;
+import uk.gov.hmcts.payment.api.dto.PaymentFailureReportDto;
+import uk.gov.hmcts.payment.api.dto.PaymentMetadataDto;
+import uk.gov.hmcts.payment.api.dto.PaymentStatusBouncedChequeDto;
+import uk.gov.hmcts.payment.api.dto.PaymentStatusChargebackDto;
+import uk.gov.hmcts.payment.api.dto.PaymentStatusUpdateSecond;
+import uk.gov.hmcts.payment.api.dto.RefundDto;
+import uk.gov.hmcts.payment.api.dto.RefundPaymentFailureReportDtoResponse;
+import uk.gov.hmcts.payment.api.dto.RepresentmentStatus;
+import uk.gov.hmcts.payment.api.dto.SearchResponse;
+import uk.gov.hmcts.payment.api.dto.TelephonyPaymentsReportDto;
+import uk.gov.hmcts.payment.api.dto.UnprocessedPayment;
+import uk.gov.hmcts.payment.api.dto.mapper.PaymentFailureReportMapper;
+import uk.gov.hmcts.payment.api.dto.mapper.PaymentStatusDtoMapper;
+import uk.gov.hmcts.payment.api.exception.InvalidPaymentFailureRequestException;
+import uk.gov.hmcts.payment.api.exception.InvalidRefundRequestException;
+import uk.gov.hmcts.payment.api.exception.ValidationErrorException;
+import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.Payment2Repository;
+import uk.gov.hmcts.payment.api.model.PaymentChannel;
+import uk.gov.hmcts.payment.api.model.PaymentFailureRepository;
+import uk.gov.hmcts.payment.api.model.PaymentFailures;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentMethod;
+import uk.gov.hmcts.payment.api.model.PaymentStatus;
+import uk.gov.hmcts.payment.api.scheduler.Clock;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
+import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.math.BigDecimal;
-
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
-import uk.gov.hmcts.payment.api.dto.mapper.PaymentFailureReportMapper;
-import uk.gov.hmcts.payment.api.dto.PaymentStatusUpdateSecond;
-import uk.gov.hmcts.payment.api.dto.RepresentmentStatus;
-import uk.gov.hmcts.payment.api.dto.mapper.PaymentStatusDtoMapper;
-import uk.gov.hmcts.payment.api.exception.InvalidRefundRequestException;
-import uk.gov.hmcts.payment.api.exception.ValidationErrorException;
-import uk.gov.hmcts.payment.api.dto.PaymentStatusBouncedChequeDto;
-import uk.gov.hmcts.payment.api.exception.InvalidPaymentFailureRequestException;
-import uk.gov.hmcts.payment.api.model.*;
-import uk.gov.hmcts.payment.api.scheduler.Clock;
-import uk.gov.hmcts.payment.api.model.PaymentStatus;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
-
-import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
-
-import jakarta.persistence.Tuple;
-import java.util.Optional;
 
 
 
@@ -131,13 +151,17 @@ public class PaymentStatusUpdateServiceImplTest {
         PaymentStatusBouncedChequeDto paymentStatusBouncedChequeDto =getPaymentStatusBouncedChequeDto();
         MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
         headers.add("ServiceAuthorization", "service-auth");
+        headers.add("Authorization", "auth-token");
         when(authTokenGenerator.generate()).thenReturn("service auth token");
         when(this.restTemplateRefundCancel.exchange(anyString(),
             eq(HttpMethod.PATCH),
             any(HttpEntity.class),
             eq(String.class), any(Map.class)))
             .thenReturn(ResponseEntity.ok().build());
-        boolean cancelRefund = paymentStatusUpdateServiceImpl.cancelFailurePaymentRefund(paymentStatusBouncedChequeDto.getPaymentReference());
+        boolean cancelRefund = paymentStatusUpdateServiceImpl.cancelFailurePaymentRefund(
+            paymentStatusBouncedChequeDto.getPaymentReference(),
+            headers
+        );
 
         assertTrue(cancelRefund);
     }
@@ -151,13 +175,17 @@ public class PaymentStatusUpdateServiceImplTest {
 
         MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
         headers.add("ServiceAuthorization", "service-auth");
+        headers.add("Authorization", "auth-token");
         when(authTokenGenerator.generate()).thenReturn("service auth token");
         when(this.restTemplateRefundCancel.exchange(anyString(),
             eq(HttpMethod.PATCH),
             any(HttpEntity.class),
             eq(String.class), any(Map.class)))
             .thenThrow(new HttpServerErrorException(HttpStatus.NOT_FOUND));
-        boolean refund = paymentStatusUpdateServiceImpl.cancelFailurePaymentRefund(PaymentReference);
+        boolean refund = paymentStatusUpdateServiceImpl.cancelFailurePaymentRefund(
+            PaymentReference,
+            headers
+        );
         assertTrue(refund);
 
     }
@@ -180,15 +208,95 @@ public class PaymentStatusUpdateServiceImplTest {
         PaymentStatusChargebackDto paymentStatusChargebackDto =getPaymentStatusChargebackDto();
         MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
         headers.add("ServiceAuthorization", "service-auth");
+        headers.add("Authorization", "auth-token");
         when(authTokenGenerator.generate()).thenReturn("service auth token");
         when(this.restTemplateRefundCancel.exchange(anyString(),
             eq(HttpMethod.PATCH),
             any(HttpEntity.class),
             eq(String.class), any(Map.class)))
             .thenReturn(ResponseEntity.ok().build());
-        boolean cancelRefund = paymentStatusUpdateServiceImpl.cancelFailurePaymentRefund(paymentStatusChargebackDto.getPaymentReference());
+        boolean cancelRefund = paymentStatusUpdateServiceImpl.cancelFailurePaymentRefund(
+            paymentStatusChargebackDto.getPaymentReference(),
+            headers
+        );
 
         assertTrue(cancelRefund);
+    }
+
+    @Test
+    public void testCancelFailureRefundUsesAuthorizationHeaderWithBearerPrefix() {
+
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add("Authorization", "Bearer user-token");
+
+        when(authTokenGenerator.generate()).thenReturn("service auth token");
+        when(this.restTemplateRefundCancel.exchange(anyString(),
+            eq(HttpMethod.PATCH),
+            any(HttpEntity.class),
+            eq(String.class), any(Map.class)))
+            .thenReturn(ResponseEntity.ok().build());
+
+        paymentStatusUpdateServiceImpl.cancelFailurePaymentRefund("RC-1234", headers);
+
+        ArgumentCaptor<HttpEntity> httpEntityCaptor = ArgumentCaptor.forClass(HttpEntity.class);
+        verify(this.restTemplateRefundCancel).exchange(anyString(),
+            eq(HttpMethod.PATCH),
+            httpEntityCaptor.capture(),
+            eq(String.class), any(Map.class));
+
+        HttpHeaders sentHeaders = httpEntityCaptor.getValue().getHeaders();
+        assertEquals("Bearer user-token", sentHeaders.getFirst("Authorization"));
+        assertEquals("service auth token", sentHeaders.getFirst("ServiceAuthorization"));
+    }
+
+    @Test
+    public void testCancelFailureRefundAddsBearerPrefixWhenMissing() {
+
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add("Authorization", "user-token");
+
+        when(authTokenGenerator.generate()).thenReturn("service auth token");
+        when(this.restTemplateRefundCancel.exchange(anyString(),
+            eq(HttpMethod.PATCH),
+            any(HttpEntity.class),
+            eq(String.class), any(Map.class)))
+            .thenReturn(ResponseEntity.ok().build());
+
+        paymentStatusUpdateServiceImpl.cancelFailurePaymentRefund("RC-1234", headers);
+
+        ArgumentCaptor<HttpEntity> httpEntityCaptor = ArgumentCaptor.forClass(HttpEntity.class);
+        verify(this.restTemplateRefundCancel).exchange(anyString(),
+            eq(HttpMethod.PATCH),
+            httpEntityCaptor.capture(),
+            eq(String.class), any(Map.class));
+
+        HttpHeaders sentHeaders = httpEntityCaptor.getValue().getHeaders();
+        assertEquals("Bearer user-token", sentHeaders.getFirst("Authorization"));
+    }
+
+    @Test
+    public void testCancelFailureRefundReadsLowercaseAuthorizationHeader() {
+
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add("authorization", "user-token");
+
+        when(authTokenGenerator.generate()).thenReturn("service auth token");
+        when(this.restTemplateRefundCancel.exchange(anyString(),
+            eq(HttpMethod.PATCH),
+            any(HttpEntity.class),
+            eq(String.class), any(Map.class)))
+            .thenReturn(ResponseEntity.ok().build());
+
+        paymentStatusUpdateServiceImpl.cancelFailurePaymentRefund("RC-1234", headers);
+
+        ArgumentCaptor<HttpEntity> httpEntityCaptor = ArgumentCaptor.forClass(HttpEntity.class);
+        verify(this.restTemplateRefundCancel).exchange(anyString(),
+            eq(HttpMethod.PATCH),
+            httpEntityCaptor.capture(),
+            eq(String.class), any(Map.class));
+
+        HttpHeaders sentHeaders = httpEntityCaptor.getValue().getHeaders();
+        assertEquals("Bearer user-token", sentHeaders.getFirst("Authorization"));
     }
 
     @Test
