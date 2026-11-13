@@ -5,6 +5,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
+import uk.gov.hmcts.payment.api.dto.liberata.PaymentAccountResponse;
+import uk.gov.hmcts.payment.api.dto.liberata.PaymentAccountResponseStatus;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.model.StatusHistory;
@@ -12,12 +14,37 @@ import uk.gov.hmcts.payment.api.util.AccountStatus;
 
 import java.math.BigDecimal;
 import java.util.Collections;
+import java.util.Map;
 
 @Component
 public class PBAStatusErrorMapper {
 
     private static final String FAILED = "failed";
     private static final Logger LOG = LoggerFactory.getLogger(PBAStatusErrorMapper.class);
+
+    private static final String EXCEEDED_CREDIT_LIMIT_MESSAGE = "Payment request failed. PBA account {accountNumber} have insufficient funds available";
+    private static final String EXCEEDED_CREDIT_LIMIT = "Exceeded credit limit.";
+    public static  String ON_HOLD="CUSTOMER ON HOLD - EXCEEDED CREDIT LIMIT";
+    public static  String DELETED="DELETED";
+
+    public static final Map<String, String> PBA_ERROR_CODE_MAP = Map.of(
+        "Exceeded credit limit.", "CA-E0001",
+        "Account not found.", "CA-E0004",
+        "Validation failed.", "CA-E0005",
+        "Duplicate payment detected.", "CA-E0006",
+        "Unauthenticated.", "CA-E0007"
+    );
+
+    public static final Map<String, String> PBA_REASON_CODE_MAP = Map.of(
+        DELETED, "CA-E0004",
+        ON_HOLD, "CA-E0003"
+    );
+
+    public static final Map<String, String> PBA_MESSAGES_CODE_MAP = Map.of(
+        DELETED, "Your account is deleted",
+        ON_HOLD, "Your account is on hold",
+        EXCEEDED_CREDIT_LIMIT,EXCEEDED_CREDIT_LIMIT_MESSAGE
+    );
 
     public void setPaymentStatus(CreditAccountPaymentRequest creditAccountPaymentRequest, Payment payment, AccountDto accountDetails) {
         LOG.info("CreditAccountPayment received for ccdCaseNumber: {}: Payload {}", payment.getCcdCaseNumber(), accountDetails);
@@ -63,6 +90,53 @@ public class PBAStatusErrorMapper {
                 .build()));
             LOG.info("CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {} PaymentStatus : {} - Account is deleted!", payment.getCcdCaseNumber(), accountDetails.getStatus(), payment.getPaymentStatus().getName());
         }
+    }
+
+    public void setPaymentStatusAndHistories(String accountNumber, Payment payment, PaymentAccountResponse  paymentAccountResponse) {
+
+        LOG.info("CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {}  Account number  : {} ",
+            payment.getCcdCaseNumber(), paymentAccountResponse.getStatus(), accountNumber);
+        // Ensure that the status histories list is initialized if it's null or empty, due to the fact that the method is generic.
+        if (payment.getStatusHistories() == null || payment.getStatusHistories().isEmpty()) {
+            payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
+                .status(payment.getPaymentStatus() != null ? payment.getPaymentStatus().getName() : PaymentAccountResponseStatus.PENDING.getValue())
+                .build()));
+        }
+
+        if (paymentAccountResponse.getStatus().equals(PaymentAccountResponseStatus.SUCCESS.getValue())) {
+
+            payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("success").build());
+            payment.getStatusHistories().getFirst().setStatus(PaymentAccountResponseStatus.SUCCESS.getValue());
+            LOG.info("Payment request  was SUCCESS. " + paymentAccountResponse.getMessage() + " PBA account {}" + accountNumber);
+        } else if (paymentAccountResponse.getStatus().equals(PaymentAccountResponseStatus.ERROR.getValue())) {
+
+            payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name(FAILED).build());
+            LOG.info("Payment request failed. " + paymentAccountResponse.getMessage() + " PBA account {}" + accountNumber);
+
+            // check if the reason code is present in the response and if it is mapped to an error code, this done for deleted and on hold accounts.
+            if(paymentAccountResponse.getReason() != null && PBA_REASON_CODE_MAP.containsKey(paymentAccountResponse.getReason())) {
+                payment.getStatusHistories().getFirst().setStatus(payment.getPaymentStatus().getName());
+                payment.getStatusHistories().getFirst().setErrorCode(PBA_REASON_CODE_MAP.get(paymentAccountResponse.getReason()));
+                payment.getStatusHistories().getFirst().setMessage(PBA_MESSAGES_CODE_MAP.get(paymentAccountResponse.getReason()));
+                return;
+            }
+            payment.getStatusHistories().getFirst().setStatus(payment.getPaymentStatus().getName());
+            payment.getStatusHistories().getFirst().setErrorCode(PBA_ERROR_CODE_MAP.get(paymentAccountResponse.getMessage()));
+            payment.getStatusHistories().getFirst().setMessage(getMessageForErrorCode(paymentAccountResponse, accountNumber));
+        }
+    }
+
+
+
+
+    // This method is used to get the message for the error code. If the error code is "Exceeded credit limit.",
+    // it will return a custom message with the account number. Otherwise, it will return the message from the paymentAccountResponse.
+    private String getMessageForErrorCode(PaymentAccountResponse paymentAccountResponse,String accountNumber) {
+
+        if (paymentAccountResponse.getMessage().equals("Exceeded credit limit.")){
+            return PBA_MESSAGES_CODE_MAP.get(paymentAccountResponse.getMessage()).replace("{accountNumber}", accountNumber);
+        }
+        return paymentAccountResponse.getMessage();
     }
 
     public void setServiceRequestPaymentStatus(BigDecimal amount, Payment payment, AccountDto accountDetails) {
