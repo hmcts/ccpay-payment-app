@@ -134,22 +134,40 @@ public class PBAPaymentMapper {
     }
 
     private PaymentRequest mapPaymentAccountPaymentFromServiceRequestPaymentDto(ServiceRequestPaymentDto serviceRequestPaymentDto, String groupReference, Payment payment, PaymentFeeLink paymentFeeLink) {
-        //val surname = getSurname(payment, creditAccountPaymentRequest, groupReference);
+        val surname = getSurnameForServiceRequestPaymentDto(payment, serviceRequestPaymentDto, groupReference, paymentFeeLink);
         return PaymentRequest.paymentDtoWith()
             .groupReference(paymentFeeLink.getPaymentReference())
             .paymentReference(paymentFeeLink.getPaymentReference())
-            .surname("SURNAME") //TODO
-            .serviceName(paymentFeeLink.getEnterpriseServiceName()) //TODO
+            .surname(surname)
+            .serviceName(paymentFeeLink.getEnterpriseServiceName())
             .amount(serviceRequestPaymentDto.getAmount().toString())
             .currency(serviceRequestPaymentDto.getCurrency())
-            .siteId(paymentFeeLink.getOrgId()) //TODO
+            .siteId(paymentFeeLink.getOrgId())
             .caseReference(paymentFeeLink.getCaseReference())
             .ccdCaseNumber(paymentFeeLink.getCcdCaseNumber())
             .customerReference(serviceRequestPaymentDto.getCustomerReference())
-            .fee(mapPaymentAccountFee(paymentFeeLink)) //TODO
+            .fee(mapPaymentAccountFee(paymentFeeLink))
             .dateCreated(new Date())
             .build();
     }
+
+    private String getSurnameForServiceRequestPaymentDto(Payment payment, ServiceRequestPaymentDto serviceRequestPaymentDto,
+                                                         String paymentReference, PaymentFeeLink paymentFeeLink) {
+
+        val  accountPaymentRequest = CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
+            .service(paymentFeeLink.getEnterpriseServiceName())
+            .amount(serviceRequestPaymentDto.getAmount())
+            .currency(CurrencyCode.valueOf(serviceRequestPaymentDto.getCurrency()))
+            .siteId(paymentFeeLink.getOrgId())
+            .caseReference(paymentFeeLink.getCaseReference())
+            .ccdCaseNumber(paymentFeeLink.getCcdCaseNumber())
+            .customerReference(serviceRequestPaymentDto.getCustomerReference())
+            .fees(mapFeeDtos(paymentFeeLink))
+            .build();
+        return  getSurname( payment, accountPaymentRequest, paymentReference);
+    }
+
+
 
     private PaymentRequest mapPaymentAccountPayment(CreditAccountPaymentRequest creditAccountPaymentRequest, String groupReference,Payment payment, PaymentFeeLink paymentFeeLink) {
         val surname = getSurname(payment, creditAccountPaymentRequest, groupReference);
@@ -174,6 +192,12 @@ public class PBAPaymentMapper {
             .map(paymentFee -> convertPaymentFeeToFeeDto(FeeDto.feeDtoWith().build(), paymentFee))
             .toList();
         return mapPaymentAccountFee(feeDtos,paymentFeeLink);
+    }
+
+    private List<FeeDto> mapFeeDtos(PaymentFeeLink paymentFeeLink) {
+        return paymentFeeLink.getFees().stream()
+            .map(paymentFee -> convertPaymentFeeToFeeDto(FeeDto.feeDtoWith().build(), paymentFee))
+            .toList();
     }
 
     private List<FeeRequest> mapPaymentAccountFee(List<FeeDto> fees,PaymentFeeLink paymentFeeLink) {

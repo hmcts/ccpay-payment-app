@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.api.mapper;
 
+import lombok.val;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -7,14 +8,18 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import uk.gov.hmcts.fees2.register.api.contract.Fee2Dto;
+import uk.gov.hmcts.fees2.register.api.contract.FeeVersionDto;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.liberata.PaymentByAccountRequest;
 import uk.gov.hmcts.payment.api.dto.SupplementaryPaymentDto;
 import uk.gov.hmcts.payment.api.dto.LiberataSupplementaryInfo;
 import uk.gov.hmcts.payment.api.dto.LiberataSupplementaryDetails;
+import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentChannel;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentMethod;
 import uk.gov.hmcts.payment.api.model.PaymentProvider;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
@@ -26,6 +31,8 @@ import uk.gov.hmcts.payment.api.service.PaymentService;
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -203,5 +210,159 @@ public class PBAPaymentMapperTest {
         assertThat(inner).isNotNull();
         assertThat(inner.getPayment().getSurname()).isEqualTo("Smith");
     }
-}
 
+    @Test
+    public void mapToPaymentByAccountRequestFromServiceRequestPaymentDto_nonIAC_should_set_not_applicable_surname_and_map_fees() {
+        // arrange
+        Payment payment = Payment.paymentWith()
+            .serviceType("CMC")
+            .reference("RC-3")
+            .build();
+
+        PaymentFee fee = PaymentFee.feeWith()
+            .id(111)
+            .code("FEE0001")
+            .version("1")
+            .calculatedAmount(new BigDecimal("100.00"))
+            .volume(2)
+            .build();
+
+        PaymentFeeLink pfl = PaymentFeeLink.paymentFeeLinkWith()
+            .paymentReference("group-ref-sr")
+            .enterpriseServiceName("CMC")
+            .orgId("SITE1")
+            .caseReference("case-ref")
+            .ccdCaseNumber("ccd-1")
+            .fees(Collections.singletonList(fee))
+            .build();
+
+        ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto.paymentDtoWith()
+            .amount(new BigDecimal("100.00"))
+            .currency("GBP")
+            .customerReference("cust-ref")
+            .accountNumber("PBA-3")
+            .build();
+
+        FeeVersionDto feeVersionDto = FeeVersionDto.feeVersionDtoWith()
+            .memoLine("memo")
+            .naturalAccountCode("NAC1")
+            .build();
+
+
+        Fee2Dto fee2Dto = Fee2Dto.fee2DtoWith().build();
+
+        val jurisdiction1Dto = uk.gov.hmcts.fees2.register.api.contract.Jurisdiction1Dto.jurisdiction1TypeDtoWith().name("J1").build();
+        fee2Dto.setJurisdiction1Dto(jurisdiction1Dto);
+
+        Map<String, Fee2Dto> feeMap = new HashMap<>();
+        feeMap.put("FEE0001", fee2Dto);
+
+        when(feesService.getFeeVersion("FEE0001", "1")).thenReturn(java.util.Optional.of(feeVersionDto));
+        when(feesService.getFeesDtoMap()).thenReturn(feeMap);
+
+        // act
+        uk.gov.hmcts.payment.api.dto.liberata.PaymentAccountRequest accountRequest =
+            pbaPaymentMapper.mapToPaymentByAccountRequestFromServiceRequestPaymentDto(serviceRequestPaymentDto,
+                "ignored-group-ref", payment, pfl);
+
+        // assert
+        assertThat(accountRequest).isNotNull();
+        PaymentByAccountRequest inner = accountRequest.getPaymentByAccountRequest();
+        assertThat(inner).isNotNull();
+        assertThat(inner.getPbaNumber()).isEqualTo("PBA-3");
+        assertThat(inner.getPayment().getSurname()).isEqualTo("Not applicable, the servide type is not IAC");
+        assertThat(inner.getPayment().getFee()).hasSize(1);
+        assertThat(inner.getPayment().getFee().get(0).getCode()).isEqualTo("FEE0001");
+        assertThat(inner.getPayment().getFee().get(0).getVersion()).isEqualTo("1");
+        assertThat(inner.getPayment().getFee().get(0).getId()).isEqualTo(111L);
+        assertThat(inner.getPayment().getFee().get(0).getCalculatedAmount()).isEqualTo("100.00");
+        assertThat(inner.getPayment().getFee().get(0).getVolume()).isEqualTo("2");
+    }
+
+    @Test
+    public void mapToPaymentByAccountRequestFromServiceRequestPaymentDto_IAC_should_use_iac_surname_and_default_volume_to_one() {
+        // arrange
+        Payment payment = Payment.paymentWith()
+            .serviceType("IAC")
+            .reference("RC-4")
+            .siteId("SITE1")
+            .amount(new BigDecimal("25.00"))
+            .caseReference("case-ref")
+            .ccdCaseNumber("ccd-1")
+            .pbaNumber("PBA-4")
+            .organisationName("org")
+            .customerReference("cust")
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
+            .currency("GBP")
+            .build();
+
+        PaymentFee fee = PaymentFee.feeWith()
+            .id(222)
+            .code("FEE0002")
+            .version("2")
+            .calculatedAmount(new BigDecimal("25.00"))
+            .volume(0)
+            .build();
+
+        PaymentFeeLink pfl = PaymentFeeLink.paymentFeeLinkWith()
+            .paymentReference("group-ref-iac")
+            .enterpriseServiceName("IAC")
+            .orgId("SITE1")
+            .caseReference("case-ref")
+            .ccdCaseNumber("ccd-1")
+            .fees(Collections.singletonList(fee))
+            .build();
+
+        ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto.paymentDtoWith()
+            .amount(new BigDecimal("25.00"))
+            .currency("GBP")
+            .customerReference("cust")
+            .accountNumber("PBA-4")
+            .build();
+
+        FeeVersionDto feeVersionDto = FeeVersionDto.feeVersionDtoWith()
+            .memoLine("memo-2")
+            .naturalAccountCode("NAC2")
+            .build();
+
+        Fee2Dto fee2Dto = Fee2Dto.fee2DtoWith().build();
+        val jurisdiction1Dto = uk.gov.hmcts.fees2.register.api.contract.Jurisdiction1Dto.jurisdiction1TypeDtoWith().name("J2").build();
+        fee2Dto.setJurisdiction1Dto(jurisdiction1Dto);
+
+        Map<String, Fee2Dto> feeMap = new HashMap<>();
+        feeMap.put("FEE0002", fee2Dto);
+
+        LiberataSupplementaryDetails details = LiberataSupplementaryDetails.supplementaryDetailsWith().surname("Walker").build();
+        LiberataSupplementaryInfo info = LiberataSupplementaryInfo.liberataSupplementaryInfoWith()
+            .ccdCaseNumber("ccd-1")
+            .supplementaryDetails(details)
+            .build();
+        SupplementaryPaymentDto supplementary = SupplementaryPaymentDto.supplementaryPaymentDtoWith()
+            .supplementaryInfo(Collections.singletonList(info))
+            .build();
+
+        when(feesService.getFeeVersion("FEE0002", "2")).thenReturn(java.util.Optional.of(feeVersionDto));
+        when(feesService.getFeesDtoMap()).thenReturn(feeMap);
+        when(paymentService.getServiceNameByCode(anyString())).thenReturn("IAC-SERVICE");
+        when(iacService.getIacSupplementaryInfo(anyList(), anyString())).thenReturn(new ResponseEntity<>(supplementary, HttpStatus.OK));
+
+        // act
+        uk.gov.hmcts.payment.api.dto.liberata.PaymentAccountRequest accountRequest =
+            pbaPaymentMapper.mapToPaymentByAccountRequestFromServiceRequestPaymentDto(serviceRequestPaymentDto,
+                "group-ref-iac", payment, pfl);
+
+        // assert
+        assertThat(accountRequest).isNotNull();
+        PaymentByAccountRequest inner = accountRequest.getPaymentByAccountRequest();
+        assertThat(inner).isNotNull();
+        assertThat(inner.getPayment().getSurname()).isEqualTo("Walker");
+        assertThat(inner.getPayment().getFee()).hasSize(1);
+        assertThat(inner.getPayment().getFee().get(0).getCode()).isEqualTo("FEE0002");
+        assertThat(inner.getPayment().getFee().get(0).getVersion()).isEqualTo("2");
+        assertThat(inner.getPayment().getFee().get(0).getId()).isEqualTo(222L);
+        assertThat(inner.getPayment().getFee().get(0).getCalculatedAmount()).isEqualTo("25.00");
+        assertThat(inner.getPayment().getFee().get(0).getVolume()).isEqualTo("1");
+    }
+}
