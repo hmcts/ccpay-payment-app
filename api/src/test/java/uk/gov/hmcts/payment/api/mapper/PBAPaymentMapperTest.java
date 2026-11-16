@@ -274,7 +274,7 @@ public class PBAPaymentMapperTest {
         assertThat(inner.getPayment().getFee()).hasSize(1);
         assertThat(inner.getPayment().getFee().get(0).getCode()).isEqualTo("FEE0001");
         assertThat(inner.getPayment().getFee().get(0).getVersion()).isEqualTo("1");
-        assertThat(inner.getPayment().getFee().get(0).getId()).isEqualTo(111L);
+        assertThat(inner.getPayment().getFee().get(0).getId()).isEqualTo(111);
         assertThat(inner.getPayment().getFee().get(0).getCalculatedAmount()).isEqualTo("100.00");
         assertThat(inner.getPayment().getFee().get(0).getVolume()).isEqualTo("2");
     }
@@ -361,7 +361,7 @@ public class PBAPaymentMapperTest {
         assertThat(inner.getPayment().getFee()).hasSize(1);
         assertThat(inner.getPayment().getFee().get(0).getCode()).isEqualTo("FEE0002");
         assertThat(inner.getPayment().getFee().get(0).getVersion()).isEqualTo("2");
-        assertThat(inner.getPayment().getFee().get(0).getId()).isEqualTo(222L);
+        assertThat(inner.getPayment().getFee().get(0).getId()).isEqualTo(222);
         assertThat(inner.getPayment().getFee().get(0).getCalculatedAmount()).isEqualTo("25.00");
         assertThat(inner.getPayment().getFee().get(0).getVolume()).isEqualTo("1");
     }
