@@ -2,7 +2,6 @@ package uk.gov.hmcts.payment.api.domain.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
-import org.apache.poi.ss.formula.functions.T;
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.Before;
 import org.junit.Test;
@@ -257,7 +256,7 @@ public class ServiceRequestDomainServiceTest {
 
         String requestJson = objectMapper.writeValueAsString(serviceRequestPaymentDto);
 
-        ResponseEntity<?> responseEntity = new ResponseEntity<T>(HttpStatus.CREATED);
+        ResponseEntity<?> responseEntity = new ResponseEntity<>(HttpStatus.CREATED);
 
         IdempotencyKeys idempotencyRecord = IdempotencyKeys
             .idempotencyKeysWith()
@@ -316,7 +315,7 @@ public class ServiceRequestDomainServiceTest {
             .responseStatus(IdempotencyKeys.ResponseStatusType.pending)
             .build();
 
-        ResponseEntity<?> responseEntity = new ResponseEntity<T>(HttpStatus.CREATED);
+        ResponseEntity<?> responseEntity = new ResponseEntity<>(HttpStatus.CREATED);
 
         ResponseEntity idempotencyRecordResponseEntity = serviceRequestDomainService.createIdempotencyRecord(objectMapper, "", "RC-ref",
             "{\"response_body\":\"response_body\"}", idempotencyRecord.getResponseStatus(), responseEntity, serviceRequestPaymentDto);

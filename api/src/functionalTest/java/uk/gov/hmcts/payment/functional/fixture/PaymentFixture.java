@@ -442,6 +442,39 @@ public class PaymentFixture {
 
     }
 
+    public static PaymentRefundRequest aRefundRequest(final int feeId,
+                                                      final String refundReason,
+                                                      final String paymentReference,
+                                                      final String refundAmount,
+                                                      final String calculatedAmount,
+                                                      final String apportionAmount,
+                                                      final String feeCode,
+                                                      final String feeVersion,
+                                                      final String feeVolume) {
+        return PaymentRefundRequest
+            .refundRequestWith().paymentReference(paymentReference)
+            .refundReason(refundReason)
+            .totalRefundAmount(new BigDecimal(refundAmount))
+            .fees(Lists.newArrayList(
+                RefundsFeeDto.refundFeeDtoWith()
+                    .apportionAmount(new BigDecimal(apportionAmount))
+                    .calculatedAmount(new BigDecimal(calculatedAmount))
+                    .code(feeCode)
+                    .id(feeId)
+                    .version(feeVersion)
+                    .updatedVolume(Integer.parseInt(feeVolume))
+                    .refundAmount(new BigDecimal(refundAmount))
+                    .build())
+            )
+            .contactDetails(ContactDetails.contactDetailsWith()
+                .email("person@gmail.com")
+                .notificationType("EMAIL")
+                .build())
+            .isOverPayment(true)
+            .build();
+
+    }
+
     public static PaymentStatusBouncedChequeDto bouncedChequeRequest(String paymentReference){
         String ccdCaseNumber = "11113333" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
         String failureReference = "FR-111-CC13-" + RandomUtils.nextInt();

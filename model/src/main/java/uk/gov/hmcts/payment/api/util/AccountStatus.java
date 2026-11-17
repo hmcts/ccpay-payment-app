@@ -8,7 +8,9 @@ public enum AccountStatus {
     @JsonProperty("On-Hold")
     ON_HOLD("On-Hold"),
     @JsonProperty("Deleted")
-    DELETED("Deleted");
+    DELETED("Deleted"),
+    @JsonProperty("Inactive")
+    INACTIVE("Inactive");
 
 
     private String status;
