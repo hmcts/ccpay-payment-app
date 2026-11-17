@@ -49,7 +49,8 @@ import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
     import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
     import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
     import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
-    import uk.gov.hmcts.payment.api.exception.LiberataServiceTimeoutException;
+import uk.gov.hmcts.payment.api.exception.IACServiceException;
+import uk.gov.hmcts.payment.api.exception.LiberataServiceTimeoutException;
     import uk.gov.hmcts.payment.api.exceptions.PaymentServiceNotFoundException;
     import uk.gov.hmcts.payment.api.model.FeePayApportion;
     import uk.gov.hmcts.payment.api.model.IdempotencyKeys;
@@ -243,6 +244,10 @@ public class ServiceRequestController {
             LOG.error("PBA-CID={}, serviceRequestReference={}, Exception from Liberata for PBA payment {}", idempotencyKey, serviceRequestReference, liberataServiceTimeoutException);
             responseEntity = new ResponseEntity<>(liberataServiceTimeoutException.getMessage(), HttpStatus.GATEWAY_TIMEOUT);
             responseJson = liberataServiceTimeoutException.getMessage();
+        } catch (IACServiceException iACServiceException) {
+            LOG.error("PBA-CID={}, serviceRequestReference={}, Exception from IAC  for PBA payment {}", idempotencyKey, serviceRequestReference, iACServiceException);
+            responseEntity = new ResponseEntity<>(iACServiceException.getMessage(), HttpStatus.BAD_REQUEST);
+            responseJson = iACServiceException.getMessage();
         } catch (Exception ex) {
             LOG.error("PBA-CID={}, serviceRequestReference={}, Exception from Liberata for PBA payment {}", idempotencyKey, serviceRequestReference, ex);
             responseEntity = new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);

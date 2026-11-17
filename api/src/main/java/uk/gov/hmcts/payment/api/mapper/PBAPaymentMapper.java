@@ -18,6 +18,7 @@ import uk.gov.hmcts.payment.api.dto.liberata.PaymentAccountRequest;
 import uk.gov.hmcts.payment.api.dto.liberata.PaymentByAccountRequest;
 import uk.gov.hmcts.payment.api.dto.liberata.PaymentRequest;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
+import uk.gov.hmcts.payment.api.exception.IACServiceException;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
@@ -34,7 +35,7 @@ import java.util.Optional;
 public class PBAPaymentMapper {
 
     private static final Logger LOG = LoggerFactory.getLogger(PBAStatusErrorMapper.class);
-    private static final String NOT_APPLICABLE_IAC = "Not applicable, the servide type is not IAC";
+    private static final String NOT_APPLICABLE_IAC = "Not applicable, the service type is not IAC";
 
     @Autowired
     private FeesService feesService;
@@ -93,13 +94,14 @@ public class PBAPaymentMapper {
                     || iacResponse.getBody().getSupplementaryInfo().getFirst().getSupplementaryDetails().getSurname() == null
                     || iacResponse.getBody().getSupplementaryInfo().getFirst().getSupplementaryDetails().getSurname().trim().isEmpty()) {
                     LOG.info("IAC response missing surname for payment reference: {}", paymentReference);
-                    return NOT_APPLICABLE_IAC;
+                    throw new IACServiceException("IAC response missing surname for payment reference: " + paymentReference);
                 }
                 return iacResponse.getBody().getSupplementaryInfo().getFirst().getSupplementaryDetails().getSurname();
 
             } catch (Exception exception) {
                 LOG.error("Error occurred while fetching supplementary info from IAC service for payment reference: {}", paymentReference, exception);
-                return NOT_APPLICABLE_IAC;
+                throw new IACServiceException("Error occurred while fetching supplementary info from IAC service for payment reference: "
+                    + paymentReference + ". Error: " + exception.getMessage(), exception);
             }
         } else {
             return NOT_APPLICABLE_IAC;
