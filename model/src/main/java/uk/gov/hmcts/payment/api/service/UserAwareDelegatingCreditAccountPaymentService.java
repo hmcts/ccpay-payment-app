@@ -130,7 +130,6 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
         Payment payment = paymentRespository.findByReference(paymentReference).orElseThrow(PaymentNotFoundException::new);
         PaymentFeeLink serviceRequest = paymentFeeLinkRepository.findByIdForUpdate(payment.getPaymentLink().getId())
             .orElseThrow(PaymentNotFoundException::new);
-        // TODO: Confirm this should be blocked when the service request is cancelled.
         ServiceRequests.requireNotCancelled(serviceRequest);
         // Deleting the payment also cascades to the service request and its fees.
         long records = paymentRespository.deleteByReference(paymentReference);

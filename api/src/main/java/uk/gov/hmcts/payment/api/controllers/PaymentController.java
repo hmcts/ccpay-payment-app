@@ -262,7 +262,6 @@ public class PaymentController {
         Optional<Payment> payment = getPaymentByReferenceForUpdate(reference);
 
         if (payment.isPresent()) {
-            // TODO: Confirm this should be blocked when the service request is cancelled.
             ServiceRequests.requireNotCancelled(payment.get().getPaymentLink());
             payment.get().setPaymentStatus(paymentStatusRepository.findByNameOrThrow(status));
             if (payment.get().getServiceCallbackUrl() != null) {

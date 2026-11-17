@@ -35,7 +35,6 @@ public class FeesServiceImpl implements FeesService {
         PaymentFeeLink serviceRequest = paymentFeeLinkRepository
             .findByIdForUpdate(paymentFee.get().getPaymentLink().getId())
             .orElseThrow(() -> new EmptyResultDataAccessException("Service request not found", 1));
-        // TODO: Confirm this should be blocked when the service request is cancelled.
         ServiceRequests.requireNotCancelled(serviceRequest);
         paymentFeeRepository.deleteById(feeId);
     }

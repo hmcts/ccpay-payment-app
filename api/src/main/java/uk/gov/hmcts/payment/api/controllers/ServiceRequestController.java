@@ -242,7 +242,7 @@ public class ServiceRequestController {
         String idempotencyKey = serviceRequestPaymentDto.getIdempotencyKey();
 
 
-        // TODO note that original exceptions thrown here would go to RestErrorHandler and idempotency record not updated. Was intentional?
+        // TODO note that original exceptions thrown here would go to RestErrorHandler and idempotency record not updated. Was this intentional?
 
         try {
             serviceRequestPaymentBo = serviceRequestDomainService.addPayments(serviceRequestReference, serviceRequestPaymentDto);

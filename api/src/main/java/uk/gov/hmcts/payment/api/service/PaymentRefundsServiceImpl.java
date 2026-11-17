@@ -386,7 +386,6 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                 PaymentFeeLink serviceRequest = paymentFeeLinkRepository
                     .findByIdForUpdate(remission.get().getFee().getPaymentLink().getId())
                     .orElseThrow(PaymentNotFoundException::new);
-                // TODO: Confirm this should be blocked when the service request is cancelled.
                 ServiceRequests.requireNotCancelled(serviceRequest);
                 if (remission.get().getFee().getCalculatedAmount().compareTo(remissionAmount) < 0) {
                     throw new InvalidRefundRequestException("Remission Amount should not be more than Fee amount");
