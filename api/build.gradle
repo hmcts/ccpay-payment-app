@@ -87,7 +87,7 @@ sonarqube {
 
 def versions = [
         appinsights     : '3.7.10',
-        pitest          : '1.30.1',
+        pitest          : '1.30.2',
         gradlePitest    : '1.3.0',
         sonarPitest     : '0.5',
         lombok          : '1.18.48',
@@ -119,7 +119,7 @@ dependencies {
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security'
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa'
-    implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.21.0'
+    implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.22.0'
     implementation group: 'net.logstash.logback', name: 'logstash-logback-encoder', version: '8.1'
     implementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.5.38'
     implementation group: 'ch.qos.logback', name: 'logback-core', version: '1.5.38'
@@ -182,7 +182,7 @@ dependencies {
     testImplementation group: 'org.testcontainers', name: 'testcontainers-postgresql', version: '2.0.5'
 
     // JUnit 4 dependencies
-    testImplementation group: 'org.mockito', name: 'mockito-core', version: '5.23.0'
+    testImplementation group: 'org.mockito', name: 'mockito-core', version: '5.24.0'
     testImplementation group: 'io.github.hakky54', name: 'logcaptor', version: '2.13.0'
     testImplementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.5.38'
     testRuntimeOnly group: 'org.junit.vintage', name: 'junit-vintage-engine'
@@ -190,6 +190,10 @@ dependencies {
 
     // smoke
     smokeTestImplementation sourceSets.test.runtimeClasspath
+    smokeTestImplementation group: 'net.serenity-bdd', name: 'serenity-core', version: versions.serenity
+    smokeTestImplementation group: 'net.serenity-bdd', name: 'serenity-junit', version: versions.serenity
+    smokeTestImplementation group: 'net.serenity-bdd', name: 'serenity-rest-assured', version: versions.serenity
+    smokeTestImplementation group: 'net.serenity-bdd', name: 'serenity-spring', version: versions.serenity
     // functional
     functionalTestImplementation sourceSets.test.runtimeClasspath
     // contract
@@ -230,8 +234,10 @@ test {
 }
 
 task smokeTest(type: Test, description: 'Runs the smoke tests', group: 'Verification') {
+    include "uk/gov/hmcts/payment/smoke/**"
     testClassesDirs = sourceSets.smokeTest.output.classesDirs
     classpath = sourceSets.smokeTest.runtimeClasspath
+    scanForTestClasses = true
 }
 
 task functionalTest(type: Test, description: 'Runs the functional tests', group: 'Verification') {
@@ -243,12 +249,8 @@ task functionalTest(type: Test, description: 'Runs the functional tests', group:
 }
 
 // Serenity Reporting
+smokeTest.finalizedBy(aggregate)
 functionalTest.finalizedBy(aggregate)
-tasks.named('aggregate') {
-    onlyIf {
-        gradle.taskGraph.hasTask(functionalTest)
-    }
-}
 
 project.ext {
     pactVersion = getCheckedOutGitCommitHash()
