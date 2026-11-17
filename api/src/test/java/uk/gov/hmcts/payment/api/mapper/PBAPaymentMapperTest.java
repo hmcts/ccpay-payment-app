@@ -150,7 +150,7 @@ public class PBAPaymentMapperTest {
         assertThat(inner).isNotNull();
         assertThat(inner.getPbaNumber()).isEqualTo("PBA-1");
         assertThat(inner.getPayment()).isNotNull();
-        assertThat(inner.getPayment().getSurname()).isEqualTo("Not applicable, the servide type is not IAC");
+        assertThat(inner.getPayment().getSurname()).isEqualTo("Not applicable, the service type is not IAC");
     }
 
     @Test
@@ -270,7 +270,7 @@ public class PBAPaymentMapperTest {
         PaymentByAccountRequest inner = accountRequest.getPaymentByAccountRequest();
         assertThat(inner).isNotNull();
         assertThat(inner.getPbaNumber()).isEqualTo("PBA-3");
-        assertThat(inner.getPayment().getSurname()).isEqualTo("Not applicable, the servide type is not IAC");
+        assertThat(inner.getPayment().getSurname()).isEqualTo("Not applicable, the service type is not IAC");
         assertThat(inner.getPayment().getFee()).hasSize(1);
         assertThat(inner.getPayment().getFee().get(0).getCode()).isEqualTo("FEE0001");
         assertThat(inner.getPayment().getFee().get(0).getVersion()).isEqualTo("1");
