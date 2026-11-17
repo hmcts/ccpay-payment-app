@@ -203,7 +203,7 @@ public class PaymentFixture {
             .caseReference("aCaseReference")
             .service(service)
             .currency(CurrencyCode.GBP)
-            .siteId("AA08")
+            .siteId("ABA1")
             .customerReference("CUST101")
             .organisationName("ORG101")
             .accountNumber("PBAFUNC12345")
@@ -211,7 +211,7 @@ public class PaymentFixture {
                 FeeDto.feeDtoWith()
                     .calculatedAmount(new BigDecimal(amountString))
                     .code("FEE0002")
-                    .version("1")
+                    .version("9")
                     .build())
             )
             .build();

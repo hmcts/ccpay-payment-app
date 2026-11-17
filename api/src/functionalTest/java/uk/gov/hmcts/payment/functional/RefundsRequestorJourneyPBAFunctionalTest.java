@@ -1219,8 +1219,6 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
     @Test
     public void negative_add_remission_and_submit_a_refund_for_a_pba_payment_more_than_the_account_limit() {
 
-        String accountNumber = testProps.existingAccountNumber;
-
         // Create a PBA payment where PBA0088878 is a test account with insufficient funds available
         this.add_remisssions_and_add_refund_for_a_failed_payment("350000.00",
             "PBA0088878",
@@ -1229,10 +1227,6 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
 
     @Test
     public void negative_add_remission_and_submit_a_refund_for_a_pba_payment_with_account_deleted() {
-        Assume.assumeTrue(!testProps.baseTestUrl.contains("payment-api-pr-"));
-
-        String accountNumber = testProps.deletedAccountNumber;
-
         // Create a PBA payment when PBAFUNC12345_DELETED  is a test account that has been deleted.
         this.add_remisssions_and_add_refund_for_a_failed_payment("100.00",
             "PBAFUNC12345_DELETED",
@@ -1241,11 +1235,7 @@ public class RefundsRequestorJourneyPBAFunctionalTest {
 
     @Test
     public void negative_add_remission_and_submit_a_refund_for_a_pba_payment_with_account_on_hold() {
-        Assume.assumeTrue(!testProps.baseTestUrl.contains("payment-api-pr-"));
-
-        String accountNumber = testProps.onHoldAccountNumber;
-
-        // Create a PBA payment when PBAFUNC12345_ON_HOLD  is a test account with insufficient funds available and is on hold
+        // Create a PBA payment when PBAFUNC12345_ON_HOLD is a test account which is on hold
         this.add_remisssions_and_add_refund_for_a_failed_payment("100.00",
             "PBAFUNC12345_ON_HOLD",
             "Your account is on hold");
