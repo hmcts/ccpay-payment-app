@@ -51,6 +51,7 @@ import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 
 import java.math.BigDecimal;
+import java.net.URI;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -73,6 +74,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -578,6 +580,66 @@ public class ServiceRequestComponentTest {
                 .reason("The service request was created in error")
                 .build())
             .andExpect(status().isForbidden());
+    }
+
+    /**
+     * Test that a user cannot cancel a service request by spelling the URL with a percent-encoded character.
+     * In a URL, {@code %63} represents the letter {@code c}, so {@code /cancel} and {@code /%63ancel} both route
+     * to the cancellation controller. They must therefore enforce the same payments role requirement.
+     * <p>
+     * If we just check the raw request URI for a literal {@code /cancel} suffix, it would miss {@code /%63ancel}
+     * and fall through to the rule that only requires authentication but not the payments role.
+     */
+    @Test
+    public void manualCancellationRequiresPaymentsRoleForEncodedPath() throws Exception {
+        // Use an existing, eligible service request so a missing record or a business rule cannot mask the bypass.
+        PaymentFeeLink serviceRequest = saveUnpaidServiceRequest();
+        String serviceRequestReference = serviceRequest.getPaymentReference();
+        String serviceToken = UUID.randomUUID().toString();
+        String userToken = UUID.randomUUID().toString();
+
+        // Both requests use these exact tokens: the service is trusted, but the user has only the citizen role.
+        // Supplying a user token makes this a manual cancellation, which must require the payments role.
+        serviceRequestAuthorizer.registerToken(serviceToken, "divorce");
+        userRequestAuthorizer.registerToken(userToken, UserResolverBackdoor.CITIZEN_ID);
+
+        MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
+
+        String requestBody = objectMapper.writeValueAsString(ServiceRequestCancelDto.cancelDtoWith()
+            .reason("The service request was created in error")
+            .build());
+
+        // Establish the control case: the ordinary URL rejects this user and does not cancel the service request.
+        mvc.perform(post(URI.create("/service-request/%s/cancel".formatted(serviceRequestReference)))
+                .header("ServiceAuthorization", serviceToken)
+                .header("Authorization", userToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody))
+            .andExpect(status().isForbidden());
+
+        assertThat(paymentFeeLinkRepository.findByPaymentReference(serviceRequestReference).orElseThrow().isCancelled())
+            .isFalse();
+
+        // Change only the spelling of the path: replace the c in cancel with its URL encoding, %63.
+        // String.formatted needs %% to produce a literal %, so the resulting URI ends in /%63ancel.
+        // The MockMvc URI overload preserves that encoding; its String overload would encode % again as %25.
+        mvc.perform(post(URI.create("/service-request/%s/%%63ancel".formatted(serviceRequestReference)))
+                .header("ServiceAuthorization", serviceToken)
+                .header("Authorization", userToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody))
+            // Check both outcomes even if one fails. A 403 response alone would not prove that no write occurred.
+            // This class lets service transactions commit, so the repository lookup checks the saved database state.
+            .andExpectAll(
+                status().isForbidden(),
+                result -> assertThat(paymentFeeLinkRepository.findByPaymentReference(serviceRequestReference).orElseThrow())
+                    .satisfies(persisted -> {
+                        assertThat(persisted.isCancelled()).isFalse();
+                        assertThat(persisted.getCancellationReason()).isNull();
+                        assertThat(persisted.getCancelledBy()).isNull();
+                        assertThat(persisted.getDateCancelled()).isNull();
+                    })
+            );
     }
 
     private PaymentFeeLink saveUnpaidServiceRequest() {

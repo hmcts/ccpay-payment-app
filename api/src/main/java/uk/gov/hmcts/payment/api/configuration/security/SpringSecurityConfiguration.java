@@ -13,6 +13,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import uk.gov.hmcts.reform.auth.checker.core.RequestAuthorizer;
 import uk.gov.hmcts.reform.auth.checker.core.service.Service;
@@ -80,11 +81,15 @@ public class SpringSecurityConfiguration {
     @Order(3)
     protected SecurityFilterChain configureInternal(HttpSecurity http) throws Exception {
 
-        // Cancelling a service request: a user (with an Authorization header) needs the payments role, below, while an
-        // automated cancellation by a service (S2S token only) just needs to be authenticated. A path pattern cannot
-        // also check the header, so this matcher is combined with one that does.
-        RequestMatcher cancellationRequestMatcher = request -> HttpMethod.POST.matches(request.getMethod())
-            && request.getRequestURI().matches("^/service-request/[^/]+/cancel$");
+        // Match decoded path segments as Spring MVC does, so an encoded URL such as /%63ancel cannot bypass the rule.
+        RequestMatcher cancellationEndpoint = PathPatternRequestMatcher.withDefaults()
+            .matcher(HttpMethod.POST, "/service-request/{service-request-reference}/cancel");
+
+        // A user Authorization header selects manual cancellation, which requires the payments role below.
+        // Automated cancellations carry only an S2S token and use the authenticated fallback rule.
+        RequestMatcher manualCancellationRequest = request ->
+            cancellationEndpoint.matches(request)
+                && request.getHeader(UserRequestAuthorizer.AUTHORISATION) != null;
 
         http.exceptionHandling(exceptionHandling -> exceptionHandling.accessDeniedHandler(accessDeniedHandler()))
             .addFilter(authCheckerUserOnlyFilter)
@@ -111,8 +116,7 @@ public class SpringSecurityConfiguration {
                 .requestMatchers(HttpMethod.POST, "/payment-failures/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/payment-failures/**").hasAuthority(PAYMENTS_ROLE)
                 .requestMatchers(HttpMethod.PATCH, "/payment-failures/**").permitAll()
-                .requestMatchers(request -> cancellationRequestMatcher.matches(request)
-                    && request.getHeader(UserRequestAuthorizer.AUTHORISATION) != null).hasAuthority(PAYMENTS_ROLE)
+                .requestMatchers(manualCancellationRequest).hasAuthority(PAYMENTS_ROLE)
                 .anyRequest().authenticated()
             );
         return http.build();
