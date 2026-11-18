@@ -74,16 +74,16 @@ public class PBAPaymentMapper {
             .paymentByAccountRequest(paymentByAccountRequest).build();
     }
 
-
-    // This method checks if the service code corresponds to the "Immigration and Asylum Appeals" service.
     private boolean isACService(String serviceCode) {
-        return serviceCode.equalsIgnoreCase(IAC_SERVICE_NAME);
+        val serviceName = paymentService.getServiceNameByCode("IAC");
+        LOG.info("Checking if service code {} from DB  is an IAC service. Retrieved service name: {}", serviceCode, serviceName);
+        return  serviceName.equals(serviceCode);
     }
 
 
     private String getSurname(Payment payment, CreditAccountPaymentRequest creditAccountPaymentRequest, String paymentReference) {
         if ( isACService(payment.getServiceType()) ){
-            val  iacServiceName = paymentService.getServiceNameByCode(payment.getServiceType());
+            val  iacServiceName = paymentService.getServiceNameByCode("IAC");
             val paymentDto =  getPaymentDtoFromModel(payment, paymentReference, creditAccountPaymentRequest);
             try {
                 val iacResponse = iacService.getIacSupplementaryInfo(List.of(paymentDto), iacServiceName);
