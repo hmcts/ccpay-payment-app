@@ -18,4 +18,6 @@ public interface CreditAccountPaymentService<T, ID> {
     List<T> search(Date startDate, Date endDate);
 
     void deleteByPaymentReference(String paymentReference);
+
+    Payment createOrUpdate( Payment  payment) throws CheckDigitException;
 }

@@ -14,6 +14,8 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Collections;
+
 @Configuration
 public class RestTemplateConfiguration {
 
@@ -52,10 +54,6 @@ public class RestTemplateConfiguration {
         return new RestTemplate(new HttpComponentsClientHttpRequestFactory());
     }
 
-    @Bean (value = "liberataRestTemplate")
-    public RestTemplate liberataRestTemplate() {
-        return new RestTemplate(new HttpComponentsClientHttpRequestFactory());
-    }
 
     @Bean (value = "restTemplateIacSupplementaryInfo")
     public RestTemplate restTemplateIacSupplementaryInfo() {
@@ -71,7 +69,6 @@ public class RestTemplateConfiguration {
     public RestTemplate restTemplateRefData() {
         return  new RestTemplate(new HttpComponentsClientHttpRequestFactory());
     }
-
     @Bean("restTemplateRefundCancel")
     public RestTemplate restTemplateRefundCancel() {
         return  new RestTemplate(new HttpComponentsClientHttpRequestFactory());
@@ -79,7 +76,13 @@ public class RestTemplateConfiguration {
 
     @Bean("restTemplateGetRefund")
     public RestTemplate restTemplateGetRefund() {
-        return new RestTemplate(new HttpComponentsClientHttpRequestFactory());
+        return  new RestTemplate(new HttpComponentsClientHttpRequestFactory());
+    }
+
+
+    @Bean(name = "liberataRestTemplate")
+    public RestTemplate liberataRestTemplate() {
+        return  new RestTemplate(new HttpComponentsClientHttpRequestFactory());
     }
 
     private RestTemplate createRestTemplate(int readTimeout, int connectTimeout) {
