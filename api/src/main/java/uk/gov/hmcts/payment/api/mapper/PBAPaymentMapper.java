@@ -36,6 +36,7 @@ public class PBAPaymentMapper {
 
     private static final Logger LOG = LoggerFactory.getLogger(PBAStatusErrorMapper.class);
     private static final String NOT_APPLICABLE_IAC = "Not applicable, the service type is not IAC";
+    private static final String IAC_SERVICE_NAME = "Immigration and Asylum Appeals";
 
     @Autowired
     private FeesService feesService;
@@ -73,9 +74,10 @@ public class PBAPaymentMapper {
             .paymentByAccountRequest(paymentByAccountRequest).build();
     }
 
+
     // This method checks if the service code corresponds to the "Immigration and Asylum Appeals" service.
     private boolean isACService(String serviceCode) {
-        return serviceCode.equalsIgnoreCase("Immigration and Asylum Appeals");
+        return serviceCode.equalsIgnoreCase(IAC_SERVICE_NAME);
     }
 
 
