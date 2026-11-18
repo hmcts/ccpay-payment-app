@@ -73,8 +73,9 @@ public class PBAPaymentMapper {
             .paymentByAccountRequest(paymentByAccountRequest).build();
     }
 
+    // This method checks if the service code corresponds to the "Immigration and Asylum Appeals" service.
     private boolean isACService(String serviceCode) {
-        return serviceCode.equalsIgnoreCase("IAC");
+        return serviceCode.equalsIgnoreCase("Immigration and Asylum Appeals");
     }
 
 
