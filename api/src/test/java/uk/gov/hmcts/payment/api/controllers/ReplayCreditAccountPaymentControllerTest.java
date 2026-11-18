@@ -1,7 +1,6 @@
 package uk.gov.hmcts.payment.api.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.assertj.core.util.Files;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -45,6 +44,7 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -54,7 +54,6 @@ import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
-import static org.assertj.core.util.Files.newFile;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -118,26 +117,22 @@ public class ReplayCreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
     @Test
     public void replayCreditAccountPayment_AutomatedTest() throws Exception {
-
-        File paymentsToReplayCSV = null;
+        File paymentsToReplayCSV = createTempCsv("paymentsToReplay");
 
         try {
-            //create test csv file
-            paymentsToReplayCSV = newFile("src/test/resources/paymentsToReplay.csv");
-//
             Map<String, CreditAccountPaymentRequest> csvParseMap = new HashMap<>();
 
             //Create 10 PBA payments
             createCreditAccountPayments(csvParseMap, 10);
 
             //Create CSV
-            createCSV(csvParseMap, "paymentsToReplay.csv");
+            createCSV(csvParseMap, paymentsToReplayCSV);
 
             //Invoke replay-credit-account-payment
             MockMultipartFile csvFile = new MockMultipartFile("csvFile", "paymentsToReplay.csv", "text/csv",
-                new FileInputStream(new File("src/test/resources/paymentsToReplay.csv")));
+                new FileInputStream(paymentsToReplayCSV));
 
-            MvcResult result = restActions
+            restActions
                 .postWithMultiPartFileData("/replay-credit-account-payments",
                     csvFile, "isReplayPBAPayments", "true")
                 .andExpect(status().isOk())
@@ -185,33 +180,28 @@ public class ReplayCreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
             });
         } finally {
-            //Delete test csvfile
-            Files.delete(paymentsToReplayCSV);
+            Files.deleteIfExists(paymentsToReplayCSV.toPath());
         }
     }
 
     @Test
     public void markPBAPaymentFailed_AutomatedTest() throws Exception {
-
-        File paymentsToFailCSV = null;
+        File paymentsToFailCSV = createTempCsv("paymentsToFailed");
 
         try {
-            //create test csv file
-            paymentsToFailCSV = newFile("src/test/resources/paymentsToFailed.csv");
-
             Map<String, CreditAccountPaymentRequest> csvParseMap = new HashMap<>();
 
             //Create 10 PBA payments
             createCreditAccountPayments(csvParseMap, 5);
 
             //Create CSV
-            createCSV(csvParseMap, "paymentsToFailed.csv");
+            createCSV(csvParseMap, paymentsToFailCSV);
 
             //Invoke replay-credit-account-payment
             MockMultipartFile csvFile = new MockMultipartFile("csvFile", "paymentsToFailed.csv", "text/csv",
-                new FileInputStream(new File("src/test/resources/paymentsToFailed.csv")));
+                new FileInputStream(paymentsToFailCSV));
 
-            MvcResult result = restActions
+            restActions
                 .postWithMultiPartFileData("/replay-credit-account-payments",
                     csvFile, "isReplayPBAPayments", "false")
                 .andExpect(status().isOk())
@@ -237,39 +227,33 @@ public class ReplayCreditAccountPaymentControllerTest extends PaymentsDataUtil {
                 Assert.assertEquals("failed", existingPayment.getStatusHistories().get(0).getStatus());
             });
         } finally {
-            //Delete test csvfile
-            Files.delete(paymentsToFailCSV);
+            Files.deleteIfExists(paymentsToFailCSV.toPath());
         }
     }
 
     @Test
     public void replayCreditAccountPayment_AutomatedTest_BadRequest() throws Exception {
-        //create test csv file
-        final File testCSV = newFile("src/test/resources/emptyFile.csv");
+        File testCSV = createTempCsv("emptyFile");
 
-        //Invoke replay-credit-account-payment
-        MockMultipartFile csvFile = new MockMultipartFile("csvFile", "emptyFile.csv", "text/csv",
-            new FileInputStream(new File("src/test/resources/emptyFile.csv")));
+        try {
+            MockMultipartFile csvFile = new MockMultipartFile("csvFile", "emptyFile.csv", "text/csv",
+                new FileInputStream(testCSV));
 
-        MvcResult result = restActions
-            .postWithMultiPartFileData("/replay-credit-account-payments",
-                csvFile, "isReplayPBAPayments", "false")
-            .andExpect(status().isBadRequest())
-            .andReturn();
-
-        //Delete test csvfile
-        Files.delete(testCSV);
+            restActions
+                .postWithMultiPartFileData("/replay-credit-account-payments",
+                    csvFile, "isReplayPBAPayments", "false")
+                .andExpect(status().isBadRequest())
+                .andReturn();
+        } finally {
+            Files.deleteIfExists(testCSV.toPath());
+        }
     }
 
     @Test
     public void replayCreditAccountPayment_ReplayNewOnlyIfOldPaymentExists() throws Exception {
-
-        File paymentsToReplayCSV = null;
+        File paymentsToReplayCSV = createTempCsv("paymentsToReplay");
 
         try {
-            //create test csv file
-            paymentsToReplayCSV = newFile("src/test/resources/paymentsToReplay.csv");
-
             Map<String, CreditAccountPaymentRequest> csvParseMap = new HashMap<>();
 
             //Create 2 PBA payments
@@ -282,13 +266,13 @@ public class ReplayCreditAccountPaymentControllerTest extends PaymentsDataUtil {
             });
 
             //Create CSV
-            createCSV(csvParseMapWithIncorrectPayRef, "paymentsToReplay.csv");
+            createCSV(csvParseMapWithIncorrectPayRef, paymentsToReplayCSV);
 
             //Invoke replay-credit-account-payment
             MockMultipartFile csvFile = new MockMultipartFile("csvFile", "paymentsToReplay.csv", "text/csv",
-                new FileInputStream(new File("src/test/resources/paymentsToReplay.csv")));
+                new FileInputStream(paymentsToReplayCSV));
 
-            MvcResult result = restActions
+            restActions
                 .postWithMultiPartFileData("/replay-credit-account-payments",
                     csvFile, "isReplayPBAPayments", "true")
                 .andExpect(status().isOk())
@@ -304,13 +288,17 @@ public class ReplayCreditAccountPaymentControllerTest extends PaymentsDataUtil {
                 Assert.assertEquals("pending", paymentList.get(0).getPaymentStatus().getName());
             });
         } finally {
-            //Delete test csvfile
-            Files.delete(paymentsToReplayCSV);
+            Files.deleteIfExists(paymentsToReplayCSV.toPath());
         }
     }
 
-    private void createCSV(Map<String, CreditAccountPaymentRequest> csvParseMap, String fileName) throws IOException {
-        String csvFile = "src/test/resources/" + fileName;
+    private File createTempCsv(String prefix) throws IOException {
+        File csvFile = File.createTempFile(prefix, ".csv");
+        csvFile.deleteOnExit();
+        return csvFile;
+    }
+
+    private void createCSV(Map<String, CreditAccountPaymentRequest> csvParseMap, File csvFile) throws IOException {
         FileWriter writer = new FileWriter(csvFile);
 
         //for header
