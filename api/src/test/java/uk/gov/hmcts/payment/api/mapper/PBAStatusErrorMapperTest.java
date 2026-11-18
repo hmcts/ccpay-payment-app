@@ -33,6 +33,7 @@ import static org.mockito.Mockito.*;
 
 // new imports for LiberataRealTimeAPI tests
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -346,6 +347,7 @@ public class PBAStatusErrorMapperTest {
 
         HttpClientErrorException httpEx = mock(HttpClientErrorException.class);
         when(httpEx.getResponseBodyAs(PaymentAccountResponse.class)).thenReturn(errorResp);
+        when(httpEx.getStatusCode()).thenReturn(HttpStatus.BAD_REQUEST);
 
         when(liberataRestTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(PaymentAccountResponse.class)))
             .thenThrow(httpEx);
@@ -376,6 +378,7 @@ public class PBAStatusErrorMapperTest {
 
         HttpClientErrorException httpEx = mock(HttpClientErrorException.class);
         when(httpEx.getResponseBodyAs(PaymentAccountResponse.class)).thenThrow(new RuntimeException("parse fail"));
+        when(httpEx.getStatusCode()).thenReturn(HttpStatus.BAD_REQUEST);
 
         when(liberataRestTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(PaymentAccountResponse.class)))
             .thenThrow(httpEx);

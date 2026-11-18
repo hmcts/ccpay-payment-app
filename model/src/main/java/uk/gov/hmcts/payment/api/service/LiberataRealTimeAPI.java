@@ -165,9 +165,13 @@ public class LiberataRealTimeAPI {
     }
 
 
-    public PaymentAccountResponse payByAccount(PaymentAccountRequest paymentByAccountRequest) {
+    public PaymentAccountResponse payByAccount(PaymentAccountRequest paymentByAccountRequest){
+        return payByAccount(paymentByAccountRequest, false);
+    }
 
-        val tokenResponse = getValidToken();
+    private  PaymentAccountResponse payByAccount(PaymentAccountRequest paymentByAccountRequest, boolean forceRefreshToken) {
+
+        val tokenResponse = getTokenFromCacheOrRefresh(forceRefreshToken);
         val headers = new HttpHeaders();
         headers.setAccept(java.util.Collections.singletonList(MediaType.APPLICATION_JSON));
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -178,10 +182,30 @@ public class LiberataRealTimeAPI {
             return response.getBody();
         } catch (HttpClientErrorException  httpClientErrorException) {
             LOG.error("Error posting payment to Liberata: {}", httpClientErrorException.getMessage(), httpClientErrorException);
-             return getPaymentAccountResponseError(httpClientErrorException);
+            return evaluateError(httpClientErrorException, paymentByAccountRequest, forceRefreshToken);
         } catch (Exception exception) {
             LOG.error("Unexpected error posting payment to Liberata: {}", exception.getMessage(), exception);
             throw new LiberataIdentityException("Error posting payment to Liberata: " + exception.getMessage(), exception);
+        }
+    }
+
+
+    private TokenResponse getTokenFromCacheOrRefresh(boolean forceRefreshToken) {
+        if (forceRefreshToken) {
+            LOG.warn("Force refresh token requested. Refreshing token.");
+            return refreshToken();
+        }
+        return getValidToken();
+    }
+
+    private PaymentAccountResponse evaluateError(HttpClientErrorException httpClientErrorException, PaymentAccountRequest paymentByAccountRequest, boolean forceRefreshToken) {
+
+        if (hasStatus(httpClientErrorException, HttpStatus.UNAUTHORIZED) && forceRefreshToken == false) {
+            LOG.warn("Unauthorized posting payment to Liberata. Refreshing token and retrying once.");
+            return payByAccount  (paymentByAccountRequest, true);
+        } else {
+            LOG.error("Error posting payment to Liberata: {}", httpClientErrorException.getMessage(), httpClientErrorException);
+            return getPaymentAccountResponseError(httpClientErrorException);
         }
     }
 
