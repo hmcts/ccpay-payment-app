@@ -140,6 +140,7 @@ public class PBAPaymentMapperTest {
             .build();
 
         PaymentFeeLink pfl = PaymentFeeLink.paymentFeeLinkWith().fees(Collections.emptyList()).build();
+        when(paymentService.getServiceNameByCode(anyString())).thenReturn("NON-IAC-SERVICE");
 
         // act
         uk.gov.hmcts.payment.api.dto.liberata.PaymentAccountRequest accountRequest = pbaPaymentMapper.mapToPaymentByAccountRequest(request, "group-ref", payment, pfl);
@@ -157,7 +158,7 @@ public class PBAPaymentMapperTest {
     public void mapToPaymentByAccountRequest_IAC_should_use_iac_service_surname() {
         // arrange
         Payment payment = Payment.paymentWith()
-            .serviceType("IAC")
+            .serviceType(PBAPaymentMapper.IAC_SERVICE_NAME)
             .reference("RC-2")
             .siteId("SITE1")
             .amount(new BigDecimal("15.00"))
@@ -256,6 +257,7 @@ public class PBAPaymentMapperTest {
         Map<String, Fee2Dto> feeMap = new HashMap<>();
         feeMap.put("FEE0001", fee2Dto);
 
+        when(paymentService.getServiceNameByCode(anyString())).thenReturn("NON-IAC-SERVICE");
         when(feesService.getFeeVersion("FEE0001", "1")).thenReturn(java.util.Optional.of(feeVersionDto));
         when(feesService.getFeesDtoMap()).thenReturn(feeMap);
 
@@ -282,7 +284,7 @@ public class PBAPaymentMapperTest {
     public void mapToPaymentByAccountRequestFromServiceRequestPaymentDto_IAC_should_use_iac_surname_and_default_volume_to_one() {
         // arrange
         Payment payment = Payment.paymentWith()
-            .serviceType("IAC")
+            .serviceType(PBAPaymentMapper.IAC_SERVICE_NAME)
             .reference("RC-4")
             .siteId("SITE1")
             .amount(new BigDecimal("25.00"))
@@ -344,7 +346,7 @@ public class PBAPaymentMapperTest {
 
         when(feesService.getFeeVersion("FEE0002", "2")).thenReturn(java.util.Optional.of(feeVersionDto));
         when(feesService.getFeesDtoMap()).thenReturn(feeMap);
-        when(paymentService.getServiceNameByCode(anyString())).thenReturn("IAC-SERVICE");
+        when(paymentService.getServiceNameByCode(anyString())).thenReturn(PBAPaymentMapper.IAC_SERVICE_NAME);
         when(iacService.getIacSupplementaryInfo(anyList(), anyString())).thenReturn(new ResponseEntity<>(supplementary, HttpStatus.OK));
 
         // act
