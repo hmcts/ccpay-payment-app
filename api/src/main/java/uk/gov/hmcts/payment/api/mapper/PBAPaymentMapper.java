@@ -5,6 +5,7 @@ import lombok.val;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.fees2.register.api.contract.Fee2Dto;
@@ -18,6 +19,8 @@ import uk.gov.hmcts.payment.api.dto.liberata.PaymentAccountRequest;
 import uk.gov.hmcts.payment.api.dto.liberata.PaymentByAccountRequest;
 import uk.gov.hmcts.payment.api.dto.liberata.PaymentRequest;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
+import uk.gov.hmcts.payment.api.email.Email;
+import uk.gov.hmcts.payment.api.email.EmailService;
 import uk.gov.hmcts.payment.api.exception.IACServiceException;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
@@ -45,12 +48,22 @@ public class PBAPaymentMapper {
     @Autowired
     private final PaymentService<PaymentFeeLink, String> paymentService;
 
+    private final EmailService emailService;
+    private final String missingIacSurnameEmailFrom;
+    private final String[] missingIacSurnameEmailTo;
+
     @Autowired
     private IacService iacService;
-    public PBAPaymentMapper(PaymentService<PaymentFeeLink, String> paymentService, FeesService feesService, IacService iacService) {
+    public PBAPaymentMapper(PaymentService<PaymentFeeLink, String> paymentService, FeesService feesService, IacService iacService,
+                            EmailService emailService,
+                            @Value("${pba.iac.missing.surname.email.from:no-reply@reform.hmcts.net}") String missingIacSurnameEmailFrom,
+                            @Value("${pba.iac.missing.surname.email.to:dummy@reform.hmcts.net}") String[] missingIacSurnameEmailTo) {
         this.paymentService = paymentService;
         this.feesService = feesService;
         this.iacService = iacService;
+        this.emailService = emailService;
+        this.missingIacSurnameEmailFrom = missingIacSurnameEmailFrom;
+        this.missingIacSurnameEmailTo = missingIacSurnameEmailTo;
     }
 
     public PaymentAccountRequest mapToPaymentByAccountRequestFromServiceRequestPaymentDto(ServiceRequestPaymentDto serviceRequestPaymentDto, String groupReference, Payment payment, PaymentFeeLink paymentFeeLink ) {
@@ -99,6 +112,12 @@ public class PBAPaymentMapper {
                     || iacResponse.getBody().getSupplementaryInfo().getFirst().getSupplementaryDetails().getSurname().trim().isEmpty()) {
 
                     LOG.info("IAC response missing surname for payment reference: {}", paymentReference);
+                    emailService.sendEmail(Email.emailWith()
+                        .from(missingIacSurnameEmailFrom)
+                        .to(missingIacSurnameEmailTo)
+                        .subject("IAC response missing surname")
+                        .message("The payment with reference " + paymentReference + " does not specify a surname.")
+                        .build());
                     throw new IACServiceException("IAC response missing surname for payment reference: " + paymentReference);
                 }
                 return iacResponse.getBody().getSupplementaryInfo().getFirst().getSupplementaryDetails().getSurname();

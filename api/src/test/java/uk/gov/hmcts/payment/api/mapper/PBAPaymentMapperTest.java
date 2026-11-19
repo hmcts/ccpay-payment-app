@@ -17,6 +17,7 @@ import uk.gov.hmcts.payment.api.dto.SupplementaryPaymentDto;
 import uk.gov.hmcts.payment.api.dto.LiberataSupplementaryInfo;
 import uk.gov.hmcts.payment.api.dto.LiberataSupplementaryDetails;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
+import uk.gov.hmcts.payment.api.email.EmailService;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentChannel;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
@@ -51,11 +52,15 @@ public class PBAPaymentMapperTest {
     @Mock
     private IacService iacService;
 
+    @Mock
+    private EmailService emailService;
+
     private PBAPaymentMapper pbaPaymentMapper;
 
     @Before
     public void setUp() {
-        pbaPaymentMapper = new PBAPaymentMapper(paymentService, feesService, iacService);
+        pbaPaymentMapper = new PBAPaymentMapper(paymentService, feesService, iacService, emailService,
+            "from@example.test", new String[]{"payments@example.test"});
     }
 
     @Test
