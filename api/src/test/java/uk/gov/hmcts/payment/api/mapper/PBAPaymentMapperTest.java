@@ -159,7 +159,6 @@ public class PBAPaymentMapperTest {
         Payment payment = Payment.paymentWith()
             .serviceType("IAC")
             .reference("RC-2")
-            .serviceType("IAC")
             .siteId("SITE1")
             .amount(new BigDecimal("15.00"))
             .caseReference("case-ref")
@@ -198,7 +197,7 @@ public class PBAPaymentMapperTest {
             .supplementaryInfo(Collections.singletonList(info))
             .build();
 
-        when(paymentService.getServiceNameByCode(anyString())).thenReturn("IAC-SERVICE");
+        when(paymentService.getServiceNameByCode(anyString())).thenReturn(PBAPaymentMapper.IAC_SERVICE_NAME);
         when(iacService.getIacSupplementaryInfo(anyList(), anyString())).thenReturn(new ResponseEntity<>(supplementary, HttpStatus.OK));
 
         // act
@@ -308,7 +307,7 @@ public class PBAPaymentMapperTest {
 
         PaymentFeeLink pfl = PaymentFeeLink.paymentFeeLinkWith()
             .paymentReference("group-ref-iac")
-            .enterpriseServiceName("IAC")
+            .enterpriseServiceName(PBAPaymentMapper.IAC_SERVICE_NAME)
             .orgId("SITE1")
             .caseReference("case-ref")
             .ccdCaseNumber("ccd-1")
