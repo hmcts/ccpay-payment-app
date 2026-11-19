@@ -13,9 +13,12 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import uk.gov.hmcts.reform.auth.checker.core.RequestAuthorizer;
 import uk.gov.hmcts.reform.auth.checker.core.service.Service;
 import uk.gov.hmcts.reform.auth.checker.core.user.User;
+import uk.gov.hmcts.reform.auth.checker.core.user.UserRequestAuthorizer;
 import uk.gov.hmcts.reform.auth.checker.spring.serviceonly.AuthCheckerServiceOnlyFilter;
 
 
@@ -77,6 +80,17 @@ public class SpringSecurityConfiguration {
     @Bean
     @Order(3)
     protected SecurityFilterChain configureInternal(HttpSecurity http) throws Exception {
+
+        // Match decoded path segments as Spring MVC does, so an encoded URL such as /%63ancel cannot bypass the rule.
+        RequestMatcher cancellationEndpoint = PathPatternRequestMatcher.withDefaults()
+            .matcher(HttpMethod.POST, "/service-request/{service-request-reference}/cancel");
+
+        // A user Authorization header selects manual cancellation, which requires the payments role below.
+        // Automated cancellations carry only an S2S token and use the authenticated fallback rule.
+        RequestMatcher manualCancellationRequest = request ->
+            cancellationEndpoint.matches(request)
+                && request.getHeader(UserRequestAuthorizer.AUTHORISATION) != null;
+
         http.exceptionHandling(exceptionHandling -> exceptionHandling.accessDeniedHandler(accessDeniedHandler()))
             .addFilter(authCheckerUserOnlyFilter)
             .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(STATELESS))
@@ -102,6 +116,7 @@ public class SpringSecurityConfiguration {
                 .requestMatchers(HttpMethod.POST, "/payment-failures/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/payment-failures/**").hasAuthority(PAYMENTS_ROLE)
                 .requestMatchers(HttpMethod.PATCH, "/payment-failures/**").permitAll()
+                .requestMatchers(manualCancellationRequest).hasAuthority(PAYMENTS_ROLE)
                 .anyRequest().authenticated()
             );
         return http.build();

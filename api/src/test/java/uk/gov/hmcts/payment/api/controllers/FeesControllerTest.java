@@ -1,6 +1,8 @@
 package uk.gov.hmcts.payment.api.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -67,6 +69,10 @@ public class FeesControllerTest {
     private AuthTokenGenerator authTokenGenerator;
     @Autowired
     private SiteService<Site, String> siteServiceMock;
+
+    // This class runs each test in one transaction, so the two HTTP requests below share a persistence context.
+    @PersistenceContext
+    private EntityManager entityManager;
     @MockitoBean
     private RefundRemissionEnableService refundRemissionEnableService;
     MockMvc mvc;
@@ -161,6 +167,10 @@ public class FeesControllerTest {
         RemissionDto remissionDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), RemissionDto.class);
 
         Integer feeId = remissionDto.getFee().getId();
+        // Flush the remission and clear the first-level cache so deletion reloads the fee and its parent from the database.
+        // Separate production requests use separate persistence contexts; without this, the test can reuse the newly-created fee instance.
+        entityManager.flush();
+        entityManager.clear();
         MvcResult result1 = restActions.
             delete("/fees/" + feeId)
             .andExpect(status().isNoContent())

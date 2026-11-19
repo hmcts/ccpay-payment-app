@@ -45,4 +45,16 @@ public class PaymentGroupDto {
 
     private List<RefundDto> refunds;
 
+    @JsonProperty("cancelled")
+    private Boolean cancelled;
+
+    @JsonProperty("cancellation_reason")
+    private String cancellationReason;
+
+    @JsonProperty("cancelled_by")
+    private String cancelledBy;
+
+    @JsonProperty("date_cancelled")
+    private Date dateCancelled;
+
 }

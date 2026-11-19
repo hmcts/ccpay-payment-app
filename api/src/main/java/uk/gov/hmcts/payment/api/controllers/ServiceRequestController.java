@@ -2,72 +2,83 @@ package uk.gov.hmcts.payment.api.controllers;
 
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 
-    import com.fasterxml.jackson.core.JsonProcessingException;
-    import com.fasterxml.jackson.databind.ObjectMapper;
-    import com.fasterxml.jackson.databind.ObjectWriter;
-    import com.microsoft.azure.servicebus.IMessageReceiver;
-    import com.microsoft.azure.servicebus.TopicClient;
-    import com.microsoft.azure.servicebus.primitives.ServiceBusException;
-    import io.swagger.v3.oas.annotations.Operation;
-    import io.swagger.v3.oas.annotations.Parameter;
-    import io.swagger.v3.oas.annotations.responses.ApiResponse;
-    import io.swagger.v3.oas.annotations.responses.ApiResponses;
-    import io.swagger.v3.oas.annotations.tags.Tag;
-    import lombok.val;
-    import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
-    import org.slf4j.Logger;
-    import org.slf4j.LoggerFactory;
-    import org.springframework.beans.factory.annotation.Autowired;
-    import org.springframework.http.HttpStatus;
-    import org.springframework.http.ResponseEntity;
-    import org.springframework.transaction.annotation.Transactional;
-    import org.springframework.util.CollectionUtils;
-    import org.springframework.util.MultiValueMap;
-    import org.springframework.validation.BindingResult;
-    import org.springframework.validation.FieldError;
-    import org.springframework.web.bind.annotation.ExceptionHandler;
-    import org.springframework.web.bind.annotation.GetMapping;
-    import org.springframework.web.bind.annotation.PatchMapping;
-    import org.springframework.web.bind.annotation.PathVariable;
-    import org.springframework.web.bind.annotation.PostMapping;
-    import org.springframework.web.bind.annotation.RequestBody;
-    import org.springframework.web.bind.annotation.RequestHeader;
-    import org.springframework.web.bind.annotation.ResponseBody;
-    import org.springframework.web.bind.annotation.ResponseStatus;
-    import org.springframework.web.bind.annotation.RestController;
-    import uk.gov.hmcts.payment.api.contract.PaymentDto;
-    import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
-    import uk.gov.hmcts.payment.api.domain.service.IdempotencyService;
-    import uk.gov.hmcts.payment.api.domain.service.ServiceRequestDomainService;
-    import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentRequest;
-    import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentResponse;
-    import uk.gov.hmcts.payment.api.dto.PaymentStatusDto;
-    import uk.gov.hmcts.payment.api.dto.ServiceRequestResponseDto;
-    import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
-    import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
-    import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
-    import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
-    import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
-    import uk.gov.hmcts.payment.api.exception.LiberataServiceTimeoutException;
-    import uk.gov.hmcts.payment.api.exceptions.PaymentServiceNotFoundException;
-    import uk.gov.hmcts.payment.api.model.FeePayApportion;
-    import uk.gov.hmcts.payment.api.model.IdempotencyKeys;
-    import uk.gov.hmcts.payment.api.model.Payment;
-    import uk.gov.hmcts.payment.api.model.PaymentFee;
-    import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-    import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
-    import uk.gov.hmcts.payment.api.service.FeePayApportionService;
-    import uk.gov.hmcts.payment.api.service.PaymentService;
-    import uk.gov.hmcts.payment.api.service.FeesService;
-    import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotSuccessException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.microsoft.azure.servicebus.IMessageReceiver;
+import com.microsoft.azure.servicebus.TopicClient;
+import com.microsoft.azure.servicebus.primitives.ServiceBusException;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.val;
+import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.MultiValueMap;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+import uk.gov.hmcts.payment.api.configuration.security.AuthenticatedServiceIdSupplier;
+import uk.gov.hmcts.payment.api.configuration.security.AuthenticatedUserIdSupplier;
+import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
+import uk.gov.hmcts.payment.api.domain.service.IdempotencyService;
+import uk.gov.hmcts.payment.api.domain.service.ServiceRequestDomainService;
+import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentRequest;
+import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentResponse;
+import uk.gov.hmcts.payment.api.dto.PaymentStatusDto;
+import uk.gov.hmcts.payment.api.dto.ServiceRequestResponseDto;
+import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
+import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
+import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
+import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestCancelDto;
+import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
+import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
+import uk.gov.hmcts.payment.api.exception.InvalidServiceRequestCancellationException;
+import uk.gov.hmcts.payment.api.exception.LiberataServiceTimeoutException;
+import uk.gov.hmcts.payment.api.exceptions.ServiceRequestCancellationException;
+import uk.gov.hmcts.payment.api.exceptions.PaymentServiceNotFoundException;
+import uk.gov.hmcts.payment.api.exceptions.ServiceRequestReferenceNotFoundException;
+import uk.gov.hmcts.payment.api.model.FeePayApportion;
+import uk.gov.hmcts.payment.api.model.IdempotencyKeys;
+import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
+import uk.gov.hmcts.payment.api.service.FeePayApportionService;
+import uk.gov.hmcts.payment.api.service.PaymentService;
+import uk.gov.hmcts.payment.api.service.FeesService;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotSuccessException;
 
-    import jakarta.validation.Valid;
-    import java.io.IOException;
-    import java.util.List;
-    import java.util.Optional;
-    import java.util.concurrent.TimeUnit;
-    import java.util.function.Function;
-    import java.util.stream.Collectors;
+import jakarta.validation.Valid;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoAmountDue;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoMatchingAmount;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @RestController
 @Tag(name = "ServiceRequestController", description = "Service Request REST API")
@@ -76,6 +87,16 @@ public class ServiceRequestController {
 
     private static final Logger LOG = LoggerFactory.getLogger(ServiceRequestController.class);
     private static final String FAILED = "failed";
+    private static final String AUTO_CANCELLATION_REASON = "Auto-Cancelled by Service";
+    // matches the payment_fee_link.cancellation_reason column size
+    private static final int MAX_CANCELLATION_REASON_LENGTH = 255;
+    // Deliberately loose (<year>-<digits>). The PAY-9031 spec says \d{4}-\d{11}, but PaymentReference.getNext
+    // has generated several lengths after the year (see its git history):
+    //   Jan 2018 - Feb 2018: 8 digits, then briefly 10 digits
+    //   Feb 2018 - Aug 2019: 11 digits (time in ms / 100)
+    //   Aug 2019 - May 2024: 13 digits (time in ms / 100 + 2 random digits)
+    //   May 2024 onwards:    13 digits (payment_reference_seq, starting at 1750000000000)
+    private static final Pattern SERVICE_REQUEST_REFERENCE_PATTERN = Pattern.compile("^\\d{4}-\\d+$");
 
     private final ServiceRequestDomainService serviceRequestDomainService;
 
@@ -102,6 +123,13 @@ public class ServiceRequestController {
 
     @Autowired
     private FeesService feeService;
+
+    @Autowired
+    AuthenticatedUserIdSupplier userIdSupplier;
+
+    @Autowired
+    AuthenticatedServiceIdSupplier serviceIdSupplier;
+
 
     private String serviceRequestReference;
 
@@ -158,7 +186,7 @@ public class ServiceRequestController {
         @ApiResponse(responseCode = "403", description = "Payment failed due to insufficient funds or the account being on hold"),
         @ApiResponse(responseCode = "404", description = "Account information could not be found"),
         @ApiResponse(responseCode = "504", description = "Unable to retrieve account information, please try again later"),
-        @ApiResponse(responseCode = "409", description = "Payment has been recieved more than once"),
+        @ApiResponse(responseCode = "409", description = "Payment has been received more than once, or service request has been cancelled"),
         @ApiResponse(responseCode = "412", description = "The serviceRequest has already been paid, or the PBA account is inactive or on hold"),
         @ApiResponse(responseCode = "417", description = "The amount should be equal to serviceRequest balance"),
         @ApiResponse(responseCode = "422", description = "Invalid or missing attribute"),
@@ -213,12 +241,11 @@ public class ServiceRequestController {
         String responseJson;
         String idempotencyKey = serviceRequestPaymentDto.getIdempotencyKey();
 
-        // Load service request
-        PaymentFeeLink serviceRequest = serviceRequestDomainService.businessValidationForServiceRequests(
-            serviceRequestDomainService.find(serviceRequestReference), serviceRequestPaymentDto);
+
+        // TODO note that original exceptions thrown here would go to RestErrorHandler and idempotency record not updated. Was this intentional?
 
         try {
-            serviceRequestPaymentBo = serviceRequestDomainService.addPayments(serviceRequest, serviceRequestReference, serviceRequestPaymentDto);
+            serviceRequestPaymentBo = serviceRequestDomainService.addPayments(serviceRequestReference, serviceRequestPaymentDto);
             HttpStatus httpStatus;
             if(serviceRequestPaymentBo.getError() != null && serviceRequestPaymentBo.getError().getErrorCode().equals("CA-E0004")) {
                 httpStatus = HttpStatus.GONE; //410 for deleted pba accounts
@@ -238,6 +265,23 @@ public class ServiceRequestController {
             LOG.error("PBA-CID={}, serviceRequestReference={}, Exception from Liberata for PBA payment {}", idempotencyKey, serviceRequestReference, liberataServiceTimeoutException);
             responseEntity = new ResponseEntity<>(liberataServiceTimeoutException.getMessage(), HttpStatus.GATEWAY_TIMEOUT);
             responseJson = liberataServiceTimeoutException.getMessage();
+        } catch (ServiceRequestCancellationException ex) {
+            LOG.error("PBA-CID={}, serviceRequestReference={}, ServiceRequestCancellationException: {}", idempotencyKey, serviceRequestReference, ex.getMessage());
+            responseEntity = new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT);
+            responseJson = ex.getMessage();
+        } catch (ServiceRequestReferenceNotFoundException ex) {
+            // Rethrow, let the generic handler deal with it, and don't complete the idempotency record.
+            // was that the intention of the original code?
+            // TODO check this
+            throw(ex);
+        } catch (ServiceRequestExceptionForNoAmountDue ex) {
+            LOG.error("PBA-CID={}, serviceRequestReference={}, ServiceRequestExceptionForNoAmountDue: {}", idempotencyKey, serviceRequestReference, ex.getMessage());
+            responseEntity = new ResponseEntity<>(ex.getMessage(), HttpStatus.PRECONDITION_FAILED);
+            responseJson = ex.getMessage();
+        } catch (ServiceRequestExceptionForNoMatchingAmount ex) {
+            LOG.error("PBA-CID={}, serviceRequestReference={}, ServiceRequestExceptionForNoMatchingAmount: {}", idempotencyKey, serviceRequestReference, ex.getMessage());
+            responseEntity = new ResponseEntity<>(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
+            responseJson = ex.getMessage();
         } catch (Exception ex) {
             LOG.error("PBA-CID={}, serviceRequestReference={}, Exception from Liberata for PBA payment {}", idempotencyKey, serviceRequestReference, ex);
             responseEntity = new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -264,7 +308,11 @@ public class ServiceRequestController {
                 if (!idempotencyKeys.getRequestHashcode().equals(serviceRequestPaymentDto.hashCodeWithServiceRequestReference(serviceRequestReference))) {
                     return conflictResponse;
                 }
-                if (idempotencyKeys.getResponseCode() >= 500) {
+                int responseCode = idempotencyKeys.getResponseCode();
+                if (responseCode >= 500
+                    || responseCode == HttpStatus.CONFLICT.value()
+                    || responseCode == HttpStatus.PRECONDITION_FAILED.value()
+                    || responseCode == HttpStatus.EXPECTATION_FAILED.value()) {
                     return new ResponseEntity<>(idempotencyKeys.getResponseBody(), HttpStatus.valueOf(idempotencyKeys.getResponseCode()));
                 }
                 responseBO = objectMapper.readValue(idempotencyKeys.getResponseBody(), ServiceRequestPaymentBo.class);
@@ -307,7 +355,7 @@ public class ServiceRequestController {
         @ApiResponse(responseCode = "400", description = "Bad request. Payment creation failed"),
         @ApiResponse(responseCode = "403", description = "Unauthenticated request"),
         @ApiResponse(responseCode = "404", description = "Service request not found"),
-        @ApiResponse(responseCode = "409", description = "Idempotency key already exist with different payment details"),
+        @ApiResponse(responseCode = "409", description = "Idempotency key already exists with different payment details, or service request has been cancelled"),
         @ApiResponse(responseCode = "412", description = "The order has already been paid"),
         @ApiResponse(responseCode = "422", description = "Invalid or missing attributes"),
         @ApiResponse(responseCode = "425", description = "Too many requests.\n There is already a payment request is in process for this service request."),
@@ -319,7 +367,6 @@ public class ServiceRequestController {
     @PostMapping(value = "/service-request/{service-request-reference}/card-payments")
     @ResponseBody
     @ResponseStatus(HttpStatus.CREATED)
-    @Transactional
     public ResponseEntity<OnlineCardPaymentResponse> createCardPayment(@Parameter(name = "return-url", hidden = true) @RequestHeader(required = false) String returnURL,
                                                                        @RequestHeader(value = "service-callback-url", required = false) String serviceCallbackURL,
                                                                        @PathVariable("service-request-reference") String serviceRequestReference,
@@ -374,6 +421,68 @@ public class ServiceRequestController {
     @ExceptionHandler(PaymentServiceNotFoundException.class)
     public String paymentNotSuccess(PaymentServiceNotFoundException ex) {
         return ex.getMessage();
+    }
+
+    @Operation(summary = "Cancel Service Request", description = "Cancel Service Request for a given Service Request Reference.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "Cancellation applied, or SR was already cancelled (idempotent)"),
+        @ApiResponse(responseCode = "400", description = "Invalid/missing request attributes (e.g. no value for reason)",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class))),
+        @ApiResponse(responseCode = "401", description = "Credentials are required to access this resource"),
+        @ApiResponse(responseCode = "403", description = "Forbidden-Access Denied"),
+        @ApiResponse(responseCode = "404", description = "Service request not found"),
+        @ApiResponse(responseCode = "409", description = "Service request cannot be cancelled",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class))),
+        @ApiResponse(responseCode = "504", description = "Unable to check bulk scanning for unallocated payments, please try again later",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class)))
+    })
+    @RateLimiter(name = "default-rate-limiter")
+    @PostMapping(value = "/service-request/{service-request-reference}/cancel")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void cancelServiceRequest(@PathVariable("service-request-reference") String serviceRequestReference,
+                                     @Valid @RequestBody(required = false) ServiceRequestCancelDto serviceRequestCancelDto,
+                                     @Parameter(description = "User token; omit for an automated cancellation by a service")
+                                     @RequestHeader(value = "Authorization", required = false) String authorization) {
+        if (!SERVICE_REQUEST_REFERENCE_PATTERN.matcher(serviceRequestReference).matches()) {
+            throw new InvalidServiceRequestCancellationException("invalid service request reference format");
+        }
+
+        final boolean manualCancellation = authorization != null;
+        LOG.info("Request to cancel service request {} ({} cancellation)", serviceRequestReference,
+            manualCancellation ? "manual" : "automated");
+        String reason = serviceRequestCancelDto == null ? null : serviceRequestCancelDto.getReason();
+
+        if (serviceRequestCancelDto != null && !serviceRequestCancelDto.getUnknownProperties().isEmpty()) {
+            throw new InvalidServiceRequestCancellationException(
+                "unknown field(s) in request body: " + String.join(", ", serviceRequestCancelDto.getUnknownProperties()));
+        }
+
+        if ((manualCancellation || serviceRequestCancelDto != null) && isBlank(reason)) {
+            throw new InvalidServiceRequestCancellationException(manualCancellation
+                ? "cancellation reason needs to be supplied for manual service request cancellation"
+                : "cancellation reason must have a value when body supplied");
+        }
+
+        if (reason != null && reason.length() > MAX_CANCELLATION_REASON_LENGTH) {
+            throw new InvalidServiceRequestCancellationException(
+                "cancellation reason must not exceed %d characters".formatted(MAX_CANCELLATION_REASON_LENGTH));
+        }
+
+        if (!manualCancellation && reason == null) {
+            reason = AUTO_CANCELLATION_REASON;
+        }
+
+        String cancelledBy = manualCancellation ? userIdSupplier.get() : serviceIdSupplier.get();
+        if (isBlank(cancelledBy)) {
+            throw new InvalidServiceRequestCancellationException(
+                "could not determine id for %s service request cancellation".formatted(manualCancellation ? "manual" : "automated"));
+        }
+
+        serviceRequestDomainService.cancel(serviceRequestReference, cancelledBy, reason);
+    }
+
+    private static boolean isBlank(String s) {
+        return (s == null || s.isBlank());
     }
 
 }
