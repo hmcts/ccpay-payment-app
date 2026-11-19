@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.functional;
 
+import io.restassured.response.Response;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.apache.commons.lang3.RandomUtils;
 import org.assertj.core.api.Assertions;
@@ -8,6 +9,7 @@ import org.joda.time.LocalDateTime;
 import org.junit.*;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
@@ -472,26 +474,16 @@ public class PBAPaymentFunctionalTest {
     }
 
     @Test
-    public void makeAndRetrievePbaPaymentByIACService() throws InterruptedException {
+    public void failMakeAndRetrievePbaPaymentByIACServiceDueToNotFoundSurnameForCase() throws InterruptedException {
 
         String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
         String accountNumber = testProps.existingAccountNumber;
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequestForIAC("90.00", "IAC");
         accountPaymentRequest.setAccountNumber(accountNumber);
-        PaymentDto paymentDto = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
-            .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
-        paymentReference = paymentDto.getReference();
-        Thread.sleep(2000);
-        String endDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
 
-        dsl.given().userToken(USER_TOKEN).s2sToken(SERVICE_TOKEN).when()
-            .searchPaymentsByServiceBetweenDates("Immigration and Asylum Appeals", startDate, endDate).then()
-            .getPayments((paymentsResponse -> {
-                Assertions.assertThat(paymentsResponse.getPayments().size()).isGreaterThanOrEqualTo(1);
-                PaymentDto retrievedPaymentDto = paymentsResponse.getPayments().stream()
-                    .filter(o -> o.getPaymentReference().equals(paymentDto.getReference())).findFirst().get();
-                assertEquals(paymentDto.getReference(), retrievedPaymentDto.getPaymentReference());
-            }));
+        Response response = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest);
+        Assertions.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+        Assertions.assertThat(response.getBody().asString()).contains("Error occurred while fetching supplementary info from IAC service");
     }
 
     @Test

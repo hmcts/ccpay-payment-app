@@ -7,10 +7,13 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
@@ -30,12 +33,19 @@ import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
-import uk.gov.hmcts.payment.api.dto.AccountDto;
+import uk.gov.hmcts.payment.api.dto.LiberataSupplementaryDetails;
+import uk.gov.hmcts.payment.api.dto.LiberataSupplementaryInfo;
 import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
+import uk.gov.hmcts.payment.api.dto.SupplementaryPaymentDto;
+import uk.gov.hmcts.payment.api.dto.liberata.FeeRequest;
+import uk.gov.hmcts.payment.api.dto.liberata.PaymentAccountRequest;
 import uk.gov.hmcts.payment.api.dto.liberata.PaymentAccountResponse;
 import uk.gov.hmcts.payment.api.dto.liberata.PaymentAccountResponseStatus;
+import uk.gov.hmcts.payment.api.dto.liberata.PaymentByAccountRequest;
+import uk.gov.hmcts.payment.api.dto.liberata.PaymentRequest;
 import uk.gov.hmcts.payment.api.dto.liberata.identity.TokenResponse;
+import uk.gov.hmcts.payment.api.mapper.PBAPaymentMapper;
 import uk.gov.hmcts.payment.api.mapper.PBAStatusErrorMapper;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.Payment2Repository;
@@ -46,10 +56,11 @@ import uk.gov.hmcts.payment.api.model.PaymentMethod;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.model.StatusHistory;
 import uk.gov.hmcts.payment.api.reports.FeesService;
+import uk.gov.hmcts.payment.api.service.IacService;
 import uk.gov.hmcts.payment.api.service.LiberataRealTimeAPI;
+import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.service.RefundRemissionEnableService;
-import uk.gov.hmcts.payment.api.util.AccountStatus;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
@@ -74,6 +85,8 @@ import static java.lang.String.format;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -107,6 +120,9 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     @MockitoBean
     protected  LiberataRealTimeAPI liberataRealTimeAPI;
 
+    @Mock
+    private PaymentService paymentService;
+
     @MockitoBean
     private SiteService<Site, String> siteServiceMock;
     @MockitoBean
@@ -127,6 +143,9 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
     @MockitoBean
     private FeesService feesService;
+
+    @MockitoBean
+    private PBAPaymentMapper pBAPaymentMapper;
 
     protected CustomResultMatcher body() {
         return new CustomResultMatcher(objectMapper);
@@ -739,14 +758,22 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         assertNotNull(paymentDto);
     }
 
+
+
+
     @Test
     public void givenLiberataCheckOnAndCheckLiberataAccountForAllSericesOffThenOnlyIACTriggersLiberataCheck() throws Exception {
 
         CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithIACJson().getBytes(), CreditAccountPaymentRequest.class);
-
+        when(pBAPaymentMapper.mapToPaymentByAccountRequest(any(), anyString(), any(), any())).thenReturn(createPaymentAccountRequest());
         when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
+
+        when(paymentService.getServiceNameByCode(anyString())).thenReturn(PBAPaymentMapper.IAC_SERVICE_NAME);
+
+
         when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
         when(feesService.getFeesDtoMap()).thenReturn(getFeesDtoMap());
+
 
         MvcResult result = restActions
             .post("/credit-account-payments", request)
@@ -809,7 +836,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     @Test
     public void givenLiberataCheckOffAndCheckLiberataAccountForAllServicesOnThenAllServicesTriggerLiberataCheck_FPLA() throws Exception {
 
-        CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithFPLAJson().getBytes(), CreditAccountPaymentRequest.class);
+        CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithFPLJson().getBytes(), CreditAccountPaymentRequest.class);
 
         when(liberataRealTimeAPI.payByAccount(any())).thenReturn(getSuccessPaymentAccountResponse());
         when(feesService.getFeeVersion(any(),any())).thenReturn(getFeeVersionDto());
@@ -1224,6 +1251,38 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         long createdAt = System.currentTimeMillis() / 1000L;
         long expiresIn = createdAt + 3600L; // expires in 1 hour
         return new TokenResponse("", expiresIn, createdAt);
+    }
+
+    private PaymentAccountRequest createPaymentAccountRequest() {
+        List<FeeRequest> fees = new ArrayList<>();
+        fees.add(FeeRequest.feeWith()
+            .calculatedAmount("101.89")
+            .code("X0101")
+            .version("1")
+            .build());
+
+        PaymentRequest paymentRequest = PaymentRequest.paymentDtoWith()
+            .serviceName("PROBATE")
+            .groupReference("2024-11-19-123456")
+            .paymentReference("RC-1234-5678-1234")
+            .amount("101.89")
+            .currency("GBP")
+            .siteId("ABA6")
+            .caseReference("12345")
+            .ccdCaseNumber("CCD103")
+            .customerReference("CUST101")
+            .surname("Test")
+            .fee(fees)
+            .build();
+
+        PaymentByAccountRequest paymentByAccountRequest = PaymentByAccountRequest.paymentByAccountRequestWith()
+            .pbaNumber("AC101010")
+            .payment(paymentRequest)
+            .build();
+
+        return PaymentAccountRequest.paymentAccountRequestWith()
+            .paymentByAccountRequest(paymentByAccountRequest)
+            .build();
     }
 
     private PaymentAccountResponse getSuccessPaymentAccountResponse() {
