@@ -25,7 +25,7 @@ public interface ServiceRequestDomainService {
 
     ServiceRequestResponseDto create(ServiceRequestDto serviceRequestDto, MultiValueMap<String, String> headers);
 
-    ServiceRequestPaymentBo addPayments(PaymentFeeLink serviceRequest, String serviceRequestReference, ServiceRequestPaymentDto serviceRequestPaymentDto) throws CheckDigitException;
+    ServiceRequestPaymentBo addPayments(String serviceRequestReference, ServiceRequestPaymentDto serviceRequestPaymentDto) throws CheckDigitException;
 
     ResponseEntity<OnlineCardPaymentResponse> create(OnlineCardPaymentRequest onlineCardPaymentRequest, String serviceRequestReference, String returnURL, String serviceCallbackURL) throws CheckDigitException;
 
@@ -44,4 +44,12 @@ public interface ServiceRequestDomainService {
 
     IMessageReceiver createDLQConnection() throws ServiceBusException, InterruptedException;
 
+    /**
+     * Cancels the service request.
+     *
+     * @param serviceRequestReference reference of the service request to cancel
+     * @param cancelledBy             identifier of the user or service requesting the cancellation
+     * @param reason                  cancellation reason
+     */
+    void cancel(String serviceRequestReference, String cancelledBy, String reason);
 }

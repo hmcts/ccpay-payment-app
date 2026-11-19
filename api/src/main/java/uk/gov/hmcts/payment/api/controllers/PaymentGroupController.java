@@ -74,6 +74,7 @@ import uk.gov.hmcts.payment.api.service.PciPalPaymentService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.service.TelephonySystem;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
+import uk.gov.hmcts.payment.api.util.ServiceRequests;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.DuplicatePaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidFeeRequestException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidPaymentGroupReferenceException;
@@ -220,7 +221,8 @@ public class PaymentGroupController {
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Fee(s) added to Payment Group"),
         @ApiResponse(responseCode = "400", description = "Payment group creation failed"),
-        @ApiResponse(responseCode = "404", description = "Payment Group not found")
+        @ApiResponse(responseCode = "404", description = "Payment Group not found"),
+        @ApiResponse(responseCode = "409", description = "Service request has been cancelled")
     })
     @RateLimiter(name = "default-rate-limiter")
     @PutMapping(value = "/payment-groups/{payment-group-reference}")
@@ -244,6 +246,7 @@ public class PaymentGroupController {
     @ApiResponses(value = {
         @ApiResponse(responseCode = "201", description = "Bulk Scan Payment created"),
         @ApiResponse(responseCode = "400", description = "Bulk Scan Payment creation failed"),
+        @ApiResponse(responseCode = "409", description = "Service request has been cancelled"),
         @ApiResponse(responseCode = "422", description = "Invalid or missing attribute")
     })
     @RateLimiter(name = "default-rate-limiter")
@@ -360,6 +363,7 @@ public class PaymentGroupController {
     @ApiResponses(value = {
         @ApiResponse(responseCode = "201", description = "Bulk Scan Payment created"),
         @ApiResponse(responseCode = "400", description = "Bulk Scan Payment creation failed"),
+        @ApiResponse(responseCode = "409", description = "Service request has been cancelled"),
         @ApiResponse(responseCode = "422", description = "Invalid or missing attribute"),
         @ApiResponse(responseCode = "404", description = "No Service found for given CaseType"),
         @ApiResponse(responseCode = "504", description = "Unable to retrieve service information. Please try again later")
@@ -547,6 +551,7 @@ public class PaymentGroupController {
     @ApiResponses(value = {
         @ApiResponse(responseCode = "201", description = "Payment created"),
         @ApiResponse(responseCode = "400", description = "Payment creation failed"),
+        @ApiResponse(responseCode = "409", description = "Service request has been cancelled"),
         @ApiResponse(responseCode = "412", description = "Telephony configuration not supported"),
         @ApiResponse(responseCode = "422", description = "Invalid or missing attribute")
     })
@@ -561,8 +566,10 @@ public class PaymentGroupController {
 
         validateDefaultTelephonySystem(telephonyCardPaymentsRequest);
 
-        final TelephonyProviderAuthorisationResponse telephonyProviderAuthorisationResponse;
-        PaymentFeeLink paymentLink = paymentGroupService.findByPaymentGroupReference(paymentGroupReference);
+        PaymentFeeLink paymentLink = paymentGroupService.findByPaymentGroupReferenceForUpdate(paymentGroupReference);
+
+        ServiceRequests.requireNotCancelled(paymentLink);
+
         LOG.info("--------Here is the value of getTelephonySystem: {}", telephonyCardPaymentsRequest.getTelephonySystem());
 
         headers.forEach((key, values) -> {
@@ -599,7 +606,7 @@ public class PaymentGroupController {
         // Set the user based on Kerv or Antenna systems.
         String userName = telephonySystem.getSystemName().equals(KervTelephonySystem.TELEPHONY_SYSTEM_NAME) ? idamUserId : antennaUserName;
 
-        telephonyProviderAuthorisationResponse = handleTelephonyProviderAuthorisation(telephonyCardPaymentsRequest, pciPalPaymentRequest, telephonySystem, organisationalServiceDto, userName);
+        final TelephonyProviderAuthorisationResponse telephonyProviderAuthorisationResponse = handleTelephonyProviderAuthorisation(telephonyCardPaymentsRequest, pciPalPaymentRequest, telephonySystem, organisationalServiceDto, userName);
         TelephonyCardPaymentsResponse telephonyCardPaymentsResponse = telephonyDtoMapper.toTelephonyCardPaymentsResponse(paymentLink, payment, telephonyProviderAuthorisationResponse);
 
         // trigger Apportion based on the launch darkly feature flag

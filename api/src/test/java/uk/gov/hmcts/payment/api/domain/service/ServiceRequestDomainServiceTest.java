@@ -23,6 +23,7 @@ import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestPaymentDtoDomainMapp
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestBo;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestOnlinePaymentBo;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
+import uk.gov.hmcts.payment.api.domain.service.ServiceRequestCancellationEligibilityService.Eligibility;
 import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
@@ -45,6 +46,10 @@ import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
 import uk.gov.hmcts.payment.api.model.PaymentMethod;
 import uk.gov.hmcts.payment.api.model.PaymentProvider;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
+import uk.gov.hmcts.payment.api.exceptions.ServiceRequestCancellationException;
+import uk.gov.hmcts.payment.api.jpaaudit.model.AuditEventsType;
+import uk.gov.hmcts.payment.api.jpaaudit.model.PaymentAuditHistory;
+import uk.gov.hmcts.payment.api.jpaaudit.model.PaymentAuditHistoryRepository;
 import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.service.FeePayApportionService;
@@ -60,10 +65,13 @@ import java.math.RoundingMode;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -101,6 +109,12 @@ public class ServiceRequestDomainServiceTest {
 
     @Mock
     private PaymentFeeLinkRepository paymentFeeLinkRepository;
+
+    @Mock
+    private ServiceRequestCancellationEligibilityService cancellationEligibilityService;
+
+    @Mock
+    private PaymentAuditHistoryRepository paymentAuditHistoryRepository;
 
     @Mock
     private ServiceRequestBo orderBo;
@@ -354,6 +368,8 @@ public class ServiceRequestDomainServiceTest {
             .payment(paymentReference)
             .build();
 
+        when(paymentFeeLinkRepository.findByPaymentReferenceForUpdate("123"))
+            .thenReturn(Optional.of(getPaymentFeeLink()));
         when(serviceRequestPaymentDtoDomainMapper.toDomain(any())).thenReturn(serviceRequestPaymentBo);
 
         when(serviceRequestPaymentDomainDataEntityMapper.toEntity(any(),any())).thenReturn(payment,paymentFailed);
@@ -373,7 +389,7 @@ public class ServiceRequestDomainServiceTest {
         when(paymentGroupDtoMapper.toPaymentGroupDto(any())).thenReturn(paymentGroupDto);
 
         ServiceRequestPaymentBo bo =
-             serviceRequestDomainService.addPayments(getPaymentFeeLink(), "123", serviceRequestPaymentDto);
+             serviceRequestDomainService.addPayments("123", serviceRequestPaymentDto);
 
         assertNull(bo);
     }
@@ -420,6 +436,8 @@ public class ServiceRequestDomainServiceTest {
             .payment(paymentReference)
             .build();
 
+        when(paymentFeeLinkRepository.findByPaymentReferenceForUpdate("123"))
+            .thenReturn(Optional.of(getPaymentFeeLink()));
         when(serviceRequestPaymentDtoDomainMapper.toDomain(any())).thenReturn(serviceRequestPaymentBo);
 
         when(serviceRequestPaymentDomainDataEntityMapper.toEntity(any(),any())).thenReturn(payment,paymentFailed);
@@ -440,7 +458,7 @@ public class ServiceRequestDomainServiceTest {
         when(paymentGroupDtoMapper.toPaymentGroupDto(any())).thenReturn(paymentGroupDto);
         try{
             ServiceRequestPaymentBo bo =
-                serviceRequestDomainService.addPayments(getPaymentFeeLink(), "123", serviceRequestPaymentDto);
+                serviceRequestDomainService.addPayments("123", serviceRequestPaymentDto);
         }catch(Exception ex){
             assertEquals(ex.getMessage(),"Unable to retrieve account information due to timeout");
         }
@@ -489,6 +507,8 @@ public class ServiceRequestDomainServiceTest {
             .payment(paymentReference)
             .build();
 
+        when(paymentFeeLinkRepository.findByPaymentReferenceForUpdate("123"))
+            .thenReturn(Optional.of(getPaymentFeeLink()));
         when(serviceRequestPaymentDtoDomainMapper.toDomain(any())).thenReturn(serviceRequestPaymentBo);
 
         when(serviceRequestPaymentDomainDataEntityMapper.toEntity(any(),any())).thenReturn(payment,paymentFailed);
@@ -509,7 +529,7 @@ public class ServiceRequestDomainServiceTest {
         when(paymentGroupDtoMapper.toPaymentGroupDto(any())).thenReturn(paymentGroupDto);
         try{
             ServiceRequestPaymentBo bo =
-                serviceRequestDomainService.addPayments(getPaymentFeeLink(), "123", serviceRequestPaymentDto);
+                serviceRequestDomainService.addPayments("123", serviceRequestPaymentDto);
         }catch(Exception ex){
             assertEquals(ex.getMessage(),"Unable to retrieve account information, please try again later");
         }
@@ -559,6 +579,8 @@ public class ServiceRequestDomainServiceTest {
             .payment(paymentReference)
             .build();
 
+        when(paymentFeeLinkRepository.findByPaymentReferenceForUpdate("123"))
+            .thenReturn(Optional.of(getPaymentFeeLink()));
         when(serviceRequestPaymentDtoDomainMapper.toDomain(any())).thenReturn(serviceRequestPaymentBo);
 
         when(serviceRequestPaymentDomainDataEntityMapper.toEntity(any(),any())).thenReturn(payment,paymentFailed);
@@ -575,11 +597,74 @@ public class ServiceRequestDomainServiceTest {
         when(paymentGroupDtoMapper.toPaymentGroupDto(any())).thenReturn(paymentGroupDto);
         try{
             ServiceRequestPaymentBo bo =
-                serviceRequestDomainService.addPayments(getPaymentFeeLink(), "123", serviceRequestPaymentDto);
+                serviceRequestDomainService.addPayments("123", serviceRequestPaymentDto);
         }catch(Exception ex){
             assertEquals(ex.getMessage(),"Account information could not be found");
         }
 
+    }
+
+    @Test
+    public void addPaymentsRejectsCancelledServiceRequestBeforeCreatingPayment() throws Exception {
+        String serviceRequestReference = "123";
+        PaymentFeeLink cancelledServiceRequest = getPaymentFeeLink();
+        cancelledServiceRequest.setCancelled(true);
+        when(paymentFeeLinkRepository.findByPaymentReferenceForUpdate(serviceRequestReference))
+            .thenReturn(Optional.of(cancelledServiceRequest));
+
+        ServiceRequestPaymentDto paymentDto = ServiceRequestPaymentDto.paymentDtoWith()
+            .accountNumber("1234")
+            .amount(new BigDecimal("99.99"))
+            .build();
+
+        assertThatThrownBy(() -> serviceRequestDomainService.addPayments(serviceRequestReference, paymentDto))
+            .isInstanceOf(ServiceRequestCancellationException.class)
+            .hasMessage("Service request cancelled");
+
+        verify(paymentFeeLinkRepository).findByPaymentReferenceForUpdate(serviceRequestReference);
+        verify(serviceRequestPaymentDtoDomainMapper, Mockito.never()).toDomain(any());
+        verify(accountService, Mockito.never()).retrieve(anyString());
+    }
+
+    @Test
+    public void addPaymentsValidatesAmountAfterAcquiringCancellationLock() throws Exception {
+        String serviceRequestReference = "123";
+        PaymentFeeLink serviceRequest = getPaymentFeeLink();
+        when(paymentFeeLinkRepository.findByPaymentReferenceForUpdate(serviceRequestReference))
+            .thenReturn(Optional.of(serviceRequest));
+        ServiceRequestPaymentDto paymentDto = ServiceRequestPaymentDto.paymentDtoWith()
+            .accountNumber("1234")
+            .amount(new BigDecimal("100.00"))
+            .build();
+
+        assertThatThrownBy(() -> serviceRequestDomainService.addPayments(serviceRequestReference, paymentDto))
+            .isInstanceOf(ServiceRequestExceptionForNoMatchingAmount.class)
+            .hasMessage("The amount should be equal to serviceRequest balance");
+
+        verify(paymentFeeLinkRepository).findByPaymentReferenceForUpdate(serviceRequestReference);
+        verify(serviceRequestPaymentDtoDomainMapper, Mockito.never()).toDomain(any());
+        verify(accountService, Mockito.never()).retrieve(anyString());
+    }
+
+    @Test
+    public void addPaymentsRejectsPaidServiceRequestAfterAcquiringCancellationLock() throws Exception {
+        String serviceRequestReference = "123";
+        PaymentFeeLink serviceRequest = getPaymentFeeLink();
+        serviceRequest.getFees().getFirst().setAmountDue(BigDecimal.ZERO);
+        when(paymentFeeLinkRepository.findByPaymentReferenceForUpdate(serviceRequestReference))
+            .thenReturn(Optional.of(serviceRequest));
+        ServiceRequestPaymentDto paymentDto = ServiceRequestPaymentDto.paymentDtoWith()
+            .accountNumber("1234")
+            .amount(new BigDecimal("99.99"))
+            .build();
+
+        assertThatThrownBy(() -> serviceRequestDomainService.addPayments(serviceRequestReference, paymentDto))
+            .isInstanceOf(ServiceRequestExceptionForNoAmountDue.class)
+            .hasMessage("The serviceRequest has already been paid");
+
+        verify(paymentFeeLinkRepository).findByPaymentReferenceForUpdate(serviceRequestReference);
+        verify(serviceRequestPaymentDtoDomainMapper, Mockito.never()).toDomain(any());
+        verify(accountService, Mockito.never()).retrieve(anyString());
     }
 
 
@@ -591,7 +676,7 @@ public class ServiceRequestDomainServiceTest {
             .amount(new BigDecimal(99.99).setScale(2, RoundingMode.HALF_EVEN))
             .build();
 
-        when(paymentFeeLinkRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(getPaymentFeeLink()));
+        when(paymentFeeLinkRepository.findByPaymentReferenceForUpdate(anyString())).thenReturn(Optional.of(getPaymentFeeLink()));
 
         ServiceRequestOnlinePaymentBo serviceRequestOnlinePaymentBo = ServiceRequestOnlinePaymentBo.serviceRequestOnlinePaymentBo()
                 .paymentReference("RC-ref")
@@ -664,7 +749,7 @@ public class ServiceRequestDomainServiceTest {
             .payments(payments)
             .build();
 
-        when(paymentFeeLinkRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(paymentFeeLink));
+        when(paymentFeeLinkRepository.findByPaymentReferenceForUpdate(anyString())).thenReturn(Optional.of(paymentFeeLink));
 
         ResponseEntity<OnlineCardPaymentResponse> response = serviceRequestDomainService.create(
             onlineCardPaymentRequest,
@@ -747,7 +832,7 @@ public class ServiceRequestDomainServiceTest {
             .payments(payments)
             .build();
 
-        when(paymentFeeLinkRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(paymentFeeLink));
+        when(paymentFeeLinkRepository.findByPaymentReferenceForUpdate(anyString())).thenReturn(Optional.of(paymentFeeLink));
 
         GovPayPayment successfulGovPayPayment = GovPayPayment.govPaymentWith()
             .amount(9999)
@@ -797,7 +882,7 @@ public class ServiceRequestDomainServiceTest {
             .build();
         PaymentFeeLink paymentFeeLinkMock = mock(PaymentFeeLink.class);
 
-        when(paymentFeeLinkRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(getPaymentFeeLinkWithPayments()));
+        when(paymentFeeLinkRepository.findByPaymentReferenceForUpdate(anyString())).thenReturn(Optional.of(getPaymentFeeLinkWithPayments()));
 
         ServiceRequestOnlinePaymentBo serviceRequestOnlinePaymentBo = ServiceRequestOnlinePaymentBo.serviceRequestOnlinePaymentBo()
             .paymentReference("RC-ref")
@@ -955,6 +1040,72 @@ public class ServiceRequestDomainServiceTest {
         assertFalse(result);
     }
 
+    @Test
+    public void cancelServiceRequestUpdatesCancellationDetails() {
+        // Unit test: the service dependencies are mocked and the PaymentFeeLink is updated in memory.
+        // Database persistence is covered by ServiceRequestComponentTest.
+        String serviceRequestReference = "payment-ref";
+        String cancellationReason = "The service request was created in error";
+        String cancelledBy = "user-123";
+        PaymentFeeLink paymentFeeLink = getPaymentFeeLink();
+
+        when(paymentFeeLinkRepository.findByPaymentReferenceForUpdate(serviceRequestReference))
+            .thenReturn(Optional.of(paymentFeeLink));
+        when(cancellationEligibilityService.checkEligibility(paymentFeeLink))
+            .thenReturn(Eligibility.eligible());
+        when(cancellationEligibilityService.ccdCaseNumbers(paymentFeeLink)).thenReturn(Set.of("1607065108455502"));
+        serviceRequestDomainService.cancel(serviceRequestReference, cancelledBy, cancellationReason);
+
+        verify(paymentFeeLinkRepository).findByPaymentReferenceForUpdate(serviceRequestReference);
+        assertThat(paymentFeeLink.isCancelled()).isTrue();
+        assertThat(paymentFeeLink.getCancellationReason()).isEqualTo(cancellationReason);
+        assertThat(paymentFeeLink.getCancelledBy()).isEqualTo(cancelledBy);
+        assertThat(paymentFeeLink.getDateCancelled()).isNotNull();
+        ArgumentCaptor<PaymentAuditHistory> auditHistoryCaptor = ArgumentCaptor.forClass(PaymentAuditHistory.class);
+        verify(paymentAuditHistoryRepository).save(auditHistoryCaptor.capture());
+        assertThat(auditHistoryCaptor.getValue().getAuditType()).isEqualTo(AuditEventsType.ORDER_CANCELLED);
+        assertThat(auditHistoryCaptor.getValue().getCcdCaseNo()).isEqualTo("1607065108455502");
+    }
+
+    @Test
+    public void cancelServiceRequestAuditsTheFirstCaseNumber() {
+        // Which case numbers a service request has is tested in ServiceRequestCancellationEligibilityServiceTest.
+        String serviceRequestReference = "payment-ref";
+        PaymentFeeLink paymentFeeLink = getPaymentFeeLink();
+
+        when(paymentFeeLinkRepository.findByPaymentReferenceForUpdate(serviceRequestReference))
+            .thenReturn(Optional.of(paymentFeeLink));
+        when(cancellationEligibilityService.checkEligibility(paymentFeeLink))
+            .thenReturn(Eligibility.eligible());
+        when(cancellationEligibilityService.ccdCaseNumbers(paymentFeeLink))
+            .thenReturn(new LinkedHashSet<>(List.of("1794310324094755", "6543210987654321")));
+        serviceRequestDomainService.cancel(serviceRequestReference, "user-123", "reason");
+
+        ArgumentCaptor<PaymentAuditHistory> auditHistoryCaptor = ArgumentCaptor.forClass(PaymentAuditHistory.class);
+        verify(paymentAuditHistoryRepository).save(auditHistoryCaptor.capture());
+        assertThat(auditHistoryCaptor.getValue().getCcdCaseNo()).isEqualTo("1794310324094755");
+    }
+
+    @Test
+    public void cancelServiceRequestRejectsIneligibleServiceRequestWithReason() {
+        String serviceRequestReference = "payment-ref";
+        String ineligibleReason = "Service request has a successful payment RC-1234-1234-1234";
+        PaymentFeeLink paymentFeeLink = getPaymentFeeLink();
+
+        when(paymentFeeLinkRepository.findByPaymentReferenceForUpdate(serviceRequestReference))
+            .thenReturn(Optional.of(paymentFeeLink));
+        when(cancellationEligibilityService.checkEligibility(paymentFeeLink))
+            .thenReturn(Eligibility.ineligible(ineligibleReason));
+
+        assertThatThrownBy(() -> serviceRequestDomainService.cancel(serviceRequestReference, "user-123", "reason"))
+            .isInstanceOf(ServiceRequestCancellationException.class)
+            .hasMessage(ineligibleReason);
+
+        assertThat(paymentFeeLink.isCancelled()).isFalse();
+        assertThat(paymentFeeLink.getCancellationReason()).isNull();
+        verify(paymentAuditHistoryRepository, Mockito.never()).save(any());
+    }
+
 
     private ServiceRequestFeeDto getOrderFee() {
         return ServiceRequestFeeDto.feeDtoWith()
@@ -1022,3 +1173,4 @@ public class ServiceRequestDomainServiceTest {
     }
 
 }
+
