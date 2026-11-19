@@ -56,8 +56,8 @@ public class PBAPaymentMapper {
     private IacService iacService;
     public PBAPaymentMapper(PaymentService<PaymentFeeLink, String> paymentService, FeesService feesService, IacService iacService,
                             EmailService emailService,
-                            @Value("${pba.iac.missing.surname.email.from:dummy}") String missingIacSurnameEmailFrom,
-                            @Value("${pba.iac.missing.surname.email.to:dummy}") String[] missingIacSurnameEmailTo) {
+                            @Value("${pba.iac.missing.surname.email.from:no-reply@reform.hmcts.net}") String missingIacSurnameEmailFrom,
+                            @Value("${pba.iac.missing.surname.email.to:dummy@reform.hmcts.net}") String[] missingIacSurnameEmailTo) {
         this.paymentService = paymentService;
         this.feesService = feesService;
         this.iacService = iacService;
