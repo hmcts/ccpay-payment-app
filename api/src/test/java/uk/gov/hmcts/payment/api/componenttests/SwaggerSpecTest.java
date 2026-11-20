@@ -176,13 +176,25 @@ class SwaggerSpecTest {
         JsonNode properties = spec("payment2").at("/components/schemas/ServiceRequestCancelDto/properties");
         assertThat(fieldNames(properties)).containsExactly("reason");
         assertThat(properties.at("/reason/type").asText()).isEqualTo("string");
+        assertThat(properties.at("/reason/maxLength").asInt()).isEqualTo(255);
+    }
+
+    @Test
+    void cancelServiceRequestDocumentsTheReferenceFormat() throws Exception {
+        JsonNode reference = pathParameter(operation(CANCEL), "service-request-reference");
+
+        assertThat(reference.at("/schema/pattern").asText()).isEqualTo("^\\d{4}-\\d+$");
+        assertThat(reference.path("example").asText()).matches("^\\d{4}-\\d+$");
     }
 
     @Test
     void cancelServiceRequestDocumentsItsResponses() throws Exception {
         JsonNode responses = operation(CANCEL).path("responses");
 
-        assertThat(fieldNames(responses)).contains("204", "400", "401", "403", "404", "409", "504");
+        assertThat(fieldNames(responses)).contains("204", "400", "403", "404", "409", "504")
+            // Authentication failures are refused with 403, never 401.
+            .doesNotContain("401");
+        assertThat(responses.at("/403/description").asText()).contains("payments role");
         assertThat(responses.at("/409/description").asText()).startsWith("Service request cannot be cancelled.");
         assertThat(responses.at("/504/description").asText()).contains("bulk scanning");
     }
@@ -274,6 +286,15 @@ class SwaggerSpecTest {
         List<String> values = new ArrayList<>();
         response.at("/content/application~1json/examples").forEach(example -> values.add(example.path("value").asText()));
         return values;
+    }
+
+    private static JsonNode pathParameter(JsonNode operation, String name) {
+        for (JsonNode parameter : operation.path("parameters")) {
+            if ("path".equals(parameter.path("in").asText()) && name.equals(parameter.path("name").asText())) {
+                return parameter;
+            }
+        }
+        throw new AssertionError("no path parameter %s on %s".formatted(name, operation.path("operationId").asText()));
     }
 
     private static JsonNode header(JsonNode operation, String name) {

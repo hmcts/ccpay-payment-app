@@ -97,7 +97,9 @@ public class ServiceRequestController {
     //   Feb 2018 - Aug 2019: 11 digits (time in ms / 100)
     //   Aug 2019 - May 2024: 13 digits (time in ms / 100 + 2 random digits)
     //   May 2024 onwards:    13 digits (payment_reference_seq, starting at 1750000000000)
-    private static final Pattern SERVICE_REQUEST_REFERENCE_PATTERN = Pattern.compile("^\\d{4}-\\d+$");
+    // A four-digit year, a dash and digits. A constant String as well as a Pattern, so that Swagger can document it.
+    private static final String SERVICE_REQUEST_REFERENCE_REGEX = "^\\d{4}-\\d+$";
+    private static final Pattern SERVICE_REQUEST_REFERENCE_PATTERN = Pattern.compile(SERVICE_REQUEST_REFERENCE_REGEX);
 
     private final ServiceRequestDomainService serviceRequestDomainService;
 
@@ -432,9 +434,13 @@ public class ServiceRequestController {
     // errors, not a JSON string; RestErrorHandler explains why. The description says so for readers of Swagger UI,
     // which shows the examples in quotes.
     @Operation(summary = "Cancel Service Request", description = "Cancel Service Request for a given Service Request Reference. "
+        + "A manual cancellation, by a user, sends an Authorization header and a reason. An automated cancellation, by a "
+        + "service, omits the Authorization header, and the reason is optional. Cancelling a service request that is "
+        + "already cancelled succeeds with 204 and changes nothing. A 409 means the service request is not eligible for "
+        + "cancellation. "
         + "Error responses carry the message as plain text, not as a quoted JSON string, whatever the Content-Type.")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "204", description = "Cancellation applied, or SR was already cancelled (idempotent)"),
+        @ApiResponse(responseCode = "204", description = "Cancellation applied, or the service request was already cancelled"),
         @ApiResponse(responseCode = "400", description = "Invalid/missing request attributes (e.g. no value for reason)",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class), examples = {
                 @ExampleObject(name = "Invalid reference", value = INVALID_REFERENCE_FORMAT,
@@ -452,8 +458,10 @@ public class ServiceRequestController {
                 @ExampleObject(name = "Automated canceller unknown", value = AUTOMATED_CANCELLER_UNKNOWN,
                     summary = "The service's name cannot be determined from the ServiceAuthorization token")
             })),
-        @ApiResponse(responseCode = "401", description = "Credentials are required to access this resource"),
-        @ApiResponse(responseCode = "403", description = "Forbidden-Access Denied"),
+        // No 401: Spring Security refuses every authentication failure on this endpoint with 403.
+        @ApiResponse(responseCode = "403", description = "The ServiceAuthorization token is missing or invalid, or the "
+            + "service is not allowed to cancel; the Authorization token is invalid; or the user does not have the "
+            + "payments role. The body is empty."),
         @ApiResponse(responseCode = "404", description = "Service request not found"),
         @ApiResponse(responseCode = "409", description = "Service request cannot be cancelled. Where a payment blocks "
             + "cancellation, the message ends with that payment's reference in place of %s.",
@@ -479,7 +487,7 @@ public class ServiceRequestController {
                 @ExampleObject(name = "Unallocated bulk scan payment", value = UNALLOCATED_BULK_SCAN_PAYMENT,
                     summary = "Bulk scanning has unallocated payments on one of the service request's cases")
             })),
-        @ApiResponse(responseCode = "504", description = "Unable to check bulk scanning for unallocated payments, please try again later",
+        @ApiResponse(responseCode = "504", description = "Unable to check bulk scanning; the service request has not been cancelled",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class), examples = {
                 @ExampleObject(name = "Bulk scanning unavailable", value = BULK_SCANNING_UNAVAILABLE,
                     summary = "Bulk scanning, or the IDAM login it needs, failed or did not respond")
@@ -488,7 +496,9 @@ public class ServiceRequestController {
     @RateLimiter(name = "default-rate-limiter")
     @PostMapping(value = "/service-request/{service-request-reference}/cancel")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void cancelServiceRequest(@PathVariable("service-request-reference") String serviceRequestReference,
+    public void cancelServiceRequest(@Parameter(description = "The service request's reference: a four-digit year, a dash and digits",
+                                         example = "2026-1234567890123", schema = @Schema(pattern = SERVICE_REQUEST_REFERENCE_REGEX))
+                                     @PathVariable("service-request-reference") String serviceRequestReference,
                                      @Valid @RequestBody(required = false) ServiceRequestCancelDto serviceRequestCancelDto,
                                      @Parameter(description = "User token: supplied for manual cancellation, omit for automated cancellation by a service")
                                      @RequestHeader(value = "Authorization", required = false) String authorization) {
