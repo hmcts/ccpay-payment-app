@@ -100,6 +100,9 @@ public class TestConfigProperties {
 
     @Value("${bulk.scanning.payments.processed.url}")
     public String bulkScanUrl;
+  
+    @Value("${refund.api.url}")
+    public String refundApiUrl;
 
     @Value("${ccd.api.url}")
     public String ccdApiUrl;

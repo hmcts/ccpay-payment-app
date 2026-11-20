@@ -19,7 +19,7 @@ properties([
     ])
 ])
 
-@Library("Infrastructure@2.13.5")
+@Library("Infrastructure@2.14.0")
 
 def type = "java"
 def product = "payment"
