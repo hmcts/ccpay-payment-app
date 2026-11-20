@@ -625,7 +625,7 @@ public class PBAPaymentFunctionalTest {
     @Test
     public void makePbaPaymentWithProbateSolicitorUsingProbatePbaAccount() {
         // create a PBA payment
-        String accountNumber = testProps.probatePbaAccountNumber;
+        String accountNumber = testProps.existingAccountNumber;
 
         String accessToken = idamService.authenticateUser(testProps.getProbateSolicitorUser(), testProps.getProbateSolicitorPassword());
 
