@@ -114,11 +114,19 @@ public class PBAStatusErrorMapper {
             LOG.info("Payment request failed. " + paymentAccountResponse.getMessage() + " PBA account {}" + accountNumber);
 
             // check if the reason code is present in the response and if it is mapped to an error code, this done for deleted and on hold accounts.
-            if(paymentAccountResponse.getReason() != null && PBA_REASON_CODE_MAP.containsKey(paymentAccountResponse.getReason())) {
+            if(paymentAccountResponse.getReason() != null ) {
                 payment.getStatusHistories().getFirst().setStatus(payment.getPaymentStatus().getName());
-                payment.getStatusHistories().getFirst().setErrorCode(PBA_REASON_CODE_MAP.get(paymentAccountResponse.getReason()));
-                payment.getStatusHistories().getFirst().setMessage(PBA_MESSAGES_CODE_MAP.get(paymentAccountResponse.getReason()));
-                return;
+                if (isAnAccuntOnHold(paymentAccountResponse)) {
+                    payment.getStatusHistories().getFirst().setErrorCode(PBA_REASON_CODE_MAP.get(ON_HOLD));
+                    payment.getStatusHistories().getFirst().setMessage(PBA_MESSAGES_CODE_MAP.get(ON_HOLD));
+                    LOG.info("Payment request failed. PBA account {} is on hold and temporarily unavailable.", accountNumber);
+                    return;
+                } else if (isAnAccuntDeleted(paymentAccountResponse)) {
+                    payment.getStatusHistories().getFirst().setErrorCode(PBA_REASON_CODE_MAP.get(DELETED));
+                    payment.getStatusHistories().getFirst().setMessage(PBA_MESSAGES_CODE_MAP.get(DELETED));
+                    LOG.info("Payment request failed. PBA account {} has been deleted and is no longer available.", accountNumber);
+                    return;
+                }
             }
             payment.getStatusHistories().getFirst().setStatus(payment.getPaymentStatus().getName());
             payment.getStatusHistories().getFirst().setErrorCode(PBA_ERROR_CODE_MAP.get(paymentAccountResponse.getMessage()));
@@ -126,8 +134,13 @@ public class PBAStatusErrorMapper {
         }
     }
 
+    private boolean isAnAccuntOnHold(PaymentAccountResponse paymentAccountResponse) {
+        return paymentAccountResponse.getReason() != null && (paymentAccountResponse.getReason().equals(ON_HOLD));
+    }
 
-
+    private boolean isAnAccuntDeleted(PaymentAccountResponse paymentAccountResponse) {
+        return paymentAccountResponse.getReason() != null && (paymentAccountResponse.getReason().equals(DELETED));
+    }
 
     // This method is used to get the message for the error code. If the error code is "Exceeded credit limit.",
     // it will return a custom message with the account number. Otherwise, it will return the message from the paymentAccountResponse.
