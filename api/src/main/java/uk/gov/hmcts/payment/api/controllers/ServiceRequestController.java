@@ -427,7 +427,12 @@ public class ServiceRequestController {
         return ex.getMessage();
     }
 
-    @Operation(summary = "Cancel Service Request", description = "Cancel Service Request for a given Service Request Reference.")
+    // The error responses are documented as application/json because that is the Content-Type a client sending
+    // "Accept: application/json" receives. The body is the message as unquoted plain text, as for Payment App's other
+    // errors, not a JSON string; RestErrorHandler explains why. The description says so for readers of Swagger UI,
+    // which shows the examples in quotes.
+    @Operation(summary = "Cancel Service Request", description = "Cancel Service Request for a given Service Request Reference. "
+        + "Error responses carry the message as plain text, not as a quoted JSON string, whatever the Content-Type.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "204", description = "Cancellation applied, or SR was already cancelled (idempotent)"),
         @ApiResponse(responseCode = "400", description = "Invalid/missing request attributes (e.g. no value for reason)",
@@ -465,9 +470,9 @@ public class ServiceRequestController {
                     summary = "A payment on the service request has status submitted"),
                 @ExampleObject(name = "Unknown payment status", value = UNKNOWN_PAYMENT_STATUS,
                     summary = "A payment has a status other than failed, error, decline or cancelled"),
-                @ExampleObject(name = "Remissions", value = REMISSIONS_EXISTING,
+                @ExampleObject(name = "Remissions", value = REMISSIONS_EXIST,
                     summary = "The service request has a remission"),
-                @ExampleObject(name = "Payment allocation", value = PAYMENT_ALLOCATION_EXISTING,
+                @ExampleObject(name = "Payment allocation", value = PAYMENT_ALLOCATION_EXIST,
                     summary = "A payment on the service request has been allocated"),
                 @ExampleObject(name = "No system user", value = BULK_SCANNING_NOT_CHECKED_WITHOUT_SYSTEM_USER,
                     summary = "Bulk scanning needs checking, but payment-app has no IDAM system user configured"),

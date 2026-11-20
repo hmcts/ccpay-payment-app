@@ -53,9 +53,9 @@ public class ServiceRequestCancellationEligibilityService {
 
     // Every reason is documented in ServiceRequestCancellationErrors, so add any new reason there.
     private static final Eligibility REMISSIONS_EXISTING_ON_SR =
-        Eligibility.ineligible(ServiceRequestCancellationErrors.REMISSIONS_EXISTING);
+        Eligibility.ineligible(ServiceRequestCancellationErrors.REMISSIONS_EXIST);
     private static final Eligibility PAYMENT_ALLOCATION_EXISTING_ON_SR =
-        Eligibility.ineligible(ServiceRequestCancellationErrors.PAYMENT_ALLOCATION_EXISTING);
+        Eligibility.ineligible(ServiceRequestCancellationErrors.PAYMENT_ALLOCATION_EXIST);
     private static final Eligibility UNALLOCATED_BULK_SCAN_PAYMENT_ON_CASE =
         Eligibility.ineligible(ServiceRequestCancellationErrors.UNALLOCATED_BULK_SCAN_PAYMENT);
     private static final Eligibility BULK_SCANNING_NOT_CHECKED_WITHOUT_SYSTEM_USER =

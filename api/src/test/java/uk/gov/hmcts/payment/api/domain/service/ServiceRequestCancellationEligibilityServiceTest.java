@@ -194,7 +194,7 @@ class ServiceRequestCancellationEligibilityServiceTest {
     void blocksCancellationWhenTheServiceRequestHasARemission() {
         assertThatSR(PaymentFeeLink.paymentFeeLinkWith().remissions(List.of(new Remission())).build())
             .isNotCancellable()
-            .withReason("remissions existing on SR");
+            .withReason("Service request has a remission");
     }
 
     @Test
@@ -206,7 +206,7 @@ class ServiceRequestCancellationEligibilityServiceTest {
             .build();
 
         assertThatSR(paymentFeeLink(payment)).isNotCancellable()
-            .withReason("payment allocation existing on SR");
+            .withReason("Service request has an allocated payment");
     }
 
     @Test
@@ -220,7 +220,7 @@ class ServiceRequestCancellationEligibilityServiceTest {
         givenBulkScanningReturns(uk.gov.hmcts.payment.api.dto.PaymentStatus.COMPLETE);
 
         assertThatSR(paymentFeeLinkForCase(CCD_CASE_NUMBER)).isNotCancellable()
-            .withReason("unallocated bulk scan payment existing on case");
+            .withReason("Case has an unallocated bulk scan payment");
     }
 
     @Test
@@ -228,7 +228,7 @@ class ServiceRequestCancellationEligibilityServiceTest {
         givenBulkScanningReturns(uk.gov.hmcts.payment.api.dto.PaymentStatus.INCOMPLETE);
 
         assertThatSR(paymentFeeLinkForCase(CCD_CASE_NUMBER)).isNotCancellable()
-            .withReason("unallocated bulk scan payment existing on case");
+            .withReason("Case has an unallocated bulk scan payment");
     }
 
     @Test
@@ -274,7 +274,7 @@ class ServiceRequestCancellationEligibilityServiceTest {
         givenBulkScanningReturns(uk.gov.hmcts.payment.api.dto.PaymentStatus.COMPLETE);
 
         assertThatSR(paymentFeeLink).isNotCancellable()
-            .withReason("unallocated bulk scan payment existing on case");
+            .withReason("Case has an unallocated bulk scan payment");
     }
 
     @Test
@@ -283,7 +283,7 @@ class ServiceRequestCancellationEligibilityServiceTest {
         givenBulkScanningReturns(uk.gov.hmcts.payment.api.dto.PaymentStatus.INCOMPLETE);
 
         assertThatSR(paymentFeeLink).isNotCancellable()
-            .withReason("unallocated bulk scan payment existing on case");
+            .withReason("Case has an unallocated bulk scan payment");
     }
 
     @Test
@@ -296,7 +296,7 @@ class ServiceRequestCancellationEligibilityServiceTest {
                 .allPaymentsStatus(uk.gov.hmcts.payment.api.dto.PaymentStatus.COMPLETE).build()));
 
         assertThatSR(paymentFeeLink).isNotCancellable()
-            .withReason("unallocated bulk scan payment existing on case");
+            .withReason("Case has an unallocated bulk scan payment");
         verify(bulkScanningClient).findPaymentsForCase(CCD_CASE_NUMBER);
         verify(bulkScanningClient).findPaymentsForCase(OTHER_CCD_CASE_NUMBER);
     }
@@ -355,7 +355,7 @@ class ServiceRequestCancellationEligibilityServiceTest {
         when(bulkScanningClient.canAuthenticate()).thenReturn(false);
 
         assertThatSR(paymentFeeLinkForCase(CCD_CASE_NUMBER)).isNotCancellable()
-            .withReason("unable to check bulk scanning for unallocated payments as no system user is configured");
+            .withReason("Unable to check bulk scanning for unallocated payments as no system user is configured");
         verify(bulkScanningClient, never()).findPaymentsForCase(any());
     }
 
@@ -416,7 +416,7 @@ class ServiceRequestCancellationEligibilityServiceTest {
     @Test
     void propagatesBulkScanningFailure() {
         BulkScanningServiceUnavailableException failure =
-            new BulkScanningServiceUnavailableException("unable to check bulk scanning for unallocated payments", null);
+            new BulkScanningServiceUnavailableException("Unable to check bulk scanning for unallocated payments, try again later", null);
         when(bulkScanningClient.findPaymentsForCase(CCD_CASE_NUMBER)).thenThrow(failure);
 
         assertThatThrownBy(() -> service.checkEligibility(paymentFeeLinkForCase(CCD_CASE_NUMBER)))

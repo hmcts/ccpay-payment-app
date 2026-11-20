@@ -15,6 +15,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
@@ -266,8 +267,7 @@ public class ServiceRequestComponentTest {
         serviceOnlyRestActions()
             .post("/service-request/%s/cancel".formatted(serviceRequestReference))
             .andExpect(status().isConflict())
-            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$").value(ineligibleReason));
+            .andExpect(errorMessage(ineligibleReason));
 
         PaymentFeeLink unchanged = paymentFeeLinkRepository.findByPaymentReference(serviceRequestReference)
             .orElseThrow();
@@ -433,12 +433,12 @@ public class ServiceRequestComponentTest {
         serviceOnlyRestActions()
             .post(endpoint, paymentRequest)
             .andExpect(status().isConflict())
-            .andExpect(jsonPath("$").value(message));
+            .andExpect(errorMessage(message));
 
         serviceOnlyRestActions()
             .post(endpoint, paymentRequest)
             .andExpect(status().isConflict())
-            .andExpect(jsonPath("$").value(message));
+            .andExpect(errorMessage(message));
 
         PaymentFeeLink unchanged = paymentFeeLinkRepository.findByPaymentReference(serviceRequestReference)
             .orElseThrow();
@@ -527,7 +527,7 @@ public class ServiceRequestComponentTest {
         serviceOnlyRestActions()
             .post("/service-request/%s/card-payments".formatted(serviceRequestReference), paymentRequest)
             .andExpect(status().isConflict())
-            .andExpect(jsonPath("$").value(message));
+            .andExpect(errorMessage(message));
 
         PaymentFeeLink unchanged = paymentFeeLinkRepository.findByPaymentReference(serviceRequestReference)
             .orElseThrow();
@@ -662,6 +662,18 @@ public class ServiceRequestComponentTest {
                 .netAmount(amount)
                 .build()))
             .build());
+    }
+
+    /**
+     * Payment App's error responses carry the message as unquoted plain text (see RestErrorHandler). It is labelled
+     * application/json because RestActions sends "Accept: application/json", but it is not valid JSON. The body is
+     * compared as a string, because jsonPath("$") would pass by parsing the unquoted text leniently, and so would not
+     * show what clients get. If the errors become real JSON, this is the one place to change in this class.
+     */
+    private static ResultMatcher errorMessage(String message) {
+        return ResultMatcher.matchAll(
+            content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON),
+            content().string(message));
     }
 
     private RestActions serviceOnlyRestActions() {

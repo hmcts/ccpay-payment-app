@@ -81,7 +81,6 @@ import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
@@ -1125,7 +1124,7 @@ public class ServiceRequestControllerTest {
             restActions
                 .post("/service-request/" + serviceRequestReference + "/pba-payments", paymentDto)
                 .andExpect(status().is(status.value()))
-                .andExpect(jsonPath("$").value(message));
+                .andExpect(errorMessage(message));
 
             verify(serviceRequestDomainService, never()).addPayments(eq(serviceRequestReference), any());
         }
@@ -1310,7 +1309,7 @@ public class ServiceRequestControllerTest {
         serviceOnlyRestActions()
             .post("/service-request/" + serviceRequestReference + "/cancel", cancellation)
             .andExpect(status().isBadRequest())
-            .andExpect(cancellationError("cancellation reason must have a value when body supplied"));
+            .andExpect(errorMessage("Cancellation reason must have a value when a body is supplied"));
 
         verify(serviceRequestDomainService, never()).cancel(anyString(), anyString(), any());
     }
@@ -1325,7 +1324,7 @@ public class ServiceRequestControllerTest {
         manualCancellationRestActions()
             .post("/service-request/" + serviceRequestReference + "/cancel", cancellation)
             .andExpect(status().isBadRequest())
-            .andExpect(cancellationError("cancellation reason needs to be supplied for manual service request cancellation"));
+            .andExpect(errorMessage("Cancellation reason needs to be supplied for manual service request cancellation"));
 
         verify(serviceRequestDomainService, never()).cancel(anyString(), anyString(), any());
     }
@@ -1337,7 +1336,7 @@ public class ServiceRequestControllerTest {
         manualCancellationRestActions()
             .post("/service-request/" + serviceRequestReference + "/cancel")
             .andExpect(status().isBadRequest())
-            .andExpect(cancellationError("cancellation reason needs to be supplied for manual service request cancellation"));
+            .andExpect(errorMessage("Cancellation reason needs to be supplied for manual service request cancellation"));
 
         verify(serviceRequestDomainService, never()).cancel(anyString(), anyString(), any());
     }
@@ -1352,7 +1351,7 @@ public class ServiceRequestControllerTest {
         manualCancellationRestActions()
             .post("/service-request/" + serviceRequestReference + "/cancel", cancellation)
             .andExpect(status().isBadRequest())
-            .andExpect(cancellationError("cancellation reason must not exceed 255 characters"));
+            .andExpect(errorMessage("Cancellation reason must not exceed 255 characters"));
 
         verify(serviceRequestDomainService, never()).cancel(anyString(), anyString(), any());
     }
@@ -1363,7 +1362,7 @@ public class ServiceRequestControllerTest {
             serviceOnlyRestActions()
                 .post("/service-request/" + serviceRequestReference + "/cancel")
                 .andExpect(status().isBadRequest())
-                .andExpect(cancellationError("invalid service request reference format"));
+                .andExpect(errorMessage("Invalid service request reference format"));
         }
 
         verify(serviceRequestDomainService, never()).cancel(anyString(), anyString(), any());
@@ -1392,7 +1391,7 @@ public class ServiceRequestControllerTest {
         serviceOnlyRestActions()
             .post("/service-request/" + serviceRequestReference + "/cancel", cancellation)
             .andExpect(status().isBadRequest())
-            .andExpect(cancellationError("unknown field(s) in request body: unexpected"));
+            .andExpect(errorMessage("Unknown field(s) in request body: unexpected"));
 
         verify(serviceRequestDomainService, never()).cancel(anyString(), anyString(), any());
     }
@@ -1439,15 +1438,21 @@ public class ServiceRequestControllerTest {
         manualCancellationRestActions()
             .post("/service-request/" + serviceRequestReference + "/cancel", cancellation)
             .andExpect(status().isBadRequest())
-            .andExpect(cancellationError("cancellation reason needs to be supplied for manual service request cancellation"));
+            .andExpect(errorMessage("Cancellation reason needs to be supplied for manual service request cancellation"));
 
         verify(serviceRequestDomainService, never()).cancel(anyString(), anyString(), any());
     }
 
-    private static ResultMatcher cancellationError(String error) {
+    /**
+     * Payment App's error responses carry the message as unquoted plain text (see RestErrorHandler). It is labelled
+     * application/json because RestActions sends "Accept: application/json", but it is not valid JSON. The body is
+     * compared as a string, because jsonPath("$") would pass by parsing the unquoted text leniently, and so would not
+     * show what clients get. If the errors become real JSON, this is the one place to change in this class.
+     */
+    private static ResultMatcher errorMessage(String message) {
         return ResultMatcher.matchAll(
             content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON),
-            jsonPath("$").value(error));
+            content().string(message));
     }
 
     private RestActions serviceOnlyRestActions() {
@@ -1480,7 +1485,7 @@ public class ServiceRequestControllerTest {
         manualCancellationRestActions()
             .post("/service-request/" + serviceRequestReference + "/cancel", cancellation)
             .andExpect(status().isConflict())
-            .andExpect(cancellationError(reason));
+            .andExpect(errorMessage(reason));
     }
 
     @Test

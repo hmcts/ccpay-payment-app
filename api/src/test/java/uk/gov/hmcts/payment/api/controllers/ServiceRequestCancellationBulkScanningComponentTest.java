@@ -94,7 +94,7 @@ class ServiceRequestCancellationBulkScanningComponentTest {
 
         automatedCancellationRestActions().post("/service-request/%s/cancel".formatted(serviceRequestReference))
             .andExpect(status().isConflict())
-            .andExpect(content().string("unallocated bulk scan payment existing on case"));
+            .andExpect(content().string("Case has an unallocated bulk scan payment"));
 
         verify(bulkScanningClient).findPaymentsForCase(CCD_CASE_NUMBER);
         assertThat(serviceRequest(serviceRequestReference).isCancelled()).isFalse();

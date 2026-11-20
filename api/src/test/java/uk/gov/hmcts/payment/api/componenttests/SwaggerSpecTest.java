@@ -197,13 +197,13 @@ class SwaggerSpecTest {
         JsonNode responses = operation(CANCEL).path("responses");
 
         assertThat(exampleValues(responses.path("400"))).containsExactlyInAnyOrder(
-            "invalid service request reference format",
-            "unknown field(s) in request body: comment",
-            "cancellation reason needs to be supplied for manual service request cancellation",
-            "cancellation reason must have a value when body supplied",
-            "cancellation reason must not exceed 255 characters",
-            "could not determine id for manual service request cancellation",
-            "could not determine id for automated service request cancellation");
+            "Invalid service request reference format",
+            "Unknown field(s) in request body: comment",
+            "Cancellation reason needs to be supplied for manual service request cancellation",
+            "Cancellation reason must have a value when a body is supplied",
+            "Cancellation reason must not exceed 255 characters",
+            "Could not determine ID for manual service request cancellation",
+            "Could not determine ID for automated service request cancellation");
 
         assertThat(exampleValues(responses.path("409")))
             .containsExactlyInAnyOrder(
@@ -213,16 +213,16 @@ class SwaggerSpecTest {
                 "Service request has a pending payment %s",
                 "Service request has a submitted payment %s",
                 "Service request has an unknown status for payment %s",
-                "remissions existing on SR",
-                "payment allocation existing on SR",
-                "unable to check bulk scanning for unallocated payments as no system user is configured",
-                "unallocated bulk scan payment existing on case")
+                "Service request has a remission",
+                "Service request has an allocated payment",
+                "Unable to check bulk scanning for unallocated payments as no system user is configured",
+                "Case has an unallocated bulk scan payment")
             // Every reason the eligibility service can give, which ServiceRequestCancellationEligibilityServiceTest
             // checks against the service itself.
             .containsExactlyInAnyOrderElementsOf(ServiceRequestCancellationErrors.INELIGIBLE_REASONS);
 
         assertThat(exampleValues(responses.path("504")))
-            .containsExactly("unable to check bulk scanning for unallocated payments");
+            .containsExactly("Unable to check bulk scanning for unallocated payments, try again later");
     }
 
     @Test
