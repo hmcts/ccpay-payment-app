@@ -309,4 +309,14 @@ public class IdamService {
         }
         throw new IllegalStateException("Unable to authenticate IDAM user with create/search scope after retries for " + username);
     }
+
+    public String getUserDetails(String accessToken) {
+        try {
+            IdamApi.IdamGetUserDetailsResponse idamGetUserDetailsResponse = idamApi.getDetails(accessToken);
+            return idamGetUserDetailsResponse.getId();
+        } catch (Exception ex) {
+            LOG.info(ex.getMessage());
+        }
+        return null;
+    }
 }

@@ -105,7 +105,7 @@ public class PBAPaymentFunctionalTest {
     @Test
     public void negativeMakeAPbaPaymentByInsufficientFundsPbaNumber() {
         // create a PBA payment
-        String accountNumber = "PBAFUNC12345_EXCEEDED";
+        String accountNumber = testProps.exceededAccountNumber;
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequestForProbate("90.00",
             "PROBATE", accountNumber);
         accountPaymentRequest.setAccountNumber(accountNumber);
@@ -134,7 +134,7 @@ public class PBAPaymentFunctionalTest {
     @Test
     public void negativeMakeAPbaPaymentByOnHoldPbaNumber() {
         // create a PBA payment
-        String accountNumber = "PBAFUNC12345_ON_HOLD";
+        String accountNumber = testProps.getOnHoldAccountNumber();
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequestForProbate("90.00",
             "PROBATE", accountNumber);
         accountPaymentRequest.setAccountNumber(accountNumber);
@@ -206,6 +206,35 @@ public class PBAPaymentFunctionalTest {
             .body("status_histories[0].status", equalTo("failed"))
             .body("status_histories[0].error_code", equalTo("CA-E0004"))
             .body("status_histories[0].error_message", equalTo("Account not found."))
+            .extract().as(PaymentDto.class);
+
+        paymentReference = paymentDto.getReference();
+
+        // Get pba payment by reference
+        PaymentDto paymentsResponse =
+            paymentTestService.getPbaPayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then()
+                .statusCode(OK.value()).extract().as(PaymentDto.class);
+
+        assertThat(paymentsResponse.getAccountNumber()).isEqualTo(accountNumber);
+    }
+
+    @Test
+    public void negativeMakeAPbaPaymentByLiberataDuplicatedPaymentStubPbaNumber() {
+        // create a PBA payment
+        String accountNumber = testProps.duplicatedAccountNumber;
+        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequestForProbate("90.00",
+            "PROBATE", accountNumber);
+        accountPaymentRequest.setAccountNumber(accountNumber);
+
+        PaymentDto paymentDto = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).
+            then().statusCode(FORBIDDEN.value())
+            .body("reference", startsWith("RC-"))
+            .body("status", equalTo("Failed"))
+            // payment_group_reference should start with current year YYYY- format, e.g. 2026- for a payment made in 2026
+            .body("payment_group_reference", startsWith(LocalDateTime.now(DateTimeZone.UTC).getYear() + "-"))
+            .body("status_histories[0].status", equalTo("failed"))
+            .body("status_histories[0].error_code", equalTo("CA-E0006"))
+            .body("status_histories[0].error_message", equalTo("Duplicate payment detected."))
             .extract().as(PaymentDto.class);
 
         paymentReference = paymentDto.getReference();
@@ -432,6 +461,8 @@ public class PBAPaymentFunctionalTest {
         String accountNumber = testProps.existingAccountNumber;
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequest("90.00", "FINREM","AA09");
         accountPaymentRequest.setAccountNumber(accountNumber);
+        // Set case reference to null to test the scenario where case reference is not required for Finrem service
+        accountPaymentRequest.setCaseReference(null);
         PaymentDto paymentDto = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
         paymentReference = paymentDto.getReference();
@@ -541,6 +572,26 @@ public class PBAPaymentFunctionalTest {
     }
 
     @Test
+    public void NegativeMakePbaPaymentWithNoCaseReferenceForNonFinRemService() throws InterruptedException {
+
+        String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
+        String accountNumber = testProps.existingAccountNumber;
+        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequestForDivorce("628.00", "DIVORCE");
+        accountPaymentRequest.setAccountNumber(accountNumber);
+        accountPaymentRequest.setCaseReference(null);
+        paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
+            .statusCode(FORBIDDEN.value())
+            .body("reference", startsWith("RC-"))
+            .body("status", equalTo("Failed"))
+            // payment_group_reference should start with current year YYYY- format, e.g. 2026- for a payment made in 2026
+            .body("payment_group_reference", startsWith(LocalDateTime.now(DateTimeZone.UTC).getYear() + "-"))
+            .body("status_histories[0].status", equalTo("failed"))
+            .body("status_histories[0].error_code", equalTo("CA-E0005"))
+            .body("status_histories[0].error_message", equalTo("Validation failed."))
+            .extract().as(PaymentDto.class);
+    }
+
+    @Test
     public void makeAndRetrievePbaPaymentBySpecifiedClaims() throws InterruptedException {
 
         String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
@@ -581,8 +632,6 @@ public class PBAPaymentFunctionalTest {
 
     @Test
     public void makePbaPaymentWithProbateSolicitorUsingProbatePbaAccount() {
-        Assume.assumeTrue(!testProps.baseTestUrl.contains("payment-api-pr-"));
-
         // create a PBA payment
         String accountNumber = testProps.probatePbaAccountNumber;
 

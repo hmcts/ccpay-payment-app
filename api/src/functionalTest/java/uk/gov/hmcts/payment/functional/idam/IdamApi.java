@@ -1,6 +1,9 @@
 package uk.gov.hmcts.payment.functional.idam;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import feign.Body;
 import feign.Headers;
 import feign.Param;
@@ -9,10 +12,14 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import java.util.List;
+
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
 public interface IdamApi {
 
@@ -54,6 +61,10 @@ public interface IdamApi {
                                        @Param("client_secret") String clientSecret,
                                        @Param("redirect_uri") String redirectUri);
 
+    @RequestLine("GET /details")
+    @Headers({"Content-Type: application/json", "Authorization: {accessToken}"})
+    IdamGetUserDetailsResponse getDetails(@Param("accessToken") String accessToken);
+
     @Data
     @AllArgsConstructor
     @Builder(builderMethodName = "userRequestWith")
@@ -81,5 +92,19 @@ public interface IdamApi {
     class TokenExchangeResponse {
         @JsonProperty("access_token")
         private String accessToken;
+    }
+
+    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+    @JsonInclude(NON_NULL)
+    @Builder()
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Getter
+    @Setter
+    class IdamGetUserDetailsResponse {
+        private String id;
+        private String forename;
+        private String surname;
+        private String email;
     }
 }
