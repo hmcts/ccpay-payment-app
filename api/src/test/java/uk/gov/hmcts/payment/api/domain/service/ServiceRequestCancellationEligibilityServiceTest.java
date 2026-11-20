@@ -14,9 +14,12 @@ import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.model.Remission;
 import uk.gov.hmcts.payment.api.service.BulkScanningClient;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
@@ -365,6 +368,37 @@ class ServiceRequestCancellationEligibilityServiceTest {
 
         assertThatSR(paymentFeeLinkForCase(null)).isCancellable();
         verifyNoInteractions(bulkScanningClient);
+    }
+
+    /**
+     * Each rule refuses cancellation with its own reason, and together they give exactly the reasons documented in
+     * ServiceRequestCancellationErrors, which Swagger and the LLD list for clients.
+     *
+     * @see uk.gov.hmcts.payment.api.componenttests.SwaggerSpecTest
+     */
+    @Test
+    void everyReasonGivenIsDocumented() {
+        Stream<PaymentFeeLink> byPaymentStatus = Stream.of("created", "started", "success", "pending", "submitted", "other")
+            .map(status -> paymentFeeLink(payment(status(status))));
+
+        PaymentFeeLink withRemission = PaymentFeeLink.paymentFeeLinkWith().remissions(List.of(new Remission())).build();
+
+        PaymentFeeLink withAllocation = paymentFeeLink(Payment.paymentWith()
+            .paymentStatus(status("failed"))
+            .paymentAllocation(List.of(new PaymentAllocation()))
+            .build());
+
+        givenBulkScanningReturns(uk.gov.hmcts.payment.api.dto.PaymentStatus.COMPLETE);
+        List<String> reasons = Stream.concat(byPaymentStatus,
+                Stream.of(withRemission, withAllocation, paymentFeeLinkForCase(CCD_CASE_NUMBER)))
+            .map(service::checkEligibility)
+            .map(Eligibility::reason)
+            .collect(Collectors.toCollection(ArrayList::new));
+
+        when(bulkScanningClient.canAuthenticate()).thenReturn(false);
+        reasons.add(service.checkEligibility(paymentFeeLinkForCase(CCD_CASE_NUMBER)).reason());
+
+        assertThat(reasons).containsExactlyInAnyOrderElementsOf(ServiceRequestCancellationErrors.INELIGIBLE_REASONS);
     }
 
     @Test

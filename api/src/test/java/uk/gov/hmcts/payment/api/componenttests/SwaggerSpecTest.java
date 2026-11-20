@@ -11,6 +11,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import uk.gov.hmcts.payment.api.domain.service.ServiceRequestCancellationErrors;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,7 +25,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Checks the generated OpenAPI specs, as served at {@code /v3/api-docs}.
+ * Checks the generated OpenAPI specs, as served for each group at {@code /v3/api-docs/{group}}.
  */
 @ActiveProfiles({"local", "componenttest"})
 @SpringBootTest(webEnvironment = MOCK)
@@ -87,6 +88,62 @@ class SwaggerSpecTest {
         softly.assertAll();
     }
 
+    /**
+     * 401 and 403 responses come from Spring Security, before any controller runs. Their body is empty, or the plain
+     * text {@code User does not have a valid role}, so the spec must not give them a JSON schema.
+     *
+     * <p>An {@code @ApiResponse} without {@code content} gets one anyway: springdoc documents the method's return type
+     * for it, so Swagger shows the success response as the example. Declare {@code content = @Content} instead.</p>
+     *
+     * <p>{@link #KNOWN_AUTH_RESPONSES_WITH_A_BODY} lists the existing cases. A new case fails this test, and so does
+     * fixing an existing one, until it is removed from the list.</p>
+     */
+    @Test
+    void authFailuresAreNotDocumentedWithAJsonBody() throws Exception {
+        List<String> withABody = new ArrayList<>();
+        for (String group : GROUPS) {
+            spec(group).path("paths").properties().forEach(path -> path.getValue().properties().forEach(operation -> {
+                for (String code : List.of("401", "403")) {
+                    JsonNode content = operation.getValue().at("/responses/%s/content".formatted(code));
+                    content.forEach(mediaType -> {
+                        JsonNode schema = mediaType.path("schema");
+                        if (schema.has("$ref") || Set.of("object", "array").contains(schema.path("type").asText())) {
+                            withABody.add("%s: %s %s %s".formatted(group, operation.getKey().toUpperCase(),
+                                path.getKey(), code));
+                        }
+                    });
+                }
+            }));
+        }
+
+        assertThat(withABody).containsExactlyInAnyOrderElementsOf(KNOWN_AUTH_RESPONSES_WITH_A_BODY);
+    }
+
+    // TODO: These ones are incorrect and need content = @Content (see above).  Fix and remove from this list.
+    private static final List<String> KNOWN_AUTH_RESPONSES_WITH_A_BODY = List.of(
+        "payment2: GET /accounts/{accountNumber} 401",
+        "payment2: GET /accounts/{accountNumber} 403",
+        "payment2: GET /card-payments/{reference} 403",
+        "payment2: GET /case-payment-orders 401",
+        "payment2: GET /case-payment-orders 403",
+        "payment2: GET /cases/{ccdcasenumber}/paymentgroups 403",
+        "payment2: POST /credit-account-payments 403",
+        "payment2: GET /payment-groups/fee-pay-apportion/{paymentreference} 403",
+        "payment2: GET /payment-groups/{payment-group-reference} 403",
+        "payment2: GET /payments/{reference} 403",
+        "payment2: GET /pba-accounts 401",
+        "payment2: GET /pba-accounts 403",
+        "payment2: GET /refdata/legacy-sites 401",
+        "payment2: GET /refunds/payments 403",
+        "payment2: POST /service-request 401",
+        "payment2: POST /service-request 403",
+        "payment2: POST /service-request/{service-request-reference}/card-payments 403",
+        "payment2: POST /service-request/{service-request-reference}/pba-payments 403",
+        "payment-external-api: GET /pba-accounts 401",
+        "payment-external-api: GET /pba-accounts 403",
+        "payment-external-api: GET /refunds/payments 403"
+    );
+
     @Test
     void operationsThatDoNotDeclareTheAuthHeadersGetBothAsRequired() throws Exception {
         JsonNode operation = operation(get("/cases/{ccdcasenumber}/paymentgroups"));
@@ -128,6 +185,44 @@ class SwaggerSpecTest {
         assertThat(fieldNames(responses)).contains("204", "400", "401", "403", "404", "409", "504");
         assertThat(responses.at("/409/description").asText()).isEqualTo("Service request cannot be cancelled");
         assertThat(responses.at("/504/description").asText()).contains("bulk scanning");
+    }
+
+    /**
+     * The cancel endpoint's error messages are a contract with its clients, listed in Appendix A of the Service Request
+     * Cancellation LLD. Swagger documents each one as an example. The messages are written out here, rather than taken
+     * from ServiceRequestCancellationErrors, so that changing one fails this test and prompts an update to the LLD.
+     */
+    @Test
+    void cancelServiceRequestDocumentsEveryErrorMessage() throws Exception {
+        JsonNode responses = operation(CANCEL).path("responses");
+
+        assertThat(exampleValues(responses.path("400"))).containsExactlyInAnyOrder(
+            "invalid service request reference format",
+            "unknown field(s) in request body: comment",
+            "cancellation reason needs to be supplied for manual service request cancellation",
+            "cancellation reason must have a value when body supplied",
+            "cancellation reason must not exceed 255 characters",
+            "could not determine id for manual service request cancellation",
+            "could not determine id for automated service request cancellation");
+
+        assertThat(exampleValues(responses.path("409")))
+            .containsExactlyInAnyOrder(
+                "payment with status created",
+                "payment with status started",
+                "payment with status success",
+                "payment with status pending",
+                "payment with status submitted",
+                "unknown payment status",
+                "remissions existing on SR",
+                "payment allocation existing on SR",
+                "unable to check bulk scanning for unallocated payments as no system user is configured",
+                "unallocated bulk scan payment existing on case")
+            // Every reason the eligibility service can give, which ServiceRequestCancellationEligibilityServiceTest
+            // checks against the service itself.
+            .containsExactlyInAnyOrderElementsOf(ServiceRequestCancellationErrors.INELIGIBLE_REASONS);
+
+        assertThat(exampleValues(responses.path("504")))
+            .containsExactly("unable to check bulk scanning for unallocated payments");
     }
 
     @Test
@@ -175,6 +270,12 @@ class SwaggerSpecTest {
         return names;
     }
 
+    private static List<String> exampleValues(JsonNode response) {
+        List<String> values = new ArrayList<>();
+        response.at("/content/application~1json/examples").forEach(example -> values.add(example.path("value").asText()));
+        return values;
+    }
+
     private static JsonNode header(JsonNode operation, String name) {
         List<JsonNode> headers = new ArrayList<>();
         for (JsonNode parameter : operation.path("parameters")) {
@@ -188,7 +289,8 @@ class SwaggerSpecTest {
 
     private JsonNode spec(String group) throws Exception {
         if (!specs.containsKey(group)) {
-            String json = mvc.perform(MockMvcRequestBuilders.get("/v3/api-docs?group=" + group))
+            // springdoc serves each group at its own path
+            String json = mvc.perform(MockMvcRequestBuilders.get("/v3/api-docs/{group}", group))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
             specs.put(group, objectMapper.readTree(json));

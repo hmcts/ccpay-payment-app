@@ -11,6 +11,7 @@ import com.microsoft.azure.servicebus.primitives.ServiceBusException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -78,6 +79,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.regex.Pattern;
+
+import static uk.gov.hmcts.payment.api.domain.service.ServiceRequestCancellationErrors.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -88,8 +91,6 @@ public class ServiceRequestController {
     private static final Logger LOG = LoggerFactory.getLogger(ServiceRequestController.class);
     private static final String FAILED = "failed";
     private static final String AUTO_CANCELLATION_REASON = "Auto-Cancelled by Service";
-    // matches the payment_fee_link.cancellation_reason column size
-    private static final int MAX_CANCELLATION_REASON_LENGTH = 255;
     // Deliberately loose (<year>-<digits>). The PAY-9031 spec says \d{4}-\d{11}, but PaymentReference.getNext
     // has generated several lengths after the year (see its git history):
     //   Jan 2018 - Feb 2018: 8 digits, then briefly 10 digits
@@ -353,6 +354,9 @@ public class ServiceRequestController {
         @ApiResponse(responseCode = "201", description = "Payment created"),
         @ApiResponse(responseCode = "302", description = "A successful payment request has been made in GovPay, redirecting back to the return URL"),
         @ApiResponse(responseCode = "400", description = "Bad request. Payment creation failed"),
+        // TODO: should be content = @Content, otherwise the example value in Swagger is the full JSON response, which
+        //  it isn't. Without content, springdoc documents the method's return type (OnlineCardPaymentResponse), but
+        //  this 403 comes from Spring Security with an empty body.
         @ApiResponse(responseCode = "403", description = "Unauthenticated request"),
         @ApiResponse(responseCode = "404", description = "Service request not found"),
         @ApiResponse(responseCode = "409", description = "Idempotency key already exists with different payment details, or service request has been cancelled"),
@@ -427,24 +431,63 @@ public class ServiceRequestController {
     @ApiResponses(value = {
         @ApiResponse(responseCode = "204", description = "Cancellation applied, or SR was already cancelled (idempotent)"),
         @ApiResponse(responseCode = "400", description = "Invalid/missing request attributes (e.g. no value for reason)",
-            content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class))),
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class), examples = {
+                @ExampleObject(name = "Invalid reference", value = INVALID_REFERENCE_FORMAT,
+                    summary = "The reference is not a four-digit year, a dash and digits"),
+                @ExampleObject(name = "Unknown fields", value = UNKNOWN_FIELDS_PREFIX + "comment",
+                    summary = "The body has fields other than reason; they are listed after the colon"),
+                @ExampleObject(name = "Manual reason missing", value = MANUAL_REASON_REQUIRED,
+                    summary = "A manual cancellation (with an Authorization header) has no reason, or a blank one"),
+                @ExampleObject(name = "Reason missing from body", value = REASON_REQUIRED_WITH_BODY,
+                    summary = "An automated cancellation has a body, but no reason or a blank one"),
+                @ExampleObject(name = "Reason too long", value = REASON_TOO_LONG,
+                    summary = "The reason is longer than " + MAX_CANCELLATION_REASON_LENGTH + " characters"),
+                @ExampleObject(name = "Manual canceller unknown", value = MANUAL_CANCELLER_UNKNOWN,
+                    summary = "The user's ID cannot be determined from the Authorization token"),
+                @ExampleObject(name = "Automated canceller unknown", value = AUTOMATED_CANCELLER_UNKNOWN,
+                    summary = "The service's name cannot be determined from the ServiceAuthorization token")
+            })),
         @ApiResponse(responseCode = "401", description = "Credentials are required to access this resource"),
         @ApiResponse(responseCode = "403", description = "Forbidden-Access Denied"),
         @ApiResponse(responseCode = "404", description = "Service request not found"),
         @ApiResponse(responseCode = "409", description = "Service request cannot be cancelled",
-            content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class))),
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class), examples = {
+                @ExampleObject(name = "Payment created", value = PAYMENT_CREATED,
+                    summary = "A payment on the service request has status created"),
+                @ExampleObject(name = "Payment started", value = PAYMENT_STARTED,
+                    summary = "A payment on the service request has status started"),
+                @ExampleObject(name = "Payment success", value = PAYMENT_SUCCESS,
+                    summary = "A payment on the service request has status success"),
+                @ExampleObject(name = "Payment pending", value = PAYMENT_PENDING,
+                    summary = "A payment on the service request has status pending"),
+                @ExampleObject(name = "Payment submitted", value = PAYMENT_SUBMITTED,
+                    summary = "A payment on the service request has status submitted"),
+                @ExampleObject(name = "Unknown payment status", value = UNKNOWN_PAYMENT_STATUS,
+                    summary = "A payment has a status other than failed, error, decline or cancelled"),
+                @ExampleObject(name = "Remissions", value = REMISSIONS_EXISTING,
+                    summary = "The service request has a remission"),
+                @ExampleObject(name = "Payment allocation", value = PAYMENT_ALLOCATION_EXISTING,
+                    summary = "A payment on the service request has been allocated"),
+                @ExampleObject(name = "No system user", value = BULK_SCANNING_NOT_CHECKED_WITHOUT_SYSTEM_USER,
+                    summary = "Bulk scanning needs checking, but payment-app has no IDAM system user configured"),
+                @ExampleObject(name = "Unallocated bulk scan payment", value = UNALLOCATED_BULK_SCAN_PAYMENT,
+                    summary = "Bulk scanning has unallocated payments on one of the service request's cases")
+            })),
         @ApiResponse(responseCode = "504", description = "Unable to check bulk scanning for unallocated payments, please try again later",
-            content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class)))
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class), examples = {
+                @ExampleObject(name = "Bulk scanning unavailable", value = BULK_SCANNING_UNAVAILABLE,
+                    summary = "Bulk scanning, or the IDAM login it needs, failed or did not respond")
+            }))
     })
     @RateLimiter(name = "default-rate-limiter")
     @PostMapping(value = "/service-request/{service-request-reference}/cancel")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void cancelServiceRequest(@PathVariable("service-request-reference") String serviceRequestReference,
                                      @Valid @RequestBody(required = false) ServiceRequestCancelDto serviceRequestCancelDto,
-                                     @Parameter(description = "User token; omit for an automated cancellation by a service")
+                                     @Parameter(description = "User token: supplied for manual cancellation, omit for automated cancellation by a service")
                                      @RequestHeader(value = "Authorization", required = false) String authorization) {
         if (!SERVICE_REQUEST_REFERENCE_PATTERN.matcher(serviceRequestReference).matches()) {
-            throw new InvalidServiceRequestCancellationException("invalid service request reference format");
+            throw new InvalidServiceRequestCancellationException(INVALID_REFERENCE_FORMAT);
         }
 
         final boolean manualCancellation = authorization != null;
@@ -454,18 +497,17 @@ public class ServiceRequestController {
 
         if (serviceRequestCancelDto != null && !serviceRequestCancelDto.getUnknownProperties().isEmpty()) {
             throw new InvalidServiceRequestCancellationException(
-                "unknown field(s) in request body: " + String.join(", ", serviceRequestCancelDto.getUnknownProperties()));
+                UNKNOWN_FIELDS_PREFIX + String.join(", ", serviceRequestCancelDto.getUnknownProperties()));
         }
 
         if ((manualCancellation || serviceRequestCancelDto != null) && isBlank(reason)) {
             throw new InvalidServiceRequestCancellationException(manualCancellation
-                ? "cancellation reason needs to be supplied for manual service request cancellation"
-                : "cancellation reason must have a value when body supplied");
+                ? MANUAL_REASON_REQUIRED
+                : REASON_REQUIRED_WITH_BODY);
         }
 
         if (reason != null && reason.length() > MAX_CANCELLATION_REASON_LENGTH) {
-            throw new InvalidServiceRequestCancellationException(
-                "cancellation reason must not exceed %d characters".formatted(MAX_CANCELLATION_REASON_LENGTH));
+            throw new InvalidServiceRequestCancellationException(REASON_TOO_LONG);
         }
 
         if (!manualCancellation && reason == null) {
@@ -475,7 +517,7 @@ public class ServiceRequestController {
         String cancelledBy = manualCancellation ? userIdSupplier.get() : serviceIdSupplier.get();
         if (isBlank(cancelledBy)) {
             throw new InvalidServiceRequestCancellationException(
-                "could not determine id for %s service request cancellation".formatted(manualCancellation ? "manual" : "automated"));
+                manualCancellation ? MANUAL_CANCELLER_UNKNOWN : AUTOMATED_CANCELLER_UNKNOWN);
         }
 
         serviceRequestDomainService.cancel(serviceRequestReference, cancelledBy, reason);

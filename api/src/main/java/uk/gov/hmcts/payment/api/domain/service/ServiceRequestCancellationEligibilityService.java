@@ -51,21 +51,25 @@ public class ServiceRequestCancellationEligibilityService {
         }
     }
 
-    private static final Eligibility UNKNOWN_PAYMENT_STATUS = Eligibility.ineligible("unknown payment status");
-    private static final Eligibility REMISSIONS_EXISTING_ON_SR = Eligibility.ineligible("remissions existing on SR");
-    private static final Eligibility PAYMENT_ALLOCATION_EXISTING_ON_SR = Eligibility.ineligible("payment allocation existing on SR");
-    private static final Eligibility UNALLOCATED_BULK_SCAN_PAYMENT_ON_CASE = Eligibility
-        .ineligible("unallocated bulk scan payment existing on case");
-    private static final Eligibility BULK_SCANNING_NOT_CHECKED_WITHOUT_SYSTEM_USER = Eligibility
-        .ineligible("unable to check bulk scanning for unallocated payments as no system user is configured");
+    // Every reason is documented in ServiceRequestCancellationErrors, so add any new reason there.
+    private static final Eligibility UNKNOWN_PAYMENT_STATUS =
+        Eligibility.ineligible(ServiceRequestCancellationErrors.UNKNOWN_PAYMENT_STATUS);
+    private static final Eligibility REMISSIONS_EXISTING_ON_SR =
+        Eligibility.ineligible(ServiceRequestCancellationErrors.REMISSIONS_EXISTING);
+    private static final Eligibility PAYMENT_ALLOCATION_EXISTING_ON_SR =
+        Eligibility.ineligible(ServiceRequestCancellationErrors.PAYMENT_ALLOCATION_EXISTING);
+    private static final Eligibility UNALLOCATED_BULK_SCAN_PAYMENT_ON_CASE =
+        Eligibility.ineligible(ServiceRequestCancellationErrors.UNALLOCATED_BULK_SCAN_PAYMENT);
+    private static final Eligibility BULK_SCANNING_NOT_CHECKED_WITHOUT_SYSTEM_USER =
+        Eligibility.ineligible(ServiceRequestCancellationErrors.BULK_SCANNING_NOT_CHECKED_WITHOUT_SYSTEM_USER);
 
     // Map payment status names to whether they are eligible for cancellation
     private static final Map<String, Eligibility> eliMap = Map.of(
-        "created",    Eligibility.ineligible("payment with status created"),
-        "started",    Eligibility.ineligible("payment with status started"),
-        "success",    Eligibility.ineligible("payment with status success"),
-        "pending",    Eligibility.ineligible("payment with status pending"),
-        "submitted",  Eligibility.ineligible("payment with status submitted"),
+        "created",    Eligibility.ineligible(ServiceRequestCancellationErrors.PAYMENT_CREATED),
+        "started",    Eligibility.ineligible(ServiceRequestCancellationErrors.PAYMENT_STARTED),
+        "success",    Eligibility.ineligible(ServiceRequestCancellationErrors.PAYMENT_SUCCESS),
+        "pending",    Eligibility.ineligible(ServiceRequestCancellationErrors.PAYMENT_PENDING),
+        "submitted",  Eligibility.ineligible(ServiceRequestCancellationErrors.PAYMENT_SUBMITTED),
         "decline",    Eligibility.eligible(),
         "cancelled",  Eligibility.eligible(),
         "error",      Eligibility.eligible(),

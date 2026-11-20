@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import uk.gov.hmcts.payment.api.domain.service.ServiceRequestCancellationErrors;
 import uk.gov.hmcts.payment.api.dto.SearchResponse;
 import uk.gov.hmcts.payment.api.exception.BulkScanningServiceUnavailableException;
 import uk.gov.hmcts.payment.api.exception.SystemUserTokenException;
@@ -67,7 +68,7 @@ public class BulkScanningClient {
         try {
             headers.setBearerAuth(systemUserTokenProvider.getAccessToken());
         } catch (SystemUserTokenException e) {
-            throw new BulkScanningServiceUnavailableException("unable to check bulk scanning for unallocated payments", e);
+            throw new BulkScanningServiceUnavailableException(ServiceRequestCancellationErrors.BULK_SCANNING_UNAVAILABLE, e);
         }
         headers.set("ServiceAuthorization", authTokenGenerator.generate());
 
@@ -84,7 +85,7 @@ public class BulkScanningClient {
             return Optional.empty();
         } catch (RestClientException e) {
             log.error("Bulk scanning lookup failed for case {}", ccdCaseNumber, e);
-            throw new BulkScanningServiceUnavailableException("unable to check bulk scanning for unallocated payments", e);
+            throw new BulkScanningServiceUnavailableException(ServiceRequestCancellationErrors.BULK_SCANNING_UNAVAILABLE, e);
         }
     }
 }
