@@ -228,7 +228,7 @@ public class PBAStatusErrorMapperTest {
     // --- setPaymentStatusAndHistories: ERROR with reason = ON_HOLD ---
 
     @Test
-    public void testSetPaymentStatusAndHistoriesErrorReasonOnHold() {
+    public void testSetPaymentStatusAndHistoriesErrorReasonOnHoldDueToExceededLimit() {
         PBAStatusErrorMapper mapper = new PBAStatusErrorMapper();
         Payment localPayment = Payment.paymentWith().ccdCaseNumber("ccd-number").build();
         localPayment.setStatusHistories(new LinkedList<>(Collections.singletonList(StatusHistory.statusHistoryWith().build())));
@@ -237,6 +237,27 @@ public class PBAStatusErrorMapperTest {
             .status("error")
             .message("Account not active.")
             .reason("CUSTOMER ON HOLD - EXCEEDED CREDIT LIMIT")
+            .build();
+
+        mapper.setPaymentStatusAndHistories(creditAccountPaymentRequest.getAccountNumber(), localPayment, resp);
+
+        assertThat(localPayment.getPaymentStatus().getName()).isEqualTo("failed");
+        StatusHistory history = localPayment.getStatusHistories().get(0);
+        assertThat(history.getStatus()).isEqualTo("failed");
+        assertThat(history.getErrorCode()).isEqualTo("CA-E0003");
+        assertThat(history.getMessage()).isEqualTo("Your account is on hold");
+    }
+
+    @Test
+    public void testSetPaymentStatusAndHistoriesErrorReasonOnHoldDueToCancelledAccount() {
+        PBAStatusErrorMapper mapper = new PBAStatusErrorMapper();
+        Payment localPayment = Payment.paymentWith().ccdCaseNumber("ccd-number").build();
+        localPayment.setStatusHistories(new LinkedList<>(Collections.singletonList(StatusHistory.statusHistoryWith().build())));
+
+        PaymentAccountResponse resp = PaymentAccountResponse.paymentDtoWith()
+            .status("error")
+            .message("Account not active.")
+            .reason("CUSTOMER ON HOLD - MANDATE CANCELLED")
             .build();
 
         mapper.setPaymentStatusAndHistories(creditAccountPaymentRequest.getAccountNumber(), localPayment, resp);

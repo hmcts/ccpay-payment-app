@@ -24,7 +24,7 @@ public class PBAStatusErrorMapper {
 
     private static final String EXCEEDED_CREDIT_LIMIT_MESSAGE = "Payment request failed. PBA account {accountNumber} have insufficient funds available";
     private static final String EXCEEDED_CREDIT_LIMIT = "Exceeded credit limit.";
-    public static  String ON_HOLD="CUSTOMER ON HOLD - EXCEEDED CREDIT LIMIT";
+    public static  String ON_HOLD="CUSTOMER ON HOLD";
     public static  String DELETED="DELETED";
 
     public static final Map<String, String> PBA_ERROR_CODE_MAP = Map.of(
