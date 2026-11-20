@@ -213,9 +213,7 @@ class SwaggerSpecTest {
             "Unknown field(s) in request body: comment",
             "Cancellation reason needs to be supplied for manual service request cancellation",
             "Cancellation reason must have a value when a body is supplied",
-            "Cancellation reason must not exceed 255 characters",
-            "Could not determine ID for manual service request cancellation",
-            "Could not determine ID for automated service request cancellation");
+            "Cancellation reason must not exceed 255 characters");
 
         assertThat(exampleValues(responses.path("409")))
             .containsExactlyInAnyOrder(

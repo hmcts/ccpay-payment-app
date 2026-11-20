@@ -35,11 +35,6 @@ public final class ServiceRequestCancellationErrors {
     public static final String REASON_TOO_LONG =
         "Cancellation reason must not exceed " + MAX_CANCELLATION_REASON_LENGTH + " characters";
 
-    public static final String MANUAL_CANCELLER_UNKNOWN = "Could not determine ID for manual service request cancellation";
-
-    public static final String AUTOMATED_CANCELLER_UNKNOWN =
-        "Could not determine ID for automated service request cancellation";
-
     // 409: the service request is not eligible for cancellation. Only one reason is returned, and which one is not part of the contract.
 
     public static final String PAYMENT_CREATED = "Service request has a created payment %s";

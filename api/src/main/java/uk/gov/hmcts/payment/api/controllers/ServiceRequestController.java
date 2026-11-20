@@ -452,11 +452,7 @@ public class ServiceRequestController {
                 @ExampleObject(name = "Reason missing from body", value = REASON_REQUIRED_WITH_BODY,
                     summary = "An automated cancellation has a body, but no reason or a blank one"),
                 @ExampleObject(name = "Reason too long", value = REASON_TOO_LONG,
-                    summary = "The reason is longer than " + MAX_CANCELLATION_REASON_LENGTH + " characters"),
-                @ExampleObject(name = "Manual canceller unknown", value = MANUAL_CANCELLER_UNKNOWN,
-                    summary = "The user's ID cannot be determined from the Authorization token"),
-                @ExampleObject(name = "Automated canceller unknown", value = AUTOMATED_CANCELLER_UNKNOWN,
-                    summary = "The service's name cannot be determined from the ServiceAuthorization token")
+                    summary = "The reason is longer than " + MAX_CANCELLATION_REASON_LENGTH + " characters")
             })),
         // No 401: Spring Security refuses every authentication failure on this endpoint with 403.
         @ApiResponse(responseCode = "403", description = "The ServiceAuthorization token is missing or invalid, or the "
@@ -533,10 +529,13 @@ public class ServiceRequestController {
             reason = AUTO_CANCELLATION_REASON;
         }
 
+        // Spring Security has already authenticated the caller, so a blank ID means a fault in Payment App's security
+        // setup, not in the request. Fail with 500 rather than store a cancellation with no cancelled_by.
         String cancelledBy = manualCancellation ? userIdSupplier.get() : serviceIdSupplier.get();
         if (isBlank(cancelledBy)) {
-            throw new InvalidServiceRequestCancellationException(
-                manualCancellation ? MANUAL_CANCELLER_UNKNOWN : AUTOMATED_CANCELLER_UNKNOWN);
+            throw new IllegalStateException("Could not determine the %s ID for %s cancellation of service request %s"
+                .formatted(manualCancellation ? "user" : "service", manualCancellation ? "manual" : "automated",
+                    serviceRequestReference));
         }
 
         serviceRequestDomainService.cancel(serviceRequestReference, cancelledBy, reason);
