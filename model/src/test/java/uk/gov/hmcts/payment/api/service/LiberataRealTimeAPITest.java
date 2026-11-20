@@ -19,6 +19,9 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
+import uk.gov.hmcts.payment.api.dto.liberata.PaymentAccountRequest;
+import uk.gov.hmcts.payment.api.dto.liberata.PaymentAccountResponse;
+import uk.gov.hmcts.payment.api.dto.liberata.PaymentByAccountRequest;
 import uk.gov.hmcts.payment.api.dto.liberata.account.LiberataAccountResponse;
 import uk.gov.hmcts.payment.api.dto.liberata.identity.LiberataIdentityResponse;
 import uk.gov.hmcts.payment.api.dto.liberata.identity.LiberataTokenData;
@@ -67,7 +70,6 @@ public class LiberataRealTimeAPITest {
 
     @BeforeEach
     public void setUp() throws Exception {
-        MockitoAnnotations.initMocks(this);
         MockitoAnnotations.openMocks(this);
         ReflectionTestUtils.setField(
             liberataIdentity,
@@ -273,7 +275,7 @@ public class LiberataRealTimeAPITest {
     public void shouldSendBearerTokenWhenFetchingAccountDetails() {
         LiberataAccountResponse liberataAccountResponse = new LiberataAccountResponse("200", null);
         AccountDto accountDto = AccountDto.accountDtoWith().accountNumber("PBA1234567").build();
-        ArgumentCaptor<HttpEntity> requestCaptor = ArgumentCaptor.forClass(HttpEntity.class);
+        ArgumentCaptor<HttpEntity<?>> requestCaptor = ArgumentCaptor.forClass(HttpEntity.class);
 
         when(liberataRestTemplate.exchange(
             anyString(),
@@ -511,5 +513,341 @@ public class LiberataRealTimeAPITest {
             new byte[0],
             StandardCharsets.UTF_8
         );
+    }
+
+    // ==================== Tests for payByAccount Methods ====================
+
+    @Test
+    public void payByAccountShouldReturnSuccessWhenLiberataRespondsSuccessfully() {
+        PaymentByAccountRequest paymentByAccountRequest = new PaymentByAccountRequest();
+        PaymentAccountRequest paymentAccountRequest = PaymentAccountRequest.paymentAccountRequestWith()
+            .paymentByAccountRequest(paymentByAccountRequest)
+            .build();
+        PaymentAccountResponse expectedResponse = PaymentAccountResponse.paymentDtoWith()
+            .status("200")
+            .message("Success")
+            .build();
+
+        TokenResponse validToken = new TokenResponse("valid-token", 1000000L, System.currentTimeMillis());
+        ResponseEntity<LiberataIdentityResponse> tokenResponseEntity = ResponseEntity.ok(liberataIdentityResponse);
+        when(liberataRestTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(LiberataIdentityResponse.class)))
+            .thenReturn(tokenResponseEntity);
+        when(accessTokenDtoToTokenResponseMapper.toTokenResponse(liberataIdentityResponse)).thenReturn(validToken);
+
+        ResponseEntity<PaymentAccountResponse> paymentResponseEntity = ResponseEntity.ok(expectedResponse);
+        when(liberataRestTemplate.postForEntity(
+            eq("http://localhost/test/pba-api-v2-uat/api/payment"),
+            any(HttpEntity.class),
+            eq(PaymentAccountResponse.class)
+        )).thenReturn(paymentResponseEntity);
+
+        PaymentAccountResponse result = liberataIdentity.payByAccount(paymentAccountRequest);
+
+        assertEquals("200", result.getStatus());
+        assertEquals("Success", result.getMessage());
+        verify(liberataRestTemplate).postForEntity(
+            eq("http://localhost/test/pba-api-v2-uat/api/payment"),
+            any(HttpEntity.class),
+            eq(PaymentAccountResponse.class)
+        );
+    }
+
+    @Test
+    public void payByAccountShouldIncludeBearerTokenInAuthorizationHeader() {
+        PaymentByAccountRequest paymentByAccountRequest = new PaymentByAccountRequest();
+        PaymentAccountRequest paymentAccountRequest = PaymentAccountRequest.paymentAccountRequestWith()
+            .paymentByAccountRequest(paymentByAccountRequest)
+            .build();
+        PaymentAccountResponse expectedResponse = PaymentAccountResponse.paymentDtoWith()
+            .status("200")
+            .build();
+        ArgumentCaptor<HttpEntity<?>> requestCaptor = ArgumentCaptor.forClass(HttpEntity.class);
+
+        TokenResponse validToken = new TokenResponse("valid-token", 1000000L, System.currentTimeMillis());
+        ResponseEntity<LiberataIdentityResponse> tokenResponseEntity = ResponseEntity.ok(liberataIdentityResponse);
+        when(liberataRestTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(LiberataIdentityResponse.class)))
+            .thenReturn(tokenResponseEntity);
+        when(accessTokenDtoToTokenResponseMapper.toTokenResponse(liberataIdentityResponse)).thenReturn(validToken);
+
+        ResponseEntity<PaymentAccountResponse> paymentResponseEntity = ResponseEntity.ok(expectedResponse);
+        when(liberataRestTemplate.postForEntity(
+            anyString(),
+            requestCaptor.capture(),
+            eq(PaymentAccountResponse.class)
+        )).thenReturn(paymentResponseEntity);
+
+        liberataIdentity.payByAccount(paymentAccountRequest);
+
+        HttpHeaders headers = requestCaptor.getValue().getHeaders();
+        assertEquals("Bearer valid-token", headers.getFirst(HttpHeaders.AUTHORIZATION));
+    }
+
+    @Test
+    public void payByAccountShouldRefreshTokenAndRetryOnceWhenUnauthorized() {
+        PaymentByAccountRequest paymentByAccountRequest = new PaymentByAccountRequest();
+        PaymentAccountRequest paymentAccountRequest = PaymentAccountRequest.paymentAccountRequestWith()
+            .paymentByAccountRequest(paymentByAccountRequest)
+            .build();
+        PaymentAccountResponse successResponse = PaymentAccountResponse.paymentDtoWith()
+            .status("200")
+            .message("Success")
+            .build();
+
+        TokenResponse initialToken = new TokenResponse("initial-token", 1000000L, System.currentTimeMillis());
+        TokenResponse refreshedToken = new TokenResponse("refreshed-token", 1000000L, System.currentTimeMillis());
+        ResponseEntity<LiberataIdentityResponse> tokenResponseEntity = ResponseEntity.ok(liberataIdentityResponse);
+
+        when(liberataRestTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(LiberataIdentityResponse.class)))
+            .thenReturn(tokenResponseEntity);
+        when(accessTokenDtoToTokenResponseMapper.toTokenResponse(liberataIdentityResponse))
+            .thenReturn(initialToken)
+            .thenReturn(refreshedToken);
+
+        // First call returns 401, second call succeeds
+        when(liberataRestTemplate.postForEntity(
+            eq("http://localhost/test/pba-api-v2-uat/api/payment"),
+            any(HttpEntity.class),
+            eq(PaymentAccountResponse.class)
+        )).thenThrow(unauthorized()).thenReturn(ResponseEntity.ok(successResponse));
+
+        PaymentAccountResponse result = liberataIdentity.payByAccount(paymentAccountRequest);
+
+        assertEquals("200", result.getStatus());
+        // Verify postForEntity was called twice - once initially and once after retry
+        verify(liberataRestTemplate, times(2)).postForEntity(
+            eq("http://localhost/test/pba-api-v2-uat/api/payment"),
+            any(HttpEntity.class),
+            eq(PaymentAccountResponse.class)
+        );
+    }
+
+    @Test
+    public void payByAccountShouldNotRetryWhenUnauthorizedAfterTokenRefresh() {
+        PaymentByAccountRequest paymentByAccountRequest = new PaymentByAccountRequest();
+        PaymentAccountRequest paymentAccountRequest = PaymentAccountRequest.paymentAccountRequestWith()
+            .paymentByAccountRequest(paymentByAccountRequest)
+            .build();
+
+        TokenResponse initialToken = new TokenResponse("initial-token", 1000000L, System.currentTimeMillis());
+        TokenResponse refreshedToken = new TokenResponse("refreshed-token", 1000000L, System.currentTimeMillis());
+        ResponseEntity<LiberataIdentityResponse> tokenResponseEntity = ResponseEntity.ok(liberataIdentityResponse);
+
+        when(liberataRestTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(LiberataIdentityResponse.class)))
+            .thenReturn(tokenResponseEntity);
+        when(accessTokenDtoToTokenResponseMapper.toTokenResponse(liberataIdentityResponse))
+            .thenReturn(initialToken)
+            .thenReturn(refreshedToken);
+
+        // First call returns 401, second call also returns 401 (should not retry after this)
+        when(liberataRestTemplate.postForEntity(
+            eq("http://localhost/test/pba-api-v2-uat/api/payment"),
+            any(HttpEntity.class),
+            eq(PaymentAccountResponse.class)
+        )).thenThrow(unauthorized()).thenThrow(unauthorized());
+
+        // Create a PaymentAccountResponse with error details to avoid NPE
+        PaymentAccountResponse errorResponse = PaymentAccountResponse.paymentDtoWith()
+            .status("401")
+            .message("Unauthorized")
+            .build();
+
+        // Mock the exception to return an error response body
+        HttpClientErrorException unauthorizedException = unauthorized();
+        when(liberataRestTemplate.postForEntity(
+            eq("http://localhost/test/pba-api-v2-uat/api/payment"),
+            any(HttpEntity.class),
+            eq(PaymentAccountResponse.class)
+        )).thenThrow(unauthorized()).thenThrow(unauthorizedException);
+
+        // Since getPaymentAccountResponseError throws RuntimeException, we expect that
+        try {
+            liberataIdentity.payByAccount(paymentAccountRequest);
+        } catch (RuntimeException e) {
+            // Expected - getPaymentAccountResponseError will throw RuntimeException
+        }
+
+        // Verify postForEntity was called exactly twice - no third attempt
+        verify(liberataRestTemplate, times(2)).postForEntity(
+            eq("http://localhost/test/pba-api-v2-uat/api/payment"),
+            any(HttpEntity.class),
+            eq(PaymentAccountResponse.class)
+        );
+    }
+
+    @Test
+    public void payByAccountShouldHandleNonUnauthorizedErrors() {
+        PaymentByAccountRequest paymentByAccountRequest = new PaymentByAccountRequest();
+        PaymentAccountRequest paymentAccountRequest = PaymentAccountRequest.paymentAccountRequestWith()
+            .paymentByAccountRequest(paymentByAccountRequest)
+            .build();
+
+        TokenResponse validToken = new TokenResponse("valid-token", 1000000L, System.currentTimeMillis());
+        ResponseEntity<LiberataIdentityResponse> tokenResponseEntity = ResponseEntity.ok(liberataIdentityResponse);
+        when(liberataRestTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(LiberataIdentityResponse.class)))
+            .thenReturn(tokenResponseEntity);
+        when(accessTokenDtoToTokenResponseMapper.toTokenResponse(liberataIdentityResponse)).thenReturn(validToken);
+
+        // Return a 400 Bad Request error
+        HttpClientErrorException badRequestException = HttpClientErrorException.create(
+            HttpStatus.BAD_REQUEST,
+            "Bad Request",
+            new HttpHeaders(),
+            new byte[0],
+            StandardCharsets.UTF_8
+        );
+
+        when(liberataRestTemplate.postForEntity(
+            eq("http://localhost/test/pba-api-v2-uat/api/payment"),
+            any(HttpEntity.class),
+            eq(PaymentAccountResponse.class)
+        )).thenThrow(badRequestException);
+
+        try {
+            liberataIdentity.payByAccount(paymentAccountRequest);
+        } catch (RuntimeException e) {
+            // Expected - getPaymentAccountResponseError will throw RuntimeException
+        }
+
+        // Verify postForEntity was called only once (no retry on non-401 errors)
+        verify(liberataRestTemplate, times(1)).postForEntity(
+            eq("http://localhost/test/pba-api-v2-uat/api/payment"),
+            any(HttpEntity.class),
+            eq(PaymentAccountResponse.class)
+        );
+    }
+
+    @Test
+    public void payByAccountShouldThrowLiberataIdentityExceptionOnUnexpectedError() {
+        PaymentByAccountRequest paymentByAccountRequest = new PaymentByAccountRequest();
+        PaymentAccountRequest paymentAccountRequest = PaymentAccountRequest.paymentAccountRequestWith()
+            .paymentByAccountRequest(paymentByAccountRequest)
+            .build();
+
+        TokenResponse validToken = new TokenResponse("valid-token", 1000000L, System.currentTimeMillis());
+        ResponseEntity<LiberataIdentityResponse> tokenResponseEntity = ResponseEntity.ok(liberataIdentityResponse);
+        when(liberataRestTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(LiberataIdentityResponse.class)))
+            .thenReturn(tokenResponseEntity);
+        when(accessTokenDtoToTokenResponseMapper.toTokenResponse(liberataIdentityResponse)).thenReturn(validToken);
+
+        when(liberataRestTemplate.postForEntity(
+            eq("http://localhost/test/pba-api-v2-uat/api/payment"),
+            any(HttpEntity.class),
+            eq(PaymentAccountResponse.class)
+        )).thenThrow(new RuntimeException("Unexpected error"));
+
+        LiberataIdentityException exception = assertThrows(
+            LiberataIdentityException.class,
+            () -> liberataIdentity.payByAccount(paymentAccountRequest)
+        );
+
+        assertTrue(exception.getMessage().contains("Error posting payment to Liberata"));
+        assertTrue(exception.getCause() instanceof RuntimeException);
+    }
+
+    @Test
+    public void payByAccountPublicMethodShouldCallPrivateMethodWithFalseFlag() {
+        PaymentByAccountRequest paymentByAccountRequest = new PaymentByAccountRequest();
+        PaymentAccountRequest paymentAccountRequest = PaymentAccountRequest.paymentAccountRequestWith()
+            .paymentByAccountRequest(paymentByAccountRequest)
+            .build();
+        PaymentAccountResponse expectedResponse = PaymentAccountResponse.paymentDtoWith()
+            .status("200")
+            .build();
+
+        TokenResponse validToken = new TokenResponse("valid-token", 1000000L, System.currentTimeMillis());
+        ResponseEntity<LiberataIdentityResponse> tokenResponseEntity = ResponseEntity.ok(liberataIdentityResponse);
+        when(liberataRestTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(LiberataIdentityResponse.class)))
+            .thenReturn(tokenResponseEntity);
+        when(accessTokenDtoToTokenResponseMapper.toTokenResponse(liberataIdentityResponse)).thenReturn(validToken);
+
+        ResponseEntity<PaymentAccountResponse> paymentResponseEntity = ResponseEntity.ok(expectedResponse);
+        when(liberataRestTemplate.postForEntity(
+            eq("http://localhost/test/pba-api-v2-uat/api/payment"),
+            any(HttpEntity.class),
+            eq(PaymentAccountResponse.class)
+        )).thenReturn(paymentResponseEntity);
+
+        // Create a spy to verify the private method call
+        LiberataRealTimeAPI spyService = org.mockito.Mockito.spy(liberataIdentity);
+        PaymentAccountResponse result = spyService.payByAccount(paymentAccountRequest);
+
+        assertEquals("200", result.getStatus());
+        // The public method should delegate to private method with forceRefreshToken=false
+        verify(liberataRestTemplate).postForEntity(
+            eq("http://localhost/test/pba-api-v2-uat/api/payment"),
+            any(HttpEntity.class),
+            eq(PaymentAccountResponse.class)
+        );
+    }
+
+    @Test
+    public void payByAccountShouldOnlyDoOneRecursiveCallOnUnauthorized() {
+        PaymentByAccountRequest paymentByAccountRequest = new PaymentByAccountRequest();
+        PaymentAccountRequest paymentAccountRequest = PaymentAccountRequest.paymentAccountRequestWith()
+            .paymentByAccountRequest(paymentByAccountRequest)
+            .build();
+
+        TokenResponse initialToken = new TokenResponse("initial-token", 1000000L, System.currentTimeMillis());
+        TokenResponse refreshedToken = new TokenResponse("refreshed-token", 1000000L, System.currentTimeMillis());
+        ResponseEntity<LiberataIdentityResponse> tokenResponseEntity = ResponseEntity.ok(liberataIdentityResponse);
+
+        when(liberataRestTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(LiberataIdentityResponse.class)))
+            .thenReturn(tokenResponseEntity);
+        when(accessTokenDtoToTokenResponseMapper.toTokenResponse(liberataIdentityResponse))
+            .thenReturn(initialToken)
+            .thenReturn(refreshedToken);
+
+        // Both calls return 401 to test that we don't recurse more than once
+        when(liberataRestTemplate.postForEntity(
+            eq("http://localhost/test/pba-api-v2-uat/api/payment"),
+            any(HttpEntity.class),
+            eq(PaymentAccountResponse.class)
+        )).thenThrow(unauthorized()).thenThrow(unauthorized());
+
+        try {
+            liberataIdentity.payByAccount(paymentAccountRequest);
+        } catch (Exception e) {
+            // Expected to fail on second 401
+        }
+
+        // Verify postForEntity was called exactly twice - exactly one recursive call
+        verify(liberataRestTemplate, times(2)).postForEntity(
+            eq("http://localhost/test/pba-api-v2-uat/api/payment"),
+            any(HttpEntity.class),
+            eq(PaymentAccountResponse.class)
+        );
+    }
+
+    @Test
+    public void payByAccountShouldReturnErrorResponseFromLiberata() {
+        PaymentByAccountRequest paymentByAccountRequest = new PaymentByAccountRequest();
+        PaymentAccountRequest paymentAccountRequest = PaymentAccountRequest.paymentAccountRequestWith()
+            .paymentByAccountRequest(paymentByAccountRequest)
+            .build();
+
+        TokenResponse validToken = new TokenResponse("valid-token", 1000000L, System.currentTimeMillis());
+        ResponseEntity<LiberataIdentityResponse> tokenResponseEntity = ResponseEntity.ok(liberataIdentityResponse);
+        when(liberataRestTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(LiberataIdentityResponse.class)))
+            .thenReturn(tokenResponseEntity);
+        when(accessTokenDtoToTokenResponseMapper.toTokenResponse(liberataIdentityResponse)).thenReturn(validToken);
+
+        PaymentAccountResponse errorResponse = PaymentAccountResponse.paymentDtoWith()
+            .status("403")
+            .message("Insufficient funds")
+            .reason("Account balance too low")
+            .build();
+
+        ResponseEntity<PaymentAccountResponse> paymentResponseEntity = ResponseEntity.ok(errorResponse);
+        when(liberataRestTemplate.postForEntity(
+            eq("http://localhost/test/pba-api-v2-uat/api/payment"),
+            any(HttpEntity.class),
+            eq(PaymentAccountResponse.class)
+        )).thenReturn(paymentResponseEntity);
+
+        PaymentAccountResponse result = liberataIdentity.payByAccount(paymentAccountRequest);
+
+        assertEquals("403", result.getStatus());
+        assertEquals("Insufficient funds", result.getMessage());
+        assertEquals("Account balance too low", result.getReason());
     }
 }

@@ -53,6 +53,12 @@ public class TestConfigProperties {
     @Value("${payments.account.deleted.account.number}")
     public String deletedAccountNumber;
 
+    @Value("${payments.account.exceeded.account.number}")
+    public String exceededAccountNumber;
+
+    @Value("${payments.account.duplicated.account.number}")
+    public String duplicatedAccountNumber;
+
     @Value("${payments.account.probate.account.number}")
     public String probatePbaAccountNumber;
 
@@ -94,7 +100,10 @@ public class TestConfigProperties {
 
     @Value("${bulk.scanning.payments.processed.url}")
     public String bulkScanUrl;
-
+  
     @Value("${refund.api.url}")
     public String refundApiUrl;
+
+    @Value("${ccd.api.url}")
+    public String ccdApiUrl;
 }
