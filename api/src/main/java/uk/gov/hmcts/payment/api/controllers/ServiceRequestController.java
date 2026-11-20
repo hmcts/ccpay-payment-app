@@ -450,7 +450,8 @@ public class ServiceRequestController {
         @ApiResponse(responseCode = "401", description = "Credentials are required to access this resource"),
         @ApiResponse(responseCode = "403", description = "Forbidden-Access Denied"),
         @ApiResponse(responseCode = "404", description = "Service request not found"),
-        @ApiResponse(responseCode = "409", description = "Service request cannot be cancelled",
+        @ApiResponse(responseCode = "409", description = "Service request cannot be cancelled. Where a payment blocks "
+            + "cancellation, the message ends with that payment's reference in place of %s.",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class), examples = {
                 @ExampleObject(name = "Payment created", value = PAYMENT_CREATED,
                     summary = "A payment on the service request has status created"),

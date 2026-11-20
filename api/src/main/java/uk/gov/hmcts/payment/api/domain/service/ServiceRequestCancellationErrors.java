@@ -15,6 +15,8 @@ import java.util.List;
  */
 public final class ServiceRequestCancellationErrors {
 
+    private ServiceRequestCancellationErrors() {}
+
     /** The longest cancellation reason accepted, which matches the payment_fee_link.cancellation_reason column size. */
     public static final int MAX_CANCELLATION_REASON_LENGTH = 255;
 
@@ -38,12 +40,12 @@ public final class ServiceRequestCancellationErrors {
 
     // 409: the service request is not eligible for cancellation. Only the first reason found is returned.
 
-    public static final String PAYMENT_CREATED = "payment with status created";
-    public static final String PAYMENT_STARTED = "payment with status started";
-    public static final String PAYMENT_SUCCESS = "payment with status success";
-    public static final String PAYMENT_PENDING = "payment with status pending";
-    public static final String PAYMENT_SUBMITTED = "payment with status submitted";
-    public static final String UNKNOWN_PAYMENT_STATUS = "unknown payment status";
+    public static final String PAYMENT_CREATED = "Service request has a created payment %s";
+    public static final String PAYMENT_STARTED = "Service request has a started payment %s";
+    public static final String PAYMENT_SUCCESS = "Service request has a successful payment %s";
+    public static final String PAYMENT_PENDING = "Service request has a pending payment %s";
+    public static final String PAYMENT_SUBMITTED = "Service request has a submitted payment %s";
+    public static final String UNKNOWN_PAYMENT_STATUS = "Service request has an unknown status for payment %s";
     public static final String REMISSIONS_EXISTING = "remissions existing on SR";
     public static final String PAYMENT_ALLOCATION_EXISTING = "payment allocation existing on SR";
     public static final String BULK_SCANNING_NOT_CHECKED_WITHOUT_SYSTEM_USER =
@@ -68,6 +70,4 @@ public final class ServiceRequestCancellationErrors {
 
     public static final String BULK_SCANNING_UNAVAILABLE = "unable to check bulk scanning for unallocated payments";
 
-    private ServiceRequestCancellationErrors() {
-    }
 }

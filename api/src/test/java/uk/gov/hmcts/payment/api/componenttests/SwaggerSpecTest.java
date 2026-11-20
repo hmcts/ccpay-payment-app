@@ -183,7 +183,7 @@ class SwaggerSpecTest {
         JsonNode responses = operation(CANCEL).path("responses");
 
         assertThat(fieldNames(responses)).contains("204", "400", "401", "403", "404", "409", "504");
-        assertThat(responses.at("/409/description").asText()).isEqualTo("Service request cannot be cancelled");
+        assertThat(responses.at("/409/description").asText()).startsWith("Service request cannot be cancelled.");
         assertThat(responses.at("/504/description").asText()).contains("bulk scanning");
     }
 
@@ -207,12 +207,12 @@ class SwaggerSpecTest {
 
         assertThat(exampleValues(responses.path("409")))
             .containsExactlyInAnyOrder(
-                "payment with status created",
-                "payment with status started",
-                "payment with status success",
-                "payment with status pending",
-                "payment with status submitted",
-                "unknown payment status",
+                "Service request has a created payment %s",
+                "Service request has a started payment %s",
+                "Service request has a successful payment %s",
+                "Service request has a pending payment %s",
+                "Service request has a submitted payment %s",
+                "Service request has an unknown status for payment %s",
                 "remissions existing on SR",
                 "payment allocation existing on SR",
                 "unable to check bulk scanning for unallocated payments as no system user is configured",

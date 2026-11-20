@@ -39,6 +39,8 @@ class ServiceRequestCancellationEligibilityServiceTest {
 
     private static final String CCD_CASE_NUMBER = "1234567890123456";
     private static final String OTHER_CCD_CASE_NUMBER = "6543210987654321";
+    private static final String PAYMENT_REFERENCE = "RC-1111-2222-3333-4444";
+    private static final String OTHER_PAYMENT_REFERENCE = "RC-5555-6666-7777-8888";
 
     static class EligibilityAssert extends AbstractAssert<EligibilityAssert, Eligibility> {
 
@@ -130,28 +132,28 @@ class ServiceRequestCancellationEligibilityServiceTest {
 
     @Test
     void reportsOnlyTheFirstIneligiblePayment() {
-        assertThatSR(paymentFeeLink(payment(status("success")), payment(status("created"))))
+        assertThatSR(paymentFeeLink(payment(status("success")), payment(OTHER_PAYMENT_REFERENCE, status("created"))))
             .isNotCancellable()
-            .withReason("payment with status success");
+            .withReason("Service request has a successful payment RC-1111-2222-3333-4444");
     }
 
     @Test
     void blocksCancellationForSuccessfulOrInProgressPayments() {
 
         assertThatSR(paymentFeeLink(payment(status("success")))).isNotCancellable()
-            .withReason("payment with status success");
+            .withReason("Service request has a successful payment RC-1111-2222-3333-4444");
 
         assertThatSR(paymentFeeLink(payment(status("pending")))).isNotCancellable()
-            .withReason("payment with status pending");
+            .withReason("Service request has a pending payment RC-1111-2222-3333-4444");
 
         assertThatSR(paymentFeeLink(payment(status("created")))).isNotCancellable()
-            .withReason("payment with status created");
+            .withReason("Service request has a created payment RC-1111-2222-3333-4444");
 
         assertThatSR(paymentFeeLink(payment(status("started")))).isNotCancellable()
-            .withReason("payment with status started");
+            .withReason("Service request has a started payment RC-1111-2222-3333-4444");
 
         assertThatSR(paymentFeeLink(payment(status("submitted")))).isNotCancellable()
-            .withReason("payment with status submitted");
+            .withReason("Service request has a submitted payment RC-1111-2222-3333-4444");
     }
 
 
@@ -159,7 +161,13 @@ class ServiceRequestCancellationEligibilityServiceTest {
     void blocksCancellationForAnUnknownPaymentStatus() {
         assertThatSR(paymentFeeLink(payment(status("other"))))
             .isNotCancellable()
-            .withReason("unknown payment status");
+            .withReason("Service request has an unknown status for payment RC-1111-2222-3333-4444");
+    }
+
+    @Test
+    void noPaymentStatusIsBothEligibleAndIneligible() {
+        assertThat(ServiceRequestCancellationEligibilityService.eligiblePaymentStatus)
+            .doesNotContainAnyElementsOf(ServiceRequestCancellationEligibilityService.ineligiblePaymentStatus.keySet());
     }
 
     @Test
@@ -372,7 +380,8 @@ class ServiceRequestCancellationEligibilityServiceTest {
 
     /**
      * Each rule refuses cancellation with its own reason, and together they give exactly the reasons documented in
-     * ServiceRequestCancellationErrors, which Swagger and the LLD list for clients.
+     * ServiceRequestCancellationErrors, which Swagger and the LLD list for clients. The payment reasons are templates
+     * that name the blocking payment, so they are filled in with its reference before comparing.
      *
      * @see uk.gov.hmcts.payment.api.componenttests.SwaggerSpecTest
      */
@@ -398,7 +407,10 @@ class ServiceRequestCancellationEligibilityServiceTest {
         when(bulkScanningClient.canAuthenticate()).thenReturn(false);
         reasons.add(service.checkEligibility(paymentFeeLinkForCase(CCD_CASE_NUMBER)).reason());
 
-        assertThat(reasons).containsExactlyInAnyOrderElementsOf(ServiceRequestCancellationErrors.INELIGIBLE_REASONS);
+        assertThat(reasons).containsExactlyInAnyOrderElementsOf(ServiceRequestCancellationErrors.INELIGIBLE_REASONS
+            .stream()
+            .map(reason -> reason.formatted(PAYMENT_REFERENCE))
+            .toList());
     }
 
     @Test
@@ -441,7 +453,12 @@ class ServiceRequestCancellationEligibilityServiceTest {
     }
 
     private static Payment payment(PaymentStatus status) {
+        return payment(PAYMENT_REFERENCE, status);
+    }
+
+    private static Payment payment(String reference, PaymentStatus status) {
         return Payment.paymentWith()
+            .reference(reference)
             .paymentStatus(status)
             .paymentAllocation(List.of())
             .build();

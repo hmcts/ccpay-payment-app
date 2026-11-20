@@ -52,8 +52,6 @@ public class ServiceRequestCancellationEligibilityService {
     }
 
     // Every reason is documented in ServiceRequestCancellationErrors, so add any new reason there.
-    private static final Eligibility UNKNOWN_PAYMENT_STATUS =
-        Eligibility.ineligible(ServiceRequestCancellationErrors.UNKNOWN_PAYMENT_STATUS);
     private static final Eligibility REMISSIONS_EXISTING_ON_SR =
         Eligibility.ineligible(ServiceRequestCancellationErrors.REMISSIONS_EXISTING);
     private static final Eligibility PAYMENT_ALLOCATION_EXISTING_ON_SR =
@@ -63,17 +61,22 @@ public class ServiceRequestCancellationEligibilityService {
     private static final Eligibility BULK_SCANNING_NOT_CHECKED_WITHOUT_SYSTEM_USER =
         Eligibility.ineligible(ServiceRequestCancellationErrors.BULK_SCANNING_NOT_CHECKED_WITHOUT_SYSTEM_USER);
 
-    // Map payment status names to whether they are eligible for cancellation
-    private static final Map<String, Eligibility> eliMap = Map.of(
-        "created",    Eligibility.ineligible(ServiceRequestCancellationErrors.PAYMENT_CREATED),
-        "started",    Eligibility.ineligible(ServiceRequestCancellationErrors.PAYMENT_STARTED),
-        "success",    Eligibility.ineligible(ServiceRequestCancellationErrors.PAYMENT_SUCCESS),
-        "pending",    Eligibility.ineligible(ServiceRequestCancellationErrors.PAYMENT_PENDING),
-        "submitted",  Eligibility.ineligible(ServiceRequestCancellationErrors.PAYMENT_SUBMITTED),
-        "decline",    Eligibility.eligible(),
-        "cancelled",  Eligibility.eligible(),
-        "error",      Eligibility.eligible(),
-        "failed",     Eligibility.eligible()
+    // Payment statuses that block cancellation, mapped to the reason given. Package-private so the tests can check
+    // that no status is in both this and eligiblePaymentStatus.
+    static final Map<String, String> ineligiblePaymentStatus = Map.of(
+        "created",    ServiceRequestCancellationErrors.PAYMENT_CREATED,
+        "started",    ServiceRequestCancellationErrors.PAYMENT_STARTED,
+        "success",    ServiceRequestCancellationErrors.PAYMENT_SUCCESS,
+        "pending",    ServiceRequestCancellationErrors.PAYMENT_PENDING,
+        "submitted",  ServiceRequestCancellationErrors.PAYMENT_SUBMITTED
+    );
+
+    // Payment statuses that allow cancellation. Any status in neither collection blocks it as unknown.
+    static final Set<String> eligiblePaymentStatus = Set.of(
+        "decline",
+        "cancelled",
+        "error",
+        "failed"
     );
 
     private final BulkScanningClient bulkScanningClient;
@@ -102,12 +105,11 @@ public class ServiceRequestCancellationEligibilityService {
             return Eligibility.eligible();
         }
 
-        // Check payment status against the map
+        // Check for any payment statuses that are ineligible for cancellation
         Optional<Eligibility> ineligiblePayment = paymentFeeLink.getPayments()
             .stream()
-            .map(Payment::getPaymentStatus)
-            .map(s -> eliMap.getOrDefault(s.getName(), UNKNOWN_PAYMENT_STATUS))
-            .filter(e -> !e.cancellable())
+            .filter(p -> !eligiblePaymentStatus.contains(p.getPaymentStatus().getName()))
+            .map(this::mapStatusError)
             .findFirst();
 
         if (ineligiblePayment.isPresent()) {
@@ -134,6 +136,19 @@ public class ServiceRequestCancellationEligibilityService {
         }
 
         return checkEligibilityBulkScanning(paymentFeeLink);
+    }
+
+    private Eligibility mapStatusError(Payment p) {
+        String error = ineligiblePaymentStatus.get(p.getPaymentStatus().getName());
+
+        if (error == null) {
+            log.warn("Unknown payment status '{}' therefore ineligible for cancellation for payment reference {}",
+                p.getPaymentStatus().getName(), p.getReference());
+
+            error = ServiceRequestCancellationErrors.UNKNOWN_PAYMENT_STATUS;
+        }
+
+        return Eligibility.ineligible(error.formatted(p.getReference()));
     }
 
     /**
