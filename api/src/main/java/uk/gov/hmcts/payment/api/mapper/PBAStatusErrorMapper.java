@@ -135,11 +135,11 @@ public class PBAStatusErrorMapper {
     }
 
     private boolean isAnAccuntOnHold(PaymentAccountResponse paymentAccountResponse) {
-        return paymentAccountResponse.getReason() != null && (paymentAccountResponse.getReason().equals(ON_HOLD));
+        return paymentAccountResponse.getReason() != null && (paymentAccountResponse.getReason().contains(ON_HOLD));
     }
 
     private boolean isAnAccuntDeleted(PaymentAccountResponse paymentAccountResponse) {
-        return paymentAccountResponse.getReason() != null && (paymentAccountResponse.getReason().equals(DELETED));
+        return paymentAccountResponse.getReason() != null && (paymentAccountResponse.getReason().contains(DELETED));
     }
 
     // This method is used to get the message for the error code. If the error code is "Exceeded credit limit.",
