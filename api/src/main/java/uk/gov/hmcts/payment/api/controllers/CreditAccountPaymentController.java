@@ -29,6 +29,7 @@ import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
 import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
+import uk.gov.hmcts.payment.api.exception.IACServiceException;
 import uk.gov.hmcts.payment.api.mapper.CreditAccountPaymentRequestMapper;
 import uk.gov.hmcts.payment.api.mapper.PBAPaymentMapper;
 import uk.gov.hmcts.payment.api.mapper.PBAStatusErrorMapper;
@@ -116,7 +117,7 @@ public class CreditAccountPaymentController {
     @PostMapping(value = "/credit-account-payments")
     @ResponseBody
     @Transactional
-    public ResponseEntity<PaymentDto> createCreditAccountPayment(@Valid @RequestBody CreditAccountPaymentRequest creditAccountPaymentRequest, @RequestHeader(required = false) MultiValueMap<String, String> headers) throws CheckDigitException {
+    public ResponseEntity<?> createCreditAccountPayment(@Valid @RequestBody CreditAccountPaymentRequest creditAccountPaymentRequest, @RequestHeader(required = false) MultiValueMap<String, String> headers) throws CheckDigitException {
 
         val paymentGroupReference = paymentReference.getNext();
         /*
@@ -145,9 +146,13 @@ public class CreditAccountPaymentController {
          val paymentFeeLink = creditAccountPaymentService.create(payment, fees, paymentGroupReference);
         payment= paymentFeeLink.getPayments().get(0);
         if (!isPBAConfig1Journey) {
-            val paymentByAccountRequest = pBAPaymentMapper.mapToPaymentByAccountRequest(creditAccountPaymentRequest, paymentGroupReference, payment,paymentFeeLink);
-            val paymentResponse = liberataRealTimeAPI.payByAccount(paymentByAccountRequest);
-            pbaStatusErrorMapper.setPaymentStatusAndHistories(creditAccountPaymentRequest.getAccountNumber(), payment, paymentResponse);
+            try {
+                val paymentByAccountRequest = pBAPaymentMapper.mapToPaymentByAccountRequest(creditAccountPaymentRequest, paymentGroupReference, payment, paymentFeeLink);
+                val paymentResponse = liberataRealTimeAPI.payByAccount(paymentByAccountRequest);
+                pbaStatusErrorMapper.setPaymentStatusAndHistories(creditAccountPaymentRequest.getAccountNumber(), payment, paymentResponse);
+            } catch (IACServiceException iACServiceException) {
+                return new ResponseEntity<>(iACServiceException.getMessage(), HttpStatus.BAD_REQUEST);
+            }
         } else {
             LOG.info("Setting status to pending");
             payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("pending").build());
