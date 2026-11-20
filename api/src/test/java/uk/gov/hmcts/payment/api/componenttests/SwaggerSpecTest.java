@@ -191,7 +191,7 @@ class SwaggerSpecTest {
     void cancelServiceRequestDocumentsItsResponses() throws Exception {
         JsonNode responses = operation(CANCEL).path("responses");
 
-        assertThat(fieldNames(responses)).contains("204", "400", "403", "404", "409", "504")
+        assertThat(fieldNames(responses)).contains("204", "400", "403", "404", "409", "503", "504")
             // Authentication failures are refused with 403, never 401.
             .doesNotContain("401");
         assertThat(responses.at("/403/description").asText()).contains("payments role");
@@ -227,11 +227,13 @@ class SwaggerSpecTest {
                 "Service request has an unknown status for payment %s",
                 "Service request has a remission",
                 "Service request has an allocated payment",
-                "Unable to check bulk scanning for unallocated payments as no system user is configured",
                 "Case has an unallocated bulk scan payment")
             // Every reason the eligibility service can give, which ServiceRequestCancellationEligibilityServiceTest
             // checks against the service itself.
             .containsExactlyInAnyOrderElementsOf(ServiceRequestCancellationErrors.INELIGIBLE_REASONS);
+
+        assertThat(exampleValues(responses.path("503")))
+            .containsExactly("Unable to check bulk scanning for unallocated payments as no system user is configured");
 
         assertThat(exampleValues(responses.path("504")))
             .containsExactly("Unable to check bulk scanning for unallocated payments, try again later");

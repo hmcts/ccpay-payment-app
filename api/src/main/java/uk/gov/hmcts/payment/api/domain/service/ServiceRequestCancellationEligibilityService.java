@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.payment.api.dto.PaymentStatus;
 import uk.gov.hmcts.payment.api.dto.SearchResponse;
+import uk.gov.hmcts.payment.api.exception.BulkScanningNotConfiguredException;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentAllocation;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
@@ -58,8 +59,6 @@ public class ServiceRequestCancellationEligibilityService {
         Eligibility.ineligible(ServiceRequestCancellationErrors.PAYMENT_ALLOCATION_EXIST);
     private static final Eligibility UNALLOCATED_BULK_SCAN_PAYMENT_ON_CASE =
         Eligibility.ineligible(ServiceRequestCancellationErrors.UNALLOCATED_BULK_SCAN_PAYMENT);
-    private static final Eligibility BULK_SCANNING_NOT_CHECKED_WITHOUT_SYSTEM_USER =
-        Eligibility.ineligible(ServiceRequestCancellationErrors.BULK_SCANNING_NOT_CHECKED_WITHOUT_SYSTEM_USER);
 
     // Payment statuses that block cancellation, mapped to the reason given. Package-private so the tests can check
     // that no status is in both this and eligiblePaymentStatus.
@@ -159,8 +158,12 @@ public class ServiceRequestCancellationEligibilityService {
      * worked on as an exception record) both mean money may be heading for this case, so both block cancellation.</p>
      *
      * <p>Bulk scanning only allows its case search with a user token, so payment-app uses its IDAM system user.
-     * Until that is configured the case cannot be checked, so the service request is treated as ineligible.
-     * Disable the check with {@code feature.cancellation.bulk-scanning-check} to allow cancellation without it.</p>
+     * Until that is configured the case cannot be checked. That is a fault in Payment App's configuration, not a
+     * reason the service request is ineligible, so it fails with {@link BulkScanningNotConfiguredException} (503)
+     * and the service request is not cancelled. Disable the check with
+     * {@code feature.cancellation.bulk-scanning-check} to allow cancellation without it.</p>
+     *
+     * @throws BulkScanningNotConfiguredException when the check is needed but no system user is configured
      */
     Eligibility checkEligibilityBulkScanning(PaymentFeeLink paymentFeeLink) {
         if (!bulkScanningCheckEnabled) {
@@ -178,9 +181,9 @@ public class ServiceRequestCancellationEligibilityService {
         }
 
         if (!bulkScanningClient.canAuthenticate()) {
-            log.error("{} ineligible for cancellation as bulk scanning cannot be checked without a system user",
-                render(paymentFeeLink));
-            return BULK_SCANNING_NOT_CHECKED_WITHOUT_SYSTEM_USER;
+            log.error("{} not cancelled as bulk scanning cannot be checked without a system user; configure "
+                + "idam.system-user.* and the IDAM client, or disable the check", render(paymentFeeLink));
+            throw new BulkScanningNotConfiguredException(ServiceRequestCancellationErrors.BULK_SCANNING_NOT_CONFIGURED);
         }
 
         for (String ccdCaseNumber : ccdCaseNumbers) {

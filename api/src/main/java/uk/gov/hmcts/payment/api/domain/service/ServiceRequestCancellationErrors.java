@@ -50,8 +50,6 @@ public final class ServiceRequestCancellationErrors {
     public static final String UNKNOWN_PAYMENT_STATUS = "Service request has an unknown status for payment %s";
     public static final String REMISSIONS_EXIST = "Service request has a remission";
     public static final String PAYMENT_ALLOCATION_EXIST = "Service request has an allocated payment";
-    public static final String BULK_SCANNING_NOT_CHECKED_WITHOUT_SYSTEM_USER =
-        "Unable to check bulk scanning for unallocated payments as no system user is configured";
     public static final String UNALLOCATED_BULK_SCAN_PAYMENT = "Case has an unallocated bulk scan payment";
 
     /** Every reason a service request can be refused cancellation. */
@@ -64,9 +62,13 @@ public final class ServiceRequestCancellationErrors {
         UNKNOWN_PAYMENT_STATUS,
         REMISSIONS_EXIST,
         PAYMENT_ALLOCATION_EXIST,
-        BULK_SCANNING_NOT_CHECKED_WITHOUT_SYSTEM_USER,
         UNALLOCATED_BULK_SCAN_PAYMENT
     );
+
+    // 503: the bulk-scanning check is needed, but Payment App has no IDAM system user configured to make it.
+
+    public static final String BULK_SCANNING_NOT_CONFIGURED =
+        "Unable to check bulk scanning for unallocated payments as no system user is configured";
 
     // 504: bulk scanning, or the IDAM login it needs, failed or did not respond.
 

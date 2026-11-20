@@ -40,6 +40,7 @@ import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestFeeDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
+import uk.gov.hmcts.payment.api.exception.BulkScanningNotConfiguredException;
 import uk.gov.hmcts.payment.api.exception.LiberataServiceTimeoutException;
 import uk.gov.hmcts.payment.api.exceptions.ServiceRequestCancellationException;
 import uk.gov.hmcts.payment.api.exceptions.ServiceRequestReferenceNotFoundException;
@@ -1270,6 +1271,19 @@ public class ServiceRequestControllerTest {
             .andExpect(status().isNoContent());
 
         verify(serviceRequestDomainService).cancel(eq(serviceRequestReference), eq(UserResolverBackdoor.CASEWORKER_ID), eq(reason));
+    }
+
+    @Test
+    public void cancelServiceRequestWithoutASystemUserForBulkScanningIsServiceUnavailable() throws Exception {
+        String serviceRequestReference = "2021-1621352112222";
+        String message = "Unable to check bulk scanning for unallocated payments as no system user is configured";
+        doThrow(new BulkScanningNotConfiguredException(message))
+            .when(serviceRequestDomainService).cancel(eq(serviceRequestReference), anyString(), anyString());
+
+        serviceOnlyRestActions()
+            .post("/service-request/" + serviceRequestReference + "/cancel")
+            .andExpect(status().isServiceUnavailable())
+            .andExpect(errorMessage(message));
     }
 
     @Test

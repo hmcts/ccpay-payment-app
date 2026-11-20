@@ -482,10 +482,13 @@ public class ServiceRequestController {
                     summary = "The service request has a remission"),
                 @ExampleObject(name = "Payment allocation", value = PAYMENT_ALLOCATION_EXIST,
                     summary = "A payment on the service request has been allocated"),
-                @ExampleObject(name = "No system user", value = BULK_SCANNING_NOT_CHECKED_WITHOUT_SYSTEM_USER,
-                    summary = "Bulk scanning needs checking, but payment-app has no IDAM system user configured"),
                 @ExampleObject(name = "Unallocated bulk scan payment", value = UNALLOCATED_BULK_SCAN_PAYMENT,
                     summary = "Bulk scanning has unallocated payments on one of the service request's cases")
+            })),
+        @ApiResponse(responseCode = "503", description = "Payment App is not configured to check bulk scanning; the service request has not been cancelled",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class), examples = {
+                @ExampleObject(name = "No system user", value = BULK_SCANNING_NOT_CONFIGURED,
+                    summary = "Bulk scanning needs checking, but Payment App has no IDAM system user configured")
             })),
         @ApiResponse(responseCode = "504", description = "Unable to check bulk scanning; the service request has not been cancelled",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class), examples = {

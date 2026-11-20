@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import uk.gov.hmcts.payment.api.contract.exception.ValidationErrorDTO;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
+import uk.gov.hmcts.payment.api.exception.BulkScanningNotConfiguredException;
 import uk.gov.hmcts.payment.api.exception.BulkScanningServiceUnavailableException;
 import uk.gov.hmcts.payment.api.exception.InvalidServiceRequestCancellationException;
 import uk.gov.hmcts.payment.api.exception.LiberataServiceTimeoutException;
@@ -77,6 +78,13 @@ public class RestErrorHandler {
     @ExceptionHandler(ServiceRequestCancellationException.class)
     public ResponseEntity<String> serviceRequestCancellationConflict(ServiceRequestCancellationException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT);
+    }
+
+    // Payment App cannot make the bulk-scanning check until its IDAM system user is configured. The service request
+    // is not cancelled; the fault is Payment App's, so it is 503 rather than 409.
+    @ExceptionHandler(BulkScanningNotConfiguredException.class)
+    public ResponseEntity<String> bulkScanningNotConfigured(BulkScanningNotConfiguredException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.SERVICE_UNAVAILABLE);
     }
 
     @ExceptionHandler({PaymentNotFoundException.class, InvalidFeeRequestException.class, PaymentException.class,

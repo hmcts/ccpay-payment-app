@@ -5,6 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.payment.api.domain.service.ServiceRequestCancellationEligibilityService.Eligibility;
 import uk.gov.hmcts.payment.api.dto.SearchResponse;
+import uk.gov.hmcts.payment.api.exception.BulkScanningNotConfiguredException;
 import uk.gov.hmcts.payment.api.exception.BulkScanningServiceUnavailableException;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentAllocation;
@@ -14,11 +15,9 @@ import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.model.Remission;
 import uk.gov.hmcts.payment.api.service.BulkScanningClient;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -351,11 +350,12 @@ class ServiceRequestCancellationEligibilityServiceTest {
     }
 
     @Test
-    void blocksCancellationWhenNoSystemUserIsConfiguredToCheckBulkScanning() {
+    void failsWhenNoSystemUserIsConfiguredToCheckBulkScanning() {
         when(bulkScanningClient.canAuthenticate()).thenReturn(false);
 
-        assertThatSR(paymentFeeLinkForCase(CCD_CASE_NUMBER)).isNotCancellable()
-            .withReason("Unable to check bulk scanning for unallocated payments as no system user is configured");
+        assertThatThrownBy(() -> service.checkEligibility(paymentFeeLinkForCase(CCD_CASE_NUMBER)))
+            .isInstanceOf(BulkScanningNotConfiguredException.class)
+            .hasMessage("Unable to check bulk scanning for unallocated payments as no system user is configured");
         verify(bulkScanningClient, never()).findPaymentsForCase(any());
     }
 
@@ -402,10 +402,7 @@ class ServiceRequestCancellationEligibilityServiceTest {
                 Stream.of(withRemission, withAllocation, paymentFeeLinkForCase(CCD_CASE_NUMBER)))
             .map(service::checkEligibility)
             .map(Eligibility::reason)
-            .collect(Collectors.toCollection(ArrayList::new));
-
-        when(bulkScanningClient.canAuthenticate()).thenReturn(false);
-        reasons.add(service.checkEligibility(paymentFeeLinkForCase(CCD_CASE_NUMBER)).reason());
+            .toList();
 
         assertThat(reasons).containsExactlyInAnyOrderElementsOf(ServiceRequestCancellationErrors.INELIGIBLE_REASONS
             .stream()
