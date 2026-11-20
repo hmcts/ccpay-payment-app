@@ -12,11 +12,16 @@ import uk.gov.hmcts.fees2.register.api.contract.Fee2Dto;
 import uk.gov.hmcts.fees2.register.api.contract.FeeVersionDto;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
+import uk.gov.hmcts.payment.api.dto.liberata.PaymentAccountRequest;
 import uk.gov.hmcts.payment.api.dto.liberata.PaymentByAccountRequest;
 import uk.gov.hmcts.payment.api.dto.SupplementaryPaymentDto;
 import uk.gov.hmcts.payment.api.dto.LiberataSupplementaryInfo;
 import uk.gov.hmcts.payment.api.dto.LiberataSupplementaryDetails;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
+import uk.gov.hmcts.payment.api.email.Email;
+import uk.gov.hmcts.payment.api.email.EmailFailedException;
+import uk.gov.hmcts.payment.api.email.EmailService;
+import uk.gov.hmcts.payment.api.exception.IACServiceException;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentChannel;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
@@ -30,13 +35,20 @@ import uk.gov.hmcts.payment.api.service.PaymentService;
 
 import java.math.BigDecimal;
 import java.util.Collections;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -51,11 +63,15 @@ public class PBAPaymentMapperTest {
     @Mock
     private IacService iacService;
 
+    @Mock
+    private EmailService emailService;
+
     private PBAPaymentMapper pbaPaymentMapper;
 
     @Before
     public void setUp() {
-        pbaPaymentMapper = new PBAPaymentMapper(paymentService, feesService, iacService);
+        pbaPaymentMapper = new PBAPaymentMapper(paymentService, feesService, iacService, emailService,
+            "from@example.test", new String[]{"payments@example.test"});
     }
 
     @Test
@@ -209,6 +225,100 @@ public class PBAPaymentMapperTest {
         PaymentByAccountRequest inner = accountRequest.getPaymentByAccountRequest();
         assertThat(inner).isNotNull();
         assertThat(inner.getPayment().getSurname()).isEqualTo("Smith");
+        verifyNoInteractions(emailService);
+    }
+
+    @Test
+    public void mapToPaymentByAccountRequest_IAC_missingResponseData_reportsBothMissingFields() {
+        mockIacServiceName();
+        ResponseEntity<SupplementaryPaymentDto> nullBodyResponse =
+            new ResponseEntity<>((SupplementaryPaymentDto) null, HttpStatus.OK);
+        ResponseEntity<SupplementaryPaymentDto> nullInfoResponse = new ResponseEntity<>(
+            SupplementaryPaymentDto.supplementaryPaymentDtoWith().supplementaryInfo(null).build(), HttpStatus.OK);
+        ResponseEntity<SupplementaryPaymentDto> emptyInfoResponse = new ResponseEntity<>(
+            SupplementaryPaymentDto.supplementaryPaymentDtoWith().supplementaryInfo(Collections.emptyList()).build(), HttpStatus.OK);
+        ResponseEntity<SupplementaryPaymentDto> nullFirstInfoResponse = new ResponseEntity<>(
+            SupplementaryPaymentDto.supplementaryPaymentDtoWith()
+                .supplementaryInfo(Collections.<LiberataSupplementaryInfo>singletonList(null)).build(), HttpStatus.OK);
+        List<ResponseEntity<SupplementaryPaymentDto>> responses = Arrays.asList(
+            null, nullBodyResponse, nullInfoResponse, emptyInfoResponse, nullFirstInfoResponse);
+
+        for (ResponseEntity<SupplementaryPaymentDto> response : responses) {
+            when(iacService.getIacSupplementaryInfo(anyList(), anyString())).thenReturn(response);
+            assertMissingFields("surname, CCD case number");
+        }
+
+        org.mockito.ArgumentCaptor<Email> emailCaptor = org.mockito.ArgumentCaptor.forClass(Email.class);
+        verify(emailService, times(responses.size())).sendEmail(emailCaptor.capture());
+        assertThat(emailCaptor.getAllValues()).allSatisfy(email -> {
+            assertThat(email.getSubject()).isEqualTo("IAC response missing fields: surname, CCD case number");
+            assertThat(email.getMessage()).contains("surname, CCD case number");
+        });
+    }
+
+    @Test
+    public void mapToPaymentByAccountRequest_IAC_missingSurname_reportsOnlySurname() {
+        mockIacServiceName();
+        mockIacResponse(supplementaryInfo("ccd-1", "  "));
+
+        assertMissingFields("surname");
+
+        org.mockito.ArgumentCaptor<Email> emailCaptor = org.mockito.ArgumentCaptor.forClass(Email.class);
+        verify(emailService).sendEmail(emailCaptor.capture());
+        assertThat(emailCaptor.getValue().getSubject()).isEqualTo("IAC response missing fields: surname");
+        assertThat(emailCaptor.getValue().getMessage()).contains("missing: surname.");
+    }
+
+    @Test
+    public void mapToPaymentByAccountRequest_IAC_missingCcdCaseNumber_reportsOnlyCcdCaseNumber() {
+        mockIacServiceName();
+        mockIacResponse(supplementaryInfo("  ", "Smith"));
+
+        assertMissingFields("CCD case number");
+
+        org.mockito.ArgumentCaptor<Email> emailCaptor = org.mockito.ArgumentCaptor.forClass(Email.class);
+        verify(emailService).sendEmail(emailCaptor.capture());
+        assertThat(emailCaptor.getValue().getSubject()).isEqualTo("IAC response missing fields: CCD case number");
+        assertThat(emailCaptor.getValue().getMessage()).contains("missing: CCD case number.");
+    }
+
+    @Test
+    public void mapToPaymentByAccountRequest_IAC_missingSupplementaryDetails_reportsSurnameOnly() {
+        mockIacServiceName();
+        LiberataSupplementaryInfo info = LiberataSupplementaryInfo.liberataSupplementaryInfoWith()
+            .ccdCaseNumber("ccd-1")
+            .supplementaryDetails(null)
+            .build();
+        mockIacResponse(info);
+
+        assertMissingFields("surname");
+    }
+
+    @Test
+    public void mapToPaymentByAccountRequest_IAC_serviceExceptionIsPassedThrough() {
+        mockIacServiceName();
+        when(iacService.getIacSupplementaryInfo(anyList(), anyString()))
+            .thenThrow(new IllegalStateException("IAC unavailable"));
+
+        assertThatThrownBy(this::mapIacPayment)
+            .isInstanceOf(IACServiceException.class)
+            .hasMessageContaining("IAC unavailable")
+            .hasCauseInstanceOf(IllegalStateException.class);
+        verifyNoInteractions(emailService);
+    }
+
+    @Test
+    public void mapToPaymentByAccountRequest_IAC_emailFailureIsHandledByCatch() {
+        mockIacServiceName();
+        mockIacResponse(supplementaryInfo("ccd-1", null));
+        doThrow(new EmailFailedException("SMTP unavailable"))
+            .when(emailService).sendEmail(org.mockito.ArgumentMatchers.any(Email.class));
+
+        assertThatThrownBy(this::mapIacPayment)
+            .isInstanceOf(IACServiceException.class)
+            .hasMessageContaining("SMTP unavailable")
+            .hasCauseInstanceOf(EmailFailedException.class);
+        verify(emailService).sendEmail(org.mockito.ArgumentMatchers.any(Email.class));
     }
 
     @Test
@@ -365,5 +475,66 @@ public class PBAPaymentMapperTest {
         assertThat(inner.getPayment().getFee().get(0).getId()).isEqualTo(222);
         assertThat(inner.getPayment().getFee().get(0).getCalculatedAmount()).isEqualTo("25.00");
         assertThat(inner.getPayment().getFee().get(0).getVolume()).isEqualTo("1");
+    }
+
+    private void mockIacServiceName() {
+        when(paymentService.getServiceNameByCode(anyString())).thenReturn(PBAPaymentMapper.IAC_SERVICE_NAME);
+    }
+
+    private void mockIacResponse(LiberataSupplementaryInfo supplementaryInfo) {
+        SupplementaryPaymentDto response = SupplementaryPaymentDto.supplementaryPaymentDtoWith()
+            .supplementaryInfo(Collections.singletonList(supplementaryInfo))
+            .build();
+        when(iacService.getIacSupplementaryInfo(anyList(), anyString()))
+            .thenReturn(new ResponseEntity<>(response, HttpStatus.OK));
+    }
+
+    private LiberataSupplementaryInfo supplementaryInfo(String ccdCaseNumber, String surname) {
+        LiberataSupplementaryDetails details = LiberataSupplementaryDetails.supplementaryDetailsWith()
+            .surname(surname)
+            .build();
+        return LiberataSupplementaryInfo.liberataSupplementaryInfoWith()
+            .ccdCaseNumber(ccdCaseNumber)
+            .supplementaryDetails(details)
+            .build();
+    }
+
+    private void assertMissingFields(String missingFields) {
+        assertThatThrownBy(this::mapIacPayment)
+            .isInstanceOf(IACServiceException.class)
+            .hasMessage("IAC response missing " + missingFields + " for payment reference: group-ref");
+    }
+
+    private PaymentAccountRequest mapIacPayment() {
+        Payment payment = Payment.paymentWith()
+            .serviceType(PBAPaymentMapper.IAC_SERVICE_NAME)
+            .reference("RC-test")
+            .siteId("SITE1")
+            .amount(new BigDecimal("15.00"))
+            .caseReference("case-ref")
+            .ccdCaseNumber("ccd-1")
+            .pbaNumber("PBA-2")
+            .organisationName("org")
+            .customerReference("cust")
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
+            .currency("GBP")
+            .build();
+        CreditAccountPaymentRequest request = CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
+            .amount(new BigDecimal("15.00"))
+            .description("desc")
+            .service("IAC")
+            .currency(CurrencyCode.GBP)
+            .customerReference("cust")
+            .organisationName("org")
+            .accountNumber("PBA-2")
+            .siteId("SITE1")
+            .fees(Collections.emptyList())
+            .build();
+        PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith()
+            .fees(Collections.emptyList())
+            .build();
+        return pbaPaymentMapper.mapToPaymentByAccountRequest(request, "group-ref", payment, paymentFeeLink);
     }
 }
