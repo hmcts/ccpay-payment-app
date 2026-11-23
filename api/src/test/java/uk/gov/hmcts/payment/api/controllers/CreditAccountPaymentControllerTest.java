@@ -1294,6 +1294,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     private PaymentAccountResponse getAnErrorDueToExceededCreditLimitPaymentAccountResponse() {
         return PaymentAccountResponse.paymentDtoWith()
             .status(PaymentAccountResponseStatus.ERROR.getValue())
+            .trading_name("AC101010")
             .message(EXCEEDED_CREDIT_LIMIT.getValue()).build();
     }
 

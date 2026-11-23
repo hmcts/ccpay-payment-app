@@ -707,7 +707,7 @@ public class ServiceRequestFunctionalTests {
             .body("payment_reference", startsWith("RC-"))
             .body("status", equalTo("failed"))
             .body("error.error_code", equalTo("CA-E0001"))
-            .body("error.error_message", equalTo("Payment request failed. PBA account PBAFUNC12345_EXCEEDED have insufficient funds available"))
+            .body("error.error_message", equalTo("Payment request failed. PBA account Merchant PBAFUNC12345_EXCEEDED have insufficient funds available"))
             .extract().as(ServiceRequestPaymentBo.class);
 
         paymentReference = serviceRequestPaymentBo.getPaymentReference();
@@ -746,7 +746,7 @@ public class ServiceRequestFunctionalTests {
             .body("status_histories", hasSize(1))
             .body("status_histories[0].status", equalTo("failed"))
             .body("status_histories[0].error_code", equalTo("CA-E0001"))
-            .body("status_histories[0].error_message", equalTo("Payment request failed. PBA account PBAFUNC12345_EXCEEDED have insufficient funds available"));
+            .body("status_histories[0].error_message", equalTo("Payment request failed. PBA account Merchant PBAFUNC12345_EXCEEDED have insufficient funds available"));
 
         final Response createServiceRequestResponseAgain
             = serviceRequestTestService.createServiceRequest(USER_TOKEN_PAYMENT, SERVICE_TOKEN,
