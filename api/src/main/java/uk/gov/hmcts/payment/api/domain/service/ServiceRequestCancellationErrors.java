@@ -37,6 +37,8 @@ public final class ServiceRequestCancellationErrors {
 
     // 409: the service request is not eligible for cancellation. Only one reason is returned, and which one is not part of the contract.
 
+    // The payment reasons are format strings, with %s for the blocking payment's reference. Swagger shows them with
+    // EXAMPLE_PAYMENT_REFERENCE in its place (see SwaggerConfiguration).
     public static final String PAYMENT_CREATED = "Service request has a created payment %s";
     public static final String PAYMENT_STARTED = "Service request has a started payment %s";
     public static final String PAYMENT_SUCCESS = "Service request has a successful payment %s";
@@ -47,14 +49,17 @@ public final class ServiceRequestCancellationErrors {
     public static final String PAYMENT_ALLOCATION_EXIST = "Service request has an allocated payment";
     public static final String UNALLOCATED_BULK_SCAN_PAYMENT = "Case has an unallocated bulk scan payment";
 
-    /** Every reason a service request can be refused cancellation. */
-    public static final List<String> INELIGIBLE_REASONS = List.of(
-        PAYMENT_CREATED,
-        PAYMENT_STARTED,
-        PAYMENT_SUCCESS,
-        PAYMENT_PENDING,
-        PAYMENT_SUBMITTED,
-        UNKNOWN_PAYMENT_STATUS,
+    /** A made-up payment reference, shown in place of %s in the Swagger examples. */
+    public static final String EXAMPLE_PAYMENT_REFERENCE = "RC-1234-5678-9012-3456";
+
+    /** Every reason a service request can be refused cancellation, as given when the payment is EXAMPLE_PAYMENT_REFERENCE. */
+    public static final List<String> EXAMPLE_INELIGIBLE_REASONS = List.of(
+        PAYMENT_CREATED.formatted(EXAMPLE_PAYMENT_REFERENCE),
+        PAYMENT_STARTED.formatted(EXAMPLE_PAYMENT_REFERENCE),
+        PAYMENT_SUCCESS.formatted(EXAMPLE_PAYMENT_REFERENCE),
+        PAYMENT_PENDING.formatted(EXAMPLE_PAYMENT_REFERENCE),
+        PAYMENT_SUBMITTED.formatted(EXAMPLE_PAYMENT_REFERENCE),
+        UNKNOWN_PAYMENT_STATUS.formatted(EXAMPLE_PAYMENT_REFERENCE),
         REMISSIONS_EXIST,
         PAYMENT_ALLOCATION_EXIST,
         UNALLOCATED_BULK_SCAN_PAYMENT

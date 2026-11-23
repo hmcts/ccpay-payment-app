@@ -429,6 +429,9 @@ public class ServiceRequestController {
         return ex.getMessage();
     }
 
+    // The payment examples in the 409 are format strings; SwaggerConfiguration shows them with an example reference.
+    // Swagger UI's example dropdown shows each example's name, and "Example Description" its description, so the
+    // names are kept short and the descriptions give the detail.
     // The error responses are documented as application/json because that is the Content-Type a client sending
     // "Accept: application/json" receives. The body is the message as unquoted plain text, as for Payment App's other
     // errors, not a JSON string; RestErrorHandler explains why. The description says so for readers of Swagger UI,
@@ -444,15 +447,15 @@ public class ServiceRequestController {
         @ApiResponse(responseCode = "400", description = "Invalid/missing request attributes (e.g. no value for reason)",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class), examples = {
                 @ExampleObject(name = "Invalid reference", value = INVALID_REFERENCE_FORMAT,
-                    summary = "The reference is not a four-digit year, a dash and digits"),
+                    description = "The reference is not a four-digit year, a dash and digits"),
                 @ExampleObject(name = "Unknown fields", value = UNKNOWN_FIELDS_PREFIX + "comment",
-                    summary = "The body has fields other than reason; they are listed after the colon"),
+                    description = "The body has fields other than reason; they are listed after the colon"),
                 @ExampleObject(name = "Manual reason missing", value = MANUAL_REASON_REQUIRED,
-                    summary = "A manual cancellation (with an Authorization header) has no reason, or a blank one"),
+                    description = "A manual cancellation (with an Authorization header) has no reason, or a blank one"),
                 @ExampleObject(name = "Reason missing from body", value = REASON_REQUIRED_WITH_BODY,
-                    summary = "An automated cancellation has a body, but no reason or a blank one"),
+                    description = "An automated cancellation has a body, but no reason or a blank one"),
                 @ExampleObject(name = "Reason too long", value = REASON_TOO_LONG,
-                    summary = "The reason is longer than " + MAX_CANCELLATION_REASON_LENGTH + " characters")
+                    description = "The reason is longer than " + MAX_CANCELLATION_REASON_LENGTH + " characters")
             })),
         // No 401: Spring Security refuses every authentication failure on this endpoint with 403.
         @ApiResponse(responseCode = "403", description = "The ServiceAuthorization token is missing or invalid, or the "
@@ -460,36 +463,36 @@ public class ServiceRequestController {
             + "payments role. The body is empty."),
         @ApiResponse(responseCode = "404", description = "Service request not found"),
         @ApiResponse(responseCode = "409", description = "Service request cannot be cancelled. Where a payment blocks "
-            + "cancellation, the message ends with that payment's reference in place of %s.",
+            + "cancellation, the message ends with that payment's reference.",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class), examples = {
                 @ExampleObject(name = "Payment created", value = PAYMENT_CREATED,
-                    summary = "A payment on the service request has status created"),
+                    description = "A payment on the service request has status created"),
                 @ExampleObject(name = "Payment started", value = PAYMENT_STARTED,
-                    summary = "A payment on the service request has status started"),
-                @ExampleObject(name = "Payment success", value = PAYMENT_SUCCESS,
-                    summary = "A payment on the service request has status success"),
+                    description = "A payment on the service request has status started"),
+                @ExampleObject(name = "Payment successful", value = PAYMENT_SUCCESS,
+                    description = "A payment on the service request has status success"),
                 @ExampleObject(name = "Payment pending", value = PAYMENT_PENDING,
-                    summary = "A payment on the service request has status pending"),
+                    description = "A payment on the service request has status pending"),
                 @ExampleObject(name = "Payment submitted", value = PAYMENT_SUBMITTED,
-                    summary = "A payment on the service request has status submitted"),
+                    description = "A payment on the service request has status submitted"),
                 @ExampleObject(name = "Unknown payment status", value = UNKNOWN_PAYMENT_STATUS,
-                    summary = "A payment has a status other than failed, error, decline or cancelled"),
-                @ExampleObject(name = "Remissions", value = REMISSIONS_EXIST,
-                    summary = "The service request has a remission"),
+                    description = "A payment has a status other than failed, error, decline or cancelled"),
+                @ExampleObject(name = "Remission", value = REMISSIONS_EXIST,
+                    description = "The service request has a remission"),
                 @ExampleObject(name = "Payment allocation", value = PAYMENT_ALLOCATION_EXIST,
-                    summary = "A payment on the service request has been allocated"),
+                    description = "A payment on the service request has been allocated"),
                 @ExampleObject(name = "Unallocated bulk scan payment", value = UNALLOCATED_BULK_SCAN_PAYMENT,
-                    summary = "Bulk scanning has unallocated payments on one of the service request's cases")
+                    description = "Bulk scanning has unallocated payments on one of the service request's cases")
             })),
         @ApiResponse(responseCode = "503", description = "Payment App is not configured to check bulk scanning; the service request has not been cancelled",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class), examples = {
                 @ExampleObject(name = "No system user", value = BULK_SCANNING_NOT_CONFIGURED,
-                    summary = "Bulk scanning needs checking, but Payment App has no IDAM system user configured")
+                    description = "Bulk scanning needs checking, but Payment App has no IDAM system user configured")
             })),
         @ApiResponse(responseCode = "504", description = "Unable to check bulk scanning; the service request has not been cancelled",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class), examples = {
                 @ExampleObject(name = "Bulk scanning unavailable", value = BULK_SCANNING_UNAVAILABLE,
-                    summary = "Bulk scanning, or the IDAM login it needs, failed or did not respond")
+                    description = "Bulk scanning, or the IDAM login it needs, failed or did not respond")
             }))
     })
     @RateLimiter(name = "default-rate-limiter")

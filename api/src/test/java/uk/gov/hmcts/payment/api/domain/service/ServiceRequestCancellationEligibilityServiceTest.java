@@ -380,15 +380,15 @@ class ServiceRequestCancellationEligibilityServiceTest {
 
     /**
      * Each rule refuses cancellation with its own reason, and together they give exactly the reasons documented in
-     * ServiceRequestCancellationErrors, which Swagger and the LLD list for clients. The payment reasons are templates
-     * that name the blocking payment, so they are filled in with its reference before comparing.
+     * ServiceRequestCancellationErrors, which Swagger and the LLD list for clients. The payments use the example
+     * reference that Swagger shows, so the reasons can be compared with the examples as they are.
      *
      * @see uk.gov.hmcts.payment.api.componenttests.SwaggerSpecTest
      */
     @Test
     void everyReasonGivenIsDocumented() {
         Stream<PaymentFeeLink> byPaymentStatus = Stream.of("created", "started", "success", "pending", "submitted", "other")
-            .map(status -> paymentFeeLink(payment(status(status))));
+            .map(status -> paymentFeeLink(payment(ServiceRequestCancellationErrors.EXAMPLE_PAYMENT_REFERENCE, status(status))));
 
         PaymentFeeLink withRemission = PaymentFeeLink.paymentFeeLinkWith().remissions(List.of(new Remission())).build();
 
@@ -404,10 +404,7 @@ class ServiceRequestCancellationEligibilityServiceTest {
             .map(Eligibility::reason)
             .toList();
 
-        assertThat(reasons).containsExactlyInAnyOrderElementsOf(ServiceRequestCancellationErrors.INELIGIBLE_REASONS
-            .stream()
-            .map(reason -> reason.formatted(PAYMENT_REFERENCE))
-            .toList());
+        assertThat(reasons).containsExactlyInAnyOrderElementsOf(ServiceRequestCancellationErrors.EXAMPLE_INELIGIBLE_REASONS);
     }
 
     @Test

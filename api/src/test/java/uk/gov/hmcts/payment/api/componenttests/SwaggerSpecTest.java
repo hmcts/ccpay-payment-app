@@ -217,24 +217,40 @@ class SwaggerSpecTest {
 
         assertThat(exampleValues(responses.path("409")))
             .containsExactlyInAnyOrder(
-                "Service request has a created payment %s",
-                "Service request has a started payment %s",
-                "Service request has a successful payment %s",
-                "Service request has a pending payment %s",
-                "Service request has a submitted payment %s",
-                "Service request has an unknown status for payment %s",
+                "Service request has a created payment RC-1234-5678-9012-3456",
+                "Service request has a started payment RC-1234-5678-9012-3456",
+                "Service request has a successful payment RC-1234-5678-9012-3456",
+                "Service request has a pending payment RC-1234-5678-9012-3456",
+                "Service request has a submitted payment RC-1234-5678-9012-3456",
+                "Service request has an unknown status for payment RC-1234-5678-9012-3456",
                 "Service request has a remission",
                 "Service request has an allocated payment",
                 "Case has an unallocated bulk scan payment")
             // Every reason the eligibility service can give, which ServiceRequestCancellationEligibilityServiceTest
             // checks against the service itself.
-            .containsExactlyInAnyOrderElementsOf(ServiceRequestCancellationErrors.INELIGIBLE_REASONS);
+            .containsExactlyInAnyOrderElementsOf(ServiceRequestCancellationErrors.EXAMPLE_INELIGIBLE_REASONS);
 
         assertThat(exampleValues(responses.path("503")))
             .containsExactly("Unable to check bulk scanning for unallocated payments as no system user is configured");
 
         assertThat(exampleValues(responses.path("504")))
             .containsExactly("Unable to check bulk scanning for unallocated payments, try again later");
+    }
+
+    /**
+     * Swagger UI's example dropdown shows an example's summary, or its name when there is none. The cancel endpoint's
+     * examples have no summary, so the dropdown shows their short names, and a description for the detail.
+     */
+    @Test
+    void cancelServiceRequestExamplesHaveShortNamesAndDescriptions() throws Exception {
+        SoftAssertions softly = new SoftAssertions();
+        operation(CANCEL).path("responses").forEach(response ->
+            response.at("/content/application~1json/examples").properties().forEach(example -> {
+                softly.assertThat(example.getValue().has("summary")).as("%s has a summary", example.getKey()).isFalse();
+                softly.assertThat(example.getValue().path("description").asText())
+                    .as("%s description", example.getKey()).isNotBlank().isNotEqualTo(example.getKey());
+            }));
+        softly.assertAll();
     }
 
     @Test
