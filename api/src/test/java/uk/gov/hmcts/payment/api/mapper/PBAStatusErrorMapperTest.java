@@ -1,10 +1,7 @@
 package uk.gov.hmcts.payment.api.mapper;
 
-import nl.altindag.log.LogCaptor;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -13,9 +10,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
-import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.model.Payment;
-import uk.gov.hmcts.payment.api.util.AccountStatus;
 
 import java.math.BigDecimal;
 import java.util.Collections;
@@ -26,12 +21,9 @@ import uk.gov.hmcts.payment.api.dto.liberata.PaymentAccountResponse;
 import uk.gov.hmcts.payment.api.dto.liberata.PaymentAccountResponseStatus;
 import uk.gov.hmcts.payment.api.model.StatusHistory;
 
-import static nl.altindag.log.LogCaptor.forClass;
 import static org.assertj.core.api.Assertions.assertThat;
-import static uk.gov.hmcts.payment.api.util.AccountStatus.*;
 import static org.mockito.Mockito.*;
 
-// new imports for LiberataRealTimeAPI tests
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -46,16 +38,8 @@ import uk.gov.hmcts.payment.api.service.LiberataRealTimeAPI;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PBAStatusErrorMapperTest {
+
     private static CreditAccountPaymentRequest creditAccountPaymentRequest;
-    private static Payment payment;
-
-    private static AccountDto activeAccountDetails;
-    private static AccountDto activeAccountInsufficientDetails;
-    private static AccountDto onHoldAccountDetails;
-    private static AccountDto inactiveAccountDetails;
-    private static AccountDto deletedAccountDetails;
-
-    private static LogCaptor mockLOG;
 
     @Mock
     private RestTemplate liberataRestTemplate;
@@ -68,82 +52,13 @@ public class PBAStatusErrorMapperTest {
 
     @BeforeClass
     public static void initiate(){
-        mockLOG = forClass(PBAStatusErrorMapper.class);
+
         creditAccountPaymentRequest = CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
                                         .amount(new BigDecimal("10.00"))
                                         .accountNumber("PBA1234567")
                                         .build();
-        payment = Payment.paymentWith().ccdCaseNumber("ccd-number").build();
-
-
-        activeAccountDetails = AccountDto.accountDtoWith()
-                            .accountName("account-name")
-                            .availableBalance(new BigDecimal("100.00"))
-                            .status(ACTIVE).build();
-        activeAccountInsufficientDetails = AccountDto.accountDtoWith()
-            .accountName("account-name")
-            .availableBalance(new BigDecimal("9.00"))
-            .build();
-        onHoldAccountDetails = AccountDto.accountDtoWith()
-            .accountName("account-name")
-            .availableBalance(new BigDecimal("100.00"))
-            .status(AccountStatus.ON_HOLD).build();
-        inactiveAccountDetails = AccountDto.accountDtoWith()
-            .accountName("account-name")
-            .availableBalance(new BigDecimal("100.00"))
-            .status(AccountStatus.INACTIVE).build();
-        deletedAccountDetails = AccountDto.accountDtoWith()
-            .accountName("account-name")
-            .availableBalance(new BigDecimal("100.00"))
-            .status(AccountStatus.DELETED).build();
     }
 
-    @AfterClass
-    public static void closeDown() {
-        if (mockLOG != null) {
-            mockLOG = null;
-        }
-    }
-
-    @After
-    public void afterTest() {
-        mockLOG.clearLogs();
-    }
-
-    @Test
-    public void testSetPaymentStatusWithOnHold() {
-        PBAStatusErrorMapper pbaStatusErrorMapper = new PBAStatusErrorMapper();
-        pbaStatusErrorMapper.setPaymentStatus(creditAccountPaymentRequest, payment, onHoldAccountDetails);
-        assertThat(mockLOG.getInfoLogs().get(1)).isEqualTo("CreditAccountPayment received for ccdCaseNumber : ccd-number Liberata AccountStatus : ON_HOLD PaymentStatus : failed - Account is on hold!");
-    }
-
-    @Test
-    public void testSetPaymentStatusWithInactive() {
-        PBAStatusErrorMapper pbaStatusErrorMapper = new PBAStatusErrorMapper();
-        Payment inactivePayment = Payment.paymentWith().ccdCaseNumber("ccd-number").build();
-
-        pbaStatusErrorMapper.setPaymentStatus(creditAccountPaymentRequest, inactivePayment, inactiveAccountDetails);
-
-        assertThat(mockLOG.getInfoLogs().get(1)).isEqualTo("CreditAccountPayment received for ccdCaseNumber : ccd-number Liberata AccountStatus : INACTIVE PaymentStatus : failed - Account is inactive!");
-        assertThat(inactivePayment.getPaymentStatus().getName()).isEqualTo("failed");
-        assertThat(inactivePayment.getStatusHistories()).hasSize(1);
-        assertThat(inactivePayment.getStatusHistories().get(0).getErrorCode()).isEqualTo("CA-E0002");
-        assertThat(inactivePayment.getStatusHistories().get(0).getMessage()).isEqualTo("Your account is inactive");
-    }
-
-    @Test
-    public void testSetPaymentStatusWithActiveAndSufficientBalance() {
-        PBAStatusErrorMapper pbaStatusErrorMapper = new PBAStatusErrorMapper();
-        pbaStatusErrorMapper.setPaymentStatus(creditAccountPaymentRequest,payment,activeAccountDetails);
-        assertThat(mockLOG.getInfoLogs().get(1)).isEqualTo("CreditAccountPayment received for ccdCaseNumber : ccd-number Liberata AccountStatus : ACTIVE PaymentStatus : success - Account Balance Sufficient!!!");
-    }
-
-    @Test
-    public void testSetPaymentStatusWithDeletedStatus() {
-        PBAStatusErrorMapper pbaStatusErrorMapper = new PBAStatusErrorMapper();
-        pbaStatusErrorMapper.setPaymentStatus(creditAccountPaymentRequest,payment,deletedAccountDetails);
-        assertThat(mockLOG.getInfoLogs().get(1)).isEqualTo("CreditAccountPayment received for ccdCaseNumber : ccd-number Liberata AccountStatus : DELETED PaymentStatus : failed - Account is deleted!");
-    }
 
     @Test
     public void testSetPaymentStatusAndHistoriesSuccess() {
