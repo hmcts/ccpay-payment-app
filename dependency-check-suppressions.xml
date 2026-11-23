@@ -9,6 +9,15 @@
     </suppress>
 
 <!--    keep-->
+            False positive: CVE-2025-15104 affects Nu Html Checker (validator.nu), not Hibernate Validator.
+            Dependency-Check matches a generic validator CPE; see Dependency-Check issue #8249.
+        </notes>
+        <packageUrl regex="true">^pkg:maven/org\.hibernate\.validator/hibernate-validator@8\.0\.6\.Final$</packageUrl>
+        <cve>CVE-2025-15104</cve>
+    </suppress>
+
+    <suppress>
+        <notes>
     <suppress>
         <notes>
             jackson-databind contains the general-purpose data-binding functionality and tree-model for Jackson Data Processor. From 2.8.0 until 2.18.9, 2.21.5, and 3.1.4,
