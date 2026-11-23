@@ -7,15 +7,17 @@ import uk.gov.hmcts.payment.api.model.Payment;
 import java.util.Date;
 import java.util.List;
 
-public interface CreditAccountPaymentService<T, ID> {
+public interface CreditAccountPaymentService<T, I> {
 
     T create(Payment creditAccount, List<PaymentFee> fees, String paymentGroupReference) throws CheckDigitException;
 
-    T retrieveByPaymentGroupReference(ID id);
+    T retrieveByPaymentGroupReference(I id);
 
-    T retrieveByPaymentReference(ID id);
+    T retrieveByPaymentReference(I id);
 
     List<T> search(Date startDate, Date endDate);
 
     void deleteByPaymentReference(String paymentReference);
+
+    Payment createOrUpdate( Payment  payment) throws CheckDigitException;
 }
