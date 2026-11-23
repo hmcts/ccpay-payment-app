@@ -1,6 +1,5 @@
 package uk.gov.hmcts.payment.smoke;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
 import io.restassured.config.ObjectMapperConfig;
 import io.restassured.path.json.config.JsonPathConfig;
@@ -9,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
+import tools.jackson.databind.ObjectMapper;
 
 import static io.restassured.config.JsonConfig.jsonConfig;
 
@@ -24,7 +24,7 @@ public class TestContextConfiguration {
     public void initialize() {
         RestAssured.config = RestAssured.config()
             .objectMapperConfig(
-                ObjectMapperConfig.objectMapperConfig().jackson2ObjectMapperFactory((cls, charset) -> new ObjectMapper())
+                ObjectMapperConfig.objectMapperConfig().jackson3ObjectMapperFactory((cls, charset) -> new ObjectMapper())
             )
         .jsonConfig(jsonConfig().numberReturnType(JsonPathConfig.NumberReturnType.BIG_DECIMAL));
         RestAssured.useRelaxedHTTPSValidation();
