@@ -22,7 +22,7 @@ public class PBAStatusErrorMapper {
     private static final String FAILED = "failed";
     private static final Logger LOG = LoggerFactory.getLogger(PBAStatusErrorMapper.class);
 
-    private static final String EXCEEDED_CREDIT_LIMIT_MESSAGE = "Payment request failed. PBA account {accountNumber} have insufficient funds available";
+    private static final String EXCEEDED_CREDIT_LIMIT_MESSAGE = "Payment request failed. PBA account {tradingName} have insufficient funds available";
     private static final String EXCEEDED_CREDIT_LIMIT = "Exceeded credit limit.";
     public static  String ON_HOLD="CUSTOMER ON HOLD";
     public static  String DELETED="DELETED";
@@ -130,7 +130,7 @@ public class PBAStatusErrorMapper {
             }
             payment.getStatusHistories().getFirst().setStatus(payment.getPaymentStatus().getName());
             payment.getStatusHistories().getFirst().setErrorCode(PBA_ERROR_CODE_MAP.get(paymentAccountResponse.getMessage()));
-            payment.getStatusHistories().getFirst().setMessage(getMessageForErrorCode(paymentAccountResponse, accountNumber));
+            payment.getStatusHistories().getFirst().setMessage(getMessageForErrorCode(paymentAccountResponse));
         }
     }
 
@@ -142,12 +142,11 @@ public class PBAStatusErrorMapper {
         return paymentAccountResponse.getReason() != null && (paymentAccountResponse.getReason().contains(DELETED));
     }
 
-    // This method is used to get the message for the error code. If the error code is "Exceeded credit limit.",
-    // it will return a custom message with the account number. Otherwise, it will return the message from the paymentAccountResponse.
-    private String getMessageForErrorCode(PaymentAccountResponse paymentAccountResponse,String accountNumber) {
+    // This method returns a custom message for the "Exceeded credit limit." error code, including the trading name of the account.
+    private String getMessageForErrorCode(PaymentAccountResponse paymentAccountResponse) {
 
         if (paymentAccountResponse.getMessage().equals("Exceeded credit limit.")){
-            return PBA_MESSAGES_CODE_MAP.get(paymentAccountResponse.getMessage()).replace("{accountNumber}", accountNumber);
+            return PBA_MESSAGES_CODE_MAP.get(paymentAccountResponse.getMessage()).replace("{tradingName}", paymentAccountResponse.getTrading_name());
         }
         return paymentAccountResponse.getMessage();
     }

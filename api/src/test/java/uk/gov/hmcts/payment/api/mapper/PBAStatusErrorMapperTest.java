@@ -174,7 +174,7 @@ public class PBAStatusErrorMapperTest {
 
     @ParameterizedTest
     @CsvSource({
-        "'Exceeded credit limit.', CA-E0001, 'Payment request failed. PBA account PBA1234567 have insufficient funds available'",
+        "'Exceeded credit limit.', CA-E0001, 'Payment request failed. PBA account trading-name-test have insufficient funds available'",
         "'Account not found.', CA-E0004, 'Account not found.'",
         "'Validation failed.', CA-E0005, 'Validation failed.'",
         "'Duplicate payment detected.', CA-E0006, 'Duplicate payment detected.'",
@@ -187,6 +187,7 @@ public class PBAStatusErrorMapperTest {
         PaymentAccountResponse response = PaymentAccountResponse.paymentDtoWith()
             .status("error")
             .message(errorMessage)
+            .trading_name("trading-name-test")
             .build();
         CreditAccountPaymentRequest request = CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
             .amount(new BigDecimal("10.00"))
@@ -285,6 +286,7 @@ public class PBAStatusErrorMapperTest {
             PaymentAccountResponse resp = PaymentAccountResponse.paymentDtoWith()
                 .status("error")
                 .message(message)
+                .trading_name("testing-trading-name")
                 .build();
 
             mapper.setPaymentStatusAndHistories(creditAccountPaymentRequest.getAccountNumber(), localPayment, resp);
@@ -301,7 +303,7 @@ public class PBAStatusErrorMapperTest {
 
             // for "Exceeded credit limit." the message contains the account number
             if (message.equals("Exceeded credit limit.")) {
-                assertThat(history.getMessage()).contains("PBA1234567");
+                assertThat(history.getMessage()).contains("testing-trading-name");
             } else {
                 assertThat(history.getMessage()).isEqualTo(message);
             }

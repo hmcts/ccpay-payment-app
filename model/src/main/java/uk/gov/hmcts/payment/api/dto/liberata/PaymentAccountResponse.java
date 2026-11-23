@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.api.dto.liberata;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -19,4 +20,6 @@ public class PaymentAccountResponse {
     private String status;
     private String message;
     private String reason;
+    @JsonProperty("trading_name")
+    private String trading_name;
 }
