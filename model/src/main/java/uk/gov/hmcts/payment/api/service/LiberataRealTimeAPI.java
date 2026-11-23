@@ -16,6 +16,8 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
+import uk.gov.hmcts.payment.api.dto.liberata.PaymentAccountRequest;
+import uk.gov.hmcts.payment.api.dto.liberata.PaymentAccountResponse;
 import uk.gov.hmcts.payment.api.dto.liberata.account.LiberataAccountResponse;
 import uk.gov.hmcts.payment.api.dto.liberata.identity.LiberataIdentityResponse;
 import uk.gov.hmcts.payment.api.dto.liberata.identity.TokenResponse;
@@ -83,6 +85,7 @@ public class LiberataRealTimeAPI {
             val response = liberataRestTemplate.postForEntity(baseUrl + "/api/auth/token", request, LiberataIdentityResponse.class);
             return accessTokenDtoToTokenResponseMapper.toTokenResponse(response.getBody());
         } catch (Exception exception) {
+            LOG.error("Error fetching token from Liberata: {}", exception.getMessage(), exception);
             throw new LiberataIdentityException("Error fetching token from Liberata: " + exception.getMessage(), exception);
         }
     }
@@ -160,4 +163,35 @@ public class LiberataRealTimeAPI {
         );
         return liberataAccountMapper.toAccountDto(response.getBody());
     }
+
+
+    public PaymentAccountResponse payByAccount(PaymentAccountRequest paymentByAccountRequest) {
+
+        val tokenResponse = getValidToken();
+        val headers = new HttpHeaders();
+        headers.setAccept(java.util.Collections.singletonList(MediaType.APPLICATION_JSON));
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Bearer " + tokenResponse.getAccessToken());
+        val request = new HttpEntity<>(paymentByAccountRequest, headers);
+        try {
+            val response = liberataRestTemplate.postForEntity(baseUrl + "/api/payment", request, PaymentAccountResponse.class);
+            return response.getBody();
+        } catch (HttpClientErrorException  httpClientErrorException) {
+            LOG.error("Error posting payment to Liberata: {}", httpClientErrorException.getMessage(), httpClientErrorException);
+             return getPaymentAccountResponseError(httpClientErrorException);
+        } catch (Exception exception) {
+            LOG.error("Unexpected error posting payment to Liberata: {}", exception.getMessage(), exception);
+            throw new LiberataIdentityException("Error posting payment to Liberata: " + exception.getMessage(), exception);
+        }
+    }
+
+    private PaymentAccountResponse getPaymentAccountResponseError(HttpClientErrorException httpClientErrorException) {
+        try {
+            return httpClientErrorException.getResponseBodyAs(PaymentAccountResponse.class);
+        } catch (Exception exception) {
+            LOG.error("Error getting the  posting  error payment to Liberata: {}", exception.getMessage(), exception);
+            throw new RuntimeException("Error posting payment to Liberata: " + exception.getMessage(), exception);
+        }
+    }
+
 }

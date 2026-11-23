@@ -86,7 +86,7 @@ public class ServiceRequestBasedOnlineCardPayment {
     public void positive_create_service_request_negative_full_card_payment_user_hmcts() throws Exception {
 
         ServiceRequestDto serviceRequestDto
-            = ServiceRequestFixture.buildServiceRequestDTO("AAA6", null);
+            = ServiceRequestFixture.buildServiceRequestDTOForCardPayments("AAA6", null);
         Response createServiceRequestResponse
             = serviceRequestTestService.createServiceRequest(USER_TOKEN_PAYMENT, SERVICE_TOKEN,
             serviceRequestDto);
@@ -134,7 +134,7 @@ public class ServiceRequestBasedOnlineCardPayment {
     public void negative_full_card_payment_already_payment_in_progress() throws Exception {
 
         ServiceRequestDto serviceRequestDto
-            = ServiceRequestFixture.buildServiceRequestDTO("AAA6", null);
+            = ServiceRequestFixture.buildServiceRequestDTOForCardPayments("AAA6", null);
         Response createServiceRequestResponse
             = serviceRequestTestService.createServiceRequest(USER_TOKEN_PAYMENT, SERVICE_TOKEN,
             serviceRequestDto);
@@ -200,7 +200,7 @@ public class ServiceRequestBasedOnlineCardPayment {
     public void positive_full_card_payment_already_payment_in_progress() throws Exception {
 
         ServiceRequestDto serviceRequestDto
-            = ServiceRequestFixture.buildServiceRequestDTO("AAA6", null);
+            = ServiceRequestFixture.buildServiceRequestDTOForCardPayments("AAA6", null);
         Response createServiceRequestResponse
             = serviceRequestTestService.createServiceRequest(USER_TOKEN_PAYMENT, SERVICE_TOKEN,
             serviceRequestDto);
