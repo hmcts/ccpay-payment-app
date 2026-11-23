@@ -120,7 +120,7 @@ public class PBAPaymentFunctionalTest {
             .body("payment_group_reference", startsWith(LocalDateTime.now(DateTimeZone.UTC).getYear() + "-"))
             .body("status_histories[0].status", equalTo("failed"))
             .body("status_histories[0].error_code", equalTo("CA-E0001"))
-            .body("status_histories[0].error_message", equalTo("Payment request failed. PBA account PBAFUNC12345_EXCEEDED have insufficient funds available"))
+            .body("status_histories[0].error_message", equalTo("Payment request failed. PBA account Merchant PBAFUNC12345_EXCEEDED have insufficient funds available"))
             .extract().as(PaymentDto.class);
 
         paymentReference = paymentDto.getReference();
