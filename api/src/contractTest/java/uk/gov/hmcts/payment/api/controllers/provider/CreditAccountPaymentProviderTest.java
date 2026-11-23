@@ -232,6 +232,7 @@ class CreditAccountPaymentProviderTest {
     private PaymentAccountResponse getAnErrorDueToExceededCreditLimitPaymentAccountResponse() {
         return PaymentAccountResponse.paymentDtoWith()
             .status(PaymentAccountResponseStatus.ERROR.getValue())
+            .trading_name("CAERPHILLY COUNTY BOROUGH COUNCIL")
             .message(EXCEEDED_CREDIT_LIMIT.getValue()).build();
     }
 
