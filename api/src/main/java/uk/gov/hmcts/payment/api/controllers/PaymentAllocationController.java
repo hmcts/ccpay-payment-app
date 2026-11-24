@@ -51,11 +51,7 @@ public class PaymentAllocationController {
     @PostMapping(value = "/payment-allocations")
     public ResponseEntity<PaymentAllocationDto> addNewFee(@Valid @RequestBody PaymentAllocationDto paymentAllocationDto) {
 
-        /*
-         * No service request cancellation check required.
-         * This records allocation metadata, not payment allocation to an SR
-         * (see LLD section 15).
-         */
+        // Note, no service request cancellation check required here
 
         PaymentFeeLink paymentFeeLink = paymentService.retrievePayment(paymentAllocationDto.getPaymentReference());
         Optional<Payment> payment = paymentFeeLink.getPayments().stream()

@@ -91,13 +91,7 @@ public class ServiceRequestController {
     private static final Logger LOG = LoggerFactory.getLogger(ServiceRequestController.class);
     private static final String FAILED = "failed";
     private static final String AUTO_CANCELLATION_REASON = "Auto-Cancelled by Service";
-    // Deliberately loose (<year>-<digits>). The PAY-9031 spec says \d{4}-\d{11}, but PaymentReference.getNext
-    // has generated several lengths after the year (see its git history):
-    //   Jan 2018 - Feb 2018: 8 digits, then briefly 10 digits
-    //   Feb 2018 - Aug 2019: 11 digits (time in ms / 100)
-    //   Aug 2019 - May 2024: 13 digits (time in ms / 100 + 2 random digits)
-    //   May 2024 onwards:    13 digits (payment_reference_seq, starting at 1750000000000)
-    // A four-digit year, a dash and digits. A constant String as well as a Pattern, so that Swagger can document it.
+
     private static final String SERVICE_REQUEST_REFERENCE_REGEX = "^\\d{4}-\\d+$";
     private static final Pattern SERVICE_REQUEST_REFERENCE_PATTERN = Pattern.compile(SERVICE_REQUEST_REFERENCE_REGEX);
 

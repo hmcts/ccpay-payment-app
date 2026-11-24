@@ -48,8 +48,6 @@ public class RestTemplateConfiguration {
         return new RestTemplate(new HttpComponentsClientHttpRequestFactory());
     }
 
-    // The cancellation eligibility check calls bulk scanning while holding a lock on the service request,
-    // so this client has timeouts to stop a slow response holding that lock indefinitely.
     @Bean (value = "restTemplateBulkScanning")
     public RestTemplate restTemplateBulkScanning() {
         return createRestTemplate(bulkScanningReadTimeout, bulkScanningConnectTimeout);

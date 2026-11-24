@@ -62,13 +62,6 @@ public class RestErrorHandler {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
     }
 
-    // The cancellation errors below return the message as a plain String, like every other handler in this class and
-    // most @ExceptionHandler methods in the controllers. No content type is set, deliberately, so Spring chooses one
-    // from the request's Accept header: application/json when the client asks for JSON, otherwise text/plain. Either
-    // way the body is the unquoted message, so it is not valid JSON even when labelled application/json. Setting
-    // text/plain here alone would make these endpoints differ from the rest of the API; changing every handler would
-    // change what existing clients receive, so it belongs in its own change. See Appendix A of the Service Request
-    // Cancellation LLD.
     @ExceptionHandler(InvalidServiceRequestCancellationException.class)
     public ResponseEntity<String> invalidServiceRequestCancellation(InvalidServiceRequestCancellationException ex) {
         LOG.warn("Service request cancellation refused as invalid: {}", ex.getMessage());
@@ -80,8 +73,6 @@ public class RestErrorHandler {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT);
     }
 
-    // Payment App cannot make the bulk-scanning check until its IDAM system user is configured. The service request
-    // is not cancelled; the fault is Payment App's, so it is 503 rather than 409.
     @ExceptionHandler(BulkScanningNotConfiguredException.class)
     public ResponseEntity<String> bulkScanningNotConfigured(BulkScanningNotConfiguredException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.SERVICE_UNAVAILABLE);
