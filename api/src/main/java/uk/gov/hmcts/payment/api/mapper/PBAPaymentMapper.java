@@ -123,6 +123,7 @@ public class PBAPaymentMapper {
                 if (!missingFields.isEmpty()) {
                     String missingFieldsDescription = String.join(", ", missingFields);
                     LOG.info("IAC response missing {} for payment reference: {}", missingFieldsDescription, paymentReference);
+                    LOG.info("email confid from={}, to={},", missingIacSurnameEmailFrom, missingIacSurnameEmailTo);
                     emailService.sendEmail(Email.emailWith()
                         .from(missingIacSurnameEmailFrom)
                         .to(missingIacSurnameEmailTo)
