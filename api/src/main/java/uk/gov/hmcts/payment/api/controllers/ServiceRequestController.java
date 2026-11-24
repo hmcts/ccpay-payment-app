@@ -423,13 +423,6 @@ public class ServiceRequestController {
         return ex.getMessage();
     }
 
-    // The payment examples in the 409 are format strings; SwaggerConfiguration shows them with an example reference.
-    // Swagger UI's example dropdown shows each example's name, and "Example Description" its description, so the
-    // names are kept short and the descriptions give the detail.
-    // The error responses are documented as application/json because that is the Content-Type a client sending
-    // "Accept: application/json" receives. The body is the message as unquoted plain text, as for Payment App's other
-    // errors, not a JSON string; RestErrorHandler explains why. The description says so for readers of Swagger UI,
-    // which shows the examples in quotes.
     @Operation(summary = "Cancel Service Request", description = "Cancel Service Request for a given Service Request Reference. "
         + "A manual cancellation, by a user, sends an Authorization header and a reason. An automated cancellation, by a "
         + "service, omits the Authorization header, and the reason is optional. Cancelling a service request that is "
@@ -526,8 +519,6 @@ public class ServiceRequestController {
             reason = AUTO_CANCELLATION_REASON;
         }
 
-        // Spring Security has already authenticated the caller, so a blank ID means a fault in Payment App's security
-        // setup, not in the request. Fail with 500 rather than store a cancellation with no cancelled_by.
         String cancelledBy = manualCancellation ? userIdSupplier.get() : serviceIdSupplier.get();
         if (isBlank(cancelledBy)) {
             throw new IllegalStateException("Could not determine the %s ID for %s cancellation of service request %s"

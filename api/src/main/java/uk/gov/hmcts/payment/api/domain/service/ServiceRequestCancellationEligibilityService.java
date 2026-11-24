@@ -52,7 +52,6 @@ public class ServiceRequestCancellationEligibilityService {
         }
     }
 
-    // Every reason is documented in ServiceRequestCancellationErrors, so add any new reason there.
     private static final Eligibility REMISSIONS_EXISTING_ON_SR =
         Eligibility.ineligible(ServiceRequestCancellationErrors.REMISSIONS_EXIST);
     private static final Eligibility PAYMENT_ALLOCATION_EXISTING_ON_SR =
@@ -60,8 +59,7 @@ public class ServiceRequestCancellationEligibilityService {
     private static final Eligibility UNALLOCATED_BULK_SCAN_PAYMENT_ON_CASE =
         Eligibility.ineligible(ServiceRequestCancellationErrors.UNALLOCATED_BULK_SCAN_PAYMENT);
 
-    // Payment statuses that block cancellation, mapped to the reason given. Package-private so the tests can check
-    // that no status is in both this and eligiblePaymentStatus.
+    // Payment statuses that block cancellation
     static final Map<String, String> ineligiblePaymentStatus = Map.of(
         "created",    ServiceRequestCancellationErrors.PAYMENT_CREATED,
         "started",    ServiceRequestCancellationErrors.PAYMENT_STARTED,
@@ -70,7 +68,7 @@ public class ServiceRequestCancellationEligibilityService {
         "submitted",  ServiceRequestCancellationErrors.PAYMENT_SUBMITTED
     );
 
-    // Payment statuses that allow cancellation. Any status in neither collection blocks it as unknown.
+    // Payment statuses that allow cancellation
     static final Set<String> eligiblePaymentStatus = Set.of(
         "decline",
         "cancelled",
@@ -104,7 +102,6 @@ public class ServiceRequestCancellationEligibilityService {
             return Eligibility.eligible();
         }
 
-        // Check for any payment statuses that are ineligible for cancellation
         Optional<Eligibility> ineligiblePayment = paymentFeeLink.getPayments()
             .stream()
             .filter(p -> !eligiblePaymentStatus.contains(p.getPaymentStatus().getName()))
@@ -121,8 +118,6 @@ public class ServiceRequestCancellationEligibilityService {
             return REMISSIONS_EXISTING_ON_SR;
         }
 
-        // Check no unallocated payment on the case
-        // if any payment_allocation record exists against payments on the SR
         Optional<PaymentAllocation> paymentAllocation = paymentFeeLink.getPayments()
             .stream()
             .map(Payment::getPaymentAllocation)
@@ -151,7 +146,7 @@ public class ServiceRequestCancellationEligibilityService {
     }
 
     /**
-     * Check bulk scanning for payments against the case that are still waiting to be allocated (BR-9, LLD 6.1).
+     * Check bulk scanning for payments against the case that are still waiting to be allocated.
      *
      * <p>Bulk scanning reports {@code PROCESSED} once every payment on the case has been allocated, and no status
      * when it has nothing for the case. {@code COMPLETE} (ready to allocate) and {@code INCOMPLETE} (still being
@@ -174,7 +169,6 @@ public class ServiceRequestCancellationEligibilityService {
 
         Set<String> ccdCaseNumbers = ccdCaseNumbers(paymentFeeLink);
         if (ccdCaseNumbers.isEmpty()) {
-            // Bulk-scanned payments are always held against a CCD case, so there is nothing to look up.
             log.info("{} eligible for cancellation as has no CCD case number, so bulk scanning was not checked",
                 render(paymentFeeLink));
             return Eligibility.eligible();
@@ -234,7 +228,6 @@ public class ServiceRequestCancellationEligibilityService {
 
         return ccdCaseNumbers;
     }
-
 
     String render(PaymentFeeLink sr) {
         return "Service Request (id=%s, payment_reference=%s, ccd_case_number=%s)"

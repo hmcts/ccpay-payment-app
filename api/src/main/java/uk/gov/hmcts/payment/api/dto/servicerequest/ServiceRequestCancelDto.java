@@ -26,8 +26,7 @@ import static uk.gov.hmcts.payment.api.domain.service.ServiceRequestCancellation
 @NoArgsConstructor
 @Getter
 @Setter
-// Unknown fields are collected by addUnknownProperty, which springdoc cannot express as additionalProperties: false,
-// so the description says they are rejected.
+
 @Schema(description = "Optional for an automated cancellation. Fields other than reason are rejected with 400.")
 public class ServiceRequestCancelDto {
     // Automated cancellations - body can be null.

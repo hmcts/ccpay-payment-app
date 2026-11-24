@@ -275,17 +275,11 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
 
         LOG.info("PBA add payment started");
 
-        // Acquire the cancellation row lock
         PaymentFeeLink serviceRequest = paymentFeeLinkRepository.findByPaymentReferenceForUpdate(serviceRequestReference)
             .orElseThrow(() -> new ServiceRequestReferenceNotFoundException("Service request not found"));
 
         ServiceRequests.requireNotCancelled(serviceRequest);
 
-        /*
-         * PaymentFeeLink / Service Request is now locked
-         */
-
-        // validate service request
         businessValidationForServiceRequests(serviceRequest, serviceRequestPaymentDto);
 
         ServiceRequestPaymentBo serviceRequestPaymentBo = serviceRequestPaymentDtoDomainMapper.toDomain(serviceRequestPaymentDto);
@@ -660,28 +654,24 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     @Transactional
     public void cancel(String serviceRequestReference, String cancelledBy, String reason) {
 
-        // Need to lock
-
         PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.findByPaymentReferenceForUpdate(serviceRequestReference)
             .orElseThrow(() -> {
                 LOG.warn("Service request {} not found, so cannot be cancelled", serviceRequestReference);
                 return new ServiceRequestReferenceNotFoundException("Service request not found");
             });
 
-        // check again if already cancelled
+        // check again if already cancelled now locked
         if (paymentFeeLink.isCancelled()) {
             LOG.info("{} is already cancelled after lock", paymentFeeLink);
             return;
         }
 
-        // validate if this request is allowed to be cancelled
         Eligibility eligibility = cancellationEligibilityService.checkEligibility(paymentFeeLink);
         if (!eligibility.cancellable()) {
             LOG.warn("{} cannot be cancelled: {}", paymentFeeLink, eligibility.reason());
             throw new ServiceRequestCancellationException(eligibility.reason());
         }
 
-        // update payment-fee-link to mark Service Request as cancelled
         paymentFeeLink.setCancelled(true);
         paymentFeeLink.setCancelledBy(cancelledBy);
         paymentFeeLink.setCancellationReason(reason);

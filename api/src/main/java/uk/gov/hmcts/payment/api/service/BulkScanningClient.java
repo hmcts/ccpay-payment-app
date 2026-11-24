@@ -19,7 +19,7 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import java.util.Optional;
 
 /**
- * Read-only client for the bulk-scanning app (ccpay-bulkscanning-app).
+ * Read-only client for the bulk-scanning app
  */
 @Slf4j
 @Service
