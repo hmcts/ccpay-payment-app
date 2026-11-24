@@ -121,18 +121,9 @@ public class PBAPaymentMapper {
                 }
 
                 if (!missingFields.isEmpty()) {
-                    String missingFieldsDescription = String.join(", ", missingFields);
-                    LOG.info("IAC response missing {} for payment reference: {}", missingFieldsDescription, paymentReference);
-                    LOG.info("email confid from={}, to={},", missingIacSurnameEmailFrom, missingIacSurnameEmailTo);
-                    emailService.sendEmail(Email.emailWith()
-                        .from(missingIacSurnameEmailFrom)
-                        .to(missingIacSurnameEmailTo)
-                        .subject("IAC response missing fields: " + missingFieldsDescription)
-                        .message("The IAC response for payment reference " + paymentReference
-                            + " is missing: " + missingFieldsDescription + ".")
-                        .build());
-                    throw new IACServiceException("IAC response missing " + missingFieldsDescription
-                        + " for payment reference: " + paymentReference);
+                    val  missingFieldsDescription = String.join(", ", missingFields);
+                    sendEmailForMissingIacFields(paymentReference, missingFieldsDescription);
+                    throw new IACServiceException("IAC response missing " + missingFieldsDescription + " for payment reference: " + paymentReference);
                 }
                 return surname;
 
@@ -147,6 +138,27 @@ public class PBAPaymentMapper {
             return NOT_APPLICABLE_IAC;
         }
     }
+
+    private void sendEmailForMissingIacFields(String paymentReference, String missingFieldsDescription) {
+        LOG.info("IAC response missing {} for payment reference: {}", missingFieldsDescription, paymentReference);
+        LOG.info("email confid from={}, to={},", missingIacSurnameEmailFrom, missingIacSurnameEmailTo);
+        val message ="The IAC response for payment reference " + paymentReference
+            + " is missing: " + missingFieldsDescription + ".";
+        try {
+            emailService.sendEmail(Email.emailWith()
+                .from(missingIacSurnameEmailFrom)
+                .to(missingIacSurnameEmailTo)
+                .subject("IAC response missing fields: " + missingFieldsDescription)
+                .message(message)
+                .build());
+        } catch (Exception exception) {
+            LOG.error("Failed to send email for missing IAC fields for payment reference: {}. Email config - from: {}, to: {}, message: {}",
+                paymentReference, missingIacSurnameEmailFrom, missingIacSurnameEmailTo, message, exception);
+            exception.printStackTrace();
+            throw (exception);
+        }
+    }
+
 
 
     public PaymentDto getPaymentDtoFromModel(Payment payment, String paymentReference, CreditAccountPaymentRequest creditAccountPaymentReques) {
