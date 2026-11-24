@@ -2,9 +2,11 @@ package uk.gov.hmcts.payment.api.mapper;
 
 import lombok.val;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.fees2.register.api.contract.Fee2Dto;
@@ -18,6 +20,8 @@ import uk.gov.hmcts.payment.api.dto.liberata.PaymentAccountRequest;
 import uk.gov.hmcts.payment.api.dto.liberata.PaymentByAccountRequest;
 import uk.gov.hmcts.payment.api.dto.liberata.PaymentRequest;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
+import uk.gov.hmcts.payment.api.email.Email;
+import uk.gov.hmcts.payment.api.email.EmailService;
 import uk.gov.hmcts.payment.api.exception.IACServiceException;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
@@ -27,6 +31,7 @@ import uk.gov.hmcts.payment.api.service.IacService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -45,12 +50,22 @@ public class PBAPaymentMapper {
     @Autowired
     private final PaymentService<PaymentFeeLink, String> paymentService;
 
+    private final EmailService emailService;
+    private final String missingIacSurnameEmailFrom;
+    private final String[] missingIacSurnameEmailTo;
+
     @Autowired
     private IacService iacService;
-    public PBAPaymentMapper(PaymentService<PaymentFeeLink, String> paymentService, FeesService feesService, IacService iacService) {
+    public PBAPaymentMapper(PaymentService<PaymentFeeLink, String> paymentService, FeesService feesService, IacService iacService,
+                            EmailService emailService,
+                            @Value("${pba.iac.missing.surname.email.from:no-reply@reform.hmcts.net}") String missingIacSurnameEmailFrom,
+                            @Value("${pba.iac.missing.surname.email.to:dummy@reform.hmcts.net}") String[] missingIacSurnameEmailTo) {
         this.paymentService = paymentService;
         this.feesService = feesService;
         this.iacService = iacService;
+        this.emailService = emailService;
+        this.missingIacSurnameEmailFrom = missingIacSurnameEmailFrom;
+        this.missingIacSurnameEmailTo = missingIacSurnameEmailTo;
     }
 
     public PaymentAccountRequest mapToPaymentByAccountRequestFromServiceRequestPaymentDto(ServiceRequestPaymentDto serviceRequestPaymentDto, String groupReference, Payment payment, PaymentFeeLink paymentFeeLink ) {
@@ -88,21 +103,40 @@ public class PBAPaymentMapper {
             val paymentDto =  getPaymentDtoFromModel(payment, paymentReference, creditAccountPaymentRequest);
             try {
                 val iacResponse = iacService.getIacSupplementaryInfo(List.of(paymentDto), iacServiceName);
+                val supplementaryInfo = iacResponse != null
+                        && iacResponse.getBody() != null
+                        && iacResponse.getBody().getSupplementaryInfo() != null
+                        && !iacResponse.getBody().getSupplementaryInfo().isEmpty()
+                    ? iacResponse.getBody().getSupplementaryInfo().getFirst() : null;
+                val supplementaryDetails = supplementaryInfo == null ? null : supplementaryInfo.getSupplementaryDetails();
+                val surname = supplementaryDetails == null ? null : supplementaryDetails.getSurname();
+                val ccdCaseNumber = supplementaryInfo == null ? null : supplementaryInfo.getCcdCaseNumber();
 
-                if (iacResponse == null
-                    || iacResponse.getBody() == null
-                    || iacResponse.getBody().getSupplementaryInfo() == null
-                    || iacResponse.getBody().getSupplementaryInfo().isEmpty()
-                    || iacResponse.getBody().getSupplementaryInfo().getFirst() == null
-                    || iacResponse.getBody().getSupplementaryInfo().getFirst().getSupplementaryDetails() == null
-                    || iacResponse.getBody().getSupplementaryInfo().getFirst().getSupplementaryDetails().getSurname() == null
-                    || iacResponse.getBody().getSupplementaryInfo().getFirst().getSupplementaryDetails().getSurname().trim().isEmpty()) {
-
-                    LOG.info("IAC response missing surname for payment reference: {}", paymentReference);
-                    throw new IACServiceException("IAC response missing surname for payment reference: " + paymentReference);
+                List<String> missingFields = new ArrayList<>();
+                if (StringUtils.isBlank(surname)) {
+                    missingFields.add("surname");
                 }
-                return iacResponse.getBody().getSupplementaryInfo().getFirst().getSupplementaryDetails().getSurname();
+                if (StringUtils.isBlank(ccdCaseNumber)) {
+                    missingFields.add("CCD case number");
+                }
 
+                if (!missingFields.isEmpty()) {
+                    String missingFieldsDescription = String.join(", ", missingFields);
+                    LOG.info("IAC response missing {} for payment reference: {}", missingFieldsDescription, paymentReference);
+                    emailService.sendEmail(Email.emailWith()
+                        .from(missingIacSurnameEmailFrom)
+                        .to(missingIacSurnameEmailTo)
+                        .subject("IAC response missing fields: " + missingFieldsDescription)
+                        .message("The IAC response for payment reference " + paymentReference
+                            + " is missing: " + missingFieldsDescription + ".")
+                        .build());
+                    throw new IACServiceException("IAC response missing " + missingFieldsDescription
+                        + " for payment reference: " + paymentReference);
+                }
+                return surname;
+
+            } catch (IACServiceException exception) {
+                throw exception;
             } catch (Exception exception) {
                 LOG.error("Error occurred while fetching supplementary info from IAC service for payment reference: {}", paymentReference, exception);
                 throw new IACServiceException("Error occurred while fetching supplementary info from IAC service for payment reference: "
