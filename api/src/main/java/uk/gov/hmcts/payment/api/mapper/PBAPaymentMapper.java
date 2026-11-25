@@ -119,10 +119,12 @@ public class PBAPaymentMapper {
 
                  if (StringUtils.isBlank(surname)
                     || StringUtils.isBlank(ccdCaseNumber)) {
-                    sendEmailForMissingIacFields(paymentDto.getPayerName(), paymentReference, surname, ccdCaseNumber);
-                    throw new IACServiceException("IAC response missing missing surname and/or case reference for payment reference: " + paymentReference);
+                    sendEmailForMissingIacFields(paymentReference, surname, ccdCaseNumber);
+                    throw new IACServiceException("IAC response missing surname and/or case reference for payment reference: " + paymentReference);
                 }
+
                 return iacResponse.getBody().getSupplementaryInfo().getFirst().getSupplementaryDetails().getSurname();
+
 
             } catch (IACServiceException exception) {
                 throw exception;
@@ -137,15 +139,14 @@ public class PBAPaymentMapper {
         }
     }
 
-    private void sendEmailForMissingIacFields(String name, String paymentReference, String surname, String ccdCaseNumber) {
+    private void sendEmailForMissingIacFields(String paymentReference, String surname, String ccdCaseNumber) {
         LOG.info("IAC response missing surname/case reference for payment reference: {}", paymentReference);
         LOG.info("email confid from={}, to={},", missingIacSurnameEmailFrom, missingIacSurnameEmailTo);
 
         val message = missingIacSurnameEmailBaseMessage
-            .replace("{name}", name)
-            .replace("{surname}", surname)
-            .replace("{caseReference}", paymentReference)
-            .replace("{16digitReference}", ccdCaseNumber)
+            .replace("{surname}", StringUtils.isBlank(surname) ? "surname not found" : surname )
+            .replace("{caseReference}", StringUtils.isBlank(paymentReference) ? "payment reference not found" : paymentReference)
+            .replace("{16digitReference}", StringUtils.isBlank(ccdCaseNumber) ? "16 digit reference not found" : ccdCaseNumber)
             .replace("{timestamp}", DateTime.now().toString());
         try {
             emailService.sendEmail(Email.emailWith()
@@ -161,8 +162,6 @@ public class PBAPaymentMapper {
             throw (exception);
         }
     }
-
-
 
     public PaymentDto getPaymentDtoFromModel(Payment payment, String paymentReference, CreditAccountPaymentRequest creditAccountPaymentReques) {
         return PaymentDto.payment2DtoWith()

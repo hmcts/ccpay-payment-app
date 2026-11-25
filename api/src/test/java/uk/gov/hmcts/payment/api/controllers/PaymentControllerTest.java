@@ -18,6 +18,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,6 +54,7 @@ import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -103,6 +105,8 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     private WebApplicationContext webApplicationContext;
     @Autowired
     private ObjectMapper objectMapper;
+    @Autowired
+    private PaymentController paymentController;
     @MockitoBean
     private LaunchDarklyFeatureToggler featureToggler;
     @MockitoBean
@@ -122,6 +126,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .withAuthorizedUser(USER_ID)
             .withUserId(USER_ID)
             .withReturnUrl("https://www.moneyclaims.service.gov.uk");
+        ReflectionTestUtils.setField(paymentController, "pbaPaymentsReconciliationStopDatetime", Instant.MAX);
     }
 
     @Test
@@ -1381,8 +1386,9 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
     @Test
     @Transactional
-    public void searchPaymentsByApportion_withValidDates_shouldReturnPayments() throws Exception {
+    public void searchPaymentsByApportion_withValidDates_shouldReturnPayments_IgnoringPbaPayments() throws Exception {
 
+        ReflectionTestUtils.setField(paymentController, "pbaPaymentsReconciliationStopDatetime", Instant.now().minusSeconds(1));
         populateCardPaymentToDb("1");
         populateCreditAccountPaymentToDb("2");
 
@@ -1405,7 +1411,85 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         assertThat(responseBody).doesNotContain("payment_allocation");
 
         ReconciliationPaymentsResponse paymentsResponse = objectMapper.readValue(responseBody, ReconciliationPaymentsResponse.class);
-        assertThat(paymentsResponse.getPayments().size()).isEqualTo(2);
+        assertThat(paymentsResponse.getPayments().size()).isEqualTo(1);
+        assertThat(paymentsResponse.getPayments().getFirst().getMethod()).isEqualTo("card");
+
+    }
+
+    @Test
+    @Transactional
+    public void searchPaymentsByApportion_withPbaPaymentMethod_shouldReturnNoPayments() throws Exception {
+
+        ReflectionTestUtils.setField(paymentController, "pbaPaymentsReconciliationStopDatetime", Instant.now().minusSeconds(1));
+        populateCreditAccountPaymentToDb("2");
+
+        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
+        String endDate = LocalDate.now().toString(DATE_FORMAT);
+
+        MvcResult result = restActions
+            .get("/reconciliation-payments?start_date=" + startDate + "&end_date=" + endDate + "&payment_method=PBA")
+            .andExpect(status().isOk())
+            .andReturn();
+
+        ReconciliationPaymentsResponse paymentsResponse = objectMapper.readValue(
+            result.getResponse().getContentAsString(),
+            ReconciliationPaymentsResponse.class
+        );
+        assertThat(paymentsResponse.getPayments()).isEmpty();
+
+    }
+
+    @Test
+    @Transactional
+    public void searchPaymentsByApportion_withPbaIgnoreFalse_shouldReturnPbaPayments() throws Exception {
+
+        ReflectionTestUtils.setField(paymentController, "pbaPaymentsReconciliationStopDatetime", Instant.MAX);
+        populateCardPaymentToDb("1");
+        populateCreditAccountPaymentToDb("2");
+
+        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
+        String endDate = LocalDate.now().toString(DATE_FORMAT);
+
+        MvcResult result = restActions
+            .get("/reconciliation-payments?start_date=" + startDate + "&end_date=" + endDate
+                + "&pba_payment_reconciliation_ignore=false")
+            .andExpect(status().isOk())
+            .andReturn();
+
+        ReconciliationPaymentsResponse paymentsResponse = objectMapper.readValue(
+            result.getResponse().getContentAsString(),
+            ReconciliationPaymentsResponse.class
+        );
+        assertThat(paymentsResponse.getPayments()).hasSize(2);
+        assertThat(paymentsResponse.getPayments())
+            .extracting("method")
+            .contains("card", "payment by account");
+
+    }
+
+    @Test
+    @Transactional
+    public void searchPaymentsByApportion_withPbaIgnoreTrue_shouldIgnorePbaPayments() throws Exception {
+
+        ReflectionTestUtils.setField(paymentController, "pbaPaymentsReconciliationStopDatetime", Instant.MAX);
+        populateCardPaymentToDb("1");
+        populateCreditAccountPaymentToDb("2");
+
+        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
+        String endDate = LocalDate.now().toString(DATE_FORMAT);
+
+        MvcResult result = restActions
+            .get("/reconciliation-payments?start_date=" + startDate + "&end_date=" + endDate
+                + "&pba_payment_reconciliation_ignore=true")
+            .andExpect(status().isOk())
+            .andReturn();
+
+        ReconciliationPaymentsResponse paymentsResponse = objectMapper.readValue(
+            result.getResponse().getContentAsString(),
+            ReconciliationPaymentsResponse.class
+        );
+        assertThat(paymentsResponse.getPayments().size()).isEqualTo(1);
+        assertThat(paymentsResponse.getPayments().getFirst().getMethod()).isEqualTo("card");
 
     }
 

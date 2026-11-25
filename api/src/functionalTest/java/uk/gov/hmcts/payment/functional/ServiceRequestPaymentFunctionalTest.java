@@ -280,7 +280,7 @@ public class ServiceRequestPaymentFunctionalTest {
                     .getResponse();
 
                 assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
-                assertThat(response.getBody().asString()).contains("IAC response missing surname or CCD case number for payment reference:");
+                assertThat(response.getBody().asString()).contains("IAC PBA Payment Failed - Missing Supplementary Data.");
             });
     }
 
