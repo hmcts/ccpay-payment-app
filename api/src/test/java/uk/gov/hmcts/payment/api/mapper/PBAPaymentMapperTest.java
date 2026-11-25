@@ -245,14 +245,14 @@ public class PBAPaymentMapperTest {
 
         for (ResponseEntity<SupplementaryPaymentDto> response : responses) {
             when(iacService.getIacSupplementaryInfo(anyList(), anyString())).thenReturn(response);
-            assertMissingFields("surname, CCD case number");
+            assertMissingFields("surname or CCD case number");
         }
 
         org.mockito.ArgumentCaptor<Email> emailCaptor = org.mockito.ArgumentCaptor.forClass(Email.class);
         verify(emailService, times(responses.size())).sendEmail(emailCaptor.capture());
         assertThat(emailCaptor.getAllValues()).allSatisfy(email -> {
-            assertThat(email.getSubject()).isEqualTo("IAC response missing fields: surname, CCD case number");
-            assertThat(email.getMessage()).contains("surname, CCD case number");
+            assertThat(email.getSubject()).isEqualTo("IAC response missing fields: surname or CCD case number");
+            assertThat(email.getMessage()).contains("surname or CCD case number");
         });
     }
 
@@ -298,12 +298,11 @@ public class PBAPaymentMapperTest {
     public void mapToPaymentByAccountRequest_IAC_serviceExceptionIsPassedThrough() {
         mockIacServiceName();
         when(iacService.getIacSupplementaryInfo(anyList(), anyString()))
-            .thenThrow(new IllegalStateException("IAC unavailable"));
+            .thenThrow(new EmailFailedException("IAC unavailable"));
 
         assertThatThrownBy(this::mapIacPayment)
-            .isInstanceOf(IACServiceException.class)
-            .hasMessageContaining("IAC unavailable")
-            .hasCauseInstanceOf(IllegalStateException.class);
+            .isInstanceOf(EmailFailedException.class)
+            .hasMessageContaining("IAC unavailable");
         verifyNoInteractions(emailService);
     }
 
@@ -315,9 +314,8 @@ public class PBAPaymentMapperTest {
             .when(emailService).sendEmail(org.mockito.ArgumentMatchers.any(Email.class));
 
         assertThatThrownBy(this::mapIacPayment)
-            .isInstanceOf(IACServiceException.class)
-            .hasMessageContaining("SMTP unavailable")
-            .hasCauseInstanceOf(EmailFailedException.class);
+            .isInstanceOf(EmailFailedException.class)
+            .hasMessageContaining("SMTP unavailable");
         verify(emailService).sendEmail(org.mockito.ArgumentMatchers.any(Email.class));
     }
 
