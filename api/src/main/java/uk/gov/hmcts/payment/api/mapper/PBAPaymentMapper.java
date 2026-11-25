@@ -124,7 +124,7 @@ public class PBAPaymentMapper {
                 if (!missingFields.isEmpty()) {
                     val  missingFieldsDescription = String.join(" or ", missingFields);
                     sendEmailForMissingIacFields(paymentReference, missingFieldsDescription);
-                    throw new IACServiceException("IAC response missing " + missingFieldsDescription + " for payment reference: " + paymentReference);
+                    throw new IACServiceException("IAC PBA Payment Failed - Missing Supplementary Data. No further actions required, and our technical team have been notified.");
                 }
                 return surname;
 
@@ -160,8 +160,6 @@ public class PBAPaymentMapper {
             throw (exception);
         }
     }
-
-
 
     public PaymentDto getPaymentDtoFromModel(Payment payment, String paymentReference, CreditAccountPaymentRequest creditAccountPaymentReques) {
         return PaymentDto.payment2DtoWith()

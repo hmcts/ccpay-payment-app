@@ -245,7 +245,7 @@ public class PBAPaymentMapperTest {
 
         for (ResponseEntity<SupplementaryPaymentDto> response : responses) {
             when(iacService.getIacSupplementaryInfo(anyList(), anyString())).thenReturn(response);
-            assertMissingFields("surname or CCD case number");
+            assertMissingFields();
         }
 
         org.mockito.ArgumentCaptor<Email> emailCaptor = org.mockito.ArgumentCaptor.forClass(Email.class);
@@ -261,7 +261,7 @@ public class PBAPaymentMapperTest {
         mockIacServiceName();
         mockIacResponse(supplementaryInfo("ccd-1", "  "));
 
-        assertMissingFields("surname");
+        assertMissingFields();
 
         org.mockito.ArgumentCaptor<Email> emailCaptor = org.mockito.ArgumentCaptor.forClass(Email.class);
         verify(emailService).sendEmail(emailCaptor.capture());
@@ -274,7 +274,7 @@ public class PBAPaymentMapperTest {
         mockIacServiceName();
         mockIacResponse(supplementaryInfo("  ", "Smith"));
 
-        assertMissingFields("CCD case number");
+        assertMissingFields();
 
         org.mockito.ArgumentCaptor<Email> emailCaptor = org.mockito.ArgumentCaptor.forClass(Email.class);
         verify(emailService).sendEmail(emailCaptor.capture());
@@ -291,7 +291,7 @@ public class PBAPaymentMapperTest {
             .build();
         mockIacResponse(info);
 
-        assertMissingFields("surname");
+        assertMissingFields();
     }
 
     @Test
@@ -497,10 +497,10 @@ public class PBAPaymentMapperTest {
             .build();
     }
 
-    private void assertMissingFields(String missingFields) {
+    private void assertMissingFields() {
         assertThatThrownBy(this::mapIacPayment)
             .isInstanceOf(IACServiceException.class)
-            .hasMessage("IAC response missing " + missingFields + " for payment reference: group-ref");
+            .hasMessage("IAC PBA Payment Failed - Missing Supplementary Data. No further actions required, and our technical team have been notified.");
     }
 
     private PaymentAccountRequest mapIacPayment() {
