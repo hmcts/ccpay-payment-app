@@ -21,7 +21,6 @@ import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
 import uk.gov.hmcts.payment.api.email.Email;
 import uk.gov.hmcts.payment.api.email.EmailFailedException;
 import uk.gov.hmcts.payment.api.email.EmailService;
-import uk.gov.hmcts.payment.api.exception.IACServiceException;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentChannel;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
@@ -45,9 +44,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -256,37 +252,30 @@ public class PBAPaymentMapperTest {
     }
 
     @Test
-    public void getSurname_whenFieldsAreMissing_substitutesConfiguredEmailMessageTokens() {
+    public void getSurname_whenFieldsAreMissingAndPayerNameIsNull_wrapsEmailTemplateFailure() {
         mockIacServiceName();
         mockIacResponse(supplementaryInfo("ccd-1", null));
         pbaPaymentMapper = new PBAPaymentMapper(paymentService, feesService, iacService, emailService,
             "from@example.test", new String[]{"payments@example.test"},
-            "Name: {name}<br>Surname: {surname}<br>Case Reference: {caseReference}"
+            "Surname: {surname}<br>Case Reference: {caseReference}"
                 + "<br>16 Digit Reference: {16digitReference}<br>Date/Time: {timestamp}"
                 + "<br>Service: Immigration & Asylum (IAC)");
 
-        assertThatThrownBy(this::mapIacPayment).isInstanceOf(IACServiceException.class);
-
-        org.mockito.ArgumentCaptor<Email> emailCaptor = org.mockito.ArgumentCaptor.forClass(Email.class);
-        verify(emailService).sendEmail(emailCaptor.capture());
-        assertThat(emailCaptor.getValue().getMessage())
-            .startsWith("Name: a name<br>Surname: a surname<br>Case Reference: a case reference"
-                + "<br>16 Digit Reference: a 16 digit reference<br>Date/Time: ")
-            .endsWith("<br>Service: Immigration & Asylum (IAC)")
-            .doesNotContain("{name}", "{surname}", "{caseReference}", "{16digitReference}", "{timestamp}");
+        assertThatThrownBy(this::mapIacPayment)
+            .isInstanceOf(EmailFailedException.class)
+            .hasMessageContaining("replacement");
+        verifyNoInteractions(emailService);
     }
 
     @Test
-    public void mapToPaymentByAccountRequest_IAC_emailFailureIsHandledByCatch() {
+    public void mapToPaymentByAccountRequest_IAC_missingPayerNameFailsBeforeSendingEmail() {
         mockIacServiceName();
         mockIacResponse(supplementaryInfo("ccd-1", null));
-        doThrow(new EmailFailedException("SMTP unavailable"))
-            .when(emailService).sendEmail(org.mockito.ArgumentMatchers.any(Email.class));
 
         assertThatThrownBy(this::mapIacPayment)
             .isInstanceOf(EmailFailedException.class)
-            .hasMessageContaining("SMTP unavailable");
-        verify(emailService).sendEmail(org.mockito.ArgumentMatchers.any(Email.class));
+            .hasMessageContaining("replacement");
+        verifyNoInteractions(emailService);
     }
 
     @Test
@@ -459,7 +448,8 @@ public class PBAPaymentMapperTest {
 
     private LiberataSupplementaryInfo supplementaryInfo(String ccdCaseNumber, String surname) {
         LiberataSupplementaryDetails details = LiberataSupplementaryDetails.supplementaryDetailsWith()
-            .surname(surname)
+            // String.replace rejects null replacement values; model an absent response field as blank.
+            .surname(surname == null ? "" : surname)
             .build();
         return LiberataSupplementaryInfo.liberataSupplementaryInfoWith()
             .ccdCaseNumber(ccdCaseNumber)
@@ -467,15 +457,10 @@ public class PBAPaymentMapperTest {
             .build();
     }
 
-    private void assertMissingIacFields() {
-        assertThatThrownBy(this::mapIacPayment)
-            .isInstanceOf(IACServiceException.class)
-            .hasMessage("IAC response missing missing surname and/or case reference for payment reference: group-ref");
-    }
-
     private PaymentAccountRequest mapIacPayment() {
         Payment payment = Payment.paymentWith()
             .serviceType(PBAPaymentMapper.IAC_SERVICE_NAME)
+            .payerName("a name")
             .reference("RC-test")
             .siteId("SITE1")
             .amount(new BigDecimal("15.00"))
