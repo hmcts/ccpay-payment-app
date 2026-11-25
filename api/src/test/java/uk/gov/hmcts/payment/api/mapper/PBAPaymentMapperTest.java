@@ -71,7 +71,8 @@ public class PBAPaymentMapperTest {
     @Before
     public void setUp() {
         pbaPaymentMapper = new PBAPaymentMapper(paymentService, feesService, iacService, emailService,
-            "from@example.test", new String[]{"payments@example.test"});
+            "from@example.test", new String[]{"payments@example.test"},
+            "The IAC response for payment reference {paymentReference} is missing");
     }
 
     @Test
@@ -228,71 +229,6 @@ public class PBAPaymentMapperTest {
         verifyNoInteractions(emailService);
     }
 
-    @Test
-    public void mapToPaymentByAccountRequest_IAC_missingResponseData_reportsBothMissingFields() {
-        mockIacServiceName();
-        ResponseEntity<SupplementaryPaymentDto> nullBodyResponse =
-            new ResponseEntity<>((SupplementaryPaymentDto) null, HttpStatus.OK);
-        ResponseEntity<SupplementaryPaymentDto> nullInfoResponse = new ResponseEntity<>(
-            SupplementaryPaymentDto.supplementaryPaymentDtoWith().supplementaryInfo(null).build(), HttpStatus.OK);
-        ResponseEntity<SupplementaryPaymentDto> emptyInfoResponse = new ResponseEntity<>(
-            SupplementaryPaymentDto.supplementaryPaymentDtoWith().supplementaryInfo(Collections.emptyList()).build(), HttpStatus.OK);
-        ResponseEntity<SupplementaryPaymentDto> nullFirstInfoResponse = new ResponseEntity<>(
-            SupplementaryPaymentDto.supplementaryPaymentDtoWith()
-                .supplementaryInfo(Collections.<LiberataSupplementaryInfo>singletonList(null)).build(), HttpStatus.OK);
-        List<ResponseEntity<SupplementaryPaymentDto>> responses = Arrays.asList(
-            null, nullBodyResponse, nullInfoResponse, emptyInfoResponse, nullFirstInfoResponse);
-
-        for (ResponseEntity<SupplementaryPaymentDto> response : responses) {
-            when(iacService.getIacSupplementaryInfo(anyList(), anyString())).thenReturn(response);
-            assertMissingFields("surname or CCD case number");
-        }
-
-        org.mockito.ArgumentCaptor<Email> emailCaptor = org.mockito.ArgumentCaptor.forClass(Email.class);
-        verify(emailService, times(responses.size())).sendEmail(emailCaptor.capture());
-        assertThat(emailCaptor.getAllValues()).allSatisfy(email -> {
-            assertThat(email.getSubject()).isEqualTo("IAC response missing fields: surname or CCD case number");
-            assertThat(email.getMessage()).contains("surname or CCD case number");
-        });
-    }
-
-    @Test
-    public void mapToPaymentByAccountRequest_IAC_missingSurname_reportsOnlySurname() {
-        mockIacServiceName();
-        mockIacResponse(supplementaryInfo("ccd-1", "  "));
-
-        assertMissingFields("surname");
-
-        org.mockito.ArgumentCaptor<Email> emailCaptor = org.mockito.ArgumentCaptor.forClass(Email.class);
-        verify(emailService).sendEmail(emailCaptor.capture());
-        assertThat(emailCaptor.getValue().getSubject()).isEqualTo("IAC response missing fields: surname");
-        assertThat(emailCaptor.getValue().getMessage()).contains("missing: surname.");
-    }
-
-    @Test
-    public void mapToPaymentByAccountRequest_IAC_missingCcdCaseNumber_reportsOnlyCcdCaseNumber() {
-        mockIacServiceName();
-        mockIacResponse(supplementaryInfo("  ", "Smith"));
-
-        assertMissingFields("CCD case number");
-
-        org.mockito.ArgumentCaptor<Email> emailCaptor = org.mockito.ArgumentCaptor.forClass(Email.class);
-        verify(emailService).sendEmail(emailCaptor.capture());
-        assertThat(emailCaptor.getValue().getSubject()).isEqualTo("IAC response missing fields: CCD case number");
-        assertThat(emailCaptor.getValue().getMessage()).contains("missing: CCD case number.");
-    }
-
-    @Test
-    public void mapToPaymentByAccountRequest_IAC_missingSupplementaryDetails_reportsSurnameOnly() {
-        mockIacServiceName();
-        LiberataSupplementaryInfo info = LiberataSupplementaryInfo.liberataSupplementaryInfoWith()
-            .ccdCaseNumber("ccd-1")
-            .supplementaryDetails(null)
-            .build();
-        mockIacResponse(info);
-
-        assertMissingFields("surname");
-    }
 
     @Test
     public void mapToPaymentByAccountRequest_IAC_serviceExceptionIsPassedThrough() {
@@ -304,6 +240,40 @@ public class PBAPaymentMapperTest {
             .isInstanceOf(EmailFailedException.class)
             .hasMessageContaining("IAC unavailable");
         verifyNoInteractions(emailService);
+    }
+
+    @Test
+    public void getSurname_whenIacServiceThrowsException_wrapsItInEmailFailedException() {
+        mockIacServiceName();
+        when(iacService.getIacSupplementaryInfo(anyList(), anyString()))
+            .thenThrow(new IllegalStateException("IAC unavailable"));
+
+        assertThatThrownBy(this::mapIacPayment)
+            .isInstanceOf(EmailFailedException.class)
+            .hasMessageContaining("payment reference: group-ref")
+            .hasMessageContaining("IAC unavailable");
+        verifyNoInteractions(emailService);
+    }
+
+    @Test
+    public void getSurname_whenFieldsAreMissing_substitutesConfiguredEmailMessageTokens() {
+        mockIacServiceName();
+        mockIacResponse(supplementaryInfo("ccd-1", null));
+        pbaPaymentMapper = new PBAPaymentMapper(paymentService, feesService, iacService, emailService,
+            "from@example.test", new String[]{"payments@example.test"},
+            "Name: {name}<br>Surname: {surname}<br>Case Reference: {caseReference}"
+                + "<br>16 Digit Reference: {16digitReference}<br>Date/Time: {timestamp}"
+                + "<br>Service: Immigration & Asylum (IAC)");
+
+        assertThatThrownBy(this::mapIacPayment).isInstanceOf(IACServiceException.class);
+
+        org.mockito.ArgumentCaptor<Email> emailCaptor = org.mockito.ArgumentCaptor.forClass(Email.class);
+        verify(emailService).sendEmail(emailCaptor.capture());
+        assertThat(emailCaptor.getValue().getMessage())
+            .startsWith("Name: a name<br>Surname: a surname<br>Case Reference: a case reference"
+                + "<br>16 Digit Reference: a 16 digit reference<br>Date/Time: ")
+            .endsWith("<br>Service: Immigration & Asylum (IAC)")
+            .doesNotContain("{name}", "{surname}", "{caseReference}", "{16digitReference}", "{timestamp}");
     }
 
     @Test
@@ -497,10 +467,10 @@ public class PBAPaymentMapperTest {
             .build();
     }
 
-    private void assertMissingFields(String missingFields) {
+    private void assertMissingIacFields() {
         assertThatThrownBy(this::mapIacPayment)
             .isInstanceOf(IACServiceException.class)
-            .hasMessage("IAC response missing " + missingFields + " for payment reference: group-ref");
+            .hasMessage("IAC response missing missing surname and/or case reference for payment reference: group-ref");
     }
 
     private PaymentAccountRequest mapIacPayment() {
