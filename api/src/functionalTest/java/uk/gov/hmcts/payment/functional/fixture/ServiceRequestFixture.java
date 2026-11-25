@@ -29,6 +29,43 @@ public class ServiceRequestFixture {
         return serviceRequestDto;
     }
 
+    public static final ServiceRequestDto buildServiceRequestDTOWithFEE0228(final String hmctsOrgId,
+                                                                 final String ccdCaseNumber) {
+
+        CasePaymentRequest casePaymentRequest = CasePaymentRequest
+            .casePaymentRequestWith()
+            .responsibleParty("Party 1")
+            .action("Action 1").build();
+
+        ServiceRequestDto serviceRequestDto = ServiceRequestDto
+            .serviceRequestDtoWith()
+            .casePaymentRequest(casePaymentRequest)
+            .callBackUrl("http://callback.hmcts.net")
+            .hmctsOrgId(hmctsOrgId)
+            .caseReference("123245677")
+            .ccdCaseNumber(ccdCaseNumber != null ? ccdCaseNumber : generateUniqueCCDCaseReferenceNumber()).fees(List.of(getFeeFEE0228())).build();
+        return serviceRequestDto;
+    }
+
+
+    public static final ServiceRequestDto buildServiceRequestDTOForCardPayments(final String hmctsOrgId,
+                                                                 final String ccdCaseNumber) {
+
+        CasePaymentRequest casePaymentRequest = CasePaymentRequest
+            .casePaymentRequestWith()
+            .responsibleParty("Party 1")
+            .action("Action 1").build();
+
+        ServiceRequestDto serviceRequestDto = ServiceRequestDto
+            .serviceRequestDtoWith()
+            .casePaymentRequest(casePaymentRequest)
+            .callBackUrl("http://callback.hmcts.net")
+            .hmctsOrgId(hmctsOrgId)
+            .caseReference("123245677")
+            .ccdCaseNumber(ccdCaseNumber != null ? ccdCaseNumber : generateUniqueCCDCaseReferenceNumber()).fees(List.of(getFee())).build();
+        return serviceRequestDto;
+    }
+
     public static final ServiceRequestDto buildServiceRequestDTOWithMultipleFees(final String hmctsOrgId,
                                                                  final String ccdCaseNumber) {
 
@@ -67,8 +104,8 @@ public class ServiceRequestFixture {
         return serviceRequestDto;
     }
 
-    public static final ServiceRequestDto buildServiceRequestDTOWithFees35000(final String hmctsOrgId,
-                                                                                  final String ccdCaseNumber) {
+    public static final ServiceRequestDto buildServiceRequestDTOWithFeesFEE0228(final String hmctsOrgId,
+                                                                                final String ccdCaseNumber) {
 
         CasePaymentRequest casePaymentRequest = CasePaymentRequest
             .casePaymentRequestWith()
@@ -82,16 +119,15 @@ public class ServiceRequestFixture {
             .hmctsOrgId(hmctsOrgId)
             .caseReference("123245677")
             .ccdCaseNumber(ccdCaseNumber != null ? ccdCaseNumber : generateUniqueCCDCaseReferenceNumber())
-            .fees(List.of(getFee35000())).build();
+            .fees(List.of(getFeeFEE0228())).build();
         return serviceRequestDto;
     }
 
-    private static final ServiceRequestFeeDto getFee35000() {
+    private static final ServiceRequestFeeDto getFeeFEE0228() {
         return ServiceRequestFeeDto.feeDtoWith()
-            .calculatedAmount(new BigDecimal("35000.00"))
-            .code("FEE312")
-            .version("1")
-            .volume(2)
+            .calculatedAmount(new BigDecimal("58.00"))
+            .code("FEE0228")
+            .version("4")
             .build();
     }
 

@@ -82,6 +82,7 @@ sonarqube {
     properties {
         property "sonar.pitest.mode", "reuseReport"
         property "sonar.pitest.reportsDirectory", "build/reports/pitest"
+        property "sonar.pitest.reportsDirectory", "build/reports/pitest"
     }
 }
 

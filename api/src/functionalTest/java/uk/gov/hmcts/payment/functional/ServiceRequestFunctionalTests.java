@@ -7,6 +7,8 @@ import io.restassured.response.Response;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.apache.commons.lang3.RandomUtils;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.joda.time.LocalDateTime;
 import org.junit.*;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +48,13 @@ import java.util.regex.Pattern;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.hamcrest.Matchers.comparesEqualTo;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.startsWith;
+import static org.hamcrest.text.MatchesPattern.matchesPattern;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
@@ -310,7 +319,7 @@ public class ServiceRequestFunctionalTests {
     public void positive_create_service_request_and_a_full_pba_payment_user_hmcts() throws Exception {
 
         final ServiceRequestDto serviceRequestDto
-            = ServiceRequestFixture.buildServiceRequestDTO("ABA6", null);
+            = ServiceRequestFixture.buildServiceRequestDTOWithFEE0228("ABA6", null);
         final Response createServiceRequestResponse
             = serviceRequestTestService.createServiceRequest(USER_TOKEN_PAYMENT, SERVICE_TOKEN,
             serviceRequestDto);
@@ -322,7 +331,7 @@ public class ServiceRequestFunctionalTests {
 
         ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
             .paymentDtoWith().accountNumber("PBAFUNC12345")
-            .amount(BigDecimal.valueOf(100.00))
+            .amount(BigDecimal.valueOf(58.00))
             .organisationName("TestOrg")
             .currency("GBP")
             .idempotencyKey(ServiceRequestFixture.generateUniqueCCDCaseReferenceNumber())
@@ -414,7 +423,7 @@ public class ServiceRequestFunctionalTests {
         throws Exception {
         String ccdCaseNumber = "11111234" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
         final ServiceRequestDto serviceRequestDto
-            = ServiceRequestFixture.buildServiceRequestDTO("ABA6", ccdCaseNumber);
+            = ServiceRequestFixture.buildServiceRequestDTOWithFEE0228("ABA6", ccdCaseNumber);
         final Response createServiceRequestResponse
             = serviceRequestTestService.createServiceRequest(USER_TOKEN_PAYMENT, SERVICE_TOKEN,
             serviceRequestDto);
@@ -427,7 +436,7 @@ public class ServiceRequestFunctionalTests {
         final ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
             .paymentDtoWith().accountNumber("PBAFUNC12345")
             .organisationName("TestOrg")
-            .amount(BigDecimal.valueOf(100.00))
+            .amount(BigDecimal.valueOf(58.00))
             .currency("GBP")
             .idempotencyKey(ServiceRequestFixture.generateUniqueCCDCaseReferenceNumber())
             .customerReference("123245677").
@@ -455,7 +464,7 @@ public class ServiceRequestFunctionalTests {
     public void positive_create_service_request_and_a_pba_payment_and_a_duplicate_payment_for_a_different_idempotent_Key() {
 
         final ServiceRequestDto serviceRequestDto
-            = ServiceRequestFixture.buildServiceRequestDTO("ABA6", null);
+            = ServiceRequestFixture.buildServiceRequestDTOWithFEE0228("ABA6", null);
         final Response createServiceRequestResponse
             = serviceRequestTestService.createServiceRequest(USER_TOKEN_PAYMENT, SERVICE_TOKEN,
             serviceRequestDto);
@@ -467,7 +476,7 @@ public class ServiceRequestFunctionalTests {
 
         final ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
             .paymentDtoWith().accountNumber("PBAFUNC12345")
-            .amount(BigDecimal.valueOf(100.00))
+            .amount(BigDecimal.valueOf(58.00))
             .organisationName("TestOrg")
             .currency("GBP")
             .idempotencyKey(ServiceRequestFixture.generateUniqueCCDCaseReferenceNumber())
@@ -497,10 +506,8 @@ public class ServiceRequestFunctionalTests {
 
     @Test
     public void positive_create_service_request_and_a_duplicate_service_request_post_failed_payment_account_deleted() {
-        Assume.assumeTrue(!testProps.baseTestUrl.contains("payment-api-pr-"));
-
         final ServiceRequestDto serviceRequestDto
-            = ServiceRequestFixture.buildServiceRequestDTO("ABA6", null);
+            = ServiceRequestFixture.buildServiceRequestDTOWithFEE0228("ABA6", null);
 
         final Response createServiceRequestResponse
             = serviceRequestTestService.createServiceRequest(USER_TOKEN_PAYMENT, SERVICE_TOKEN,
@@ -513,23 +520,64 @@ public class ServiceRequestFunctionalTests {
 
         final ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
             .paymentDtoWith().accountNumber(testProps.deletedAccountNumber)
-            .amount(BigDecimal.valueOf(100.00))
+            .amount(BigDecimal.valueOf(58.00))
             .currency("GBP")
             .organisationName("TestOrg")
             .idempotencyKey(ServiceRequestFixture.generateUniqueCCDCaseReferenceNumber())
             .customerReference("123245677").
                 build();
 
-        final Response pbaPaymentServiceRequestResponse
-            = serviceRequestTestService.createPBAPaymentForAServiceRequest(USER_TOKEN_PAYMENT,
-            SERVICE_TOKEN,
-            serviceRequestReference, serviceRequestPaymentDto);
-        assertThat(pbaPaymentServiceRequestResponse.getStatusCode()).isEqualTo(GONE.value());
+        ServiceRequestPaymentBo serviceRequestPaymentBo
+            = serviceRequestTestService.createPBAPaymentForAServiceRequest(
+                USER_TOKEN_PAYMENT, SERVICE_TOKEN, serviceRequestReference, serviceRequestPaymentDto)
+            .then().statusCode(GONE.value())
+            .body("payment_reference", startsWith("RC-"))
+            .body("status", equalTo("failed"))
+            .body("error.error_code", equalTo("CA-E0004"))
+            .body("error.error_message", equalTo("Your account is deleted"))
+            .extract().as(ServiceRequestPaymentBo.class);
 
-        ServiceRequestPaymentBo serviceRequestPaymentBo =
-            pbaPaymentServiceRequestResponse.getBody().as(ServiceRequestPaymentBo.class);
         paymentReference = serviceRequestPaymentBo.getPaymentReference();
         assertThat(paymentReference).matches(PAYMENTS_REGEX_PATTERN);
+
+        paymentTestService.getPayments(USER_TOKEN_PAYMENT, SERVICE_TOKEN, paymentReference)
+            .then()
+            .statusCode(HttpStatus.OK.value())
+            // --- Payment ---
+            .body("amount", comparesEqualTo(serviceRequestPaymentDto.getAmount()))
+            .body("currency", equalTo(serviceRequestPaymentDto.getCurrency()))
+            .body("ccd_case_number", equalTo(serviceRequestDto.getCcdCaseNumber()))
+            .body("case_reference", equalTo(serviceRequestDto.getCaseReference()))
+            // payment_reference format: RC-XXXX-XXXX-XXXX-XXXX
+            .body("payment_reference", matchesPattern("RC-\\d{4}-\\d{4}-\\d{4}-\\d{4}"))
+            .body("payment_reference", equalTo(paymentReference))
+            .body("channel", equalTo("online"))
+            .body("method", equalTo("payment by account"))
+            .body("status", equalTo("Failed"))
+            .body("site_id", equalTo("ABA6"))
+            .body("service_name", equalTo("Probate"))
+            .body("customer_reference", equalTo(serviceRequestPaymentDto.getCustomerReference()))
+            .body("account_number", equalTo(serviceRequestPaymentDto.getAccountNumber()))
+            .body("organisation_name", equalTo(serviceRequestPaymentDto.getOrganisationName()))
+            // payment_group_reference should start with current year YYYY- format, e.g. 2026- for a payment made in 2026
+            .body("payment_group_reference", matchesPattern(LocalDateTime.now(DateTimeZone.UTC).getYear() + "-\\d{13}"))
+            .body("payment_group_reference", equalTo(serviceRequestReference))
+
+            // --- Fees ---
+            .body("fees", hasSize(1))
+            .body("fees[0].id", notNullValue())
+            .body("fees[0].code", equalTo(serviceRequestDto.getFees().getFirst().getCode()))
+            .body("fees[0].calculated_amount", comparesEqualTo(serviceRequestDto.getFees().getFirst().getCalculatedAmount()))
+            .body("fees[0].ccd_case_number", equalTo(serviceRequestDto.getCcdCaseNumber()))
+
+            // --- Status histories ---
+            .body("status_histories", hasSize(1))
+            .body("status_histories[0].status", equalTo("failed"))
+            .body("status_histories[0].error_code", equalTo("CA-E0004"))
+            .body("status_histories[0].error_message", equalTo("Your account is deleted"))
+
+            // --- Payment allocation ---
+            .body("payment_allocation", empty());
 
         final Response createServiceRequestResponseAgain
             = serviceRequestTestService.createServiceRequest(USER_TOKEN_PAYMENT, SERVICE_TOKEN,
@@ -546,10 +594,8 @@ public class ServiceRequestFunctionalTests {
 
     @Test
     public void positive_create_service_request_and_a_duplicate_service_request_post_failed_payment_account_on_hold() {
-        Assume.assumeTrue(!testProps.baseTestUrl.contains("payment-api-pr-"));
-
         final ServiceRequestDto serviceRequestDto
-            = ServiceRequestFixture.buildServiceRequestDTO("ABA6", null);
+            = ServiceRequestFixture.buildServiceRequestDTOWithFEE0228("ABA6", null);
 
         final Response createServiceRequestResponse
             = serviceRequestTestService.createServiceRequest(USER_TOKEN_PAYMENT, SERVICE_TOKEN,
@@ -560,25 +606,63 @@ public class ServiceRequestFunctionalTests {
         final String serviceRequestReference = responseDTO.getServiceRequestReference();
         assertThat(serviceRequestReference).matches(SERVICE_REQUEST_REGEX_PATTERN);
 
-
         final ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
             .paymentDtoWith().accountNumber(testProps.onHoldAccountNumber)
-            .amount(BigDecimal.valueOf(100.00))
+            .amount(BigDecimal.valueOf(58.00))
             .organisationName("TestOrg")
             .currency("GBP")
             .idempotencyKey(ServiceRequestFixture.generateUniqueCCDCaseReferenceNumber())
             .customerReference("123245677").
                 build();
 
-        final Response pbaPaymentServiceRequestResponse
-            = serviceRequestTestService.createPBAPaymentForAServiceRequest(USER_TOKEN_PAYMENT,
-            SERVICE_TOKEN,
-            serviceRequestReference, serviceRequestPaymentDto);
-        assertThat(pbaPaymentServiceRequestResponse.getStatusCode()).isEqualTo(HttpStatus.PRECONDITION_FAILED.value());
-        ServiceRequestPaymentBo serviceRequestPaymentBo =
-            pbaPaymentServiceRequestResponse.getBody().as(ServiceRequestPaymentBo.class);
+        ServiceRequestPaymentBo serviceRequestPaymentBo
+            = serviceRequestTestService.createPBAPaymentForAServiceRequest(
+                USER_TOKEN_PAYMENT, SERVICE_TOKEN, serviceRequestReference, serviceRequestPaymentDto)
+            .then().statusCode(PRECONDITION_FAILED.value())
+            .body("payment_reference", startsWith("RC-"))
+            .body("status", equalTo("failed"))
+            .body("error.error_code", equalTo("CA-E0003"))
+            .body("error.error_message", equalTo("Your account is on hold"))
+            .extract().as(ServiceRequestPaymentBo.class);
+
         paymentReference = serviceRequestPaymentBo.getPaymentReference();
         assertThat(paymentReference).matches(PAYMENTS_REGEX_PATTERN);
+
+        paymentTestService.getPayments(USER_TOKEN_PAYMENT, SERVICE_TOKEN, paymentReference)
+            .then()
+            .statusCode(HttpStatus.OK.value())
+            // --- Payment ---
+            .body("amount", comparesEqualTo(serviceRequestPaymentDto.getAmount()))
+            .body("ccd_case_number", equalTo(serviceRequestDto.getCcdCaseNumber()))
+            .body("case_reference", equalTo(serviceRequestDto.getCaseReference()))
+            // payment_reference format: RC-XXXX-XXXX-XXXX-XXXX
+            .body("payment_reference", matchesPattern("RC-\\d{4}-\\d{4}-\\d{4}-\\d{4}"))
+            .body("payment_reference", equalTo(paymentReference))
+            .body("customer_reference", equalTo(serviceRequestPaymentDto.getCustomerReference()))
+            .body("channel", equalTo("online"))
+            .body("method", equalTo("payment by account"))
+            .body("status", equalTo("Failed"))
+            .body("site_id", equalTo("ABA6"))
+            .body("service_name", equalTo("Probate"))
+            .body("customer_reference", equalTo(serviceRequestPaymentDto.getCustomerReference()))
+            .body("account_number", equalTo(serviceRequestPaymentDto.getAccountNumber()))
+            .body("organisation_name", equalTo(serviceRequestPaymentDto.getOrganisationName()))
+            // payment_group_reference should start with current year YYYY- format, e.g. 2026- for a payment made in 2026
+            .body("payment_group_reference", matchesPattern(LocalDateTime.now(DateTimeZone.UTC).getYear() + "-\\d{13}"))
+            .body("payment_group_reference", equalTo(serviceRequestReference))
+
+            // --- Fees ---
+            .body("fees", hasSize(1))
+            .body("fees[0].id", notNullValue())
+            .body("fees[0].code", equalTo(serviceRequestDto.getFees().getFirst().getCode()))
+            .body("fees[0].calculated_amount", comparesEqualTo(serviceRequestDto.getFees().getFirst().getCalculatedAmount()))
+            .body("fees[0].ccd_case_number", equalTo(serviceRequestDto.getCcdCaseNumber()))
+
+            // --- Status histories ---
+            .body("status_histories", hasSize(1))
+            .body("status_histories[0].status", equalTo("failed"))
+            .body("status_histories[0].error_code", equalTo("CA-E0003"))
+            .body("status_histories[0].error_message", equalTo("Your account is on hold"));
 
         final Response createServiceRequestResponseAgain
             = serviceRequestTestService.createServiceRequest(USER_TOKEN_PAYMENT, SERVICE_TOKEN,
@@ -590,14 +674,13 @@ public class ServiceRequestFunctionalTests {
         final String serviceRequestReferenceAgain = responseDTOAgain.getServiceRequestReference();
         assertThat(serviceRequestReferenceAgain).matches(SERVICE_REQUEST_REGEX_PATTERN);
         assertThat(serviceRequestReferenceAgain).isNotEqualTo(serviceRequestReference);
-
     }
 
     @Test
     public void positive_create_service_request_and_a_duplicate_service_request_post_failed_payment_account_over_limit() {
 
         final ServiceRequestDto serviceRequestDto
-            = ServiceRequestFixture.buildServiceRequestDTOWithFees35000("ABA6", null);
+            = ServiceRequestFixture.buildServiceRequestDTOWithFeesFEE0228("ABA6", null);
 
         final Response createServiceRequestResponse
             = serviceRequestTestService.createServiceRequest(USER_TOKEN_PAYMENT, SERVICE_TOKEN,
@@ -609,23 +692,61 @@ public class ServiceRequestFunctionalTests {
         assertThat(serviceRequestReference).matches(SERVICE_REQUEST_REGEX_PATTERN);
 
         final ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
-            .paymentDtoWith().accountNumber("PBAFUNC12345")
-            .amount(BigDecimal.valueOf(35000.00))
+            .paymentDtoWith().accountNumber("PBAFUNC12345_EXCEEDED")
+            .amount(BigDecimal.valueOf(58.00))
             .currency("GBP")
             .organisationName("TestOrg")
             .idempotencyKey(ServiceRequestFixture.generateUniqueCCDCaseReferenceNumber())
             .customerReference("123245677").
                 build();
 
-        final Response pbaPaymentServiceRequestResponse
-            = serviceRequestTestService.createPBAPaymentForAServiceRequest(USER_TOKEN_PAYMENT,
-            SERVICE_TOKEN,
-            serviceRequestReference, serviceRequestPaymentDto);
-        assertThat(pbaPaymentServiceRequestResponse.getStatusCode()).isEqualTo(HttpStatus.PAYMENT_REQUIRED.value());
-        ServiceRequestPaymentBo serviceRequestPaymentBo =
-            pbaPaymentServiceRequestResponse.getBody().as(ServiceRequestPaymentBo.class);
+        ServiceRequestPaymentBo serviceRequestPaymentBo
+            = serviceRequestTestService.createPBAPaymentForAServiceRequest(
+                USER_TOKEN_PAYMENT, SERVICE_TOKEN, serviceRequestReference, serviceRequestPaymentDto)
+            .then().statusCode(PAYMENT_REQUIRED.value())
+            .body("payment_reference", startsWith("RC-"))
+            .body("status", equalTo("failed"))
+            .body("error.error_code", equalTo("CA-E0001"))
+            .body("error.error_message", equalTo("Payment request failed. PBA account Merchant PBAFUNC12345_EXCEEDED have insufficient funds available"))
+            .extract().as(ServiceRequestPaymentBo.class);
+
         paymentReference = serviceRequestPaymentBo.getPaymentReference();
         assertThat(paymentReference).matches(PAYMENTS_REGEX_PATTERN);
+
+        paymentTestService.getPayments(USER_TOKEN_PAYMENT, SERVICE_TOKEN, paymentReference)
+            .then()
+            .statusCode(HttpStatus.OK.value())
+            // --- Payment ---
+            .body("amount", comparesEqualTo(serviceRequestPaymentDto.getAmount()))
+            .body("ccd_case_number", equalTo(serviceRequestDto.getCcdCaseNumber()))
+            .body("case_reference", equalTo(serviceRequestDto.getCaseReference()))
+            // payment_reference format: RC-XXXX-XXXX-XXXX-XXXX
+            .body("payment_reference", matchesPattern("RC-\\d{4}-\\d{4}-\\d{4}-\\d{4}"))
+            .body("payment_reference", equalTo(paymentReference))
+            .body("channel", equalTo("online"))
+            .body("method", equalTo("payment by account"))
+            .body("status", equalTo("Failed"))
+            .body("site_id", equalTo("ABA6"))
+            .body("service_name", equalTo("Probate"))
+            .body("customer_reference", equalTo(serviceRequestPaymentDto.getCustomerReference()))
+            .body("account_number", equalTo(serviceRequestPaymentDto.getAccountNumber()))
+            .body("organisation_name", equalTo(serviceRequestPaymentDto.getOrganisationName()))
+            // payment_group_reference should start with current year YYYY- format, e.g. 2026- for a payment made in 2026
+            .body("payment_group_reference", matchesPattern(LocalDateTime.now(DateTimeZone.UTC).getYear() + "-\\d{13}"))
+            .body("payment_group_reference", equalTo(serviceRequestReference))
+
+            // --- Fees ---
+            .body("fees", hasSize(1))
+            .body("fees[0].id", notNullValue())
+            .body("fees[0].code", equalTo(serviceRequestDto.getFees().getFirst().getCode()))
+            .body("fees[0].calculated_amount", comparesEqualTo(serviceRequestDto.getFees().getFirst().getCalculatedAmount()))
+            .body("fees[0].ccd_case_number", equalTo(serviceRequestDto.getCcdCaseNumber()))
+
+            // --- Status histories ---
+            .body("status_histories", hasSize(1))
+            .body("status_histories[0].status", equalTo("failed"))
+            .body("status_histories[0].error_code", equalTo("CA-E0001"))
+            .body("status_histories[0].error_message", equalTo("Payment request failed. PBA account Merchant PBAFUNC12345_EXCEEDED have insufficient funds available"));
 
         final Response createServiceRequestResponseAgain
             = serviceRequestTestService.createServiceRequest(USER_TOKEN_PAYMENT, SERVICE_TOKEN,
@@ -637,7 +758,255 @@ public class ServiceRequestFunctionalTests {
         final String serviceRequestReferenceAgain = responseDTOAgain.getServiceRequestReference();
         assertThat(serviceRequestReferenceAgain).matches(SERVICE_REQUEST_REGEX_PATTERN);
         assertThat(serviceRequestReferenceAgain).isNotEqualTo(serviceRequestReference);
+    }
 
+    @Test
+    public void positive_create_service_request_and_a_duplicate_service_request_post_failed_payment_account_not_found() {
+
+        final ServiceRequestDto serviceRequestDto
+            = ServiceRequestFixture.buildServiceRequestDTOWithFeesFEE0228("ABA6", null);
+
+        final Response createServiceRequestResponse
+            = serviceRequestTestService.createServiceRequest(USER_TOKEN_PAYMENT, SERVICE_TOKEN,
+            serviceRequestDto);
+        createServiceRequestResponse.getBody().prettyPrint();
+        assertThat(createServiceRequestResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
+        final ServiceRequestResponseDto responseDTO = createServiceRequestResponse.getBody().as(ServiceRequestResponseDto.class);
+        final String serviceRequestReference = responseDTO.getServiceRequestReference();
+        assertThat(serviceRequestReference).matches(SERVICE_REQUEST_REGEX_PATTERN);
+
+        final ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
+            .paymentDtoWith().accountNumber("PBA0078878")
+            .amount(BigDecimal.valueOf(58.00))
+            .currency("GBP")
+            .organisationName("TestOrg")
+            .idempotencyKey(ServiceRequestFixture.generateUniqueCCDCaseReferenceNumber())
+            .customerReference("123245677").
+            build();
+
+        ServiceRequestPaymentBo serviceRequestPaymentBo
+            = serviceRequestTestService.createPBAPaymentForAServiceRequest(
+                USER_TOKEN_PAYMENT, SERVICE_TOKEN, serviceRequestReference, serviceRequestPaymentDto)
+            .then().statusCode(GONE.value())
+            .body("payment_reference", startsWith("RC-"))
+            .body("status", equalTo("failed"))
+            .body("error.error_code", equalTo("CA-E0004"))
+            .body("error.error_message", equalTo("Account not found."))
+            .extract().as(ServiceRequestPaymentBo.class);
+
+        paymentReference = serviceRequestPaymentBo.getPaymentReference();
+        assertThat(paymentReference).matches(PAYMENTS_REGEX_PATTERN);
+
+        paymentTestService.getPayments(USER_TOKEN_PAYMENT, SERVICE_TOKEN, paymentReference)
+            .then()
+            .statusCode(HttpStatus.OK.value())
+            // --- Payment ---
+            .body("amount", comparesEqualTo(serviceRequestPaymentDto.getAmount()))
+            .body("ccd_case_number", equalTo(serviceRequestDto.getCcdCaseNumber()))
+            .body("case_reference", equalTo(serviceRequestDto.getCaseReference()))
+            // payment_reference format: RC-XXXX-XXXX-XXXX-XXXX
+            .body("payment_reference", matchesPattern("RC-\\d{4}-\\d{4}-\\d{4}-\\d{4}"))
+            .body("payment_reference", equalTo(paymentReference))
+            .body("channel", equalTo("online"))
+            .body("method", equalTo("payment by account"))
+            .body("status", equalTo("Failed"))
+            .body("site_id", equalTo("ABA6"))
+            .body("service_name", equalTo("Probate"))
+            .body("customer_reference", equalTo(serviceRequestPaymentDto.getCustomerReference()))
+            .body("account_number", equalTo(serviceRequestPaymentDto.getAccountNumber()))
+            .body("organisation_name", equalTo(serviceRequestPaymentDto.getOrganisationName()))
+            // payment_group_reference should start with current year YYYY- format, e.g. 2026- for a payment made in 2026
+            .body("payment_group_reference", matchesPattern(LocalDateTime.now(DateTimeZone.UTC).getYear() + "-\\d{13}"))
+            .body("payment_group_reference", equalTo(serviceRequestReference))
+
+            // --- Fees ---
+            .body("fees", hasSize(1))
+            .body("fees[0].id", notNullValue())
+            .body("fees[0].code", equalTo(serviceRequestDto.getFees().getFirst().getCode()))
+            .body("fees[0].calculated_amount", comparesEqualTo(serviceRequestDto.getFees().getFirst().getCalculatedAmount()))
+            .body("fees[0].ccd_case_number", equalTo(serviceRequestDto.getCcdCaseNumber()))
+
+            // --- Status histories ---
+            .body("status_histories", hasSize(1))
+            .body("status_histories[0].status", equalTo("failed"))
+            .body("status_histories[0].error_code", equalTo("CA-E0004"))
+            .body("status_histories[0].error_message", equalTo("Account not found."));
+
+        final Response createServiceRequestResponseAgain
+            = serviceRequestTestService.createServiceRequest(USER_TOKEN_PAYMENT, SERVICE_TOKEN,
+            serviceRequestDto);
+        createServiceRequestResponseAgain.getBody().prettyPrint();
+        assertThat(createServiceRequestResponseAgain.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
+        final ServiceRequestResponseDto responseDTOAgain =
+            createServiceRequestResponseAgain.getBody().as(ServiceRequestResponseDto.class);
+        final String serviceRequestReferenceAgain = responseDTOAgain.getServiceRequestReference();
+        assertThat(serviceRequestReferenceAgain).matches(SERVICE_REQUEST_REGEX_PATTERN);
+        assertThat(serviceRequestReferenceAgain).isNotEqualTo(serviceRequestReference);
+    }
+
+    @Test
+    public void positive_create_service_request_and_a_duplicate_service_request_post_failed_payment_account_non_pba_number() {
+
+        final ServiceRequestDto serviceRequestDto
+            = ServiceRequestFixture.buildServiceRequestDTOWithFeesFEE0228("ABA6", null);
+
+        final Response createServiceRequestResponse
+            = serviceRequestTestService.createServiceRequest(USER_TOKEN_PAYMENT, SERVICE_TOKEN,
+            serviceRequestDto);
+        createServiceRequestResponse.getBody().prettyPrint();
+        assertThat(createServiceRequestResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
+        final ServiceRequestResponseDto responseDTO = createServiceRequestResponse.getBody().as(ServiceRequestResponseDto.class);
+        final String serviceRequestReference = responseDTO.getServiceRequestReference();
+        assertThat(serviceRequestReference).matches(SERVICE_REQUEST_REGEX_PATTERN);
+
+        final ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
+            .paymentDtoWith().accountNumber(testProps.fakeAccountNumber)
+            .amount(BigDecimal.valueOf(58.00))
+            .currency("GBP")
+            .organisationName("TestOrg")
+            .idempotencyKey(ServiceRequestFixture.generateUniqueCCDCaseReferenceNumber())
+            .customerReference("123245677").
+            build();
+
+        ServiceRequestPaymentBo serviceRequestPaymentBo
+            = serviceRequestTestService.createPBAPaymentForAServiceRequest(
+                USER_TOKEN_PAYMENT, SERVICE_TOKEN, serviceRequestReference, serviceRequestPaymentDto)
+            .then().statusCode(CREATED.value())
+            .body("payment_reference", startsWith("RC-"))
+            .body("status", equalTo("failed"))
+            .extract().as(ServiceRequestPaymentBo.class);
+
+        paymentReference = serviceRequestPaymentBo.getPaymentReference();
+        assertThat(paymentReference).matches(PAYMENTS_REGEX_PATTERN);
+
+        paymentTestService.getPayments(USER_TOKEN_PAYMENT, SERVICE_TOKEN, paymentReference)
+            .then()
+            .statusCode(HttpStatus.OK.value())
+            // --- Payment ---
+            .body("amount", comparesEqualTo(serviceRequestPaymentDto.getAmount()))
+            .body("ccd_case_number", equalTo(serviceRequestDto.getCcdCaseNumber()))
+            .body("case_reference", equalTo(serviceRequestDto.getCaseReference()))
+            // payment_reference format: RC-XXXX-XXXX-XXXX-XXXX
+            .body("payment_reference", matchesPattern("RC-\\d{4}-\\d{4}-\\d{4}-\\d{4}"))
+            .body("payment_reference", equalTo(paymentReference))
+            .body("channel", equalTo("online"))
+            .body("method", equalTo("payment by account"))
+            .body("status", equalTo("Failed"))
+            .body("site_id", equalTo("ABA6"))
+            .body("service_name", equalTo("Probate"))
+            .body("customer_reference", equalTo(serviceRequestPaymentDto.getCustomerReference()))
+            .body("account_number", equalTo(serviceRequestPaymentDto.getAccountNumber()))
+            .body("organisation_name", equalTo(serviceRequestPaymentDto.getOrganisationName()))
+            // payment_group_reference should start with current year YYYY- format, e.g. 2026- for a payment made in 2026
+            .body("payment_group_reference", matchesPattern(LocalDateTime.now(DateTimeZone.UTC).getYear() + "-\\d{13}"))
+            .body("payment_group_reference", equalTo(serviceRequestReference))
+
+            // --- Fees ---
+            .body("fees", hasSize(1))
+            .body("fees[0].id", notNullValue())
+            .body("fees[0].code", equalTo(serviceRequestDto.getFees().getFirst().getCode()))
+            .body("fees[0].calculated_amount", comparesEqualTo(serviceRequestDto.getFees().getFirst().getCalculatedAmount()))
+            .body("fees[0].ccd_case_number", equalTo(serviceRequestDto.getCcdCaseNumber()))
+
+            // --- Status histories ---
+            .body("status_histories", hasSize(1))
+            .body("status_histories[0].status", equalTo("failed"))
+            .body("status_histories[0].error_message", equalTo("PBA Number should start with 'PBA'."));
+
+        final Response createServiceRequestResponseAgain
+            = serviceRequestTestService.createServiceRequest(USER_TOKEN_PAYMENT, SERVICE_TOKEN,
+            serviceRequestDto);
+        createServiceRequestResponseAgain.getBody().prettyPrint();
+        assertThat(createServiceRequestResponseAgain.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
+        final ServiceRequestResponseDto responseDTOAgain =
+            createServiceRequestResponseAgain.getBody().as(ServiceRequestResponseDto.class);
+        final String serviceRequestReferenceAgain = responseDTOAgain.getServiceRequestReference();
+        assertThat(serviceRequestReferenceAgain).matches(SERVICE_REQUEST_REGEX_PATTERN);
+        assertThat(serviceRequestReferenceAgain).isNotEqualTo(serviceRequestReference);
+    }
+
+    @Test
+    public void positive_create_service_request_and_a_duplicate_service_request_post_failed_payment_account_duplicated() {
+        final ServiceRequestDto serviceRequestDto
+            = ServiceRequestFixture.buildServiceRequestDTOWithFEE0228("ABA6", null);
+
+        final Response createServiceRequestResponse
+            = serviceRequestTestService.createServiceRequest(USER_TOKEN_PAYMENT, SERVICE_TOKEN,
+            serviceRequestDto);
+        createServiceRequestResponse.getBody().prettyPrint();
+        assertThat(createServiceRequestResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
+        final ServiceRequestResponseDto responseDTO = createServiceRequestResponse.getBody().as(ServiceRequestResponseDto.class);
+        final String serviceRequestReference = responseDTO.getServiceRequestReference();
+        assertThat(serviceRequestReference).matches(SERVICE_REQUEST_REGEX_PATTERN);
+
+
+        final ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
+            .paymentDtoWith().accountNumber(testProps.duplicatedAccountNumber)
+            .amount(BigDecimal.valueOf(58.00))
+            .organisationName("TestOrg")
+            .currency("GBP")
+            .idempotencyKey(ServiceRequestFixture.generateUniqueCCDCaseReferenceNumber())
+            .customerReference("123245677").
+            build();
+
+        ServiceRequestPaymentBo serviceRequestPaymentBo
+            = serviceRequestTestService.createPBAPaymentForAServiceRequest(
+                USER_TOKEN_PAYMENT, SERVICE_TOKEN, serviceRequestReference, serviceRequestPaymentDto)
+            .then().statusCode(CREATED.value())
+            .body("payment_reference", startsWith("RC-"))
+            .body("status", equalTo("failed"))
+            .body("error.error_code", equalTo("CA-E0006"))
+            .body("error.error_message", equalTo("Duplicate payment detected."))
+            .extract().as(ServiceRequestPaymentBo.class);
+
+        paymentReference = serviceRequestPaymentBo.getPaymentReference();
+        assertThat(paymentReference).matches(PAYMENTS_REGEX_PATTERN);
+
+        paymentTestService.getPayments(USER_TOKEN_PAYMENT, SERVICE_TOKEN, paymentReference)
+            .then()
+            .statusCode(HttpStatus.OK.value())
+            // --- Payment ---
+            .body("amount", comparesEqualTo(serviceRequestPaymentDto.getAmount()))
+            .body("ccd_case_number", equalTo(serviceRequestDto.getCcdCaseNumber()))
+            .body("case_reference", equalTo(serviceRequestDto.getCaseReference()))
+            // payment_reference format: RC-XXXX-XXXX-XXXX-XXXX
+            .body("payment_reference", matchesPattern("RC-\\d{4}-\\d{4}-\\d{4}-\\d{4}"))
+            .body("payment_reference", equalTo(paymentReference))
+            .body("channel", equalTo("online"))
+            .body("method", equalTo("payment by account"))
+            .body("status", equalTo("Failed"))
+            .body("site_id", equalTo("ABA6"))
+            .body("service_name", equalTo("Probate"))
+            .body("customer_reference", equalTo(serviceRequestPaymentDto.getCustomerReference()))
+            .body("account_number", equalTo(serviceRequestPaymentDto.getAccountNumber()))
+            .body("organisation_name", equalTo(serviceRequestPaymentDto.getOrganisationName()))
+            // payment_group_reference should start with current year YYYY- format, e.g. 2026- for a payment made in 2026
+            .body("payment_group_reference", matchesPattern(LocalDateTime.now(DateTimeZone.UTC).getYear() + "-\\d{13}"))
+            .body("payment_group_reference", equalTo(serviceRequestReference))
+
+            // --- Fees ---
+            .body("fees", hasSize(1))
+            .body("fees[0].id", notNullValue())
+            .body("fees[0].code", equalTo(serviceRequestDto.getFees().getFirst().getCode()))
+            .body("fees[0].calculated_amount", comparesEqualTo(serviceRequestDto.getFees().getFirst().getCalculatedAmount()))
+            .body("fees[0].ccd_case_number", equalTo(serviceRequestDto.getCcdCaseNumber()))
+
+            // --- Status histories ---
+            .body("status_histories", hasSize(1))
+            .body("status_histories[0].status", equalTo("failed"))
+            .body("status_histories[0].error_code", equalTo("CA-E0006"))
+            .body("status_histories[0].error_message", equalTo("Duplicate payment detected."));
+
+        final Response createServiceRequestResponseAgain
+            = serviceRequestTestService.createServiceRequest(USER_TOKEN_PAYMENT, SERVICE_TOKEN,
+            serviceRequestDto);
+        createServiceRequestResponseAgain.getBody().prettyPrint();
+        assertThat(createServiceRequestResponseAgain.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
+        final ServiceRequestResponseDto responseDTOAgain =
+            createServiceRequestResponseAgain.getBody().as(ServiceRequestResponseDto.class);
+        final String serviceRequestReferenceAgain = responseDTOAgain.getServiceRequestReference();
+        assertThat(serviceRequestReferenceAgain).matches(SERVICE_REQUEST_REGEX_PATTERN);
+        assertThat(serviceRequestReferenceAgain).isNotEqualTo(serviceRequestReference);
     }
 
     @Test
