@@ -21,6 +21,7 @@ import uk.gov.hmcts.payment.api.dto.liberata.PaymentByAccountRequest;
 import uk.gov.hmcts.payment.api.dto.liberata.PaymentRequest;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
 import uk.gov.hmcts.payment.api.email.Email;
+import uk.gov.hmcts.payment.api.email.EmailFailedException;
 import uk.gov.hmcts.payment.api.email.EmailService;
 import uk.gov.hmcts.payment.api.exception.IACServiceException;
 import uk.gov.hmcts.payment.api.model.Payment;
@@ -121,7 +122,7 @@ public class PBAPaymentMapper {
                 }
 
                 if (!missingFields.isEmpty()) {
-                    val  missingFieldsDescription = String.join(", ", missingFields);
+                    val  missingFieldsDescription = String.join("or  ", missingFields);
                     sendEmailForMissingIacFields(paymentReference, missingFieldsDescription);
                     throw new IACServiceException("IAC response missing " + missingFieldsDescription + " for payment reference: " + paymentReference);
                 }
@@ -131,8 +132,9 @@ public class PBAPaymentMapper {
                 throw exception;
             } catch (Exception exception) {
                 LOG.error("Error occurred while fetching supplementary info from IAC service for payment reference: {}", paymentReference, exception);
-                throw new IACServiceException("Error occurred while fetching supplementary info from IAC service for payment reference: "
-                    + paymentReference + ". Error: " + exception.getMessage(), exception);
+                exception.printStackTrace();
+                throw new EmailFailedException("Error occurred while fetching supplementary info from IAC service for payment reference: "
+                    + paymentReference + ". Error: " + exception.getMessage());
             }
         } else {
             return NOT_APPLICABLE_IAC;

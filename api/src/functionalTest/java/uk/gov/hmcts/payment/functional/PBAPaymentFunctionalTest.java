@@ -514,7 +514,7 @@ public class PBAPaymentFunctionalTest {
 
         Response response = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest);
         Assertions.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
-        Assertions.assertThat(response.getBody().asString()).contains("Error occurred while fetching supplementary info from IAC service");
+        Assertions.assertThat(response.getBody().asString()).contains("IAC response missing surname or CCD case number for payment reference:");
     }
 
     @Test

@@ -280,8 +280,7 @@ public class ServiceRequestPaymentFunctionalTest {
                     .getResponse();
 
                 assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
-                assertThat(response.getBody().asString())
-                    .isEqualTo(String.format("Error occurred while fetching supplementary info from IAC service for payment reference: %s. Error: IAC response missing surname for payment reference: %s", serviceRequestReference, serviceRequestReference));
+                assertThat(response.getBody().asString()).contains("IAC response missing surname or CCD case number for payment reference:");
             });
     }
 
