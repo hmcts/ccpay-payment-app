@@ -74,6 +74,7 @@ public class PBAPaymentMapperTest {
             "from@example.test", new String[]{"payments@example.test"});
     }
 
+    // A test comment
     @Test
     public void getPaymentDtoFromModel_should_map_fields_correctly() {
         // arrange
