@@ -23,6 +23,7 @@ java:
     PBA_PCS_PAYMENTS_EMAIL_MESSAGE: "Hi, <br/><br/>Please find attached Payment by Account reconciliation report. <br/><br/>Regards, <br/>Fees & Payments Team <br/><br/>"
     PBA_PCS_PAYMENTS_EMAIL_SUBJECT: "CNP:PBA Mortgage and Landlord Possession Claims Reconciliation Report"
     PBA_IAC_MISSING_SURNAME_EMAIL_FROM: "no-reply@mail-payment-nonprod.platform.hmcts.net"
+    PBA_IAC_MISSING_SURNAME_EMAIL_BASE_MESSAGE: "Name: {name}<br>Surname: {surname}<br>Case Reference : {caseReference}<br>16 Digit Reference : {16digitReference}<br>Date/Time: {timestamp}<br>Service: Immigration & Asylum (IAC)<br>  Please investigate and correct the source data if required."
     PBA_IAC_MISSING_SURNAME_EMAIL_TO: "Tobias.DeRose@HMCTS.NET,graeme.bullimore@hmcts.net,Shravan.Mechineni@HMCTS.NET"
     # For PR pointing amend these - not neccessary anymore for PRs to build.
     # REFUND_API_URL: http://ccpay-refunds-api-pr-367-java
