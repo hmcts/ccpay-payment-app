@@ -133,18 +133,11 @@ public class IdamService {
 
 
     public String authenticateUser(String username, String password) {
-        String authorisation = username + ":" + password;
-        String base64Authorisation = Base64.getEncoder().encodeToString(authorisation.getBytes());
-
-        IdamApi.AuthenticateUserResponse authenticateUserResponse = idamApi.authenticateUser(
-            BASIC + base64Authorisation,
-            CODE,
-            testConfig.getOauth2().getClientId(),
-            testConfig.getOauth2().getRedirectUrl());
-
         TokenExchangeResponse tokenExchangeResponse = idamApi.exchangeCode(
-            authenticateUserResponse.getCode(),
-            AUTHORIZATION_CODE,
+            username,
+            password,
+            SCOPES,
+            GRANT_TYPE,
             testConfig.getOauth2().getClientId(),
             testConfig.getOauth2().getClientSecret(),
             testConfig.getOauth2().getRedirectUrl()
@@ -315,5 +308,15 @@ public class IdamService {
             }
         }
         throw new IllegalStateException("Unable to authenticate IDAM user with create/search scope after retries for " + username);
+    }
+
+    public String getUserDetails(String accessToken) {
+        try {
+            IdamApi.IdamGetUserDetailsResponse idamGetUserDetailsResponse = idamApi.getDetails(accessToken);
+            return idamGetUserDetailsResponse.getId();
+        } catch (Exception ex) {
+            LOG.info(ex.getMessage());
+        }
+        return null;
     }
 }

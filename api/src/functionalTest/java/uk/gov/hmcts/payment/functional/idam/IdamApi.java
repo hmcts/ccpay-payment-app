@@ -1,6 +1,9 @@
 package uk.gov.hmcts.payment.functional.idam;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import feign.Body;
 import feign.Headers;
 import feign.Param;
@@ -9,10 +12,14 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import java.util.List;
+
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
 public interface IdamApi {
 
@@ -24,22 +31,23 @@ public interface IdamApi {
     @RequestLine("DELETE /testing-support/accounts/{email}")
     void deleteUser(@Param("email") String email);
 
-    @RequestLine("POST /oauth2/authorize")
+    @RequestLine("POST /o/authorize")
     @Headers({"Authorization: {authorization}", "Content-Type: application/x-www-form-urlencoded"})
-    @Body("response_type={response_type}&redirect_uri={redirect_uri}&client_id={client_id}")
+    @Body("response_type={response_type}&redirect_uri={redirect_uri}&client_id={client_id}&scope={scope}")
     AuthenticateUserResponse authenticateUser(@Param("authorization") String authorization,
                                               @Param("response_type") String responseType,
                                               @Param("client_id") String clientId,
-                                              @Param("redirect_uri") String redirectUri);
+                                              @Param("redirect_uri") String redirectUri,
+                                              @Param("scope") String scope);
 
-    @RequestLine("POST /oauth2/token")
-    @Headers("Content-Type: application/x-www-form-urlencoded")
-    @Body("code={code}&grant_type={grant_type}&client_id={client_id}&client_secret={client_secret}&redirect_uri={redirect_uri}")
-    TokenExchangeResponse exchangeCode(@Param("code") String code,
-                                       @Param("grant_type") String grantType,
-                                       @Param("client_id") String clientId,
-                                       @Param("client_secret") String clientSecret,
-                                       @Param("redirect_uri") String redirectUri);
+//    @RequestLine("POST /oauth2/token")
+//    @Headers("Content-Type: application/x-www-form-urlencoded")
+//    @Body("code={code}&grant_type={grant_type}&client_id={client_id}&client_secret={client_secret}&redirect_uri={redirect_uri}")
+//    TokenExchangeResponse exchangeCode(@Param("code") String code,
+//                                       @Param("grant_type") String grantType,
+//                                       @Param("client_id") String clientId,
+//                                       @Param("client_secret") String clientSecret,
+//                                       @Param("redirect_uri") String redirectUri);
 
     @RequestLine("POST /o/token")
     @Headers("Content-Type: application/x-www-form-urlencoded")
@@ -52,6 +60,10 @@ public interface IdamApi {
                                        @Param("client_id") String clientId,
                                        @Param("client_secret") String clientSecret,
                                        @Param("redirect_uri") String redirectUri);
+
+    @RequestLine("GET /details")
+    @Headers({"Content-Type: application/json", "Authorization: {accessToken}"})
+    IdamGetUserDetailsResponse getDetails(@Param("accessToken") String accessToken);
 
     @Data
     @AllArgsConstructor
@@ -80,5 +92,19 @@ public interface IdamApi {
     class TokenExchangeResponse {
         @JsonProperty("access_token")
         private String accessToken;
+    }
+
+    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+    @JsonInclude(NON_NULL)
+    @Builder()
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Getter
+    @Setter
+    class IdamGetUserDetailsResponse {
+        private String id;
+        private String forename;
+        private String surname;
+        private String email;
     }
 }

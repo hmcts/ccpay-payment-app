@@ -146,6 +146,10 @@ public class PaymentFixture {
 
     public static CreditAccountPaymentRequest aPbaPaymentRequest(String amountString, String service) {
         String ccdCaseNumber = "11113333" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
+        return PaymentFixture.aPbaPaymentRequest(amountString, service, "AA101");
+    }
+    public static CreditAccountPaymentRequest aPbaPaymentRequest(String amountString, String service, String siteId) {
+        String ccdCaseNumber = "11113333" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
         return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
             .amount(new BigDecimal(amountString))
             .description("New passport application")
@@ -153,7 +157,7 @@ public class PaymentFixture {
             .caseReference("aCaseReference")
             .service(service)
             .currency(CurrencyCode.GBP)
-            .siteId("AA101")
+            .siteId(siteId)
             .customerReference("CUST101")
             .organisationName("ORG101")
             .accountNumber("PBAFUNC12345")
@@ -199,7 +203,7 @@ public class PaymentFixture {
             .caseReference("aCaseReference")
             .service(service)
             .currency(CurrencyCode.GBP)
-            .siteId("AA08")
+            .siteId("ABA1")
             .customerReference("CUST101")
             .organisationName("ORG101")
             .accountNumber("PBAFUNC12345")
@@ -207,7 +211,7 @@ public class PaymentFixture {
                 FeeDto.feeDtoWith()
                     .calculatedAmount(new BigDecimal(amountString))
                     .code("FEE0002")
-                    .version("1")
+                    .version("9")
                     .build())
             )
             .build();
@@ -309,6 +313,11 @@ public class PaymentFixture {
 
     public static CreditAccountPaymentRequest aPbaPaymentRequestForProbateWithFeeCode(
         final String amountString, final String feeCode, final String service, final String pbaAccountNumber, String ccdCaseNumber) {
+        return PaymentFixture.aPbaPaymentRequestForProbateWithFeeCode(amountString, feeCode, service, pbaAccountNumber, ccdCaseNumber, "1");
+    }
+
+    public static CreditAccountPaymentRequest aPbaPaymentRequestForProbateWithFeeCode(
+        final String amountString, final String feeCode, final String service, final String pbaAccountNumber, String ccdCaseNumber, String version) {
         return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
             .amount(new BigDecimal(amountString))
             .description("New passport application")
@@ -324,7 +333,7 @@ public class PaymentFixture {
                 FeeDto.feeDtoWith()
                     .calculatedAmount(new BigDecimal(amountString))
                     .code(feeCode)
-                    .version("1")
+                    .version(version)
                     .build())
             )
             .build();
@@ -360,7 +369,7 @@ public class PaymentFixture {
                 FeeDto.feeDtoWith()
                     .calculatedAmount(new BigDecimal(feeAmount2))
                     .code(feeCode2)
-                    .version("1")
+                    .version("5")
                     .build())
             )
             .build();
@@ -438,6 +447,39 @@ public class PaymentFixture {
                 .email("person@gmail.com")
                 .notificationType("EMAIL")
                 .build())
+            .build();
+
+    }
+
+    public static PaymentRefundRequest aRefundRequest(final int feeId,
+                                                      final String refundReason,
+                                                      final String paymentReference,
+                                                      final String refundAmount,
+                                                      final String calculatedAmount,
+                                                      final String apportionAmount,
+                                                      final String feeCode,
+                                                      final String feeVersion,
+                                                      final String feeVolume) {
+        return PaymentRefundRequest
+            .refundRequestWith().paymentReference(paymentReference)
+            .refundReason(refundReason)
+            .totalRefundAmount(new BigDecimal(refundAmount))
+            .fees(Lists.newArrayList(
+                RefundsFeeDto.refundFeeDtoWith()
+                    .apportionAmount(new BigDecimal(apportionAmount))
+                    .calculatedAmount(new BigDecimal(calculatedAmount))
+                    .code(feeCode)
+                    .id(feeId)
+                    .version(feeVersion)
+                    .updatedVolume(Integer.parseInt(feeVolume))
+                    .refundAmount(new BigDecimal(refundAmount))
+                    .build())
+            )
+            .contactDetails(ContactDetails.contactDetailsWith()
+                .email("person@gmail.com")
+                .notificationType("EMAIL")
+                .build())
+            .isOverPayment(true)
             .build();
 
     }

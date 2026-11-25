@@ -135,15 +135,17 @@ public class ReplayCreditAccountPaymentController {
 
         try {
             // Call the Payment PBA API v1
-            ResponseEntity<PaymentDto> paymentDtoResponseEntity = creditAccountPaymentController.createCreditAccountPayment(replayCreditAccountPaymentDTO.getCreditAccountPaymentRequest(),headers);
-            if (paymentDtoResponseEntity != null) {
-                PaymentDto paymentDto = paymentDtoResponseEntity.getBody();
+            ResponseEntity<?> paymentDtoResponseEntity = creditAccountPaymentController.createCreditAccountPayment(replayCreditAccountPaymentDTO.getCreditAccountPaymentRequest(),headers);
+            if (paymentDtoResponseEntity != null && paymentDtoResponseEntity.getBody() instanceof PaymentDto) {
+                PaymentDto paymentDto = (PaymentDto) paymentDtoResponseEntity.getBody();
                 if (paymentDto != null && paymentDto.getReference() != null) {
                     String newPaymentReference = paymentDto.getReference();
                     LOG.info("REPLAY_CREDIT_ACCOUNT_PAYMENT:  Existing Payment Reference : " + replayCreditAccountPaymentDTO.getExistingPaymentReference()
                         + " New Payment Reference : " + newPaymentReference
                         + " CCD_CASE_NUMBER : " + replayCreditAccountPaymentDTO.getCreditAccountPaymentRequest().getCcdCaseNumber());
                 }
+            } else {
+                LOG.info("REPLAY_CREDIT_ACCOUNT_PAYMENT ERROR: Replay PBA Payment ERROR for reference =" + replayCreditAccountPaymentDTO.getExistingPaymentReference());
             }
 
         } catch (Exception exception) {

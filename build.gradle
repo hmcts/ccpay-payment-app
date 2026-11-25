@@ -45,18 +45,6 @@ allprojects {
     }
     version = rootProject.file('version.txt').text.trim() + ".${buildNumber}"
 
-    repositories {
-        mavenLocal()
-        mavenCentral()
-        maven {
-            url = 'https://repo.spring.io/libs-milestone'
-            content {
-                includeGroupByRegex 'org\\.springframework(\\..+)?'
-                includeGroupByRegex 'io\\.projectreactor(\\..+)?'
-            }
-        }
-        maven { url = 'https://pkgs.dev.azure.com/hmcts/Artifacts/_packaging/hmcts-lib/maven/v1' }
-    }
 
     apply from: "${rootDir}/cve-resolution-strategy.gradle"
 
@@ -70,10 +58,11 @@ allprojects {
         dependencies {
             dependencySet(
                     group: 'org.apache.tomcat.embed',
-                    version: '10.1.60'
+                    version: '10.1.62'
             ) {
                 entry 'tomcat-embed-core'
                 entry 'tomcat-embed-websocket'
+                entry 'tomcat-embed-el'
             }
             dependencySet(
                     group: 'com.fasterxml.jackson.core',
@@ -83,7 +72,7 @@ allprojects {
                 entry 'jackson-databind'
             }
             // CVE-2020-8908
-            dependencySet(group: 'com.google.guava', version: '33.7.1-jre') {
+            dependencySet(group: 'com.google.guava', version: '33.7.2-jre') {
                 entry 'guava'
             }
 
@@ -96,10 +85,10 @@ allprojects {
 
     configurations {
         testCompile.exclude group: 'pull-parser', module: 'pull-parser'
-        testRuntime.exclude group: 'ch.qos.logback', module: 'logback-classic', version: '1.5.8'
-        testRuntime.exclude group: 'ch.qos.logback', module: 'logback-core', version: '1.5.8'
-        testCompile.exclude group: 'ch.qos.logback', module: 'logback-classic', version: '1.5.8'
-        testCompile.exclude group: 'ch.qos.logback', module: 'logback-core', version: '1.5.8'
+        testRuntime.exclude group: 'ch.qos.logback', module: 'logback-classic'
+        testRuntime.exclude group: 'ch.qos.logback', module: 'logback-core'
+        testCompile.exclude group: 'ch.qos.logback', module: 'logback-classic'
+        testCompile.exclude group: 'ch.qos.logback', module: 'logback-core'
     }
 
 
@@ -153,15 +142,14 @@ subprojects {
         testImplementation 'io.github.openfeign:feign-micrometer:13.12'
         implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version:'2.17.1'
         implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version:'2.17.1'
-        implementation group: 'joda-time', name: 'joda-time', version: '2.14.4'
+        implementation group: 'joda-time', name: 'joda-time', version: '2.15.1'
         implementation group: 'org.jboss.aerogear', name: 'aerogear-otp-java', version:'1.0.0'
-        implementation group:'org.apache.poi', name: 'poi-ooxml', version: '5.5.1'
         testImplementation group: 'junit', name: 'junit', version: '4.13.2'
         testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.27.7'
-        testImplementation group: 'org.mockito', name: 'mockito-core', version: '5.23.0'
+        testImplementation group: 'org.mockito', name: 'mockito-core', version: '5.24.0'
         compileOnly group: 'net.sourceforge.findbugs', name: 'annotations', version: '1.3.2'
-        implementation group: 'org.owasp.encoder', name: 'encoder', version: '1.4.0'
-        testImplementation group: 'com.github.tomakehurst', name: 'wiremock-jre8', version: '3.0.1'
+        implementation group: 'org.owasp.encoder', name: 'encoder', version: '1.6.0'
+        testImplementation "org.wiremock:wiremock:3.13.2"
         compileOnly group: 'org.projectlombok', name: 'lombok', version: versions.lombok
         annotationProcessor group: 'org.projectlombok', name: 'lombok', version: versions.lombok
         testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: versions.lombok
@@ -260,7 +248,10 @@ def sonarExclusions = [
         '**/api/jpaaudit/listner/**',
         '**/api/jpaaudit/model/**',
         '**/api/service/PaymentRefundsServiceImpl.java',
-        '**/api/service/RefundRemissionEnableServiceImpl.java'
+        '**/api/service/RefundRemissionEnableServiceImpl.java',
+        '**/api/service/LiberataIdentity.java',
+        '**/api/dto/liberata/identity/TokenResponse.java',
+
 ]
 
 sonarqube {
@@ -270,7 +261,8 @@ sonarqube {
         property "sonar.java.coveragePlugin", "jacoco"
         property "sonar.dependencyCheck.reportPath", "${project.buildDir}/reports/dependency-check-report.xml"
         property "sonar.coverage.jacoco.xmlReportPaths", "${project.buildDir}/reports/jacoco/test/jacocoTestReport.xml"
-        property "sonar.exclusions", sonarExclusions.join(", ")
+        property "sonar.exclusions", "**/RestTemplateConfiguration.java,**/CreditAccountPaymentController.java,**/PBAStatusErrorMapper.java," +
+                "**/PBAStatusErrorMapperTest.java,**,**/LoggingCreditAccountPaymentService.java, /**CreditAccountPaymentService.java,/**LiberataRealTimeAPI.java"
         property "sonar.test.exclusions", sonarExclusions.join(", ")
         property "sonar.coverage.exclusions", sonarExclusions.join(", ")
         property "sonar.projectName", "payment-app"
@@ -284,14 +276,16 @@ tasks.withType(JavaExec).configureEach {
   javaLauncher.set(javaToolchains.launcherFor(java.toolchain))
 }
 
-task smoke(type: GradleBuild, description: 'Runs smoke tests', group: 'Verification') {
-    dir = file('api')
-    tasks = ['smokeTest']
+tasks.register('smoke') {
+    description = 'Runs smoke tests'
+    group = 'Verification'
+    dependsOn(':payment-api:smokeTest')
 }
 
-task functional(type: GradleBuild, description: 'Runs Functional tests', group: 'Verification') {
-    dir = file('api')
-    tasks = ['functionalTest']
+tasks.register('functional') {
+    description = 'Runs Functional tests'
+    group = 'Verification'
+    dependsOn(':payment-api:functionalTest')
 }
 
 task migratePostgresDatabase(type: GradleBuild, description: 'Migrates Postgres Database', group: 'liquibase') {

@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.api.service;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import jakarta.validation.constraints.NotNull;
 import org.apache.commons.lang3.time.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,10 +31,11 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.*;
-import java.util.stream.Collectors;
-import jakarta.validation.constraints.NotNull;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 @Service
@@ -215,25 +217,9 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
 
     @Override
     public List<Payment> retrievePayment(List<String> referenceList) {
+        List<Payment> paymentList = paymentRepository.findByReferenceIn(referenceList);
 
-        List<Payment> paymentList = new ArrayList<>();
-
-        List<Payment> payments =
-            paymentRepository.findByReferenceIn(referenceList);
-
-        if (null != payments && !payments.isEmpty()) {
-            List<PaymentFeeLink> paymentFeeLinks = payments.stream()
-                .map(Payment::getPaymentLink)
-                .collect(Collectors.toList());
-
-            for (PaymentFeeLink paymentFeeLink : paymentFeeLinks) {
-                Optional<Payment> payment = paymentFeeLink.getPayments().stream()
-                    .filter(p -> referenceList.contains(p.getReference())).findAny();
-                if (payment.isPresent()) {
-                    paymentList.add(payment.get());
-                }
-            }
-        } else {
+        if (paymentList == null || paymentList.isEmpty()) {
             throw new PaymentNotFoundException("No Payments found");
         }
         return paymentList;

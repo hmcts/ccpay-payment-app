@@ -250,6 +250,26 @@ public class PaymentTestService {
                 .post("/bulk-scan-payments");
     }
 
+    public Response refundStatusUpdateByReviewer(String userToken, String serviceToken, final String baseUri, String refundReference, String reviewerAction) {
+        return givenWithAuthHeaders(userToken, serviceToken)
+            .baseUri(baseUri)
+            .contentType(ContentType.JSON)
+            .body("{\n" +
+                "    \"code\": \"RE001\",\n" +
+                "    \"reason\": \"Wrong Data\"\n" +
+                "}")
+            .when()
+            .patch("/refund/{reference}/action/{reviewer-action}", refundReference, reviewerAction);
+    }
+
+    public Response getRefundsBetweenDateTimes(String serviceToken, final String baseUri, String startDate, String endDate) {
+        return givenWithServiceHeaders(serviceToken)
+            .baseUri(baseUri)
+            .contentType(ContentType.JSON)
+            .when()
+            .get("/refunds?start_date={startDate}&end_date={endDate}", startDate, endDate);
+    }
+
     public Response getBulkScanPayment(String serviceToken, String dcn, final String baseUri) {
         return givenWithServiceHeaders(serviceToken)
                 .baseUri(baseUri)

@@ -11,6 +11,7 @@ properties([
         string(name: 'IDAM_API_URL', defaultValue: 'https://idam-api.aat.platform.hmcts.net', description: 'The Idam url you want to run these tests against'),
         string(name: 'S2S_URL', defaultValue: 'http://rpe-service-auth-provider-aat.service.core-compute-aat.internal', description: 'The s2s url you want to run these tests against'),
         string(name: 'REF_DATA_API_URL', defaultValue: 'http://rd-professional-api-aat.service.core-compute-aat.internal', description: 'The ref data url you want to run these tests against'),
+        string(name: 'CCD_API_URL', defaultValue: 'http://ccd-data-store-api-aat.service.core-compute-aat.internal', description: 'The CCD data url you want to run these tests against'),
         string(name: 'OAUTH2_REDIRECT_URI', defaultValue: 'https://moneyclaims.aat.platform.hmcts.net', description: 'The redirect url you want to authenticate users and get idam token'),
         string(name: 'SecurityRules',
             defaultValue: 'http://raw.githubusercontent.com/hmcts/security-test-rules/master/conf/security-rules.conf',
@@ -18,7 +19,7 @@ properties([
     ])
 ])
 
-@Library("Infrastructure@2.5.4")
+@Library("Infrastructure@2.14.0")
 
 def type = "java"
 def product = "payment"
@@ -56,6 +57,7 @@ withNightlyPipeline("java", product, component) {
     env.IDAM_API_URL = params.IDAM_API_URL
     env.S2S_URL = params.S2S_URL
     env.REF_DATA_API_URL = params.REF_DATA_API_URL
+    env.CCD_API_URL = params.CCD_API_URL
     env.OAUTH2_REDIRECT_URI = params.OAUTH2_REDIRECT_URI
     loadVaultSecrets(secrets)
     enableSecurityScan()
