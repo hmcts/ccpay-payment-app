@@ -98,6 +98,8 @@ public class SpringSecurityConfiguration {
             .formLogin(AbstractHttpConfigurer::disable)
             .logout(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(authorize -> authorize
+                .requestMatchers(manualCancellationRequest).hasAuthority(PAYMENTS_ROLE)
+                .requestMatchers(cancellationEndpoint).authenticated()
                 .requestMatchers(HttpMethod.GET, "/cases/{ccdcasenumber}/paymentgroups").hasAnyAuthority(PAYMENTS_ROLE, CASE_MANAGER_ROLE, FINANCE_MANAGER_ROLE, ORGANISATION_MANAGER_ROLE, USER_MANAGER_ROLE)
                 .requestMatchers(HttpMethod.GET, "/cases/{case}/payments").hasAuthority(PAYMENTS_ROLE)
                 .requestMatchers(HttpMethod.DELETE, "/fees/**").hasAuthority(PAYMENTS_ROLE)
@@ -116,7 +118,6 @@ public class SpringSecurityConfiguration {
                 .requestMatchers(HttpMethod.POST, "/payment-failures/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/payment-failures/**").hasAuthority(PAYMENTS_ROLE)
                 .requestMatchers(HttpMethod.PATCH, "/payment-failures/**").permitAll()
-                .requestMatchers(manualCancellationRequest).hasAuthority(PAYMENTS_ROLE)
                 .anyRequest().authenticated()
             );
         return http.build();
