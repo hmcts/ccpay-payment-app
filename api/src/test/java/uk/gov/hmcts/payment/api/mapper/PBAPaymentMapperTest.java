@@ -533,7 +533,7 @@ public class PBAPaymentMapperTest {
     private void assertMissingFields() {
         assertThatThrownBy(this::mapIacPayment)
             .isInstanceOf(IACServiceException.class)
-            .hasMessage("IAC response missing surname and/or case reference for payment reference: group-ref");
+            .hasMessage(PBAPaymentMapper.IAC_ERROR_MSG);
     }
 
     private PaymentAccountRequest mapIacPayment() {

@@ -45,6 +45,7 @@ public class PBAPaymentMapper {
     private static final String NOT_APPLICABLE_IAC = "Not applicable, the service type is not IAC";
     public static final String IAC_SERVICE_NAME = "Immigration and Asylum Appeals";
     private static final String IAC_SERVICE_CODE = "IAC";
+    public static final String IAC_ERROR_MSG="IAC PBA Payment Failed - Missing Supplementary Data. No further actions required, and our technical team have been notified.";
 
     @Autowired
     private FeesService feesService;
@@ -120,7 +121,7 @@ public class PBAPaymentMapper {
                  if (StringUtils.isBlank(surname)
                     || StringUtils.isBlank(ccdCaseNumber)) {
                     sendEmailForMissingIacFields(paymentReference, surname, ccdCaseNumber);
-                    throw new IACServiceException("IAC response missing surname and/or case reference for payment reference: " + paymentReference);
+                    throw new IACServiceException(IAC_ERROR_MSG);
                 }
 
                 return iacResponse.getBody().getSupplementaryInfo().getFirst().getSupplementaryDetails().getSurname();
