@@ -122,7 +122,7 @@ public class PBAPaymentMapper {
                 }
 
                 if (!missingFields.isEmpty()) {
-                    val  missingFieldsDescription = String.join("or  ", missingFields);
+                    val  missingFieldsDescription = String.join(" or ", missingFields);
                     sendEmailForMissingIacFields(paymentReference, missingFieldsDescription);
                     throw new IACServiceException("IAC response missing " + missingFieldsDescription + " for payment reference: " + paymentReference);
                 }
