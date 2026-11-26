@@ -120,7 +120,7 @@ public class PBAPaymentMapper {
 
                  if (StringUtils.isBlank(surname)
                     || StringUtils.isBlank(ccdCaseNumber)) {
-                    sendEmailForMissingIacFields(paymentReference, surname, ccdCaseNumber, paymentReference);
+                    sendEmailForMissingIacFields(paymentReference, surname, paymentDto.getCcdCaseNumber(), ccdCaseNumber);
                     throw new IACServiceException(IAC_ERROR_MSG);
                 }
 
