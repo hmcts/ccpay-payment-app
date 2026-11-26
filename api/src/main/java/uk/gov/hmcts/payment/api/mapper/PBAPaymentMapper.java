@@ -3,6 +3,7 @@ package uk.gov.hmcts.payment.api.mapper;
 import lombok.val;
 
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +45,7 @@ public class PBAPaymentMapper {
     private static final String NOT_APPLICABLE_IAC = "Not applicable, the service type is not IAC";
     public static final String IAC_SERVICE_NAME = "Immigration and Asylum Appeals";
     private static final String IAC_SERVICE_CODE = "IAC";
+    public static final String IAC_ERROR_MSG="IAC PBA Payment Failed - Missing Supplementary Data. No further actions required, and our technical team have been notified.";
 
     @Autowired
     private FeesService feesService;
@@ -54,19 +56,22 @@ public class PBAPaymentMapper {
     private final EmailService emailService;
     private final String missingIacSurnameEmailFrom;
     private final String[] missingIacSurnameEmailTo;
+    private final String missingIacSurnameEmailBaseMessage;
 
     @Autowired
     private IacService iacService;
     public PBAPaymentMapper(PaymentService<PaymentFeeLink, String> paymentService, FeesService feesService, IacService iacService,
                             EmailService emailService,
                             @Value("${pba.iac.missing.surname.email.from:no-reply@reform.hmcts.net}") String missingIacSurnameEmailFrom,
-                            @Value("${pba.iac.missing.surname.email.to:dummy@reform.hmcts.net}") String[] missingIacSurnameEmailTo) {
+                            @Value("${pba.iac.missing.surname.email.to:dummy@reform.hmcts.net}") String[] missingIacSurnameEmailTo,
+                            @Value("${pba.iac.missing.surname.email.base-message:The IAC response is missing}") String missingIacSurnameEmailBaseMessage) {
         this.paymentService = paymentService;
         this.feesService = feesService;
         this.iacService = iacService;
         this.emailService = emailService;
         this.missingIacSurnameEmailFrom = missingIacSurnameEmailFrom;
         this.missingIacSurnameEmailTo = missingIacSurnameEmailTo;
+        this.missingIacSurnameEmailBaseMessage = missingIacSurnameEmailBaseMessage;
     }
 
     public PaymentAccountRequest mapToPaymentByAccountRequestFromServiceRequestPaymentDto(ServiceRequestPaymentDto serviceRequestPaymentDto, String groupReference, Payment payment, PaymentFeeLink paymentFeeLink ) {
@@ -113,20 +118,14 @@ public class PBAPaymentMapper {
                 val surname = supplementaryDetails == null ? null : supplementaryDetails.getSurname();
                 val ccdCaseNumber = supplementaryInfo == null ? null : supplementaryInfo.getCcdCaseNumber();
 
-                List<String> missingFields = new ArrayList<>();
-                if (StringUtils.isBlank(surname)) {
-                    missingFields.add("surname");
-                }
-                if (StringUtils.isBlank(ccdCaseNumber)) {
-                    missingFields.add("CCD case number");
+                 if (StringUtils.isBlank(surname)
+                    || StringUtils.isBlank(ccdCaseNumber)) {
+                    sendEmailForMissingIacFields(paymentReference, surname, ccdCaseNumber);
+                    throw new IACServiceException(IAC_ERROR_MSG);
                 }
 
-                if (!missingFields.isEmpty()) {
-                    val  missingFieldsDescription = String.join(" or ", missingFields);
-                    sendEmailForMissingIacFields(paymentReference, missingFieldsDescription);
-                    throw new IACServiceException("IAC PBA Payment Failed - Missing Supplementary Data. No further actions required, and our technical team have been notified.");
-                }
-                return surname;
+                return iacResponse.getBody().getSupplementaryInfo().getFirst().getSupplementaryDetails().getSurname();
+
 
             } catch (IACServiceException exception) {
                 throw exception;
@@ -141,16 +140,20 @@ public class PBAPaymentMapper {
         }
     }
 
-    private void sendEmailForMissingIacFields(String paymentReference, String missingFieldsDescription) {
-        LOG.info("IAC response missing {} for payment reference: {}", missingFieldsDescription, paymentReference);
+    private void sendEmailForMissingIacFields(String paymentReference, String surname, String ccdCaseNumber) {
+        LOG.info("IAC response missing surname/case reference for payment reference: {}", paymentReference);
         LOG.info("email confid from={}, to={},", missingIacSurnameEmailFrom, missingIacSurnameEmailTo);
-        val message ="The IAC response for payment reference " + paymentReference
-            + " is missing: " + missingFieldsDescription + ".";
+
+        val message = missingIacSurnameEmailBaseMessage
+            .replace("{surname}", StringUtils.isBlank(surname) ? "surname not found" : surname )
+            .replace("{caseReference}", StringUtils.isBlank(paymentReference) ? "payment reference not found" : paymentReference)
+            .replace("{16digitReference}", StringUtils.isBlank(ccdCaseNumber) ? "16 digit reference not found" : ccdCaseNumber)
+            .replace("{timestamp}", DateTime.now().toString());
         try {
             emailService.sendEmail(Email.emailWith()
                 .from(missingIacSurnameEmailFrom)
                 .to(missingIacSurnameEmailTo)
-                .subject("IAC response missing fields: " + missingFieldsDescription)
+                .subject("IAC PBA Payment Failed")
                 .message(message)
                 .build());
         } catch (Exception exception) {
