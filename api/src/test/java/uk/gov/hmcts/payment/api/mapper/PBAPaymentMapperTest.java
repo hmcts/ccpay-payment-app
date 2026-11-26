@@ -332,7 +332,7 @@ public class PBAPaymentMapperTest {
         org.mockito.ArgumentCaptor<Email> emailCaptor = org.mockito.ArgumentCaptor.forClass(Email.class);
         verify(emailService).sendEmail(emailCaptor.capture());
         assertThat(emailCaptor.getValue().getMessage())
-            .startsWith("Surname: surname not found<br>Case Reference: ccd-1"
+            .startsWith("Surname: not found<br>Case Reference: ccd-1"
                 + "<br>16 Digit Reference: ccd-1<br>Date/Time: ")
             .endsWith("<br>Service: Immigration & Asylum (IAC)")
             .doesNotContain("{surname}", "{caseReference}", "{16digitReference}", "{timestamp}");

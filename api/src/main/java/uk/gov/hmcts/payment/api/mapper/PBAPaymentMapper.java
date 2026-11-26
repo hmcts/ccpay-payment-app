@@ -144,8 +144,8 @@ public class PBAPaymentMapper {
         LOG.info("email confid from={}, to={},", missingIacSurnameEmailFrom, missingIacSurnameEmailTo);
 
         val message = missingIacSurnameEmailBaseMessage
-            .replace("{surname}", StringUtils.isBlank(surname) ? "surname not found" : surname )
-            .replace("{caseReference}", StringUtils.isBlank(caseReference) ? "payment reference not found" : caseReference)
+            .replace("{surname}", StringUtils.isBlank(surname) ? "not found" : surname )
+            .replace("{caseReference}", StringUtils.isBlank(caseReference) ? "not found" : caseReference)
             .replace("{16digitReference}", StringUtils.isBlank(ccdCaseNumber) ? "16 digit reference not found" : ccdCaseNumber)
             .replace("{timestamp}", DateTime.now().toString());
         try {
