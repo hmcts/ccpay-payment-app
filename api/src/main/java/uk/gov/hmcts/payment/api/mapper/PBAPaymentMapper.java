@@ -120,12 +120,11 @@ public class PBAPaymentMapper {
 
                  if (StringUtils.isBlank(surname)
                     || StringUtils.isBlank(ccdCaseNumber)) {
-                    sendEmailForMissingIacFields(paymentReference, surname, paymentDto.getCcdCaseNumber());
+                    sendEmailForMissingIacFields(paymentReference, surname, paymentDto.getCcdCaseNumber(),ccdCaseNumber);
                     throw new IACServiceException(IAC_ERROR_MSG);
                 }
 
                 return iacResponse.getBody().getSupplementaryInfo().getFirst().getSupplementaryDetails().getSurname();
-
 
             } catch (IACServiceException exception) {
                 throw exception;
@@ -140,13 +139,13 @@ public class PBAPaymentMapper {
         }
     }
 
-    private void sendEmailForMissingIacFields(String paymentReference, String surname, String ccdCaseNumber) {
+    private void sendEmailForMissingIacFields(String paymentReference, String surname, String ccdCaseNumber, String caseReference) {
         LOG.info("IAC response missing surname/case reference for payment reference: {}", paymentReference);
         LOG.info("email confid from={}, to={},", missingIacSurnameEmailFrom, missingIacSurnameEmailTo);
 
         val message = missingIacSurnameEmailBaseMessage
             .replace("{surname}", StringUtils.isBlank(surname) ? "surname not found" : surname )
-            .replace("{caseReference}", StringUtils.isBlank(paymentReference) ? "payment reference not found" : paymentReference)
+            .replace("{caseReference}", StringUtils.isBlank(caseReference) ? "payment reference not found" : caseReference)
             .replace("{16digitReference}", StringUtils.isBlank(ccdCaseNumber) ? "16 digit reference not found" : ccdCaseNumber)
             .replace("{timestamp}", DateTime.now().toString());
         try {
