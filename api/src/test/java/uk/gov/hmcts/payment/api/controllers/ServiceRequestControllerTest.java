@@ -1072,27 +1072,29 @@ public class ServiceRequestControllerTest {
             .organisationName("sommin")
             .idempotencyKey(UUID.randomUUID().toString())
             .customerReference("testCustReference").
-                build();
+            build();
+
+        ServiceRequestPaymentBo serviceRequestPaymentBoSample = ServiceRequestPaymentBo.serviceRequestPaymentBoWith().
+            paymentReference("reference").
+            status("failed").
+            build();
+
+        ResponseEntity<ServiceRequestPaymentBo> responseEntity =
+            new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.EXPECTATION_FAILED);
+
+        when(serviceRequestDomainService.addPayments(anyString(), any())).thenReturn(serviceRequestPaymentBoSample);
+
+        when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any(),any())).thenReturn(responseEntity);
 
         //serviceRequest reference creation
         String serviceRequestReference = getServiceRequestReference();
-        assertPbaFailureIsRecorded(
-            serviceRequestReference,
-            serviceRequestPaymentDto,
-            new ServiceRequestExceptionForNoMatchingAmount("The amount should be equal to serviceRequest balance"),
-            HttpStatus.EXPECTATION_FAILED
-        );
-    }
 
-    @Test
-    public void createPBAPaymentForAlreadyPaidServiceRequestReturnsPreconditionFailedAndCompletesIdempotency() throws Exception {
-        ServiceRequestPaymentDto serviceRequestPaymentDto = paymentRequestDto();
-        assertPbaFailureIsRecorded(
-            getServiceRequestReference(),
-            serviceRequestPaymentDto,
-            new ServiceRequestExceptionForNoAmountDue("The serviceRequest has already been paid"),
-            HttpStatus.PRECONDITION_FAILED
-        );
+        //Payment amount should not be matching with fees
+        MvcResult result = restActions
+            .post("/service-request/" + serviceRequestReference + "/pba-payments", serviceRequestPaymentDto)
+            .andExpect(status().isExpectationFailed())
+            .andReturn();
+
     }
 
     @Test
@@ -1161,6 +1163,53 @@ public class ServiceRequestControllerTest {
             .organisationName("test")
             .customerReference("test-customer")
             .build();
+    }
+
+    @Test
+    public void businessValidationNoAmountDueReturnsPreconditionFailedWithoutCompletingIdempotencyRecord() throws Exception {
+        assertBusinessValidationExceptionIsPropagated(
+            new ServiceRequestExceptionForNoAmountDue("The serviceRequest has already been paid"),
+            HttpStatus.PRECONDITION_FAILED
+        );
+    }
+
+    @Test
+    public void businessValidationAmountMismatchReturnsExpectationFailedWithoutCompletingIdempotencyRecord() throws Exception {
+        assertBusinessValidationExceptionIsPropagated(
+            new ServiceRequestExceptionForNoMatchingAmount("The amount should be equal to serviceRequest balance"),
+            HttpStatus.EXPECTATION_FAILED
+        );
+    }
+
+    private void assertBusinessValidationExceptionIsPropagated(RuntimeException exception, HttpStatus expectedStatus) throws Exception {
+        String serviceRequestReference = getServiceRequestReference();
+        String idempotencyKey = UUID.randomUUID().toString();
+        ServiceRequestPaymentDto paymentDto = ServiceRequestPaymentDto.paymentDtoWith()
+            .accountNumber("PBA12345")
+            .amount(BigDecimal.valueOf(300))
+            .currency("GBP")
+            .idempotencyKey(idempotencyKey)
+            .organisationName("test")
+            .customerReference("test")
+            .build();
+
+        when(serviceRequestDomainService.addPayments(
+            eq(serviceRequestReference), any(ServiceRequestPaymentDto.class)))
+            .thenThrow(exception);
+
+        restActions
+            .post("/service-request/" + serviceRequestReference + "/pba-payments", paymentDto)
+            .andExpect(status().is(expectedStatus.value()))
+            .andExpect(content().string(exception.getMessage()));
+
+        verify(serviceRequestDomainService).createIdempotencyRecord(
+            any(ObjectMapper.class), eq(idempotencyKey), eq(serviceRequestReference), isNull(),
+            eq(IdempotencyKeys.ResponseStatusType.pending), isNull(), any(ServiceRequestPaymentDto.class));
+        verify(serviceRequestDomainService, never()).createIdempotencyRecord(
+            any(ObjectMapper.class), eq(idempotencyKey), eq(serviceRequestReference), anyString(),
+            eq(IdempotencyKeys.ResponseStatusType.completed), any(ResponseEntity.class), any(ServiceRequestPaymentDto.class));
+        verify(serviceRequestDomainService).addPayments(
+            eq(serviceRequestReference), any(ServiceRequestPaymentDto.class));
     }
 
     @Test

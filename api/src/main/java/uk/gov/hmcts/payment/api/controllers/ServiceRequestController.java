@@ -229,17 +229,14 @@ public class ServiceRequestController {
     }
 
 
-    private ResponseEntity createPbaPaymentForServiceRequest(String serviceRequestReference,
-                                                            ServiceRequestPaymentDto serviceRequestPaymentDto) throws CheckDigitException, JsonProcessingException {
+    ResponseEntity createPbaPaymentForServiceRequest(String serviceRequestReference,
+                                                     ServiceRequestPaymentDto serviceRequestPaymentDto) throws CheckDigitException, JsonProcessingException {
         // PBA Payment
         val objectMapper = new ObjectMapper();
         ServiceRequestPaymentBo serviceRequestPaymentBo = null;
         ResponseEntity responseEntity;
         String responseJson;
         String idempotencyKey = serviceRequestPaymentDto.getIdempotencyKey();
-
-
-        // TODO note that original exceptions thrown here would go to RestErrorHandler and idempotency record not updated. Was this intentional?
 
         try {
             serviceRequestPaymentBo = serviceRequestDomainService.addPayments(serviceRequestReference, serviceRequestPaymentDto);
@@ -266,19 +263,8 @@ public class ServiceRequestController {
             LOG.error("PBA-CID={}, serviceRequestReference={}, ServiceRequestCancellationException: {}", idempotencyKey, serviceRequestReference, ex.getMessage());
             responseEntity = new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT);
             responseJson = ex.getMessage();
-        } catch (ServiceRequestReferenceNotFoundException ex) {
-            // Rethrow, let the generic handler deal with it, and don't complete the idempotency record.
-            // was that the intention of the original code?
-            // TODO check this
+        } catch (ServiceRequestReferenceNotFoundException|ServiceRequestExceptionForNoAmountDue|ServiceRequestExceptionForNoMatchingAmount ex) {
             throw(ex);
-        } catch (ServiceRequestExceptionForNoAmountDue ex) {
-            LOG.error("PBA-CID={}, serviceRequestReference={}, ServiceRequestExceptionForNoAmountDue: {}", idempotencyKey, serviceRequestReference, ex.getMessage());
-            responseEntity = new ResponseEntity<>(ex.getMessage(), HttpStatus.PRECONDITION_FAILED);
-            responseJson = ex.getMessage();
-        } catch (ServiceRequestExceptionForNoMatchingAmount ex) {
-            LOG.error("PBA-CID={}, serviceRequestReference={}, ServiceRequestExceptionForNoMatchingAmount: {}", idempotencyKey, serviceRequestReference, ex.getMessage());
-            responseEntity = new ResponseEntity<>(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
-            responseJson = ex.getMessage();
         } catch (Exception ex) {
             LOG.error("PBA-CID={}, serviceRequestReference={}, Exception from Liberata for PBA payment {}", idempotencyKey, serviceRequestReference, ex);
             responseEntity = new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
