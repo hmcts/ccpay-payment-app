@@ -12,6 +12,7 @@ import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -49,6 +50,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.api.validators.PaymentValidator;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
@@ -64,6 +66,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.PATCH;
 public class PaymentController {
 
     private static final Logger LOG = LoggerFactory.getLogger(PaymentController.class);
+    private static final String PAYMENT_BY_ACCOUNT = "payment by account";
     private final PaymentService<PaymentFeeLink, String> paymentService;
     private final CallbackService callbackService;
     private final PaymentStatusRepository paymentStatusRepository;
@@ -72,6 +75,9 @@ public class PaymentController {
     private final DateTimeFormatter formatter;
     private final PaymentFeeRepository paymentFeeRepository;
     private final LaunchDarklyFeatureToggler featureToggler;
+
+    @Value("${pba.payments.reconciliation.stop.datetime}")
+    private Instant pbaPaymentsReconciliationStopDatetime;
 
     @Autowired
     private ServiceRequestCaseUtil serviceRequestCaseUtil;
@@ -205,6 +211,9 @@ public class PaymentController {
             .searchByCriteria(
                 getSearchCriteria(paymentMethodType, serviceType, ccdCaseNumber, pbaNumber, fromDateTime, toDateTime)
             );
+        if (Instant.now().isAfter(pbaPaymentsReconciliationStopDatetime)) {
+            payments = excludePbaPayments(payments);
+        }
 
         final List<PaymentDto> paymentDtos = new ArrayList<>();
         LOG.info("No of paymentFeeLinks retrieved for Liberata Pull : {}", payments.size());
@@ -332,6 +341,19 @@ public class PaymentController {
         PaymentFeeLink paymentFeeLink = paymentService.retrievePayment(reference);
         return paymentFeeLink.getPayments().stream()
             .filter(p -> p.getReference().equals(reference)).findAny();
+    }
+
+    private List<Payment> excludePbaPayments(List<Payment> payments) {
+        return payments.stream()
+            .filter(payment ->
+                ( payment.getPaymentMethod() == null || !PAYMENT_BY_ACCOUNT.equalsIgnoreCase(payment.getPaymentMethod().getName()) )
+                && compareDates(payment.getDateUpdated())
+            ).collect(Collectors.toList());
+    }
+
+
+    private boolean compareDates(Date date){
+        return date.after(new Date(pbaPaymentsReconciliationStopDatetime.toEpochMilli()));
     }
 
     private void populatePaymentDtos(final List<PaymentDto> paymentDtos, final PaymentFeeLink paymentFeeLink, Date fromDateTime, Date toDateTime) {
