@@ -105,6 +105,12 @@ java:
           alias: gov.pay.auth.key.pcs_api
         - name: pba-pcs-payments-email-to
           alias: pba.pcs.payments.email.to
+        - name: payment-system-user
+          alias: PAYMENT_SYSTEM_USER
+        - name: payment-system-password
+          alias: PAYMENT_SYSTEM_PASSWORD
+        - name: payment-api-idam-client-secret
+          alias: PAYMENT_SYSTEM_USER_CLIENT_SECRET
   postgresql:
     enabled: true
     primary:

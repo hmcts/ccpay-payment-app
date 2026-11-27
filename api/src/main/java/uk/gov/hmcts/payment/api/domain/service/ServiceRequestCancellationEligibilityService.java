@@ -1,0 +1,237 @@
+package uk.gov.hmcts.payment.api.domain.service;
+
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import uk.gov.hmcts.payment.api.dto.PaymentStatus;
+import uk.gov.hmcts.payment.api.dto.SearchResponse;
+import uk.gov.hmcts.payment.api.exception.BulkScanningNotConfiguredException;
+import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.PaymentAllocation;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.service.BulkScanningClient;
+
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Stream;
+
+@Slf4j
+@Service
+public class ServiceRequestCancellationEligibilityService {
+
+    /**
+     * Result of checking whether a service request can be cancelled.
+     *
+     * @param cancellable true if the service request can be cancelled
+     * @param reason      why the service request cannot be cancelled; returned to the caller as the 409 error,
+     *                    so it is required when {@code cancellable} is false and must be null otherwise
+     */
+    public record Eligibility(boolean cancellable, String reason) {
+        private static final Eligibility ELIGIBLE = new Eligibility(true, null);
+
+        public Eligibility {
+            if (cancellable && reason != null) {
+                throw new IllegalArgumentException("a cancellable service request must not have a reason");
+            }
+            if (!cancellable && (reason == null || reason.isBlank())) {
+                throw new IllegalArgumentException("a reason is required when a service request cannot be cancelled");
+            }
+        }
+
+        public static Eligibility eligible() {
+            return ELIGIBLE;
+        }
+
+        public static Eligibility ineligible(String reason) {
+            return new Eligibility(false, reason);
+        }
+    }
+
+    private static final Eligibility REMISSIONS_EXISTING_ON_SR =
+        Eligibility.ineligible(ServiceRequestCancellationErrors.REMISSIONS_EXIST);
+    private static final Eligibility PAYMENT_ALLOCATION_EXISTING_ON_SR =
+        Eligibility.ineligible(ServiceRequestCancellationErrors.PAYMENT_ALLOCATION_EXIST);
+    private static final Eligibility UNALLOCATED_BULK_SCAN_PAYMENT_ON_CASE =
+        Eligibility.ineligible(ServiceRequestCancellationErrors.UNALLOCATED_BULK_SCAN_PAYMENT);
+
+    // Payment statuses that block cancellation
+    static final Map<String, String> ineligiblePaymentStatus = Map.of(
+        "created",    ServiceRequestCancellationErrors.PAYMENT_CREATED,
+        "started",    ServiceRequestCancellationErrors.PAYMENT_STARTED,
+        "success",    ServiceRequestCancellationErrors.PAYMENT_SUCCESS,
+        "pending",    ServiceRequestCancellationErrors.PAYMENT_PENDING,
+        "submitted",  ServiceRequestCancellationErrors.PAYMENT_SUBMITTED
+    );
+
+    // Payment statuses that allow cancellation
+    static final Set<String> eligiblePaymentStatus = Set.of(
+        "decline",
+        "cancelled",
+        "error",
+        "failed"
+    );
+
+    private final BulkScanningClient bulkScanningClient;
+    private final boolean bulkScanningCheckEnabled;
+
+    /**
+     * @param bulkScanningClient       client used to look for unallocated bulk-scanned payments on the case
+     * @param bulkScanningCheckEnabled whether to check bulk scanning at all; on unless the property is set to false
+     */
+    public ServiceRequestCancellationEligibilityService(
+        BulkScanningClient bulkScanningClient,
+        @Value("${feature.cancellation.bulk-scanning-check:true}") boolean bulkScanningCheckEnabled) {
+        this.bulkScanningClient = bulkScanningClient;
+        this.bulkScanningCheckEnabled = bulkScanningCheckEnabled;
+    }
+
+    /**
+     * Check if the given Service Request is eligible for cancellation
+     * @param paymentFeeLink Reference to the Service Request
+     * @return eligibility status including reason if not eligible
+     */
+    public Eligibility checkEligibility(PaymentFeeLink paymentFeeLink) {
+
+        if (paymentFeeLink.isCancelled()) {
+            log.info("{} eligible for cancellation as already cancelled", render(paymentFeeLink));
+            return Eligibility.eligible();
+        }
+
+        Optional<Eligibility> ineligiblePayment = paymentFeeLink.getPayments()
+            .stream()
+            .filter(p -> !eligiblePaymentStatus.contains(p.getPaymentStatus().getName()))
+            .map(this::mapStatusError)
+            .findFirst();
+
+        if (ineligiblePayment.isPresent()) {
+            log.info("{} ineligible for cancellation as {}", render(paymentFeeLink), ineligiblePayment.get().reason());
+            return ineligiblePayment.get();
+        }
+
+        if (!paymentFeeLink.getRemissions().isEmpty()) {
+            log.info("{} ineligible for cancellation as has remissions present", render(paymentFeeLink));
+            return REMISSIONS_EXISTING_ON_SR;
+        }
+
+        Optional<PaymentAllocation> paymentAllocation = paymentFeeLink.getPayments()
+            .stream()
+            .map(Payment::getPaymentAllocation)
+            .flatMap(List::stream)
+            .findFirst();
+
+        if (paymentAllocation.isPresent()) {
+            log.info("{} ineligible for cancellation as have payment allocation {}", render(paymentFeeLink), paymentAllocation.get());
+            return PAYMENT_ALLOCATION_EXISTING_ON_SR;
+        }
+
+        return checkEligibilityBulkScanning(paymentFeeLink);
+    }
+
+    private Eligibility mapStatusError(Payment p) {
+        String error = ineligiblePaymentStatus.get(p.getPaymentStatus().getName());
+
+        if (error == null) {
+            log.warn("Unknown payment status '{}' therefore ineligible for cancellation for payment reference {}",
+                p.getPaymentStatus().getName(), p.getReference());
+
+            error = ServiceRequestCancellationErrors.UNKNOWN_PAYMENT_STATUS;
+        }
+
+        return Eligibility.ineligible(error.formatted(p.getReference()));
+    }
+
+    /**
+     * Check bulk scanning for payments against the case that are still waiting to be allocated.
+     *
+     * <p>Bulk scanning reports {@code PROCESSED} once every payment on the case has been allocated, and no status
+     * when it has nothing for the case. {@code COMPLETE} (ready to allocate) and {@code INCOMPLETE} (still being
+     * worked on as an exception record) both mean money may be heading for this case, so both block cancellation.</p>
+     *
+     * <p>Bulk scanning only allows its case search with a user token, so payment-app uses its IDAM system user.
+     * Until that is configured the case cannot be checked. That is a fault in Payment App's configuration, not a
+     * reason the service request is ineligible, so it fails with {@link BulkScanningNotConfiguredException} (503)
+     * and the service request is not cancelled. Disable the check with
+     * {@code feature.cancellation.bulk-scanning-check} to allow cancellation without it.</p>
+     *
+     * @throws BulkScanningNotConfiguredException when the check is needed but no system user is configured
+     */
+    Eligibility checkEligibilityBulkScanning(PaymentFeeLink paymentFeeLink) {
+        if (!bulkScanningCheckEnabled) {
+            log.warn("Bulk scanning check disabled, so {} was not checked for unallocated bulk scan payments",
+                render(paymentFeeLink));
+            return Eligibility.eligible();
+        }
+
+        Set<String> ccdCaseNumbers = ccdCaseNumbers(paymentFeeLink);
+        if (ccdCaseNumbers.isEmpty()) {
+            log.info("{} eligible for cancellation as has no CCD case number, so bulk scanning was not checked",
+                render(paymentFeeLink));
+            return Eligibility.eligible();
+        }
+
+        if (!bulkScanningClient.canAuthenticate()) {
+            log.error("{} not cancelled as bulk scanning cannot be checked without a system user; configure "
+                + "idam.system-user.* and the IDAM client, or disable the check", render(paymentFeeLink));
+            throw new BulkScanningNotConfiguredException(ServiceRequestCancellationErrors.BULK_SCANNING_NOT_CONFIGURED);
+        }
+
+        for (String ccdCaseNumber : ccdCaseNumbers) {
+            Optional<PaymentStatus> bulkScanStatus = bulkScanningClient.findPaymentsForCase(ccdCaseNumber)
+                .map(SearchResponse::getAllPaymentsStatus);
+
+            if (bulkScanStatus.isPresent() && bulkScanStatus.get() != PaymentStatus.PROCESSED) {
+                log.info("{} ineligible for cancellation as bulk scanning has {} payments on case {}",
+                    render(paymentFeeLink), bulkScanStatus.get(), ccdCaseNumber);
+                return UNALLOCATED_BULK_SCAN_PAYMENT_ON_CASE;
+            }
+
+            log.info("{} has no unallocated bulk scan payments on case {} ({})", render(paymentFeeLink),
+                ccdCaseNumber, bulkScanStatus.map(PaymentStatus::toString).orElse("no payments"));
+        }
+
+        log.info("{} eligible for cancellation as bulk scanning has no unallocated payments on case(s) {}",
+            render(paymentFeeLink), ccdCaseNumbers);
+
+        return Eligibility.eligible();
+    }
+
+    /**
+     * The CCD case numbers a service request belongs to: its own, and those on its fees and payments.
+     *
+     * <p>A service request created as a payment group (for example by paybubble) often has its case number only on
+     * its fees, not on {@code payment_fee_link}, and the case page finds it that way. So all of them are checked. The
+     * service request's own case number comes first.</p>
+     *
+     * @param paymentFeeLink the service request
+     * @return the distinct, non-blank case numbers, in order; empty when there are none
+     */
+    public Set<String> ccdCaseNumbers(PaymentFeeLink paymentFeeLink) {
+
+        Stream<String> own = Stream.of(paymentFeeLink.getCcdCaseNumber());
+
+        Stream<String> fees = Optional.ofNullable(paymentFeeLink.getFees()).orElse(List.of()).stream().map(PaymentFee::getCcdCaseNumber);
+
+        Stream<String> payments = Optional.ofNullable(paymentFeeLink.getPayments()).orElse(List.of()).stream().map(Payment::getCcdCaseNumber);
+
+        Set<String> ccdCaseNumbers = new LinkedHashSet<>();
+
+        Stream.of(own, fees, payments).flatMap(s -> s)
+            .filter(Objects::nonNull)
+            .map(String::trim)
+            .filter(s -> !s.isEmpty())
+            .forEach(ccdCaseNumbers::add);
+
+        return ccdCaseNumbers;
+    }
+
+    String render(PaymentFeeLink sr) {
+        return "Service Request (id=%s, payment_reference=%s, ccd_case_number=%s)"
+            .formatted(sr.getId(), sr.getPaymentReference(), sr.getCcdCaseNumber());
+    }
+
+}

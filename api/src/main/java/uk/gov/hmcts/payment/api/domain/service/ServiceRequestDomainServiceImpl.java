@@ -32,6 +32,7 @@ import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestPaymentDtoDomainMapp
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestBo;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestOnlinePaymentBo;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
+import uk.gov.hmcts.payment.api.domain.service.ServiceRequestCancellationEligibilityService.Eligibility;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentResponse;
@@ -47,6 +48,7 @@ import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
 import uk.gov.hmcts.payment.api.exception.LiberataServiceTimeoutException;
+import uk.gov.hmcts.payment.api.exceptions.ServiceRequestCancellationException;
 import uk.gov.hmcts.payment.api.exceptions.ServiceRequestReferenceNotFoundException;
 import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
@@ -60,6 +62,9 @@ import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.model.StatusHistory;
+import uk.gov.hmcts.payment.api.jpaaudit.model.AuditEventsType;
+import uk.gov.hmcts.payment.api.jpaaudit.model.PaymentAuditHistory;
+import uk.gov.hmcts.payment.api.jpaaudit.model.PaymentAuditHistoryRepository;
 import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.service.FeePayApportionService;
@@ -70,6 +75,7 @@ import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.servicebus.TopicClientProxy;
 import uk.gov.hmcts.payment.api.servicebus.TopicClientService;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
+import uk.gov.hmcts.payment.api.util.ServiceRequests;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentGroupNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoAmountDue;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoMatchingAmount;
@@ -148,6 +154,12 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     private PaymentFeeLinkRepository paymentFeeLinkRepository;
 
     @Autowired
+    private ServiceRequestCancellationEligibilityService cancellationEligibilityService;
+
+    @Autowired
+    private PaymentAuditHistoryRepository paymentAuditHistoryRepository;
+
+    @Autowired
     private IdempotencyKeysRepository idempotencyKeysRepository;
 
     @Autowired
@@ -198,10 +210,15 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
 
     }
 
+    @Transactional
     @Override
     public ResponseEntity<OnlineCardPaymentResponse> create(OnlineCardPaymentRequest onlineCardPaymentRequest, String serviceRequestReference, String returnUrl, String serviceCallbackURL) throws CheckDigitException {
+
         // Find service request
-        PaymentFeeLink serviceRequest = paymentFeeLinkRepository.findByPaymentReference(serviceRequestReference).orElseThrow(() -> new ServiceRequestReferenceNotFoundException("Order reference doesn't exist"));
+        PaymentFeeLink serviceRequest = paymentFeeLinkRepository.findByPaymentReferenceForUpdate(serviceRequestReference)
+            .orElseThrow(() -> new ServiceRequestReferenceNotFoundException("Order reference doesn't exist"));
+
+        ServiceRequests.requireNotCancelled(serviceRequest);
 
         LOG.info("returnURL {}",returnUrl);
 
@@ -253,10 +270,18 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
 
     @Transactional
     @Override
-    public ServiceRequestPaymentBo addPayments(PaymentFeeLink serviceRequest, String serviceRequestReference,
+    public ServiceRequestPaymentBo addPayments(String serviceRequestReference,
                                                ServiceRequestPaymentDto serviceRequestPaymentDto) throws CheckDigitException {
 
         LOG.info("PBA add payment started");
+
+        PaymentFeeLink serviceRequest = paymentFeeLinkRepository.findByPaymentReferenceForUpdate(serviceRequestReference)
+            .orElseThrow(() -> new ServiceRequestReferenceNotFoundException("Service request not found"));
+
+        ServiceRequests.requireNotCancelled(serviceRequest);
+
+        businessValidationForServiceRequests(serviceRequest, serviceRequestPaymentDto);
+
         ServiceRequestPaymentBo serviceRequestPaymentBo = serviceRequestPaymentDtoDomainMapper.toDomain(serviceRequestPaymentDto);
         serviceRequestPaymentBo.setStatus(PaymentStatus.CREATED.getName());
         Payment payment = serviceRequestPaymentDomainDataEntityMapper.toEntity(serviceRequestPaymentBo, serviceRequest);
@@ -360,6 +385,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     }
 
     public PaymentFeeLink businessValidationForServiceRequests(PaymentFeeLink serviceRequest, ServiceRequestPaymentDto serviceRequestPaymentDto) {
+
         //Business validation for amount
         Optional<BigDecimal> totalCalculatedAmount = serviceRequest.getFees().stream().map(paymentFee -> paymentFee.getCalculatedAmount()).reduce(BigDecimal::add);
         if (totalCalculatedAmount.isPresent() && (totalCalculatedAmount.get().compareTo(serviceRequestPaymentDto.getAmount()) != 0)) {
@@ -618,4 +644,49 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         }
         return allowCancel;
     }
+
+    /**
+     * @param serviceRequestReference reference of the service request to cancel
+     * @param cancelledBy             identifier of the user or service requesting the cancellation
+     * @param reason                  cancellation reason
+     */
+    @Override
+    @Transactional
+    public void cancel(String serviceRequestReference, String cancelledBy, String reason) {
+
+        PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.findByPaymentReferenceForUpdate(serviceRequestReference)
+            .orElseThrow(() -> {
+                LOG.warn("Service request {} not found, so cannot be cancelled", serviceRequestReference);
+                return new ServiceRequestReferenceNotFoundException("Service request not found");
+            });
+
+        // check again if already cancelled now locked
+        if (paymentFeeLink.isCancelled()) {
+            LOG.info("{} is already cancelled after lock", paymentFeeLink);
+            return;
+        }
+
+        Eligibility eligibility = cancellationEligibilityService.checkEligibility(paymentFeeLink);
+        if (!eligibility.cancellable()) {
+            LOG.warn("{} cannot be cancelled: {}", paymentFeeLink, eligibility.reason());
+            throw new ServiceRequestCancellationException(eligibility.reason());
+        }
+
+        paymentFeeLink.setCancelled(true);
+        paymentFeeLink.setCancelledBy(cancelledBy);
+        paymentFeeLink.setCancellationReason(reason);
+        paymentFeeLink.setDateCancelled(new Date());
+
+        AuditEventsType auditEventsType = AuditEventsType.ORDER_CANCELLED;
+
+        paymentAuditHistoryRepository.save(PaymentAuditHistory.paymentAuditHistoryWith()
+            .ccdCaseNo(cancellationEligibilityService.ccdCaseNumbers(paymentFeeLink).stream().findFirst().orElse(null))
+            .auditType(auditEventsType)
+            .auditPayload(paymentFeeLink.toString())
+            .auditDescription(auditEventsType.getDescription())
+            .build());
+
+        LOG.info("{} cancelled by {}", paymentFeeLink, cancelledBy);
+    }
+
 }

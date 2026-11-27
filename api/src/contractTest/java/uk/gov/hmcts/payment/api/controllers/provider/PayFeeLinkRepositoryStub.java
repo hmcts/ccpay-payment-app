@@ -43,6 +43,11 @@ public class PayFeeLinkRepositoryStub implements PaymentFeeLinkRepository {
     }
 
     @Override
+    public Optional<PaymentFeeLink> findByIdForUpdate(Integer id) {
+        return findById(id);
+    }
+
+    @Override
     public boolean existsById(Integer integer) {
         return false;
     }
@@ -96,12 +101,28 @@ public class PayFeeLinkRepositoryStub implements PaymentFeeLinkRepository {
     }
 
     @Override
+    public Optional<PaymentFeeLink> findByPaymentReferenceForUpdate(String paymentReference) {
+        return Optional.empty();
+    }
+
+    @Override
     public Optional<PaymentFeeLink> findByPaymentReferenceAndCcdCaseNumber(String id, String ccdCaseNumber) {
         return Optional.empty();
     }
 
     @Override
+    public Optional<PaymentFeeLink> findByPaymentReferenceAndCcdCaseNumberForUpdate(String paymentReference,
+                                                                               String ccdCaseNumber) {
+        return Optional.empty();
+    }
+
+    @Override
     public Optional<PaymentFeeLink> findByPaymentReferenceAndFeeId(String id, Integer feeId) {
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<PaymentFeeLink> findByPaymentReferenceAndFeeIdForUpdate(String paymentReference, Integer feeId) {
         return Optional.empty();
     }
 

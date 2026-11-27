@@ -3,7 +3,6 @@ package uk.gov.hmcts.payment.api.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
-import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -11,12 +10,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultMatcher;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -32,11 +34,15 @@ import uk.gov.hmcts.payment.api.domain.service.ServiceRequestDomainService;
 import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.dto.PaymentReference;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
+import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestCancelDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestFeeDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
+import uk.gov.hmcts.payment.api.exception.BulkScanningNotConfiguredException;
+import uk.gov.hmcts.payment.api.exception.LiberataServiceTimeoutException;
+import uk.gov.hmcts.payment.api.exceptions.ServiceRequestCancellationException;
 import uk.gov.hmcts.payment.api.exceptions.ServiceRequestReferenceNotFoundException;
 import uk.gov.hmcts.payment.api.external.client.GovPayClient;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
@@ -56,14 +62,22 @@ import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.GatewayTimeoutException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoAmountDue;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoMatchingAmount;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.math.BigDecimal;
 import java.util.*;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -113,6 +127,8 @@ public class ServiceRequestControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    // The controller tests in this class mock the domain service. See ServiceRequestComponentTest
+    // for the equivalent test using the real service and database.
     @MockitoBean
     ServiceRequestDomainService serviceRequestDomainService;
 
@@ -199,7 +215,7 @@ public class ServiceRequestControllerTest {
         ResponseEntity<ServiceRequestPaymentBo> responseEntity3 =
             new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.PRECONDITION_FAILED);
 
-        when(serviceRequestDomainService.addPayments(any(),any(),any())).thenReturn(serviceRequestPaymentBo);
+        when(serviceRequestDomainService.addPayments(anyString(),any())).thenReturn(serviceRequestPaymentBo);
 
         when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),eq(IdempotencyKeys.ResponseStatusType.pending),any(),any())).thenReturn(responseEntity,responseEntity,responseEntity2,responseEntity3);
         when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),eq(IdempotencyKeys.ResponseStatusType.completed),any(),any())).thenReturn(responseEntity,responseEntity,responseEntity2,responseEntity3);
@@ -307,7 +323,7 @@ public class ServiceRequestControllerTest {
         ResponseEntity<ServiceRequestPaymentBo> responseEntity3 =
             new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.PRECONDITION_FAILED);
 
-        when(serviceRequestDomainService.addPayments(any(),any(),any())).thenReturn(serviceRequestPaymentBo);
+        when(serviceRequestDomainService.addPayments(anyString(),any())).thenReturn(serviceRequestPaymentBo);
 
         when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),eq(IdempotencyKeys.ResponseStatusType.pending),any(),any())).thenReturn(responseEntity,responseEntity,responseEntity2,responseEntity3);
         when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),eq(IdempotencyKeys.ResponseStatusType.completed),any(),any())).thenReturn(responseEntity,responseEntity,responseEntity2,responseEntity3);
@@ -367,7 +383,7 @@ public class ServiceRequestControllerTest {
         ResponseEntity<ServiceRequestPaymentBo> responseEntity =
             new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.CREATED);
 
-        when(serviceRequestDomainService.addPayments(any(),any(),any())).thenReturn(serviceRequestPaymentBo);
+        when(serviceRequestDomainService.addPayments(anyString(),any())).thenReturn(serviceRequestPaymentBo);
 
         when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),eq(IdempotencyKeys.ResponseStatusType.pending),any(),any())).thenReturn(responseEntity);
         when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),eq(IdempotencyKeys.ResponseStatusType.completed),any(),any())).thenReturn(responseEntity);
@@ -438,7 +454,7 @@ public class ServiceRequestControllerTest {
         ResponseEntity<ServiceRequestPaymentBo> responseEntity3 =
             new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.PRECONDITION_FAILED);
 
-        when(serviceRequestDomainService.addPayments(any(),any(),any())).thenReturn(serviceRequestPaymentBo);
+        when(serviceRequestDomainService.addPayments(anyString(),any())).thenReturn(serviceRequestPaymentBo);
 
         when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),eq(IdempotencyKeys.ResponseStatusType.pending),any(),any())).thenReturn(responseEntityPending,responseEntityPending, responseEntityPending, responseEntityPending);
         when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),eq(IdempotencyKeys.ResponseStatusType.completed),any(),any())).thenReturn(responseEntity,responseEntity,responseEntity2,responseEntity3);
@@ -505,7 +521,7 @@ public class ServiceRequestControllerTest {
         ResponseEntity<ServiceRequestPaymentBo> responseEntityCompleted =
             new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\",\"response_status\":\"completed\"}}", ServiceRequestPaymentBo.class), HttpStatus.CREATED);
 
-        when(serviceRequestDomainService.addPayments(any(),any(),any())).thenReturn(serviceRequestPaymentBo);
+        when(serviceRequestDomainService.addPayments(anyString(),any())).thenReturn(serviceRequestPaymentBo);
 
         when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),eq(IdempotencyKeys.ResponseStatusType.pending),any(),any())).thenReturn(responseEntityPending);
         when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),eq(IdempotencyKeys.ResponseStatusType.completed),any(),any())).thenReturn(responseEntityCompleted);
@@ -525,8 +541,6 @@ public class ServiceRequestControllerTest {
 
     @Test
     public void createPBAPaymentWithServiceRequestTimeOutTest() throws Exception {
-        when(accountService.retrieve("PBA12346")).thenThrow(CallNotPermittedException.class);
-
         String serviceRequestReference = getServiceRequestReference();
 
         //ServiceRequest Payment DTO
@@ -545,37 +559,32 @@ public class ServiceRequestControllerTest {
             status("failed").
             build();
 
-        ResponseEntity<ServiceRequestPaymentBo> responseEntity =
-            new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.GATEWAY_TIMEOUT);
-
-        when(serviceRequestDomainService.addPayments(any(),any(),any())).thenReturn(serviceRequestPaymentBoSample);
+        String timeoutMessage = "Unable to retrieve account information due to timeout";
+        ResponseEntity<String> responseEntity = new ResponseEntity<>(timeoutMessage, HttpStatus.GATEWAY_TIMEOUT);
+        when(serviceRequestDomainService.addPayments(eq(serviceRequestReference), any()))
+            .thenThrow(new LiberataServiceTimeoutException(timeoutMessage));
+        when(serviceRequestDomainService.createIdempotencyRecord(
+            any(), anyString(), eq(serviceRequestReference), eq(timeoutMessage),
+            eq(IdempotencyKeys.ResponseStatusType.completed), any(), any())).thenReturn(responseEntity);
 
         ServiceRequestResponseDto serviceRequestResponseDtoSample = ServiceRequestResponseDto.serviceRequestResponseDtoWith()
             .serviceRequestReference("2021-1632746723494").build();
 
         when(serviceRequestDomainService.create(any(),any())).thenReturn(serviceRequestResponseDtoSample);
 
-        when(serviceRequestDomainService.businessValidationForServiceRequests(any(),any())).
-            thenThrow(new AccountServiceUnavailableException("Unable to retrieve account information due to timeout"));
-
         MvcResult result = restActions
             .post("/service-request/" + serviceRequestReference + "/pba-payments", serviceRequestPaymentDto)
             .andExpect(status().isGatewayTimeout())
+            .andExpect(content().string(timeoutMessage))
             .andReturn();
 
-        assertTrue(result.getResponse().
-            getContentAsString().
-            contains("Unable to retrieve account information due to timeout"));
-
-        //Duplicate request for timeout
         MvcResult result1 = restActions
             .post("/service-request/" + serviceRequestReference + "/pba-payments", serviceRequestPaymentDto)
             .andExpect(status().isGatewayTimeout())
+            .andExpect(content().string(timeoutMessage))
             .andReturn();
 
-        assertTrue(result1.getResponse().
-            getContentAsString().
-            contains("Unable to retrieve account information due to timeout"));
+        verify(serviceRequestDomainService, times(2)).addPayments(eq(serviceRequestReference), any());
     }
 
     @Test
@@ -634,7 +643,7 @@ public class ServiceRequestControllerTest {
         ResponseEntity<ServiceRequestPaymentBo> responseEntity2 =
             new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.CREATED);
 
-        when(serviceRequestDomainService.addPayments(any(),any(),any())).thenReturn(serviceRequestPaymentBo, serviceRequestPaymentBo2);
+        when(serviceRequestDomainService.addPayments(anyString(),any())).thenReturn(serviceRequestPaymentBo, serviceRequestPaymentBo2);
 
         when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),eq(IdempotencyKeys.ResponseStatusType.pending),any(),any())).thenReturn(responseEntity,responseEntity2);
         when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),eq(IdempotencyKeys.ResponseStatusType.completed),any(),any())).thenReturn(responseEntity,responseEntity2);
@@ -717,7 +726,7 @@ public class ServiceRequestControllerTest {
         ResponseEntity<ServiceRequestPaymentBo> responseEntity2 =
             new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.CREATED);
 
-        when(serviceRequestDomainService.addPayments(any(),any(),any())).thenReturn(serviceRequestPaymentBo,serviceRequestPaymentBo2);
+        when(serviceRequestDomainService.addPayments(anyString(),any())).thenReturn(serviceRequestPaymentBo,serviceRequestPaymentBo2);
 
         when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),eq(IdempotencyKeys.ResponseStatusType.pending),any(),any())).thenReturn(responseEntity,responseEntity2);
         when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),eq(IdempotencyKeys.ResponseStatusType.completed),any(),any())).thenReturn(responseEntity,responseEntity2);
@@ -764,7 +773,7 @@ public class ServiceRequestControllerTest {
         ResponseEntity<ServiceRequestPaymentBo> responseEntity =
             new ResponseEntity<>(serviceRequestPaymentBo, HttpStatus.PRECONDITION_FAILED);
 
-        when(serviceRequestDomainService.addPayments(any(), any(), any())).thenReturn(serviceRequestPaymentBo);
+        when(serviceRequestDomainService.addPayments(any(), any())).thenReturn(serviceRequestPaymentBo);
         when(serviceRequestDomainService.createIdempotencyRecord(any(), any(), any(), any(),
             eq(IdempotencyKeys.ResponseStatusType.pending), any(), any())).thenReturn(responseEntity);
         when(serviceRequestDomainService.createIdempotencyRecord(any(), any(), any(), any(),
@@ -829,7 +838,7 @@ public class ServiceRequestControllerTest {
         ResponseEntity<ServiceRequestPaymentBo> responseEntity2 =
             new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.CREATED);
 
-        when(serviceRequestDomainService.addPayments(any(),any(),any())).thenReturn(serviceRequestPaymentBo,serviceRequestPaymentBo2);
+        when(serviceRequestDomainService.addPayments(anyString(),any())).thenReturn(serviceRequestPaymentBo,serviceRequestPaymentBo2);
 
         when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),eq(IdempotencyKeys.ResponseStatusType.pending),any(),any())).thenReturn(responseEntity,responseEntity2);
         when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),eq(IdempotencyKeys.ResponseStatusType.completed),any(),any())).thenReturn(responseEntity,responseEntity2);
@@ -898,7 +907,7 @@ public class ServiceRequestControllerTest {
         ResponseEntity<ServiceRequestPaymentBo> responseEntity2 =
             new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.CREATED);
 
-        when(serviceRequestDomainService.addPayments(any(),any(),any())).thenReturn(serviceRequestPaymentBo,serviceRequestPaymentBo2);
+        when(serviceRequestDomainService.addPayments(anyString(),any())).thenReturn(serviceRequestPaymentBo,serviceRequestPaymentBo2);
 
         when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),eq(IdempotencyKeys.ResponseStatusType.pending),any(),any())).thenReturn(responseEntity,responseEntity2);
         when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),eq(IdempotencyKeys.ResponseStatusType.completed),any(),any())).thenReturn(responseEntity,responseEntity2);
@@ -943,7 +952,7 @@ public class ServiceRequestControllerTest {
             status("failed").
             build();
 
-        when(serviceRequestDomainService.addPayments(any(),any(),any())).thenReturn(serviceRequestPaymentBoSample);
+        when(serviceRequestDomainService.addPayments(anyString(),any())).thenReturn(serviceRequestPaymentBoSample);
 
         ResponseEntity<ServiceRequestPaymentBo> responseEntity =
             new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.NOT_FOUND);
@@ -954,27 +963,28 @@ public class ServiceRequestControllerTest {
         when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),eq(IdempotencyKeys.ResponseStatusType.pending),any(),any())).thenReturn(responseEntity,responseEntity2);
         when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),eq(IdempotencyKeys.ResponseStatusType.completed),any(),any())).thenReturn(responseEntity,responseEntity2);
 
-        when(serviceRequestDomainService.businessValidationForServiceRequests(any(),any())).
-            thenThrow(new AccountNotFoundException("Account information could not be found"),
+        when(serviceRequestDomainService.addPayments(anyString(), any()))
+            .thenThrow(new AccountNotFoundException("Account information could not be found"),
                 new AccountServiceUnavailableException("Unable to retrieve account information, please try again later"));
+        when(serviceRequestDomainService.createIdempotencyRecord(
+            any(), anyString(), anyString(), any(), eq(IdempotencyKeys.ResponseStatusType.completed), any(), any()))
+            .thenAnswer(invocation -> invocation.getArgument(5));
 
-        // 1. Account not found exception
+        // Account lookup failures during payment creation retain the controller's existing 500 mapping.
         restActions
             .post("/service-request/" + ServiceRequestReference + "/pba-payments", serviceRequestPaymentDto)
-            .andExpect(status().isNotFound())
-            .andExpect(ServiceRequestException -> assertTrue(ServiceRequestException.getResolvedException() instanceof AccountNotFoundException))
-            .andExpect(ServiceRequestException -> assertTrue(ServiceRequestException.getResolvedException().getMessage().contains("Account information could not be found")))
+            .andExpect(status().isInternalServerError())
+            .andExpect(content().string("Account information could not be found"))
             .andReturn();
 
-        //AccountServiceUnAvailableException
+        // Account service unavailable
         serviceRequestPaymentDto.setAccountNumber("PBA2222"); //Account for runtime exception
 
         serviceRequestPaymentDto.setIdempotencyKey(UUID.randomUUID().toString());
         restActions
             .post("/service-request/" + ServiceRequestReference + "/pba-payments", serviceRequestPaymentDto)
-            .andExpect(status().isGatewayTimeout())
-            .andExpect(serviceRequestException -> assertTrue(serviceRequestException.getResolvedException() instanceof AccountServiceUnavailableException))
-            .andExpect(serviceRequestException -> assertTrue(serviceRequestException.getResolvedException().getMessage().contains("Unable to retrieve account information, please try again later")))
+            .andExpect(status().isInternalServerError())
+            .andExpect(content().string("Unable to retrieve account information, please try again later"))
             .andReturn();
     }
 
@@ -992,20 +1002,8 @@ public class ServiceRequestControllerTest {
             .customerReference("testCustReference").
                 build();
 
-        ServiceRequestPaymentBo serviceRequestPaymentBoSample = ServiceRequestPaymentBo.serviceRequestPaymentBoWith().
-            paymentReference("reference").
-            status("failed").
-            build();
-
-        when(serviceRequestDomainService.addPayments(any(),any(),any())).thenReturn(serviceRequestPaymentBoSample);
-
-        ResponseEntity<ServiceRequestPaymentBo> responseEntity =
-            new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.NOT_FOUND);
-
-        when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any(),any())).thenReturn(responseEntity);
-
-        when(serviceRequestDomainService.businessValidationForServiceRequests(any(),any())).
-            thenThrow(new ServiceRequestReferenceNotFoundException("ServiceRequest reference doesn't exist"));
+        when(serviceRequestDomainService.addPayments(eq(serviceRequestReferenceNotPresent), any()))
+            .thenThrow(new ServiceRequestReferenceNotFoundException("ServiceRequest reference doesn't exist"));
 
         //Payment amount should not be matching with fees
         MvcResult result = restActions
@@ -1016,6 +1014,8 @@ public class ServiceRequestControllerTest {
             .andExpect(orderException -> assertTrue(orderException.getResolvedException() instanceof ServiceRequestReferenceNotFoundException))
             .andExpect(orderException -> assertEquals("ServiceRequest reference doesn't exist", orderException.getResolvedException().getMessage()))
             .andReturn();
+        verify(serviceRequestDomainService, never()).createIdempotencyRecord(
+            any(), anyString(), anyString(), any(), eq(IdempotencyKeys.ResponseStatusType.completed), any(), any());
 
         //Equality test
         ServiceRequestPaymentDto serviceRequestPaymentDto2 = ServiceRequestPaymentDto
@@ -1072,7 +1072,7 @@ public class ServiceRequestControllerTest {
             .organisationName("sommin")
             .idempotencyKey(UUID.randomUUID().toString())
             .customerReference("testCustReference").
-                build();
+            build();
 
         ServiceRequestPaymentBo serviceRequestPaymentBoSample = ServiceRequestPaymentBo.serviceRequestPaymentBoWith().
             paymentReference("reference").
@@ -1082,7 +1082,7 @@ public class ServiceRequestControllerTest {
         ResponseEntity<ServiceRequestPaymentBo> responseEntity =
             new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.EXPECTATION_FAILED);
 
-        when(serviceRequestDomainService.addPayments(any(),any(),any())).thenReturn(serviceRequestPaymentBoSample);
+        when(serviceRequestDomainService.addPayments(anyString(), any())).thenReturn(serviceRequestPaymentBoSample);
 
         when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any(),any())).thenReturn(responseEntity);
 
@@ -1095,6 +1095,122 @@ public class ServiceRequestControllerTest {
             .andExpect(status().isExpectationFailed())
             .andReturn();
 
+    }
+
+    @Test
+    public void createPBAPaymentForCancelledServiceRequestReturnsConflictAndCompletesIdempotency() throws Exception {
+        ServiceRequestPaymentDto serviceRequestPaymentDto = paymentRequestDto();
+        assertPbaFailureIsRecorded(
+            getServiceRequestReference(),
+            serviceRequestPaymentDto,
+            new ServiceRequestCancellationException(),
+            HttpStatus.CONFLICT
+        );
+    }
+
+    @Test
+    public void completedPbaCancellationIsReplayedAsStoredMessage() throws Exception {
+
+        HttpStatus status = HttpStatus.CONFLICT;
+
+        String serviceRequestReference = getServiceRequestReference();
+        ServiceRequestPaymentDto paymentDto = paymentRequestDto();
+        String message = "Stored cancellation message for " + status.value();
+        IdempotencyKeys completedRecord = IdempotencyKeys.idempotencyKeysWith()
+            .idempotencyKey(paymentDto.getIdempotencyKey())
+            .requestHashcode(paymentDto.hashCodeWithServiceRequestReference(serviceRequestReference))
+            .responseStatus(IdempotencyKeys.ResponseStatusType.completed)
+            .responseCode(status.value())
+            .responseBody(message)
+            .build();
+        when(idempotencyKeysRepository.findByIdempotencyKey(paymentDto.getIdempotencyKey()))
+            .thenReturn(Optional.of(completedRecord));
+
+        restActions
+            .post("/service-request/" + serviceRequestReference + "/pba-payments", paymentDto)
+            .andExpect(status().is(status.value()))
+            .andExpect(errorMessage(message));
+
+        verify(serviceRequestDomainService, never()).addPayments(eq(serviceRequestReference), any());
+    }
+
+    private void assertPbaFailureIsRecorded(String serviceRequestReference, ServiceRequestPaymentDto paymentDto,
+                                            RuntimeException exception, HttpStatus expectedStatus) throws Exception {
+        String idempotencyKey = paymentDto.getIdempotencyKey();
+        String message = exception.getMessage();
+        ResponseEntity<String> expectedResponse = new ResponseEntity<>(message, expectedStatus);
+        when(serviceRequestDomainService.addPayments(eq(serviceRequestReference), any(ServiceRequestPaymentDto.class))).thenThrow(exception);
+        when(serviceRequestDomainService.createIdempotencyRecord(
+            any(), eq(idempotencyKey), eq(serviceRequestReference), eq(message),
+            eq(IdempotencyKeys.ResponseStatusType.completed), eq(expectedResponse), any(ServiceRequestPaymentDto.class)))
+            .thenReturn(expectedResponse);
+
+        restActions
+            .post("/service-request/" + serviceRequestReference + "/pba-payments", paymentDto)
+            .andExpect(status().is(expectedStatus.value()))
+            .andExpect(content().string(message));
+
+        verify(serviceRequestDomainService).createIdempotencyRecord(
+            any(), eq(idempotencyKey), eq(serviceRequestReference), eq(message),
+            eq(IdempotencyKeys.ResponseStatusType.completed), eq(expectedResponse), any(ServiceRequestPaymentDto.class));
+    }
+
+    private ServiceRequestPaymentDto paymentRequestDto() {
+        return ServiceRequestPaymentDto.paymentDtoWith()
+            .accountNumber("PBA12345")
+            .amount(BigDecimal.valueOf(100))
+            .currency("GBP")
+            .idempotencyKey(UUID.randomUUID().toString())
+            .organisationName("test")
+            .customerReference("test-customer")
+            .build();
+    }
+
+    @Test
+    public void businessValidationNoAmountDueReturnsPreconditionFailedWithoutCompletingIdempotencyRecord() throws Exception {
+        assertBusinessValidationExceptionIsPropagated(
+            new ServiceRequestExceptionForNoAmountDue("The serviceRequest has already been paid"),
+            HttpStatus.PRECONDITION_FAILED
+        );
+    }
+
+    @Test
+    public void businessValidationAmountMismatchReturnsExpectationFailedWithoutCompletingIdempotencyRecord() throws Exception {
+        assertBusinessValidationExceptionIsPropagated(
+            new ServiceRequestExceptionForNoMatchingAmount("The amount should be equal to serviceRequest balance"),
+            HttpStatus.EXPECTATION_FAILED
+        );
+    }
+
+    private void assertBusinessValidationExceptionIsPropagated(RuntimeException exception, HttpStatus expectedStatus) throws Exception {
+        String serviceRequestReference = getServiceRequestReference();
+        String idempotencyKey = UUID.randomUUID().toString();
+        ServiceRequestPaymentDto paymentDto = ServiceRequestPaymentDto.paymentDtoWith()
+            .accountNumber("PBA12345")
+            .amount(BigDecimal.valueOf(300))
+            .currency("GBP")
+            .idempotencyKey(idempotencyKey)
+            .organisationName("test")
+            .customerReference("test")
+            .build();
+
+        when(serviceRequestDomainService.addPayments(
+            eq(serviceRequestReference), any(ServiceRequestPaymentDto.class)))
+            .thenThrow(exception);
+
+        restActions
+            .post("/service-request/" + serviceRequestReference + "/pba-payments", paymentDto)
+            .andExpect(status().is(expectedStatus.value()))
+            .andExpect(content().string(exception.getMessage()));
+
+        verify(serviceRequestDomainService).createIdempotencyRecord(
+            any(ObjectMapper.class), eq(idempotencyKey), eq(serviceRequestReference), isNull(),
+            eq(IdempotencyKeys.ResponseStatusType.pending), isNull(), any(ServiceRequestPaymentDto.class));
+        verify(serviceRequestDomainService, never()).createIdempotencyRecord(
+            any(ObjectMapper.class), eq(idempotencyKey), eq(serviceRequestReference), anyString(),
+            eq(IdempotencyKeys.ResponseStatusType.completed), any(ResponseEntity.class), any(ServiceRequestPaymentDto.class));
+        verify(serviceRequestDomainService).addPayments(
+            eq(serviceRequestReference), any(ServiceRequestPaymentDto.class));
     }
 
     @Test
@@ -1189,6 +1305,268 @@ public class ServiceRequestControllerTest {
             .post("/service-request", serviceRequestDto)
             .andExpect(status().isGatewayTimeout())
             .andExpect(content().string("Test Error"));
+    }
+
+    @Test
+    public void cancelServiceRequestDelegatesToDomainService() throws Exception {
+        // This verifies controller delegation only; database persistence is covered by ServiceRequestComponentTest.
+        String serviceRequestReference = "2021-1621352112222";
+        String reason = "The service request was created in error";
+        ServiceRequestCancelDto cancellation = ServiceRequestCancelDto.cancelDtoWith()
+            .reason(reason)
+            .build();
+
+        manualCancellationRestActions()
+            .post("/service-request/" + serviceRequestReference + "/cancel", cancellation)
+            .andExpect(status().isNoContent());
+
+        verify(serviceRequestDomainService).cancel(eq(serviceRequestReference), eq(UserResolverBackdoor.CASEWORKER_ID), eq(reason));
+    }
+
+    @Test
+    public void cancelServiceRequestWithoutASystemUserForBulkScanningIsServiceUnavailable() throws Exception {
+        String serviceRequestReference = "2021-1621352112222";
+        String message = "Unable to check bulk scanning for unallocated payments as no system user is configured";
+        doThrow(new BulkScanningNotConfiguredException(message))
+            .when(serviceRequestDomainService).cancel(eq(serviceRequestReference), anyString(), anyString());
+
+        serviceOnlyRestActions()
+            .post("/service-request/" + serviceRequestReference + "/cancel")
+            .andExpect(status().isServiceUnavailable())
+            .andExpect(errorMessage(message));
+    }
+
+    @Test
+    public void cancelServiceRequestFromAutomatedServiceAllowsMissingBody() throws Exception {
+        String serviceRequestReference = "2021-1621352112222";
+        var result = serviceOnlyRestActions()
+            .post("/service-request/" + serviceRequestReference + "/cancel")
+            .andReturn();
+
+        assertThat(result.getResponse().getStatus()).isEqualTo(204);
+        verify(serviceRequestDomainService).cancel(eq(serviceRequestReference), eq("divorce"), eq("Auto-Cancelled by Service"));
+    }
+
+    @Test
+    public void cancelServiceRequestFromAutomatedServiceAcceptsSuppliedReason() throws Exception {
+        String serviceRequestReference = "2021-1621352112222";
+        String reason = "The service request was created in error";
+        ServiceRequestCancelDto cancellation = ServiceRequestCancelDto.cancelDtoWith()
+            .reason(reason)
+            .build();
+
+        var result = serviceOnlyRestActions()
+            .post("/service-request/" + serviceRequestReference + "/cancel", cancellation)
+            .andReturn();
+
+        assertThat(result.getResponse().getStatus()).isEqualTo(204);
+        verify(serviceRequestDomainService).cancel(eq(serviceRequestReference), eq("divorce"), eq(reason));
+    }
+
+    @Test
+    public void cancelServiceRequestFromAutomatedServiceRejectsBlankSuppliedReason() throws Exception {
+        String serviceRequestReference = "2021-1621352112222";
+        ServiceRequestCancelDto cancellation = ServiceRequestCancelDto.cancelDtoWith()
+            .reason(" ")
+            .build();
+
+        serviceOnlyRestActions()
+            .post("/service-request/" + serviceRequestReference + "/cancel", cancellation)
+            .andExpect(status().isBadRequest())
+            .andExpect(errorMessage("Cancellation reason must have a value when a body is supplied"));
+
+        verify(serviceRequestDomainService, never()).cancel(anyString(), anyString(), any());
+    }
+
+    @Test
+    public void cancelServiceRequestRejectsBlankSuppliedReason() throws Exception {
+        String serviceRequestReference = "2021-1621352112222";
+        ServiceRequestCancelDto cancellation = ServiceRequestCancelDto.cancelDtoWith()
+            .reason(" ")
+            .build();
+
+        manualCancellationRestActions()
+            .post("/service-request/" + serviceRequestReference + "/cancel", cancellation)
+            .andExpect(status().isBadRequest())
+            .andExpect(errorMessage("Cancellation reason needs to be supplied for manual service request cancellation"));
+
+        verify(serviceRequestDomainService, never()).cancel(anyString(), anyString(), any());
+    }
+
+    @Test
+    public void cancelServiceRequestRejectsMissingManualBody() throws Exception {
+        String serviceRequestReference = "2021-1621352112222";
+
+        manualCancellationRestActions()
+            .post("/service-request/" + serviceRequestReference + "/cancel")
+            .andExpect(status().isBadRequest())
+            .andExpect(errorMessage("Cancellation reason needs to be supplied for manual service request cancellation"));
+
+        verify(serviceRequestDomainService, never()).cancel(anyString(), anyString(), any());
+    }
+
+    @Test
+    public void cancelServiceRequestRejectsReasonLongerThanColumn() throws Exception {
+        String serviceRequestReference = "2021-1621352112222";
+        ServiceRequestCancelDto cancellation = ServiceRequestCancelDto.cancelDtoWith()
+            .reason("x".repeat(256))
+            .build();
+
+        manualCancellationRestActions()
+            .post("/service-request/" + serviceRequestReference + "/cancel", cancellation)
+            .andExpect(status().isBadRequest())
+            .andExpect(errorMessage("Cancellation reason must not exceed 255 characters"));
+
+        verify(serviceRequestDomainService, never()).cancel(anyString(), anyString(), any());
+    }
+
+    @Test
+    public void cancelServiceRequestRejectsMalformedReference() throws Exception {
+        for (String serviceRequestReference : List.of("banana", "2026-", "2026-12345a", "26-1750000000000", "2026_1750000000000")) {
+            serviceOnlyRestActions()
+                .post("/service-request/" + serviceRequestReference + "/cancel")
+                .andExpect(status().isBadRequest())
+                .andExpect(errorMessage("Invalid service request reference format"));
+        }
+
+        verify(serviceRequestDomainService, never()).cancel(anyString(), anyString(), any());
+    }
+
+    @Test
+    public void cancelServiceRequestAcceptsGeneratedReferenceFormat() throws Exception {
+        // Current references have 13 digits after the year (longer than the \d{4}-\d{11} in the specs);
+        // 2018-2019 references have 11
+        for (String serviceRequestReference : List.of("2026-1750004025265", "2019-15500000000")) {
+            serviceOnlyRestActions()
+                .post("/service-request/" + serviceRequestReference + "/cancel")
+                .andExpect(status().isNoContent());
+
+            verify(serviceRequestDomainService).cancel(eq(serviceRequestReference), eq("divorce"), eq("Auto-Cancelled by Service"));
+        }
+    }
+
+    @Test
+    public void cancelServiceRequestRejectsUnknownBodyFields() throws Exception {
+        String serviceRequestReference = "2021-1621352112222";
+        Map<String, String> cancellation = Map.of(
+            "reason", "The service request was created in error",
+            "unexpected", "value");
+
+        serviceOnlyRestActions()
+            .post("/service-request/" + serviceRequestReference + "/cancel", cancellation)
+            .andExpect(status().isBadRequest())
+            .andExpect(errorMessage("Unknown field(s) in request body: unexpected"));
+
+        verify(serviceRequestDomainService, never()).cancel(anyString(), anyString(), any());
+    }
+
+    @Test
+    public void cancelServiceRequestRejectsMalformedJsonBody() throws Exception {
+        // RestActions serialises its request body, so the malformed JSON is sent with MockMvc directly.
+        String serviceRequestReference = "2021-1621352112222";
+        String serviceToken = UUID.randomUUID().toString();
+        serviceRequestAuthorizer.registerToken(serviceToken, "divorce");
+
+        webAppContextSetup(webApplicationContext).apply(springSecurity()).build()
+            .perform(MockMvcRequestBuilders.post("/service-request/" + serviceRequestReference + "/cancel")
+                .header("ServiceAuthorization", serviceToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"reason\": "))
+            .andExpect(status().isBadRequest());
+
+        verify(serviceRequestDomainService, never()).cancel(anyString(), anyString(), any());
+    }
+
+    @Test
+    public void cancelServiceRequestAcceptsReasonAtColumnLimit() throws Exception {
+        String serviceRequestReference = "2021-1621352112222";
+        String reason = "x".repeat(255);
+        ServiceRequestCancelDto cancellation = ServiceRequestCancelDto.cancelDtoWith()
+            .reason(reason)
+            .build();
+
+        manualCancellationRestActions()
+            .post("/service-request/" + serviceRequestReference + "/cancel", cancellation)
+            .andExpect(status().isNoContent());
+
+        verify(serviceRequestDomainService).cancel(eq(serviceRequestReference), eq(UserResolverBackdoor.CASEWORKER_ID), eq(reason));
+    }
+
+    @Test
+    public void cancelServiceRequestRejectsManualBodyWithNullReason() throws Exception {
+        String serviceRequestReference = "2021-1621352112222";
+        ServiceRequestCancelDto cancellation = ServiceRequestCancelDto.cancelDtoWith()
+            .reason(null)
+            .build();
+
+        manualCancellationRestActions()
+            .post("/service-request/" + serviceRequestReference + "/cancel", cancellation)
+            .andExpect(status().isBadRequest())
+            .andExpect(errorMessage("Cancellation reason needs to be supplied for manual service request cancellation"));
+
+        verify(serviceRequestDomainService, never()).cancel(anyString(), anyString(), any());
+    }
+
+    /**
+     * Payment App's error responses carry the message as unquoted plain text (see RestErrorHandler). It is labelled
+     * application/json because RestActions sends "Accept: application/json", but it is not valid JSON. The body is
+     * compared as a string, because jsonPath("$") would pass by parsing the unquoted text leniently, and so would not
+     * show what clients get. If the errors become real JSON, this is the one place to change in this class.
+     */
+    private static ResultMatcher errorMessage(String message) {
+        return ResultMatcher.matchAll(
+            content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON),
+            content().string(message));
+    }
+
+    private RestActions serviceOnlyRestActions() {
+        return new RestActions(
+            webAppContextSetup(webApplicationContext).apply(springSecurity()).build(),
+            serviceRequestAuthorizer, userRequestAuthorizer, objectMapper
+        ).withAuthorizedService("divorce");
+    }
+
+    private RestActions manualCancellationRestActions() {
+        return new RestActions(
+            webAppContextSetup(webApplicationContext).apply(springSecurity()).build(),
+            serviceRequestAuthorizer, userRequestAuthorizer, objectMapper
+        )
+            .withAuthorizedService("divorce")
+            .withAuthorizedUser(UserResolverBackdoor.CASEWORKER_ID);
+    }
+
+    @Test
+    public void cancelServiceRequestReturnsConflictWhenCancellationIsRejected() throws Exception {
+        String serviceRequestReference = "2021-1621352112222";
+        String reason = "Service request cannot be cancelled";
+        ServiceRequestCancelDto cancellation = ServiceRequestCancelDto.cancelDtoWith()
+            .reason("The service request was created in error")
+            .build();
+
+        doThrow(new ServiceRequestCancellationException(reason)).when(serviceRequestDomainService)
+            .cancel(eq(serviceRequestReference), anyString(), anyString());
+
+        manualCancellationRestActions()
+            .post("/service-request/" + serviceRequestReference + "/cancel", cancellation)
+            .andExpect(status().isConflict())
+            .andExpect(errorMessage(reason));
+    }
+
+    @Test
+    public void serviceRequestExceptionStillReturnsBadRequest() throws Exception {
+        String serviceRequestReference = "2021-1621352112222";
+        String reason = "Existing service request error";
+        ServiceRequestCancelDto cancellation = ServiceRequestCancelDto.cancelDtoWith()
+            .reason("The service request was created in error")
+            .build();
+
+        doThrow(new ServiceRequestException(reason)).when(serviceRequestDomainService)
+            .cancel(eq(serviceRequestReference), anyString(), anyString());
+
+        manualCancellationRestActions()
+            .post("/service-request/" + serviceRequestReference + "/cancel", cancellation)
+            .andExpect(status().isBadRequest())
+            .andExpect(content().string(reason));
     }
 
 
@@ -1395,7 +1773,7 @@ public class ServiceRequestControllerTest {
 
         when(serviceRequestDomainService.create(any(),any())).thenReturn(serviceRequestResponseDtoSample);
 
-        when(serviceRequestDomainService.addPayments(any(),any(),any())).
+        when(serviceRequestDomainService.addPayments(anyString(),any())).
             thenThrow(new AccountServiceUnavailableException("Unable to retrieve account information, please try again later"));
 
         ResponseEntity<ServiceRequestPaymentBo> responseEntityPending =

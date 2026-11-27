@@ -43,6 +43,18 @@ public class PaymentFeeLink {
     @Column(name = "date_updated", nullable = false)
     private Date dateUpdated;
 
+    @Column(name = "cancelled", nullable = false)
+    private boolean cancelled;
+
+    @Column(name = "cancellation_reason")
+    private String cancellationReason;
+
+    @Column(name = "cancelled_by", length = 64)
+    private String cancelledBy;
+
+    @Column(name = "date_cancelled")
+    private Date dateCancelled;
+
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "payment_link_id", referencedColumnName = "id", nullable = false)
     @ToString.Exclude

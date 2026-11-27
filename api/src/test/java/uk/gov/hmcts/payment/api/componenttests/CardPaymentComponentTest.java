@@ -3,7 +3,6 @@ package uk.gov.hmcts.payment.api.componenttests;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.test.annotation.DirtiesContext;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
@@ -26,9 +25,6 @@ import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 @DirtiesContext(classMode= DirtiesContext.ClassMode.BEFORE_CLASS)
 @Slf4j
 public class CardPaymentComponentTest extends TestUtil {
-
-    @Autowired
-    protected PaymentFeeRepository paymentFeeRepository;
 
     @Test
     public void testSaveOfSinglePaymentWithSingleFee() {
@@ -138,6 +134,10 @@ public class CardPaymentComponentTest extends TestUtil {
         assertEquals(payment3.getAmount(), new BigDecimal(3000000));
     }
 
+    /**
+     * Test that a fee ID selects the correct service request when references are duplicated.
+     * Use each saved request's own fee ID so the test does not depend on database row order.
+     */
     @Test
     public void testRetrieveCardPaymentWithDuplicatePaymentReferenceUsingFeeId() throws Exception {
 
@@ -153,10 +153,8 @@ public class CardPaymentComponentTest extends TestUtil {
             .fees(PaymentsDataUtil.getFeesData2())
             .build());
 
-        List<PaymentFee> fees = paymentFeeRepository.findAll();
-
-        PaymentFeeLink foundPayment1 = findByPaymentReferenceAndOrFeeId("00000006", fees.get(1).getId());
-        PaymentFeeLink foundPayment2 = findByPaymentReferenceAndOrFeeId("00000006", fees.get(5).getId());
+        PaymentFeeLink foundPayment1 = findByPaymentReferenceAndOrFeeId("00000006", paymentFeeLink.getFees().getFirst().getId());
+        PaymentFeeLink foundPayment2 = findByPaymentReferenceAndOrFeeId("00000006", paymentFeeLink2.getFees().getFirst().getId());
 
         Payment payment1 = foundPayment1.getPayments().get(0);
         assertNotNull(payment1.getId());

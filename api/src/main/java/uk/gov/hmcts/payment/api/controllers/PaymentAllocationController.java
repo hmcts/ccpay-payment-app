@@ -51,6 +51,8 @@ public class PaymentAllocationController {
     @PostMapping(value = "/payment-allocations")
     public ResponseEntity<PaymentAllocationDto> addNewFee(@Valid @RequestBody PaymentAllocationDto paymentAllocationDto) {
 
+        // Note, no service request cancellation check required here
+
         PaymentFeeLink paymentFeeLink = paymentService.retrievePayment(paymentAllocationDto.getPaymentReference());
         Optional<Payment> payment = paymentFeeLink.getPayments().stream()
             .filter(p -> p.getReference().equals(paymentAllocationDto.getPaymentReference())).findAny();
