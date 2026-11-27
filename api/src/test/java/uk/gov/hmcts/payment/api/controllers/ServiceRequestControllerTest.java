@@ -56,6 +56,8 @@ import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.GatewayTimeoutException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoAmountDue;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoMatchingAmount;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.math.BigDecimal;
@@ -64,6 +66,8 @@ import java.util.*;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -1095,6 +1099,55 @@ public class ServiceRequestControllerTest {
             .andExpect(status().isExpectationFailed())
             .andReturn();
 
+    }
+
+    @Test
+    public void businessValidationNoAmountDueReturnsPreconditionFailedWithoutCompletingIdempotencyRecord() throws Exception {
+        assertBusinessValidationExceptionIsPropagated(
+            new ServiceRequestExceptionForNoAmountDue("The serviceRequest has already been paid"),
+            HttpStatus.PRECONDITION_FAILED
+        );
+    }
+
+    @Test
+    public void businessValidationAmountMismatchReturnsExpectationFailedWithoutCompletingIdempotencyRecord() throws Exception {
+        assertBusinessValidationExceptionIsPropagated(
+            new ServiceRequestExceptionForNoMatchingAmount("The amount should be equal to serviceRequest balance"),
+            HttpStatus.EXPECTATION_FAILED
+        );
+    }
+
+    private void assertBusinessValidationExceptionIsPropagated(RuntimeException exception, HttpStatus expectedStatus) throws Exception {
+        String serviceRequestReference = getServiceRequestReference();
+        String idempotencyKey = UUID.randomUUID().toString();
+        ServiceRequestPaymentDto paymentDto = ServiceRequestPaymentDto.paymentDtoWith()
+            .accountNumber("PBA12345")
+            .amount(BigDecimal.valueOf(300))
+            .currency("GBP")
+            .idempotencyKey(idempotencyKey)
+            .organisationName("test")
+            .customerReference("test")
+            .build();
+
+        when(serviceRequestDomainService.find(serviceRequestReference))
+            .thenReturn(PaymentFeeLink.paymentFeeLinkWith().build());
+        when(serviceRequestDomainService.businessValidationForServiceRequests(
+            any(PaymentFeeLink.class), any(ServiceRequestPaymentDto.class)))
+            .thenThrow(exception);
+
+        restActions
+            .post("/service-request/" + serviceRequestReference + "/pba-payments", paymentDto)
+            .andExpect(status().is(expectedStatus.value()))
+            .andExpect(content().string(exception.getMessage()));
+
+        verify(serviceRequestDomainService).createIdempotencyRecord(
+            any(ObjectMapper.class), eq(idempotencyKey), eq(serviceRequestReference), isNull(),
+            eq(IdempotencyKeys.ResponseStatusType.pending), isNull(), any(ServiceRequestPaymentDto.class));
+        verify(serviceRequestDomainService, never()).createIdempotencyRecord(
+            any(ObjectMapper.class), eq(idempotencyKey), eq(serviceRequestReference), anyString(),
+            eq(IdempotencyKeys.ResponseStatusType.completed), any(ResponseEntity.class), any(ServiceRequestPaymentDto.class));
+        verify(serviceRequestDomainService, never()).addPayments(
+            any(PaymentFeeLink.class), eq(serviceRequestReference), eq(paymentDto));
     }
 
     @Test
