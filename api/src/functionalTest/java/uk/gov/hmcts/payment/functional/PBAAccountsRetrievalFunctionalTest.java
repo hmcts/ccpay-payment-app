@@ -51,8 +51,6 @@ public class PBAAccountsRetrievalFunctionalTest {
 
     @Test
     public void retrieveActivePbaAccountDetails() {
-        Assume.assumeTrue(!testProps.baseTestUrl.contains("payment-api-pr-"));
-
         String accountNumber = testProps.probatePbaAccountNumber;
 
         // Get pba account by PBA number
@@ -65,8 +63,6 @@ public class PBAAccountsRetrievalFunctionalTest {
 
     @Test
     public void retrieveOnHoldPbaAccountDetails() {
-        Assume.assumeTrue(!testProps.baseTestUrl.contains("payment-api-pr-"));
-
         String accountNumber = testProps.onHoldAccountNumber;
 
         // Get pba account by PBA number
@@ -79,8 +75,6 @@ public class PBAAccountsRetrievalFunctionalTest {
 
     @Test
     public void retrieveDeletedPbaAccountDetails() {
-        Assume.assumeTrue(!testProps.baseTestUrl.contains("payment-api-pr-"));
-
         String accountNumber = testProps.deletedAccountNumber;
 
         // Get pba account by PBA number
@@ -93,8 +87,6 @@ public class PBAAccountsRetrievalFunctionalTest {
 
     @Test
     public void retrieveNonExistedPbaAccountDetails() {
-        Assume.assumeTrue(!testProps.baseTestUrl.contains("payment-api-pr-"));
-
         String accountNumber = testProps.fakeAccountNumber;
 
         // Get pba account by PBA number

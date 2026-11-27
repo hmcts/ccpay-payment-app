@@ -43,12 +43,14 @@ import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
     import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentResponse;
     import uk.gov.hmcts.payment.api.dto.PaymentStatusDto;
     import uk.gov.hmcts.payment.api.dto.ServiceRequestResponseDto;
+    import uk.gov.hmcts.payment.api.dto.liberata.identity.TokenResponse;
     import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
     import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
     import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
     import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
     import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
-    import uk.gov.hmcts.payment.api.exception.LiberataServiceTimeoutException;
+import uk.gov.hmcts.payment.api.exception.IACServiceException;
+import uk.gov.hmcts.payment.api.exception.LiberataServiceTimeoutException;
     import uk.gov.hmcts.payment.api.exceptions.PaymentServiceNotFoundException;
     import uk.gov.hmcts.payment.api.model.FeePayApportion;
     import uk.gov.hmcts.payment.api.model.IdempotencyKeys;
@@ -57,6 +59,7 @@ import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
     import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
     import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
     import uk.gov.hmcts.payment.api.service.FeePayApportionService;
+    import uk.gov.hmcts.payment.api.service.LiberataRealTimeAPI;
     import uk.gov.hmcts.payment.api.service.PaymentService;
     import uk.gov.hmcts.payment.api.service.FeesService;
     import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotSuccessException;
@@ -65,7 +68,6 @@ import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
     import java.io.IOException;
     import java.util.List;
     import java.util.Optional;
-    import java.util.concurrent.TimeUnit;
     import java.util.function.Function;
     import java.util.stream.Collectors;
 
@@ -102,6 +104,10 @@ public class ServiceRequestController {
 
     @Autowired
     private FeesService feeService;
+
+    @Autowired
+    private LiberataRealTimeAPI liberataIdentity;
+
 
     private String serviceRequestReference;
 
@@ -238,6 +244,10 @@ public class ServiceRequestController {
             LOG.error("PBA-CID={}, serviceRequestReference={}, Exception from Liberata for PBA payment {}", idempotencyKey, serviceRequestReference, liberataServiceTimeoutException);
             responseEntity = new ResponseEntity<>(liberataServiceTimeoutException.getMessage(), HttpStatus.GATEWAY_TIMEOUT);
             responseJson = liberataServiceTimeoutException.getMessage();
+        } catch (IACServiceException iACServiceException) {
+            LOG.error("PBA-CID={}, serviceRequestReference={}, Exception from IAC  for PBA payment {}", idempotencyKey, serviceRequestReference, iACServiceException);
+            responseEntity = new ResponseEntity<>(iACServiceException.getMessage(), HttpStatus.BAD_REQUEST);
+            responseJson = iACServiceException.getMessage();
         } catch (Exception ex) {
             LOG.error("PBA-CID={}, serviceRequestReference={}, Exception from Liberata for PBA payment {}", idempotencyKey, serviceRequestReference, ex);
             responseEntity = new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -374,6 +384,20 @@ public class ServiceRequestController {
     @ExceptionHandler(PaymentServiceNotFoundException.class)
     public String paymentNotSuccess(PaymentServiceNotFoundException ex) {
         return ex.getMessage();
+    }
+
+
+    @Operation(summary = "Get card payment status by Internal Reference", description = "Get payment status for supplied Internal Reference")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Payment status retrieved"),
+        @ApiResponse(responseCode = "404", description = "Internal reference not found"),
+    })
+    @PaymentExternalAPI
+    @GetMapping(value = "/token-test")
+    public TokenResponse retrieveStatusByInternalReference() {
+
+        TokenResponse tokenResponse = liberataIdentity.getValidToken();
+        return tokenResponse;
     }
 
 }
