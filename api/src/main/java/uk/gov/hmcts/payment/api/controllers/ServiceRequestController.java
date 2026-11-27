@@ -204,8 +204,8 @@ public class ServiceRequestController {
     }
 
 
-    private ResponseEntity createPbaPaymentForServiceRequest(String serviceRequestReference,
-                                                            ServiceRequestPaymentDto serviceRequestPaymentDto) throws CheckDigitException, JsonProcessingException {
+    ResponseEntity createPbaPaymentForServiceRequest(String serviceRequestReference,
+                                                     ServiceRequestPaymentDto serviceRequestPaymentDto) throws CheckDigitException, JsonProcessingException {
         // PBA Payment
         val objectMapper = new ObjectMapper();
         ServiceRequestPaymentBo serviceRequestPaymentBo = null;
