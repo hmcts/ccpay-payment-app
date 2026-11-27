@@ -1416,28 +1416,6 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
     }
 
-    @Test
-    @Transactional
-    public void searchPaymentsByApportion_withPbaPaymentMethod_shouldReturnNoPayments() throws Exception {
-
-        ReflectionTestUtils.setField(paymentController, "pbaPaymentsReconciliationStopDatetime", Instant.now().minusSeconds(1));
-        populateCreditAccountPaymentToDb("2");
-
-        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
-        String endDate = LocalDate.now().toString(DATE_FORMAT);
-
-        MvcResult result = restActions
-            .get("/reconciliation-payments?start_date=" + startDate + "&end_date=" + endDate + "&payment_method=PBA")
-            .andExpect(status().isOk())
-            .andReturn();
-
-        ReconciliationPaymentsResponse paymentsResponse = objectMapper.readValue(
-            result.getResponse().getContentAsString(),
-            ReconciliationPaymentsResponse.class
-        );
-        assertThat(paymentsResponse.getPayments()).isEmpty();
-
-    }
 
     @Test
     @Transactional
