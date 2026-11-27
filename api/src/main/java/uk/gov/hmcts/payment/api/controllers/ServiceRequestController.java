@@ -292,10 +292,7 @@ public class ServiceRequestController {
                     return conflictResponse;
                 }
                 int responseCode = idempotencyKeys.getResponseCode();
-                if (responseCode >= 500
-                    || responseCode == HttpStatus.CONFLICT.value()
-                    || responseCode == HttpStatus.PRECONDITION_FAILED.value()
-                    || responseCode == HttpStatus.EXPECTATION_FAILED.value()) {
+                if (responseCode >= 500 || responseCode == HttpStatus.CONFLICT.value()) {
                     return new ResponseEntity<>(idempotencyKeys.getResponseBody(), HttpStatus.valueOf(idempotencyKeys.getResponseCode()));
                 }
                 responseBO = objectMapper.readValue(idempotencyKeys.getResponseBody(), ServiceRequestPaymentBo.class);

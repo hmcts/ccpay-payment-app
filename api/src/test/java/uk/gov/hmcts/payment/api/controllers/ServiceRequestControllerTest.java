@@ -1109,28 +1109,29 @@ public class ServiceRequestControllerTest {
     }
 
     @Test
-    public void completedPbaValidationErrorsAreReplayedAsStoredMessages() throws Exception {
-        for (HttpStatus status : List.of(HttpStatus.CONFLICT, HttpStatus.PRECONDITION_FAILED, HttpStatus.EXPECTATION_FAILED)) {
-            String serviceRequestReference = getServiceRequestReference();
-            ServiceRequestPaymentDto paymentDto = paymentRequestDto();
-            String message = "Stored validation error for " + status.value();
-            IdempotencyKeys completedRecord = IdempotencyKeys.idempotencyKeysWith()
-                .idempotencyKey(paymentDto.getIdempotencyKey())
-                .requestHashcode(paymentDto.hashCodeWithServiceRequestReference(serviceRequestReference))
-                .responseStatus(IdempotencyKeys.ResponseStatusType.completed)
-                .responseCode(status.value())
-                .responseBody(message)
-                .build();
-            when(idempotencyKeysRepository.findByIdempotencyKey(paymentDto.getIdempotencyKey()))
-                .thenReturn(Optional.of(completedRecord));
+    public void completedPbaCancellationIsReplayedAsStoredMessage() throws Exception {
 
-            restActions
-                .post("/service-request/" + serviceRequestReference + "/pba-payments", paymentDto)
-                .andExpect(status().is(status.value()))
-                .andExpect(errorMessage(message));
+        HttpStatus status = HttpStatus.CONFLICT;
 
-            verify(serviceRequestDomainService, never()).addPayments(eq(serviceRequestReference), any());
-        }
+        String serviceRequestReference = getServiceRequestReference();
+        ServiceRequestPaymentDto paymentDto = paymentRequestDto();
+        String message = "Stored cancellation message for " + status.value();
+        IdempotencyKeys completedRecord = IdempotencyKeys.idempotencyKeysWith()
+            .idempotencyKey(paymentDto.getIdempotencyKey())
+            .requestHashcode(paymentDto.hashCodeWithServiceRequestReference(serviceRequestReference))
+            .responseStatus(IdempotencyKeys.ResponseStatusType.completed)
+            .responseCode(status.value())
+            .responseBody(message)
+            .build();
+        when(idempotencyKeysRepository.findByIdempotencyKey(paymentDto.getIdempotencyKey()))
+            .thenReturn(Optional.of(completedRecord));
+
+        restActions
+            .post("/service-request/" + serviceRequestReference + "/pba-payments", paymentDto)
+            .andExpect(status().is(status.value()))
+            .andExpect(errorMessage(message));
+
+        verify(serviceRequestDomainService, never()).addPayments(eq(serviceRequestReference), any());
     }
 
     private void assertPbaFailureIsRecorded(String serviceRequestReference, ServiceRequestPaymentDto paymentDto,
