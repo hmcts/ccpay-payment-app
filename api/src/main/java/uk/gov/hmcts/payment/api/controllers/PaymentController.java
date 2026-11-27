@@ -197,8 +197,7 @@ public class PaymentController {
                                                           @RequestParam(name = "payment_method", required = false) Optional<String> paymentMethodType,
                                                           @RequestParam(name = "service_name", required = false) Optional<String> serviceType,
                                                           @RequestParam(name = "ccd_case_number", required = false) String ccdCaseNumber,
-                                                          @RequestParam(name = "pba_number", required = false) String pbaNumber,
-                                                          @RequestParam(name = "pba_payment_reconciliation_ignore", defaultValue = "false") boolean pbaIgnore
+                                                          @RequestParam(name = "pba_number", required = false) String pbaNumber
     ) {
 
         validatePullRequest(startDateTimeString, endDateTimeString, paymentMethodType, serviceType);
@@ -212,7 +211,7 @@ public class PaymentController {
             .searchByCriteria(
                 getSearchCriteria(paymentMethodType, serviceType, ccdCaseNumber, pbaNumber, fromDateTime, toDateTime)
             );
-        if (pbaIgnore || Instant.now().isAfter(pbaPaymentsReconciliationStopDatetime)) {
+        if (Instant.now().isAfter(pbaPaymentsReconciliationStopDatetime)) {
             payments = excludePbaPayments(payments);
         }
 
@@ -346,9 +345,15 @@ public class PaymentController {
 
     private List<Payment> excludePbaPayments(List<Payment> payments) {
         return payments.stream()
-            .filter(payment -> payment.getPaymentMethod() == null
-                || !PAYMENT_BY_ACCOUNT.equalsIgnoreCase(payment.getPaymentMethod().getName()))
-            .collect(Collectors.toList());
+            .filter(payment ->
+                ( payment.getPaymentMethod() == null || !PAYMENT_BY_ACCOUNT.equalsIgnoreCase(payment.getPaymentMethod().getName()) )
+                && compareDates(payment.getDateUpdated())
+            ).collect(Collectors.toList());
+    }
+
+
+    private boolean compareDates(Date date){
+        return date.after(new Date(pbaPaymentsReconciliationStopDatetime.toEpochMilli()));
     }
 
     private void populatePaymentDtos(final List<PaymentDto> paymentDtos, final PaymentFeeLink paymentFeeLink, Date fromDateTime, Date toDateTime) {
